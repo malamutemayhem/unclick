@@ -19,6 +19,9 @@ async function postmanFetch(
     }
   }
 
+  const POSTMAN_TIMEOUT_MS = Number(process.env.POSTMAN_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POSTMAN_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -26,9 +29,15 @@ async function postmanFetch(
         "X-Api-Key":  apiKey,
         "User-Agent": "UnClick-MCP/1.0",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Postman API request timed out after ${POSTMAN_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Postman API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   const text = await response.text();

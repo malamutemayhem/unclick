@@ -42,8 +42,8 @@ export function getCurrentTime(args: Record<string, unknown>): unknown {
 
 export function convertTimezone(args: Record<string, unknown>): unknown {
   const datetimeStr = String(args.datetime ?? "").trim();
-  const fromTz = String(args.from_tz ?? "").trim();
-  const toTz = String(args.to_tz ?? "").trim();
+  const fromTz = String((args.from_timezone ?? args.from_tz) ?? "").trim();
+  const toTz = String((args.to_timezone ?? args.to_tz) ?? "").trim();
 
   if (!datetimeStr) return { error: "datetime is required (e.g. 2024-06-15T14:30:00)." };
   if (!fromTz) return { error: "from_tz is required (IANA timezone, e.g. America/New_York)." };
@@ -153,11 +153,11 @@ export function addToDate(args: Record<string, unknown>): unknown {
 // ─── get_business_days ────────────────────────────────────────────────────────
 
 export function getBusinessDays(args: Record<string, unknown>): unknown {
-  const start = parseDate(String(args.start_date ?? ""));
-  const end = parseDate(String(args.end_date ?? ""));
+  const start = parseDate(String((args.start ?? args.start_date) ?? ""));
+  const end = parseDate(String((args.end ?? args.end_date) ?? ""));
 
-  if (!start) return { error: `Invalid start_date "${args.start_date}". Use YYYY-MM-DD.` };
-  if (!end) return { error: `Invalid end_date "${args.end_date}". Use YYYY-MM-DD.` };
+  if (!start) return { error: `Invalid start_date "${(args.start ?? args.start_date)}". Use YYYY-MM-DD.` };
+  if (!end) return { error: `Invalid end_date "${(args.end ?? args.end_date)}". Use YYYY-MM-DD.` };
 
   const msPerDay = 86400000;
   const from = start <= end ? start : end;
@@ -174,8 +174,8 @@ export function getBusinessDays(args: Record<string, unknown>): unknown {
   const totalDays = Math.round((to.getTime() - from.getTime()) / msPerDay) + 1;
 
   return {
-    start_date: args.start_date,
-    end_date: args.end_date,
+    start_date: (args.start ?? args.start_date),
+    end_date: (args.end ?? args.end_date),
     business_days: count,
     total_calendar_days: totalDays,
     weekend_days: totalDays - count,

@@ -2,15 +2,21 @@
 // Uses the DeepL REST API via fetch - no external dependencies.
 // Users must supply an auth key from deepl.com. Free keys end with :fx.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): { key: string; base: string } {
-  const key = String(args.auth_key ?? "").trim();
-  if (!key) throw new Error("auth_key is required. Get one at deepl.com/pro-api. Free keys end with :fx.");
+function requireKey(args: Record<string, unknown>): { key: string; base: string } | NotConnectedResult {
+  const key = String(args.auth_key ?? process.env.DEEPL_AUTH_KEY ?? "").trim();
+  if (!key) return notConnectedFor("deepl");
   // Free tier uses api-free.deepl.com, paid uses api.deepl.com
   const base = key.endsWith(":fx") ? "https://api-free.deepl.com/v2" : "https://api.deepl.com/v2";
   return { key, base };
 }
+
+const DEEPL_TIMEOUT_MS = Number(process.env.DEEPL_TIMEOUT_MS) || 15000;
 
 async function dlPost<T>(key: string, base: string, path: string, body: Record<string, string | string[]>): Promise<T> {
   const form = new URLSearchParams();
@@ -18,29 +24,63 @@ async function dlPost<T>(key: string, base: string, path: string, body: Record<s
     if (Array.isArray(v)) v.forEach((item) => form.append(k, item));
     else form.set(k, v);
   });
-  const res = await fetch(`${base}${path}`, {
-    method: "POST",
-    headers: {
-      "DeepL-Auth-Key": key,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEEPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      method: "POST",
+      headers: {
+        "DeepL-Auth-Key": key,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL request timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`DeepL rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`DeepL error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function dlGet<T>(key: string, base: string, path: string): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
-    headers: { "DeepL-Auth-Key": key },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEEPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      headers: { "DeepL-Auth-Key": key },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL request timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`DeepL rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`DeepL error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -49,7 +89,9 @@ async function dlGet<T>(key: string, base: string, path: string): Promise<T> {
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function deeplTranslateText(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const targetLang = String(args.target_lang ?? "").trim().toUpperCase();
   if (!targetLang) throw new Error("target_lang is required (e.g. EN-US, DE, FR, JA).");
 
@@ -83,12 +125,21 @@ export async function deeplTranslateText(args: Record<string, unknown>): Promise
 }
 
 export async function deeplGetUsage(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
-  return dlGet(key, base, "/usage");
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
+  const __res = await dlGet(key, base, "/usage") as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "DeepL",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use deepl_translate_text to translate, or deepl_list_languages for supported languages."],
+  });
 }
 
 export async function deeplListLanguages(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const type = String(args.type ?? "target");
   const res = await fetch(`${base}/languages?type=${encodeURIComponent(type)}`, {
     headers: { "DeepL-Auth-Key": key },
@@ -99,7 +150,9 @@ export async function deeplListLanguages(args: Record<string, unknown>): Promise
 }
 
 export async function deeplTranslateDocument(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const documentUrl = String(args.document_url ?? "").trim();
   const targetLang  = String(args.target_lang ?? "").trim().toUpperCase();
   if (!documentUrl) throw new Error("document_url is required (publicly accessible URL of the document to translate).");

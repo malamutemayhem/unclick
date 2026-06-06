@@ -103,7 +103,7 @@ jobs:
       - name: Restore execute canary daily cap
         id: canary-cap
         if: ${{ github.event_name == 'schedule' && vars.AUTONOMOUS_RUNNER_SCHEDULED_EXECUTE_CANARY == 'true' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: .pinballwake/canary-daily-cap
           key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}
@@ -201,7 +201,7 @@ jobs:
           steps.runner-plan.outputs.execute == 'true' &&
           steps.runner-plan.outputs.skip_runner != 'true' &&
           vars.OPENHANDS_COMMAND == ''
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
       - name: Check execute canary readiness
         if: ${{ steps.runner-plan.outputs.execute == 'true' && steps.runner-plan.outputs.skip_runner != 'true' }}
@@ -253,6 +253,7 @@ jobs:
           AUTONOMOUS_RUNNER_DISABLED: ${{ steps.runner-plan.outputs.disabled }}
           AUTONOMOUS_RUNNER_ALLOW_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
           AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
+          AUTONOMOUS_RUNNER_WRITER: ${{ vars.AUTONOMOUS_RUNNER_WRITER }}
           AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'true' || vars.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE || 'false' }}
           OPENHANDS_TEST_MODE: ${{ steps.runner-plan.outputs.execute == 'true' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
@@ -280,7 +281,7 @@ jobs:
 
       - name: Save execute canary daily cap
         if: ${{ steps.runner-plan.outputs.canary_execute == 'true' && success() }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: .pinballwake/canary-daily-cap
           key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}

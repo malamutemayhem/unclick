@@ -1,22 +1,24 @@
 # UXPass product brief and build plan
 
-A new agent-native UI/UX QC product for UnClick, sister to TestPass. This brief covers research, design, architecture, build plan, pricing, risks, and naming. Australian English. No em dashes anywhere.
+> 2026-05-31 split note: UXPass now owns user journeys, task completion, forms, feedback, recovery, onboarding, and usability. UIPass owns the visible interface checks that used to be mixed into this brief: layout, spacing, typography, mobile fit, visual hierarchy, state styling, screenshots, and polish. The existing `uxpass` runner may still carry legacy visual evidence until UIPass gets a dedicated runner, but product language should keep the split clear.
+
+A new agent-native usability and journey QC product for UnClick, sister to TestPass and UIPass. This brief covers research, design, architecture, build plan, pricing, risks, and naming. Australian English. No em dashes anywhere.
 
 ---
 
 ## 1. Executive summary
 
-UXPass is the UI/UX equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "is this UI optimised to the max, and can a human or an AI agent actually use it well." The product runs a panel of fifteen-plus specialised AI critics (the "hat panel") in parallel against a live URL, a Storybook component, or a Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Fishbowl as todos.
+UXPass is the journey and usability equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "can a human or AI agent understand the task, move through it, recover from mistakes, and finish with confidence." The product runs a panel of specialised critics in parallel against a live URL, Storybook component, or Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Boardroom as todos.
 
-The wedge is unowned. Chromatic, Percy, Applitools, Argos and Lost Pixel all do pixel diffs. Stark, axe and Lighthouse cover accessibility and performance. Hotjar and Clarity show frustration after the fact. None of them grade aesthetic coherence, motion quality, dark pattern density, agent readability, or first-run experience. UXPass owns those five dimensions as the headline composite, then layers conventional Lighthouse and axe results underneath for completeness.
+The wedge is unowned. Hotjar and Clarity show frustration after the fact. Lighthouse, axe, and performance tooling answer useful narrow questions. UXPass focuses on the end-to-end human experience: clear goal, clear first step, low friction, useful feedback, safe recovery, and a confident finish. UIPass owns the separate visible interface lane: layout, spacing, typography, responsive fit, state styling, screenshots, and visual polish.
 
-Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Fishbowl, Crews, BackstagePass and Signals all run UI QC on themselves continuously. Second, the run loop reuses Crews for the multi-hat deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Fishbowl as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
+Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Boardroom, Crews, BackstagePass and Signals all run journey QC on themselves continuously. Second, the run loop reuses Crews for the multi-critic deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Boardroom as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
 
 The build is ten chunks, each one to two days for Bailey or Cowork or Codex Worker 2. Chunks one through six ship a credible MVP (one URL, four hats, one report). Chunks seven through ten add Figma, the creative-edge hats (Agent Readability, Dark Pattern Detector), the marketing site, and the full hat roster.
 
 Pricing sits where TestPass sits: a free tier for indie developers, a Pro tier in the $19 to $39 per project per month band that competes with Vercel Speed Insights and Argos, and a Team tier around $99 per month that aligns with Argos Pro and Hotjar Plus. Enterprise is sales-led with SSO and private hat models.
 
-The slogan: **"Every pixel earns its place."** Sister to TestPass's agent-native QC, sitting in the same UnClick family.
+The slogan: **"Every step earns its place."** Sister to TestPass and UIPass, sitting in the same UnClick family.
 
 ---
 
@@ -55,6 +57,20 @@ Lighthouse CI is the orchestrator. **Unlighthouse** (MIT, github.com/harlan-zw/u
 `@storybook/addon-a11y` (MIT) is the canonical pattern reference for the accessibility panel UX: rule overrides, story-scoped config, deep-linking. The Storybook test runner (MIT, v0.24.2 released Nov 2025, ~270 stars) is the universal Jest-plus-Playwright wrapper for non-Vite Storybooks. `chromaui/chromatic-cli` (MIT, v16.3.0 released April 2025) is a high-quality reference for git-aware change detection and JUnit reporting, but tightly coupled to Chromatic SaaS so its value is patterns rather than drop-in reuse.
 
 Note one caveat: `@axe-core/react` does not officially support React 18 or later. Use axe-core directly.
+
+### 2.5.1 UIPass UI toolbox layer
+
+UIPass now has a curated toolbox registry in `packages/uxpass/src/ui-toolbox.ts`. The rule is simple: use proven foundations first, then add tasteful motion or community components only when they pass gates.
+
+The **core default stack** is shadcn/ui for owned React/Tailwind component files, Radix UI Primitives for accessible interaction behavior, React Aria Components or Base UI when complex accessibility and cross-device behavior matter, Floating UI for positioning, Motion for React for purposeful animation, Lucide React for recognizable icons, and the repo's existing styling helpers (`clsx`, `tailwind-merge`, `class-variance-authority`) for variant hygiene.
+
+The **recommended acceleration stack** is 21st.dev Community Components, Magic UI, Aceternity UI, and Origin UI. These are useful because they give AI seats better starting points than inventing a hero, pricing section, nav, footer, or micro-interaction from scratch. They are not free passes. UIPass must record source provenance, license fit, accessibility behavior, local design-system fit, mobile proof, reduced-motion proof, performance budget, brand fit, and screenshot evidence before implementation counts as approved.
+
+The **specialist stack** is cmdk for command palettes, Sonner for toast feedback, Embla for carousels, and Vaul for mobile drawers. These should only be used when the interaction pattern is genuinely needed. Carousels and drawers in particular must prove keyboard, touch, focus, and reachability.
+
+The **advisory stack** includes UI UX Pro Max style intelligence. It can improve taste, references, and critique prompts, but it cannot be treated as a runtime dependency, component source, license proof, or visual evidence.
+
+Continuous improvement is handled by the UIPass toolbox scoreboard: `approved`, `needs_proof`, `blocked`, `unknown_source`, `by_tier`, and `missing_gate_counts`. Repeated missing gates become improvement jobs. For example, if workers repeatedly miss reduced-motion evidence on Aceternity or Magic UI snippets, UIPass should add a fixture or prompt rule rather than relying on Chris to remind the seat.
 
 ### 2.6 Design token layer
 
@@ -195,14 +211,14 @@ Six baseline packs ship with UXPass on day one, one per existing tool. Each pack
 |---|---|---|
 | TestPass | `internal/testpass-admin.yaml` | `/admin/testpass`, pack list, run detail, pack editor |
 | Memory | `internal/memory-admin.yaml` | `/admin/memory`, fact list, identity panel, session search |
-| Fishbowl | `internal/fishbowl-admin.yaml` | `/admin/fishbowl`, todos kanban, ideas, message feed |
+| Boardroom | `internal/fishbowl-admin.yaml` | `/admin/boardroom`, todos kanban, ideas, message feed |
 | Crews | `internal/crews-admin.yaml` | `/admin/crews`, council view, agent roster, run detail |
 | BackstagePass | `internal/backstagepass-admin.yaml` | `/admin/backstagepass`, vault entries, audit log |
 | Signals | `internal/signals-admin.yaml` | `/admin/signals`, route list, severity feed, channel config |
 
 ### 5.3 Result routing
 
-UXPass results route through three existing UnClick layers. Severity-tagged events go to **Signals** (action_needed for any Critical, warning for High, info for Medium, debug for Low). High-severity findings auto-create **Fishbowl todos** through the Fishbowl bolt-on, mirroring TestPass exactly. Credentials for the Figma API, Browserbase keys, and any LLM provider keys live in **BackstagePass** keyed by tenant.
+UXPass results route through three existing UnClick layers. Severity-tagged events go to **Signals** (action_needed for any Critical, warning for High, info for Medium, debug for Low). High-severity findings auto-create **Boardroom todos** through the Boardroom bolt-on, mirroring TestPass exactly. Credentials for the Figma API, Browserbase keys, and any LLM provider keys live in **BackstagePass** keyed by tenant.
 
 ### 5.4 The external surface remains identical in feel to TestPass
 
@@ -224,7 +240,7 @@ Step three: **Parallel hat execution.** Each hat is a single LLM call with a tig
 
 Step four: **Synthesiser.** A single Synthesiser hat reads all hat verdicts and produces the per-item composite and the UX Score. The Synthesiser also resolves overlap: if Accessibility, Visual Designer and Brand Steward all flag the same low-contrast button, the Synthesiser merges them into one finding with three corroborating sources.
 
-Step five: **Routing.** Findings flow into Signals (severity-tagged) and Fishbowl (high-severity creates a todo). The remediation chips are auto-attached to the todo so an agent picking it up has the suggested fix inline.
+Step five: **Routing.** Findings flow into Signals (severity-tagged) and Boardroom (high-severity creates a todo). The remediation chips are auto-attached to the todo so an agent picking it up has the suggested fix inline.
 
 ### 6.2 Reuse Crews where it makes sense
 
@@ -274,7 +290,7 @@ Identical in feel to TestPass. Identical CLI shape. Identical GitHub Action. Ide
 
 ### 7.1 The admin surface
 
-`/admin/uxpass` mirrors `/admin/testpass`: pack list, recent runs, scores over time, top failing items. The pack editor has a YAML preview pane on the right and a form-driven editor on the left, same as TestPass. The run detail page is where UXPass diverges richer: annotated screenshots with bounding boxes on issues, hat-by-hat verdict cards, the Synthesiser composite, the UX Score with a sub-score breakdown, before/after visual diffs (when a previous run exists), and the remediation chip queue with one-click "send to Fishbowl" buttons.
+`/admin/uxpass` mirrors `/admin/testpass`: pack list, recent runs, scores over time, top failing items. The pack editor has a YAML preview pane on the right and a form-driven editor on the left, same as TestPass. The run detail page is where UXPass diverges richer: annotated screenshots with bounding boxes on issues, hat-by-hat verdict cards, the Synthesiser composite, the UX Score with a sub-score breakdown, before/after visual diffs (when a previous run exists), and the remediation chip queue with one-click "send to Boardroom" buttons.
 
 ### 7.2 The pack format
 
@@ -466,18 +482,18 @@ Name confirmed: **UXPass**. Sister to TestPass. Retains the "Pass" suffix that t
 
 Five candidates, all in UnClick house style: short, punchy, no em dashes, plain English.
 
-1. **"Every pixel earns its place."** Strongest. Implies rigour, taste, and a critic's eye. Pairs with the hat panel concept.
+1. **"Every step earns its place."** Strongest after the UIPass split. Implies the journey is deliberate, recoverable, and clear.
 2. **"Eighteen critics. One score."** Most concrete differentiator stated outright.
 3. **"Where humans and agents both win."** Echoes the UnClick parent slogan ("Where AI belongs. Humans welcome.") and lands the agent-readability angle.
-4. **"Ship UI that ships itself."** Cheeky, agent-native, says "your UI is good enough that an AI agent can sell it for you."
+4. **"Ship journeys people can finish."** Plain, agent-native, and focused on the task instead of the visual layer.
 5. **"UX, before you ship."** Plain, factual. Pairs with the pricing positioning sentence ("UXPass before, Hotjar after").
 
 ### 11.2 Recommendation
 
-Lead public marketing with **"Every pixel earns its place."** Use **"Eighteen critics. One score."** as the supporting subhead. Tagline pair on the marketing page:
+Lead public marketing with **"Every step earns its place."** Use **"Eighteen critics. One score."** as the supporting subhead. Tagline pair on the marketing page:
 
-> Every pixel earns its place.
-> Eighteen specialised AI critics tear apart your UI in parallel and synthesise a verdict before your PR merges.
+> Every step earns its place.
+> Eighteen specialised AI critics walk the journey in parallel and synthesise a verdict before your PR merges.
 
 Tucks the hat panel into a single sentence, keeps the "AI critics" phrase that nobody else can claim today, and lands in the same typographic shape as TestPass.
 
@@ -491,4 +507,4 @@ Second, the agent-readability angle must mature fast. Stagehand v3, browser-use'
 
 Third, the bolt-on architecture must hold. Every UnClick tool QC'ing itself with UXPass is the proof. If TestPass's admin UI ships with a UX Score of 92 and a public report that anyone can replicate, that is more credible than any landing page copy. UnClick eats its own dog food publicly, and UXPass becomes the lens through which everyone sees the family.
 
-The slogan ties it together. **Every pixel earns its place.** Eighteen critics, one score, and the only tool that grades a UI for the humans and the agents who will increasingly browse alongside them.
+The slogan ties it together. **Every step earns its place.** Eighteen critics, one score, and the tool that grades whether humans and agents can understand, recover, and finish the journey.

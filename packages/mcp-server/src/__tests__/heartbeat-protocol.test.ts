@@ -33,13 +33,14 @@ describe("heartbeat_protocol payload", () => {
       "watch_state_key",
     ]);
     expect(protocol.version).toMatch(/^\d{4}-\d{2}-\d{2}\.v\d+$/);
-    expect(protocol.procedure).toHaveLength(18);
+    expect(protocol.procedure).toHaveLength(19);
     expect(protocol.procedure[0]).toContain("full heartbeat policy");
     expect(protocol.procedure[1]).toContain("continuity receipts");
     expect(protocol.procedure[2]).toContain("unclick-builder-tether-seat");
     expect(protocol.procedure[3]).toContain("job hunt");
     expect(protocol.procedure[4]).toContain("0 active jobs");
     expect(protocol.procedure[4]).toContain("queue hydration failure");
+    expect(protocol.procedure[4]).toContain("commonsensepass_check");
     // active_jobs definition is pinned in step 5 (procedure[4]) so the
     // Heartbeat and Orchestrator state_card use the identical query.
     // Stops PASS/BLOCKER from oscillating on identical state (todo a4cd5229).
@@ -65,6 +66,8 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[10]).toContain("Do not stop at NudgeOnly alone");
     expect(protocol.procedure[11]).toContain("read UI");
     expect(protocol.procedure[16]).toContain("missing capability");
+    expect(protocol.procedure[18]).toContain("memory.consolidate");
+    expect(protocol.procedure[18]).toContain("source: 'heartbeat'");
     expect(protocol.alert_format).toEqual({
       heading: "UnClick alert",
       line_template: "owner -- target -- status -- next safe action",
@@ -88,9 +91,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(12)).toBe("2026-05-12.v12");
-    expect(protocol.version).toBe("2026-05-12.v12");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("001d189e68fad33b");
+    expect(formatHeartbeatProtocolVersion(15)).toBe("2026-06-02.v15");
+    expect(protocol.version).toBe("2026-06-02.v15");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("65c8ca2fb099b26b");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );
@@ -102,5 +105,7 @@ describe("heartbeat_protocol payload", () => {
     expect(serialized).not.toContain("secret");
     expect(serialized).not.toContain("api_key");
     expect(serialized).not.toContain("execute mode enabled");
+    expect(serialized).toContain("suppress_noop_heartbeat=true");
+    expect(serialized).toContain("do not post or save");
   });
 });

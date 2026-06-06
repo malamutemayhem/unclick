@@ -7,6 +7,10 @@ export type CommonSensePassProtocol = {
   tool_contract: {
     package_name: string;
     function_name: string;
+    mcp_tools: {
+      check: string;
+      rules: string;
+    };
     input_fields: string[];
     output_fields: string[];
   };
@@ -24,7 +28,7 @@ export type CommonSensePassProtocol = {
 };
 
 export const COMMONSENSEPASS_PROTOCOL_DATE = "2026-05-17";
-export const COMMONSENSEPASS_PROTOCOL_REVISION = 1;
+export const COMMONSENSEPASS_PROTOCOL_REVISION = 2;
 
 export function formatCommonSensePassProtocolVersion(revision: number): string {
   return `${COMMONSENSEPASS_PROTOCOL_DATE}.v${revision}`;
@@ -33,18 +37,23 @@ export function formatCommonSensePassProtocolVersion(revision: number): string {
 const COMMONSENSEPASS_PROTOCOL: CommonSensePassProtocol = {
   version: formatCommonSensePassProtocolVersion(COMMONSENSEPASS_PROTOCOL_REVISION),
   purpose:
-    "CommonSensePass is the read-only sanity gate workers run before claiming healthy, quiet, no_work, pass, done, merge_ready, or duplicate_wake.",
+    "CommonSensePass is the read-only sanity gate workers run before claiming healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
   when_to_run: [
     "Before saying there is no work.",
     "Before saying UnClick is healthy or quiet.",
     "Before marking a job done.",
     "Before treating a PR as merge-ready.",
     "Before suppressing a wake as a duplicate.",
+    "Before keeping work in the current lane when specialist routing evidence exists.",
     "Before emitting a PASS when live queue, PR, or wake evidence may be stale.",
   ],
   tool_contract: {
     package_name: "@unclick/commonsensepass",
     function_name: "commonsensepassCheck",
+    mcp_tools: {
+      check: "commonsensepass_check",
+      rules: "commonsensepass_rules",
+    },
     input_fields: ["claim", "context", "evidence"],
     output_fields: ["verdict", "rule_id", "reason", "evidence", "next_action", "route_to"],
   },
@@ -57,11 +66,12 @@ const COMMONSENSEPASS_PROTOCOL: CommonSensePassProtocol = {
   },
   procedure: [
     "Build a compact evidence packet from live state: queue count, active_jobs count, target todo id, PR head/checks/review state, wake id, wake fingerprint, and fetched_at where available.",
-    "Call commonsensepassCheck with the claim kind and evidence packet before emitting a PASS, BLOCKER, HOLD, SUPPRESS, or ROUTE receipt.",
+    "Call commonsensepass_check from the MCP tool list, or commonsensepassCheck in local package code, with the claim kind and evidence packet before emitting a PASS, BLOCKER, HOLD, SUPPRESS, or ROUTE receipt.",
     "Use deterministic evidence for counts, PR checks, duplicate wake fingerprints, and stale-owner windows. Use model judgment only to choose the claim kind and explain the next safe step.",
     "Treat HOLD as a prompt to fetch missing proof, not as permission to guess.",
     "Treat BLOCKER as a stop sign for the claimed action. Do one safe unblock only if it does not cross protected surfaces.",
     "Treat SUPPRESS as quiet unless another fresh signal is user-visible.",
+    "Treat ROUTE as a handoff instruction only. Name the specialist lane and do not enqueue, assign, or wake from CommonSensePass itself.",
     "For merge_ready, require current PR head, green or neutral checks, mergeable state, and fresh review/safety proof on the same head.",
     "For done, require a target todo and proof that the completing PR, commit, or receipt matches that todo.",
     "For no_work or quiet, require both active_jobs and actionable backlog evidence. If queue hydration failed, return BLOCKER rather than PASS.",

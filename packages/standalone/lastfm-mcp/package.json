@@ -1,0 +1,44 @@
+{
+  "name": "@unclick/lastfm-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/lastfm",
+  "description": "Music charts, artist info, similar artists, and top tracks from Last.fm. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "lastfm",
+    "music",
+    "charts"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "lastfm-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/lastfm-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

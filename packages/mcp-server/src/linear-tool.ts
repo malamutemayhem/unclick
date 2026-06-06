@@ -12,6 +12,9 @@ async function linearQuery(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<unknown> {
+  const LINEAR_TIMEOUT_MS = Number(process.env.LINEAR_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LINEAR_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(LINEAR_API, {
@@ -22,9 +25,15 @@ async function linearQuery(
         "User-Agent":   "UnClick-MCP/1.0",
       },
       body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Linear API request timed out after ${LINEAR_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Linear API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   const text = await response.text();

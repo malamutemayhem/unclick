@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // Turso SQLite Edge DB API integration for the UnClick MCP server.
 // Uses the Turso REST API via fetch - no external dependencies.
 // Users must supply an API key from app.turso.tech.
@@ -25,16 +26,27 @@ async function tursoFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const TURSO_TIMEOUT_MS = Number(process.env.TURSO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TURSO_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Turso API request timed out after ${TURSO_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Turso API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
+
+  if (response.status === 429) return { error: "Turso API rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;
@@ -62,7 +74,16 @@ export async function tursoListDatabases(args: Record<string, unknown>): Promise
   if (!org) return { error: "org is required (your Turso organization name or username)." };
 
   try {
-    return tursoFetch(apiKey, "GET", `${TURSO_API_BASE}/organizations/${encodeURIComponent(org)}/databases`);
+    const defaultsUsed = Array.isArray(args.__unclick_memory_defaults)
+      ? args.__unclick_memory_defaults.filter((v): v is string => typeof v === "string")
+      : [];
+    const __res = await tursoFetch(apiKey, "GET", `${TURSO_API_BASE}/organizations/${encodeURIComponent(org)}/databases`) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Turso",
+      fetched_at: new Date().toISOString(),
+      defaults_used: defaultsUsed,
+      next_steps: ["Use turso_get_database for detail, or turso_list_groups for groups."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

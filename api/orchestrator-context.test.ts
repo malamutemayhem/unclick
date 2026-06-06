@@ -358,6 +358,59 @@ describe("orchestrator context", () => {
     expect(context.seat_handshake.next_prompt).toContain("Australia/Sydney");
   });
 
+  it("surfaces the operator ai_style directive into the seat handoff prompt", () => {
+    const directive =
+      "Operator AI style, always honor unless overridden in-session: keep answers short; explain simply; use bullet points; no emoji.";
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [
+        {
+          id: "bc-ai-style",
+          category: "preference",
+          key: "ai_style",
+          value: {
+            directive,
+            response_length: "short",
+            updated_at: "2026-05-10T00:50:00.000Z",
+          },
+          priority: 99,
+          updated_at: "2026-05-10T00:50:00.000Z",
+        },
+      ],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style?.directive).toBe(directive);
+    expect(context.seat_handshake.next_prompt).toContain(directive);
+  });
+
+  it("omits the ai_style line from the handoff prompt when no preference is set", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style).toBeNull();
+    expect(context.seat_handshake.next_prompt).toContain("Use this compact handoff. Orchestrator");
+  });
+
   it("labels profile-card check-in freshness for AI seats", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-09T12:00:00.000Z",
@@ -1606,5 +1659,154 @@ describe("computeActiveJobsCount (v9 definition)", () => {
     expect(context.response_bounds.continuity_events_available).toBe(8);
     expect(context.response_bounds.continuity_events_truncated).toBe(true);
     expect(context.rolling_snapshot.source_pointers.every((pointer) => pointer.source_id)).toBe(true);
+  });
+});
+
+describe("orchestrator truth reconciliation (Boardroom drift)", () => {
+  const emptySources = {
+    profiles: [],
+    messages: [],
+    comments: [],
+    dispatches: [],
+    signals: [],
+    sessions: [],
+    library: [],
+    businessContext: [],
+    conversationTurns: [],
+  };
+
+  it("flags drift when active_jobs=0 reads healthy while open Boardroom work is queued", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-19T15:45:00.000Z",
+      ...emptySources,
+      todos: [
+        {
+          id: "todo-open",
+          title: "Automation truth-source repair",
+          description: "Open urgent backlog with no fresh owner.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "orchestrator",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T15:00:00.000Z",
+          updated_at: "2026-05-19T15:00:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(reconciliation.authoritative_source).toBe("Boardroom Jobs");
+    expect(reconciliation.boardroom_open_count).toBe(1);
+    expect(reconciliation.boardroom_in_progress_count).toBe(0);
+    expect(reconciliation.boardroom_actionable_count).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("needs_claim");
+    expect(reconciliation.drift_detected).toBe(true);
+    expect(reconciliation.reason_code).toBe("healthy_claim_contradicts_open_backlog");
+    expect(reconciliation.drift_reason).toContain("Boardroom is authoritative");
+    expect(reconciliation.drift_reason).toContain("not healthy");
+  });
+
+  it("flags drift when in_progress work has gone stale so active_jobs underreports it", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      profiles: [
+        {
+          agent_id: "stale-seat",
+          display_name: "Stale Seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-19T00:00:00.000Z",
+        },
+      ],
+      todos: [
+        {
+          id: "todo-stale-active",
+          title: "Proof Ledger v2",
+          description: "In_progress but the owner went quiet beyond the 24h window.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "stale-seat",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-19T01:00:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(0);
+    expect(context.current_state_card.in_progress_todo_count).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("needs_claim");
+    expect(reconciliation.drift_detected).toBe(true);
+    expect(reconciliation.reason_code).toBe("active_count_underreports_in_progress_backlog");
+    expect(reconciliation.drift_reason).toContain("stale in_progress");
+  });
+
+  it("reports no drift when fresh active work exists, even with open backlog", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      profiles: [
+        {
+          agent_id: "fresh-builder",
+          display_name: "Fresh Builder",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-22T03:54:00.000Z",
+        },
+      ],
+      todos: [
+        {
+          id: "todo-open",
+          title: "Queued backlog item",
+          description: "Open work waiting for claim.",
+          status: "open",
+          priority: "high",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T10:44:00.000Z",
+          updated_at: "2026-05-19T10:44:00.000Z",
+        },
+        {
+          id: "todo-active",
+          title: "Fresh active slice",
+          description: "Fresh in-progress active work.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "fresh-builder",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-22T03:15:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("active");
+    expect(reconciliation.reconciled_state).toBe("active_work");
+    expect(reconciliation.drift_detected).toBe(false);
+    expect(reconciliation.reason_code).toBe("no_drift_active");
+  });
+
+  it("reports no drift when Boardroom is genuinely quiet", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      todos: [],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(0);
+    expect(reconciliation.boardroom_actionable_count).toBe(0);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("quiet");
+    expect(reconciliation.drift_detected).toBe(false);
+    expect(reconciliation.reason_code).toBe("no_drift_quiet");
   });
 });

@@ -2,6 +2,9 @@
 // Uses the HeyGen REST API via fetch - no external dependencies.
 // Users must supply an API key from app.heygen.com/settings.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HG_API_BASE = "https://api.heygen.com";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,43 +27,71 @@ interface HeyGenVoice {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.heygen.com/settings.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("heygen", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function hgGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${HG_API_BASE}${path}`, {
-    headers: {
-      "x-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-  });
+  const HEYGEN_TIMEOUT_MS = Number(process.env.HEYGEN_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEYGEN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HG_API_BASE}${path}`, {
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HeyGen request timed out after ${HEYGEN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HeyGen network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("HeyGen rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`HeyGen error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function hgPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${HG_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const HEYGEN_TIMEOUT_MS = Number(process.env.HEYGEN_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEYGEN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HG_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HeyGen request timed out after ${HEYGEN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HeyGen network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("HeyGen rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`HeyGen error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -70,6 +101,7 @@ async function hgPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function heygen_create_avatar_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const avatarId = String(args.avatar_id ?? "").trim();
   const script = String(args.script ?? "").trim();
   if (!avatarId) throw new Error("avatar_id is required.");
@@ -118,6 +150,7 @@ export async function heygen_create_avatar_video(args: Record<string, unknown>):
 
 export async function heygen_list_avatars(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hgGet<{ data?: { avatars?: HeyGenAvatar[] } } & Record<string, unknown>>(
     apiKey, "/v2/avatars"
   );
@@ -136,6 +169,7 @@ export async function heygen_list_avatars(args: Record<string, unknown>): Promis
 
 export async function heygen_get_video_status(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 
@@ -144,7 +178,7 @@ export async function heygen_get_video_status(args: Record<string, unknown>): Pr
   );
 
   const info = data.data ?? data;
-  return {
+  return stampMeta({
     video_id: videoId,
     status: info.status ?? null,
     video_url: info.video_url ?? null,
@@ -153,11 +187,16 @@ export async function heygen_get_video_status(args: Record<string, unknown>): Pr
     created_at: info.created_at ?? null,
     error: info.error ?? null,
     raw: data,
-  };
+  }, {
+    source: "HeyGen",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not completed, poll heygen_get_video_status again; once done, use video_url."],
+  });
 }
 
 export async function heygen_list_voices(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hgGet<{ data?: { voices?: HeyGenVoice[] } } & Record<string, unknown>>(
     apiKey, "/v2/voices"
   );

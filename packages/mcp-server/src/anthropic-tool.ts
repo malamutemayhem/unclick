@@ -4,6 +4,10 @@
 // This tool is useful for agents that need to call Claude (or other models)
 // programmatically, compare model outputs, or chain model calls.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const ANTHROPIC_API_BASE = "https://api.anthropic.com/v1";
 const ANTHROPIC_VERSION = "2023-06-01";
 
@@ -115,29 +119,46 @@ function requireAnthropicSpendAllowed(operation: AnthropicToolOperation, model: 
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.anthropic.com/settings/keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("anthropic", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-async function anthropicPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${ANTHROPIC_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+const ANTHROPIC_TIMEOUT_MS = Number(process.env.ANTHROPIC_TIMEOUT_MS) || 60000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function anthropicPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ANTHROPIC_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ANTHROPIC_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Anthropic API request timed out after ${ANTHROPIC_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Anthropic API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Anthropic API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const type = err?.type ? ` [${err.type}]` : "";
     throw new Error(`Anthropic API error${type}: ${msg}`);
   }
@@ -145,17 +166,34 @@ async function anthropicPost<T>(apiKey: string, path: string, body: unknown): Pr
 }
 
 async function anthropicGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${ANTHROPIC_API_BASE}${path}`, {
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ANTHROPIC_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ANTHROPIC_API_BASE}${path}`, {
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Anthropic API request timed out after ${ANTHROPIC_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Anthropic API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Anthropic API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     throw new Error(`Anthropic API error: ${msg}`);
   }
   return data as T;
@@ -165,6 +203,7 @@ async function anthropicGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function anthropicCreateMessage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "claude-sonnet-4-6");
   const maxTokens = Math.min(8192, Math.max(1, Number(args.max_tokens ?? 1024)));
   requireAnthropicSpendAllowed("chat", model, apiKey);
@@ -219,12 +258,13 @@ export async function anthropicCreateMessage(args: Record<string, unknown>): Pro
 
 export async function anthropicListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAnthropicSpendAllowed("model-listing", "Anthropic /models", apiKey);
   const data = await anthropicGet<{ data: AnthropicModel[]; has_more: boolean; first_id?: string; last_id?: string }>(
     apiKey, "/models"
   );
 
-  return {
+  return stampMeta({
     count: data.data.length,
     has_more: data.has_more,
     models: data.data.map((m) => ({
@@ -232,5 +272,9 @@ export async function anthropicListModels(args: Record<string, unknown>): Promis
       display_name: m.display_name,
       created_at: m.created_at,
     })),
-  };
+  }, {
+    source: "Anthropic",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use anthropic_create_message with a model id."],
+  });
 }

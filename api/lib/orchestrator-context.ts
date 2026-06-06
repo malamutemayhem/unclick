@@ -146,6 +146,17 @@ export interface OrchestratorOperatorTimeContext {
   summary: string;
 }
 
+// Operator AI Style preference (set on /admin/you, stored in mc_business_context
+// under category "preference", key "ai_style"). Mirrors the operator_timezone
+// path: read here and woven into the seat handshake prompt so every hosted seat
+// wake carries the operator's standing style directive. directive is the
+// ready-made imperative string built by buildAiStyleDirective (<= 300 chars).
+export interface OrchestratorAiStyleContext {
+  directive: string;
+  updated_at?: string | null;
+  summary: string;
+}
+
 export interface BuildOrchestratorContextInput {
   generatedAt: string;
   continuityLimit?: number;
@@ -263,6 +274,28 @@ export interface OrchestratorSeatHandshake {
   source_pointers: OrchestratorSourceLink[];
 }
 
+export interface OrchestratorSceneBuilderPacket {
+  packet_id: "receipt-first-scene-builder-v0";
+  job_id: string | null;
+  source_of_truth: "Boardroom Jobs";
+  intent_summary: string;
+  proof_state: "proof_missing" | "proof_required" | "proof_not_needed";
+  blockers: string[];
+  risk_level: "low" | "medium" | "high";
+  next_safe_action: string;
+  stop_conditions: string[];
+  chris_needed: boolean;
+  source_receipts: OrchestratorSourceLink[];
+  memory_lease_expires_at: string;
+  copyroom_required: boolean;
+  copyroom_receipt_contract: {
+    required_when: string[];
+    expected_fields: string[];
+    missing_receipt_blocker: "COPYROOM_MISSING";
+    drift_blocker: "FIDELITY_DRIFT_RISK";
+  };
+}
+
 export interface OrchestratorContext {
   version: "orchestrator-context-v1";
   generated_at: string;
@@ -312,6 +345,11 @@ export interface OrchestratorContext {
     // rule themselves. Verdict-only - this field does not gate any
     // downstream behavior in the builder; consumers act on it.
     health_verdict: CommonSensePassResult;
+    // scene_builder_packet is the Receipt-First Scene Builder v0 card:
+    // a read-only, source-linked worker scene derived from Boardroom truth.
+    // It exposes memory lease expiry and CopyRoom receipt requirements so
+    // seats refresh stale context and avoid exact-copy drift before acting.
+    scene_builder_packet: OrchestratorSceneBuilderPacket;
     harness_card: {
       source_of_truth: "Boardroom Jobs";
       queue_state: "active_work" | "needs_claim" | "quiet";
@@ -326,9 +364,36 @@ export interface OrchestratorContext {
       cleanup_rule: string;
       recovery_path: string;
     };
+    // truth_reconciliation (added by truth-source repair): an explicit,
+    // named drift check that reconciles the orchestrator's implicit health
+    // reading (active_jobs === 0 reads as "healthy/quiet") against the live,
+    // authoritative Boardroom counts (open + in_progress). When a quiet
+    // reading coexists with open or stale in_progress Boardroom work,
+    // drift_detected is true with a reason code, so a seat can never publish
+    // a stale "healthy / 0 active" claim while Boardroom still holds work.
+    // Boardroom is authoritative. This is additive and complements
+    // health_verdict (R1) and harness_card; it does not change them.
+    truth_reconciliation: {
+      authoritative_source: "Boardroom Jobs";
+      boardroom_open_count: number;
+      boardroom_in_progress_count: number;
+      boardroom_actionable_count: number;
+      active_jobs: number;
+      implied_health_reading: "healthy_quiet" | "active";
+      reconciled_state: "quiet" | "active_work" | "needs_claim";
+      drift_detected: boolean;
+      reason_code:
+        | "no_drift_quiet"
+        | "no_drift_active"
+        | "healthy_claim_contradicts_open_backlog"
+        | "active_count_underreports_in_progress_backlog"
+        | "healthy_claim_contradicts_boardroom_backlog";
+      drift_reason: string;
+    };
   };
   profile_cards: OrchestratorProfileCard[];
   human_operator_time: OrchestratorOperatorTimeContext | null;
+  operator_ai_style: OrchestratorAiStyleContext | null;
   continuity_events: OrchestratorContinuityEvent[];
   library_snapshots: OrchestratorLibrarySnapshot[];
   rolling_snapshot: OrchestratorRollingSnapshot;
@@ -452,6 +517,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const profiles = compact ? allProfiles.slice(0, maxSummaries) : allProfiles;
   const activeSeatCount = allProfiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
   const humanOperatorTime = buildOperatorTimeContext(input.businessContext, input.generatedAt);
+  const operatorAiStyle = buildAiStyleContext(input.businessContext);
   const zeroTouchScoreboard = buildZeroTouchScoreboard(input.autopilotEvents ?? []);
 
   const activeTodoRows = input.todos
@@ -564,6 +630,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     continuityEvents,
     rollingSnapshot,
     humanOperatorTime,
+    operatorAiStyle,
   });
 
   return {
@@ -605,14 +672,28 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       blockers,
       zero_touch_scoreboard: zeroTouchScoreboard,
       health_verdict: healthVerdict,
+      scene_builder_packet: buildSceneBuilderPacket({
+        generatedAt: input.generatedAt,
+        activeTodos,
+        activeJobsCount,
+        queuedTodoCount,
+        blockers,
+        healthVerdict,
+      }),
       harness_card: buildHarnessCard({
         activeJobsCount,
         queuedTodoCount,
         healthVerdict,
       }),
+      truth_reconciliation: buildTruthReconciliation({
+        activeJobsCount,
+        queuedTodoCount,
+        inProgressTodoCount,
+      }),
     },
     profile_cards: profiles,
     human_operator_time: humanOperatorTime,
+    operator_ai_style: operatorAiStyle,
     continuity_events: continuityEvents,
     library_snapshots: librarySnapshots,
     rolling_snapshot: rollingSnapshot,
@@ -631,6 +712,72 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       library_snapshots_available: allLibrarySnapshots.length,
       library_snapshots_truncated: allLibrarySnapshots.length > librarySnapshots.length,
     },
+  };
+}
+
+function buildSceneBuilderPacket({
+  generatedAt,
+  activeTodos,
+  activeJobsCount,
+  queuedTodoCount,
+  blockers,
+  healthVerdict,
+}: {
+  generatedAt: string;
+  activeTodos: OrchestratorTodoRow[];
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  blockers: string[];
+  healthVerdict: CommonSensePassResult;
+}): OrchestratorSceneBuilderPacket {
+  const focusTodo = activeTodos.find((todo) => todo.status === "in_progress") ?? activeTodos[0] ?? null;
+  const sourceReceipts = focusTodo
+    ? [
+        {
+          source_kind: "todo" as const,
+          source_id: focusTodo.id,
+          deep_link: `/admin/jobs#todo-${focusTodo.id}`,
+          created_at: focusTodo.updated_at ?? focusTodo.created_at,
+        },
+      ]
+    : [];
+  const proofState =
+    queuedTodoCount > 0 && activeJobsCount === 0
+      ? "proof_missing"
+      : activeJobsCount > 0
+        ? "proof_required"
+        : "proof_not_needed";
+  const riskLevel =
+    healthVerdict.verdict === "BLOCKER" || queuedTodoCount > 0
+      ? "high"
+      : activeJobsCount > 0
+        ? "medium"
+        : "low";
+  const nextSafeAction =
+    proofState === "proof_missing"
+      ? "Claim one scoped Boardroom job or post the exact missing proof/blocker; never mark DONE from status text alone."
+      : proofState === "proof_required"
+        ? "Continue the fresh active job only with named proof, tests, PR, deploy, screenshot, or blocker evidence."
+        : "Stay quiet unless new Boardroom work, proof drift, or a Chris decision appears.";
+  const memoryLeaseExpiresAt = new Date(Date.parse(generatedAt) + ACTIVE_WINDOW_MS).toISOString();
+
+  return {
+    packet_id: "receipt-first-scene-builder-v0",
+    job_id: focusTodo?.id ?? null,
+    source_of_truth: "Boardroom Jobs",
+    intent_summary: focusTodo
+      ? compactText(`${focusTodo.priority} ${focusTodo.status}: ${focusTodo.title}`, 180)
+      : "No visible Boardroom job needs action in this snapshot.",
+    proof_state: proofState,
+    blockers,
+    risk_level: riskLevel,
+    next_safe_action: nextSafeAction,
+    stop_conditions: sceneBuilderStopConditions,
+    chris_needed: blockers.some((blocker) => /human|chris|operator|decision/i.test(blocker)),
+    source_receipts: sourceReceipts,
+    memory_lease_expires_at: memoryLeaseExpiresAt,
+    copyroom_required: focusTodo != null,
+    copyroom_receipt_contract: copyRoomReceiptContract,
   };
 }
 
@@ -724,6 +871,77 @@ function buildHarnessCard({
   };
 }
 
+// Reconcile the orchestrator's implicit health reading against the live,
+// authoritative Boardroom counts. active_jobs === 0 is the reading a naive
+// consumer treats as "healthy/quiet". If that quiet reading coexists with
+// open backlog or stale in_progress work that no fresh owner is carrying,
+// the implicit healthy claim has drifted from Boardroom truth. Boardroom is
+// authoritative, so we flag the drift with an explicit reason code instead
+// of letting the snapshot read as "healthy / 0 active". Pure and additive:
+// derived from the same Boardroom counts used elsewhere on the card.
+function buildTruthReconciliation({
+  activeJobsCount,
+  queuedTodoCount,
+  inProgressTodoCount,
+}: {
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  inProgressTodoCount: number;
+}): OrchestratorContext["current_state_card"]["truth_reconciliation"] {
+  const boardroomActionableCount = queuedTodoCount + inProgressTodoCount;
+  // Stale in_progress: status is in_progress but no fresh owner, so it does
+  // not count toward active_jobs and would otherwise read as invisible/quiet.
+  const staleInProgressCount = Math.max(inProgressTodoCount - activeJobsCount, 0);
+  const impliedHealthReading: "healthy_quiet" | "active" =
+    activeJobsCount > 0 ? "active" : "healthy_quiet";
+  // reconciled_state reflects Boardroom truth, not the naive active_jobs
+  // reading: open backlog OR stale in_progress work both mean "needs_claim",
+  // even when active_jobs is 0 and the snapshot would otherwise read quiet.
+  const reconciledState: "quiet" | "active_work" | "needs_claim" =
+    activeJobsCount > 0
+      ? "active_work"
+      : queuedTodoCount > 0 || staleInProgressCount > 0
+        ? "needs_claim"
+        : "quiet";
+
+  // Drift only matters when the orchestrator implies a healthy/quiet state
+  // (active_jobs === 0) while Boardroom still holds open or stale in_progress
+  // work. When active_jobs > 0 the snapshot is not claiming healthy/quiet.
+  const driftDetected =
+    impliedHealthReading === "healthy_quiet" &&
+    (queuedTodoCount > 0 || staleInProgressCount > 0);
+
+  let reasonCode: OrchestratorContext["current_state_card"]["truth_reconciliation"]["reason_code"];
+  if (!driftDetected) {
+    reasonCode = impliedHealthReading === "active" ? "no_drift_active" : "no_drift_quiet";
+  } else if (queuedTodoCount > 0 && staleInProgressCount > 0) {
+    reasonCode = "healthy_claim_contradicts_boardroom_backlog";
+  } else if (queuedTodoCount > 0) {
+    reasonCode = "healthy_claim_contradicts_open_backlog";
+  } else {
+    reasonCode = "active_count_underreports_in_progress_backlog";
+  }
+
+  const driftReason = driftDetected
+    ? `active_jobs=0 reads as healthy/quiet, but Boardroom holds ${queuedTodoCount} open and ${staleInProgressCount} stale in_progress job(s). Boardroom is authoritative: treat as ${reconciledState}, not healthy.`
+    : impliedHealthReading === "active"
+      ? `active_jobs=${activeJobsCount}; orchestrator is not claiming a healthy/quiet state, so there is no drift against Boardroom.`
+      : "active_jobs=0 and Boardroom has no open or stale in_progress work; the healthy/quiet reading matches Boardroom truth.";
+
+  return {
+    authoritative_source: "Boardroom Jobs",
+    boardroom_open_count: queuedTodoCount,
+    boardroom_in_progress_count: inProgressTodoCount,
+    boardroom_actionable_count: boardroomActionableCount,
+    active_jobs: activeJobsCount,
+    implied_health_reading: impliedHealthReading,
+    reconciled_state: reconciledState,
+    drift_detected: driftDetected,
+    reason_code: reasonCode,
+    drift_reason: driftReason,
+  };
+}
+
 const allowedActions = [
   "claim one unowned scoped job",
   "verify proof on a completed-looking job",
@@ -740,6 +958,30 @@ const requiredProofRules = [
   "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
   "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
 ];
+
+const sceneBuilderStopConditions = [
+  "refresh the memory lease before acting after expiry",
+  "stop if Boardroom source receipts are missing or conflict with Orchestrator narrative",
+  "stop if the next action would close, merge, deploy, touch secrets, billing, DNS, production data, force-push, or hard reset",
+  "stop and post COPYROOM_MISSING or FIDELITY_DRIFT_RISK when exact source material lacks a CopyRoom receipt",
+];
+
+const copyRoomReceiptContract = {
+  required_when: ["exact source text", "code", "tables", "prompts", "labels", "source data"],
+  expected_fields: [
+    "source_kind",
+    "source_uri",
+    "source_hash_or_pointer",
+    "target_uri",
+    "target_hash_or_diff",
+    "copied_ranges_or_refs",
+    "transformed",
+    "worker_agent_id",
+    "timestamp",
+  ],
+  missing_receipt_blocker: "COPYROOM_MISSING",
+  drift_blocker: "FIDELITY_DRIFT_RISK",
+} as const;
 
 const cleanupRule =
   "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.";
@@ -878,11 +1120,13 @@ function buildSeatHandshake({
   continuityEvents,
   rollingSnapshot,
   humanOperatorTime,
+  operatorAiStyle,
 }: {
   profiles: OrchestratorProfileCard[];
   continuityEvents: OrchestratorContinuityEvent[];
   rollingSnapshot: OrchestratorRollingSnapshot;
   humanOperatorTime: OrchestratorOperatorTimeContext | null;
+  operatorAiStyle: OrchestratorAiStyleContext | null;
 }): OrchestratorSeatHandshake {
   const usefulEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const recentProof = usefulEvents.find((event) => event.kind === "proof") ?? null;
@@ -919,6 +1163,17 @@ function buildSeatHandshake({
     ...rollingSnapshot.recent_continuity.slice(0, 4),
   ]);
 
+  // Weave the operator's standing preferences into the seat wake prompt. Both
+  // lines are optional and inert when unset, so the prompt is byte-identical to
+  // before when neither preference exists. operatorAiStyle.directive is the
+  // ready-made imperative string from /admin/you (was previously loaded but
+  // dropped on this path).
+  const operatorTimeLine = humanOperatorTime
+    ? ` Human operator local time is ${humanOperatorTime.summary}.`
+    : "";
+  const aiStyleLine = operatorAiStyle ? ` ${operatorAiStyle.directive}` : "";
+  const nextPrompt = `Use this compact handoff.${operatorTimeLine}${aiStyleLine} Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.`;
+
   return {
     mode: "fresh-seat-pickup",
     summary: compactText(
@@ -937,9 +1192,7 @@ function buildSeatHandshake({
     recent_proof: recentProof?.summary ?? null,
     active_blocker: blocker?.summary ?? null,
     seat_freshness: seatFreshness,
-    next_prompt: humanOperatorTime
-      ? `Use this compact handoff. Human operator local time is ${humanOperatorTime.summary}. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.`
-      : "Use this compact handoff. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.",
+    next_prompt: nextPrompt,
     source_pointers: sourcePointers,
   };
 }
@@ -981,6 +1234,25 @@ function buildOperatorTimeContext(
     updated_at: row.updated_at ?? (typeof value.updated_at === "string" ? value.updated_at : null),
     privacy: "timezone-only",
     summary,
+  };
+}
+
+// Mirror of buildOperatorTimeContext for the AI Style preference. The row is
+// stored by /admin/you with a ready-made `directive` string; before this it was
+// fetched into businessContext but never surfaced into the seat prompt.
+function buildAiStyleContext(
+  rows: OrchestratorBusinessContextRow[],
+): OrchestratorAiStyleContext | null {
+  const row = rows.find((item) => item.category === "preference" && item.key === "ai_style");
+  if (!row) return null;
+  const value = parseBusinessContextValue(row.value);
+  const directiveRaw = typeof value.directive === "string" ? value.directive.trim() : "";
+  if (!directiveRaw) return null;
+  const directive = compactText(directiveRaw, 300);
+  return {
+    directive,
+    updated_at: row.updated_at ?? (typeof value.updated_at === "string" ? value.updated_at : null),
+    summary: directive,
   };
 }
 

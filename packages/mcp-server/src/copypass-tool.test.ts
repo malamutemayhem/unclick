@@ -7,6 +7,16 @@ describe("copypass-tool", () => {
     expect(result.error).toMatch(/copy_text or copyroom_source_packet is required/);
   });
 
+  it("rejects whitespace-only copy_text", async () => {
+    const result = (await copypassRun({
+      copy_text: "   \n\t",
+      profile: "smoke",
+    })) as { error?: string; run_id?: string };
+
+    expect(result.run_id).toBeUndefined();
+    expect(result.error).toContain("COPY_TEXT_EMPTY");
+  });
+
   it("rejects invalid profiles", async () => {
     const result = (await copypassRun({
       copy_text: "Try the new operator stack.",
@@ -15,27 +25,235 @@ describe("copypass-tool", () => {
     expect(result.error).toMatch(/profile must be one of/);
   });
 
-  it("stores an in-memory scaffold run and exposes status", async () => {
+  it("stores an in-memory deterministic run and exposes status", async () => {
     const run = (await copypassRun({
-      copy_text: "Ship the fastest way to turn your chat model into a useful operator.",
+      copy_text: "The ultimate all-in-one solution. Coming soon.",
       channel: "homepage_hero",
       audience: "technical founders",
       goal: "clarity and conversion",
       profile: "smoke",
-    })) as { run_id?: string; status?: string; finding_count?: number; verdict_summary?: { na?: number } };
+    })) as {
+      run_id?: string;
+      status?: string;
+      finding_count?: number;
+      copypass_verdict?: string;
+      checks_attempted?: string[];
+      overall_score?: number;
+      summary?: { counts_by_severity?: { high?: number; info?: number }; coverage_note?: string };
+      verdict_summary?: { fail?: number };
+      findings?: Array<{ check_id?: string }>;
+      receipt?: {
+        kind?: string;
+        pass?: string;
+        status?: string;
+        run_id?: string;
+        receipt_id?: string;
+        finding_count?: number;
+        action_needed?: string[];
+        evidence?: { source?: string; copyroom_receipt_attached?: boolean };
+        boundaries?: string[];
+      };
+    };
 
     expect(run.status).toBe("complete");
-    expect(run.finding_count).toBe(1);
-    expect(run.verdict_summary?.na).toBe(1);
+    expect(run.finding_count).toBeGreaterThan(0);
+    expect(run.copypass_verdict).toBe("fail");
+    expect(run.overall_score).toBeLessThan(100);
+    expect(run.checks_attempted).toContain("internal-consistency");
+    expect(run.summary?.coverage_note).toContain("caller-provided");
+    expect(run.summary?.counts_by_severity?.high).toBeGreaterThan(0);
+    expect(run.summary?.counts_by_severity?.info).toBe(0);
+    expect(run.verdict_summary?.fail).toBeGreaterThan(0);
+    expect(run.findings?.map((finding) => finding.check_id)).toContain("unsupported-superiority");
     expect(run.run_id).toBeTruthy();
+    expect(run.receipt).toMatchObject({
+      kind: "copypass_receipt_v1",
+      pass: "copypass",
+      status: "FAIL",
+      run_id: run.run_id,
+      receipt_id: `copypass:${run.run_id}`,
+      finding_count: run.finding_count,
+      evidence: { source: "caller_provided_copy", copyroom_receipt_attached: false },
+    });
+    expect(run.receipt?.action_needed?.some((item) => item.includes("unsupported-superiority"))).toBe(true);
+    expect(run.receipt?.boundaries?.some((item) => item.includes("Legal, brand, or factual approval"))).toBe(true);
 
     const status = (await copypassStatus({
       run_id: run.run_id,
-    })) as { run_id?: string; status?: string; target?: { channel?: string } };
+    })) as {
+      run_id?: string;
+      status?: string;
+      copypass_verdict?: string;
+      checks_attempted?: string[];
+      summary?: { posture?: string };
+      target?: { channel?: string };
+      findings?: Array<{ check_id?: string }>;
+      receipt?: { kind?: string; status?: string; run_id?: string; receipt_id?: string };
+    };
 
     expect(status.run_id).toBe(run.run_id);
     expect(status.status).toBe("complete");
+    expect(status.copypass_verdict).toBe("fail");
+    expect(status.checks_attempted).toContain("audience-tone-fit");
+    expect(status.summary?.posture).toContain("copy risks");
     expect(status.target?.channel).toBe("homepage_hero");
+    expect(status.findings?.map((finding) => finding.check_id)).toContain("placeholder-copy");
+    expect(status.receipt).toMatchObject({
+      kind: "copypass_receipt_v1",
+      status: "FAIL",
+      run_id: run.run_id,
+      receipt_id: `copypass:${run.run_id}`,
+    });
+  });
+
+  it("detects MCP parity checks for tone fit and internal consistency", async () => {
+    const run = (await copypassRun({
+      copy_text: "Free forever. Paid only after setup fee. This insane billing deal is a no-brainer.",
+      channel: "pricing_section",
+      audience: "technical buyers",
+      goal: "pricing clarity",
+      profile: "deep",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string }>;
+      summary?: { counts_by_severity?: { high?: number; medium?: number } };
+    };
+
+    const checkIds = run.findings?.map((finding) => finding.check_id) ?? [];
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(checkIds).toContain("internal-consistency");
+    expect(checkIds).toContain("audience-tone-fit");
+    expect(run.summary?.counts_by_severity?.high).toBeGreaterThan(0);
+    expect(run.summary?.counts_by_severity?.medium).toBeGreaterThan(0);
+  });
+
+  it("passes clean scoped copy without pretending to certify external truth", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "UnClick helps teams review AI work with shared context, public proof, and green checks. Start a free review.",
+      channel: "homepage_hero",
+      audience: "technical founders",
+      goal: "clarity and trust",
+      profile: "standard",
+    })) as {
+      status?: string;
+      finding_count?: number;
+      copypass_verdict?: string;
+      overall_score?: number;
+      disclaimer?: { compact?: string };
+      not_checked?: Array<{ label?: string }>;
+      receipt?: { status?: string; action_needed?: string[]; boundaries?: string[] };
+    };
+
+    expect(run.status).toBe("complete");
+    expect(run.finding_count).toBe(0);
+    expect(run.copypass_verdict).toBe("pass");
+    expect(run.overall_score).toBe(100);
+    expect(run.disclaimer?.compact).toContain("Scoped review only");
+    expect(run.not_checked?.map((item) => item.label)).toContain("Legal, brand, or factual approval");
+    expect(run.not_checked?.map((item) => item.label)).toContain(
+      "Humaniser, template, or voice-profile rewrite",
+    );
+    expect(run.receipt?.status).toBe("PASS");
+    expect(run.receipt?.action_needed).toEqual([]);
+    expect(run.receipt?.boundaries?.some((item) => item.includes("Detector-evasion guarantee"))).toBe(true);
+  });
+
+  it("flags detector-evasion claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Rewrite AI text into undetectable AI that can pass GPTZero.",
+      channel: "feature_card",
+      audience: "founders",
+      goal: "quality positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "detector-evasion-claim");
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(finding?.severity).toBe("high");
+  });
+
+  it("flags social-proof claims without visible evidence in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Trusted by thousands of teams and rated five-star by founders.",
+      channel: "homepage_hero",
+      audience: "founders",
+      goal: "trust positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "testimonial-proof-gap");
+
+    expect(run.copypass_verdict).toBe("warn");
+    expect(finding?.severity).toBe("medium");
+  });
+
+  it("flags unsupported human-authorship claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Turn AI drafts into 100% human-written copy with one click.",
+      channel: "feature_card",
+      audience: "founders",
+      goal: "quality positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "authorship-transparency");
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(finding?.severity).toBe("high");
+  });
+
+  it("does not treat banned-phrase docs as live risky claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "Verdict-linter guardrail examples: banned phrases include 100% compliant, " +
+        "risk-free, AI lawyer, rank #1, last chance, trusted by, 100% human, and fully automated. " +
+        "Allowed framing includes may warrant review.",
+      channel: "legalpass_guardrail_docs",
+      audience: "builders",
+      goal: "document forbidden wording",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      finding_count?: number;
+      findings?: Array<{ check_id?: string }>;
+    };
+
+    expect(run.copypass_verdict).toBe("pass");
+    expect(run.finding_count).toBe(0);
+    expect(run.findings).toEqual([]);
+  });
+
+  it("still flags the same words when they are shipped claim copy in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "LegalPass is the best AI lawyer, 100% compliant, risk-free, fully automated, and guaranteed to rank #1.",
+      channel: "homepage_hero",
+      audience: "founders",
+      goal: "conversion",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string }>;
+    };
+
+    const checkIds = run.findings?.map((finding) => finding.check_id) ?? [];
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(checkIds).toContain("unsupported-superiority");
+    expect(checkIds).toContain("risky-guarantee-language");
+    expect(checkIds).toContain("ui-honesty-gap");
   });
 
   it("attaches a CopyRoom exact-copy receipt from a source packet", async () => {
@@ -66,6 +284,7 @@ describe("copypass-tool", () => {
         output_character_count?: number;
         newline_style?: string;
       };
+      receipt?: { evidence?: { source?: string; copyroom_receipt_attached?: boolean } };
     };
 
     expect(run.status).toBe("complete");
@@ -81,13 +300,21 @@ describe("copypass-tool", () => {
     expect(run.copyroom_receipt?.character_count).toBe(Array.from(sourceText).length);
     expect(run.copyroom_receipt?.output_character_count).toBe(run.copyroom_receipt?.character_count);
     expect(run.copyroom_receipt?.newline_style).toBe("crlf");
+    expect(run.receipt?.evidence).toMatchObject({
+      source: "copyroom_source_packet",
+      copyroom_receipt_attached: true,
+    });
 
     const status = (await copypassStatus({
       run_id: run.run_id,
-    })) as { copyroom_receipt?: { status?: string; source_sha256?: string; output_sha256?: string } };
+    })) as {
+      copyroom_receipt?: { status?: string; source_sha256?: string; output_sha256?: string };
+      receipt?: { evidence?: { copyroom_receipt_attached?: boolean } };
+    };
 
     expect(status.copyroom_receipt?.status).toBe("pass");
     expect(status.copyroom_receipt?.source_sha256).toBe(status.copyroom_receipt?.output_sha256);
+    expect(status.receipt?.evidence?.copyroom_receipt_attached).toBe(true);
   });
 
   it("blocks required CopyRoom receipt runs when the source packet is missing", async () => {
@@ -132,6 +359,28 @@ describe("copypass-tool", () => {
     expect(result.copyroom_receipt?.status).toBe("blocked");
     expect(result.copyroom_receipt?.exact_diff).toBe("fail");
     expect(result.copyroom_receipt?.action_needed?.[0]).toContain("FIDELITY_DRIFT_RISK");
+  });
+
+  it("returns the CopyRoom receipt when exact source text is whitespace-only but not reviewable", async () => {
+    const result = (await copypassRun({
+      copyroom_required: true,
+      copyroom_source_packet: {
+        source_id: "blank-source",
+        source_pointer: "copyroom://blank-source",
+        text: "   ",
+      },
+      copyroom_output_pointer: "mcp://copypass/runs/blank-source",
+      profile: "smoke",
+    })) as {
+      error?: string;
+      run_id?: string;
+      copyroom_receipt?: { status?: string; exact_diff?: string };
+    };
+
+    expect(result.run_id).toBeUndefined();
+    expect(result.error).toContain("COPY_TEXT_EMPTY");
+    expect(result.copyroom_receipt?.status).toBe("pass");
+    expect(result.copyroom_receipt?.exact_diff).toBe("pass");
   });
 
   it("returns a clear error for missing run ids", async () => {

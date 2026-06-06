@@ -2,14 +2,34 @@
 // Free, open-source food product database - no auth required.
 // Docs: https://wiki.openfoodfacts.org/API
 
+import { stampMeta } from "./connector-meta.js";
+
 const OFF_BASE = "https://world.openfoodfacts.org";
+const OFF_TIMEOUT_MS = Number(process.env.OPENFOODFACTS_TIMEOUT_MS) || 10000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
 async function offFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OFF_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Open Food Facts API request timed out after ${OFF_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Open Food Facts API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Open Food Facts API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`Open Food Facts API HTTP ${res.status}: ${url}`);
   }
@@ -75,13 +95,17 @@ export async function searchFoodProducts(
 
   const data = await offFetch<SearchResponse>(url.toString());
 
-  return {
+  return stampMeta({
     query,
     count:    data.count,
     page,
     page_size: pageSize,
     products: (data.products ?? []).map(mapProduct),
-  };
+  }, {
+    source: "Open Food Facts",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use food_get_product with a barcode for full nutrition detail, or food_by_category to browse a category."],
+  });
 }
 
 export async function getFoodProduct(

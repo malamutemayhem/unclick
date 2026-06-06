@@ -54,9 +54,9 @@ const stageProgress: Record<number, number> = {
 
 const PROOF_RESET_RE = /\b(reopened|re-opened|proof\s+reset|false\s+completion|partial\s+completion)\b/i;
 const PROOF_MISSING_RE =
-  /\b(no|missing|needs?|needed|waiting for|without|incomplete|stale)\s+(?:live\s+)?proof\b|\bproof\s+(?:missing|needed|incomplete|stale|not available)\b/i;
+  /\b(missing|needs?|needed|waiting for|incomplete|stale)\b[^\n.]{0,140}\bproof\b|\b(?:no|without)\s+(?:live\s+)?proof\b|\bproof\s+(?:is\s+)?(?:still\s+)?(?:missing|needed|incomplete|stale|not available)\b/i;
 const PROOF_UI_MISSING_RE =
-  /\b(no|missing|needs?|needed|waiting for|without|incomplete)\s+(?:authenticated\s+)?(?:ui|screenshot|browser|live page|live product)\s+proof\b|\b(?:ui|screenshot|browser|live page|live product)\s+proof\s+(?:missing|needed|incomplete|not available)\b/i;
+  /\b(no|missing|needs?|needed|waiting for|without|incomplete)\b[^\n.]{0,140}\b(?:authenticated\s+)?(?:ui|screenshot|browser|live page|live product)\b[^\n.]{0,80}\bproof\b|\b(?:ui|screenshot|browser|live page|live product)\b[^\n.]{0,80}\bproof\s+(?:is\s+)?(?:still\s+)?(?:missing|needed|incomplete|not available)\b/i;
 const PROOF_BLOCKED_RE = /\b(blocker|blocked|hold|do not merge|do not lift|cannot close|not closable)\b/i;
 const PROOF_PARTIAL_RE = /\b(partial|partial\/blocker|proof ceiling|follow-?up needed|not enough to close)\b/i;
 const PROOF_PARKED_RE = /\b(parked|parking|deferred|not next|scopepack needed|missing scopepack)\b/i;
@@ -178,7 +178,9 @@ export function inferFishbowlJobPipeline(
 ): FishbowlJobPipelineState {
   const segments = buildSegments(todo, comments);
   const latestResetIndex = segments.reduce((latest, segment, index) => {
-    return PROOF_RESET_RE.test(segment) || PROOF_MISSING_RE.test(segment) ? index : latest;
+    return PROOF_RESET_RE.test(segment) || PROOF_MISSING_RE.test(segment) || PROOF_UI_MISSING_RE.test(segment)
+      ? index
+      : latest;
   }, -1);
   const latestProgressIndex = segments.reduce((latest, segment, index) => {
     return positiveStageHit(
@@ -191,7 +193,7 @@ export function inferFishbowlJobPipeline(
   }, -1);
 
   const status = String(todo.status ?? "");
-  if (latestResetIndex >= 0 && latestResetIndex > latestProgressIndex) {
+  if (latestResetIndex >= 0 && latestResetIndex >= latestProgressIndex) {
     const latestResetText = segments[latestResetIndex] ?? "";
     const resetHit = PROOF_RESET_RE.test(latestResetText);
     const warning = proofWarningForText(latestResetText) ?? {

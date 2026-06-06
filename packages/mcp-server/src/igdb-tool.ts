@@ -4,27 +4,44 @@
 // Base: https://api.igdb.com/v4
 // Token endpoint: https://id.twitch.tv/oauth2/token (client_credentials grant)
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const IGDB_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 
 // Simple in-process token cache (resets on restart)
 let cachedToken: { token: string; expires: number } | null = null;
 
-function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } {
+function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } | NotConnectedResult {
   const clientId = String(args.client_id ?? process.env.IGDB_CLIENT_ID ?? "").trim();
   const clientSecret = String(args.client_secret ?? process.env.IGDB_CLIENT_SECRET ?? "").trim();
-  if (!clientId) throw new Error("client_id is required (or set IGDB_CLIENT_ID env var).");
-  if (!clientSecret) throw new Error("client_secret is required (or set IGDB_CLIENT_SECRET env var).");
+  if (!clientId || !clientSecret) return notConnectedFor("igdb");
   return { clientId, clientSecret };
 }
 
 async function getTwitchToken(clientId: string, clientSecret: string): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expires) return cachedToken.token;
 
-  const res = await fetch(
-    `${TWITCH_TOKEN_URL}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
-    { method: "POST" }
-  );
+  const IGDB_TIMEOUT_MS = Number(process.env.IGDB_TIMEOUT_MS) || 15000;
+  const tokenController = new AbortController();
+  const tokenTimer = setTimeout(() => tokenController.abort(), IGDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${TWITCH_TOKEN_URL}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
+      { method: "POST", signal: tokenController.signal }
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twitch token request timed out after ${IGDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twitch token network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(tokenTimer);
+  }
+  if (res.status === 429) throw new Error("Twitch token request rate limited (HTTP 429). Please wait and retry.");
   if (res.status === 400 || res.status === 401) {
     throw new Error("Invalid IGDB credentials. Check your client_id and client_secret.");
   }
@@ -45,16 +62,30 @@ async function igdbPost(
   endpoint: string,
   body: string
 ): Promise<unknown> {
-  const res = await fetch(`${IGDB_BASE}${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Client-ID": clientId,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/plain",
-      Accept: "application/json",
-    },
-    body,
-  });
+  const IGDB_TIMEOUT_MS = Number(process.env.IGDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IGDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${IGDB_BASE}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Client-ID": clientId,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "text/plain",
+        Accept: "application/json",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`IGDB request timed out after ${IGDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`IGDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) {
     cachedToken = null;
     throw new Error("IGDB token expired or invalid. Try again.");
@@ -70,7 +101,9 @@ async function igdbPost(
 // igdb_search_games
 export async function igdbSearchGames(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
@@ -86,14 +119,22 @@ export async function igdbSearchGames(args: Record<string, unknown>): Promise<un
 // igdb_get_game
 export async function igdbGetGame(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const gameId = String(args.game_id ?? "").trim();
     if (!gameId) return { error: "game_id is required." };
 
     const body = `fields id,name,summary,storyline,genres.name,platforms.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.human,rating,rating_count,aggregated_rating,aggregated_rating_count,cover.url,screenshots.url,websites.url,url; where id = ${gameId};`;
     const result = await igdbPost(clientId, token, "/games", body) as Array<unknown>;
-    return result[0] ?? { error: "Game not found." };
+    const game = result[0];
+    if (!game) return { error: "Game not found." };
+    return stampMeta(game as Record<string, unknown>, {
+      source: "IGDB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use igdb_get_company for the studio, or igdb_search_games for related titles."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -102,7 +143,9 @@ export async function igdbGetGame(args: Record<string, unknown>): Promise<unknow
 // igdb_list_platforms
 export async function igdbListPlatforms(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const limit = Math.min(Number(args.limit ?? 30), 500);
     const offset = Number(args.offset ?? 0);
@@ -117,7 +160,9 @@ export async function igdbListPlatforms(args: Record<string, unknown>): Promise<
 // igdb_list_genres
 export async function igdbListGenres(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
 
     const body = `fields id,name,slug,url; sort name asc; limit 50;`;
@@ -130,7 +175,9 @@ export async function igdbListGenres(args: Record<string, unknown>): Promise<unk
 // igdb_get_company
 export async function igdbGetCompany(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const name = String(args.name ?? "").trim();
     const companyId = String(args.company_id ?? "").trim();

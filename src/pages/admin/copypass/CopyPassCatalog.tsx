@@ -1,4 +1,4 @@
-import { PenSquare, FileText, MessagesSquare, TriangleAlert, Sparkles } from "lucide-react";
+import { FileText, MessagesSquare, PenSquare, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 
 const STARTER_PACKS = [
   {
@@ -7,7 +7,7 @@ const STARTER_PACKS = [
     category: "Landing page",
     useWhen: "Use this when you want to pressure-test a headline, subhead, and CTA before shipping a homepage change.",
     checks: "clarity, overclaim risk, audience fit, CTA specificity",
-    cta: "Run from MCP",
+    cta: "MCP",
   },
   {
     id: "copypass-pricing-section",
@@ -15,20 +15,21 @@ const STARTER_PACKS = [
     category: "Commercial copy",
     useWhen: "Use this when pricing copy needs to stay specific, honest, and usable for technical buyers.",
     checks: "claim support, trust signals, internal consistency, tone drift",
-    cta: "Scaffold only",
+    cta: "Run from MCP",
   },
 ];
 
 function DisclaimerBanner() {
   return (
-    <div className="rounded-xl border border-[#E2B93B]/25 bg-[#E2B93B]/10 p-4">
+    <div className="rounded-lg border border-[#E2B93B]/25 bg-[#E2B93B]/10 p-4">
       <div className="flex items-start gap-3">
         <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-[#E2B93B]" />
         <div>
-          <h2 className="text-sm font-semibold text-[#E2B93B]">CopyPass scaffold disclaimer</h2>
+          <h2 className="text-sm font-semibold text-[#E2B93B]">CopyPass proof boundary</h2>
           <p className="mt-1 text-sm text-[#d9d0a8]">
-            CopyPass is a scoped copy-quality review surface, not final brand approval, legal review, or a guarantee of
-            performance. This first scaffold wires the MCP and admin surfaces. Evidence-led copy checks land in a later chunk.
+            CopyPass is a scoped copy-quality review, not final brand approval, legal review, or a guarantee of
+            performance. It reports evidence-backed findings from the copy it inspected and names what it did not check.
+            Exact source work must carry a CopyRoom or FidelityCopy receipt before a worker treats the copy as safe.
           </p>
         </div>
       </div>
@@ -50,7 +51,7 @@ function PackTile({
   cta: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111] p-5 flex flex-col gap-3">
+    <div className="rounded-lg border border-white/[0.06] bg-[#111] p-5 flex flex-col gap-3">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold text-white">{name}</h3>
@@ -71,6 +72,14 @@ function PackTile({
   );
 }
 
+const RECEIPT_CHECKPOINTS = [
+  "copyroom_required",
+  "copyroom_source_packet",
+  "copyroom_receipt",
+  "COPYROOM_MISSING",
+  "FIDELITY_DRIFT_RISK",
+];
+
 export default function CopyPassCatalog() {
   return (
     <div>
@@ -80,7 +89,8 @@ export default function CopyPassCatalog() {
           <div>
             <h1 className="text-2xl font-semibold text-white">CopyPass</h1>
             <p className="mt-0.5 text-sm text-[#888]">
-              A scaffolded review surface for AI-generated copy. Start with routing and operator context, then layer in deeper verdict logic later.
+              Deterministic copy review for AI-generated wording, claim support, trust signals, anti-slop polish,
+              and exact-source receipt rails for worker-facing copy jobs.
             </p>
           </div>
         </div>
@@ -89,28 +99,54 @@ export default function CopyPassCatalog() {
       <div className="space-y-6">
         <DisclaimerBanner />
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
           <div className="flex items-start gap-3">
             <FileText className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-300" />
             <div>
-              <h2 className="text-sm font-semibold text-white">Available now through MCP scaffold</h2>
+              <h2 className="text-sm font-semibold text-white">Available now through MCP</h2>
               <p className="mt-1 text-sm text-[#888]">
-                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields today.
+                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields.
                 For exact-copy work, send `copyroom_required: true` with `copyroom_source_packet` so missing source proof blocks instead of returning a null receipt.
-                `copypass_status` polls the in-session scaffold run record and attached CopyRoom receipt.
+                `copypass_status` returns the in-session verdict, deterministic findings, not-checked scope, disclaimer, and attached CopyRoom receipt.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-lg border border-[#61C1C4]/20 bg-[#0f1516] p-5">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold text-white">Exact-copy receipt rail</h2>
+              <p className="mt-1 text-sm text-[#8fbec0]">
+                Workers use CopyRoom packets when source text, labels, tables, or prompts must stay exact. The receipt
+                records source and output pointers, matching hashes, byte counts, character counts, newline style, and
+                `exact_diff=pass` before proof can be trusted.
+              </p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-5">
+                {RECEIPT_CHECKPOINTS.map((checkpoint) => (
+                  <div
+                    key={checkpoint}
+                    className="rounded-md border border-[#61C1C4]/20 bg-black/20 px-2.5 py-2 text-center text-[11px] font-medium text-[#b6e2e4]"
+                  >
+                    {checkpoint}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
           <div className="flex items-start gap-3">
             <MessagesSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div>
-              <h2 className="text-sm font-semibold text-white">What lands next</h2>
+              <h2 className="text-sm font-semibold text-white">Current review coverage</h2>
               <p className="mt-1 text-sm text-[#888]">
-                Claim support, clarity, trust-signal, and tone-fit checks land next. This first scaffold is for tool
-                routing, admin placement, and later evaluator integration.
+                CopyPass checks clarity, CTA presence, proof and trust gaps, unsupported superiority claims, detector-evasion
+                positioning, risky guarantees, placeholder text, internal consistency, audience/tone fit, AI-slop language,
+                social-proof evidence, human-authorship claims, urgency, and product-surface honesty.
+                Exact-source jobs fail closed when source packets are missing or when output drifts from the packet.
               </p>
             </div>
           </div>
@@ -134,7 +170,7 @@ export default function CopyPassCatalog() {
             ))}
           </div>
           <p className="mt-3 text-xs text-[#666]">
-            Starter packs are planning prompts for MCP-triggered runs today. In-product launch controls land in a later chunk.
+            Starter packs are MCP-triggered run scopes today. In-product launch controls can land after the MCP path stays proven.
           </p>
         </section>
       </div>

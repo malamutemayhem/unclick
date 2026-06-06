@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { CONNECTORS, type ConnectorConfig, type CredentialField } from "@/lib/connectors";
 import { useSession } from "@/lib/auth";
-import { Button }   from "@/components/ui/button";
-import { Input }    from "@/components/ui/input";
-import { Label }    from "@/components/ui/label";
-import { Badge }    from "@/components/ui/badge";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { presets } from "@/lib/design-system";
 
 // --- Types ---------------------------------------------------------------------
 
@@ -28,14 +31,12 @@ function buildOAuthUrl(
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  // Platform-specific client IDs come from Vite public env vars
   const clientIdKey = `VITE_${connector.slug.toUpperCase()}_CLIENT_ID`;
   const clientId    = VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
   let authUrl = connector.authUrl ?? "";
 
-  // Shopify: auth URL includes {store} which user must supply
   if (connector.slug === "shopify") {
     const store = sessionStorage.getItem("shopify_store") ?? "";
     if (!store) return null;
@@ -72,7 +73,7 @@ function ScopeList({ scopes }: { scopes: string[] }) {
         <Badge
           key={s}
           variant="outline"
-          className="text-xs font-mono border-white/20 text-[#E8E8E8]/70"
+          className="text-xs font-mono border-border/60 text-body"
         >
           {s}
         </Badge>
@@ -98,7 +99,7 @@ function FieldInput({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label htmlFor={fieldId} className="text-sm text-[#E8E8E8]">
+        <Label htmlFor={fieldId} className="text-sm text-heading">
           {field.label}
         </Label>
         {field.findGuideUrl && (
@@ -106,14 +107,14 @@ function FieldInput({
             href={field.findGuideUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#E2B93B] hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Where do I find this?
           </a>
         )}
       </div>
       {field.description && (
-        <p className="text-xs text-[#E8E8E8]/50">{field.description}</p>
+        <p className="text-xs text-muted-foreground">{field.description}</p>
       )}
       <div className="relative">
         <Input
@@ -123,13 +124,13 @@ function FieldInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder}
           disabled={disabled}
-          className="bg-white/5 border-white/10 text-[#E8E8E8] placeholder:text-[#E8E8E8]/30 pr-16"
+          className="bg-card/40 border-border/60 text-heading placeholder:text-muted-foreground pr-16"
         />
         {field.secret && (
           <button
             type="button"
             onClick={() => setRevealed((r) => !r)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#E8E8E8]/40 hover:text-[#E8E8E8]/80"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-heading"
           >
             {revealed ? "hide" : "show"}
           </button>
@@ -186,9 +187,6 @@ export default function ConnectPage() {
         setApiKey(body.api_key);
         return;
       }
-      // No raw key returned: user already has one on file. Surface the
-      // reset path inline so they can finish in one more click, plus the
-      // manual paste option for users who have their key saved.
       setAlreadyProvisioned(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Network error.";
@@ -278,39 +276,57 @@ export default function ConnectPage() {
   // -- Loading / unknown service --------------------------------------------
   if (!connector) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md px-6">
-          <p className="text-[#E8E8E8]/60 text-lg">
-            {platform ? `This Passport service is not listed yet: ${platform}` : "No Passport service specified."}
-          </p>
-          <Link to="/admin/keychain" className="text-[#E2B93B] hover:underline text-sm">
-            Back to Passport
-          </Link>
-        </div>
+      <div className={presets.page}>
+        <Navbar />
+        <main className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="text-center space-y-4 max-w-md">
+            <p className="text-body text-lg">
+              {platform ? `This Passport service is not listed yet: ${platform}` : "No Passport service specified."}
+            </p>
+            <Link to="/admin/keychain" className="text-primary hover:underline text-sm">
+              Back to Passport
+            </Link>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   // -- Success state --------------------------------------------------------
   if (pageState.kind === "success") {
+    const vaultCommands = connector.credentialFields.map(
+      (f) => `vault_store key="${connector.slug}/${f.key}" value="..."`
+    );
     return (
       <ConnectShell connector={connector}>
         <div className="space-y-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
-            <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
+            <svg className="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-[#E8E8E8]">
+            <h2 className="text-xl font-semibold text-heading">
               {connector.name} connected
             </h2>
-            <p className="text-sm text-[#E8E8E8]/60 mt-1">
-              Passport access saved securely. MCP tool calls will auto-use it.
+            <p className="text-sm text-body mt-1">
+              Access details stored securely. MCP tool calls will use them automatically.
             </p>
           </div>
 
-          <Link to="/admin/keychain" className="inline-block text-sm text-[#E8E8E8]/60 hover:text-[#E8E8E8]">
+          <div className="bg-card/40 border border-border/60 rounded-lg p-4 text-left space-y-2">
+            <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
+              Optional: also store in local vault for offline use
+            </p>
+            {vaultCommands.map((cmd) => (
+              <code key={cmd} className="block text-xs font-mono text-primary bg-background/60 px-3 py-1.5 rounded">
+                {cmd}
+              </code>
+            ))}
+          </div>
+
+          <Link to="/admin/keychain" className="inline-block text-sm text-body hover:text-heading">
             Back to Passport
           </Link>
         </div>
@@ -323,19 +339,19 @@ export default function ConnectPage() {
     return (
       <ConnectShell connector={connector}>
         <div className="space-y-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
-            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto">
+            <svg className="w-6 h-6 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-[#E8E8E8]">Connection failed</h2>
-            <p className="text-sm text-red-400/80 mt-1">{pageState.message}</p>
+            <h2 className="text-xl font-semibold text-heading">Connection failed</h2>
+            <p className="text-sm text-red-300/90 mt-1">{pageState.message}</p>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="border-white/20 text-[#E8E8E8]"
+            className="border-border/60 text-heading"
             onClick={() => setPageState({ kind: "idle" })}
           >
             Try again
@@ -350,8 +366,8 @@ export default function ConnectPage() {
     return (
       <ConnectShell connector={connector}>
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-2 border-[#E2B93B] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-[#E8E8E8]/60 text-sm">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-body text-sm">
             {pageState.kind === "callback"
               ? "Exchanging tokens..."
               : `Connecting to ${connector.name}...`}
@@ -396,7 +412,7 @@ export default function ConnectPage() {
         localStorage.setItem("unclick_api_key", currentApiKey);
         setPageState({ kind: "success" });
       } else {
-        setPageState({ kind: "error", message: data.error ?? "Failed to save Passport access." });
+        setPageState({ kind: "error", message: data.error ?? "Failed to save credentials." });
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Network error.";
@@ -452,106 +468,99 @@ export default function ConnectPage() {
   return (
     <ConnectShell connector={connector}>
       <div className="space-y-6">
-        {/* Passport key onboarding.
-            - Logged-in user with no localStorage key: show numbered 1/2 cards.
-            - Otherwise: show the classic single paste field.
-            The Connect button below is gated on apiKey being set either way. */}
+        {/* Passport key onboarding. */}
         {session && !apiKey ? (
           <div className="space-y-3">
-            <p className="text-xs text-[#E8E8E8]/60 leading-relaxed">
+            <p className="text-xs text-body leading-relaxed">
               Your Passport key lives in your browser, not on our servers.
               We only store a one-way fingerprint, so even we cannot read
-              your saved Passport access. Only you can.
+              your saved credentials. Only you can.
             </p>
 
             {alreadyProvisioned ? (
               <>
-                <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 space-y-2">
-                  <p className="text-sm text-[#E8E8E8]">
+                <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-2">
+                  <p className="text-sm text-heading">
                     You already have a Passport key on file.
                   </p>
-                  <p className="text-xs text-[#E8E8E8]/60 leading-relaxed">
+                  <p className="text-xs text-body leading-relaxed">
                     Since the key lives only in your browser and you do not
                     have it here, you can either mint a fresh one now or
                     paste the existing one if you saved it elsewhere.
                   </p>
                 </div>
 
-                {/* Reset path: mint fresh, invalidates old key */}
                 <button
                   type="button"
                   onClick={() => void handleResetKey()}
                   disabled={resettingKey}
-                  className="w-full flex items-center gap-3 rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 px-4 py-3 text-left hover:bg-[#E2B93B]/10 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/[0.07] px-4 py-3 text-left hover:bg-primary/10 transition-colors disabled:opacity-50"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E2B93B] text-black font-bold text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                     1
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold text-[#E8E8E8]">
+                    <span className="block text-sm font-semibold text-heading">
                       {resettingKey ? "Minting fresh key..." : "Mint a fresh key"}
                     </span>
-                    <span className="block text-xs text-[#E8E8E8]/50">
+                    <span className="block text-xs text-muted-foreground">
                       Replaces the old key. Any other devices using it will need the new one.
                     </span>
                   </span>
                 </button>
 
-                {/* Paste existing key */}
                 <button
                   type="button"
                   onClick={() => setShowManualPaste((v) => !v)}
-                  className="w-full flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3 text-left hover:bg-white/[0.04] transition-colors"
+                  className="w-full flex items-center gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3 text-left hover:bg-card/60 transition-colors"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#E8E8E8] font-bold text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card text-heading font-semibold text-sm">
                     2
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold text-[#E8E8E8]">
+                    <span className="block text-sm font-semibold text-heading">
                       Paste my existing key
                     </span>
-                    <span className="block text-xs text-[#E8E8E8]/50">
-                      Keeps your existing key, no other devices break.
+                    <span className="block text-xs text-muted-foreground">
+                      Keeps your existing key. No other devices break.
                     </span>
                   </span>
                 </button>
               </>
             ) : (
               <>
-                {/* Option 1: mint inline */}
                 <button
                   type="button"
                   onClick={() => void handleMintKey()}
                   disabled={mintingKey}
-                  className="w-full flex items-center gap-3 rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 px-4 py-3 text-left hover:bg-[#E2B93B]/10 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/[0.07] px-4 py-3 text-left hover:bg-primary/10 transition-colors disabled:opacity-50"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E2B93B] text-black font-bold text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                     1
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold text-[#E8E8E8]">
+                    <span className="block text-sm font-semibold text-heading">
                       {mintingKey ? "Getting your key..." : "Get my Passport key"}
                     </span>
-                    <span className="block text-xs text-[#E8E8E8]/50">
+                    <span className="block text-xs text-muted-foreground">
                       Fresh key, saved to this browser.
                     </span>
                   </span>
                 </button>
 
-                {/* Option 2: paste an existing key */}
                 <button
                   type="button"
                   onClick={() => setShowManualPaste((v) => !v)}
-                  className="w-full flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3 text-left hover:bg-white/[0.04] transition-colors"
+                  className="w-full flex items-center gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3 text-left hover:bg-card/60 transition-colors"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#E8E8E8] font-bold text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card text-heading font-semibold text-sm">
                     2
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold text-[#E8E8E8]">
+                    <span className="block text-sm font-semibold text-heading">
                       I have one already
                     </span>
-                    <span className="block text-xs text-[#E8E8E8]/50">
+                    <span className="block text-xs text-muted-foreground">
                       Paste your existing uc_ or agt_live_ key.
                     </span>
                   </span>
@@ -560,8 +569,8 @@ export default function ConnectPage() {
             )}
 
             {showManualPaste && (
-              <div className="space-y-1.5 border border-white/10 rounded-lg p-4 bg-white/[0.02]">
-                <Label htmlFor="api_key" className="text-sm text-[#E8E8E8]">
+              <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
+                <Label htmlFor="api_key" className="text-sm text-heading">
                   Your UnClick Passport key
                 </Label>
                 <Input
@@ -570,23 +579,23 @@ export default function ConnectPage() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="uc_xxxxxxxx or agt_live_xxxxxxxx"
-                  className="bg-white/5 border-white/10 text-[#E8E8E8] placeholder:text-[#E8E8E8]/30"
+                  className="bg-card/40 border-border/60 text-heading placeholder:text-muted-foreground"
                 />
               </div>
             )}
 
             {mintError && (
-              <p className="text-xs text-red-400/80">{mintError}</p>
+              <p className="text-xs text-red-300/90">{mintError}</p>
             )}
           </div>
         ) : (
-          <div className="space-y-1.5 border border-white/10 rounded-lg p-4 bg-white/[0.02]">
-            <Label htmlFor="api_key" className="text-sm text-[#E8E8E8]">
+          <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
+            <Label htmlFor="api_key" className="text-sm text-heading">
               Your UnClick Passport key
             </Label>
-            <p className="text-xs text-[#E8E8E8]/50">
+            <p className="text-xs text-muted-foreground">
               Needed once in this browser so Passport can store access securely.{" "}
-              <Link to="/" className="text-[#E2B93B] hover:underline">Get one here.</Link>
+              <Link to="/" className="text-primary hover:underline">Get one here.</Link>
             </p>
             <Input
               id="api_key"
@@ -594,7 +603,7 @@ export default function ConnectPage() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="uc_xxxxxxxx or agt_live_xxxxxxxx"
-              className="bg-white/5 border-white/10 text-[#E8E8E8] placeholder:text-[#E8E8E8]/30"
+              className="bg-card/40 border-border/60 text-heading placeholder:text-muted-foreground"
             />
           </div>
         )}
@@ -604,7 +613,7 @@ export default function ConnectPage() {
           <div className="space-y-4">
             {connector.scopes && connector.scopes.length > 0 && (
               <div>
-                <p className="text-xs text-[#E8E8E8]/50 uppercase tracking-wide mb-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
                   Permissions requested
                 </p>
                 <ScopeList scopes={connector.scopes} />
@@ -613,7 +622,7 @@ export default function ConnectPage() {
 
             {connector.slug === "shopify" && (
               <div className="space-y-1.5">
-                <Label htmlFor="shopify_store" className="text-sm text-[#E8E8E8]">
+                <Label htmlFor="shopify_store" className="text-sm text-heading">
                   Shopify store name
                 </Label>
                 <Input
@@ -621,22 +630,22 @@ export default function ConnectPage() {
                   value={shopifyStore}
                   onChange={(e) => setShopifyStore(e.target.value)}
                   placeholder="mystore"
-                  className="bg-white/5 border-white/10 text-[#E8E8E8] placeholder:text-[#E8E8E8]/30"
+                  className="bg-card/40 border-border/60 text-heading placeholder:text-muted-foreground"
                 />
-                <p className="text-xs text-[#E8E8E8]/40">Without .myshopify.com</p>
+                <p className="text-xs text-muted-foreground">Without .myshopify.com</p>
               </div>
             )}
 
             {oauthNotConfigured ? (
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                <p className="text-sm text-primary/80">
+                <p className="text-sm text-primary/90">
                   Login setup is pending for {connector.name}. Use the manual fallback below,
-                  or enter access details directly in your MCP config.
+                  or enter credentials directly in your MCP config.
                 </p>
               </div>
             ) : (
               <Button
-                className="w-full bg-[#E2B93B] hover:bg-[#E2B93B]/90 text-black font-semibold"
+                className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
                 onClick={() => void handleOAuthConnect()}
                 disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
@@ -646,10 +655,10 @@ export default function ConnectPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/10" />
+                <span className="w-full border-t border-border/40" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#0A0A0A] px-2 text-[#E8E8E8]/40">
+                <span className="bg-background px-2 text-muted-foreground">
                   manual fallback
                 </span>
               </div>
@@ -659,8 +668,8 @@ export default function ConnectPage() {
 
         {/* Manual form (always shown for non-oauth2; shown as fallback for oauth2) */}
         {isOAuth2 ? (
-          <details className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
-            <summary className="cursor-pointer text-sm font-medium text-[#E8E8E8]">
+          <details className="rounded-lg border border-border/60 bg-card/40 p-4">
+            <summary className="cursor-pointer text-sm font-medium text-heading">
               Use a token instead
             </summary>
             <form onSubmit={handleManualSubmit} className="mt-4 space-y-4">
@@ -676,7 +685,7 @@ export default function ConnectPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#E2B93B] hover:bg-[#E2B93B]/90 text-black font-semibold"
+                className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
                 disabled={!apiKey.trim() || !allFieldsFilled}
               >
                 Save token fallback
@@ -697,21 +706,21 @@ export default function ConnectPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#E2B93B] hover:bg-[#E2B93B]/90 text-black font-semibold"
+              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
               disabled={!apiKey.trim() || !allFieldsFilled}
             >
-              Save Passport access
+              Save credentials
             </Button>
           </form>
         )}
 
         {connector.docsUrl && (
-          <p className="text-center text-xs text-[#E8E8E8]/40">
+          <p className="text-center text-xs text-muted-foreground">
             <a
               href={connector.docsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#E8E8E8]/70"
+              className="hover:text-heading"
             >
               {connector.name} API docs
             </a>
@@ -733,55 +742,59 @@ function ConnectShell({
 }) {
   const authLabel: Record<string, string> = {
     oauth2:    "OAuth2",
-    api_key:   "API Key",
-    bot_token: "Bot Token",
+    api_key:   "API key",
+    bot_token: "Bot token",
   };
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] flex items-start justify-center pt-16 pb-24 px-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Header */}
-        <header className="text-center space-y-3">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs text-[#E8E8E8]/40 hover:text-[#E8E8E8]/70"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Passport
-          </Link>
+    <div className={presets.page}>
+      <Navbar />
+      <main className="flex items-start justify-center pt-24 pb-24 px-4">
+        <div className="w-full max-w-md space-y-6">
+          {/* Header */}
+          <header className="text-center space-y-4">
+            <Link
+              to="/admin/keychain"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-heading"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Passport
+            </Link>
 
-          <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
-            <span className="text-2xl font-bold text-[#E2B93B]">
-              {connector.name.charAt(0)}
-            </span>
+            <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto">
+              <span className="text-2xl font-semibold text-primary">
+                {connector.name.charAt(0)}
+              </span>
+            </div>
+
+            <div>
+              <h1 className="text-2xl font-semibold text-heading">
+                Connect {connector.name}
+              </h1>
+              <p className="text-sm text-body mt-2">{connector.description}</p>
+            </div>
+
+            <Badge
+              variant="outline"
+              className="border-border/60 text-muted-foreground text-xs"
+            >
+              {authLabel[connector.authType] ?? connector.authType}
+            </Badge>
+          </header>
+
+          {/* Card */}
+          <div className="bg-card/60 border border-border/60 rounded-xl p-6 backdrop-blur-sm">
+            {children}
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold text-[#E8E8E8]">
-              Connect {connector.name}
-            </h1>
-            <p className="text-sm text-[#E8E8E8]/60 mt-1">{connector.description}</p>
-          </div>
-
-          <Badge
-            variant="outline"
-            className="border-white/20 text-[#E8E8E8]/50 text-xs"
-          >
-            {authLabel[connector.authType] ?? connector.authType}
-          </Badge>
-        </header>
-
-        {/* Card */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
-          {children}
+          <p className="text-center text-xs text-muted-foreground">
+            Saved access details are encrypted with AES-256-GCM using your API key before storage.
+          </p>
         </div>
-
-        <p className="text-center text-xs text-[#E8E8E8]/30">
-          Passport access is encrypted with AES-256-GCM using your API key before storage.
-        </p>
-      </div>
-    </main>
+      </main>
+      <Footer />
+    </div>
   );
 }

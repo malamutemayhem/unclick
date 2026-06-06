@@ -121,8 +121,8 @@ export const UXPASS_CRITICS: CriticDefinition[] = [
     id: "cognitive-load",
     label: "Cognitive Load",
     score_component: "first_run_quality",
-    mode: "llm",
-    role: "Checks mental effort, choice overload, and progressive disclosure.",
+    mode: "deterministic",
+    role: "Checks mental effort, choice overload, row density, and progressive disclosure.",
   },
   {
     id: "agent-readability",

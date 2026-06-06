@@ -9,12 +9,15 @@ import {
 describe("SEOPass verdict pack", () => {
   it("contains the default search-engine readiness checks", () => {
     expect(DEFAULT_SEOPASS_VERDICT_CHECKS.map((check) => check.id)).toEqual([
+      "lighthouse-performance",
+      "crawlability",
       "indexability",
       "metadata",
       "canonical-signals",
       "structured-data",
       "internal-links",
       "core-web-vitals",
+      "ai-overview-readiness",
     ]);
   });
 
@@ -31,7 +34,8 @@ describe("SEOPass verdict pack", () => {
       "structured-data",
     ]);
     expect(pack.scannerSource.source).toBe("geopass");
-    expect(pack.disallowedActions).toContain("live crawler execution");
+    expect(pack.disallowedActions).toContain("credentialed or private crawler execution");
+    expect(pack.disallowedActions).toContain("mutating crawler execution");
   });
 
   it("creates a typed plan-only report from the verdict pack", () => {
@@ -48,7 +52,7 @@ describe("SEOPass verdict pack", () => {
 
     expect(report.target_url).toBe("https://example.com/products");
     expect(report.verdict).toBe("unknown");
-    expect(report.checks).toHaveLength(6);
+    expect(report.checks).toHaveLength(9);
     expect(report.scanner_source.kind).toBe("geopass-plan");
   });
 });

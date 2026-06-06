@@ -89,7 +89,7 @@ describe("admin library taxonomy refresh safety", () => {
 
   it("keeps Orchestrator AutoPilot scoreboard reads unfiltered by search q", () => {
     const source = readFileSync("api/memory-admin.ts", "utf8");
-    const ledgerQueryBlock = source.match(/let autopilotEventsQuery[\s\S]*?const \[/)?.[0] ?? "";
+    const ledgerQueryBlock = source.match(/(?:let|const) autopilotEventsQuery[\s\S]*?const \[/)?.[0] ?? "";
 
     expect(ledgerQueryBlock).toContain('.from("mc_autopilot_events")');
     expect(ledgerQueryBlock).toContain("The zero-touch scoreboard is a safety surface");

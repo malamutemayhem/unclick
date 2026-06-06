@@ -17,7 +17,7 @@ Add to your MCP config (Claude Desktop: `~/Library/Application Support/Claude/cl
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_api_key_here"
       }
@@ -37,7 +37,7 @@ Same config snippet as above — Cursor uses the same MCP format.
 ### Local / Development
 
 ```bash
-UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
 ```
 
 ## Memory (built in, zero config)
@@ -68,7 +68,7 @@ After saving an accepted external turn, tethered seats should call `read_orchest
 
 ## Worker Sanity Gate
 
-Workers can call `commonsensepass_protocol` with no arguments to fetch the canonical CommonSensePass playbook. The response is versioned and tells workers when to run the verdict-only gate, what evidence to gather, how to interpret PASS/BLOCKER/HOLD/SUPPRESS/ROUTE, and how to write compact receipts. This lets worker prompts shrink to: "Call commonsensepass_protocol on UnClick before claiming healthy, no_work, done, merge_ready, pass, quiet, or duplicate_wake."
+Workers can call `commonsensepass_protocol` with no arguments to fetch the canonical CommonSensePass playbook, `commonsensepass_rules` to inspect the active R1-R6 catalog, and `commonsensepass_check` to run a verdict directly from MCP. The response is versioned and tells workers when to run the verdict-only gate, what evidence to gather, how to interpret PASS/BLOCKER/HOLD/SUPPRESS/ROUTE, and how to write compact receipts. This lets worker prompts shrink to: "Call commonsensepass_protocol on UnClick, then run commonsensepass_check before claiming healthy, no_work, done, merge_ready, pass, quiet, duplicate_wake, or route."
 
 ## Configuration
 

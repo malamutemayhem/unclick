@@ -3,13 +3,14 @@
 // Auth: TOGGL_API_KEY (HTTP Basic, key as username, "api_token" as password)
 // Base: https://api.track.toggl.com/api/v9/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TOGGL_BASE = "https://api.track.toggl.com/api/v9";
 const TOGGL_REPORTS_BASE = "https://api.track.toggl.com/reports/api/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TOGGL_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set TOGGL_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("toggl", args);
 }
 
 function basicAuth(apiKey: string): string {
@@ -23,12 +24,26 @@ async function togglGet(
   baseUrl: string = TOGGL_BASE
 ): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${baseUrl}${path}${qs}`, {
-    headers: {
-      Authorization: basicAuth(apiKey),
-      "Content-Type": "application/json",
-    },
-  });
+  const TOGGL_TIMEOUT_MS = Number(process.env.TOGGL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGGL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}${qs}`, {
+      headers: {
+        Authorization: basicAuth(apiKey),
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Toggl request timed out after ${TOGGL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Toggl network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Toggl API key.");
   if (res.status === 403) throw new Error("Toggl: access forbidden.");
   if (res.status === 404) throw new Error(`Toggl: resource not found at ${path}.`);
@@ -46,14 +61,28 @@ async function togglPost(
   body: Record<string, unknown>,
   baseUrl: string = TOGGL_BASE
 ): Promise<unknown> {
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(apiKey),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const TOGGL_TIMEOUT_MS = Number(process.env.TOGGL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGGL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(apiKey),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Toggl request timed out after ${TOGGL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Toggl network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Toggl API key.");
   if (res.status === 403) throw new Error("Toggl: access forbidden.");
   if (res.status === 429) throw new Error("Toggl rate limit exceeded.");
@@ -68,12 +97,13 @@ async function togglPost(
 export async function getTogglTimeEntries(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.start_date) params.start_date = String(args.start_date);
     if (args.end_date) params.end_date = String(args.end_date);
     if (args.meta) params.meta = "true";
     const entries = await togglGet(apiKey, "/me/time_entries", params) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: entries.length,
       entries: entries.map((e) => ({
         id: e.id,
@@ -87,7 +117,11 @@ export async function getTogglTimeEntries(args: Record<string, unknown>): Promis
         tags: e.tags,
         at: e.at,
       })),
-    };
+    }, {
+      source: "Toggl Track",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use toggl_summary for totals, or toggl_projects to list projects."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -97,6 +131,7 @@ export async function getTogglTimeEntries(args: Record<string, unknown>): Promis
 export async function createTimeEntryToggl(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const start = String(args.start ?? "").trim();
@@ -136,6 +171,7 @@ export async function createTimeEntryToggl(args: Record<string, unknown>): Promi
 export async function getTogglProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const params: Record<string, string> = {};
@@ -165,6 +201,7 @@ export async function getTogglProjects(args: Record<string, unknown>): Promise<u
 export async function getTogglSummary(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const startDate = String(args.start_date ?? "").trim();

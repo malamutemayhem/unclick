@@ -1,0 +1,45 @@
+{
+  "name": "@unclick/omdb-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/omdb",
+  "description": "Search movies and shows and get details by title or IMDb ID from the Open Movie Database. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "movies",
+    "omdb",
+    "imdb",
+    "film"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "omdb-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/omdb-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

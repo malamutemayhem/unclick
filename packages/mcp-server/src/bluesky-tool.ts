@@ -22,11 +22,26 @@ interface AtUri {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function createSession(identifier: string, password: string): Promise<BskySession> {
-  const res = await fetch(`${BSKY_HOST}/xrpc/com.atproto.server.createSession`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ identifier, password }),
-  });
+  const BLUESKY_TIMEOUT_MS = Number(process.env.BLUESKY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BLUESKY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${BSKY_HOST}/xrpc/com.atproto.server.createSession`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ identifier, password }),
+      signal:  controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Bluesky auth request timed out after ${BLUESKY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Bluesky network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Bluesky rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Auth failed (${res.status}): ${body}`);
@@ -50,9 +65,24 @@ async function xrpcGet(
     }
   }
   const url = `${BSKY_HOST}/xrpc/${lexicon}${qs.toString() ? `?${qs}` : ""}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const BLUESKY_TIMEOUT_MS = Number(process.env.BLUESKY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BLUESKY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Bluesky request timed out after ${BLUESKY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Bluesky network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Bluesky rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`${lexicon} failed (${res.status}): ${body}`);
@@ -65,14 +95,29 @@ async function xrpcPost(
   token:  string,
   body:   unknown
 ): Promise<unknown> {
-  const res = await fetch(`${BSKY_HOST}/xrpc/${lexicon}`, {
-    method:  "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization:  `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
+  const BLUESKY_TIMEOUT_MS = Number(process.env.BLUESKY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BLUESKY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${BSKY_HOST}/xrpc/${lexicon}`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:  `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Bluesky request timed out after ${BLUESKY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Bluesky network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Bluesky rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`${lexicon} failed (${res.status}): ${text}`);

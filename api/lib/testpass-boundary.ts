@@ -17,5 +17,5 @@ export { runDeterministicChecks } from "../../packages/testpass/src/runner/deter
 export { runAgentChecks } from "../../packages/testpass/src/runner/agent.js";
 export { runMultiPass } from "../../packages/testpass/src/runner/controller.js";
 export { healFailedChecks } from "../../packages/testpass/src/runner/healer.js";
-export { loadPackFromFile, loadPackFromYaml, packToJsonb } from "../../packages/testpass/src/pack-loader.js";
+export { loadPackFromFile, loadPackFromYaml, packFromJsonb, packToJsonb } from "../../packages/testpass/src/pack-loader.js";
 export type { RunProfile, RunTarget } from "../../packages/testpass/src/types.js";

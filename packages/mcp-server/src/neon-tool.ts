@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // Neon Serverless Postgres API integration for the UnClick MCP server.
 // Uses the Neon REST API via fetch - no external dependencies.
 // Users must supply an API key from console.neon.tech.
@@ -54,16 +55,27 @@ async function neonFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const NEON_TIMEOUT_MS = Number(process.env.NEON_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NEON_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Neon API request timed out after ${NEON_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Neon API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
+
+  if (response.status === 429) return { error: "Neon API rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;
@@ -88,9 +100,14 @@ export async function neonListProjects(args: Record<string, unknown>): Promise<u
   if (!apiKey) return { error: "api_key is required. Get one at console.neon.tech." };
 
   try {
-    return neonFetch(apiKey, "GET", "/projects", undefined, {
+    const __res = await neonFetch(apiKey, "GET", "/projects", undefined, {
       limit: args.limit ? Number(args.limit) : undefined,
       cursor: args.cursor ? String(args.cursor) : undefined,
+    }) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Neon",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use neon_get_project for detail, or neon_list_branches for its branches."],
     });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
@@ -103,8 +120,17 @@ export async function neonGetProject(args: Record<string, unknown>): Promise<unk
   const projectId = String(args.project_id ?? "").trim();
   if (!projectId) return { error: "project_id is required." };
 
+  const defaultsUsed = Array.isArray(args.__unclick_memory_defaults)
+    ? args.__unclick_memory_defaults.filter((v): v is string => typeof v === "string")
+    : [];
   try {
-    return neonFetch(apiKey, "GET", `/projects/${encodeURIComponent(projectId)}`);
+    const __res = await neonFetch(apiKey, "GET", `/projects/${encodeURIComponent(projectId)}`) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Neon",
+      fetched_at: new Date().toISOString(),
+      defaults_used: defaultsUsed,
+      next_steps: ["Use neon_list_branches for this project's branches, or neon_list_databases for its databases."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

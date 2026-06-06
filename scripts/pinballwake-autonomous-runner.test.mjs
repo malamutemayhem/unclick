@@ -12,6 +12,7 @@ import {
 import {
   createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
+  createAutonomousRunnerFromEnv,
   createAutonomousRunnerOpenHandsExecutorFromEnv,
   createAutonomousRunnerTestOnlyExecutorReceipt,
   assertRunnerOnFreshMain,
@@ -21,7 +22,9 @@ import {
   evaluateQuietWindowAutonomyProofLadder,
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
+  fetchUnClickAssignedTodos,
   fetchUnClickOrchestratorContext,
+  fetchUnClickTodoComments,
   hydrateAutonomousRunnerLedgerFromUnClick,
   inspectAutonomousRunnerJobSafety,
   markUnsafeJobsBlockedForAutonomousRunner,
@@ -29,6 +32,7 @@ import {
   parseAutonomousRunnerGitStatusPorcelain,
   parseMcpEventStreamPayload,
   resolveAutonomousRunnerQueueGuard,
+  resolveAutonomousRunnerAllowedTodoRolesFromEnv,
   evaluateAutonomousRunnerGitHygiene,
   runAutonomousRunnerMainFreshnessCanary,
   runAutonomousRunnerCycle,
@@ -65,6 +69,21 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(normalizeAutonomousRunnerMode("ship-it"), "dry-run");
   });
 
+  it("defaults the autonomous runner id to the assigned canary seat", () => {
+    assert.equal(createAutonomousRunnerFromEnv({}).id, "pinballwake-autonomous-runner");
+    assert.equal(
+      createAutonomousRunnerFromEnv({ CODING_ROOM_RUNNER_ID: "custom-coding-seat" }).id,
+      "custom-coding-seat",
+    );
+    assert.equal(
+      createAutonomousRunnerFromEnv({
+        AUTONOMOUS_RUNNER_ID: "custom-autonomous-seat",
+        CODING_ROOM_RUNNER_ID: "custom-coding-seat",
+      }).id,
+      "custom-autonomous-seat",
+    );
+  });
+
   it("tightens queue intake for the scheduled execute canary", () => {
     const guard = resolveAutonomousRunnerQueueGuard({
       mode: "execute",
@@ -93,6 +112,33 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(normal.scheduled_execute_canary, false);
     assert.equal(normal.require_scope_pack, false);
     assert.equal(normal.queue_fetch_limit, 1);
+  });
+
+  it("keeps writerlane_free on the small safe queue unless explicitly widened", () => {
+    assert.deepEqual(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,plex-builder,implementation,test_fix,docs_update,code",
+      }),
+      ["docs_update", "test_fix"],
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_WRITER_ALLOW_BROAD_QUEUE: "true",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "openhands",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
   });
 
   it("treats the checked-out SHA as fresh when it matches current main", () => {
@@ -661,6 +707,30 @@ describe("PinballWake autonomous Runner seat", () => {
         },
       }).reason,
       "boardroom_todo_role_not_allowed",
+    );
+  });
+
+  it("allows a stale assigned open todo when it is assigned to this runner", () => {
+    const todo = {
+      id: "todo-stale-canary",
+      title: "AFK canary seed: docs-only OpenHands proof fixture",
+      status: "open",
+      priority: "urgent",
+      assigned_to_agent_id: "runner-plex-1",
+      actionability_reason: "stale_assigned_open",
+      scope_pack: {
+        owned_files: ["docs/openhands-proof-fixture.md"],
+        role: "docs_update",
+        tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+      },
+    };
+
+    assert.equal(
+      evaluateBoardroomTodoAutoClaimEligibility(todo, {
+        runner,
+        allowedActionReasons: ["unassigned_open"],
+      }).ok,
+      true,
     );
   });
 
@@ -1351,6 +1421,109 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.todos[0].id, "todo-sse");
   });
 
+  it("falls back to memory-admin when the UnClick MCP actionable queue is unavailable", async () => {
+    const calls = [];
+    const result = await fetchUnClickActionableTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        calls.push({ url: String(url), body: JSON.parse(init.body || "{}") });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              todos: [{ id: "todo-fallback", title: "Claim through memory-admin" }],
+              response_bounds: { todos_returned: 1 },
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.fallback_from.reason, "unclick_mcp_http_error");
+    assert.equal(result.todos[0].id, "todo-fallback");
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].url, "https://unclick.test/api/memory-admin?action=fishbowl_list_actionable_todos");
+    assert.equal(calls[1].body.agent_id, "runner-test");
+    assert.equal(calls[1].body.include_description, true);
+  });
+
+  it("falls back to memory-admin for assigned queue reads and comment hydration", async () => {
+    const calls = [];
+    const result = await fetchUnClickAssignedTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        const body = JSON.parse(init.body || "{}");
+        calls.push({ url: String(url), body });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        if (String(url).includes("fishbowl_list_todos")) {
+          return {
+            ok: true,
+            async json() {
+              return {
+                todos: [{ id: "11111111-1111-4111-8111-111111111111", title: "Assigned live job" }],
+                response_bounds: { todos_returned: 1 },
+              };
+            },
+          };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "scope pack: keep it tiny", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.todos.length, 1);
+    assert.equal(result.todos[0].latest_comment_text, "scope pack: keep it tiny");
+    assert.equal(
+      calls.some((call) => call.url === "https://unclick.test/api/memory-admin?action=fishbowl_list_comments"),
+      true,
+    );
+  });
+
+  it("falls back to memory-admin for direct todo comment reads", async () => {
+    const result = await fetchUnClickTodoComments({
+      agentId: "runner-test",
+      todoId: "11111111-1111-4111-8111-111111111111",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url) => {
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "fallback comment", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.comments[0].text, "fallback comment");
+  });
+
   it("reads Orchestrator context for a scheduled seat_handshake proof", async () => {
     const calls = [];
     const result = await runAutonomousRunnerFile({
@@ -1682,6 +1855,14 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.todo_claim_sync.ok, true);
       assert.equal(result.todo_claim_sync.skipped, true);
       assert.equal(result.todo_claim_sync.reason, "test_only_executor_packet_not_active_claim");
+      // Honesty slice: a claim-only / execute-disabled run must read as a HOLD in its data,
+      // so a ledger/proof consumer cannot mistake it for a real claim (anti-false-DONE).
+      assert.equal(result.todo_claim_sync.action, "hold");
+      assert.equal(result.todo_claim_sync.hold, true);
+      assert.equal(result.todo_claim_sync.execute_disabled, true);
+      assert.equal(result.todo_claim_sync.hold_reason, "claim_only_execute_disabled");
+      assert.notEqual(result.todo_claim_sync.status, "in_progress");
+      assert.notEqual(result.todo_claim_sync.assigned_to_agent_id, "runner-plex-1");
       assert.equal(result.todo_claim_sync.todo_id, "todo-claim-1");
       assert.equal(result.todo_claim_sync.test_only_executor_packet.receipt.receipt_type, "executor_packet_pass");
       assert.equal(result.todo_claim_sync.openhands_claim_probe.receipt.receipt_type, "openhands_worker_hold");
@@ -1823,6 +2004,253 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.todo_claim_sync.reason, "openhands_build_attempt_recorded");
       assert.equal(result.todo_claim_sync.openhands_execute.receipt.receipt_type, "openhands_worker_pass");
       assert.equal(result.todo_claim_sync.openhands_execute.receipt.evidence.pr_url, "https://github.com/malamutemayhem/unclick/pull/920");
+      assert.equal(result.quiet_window_autonomy_proof.verdict, "PASS");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "claim_or_lease",
+        "execution_packet",
+        "build_attempt_or_commonsense_blocker",
+        "proof_packet",
+        "terminal_receipt",
+      ]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to memory-admin when the OpenHands proof comment MCP write fails", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (url, init = {}) => {
+        const body = JSON.parse(init.body);
+        calls.push({ url: String(url), init, body });
+        if (String(url).includes("/api/memory-admin?action=fishbowl_comment_on")) {
+          assert.equal(body.target_id, "todo-execute-fallback");
+          assert.match(body.text, /OpenHands build attempt PASS/);
+          return {
+            ok: true,
+            async json() {
+              return { comment: { id: "memory-admin-comment-1" } };
+            },
+          };
+        }
+
+        const toolName = body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-execute-fallback",
+                            title: "OpenHands execute bridge proof",
+                            status: "open",
+                            priority: "high",
+                            assigned_to_agent_id: "runner-plex-1",
+                            created_at: "2026-05-08T05:00:00.000Z",
+                            scope_pack: {
+                              owned_files: ["docs/runner-scope.md"],
+                              acceptance: ["Execute bridge records OpenHands proof only"],
+                              verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                              tests: [],
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: false,
+            status: 500,
+            async json() {
+              return { error: { message: "mcp comment write failed" } };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        policy: { allowExecute: true },
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-08T05:30:00.000Z",
+        wakeSource: "queuepush",
+        openHandsExecutor: {
+          enabled: true,
+          env: { OPENHANDS_TEST_MODE: "1" },
+          testMode: true,
+          openHands: async () => ({
+            ok: true,
+            patch:
+              "diff --git a/docs/runner-scope.md b/docs/runner-scope.md\n--- a/docs/runner-scope.md\n+++ b/docs/runner-scope.md\n@@ -1 +1 @@\n-old\n+new\n",
+            changed_files: ["docs/runner-scope.md"],
+            summary: "OpenHands execute bridge proof.",
+            test_run_id: "openhands-execute-unit",
+          }),
+          coderoom: async ({ changedFiles }) => ({
+            ok: true,
+            pr_url: "https://github.com/malamutemayhem/unclick/pull/920",
+            head_sha_after: "abc123",
+            test_run_id: "openhands-execute-unit",
+            test_exit_code: 0,
+            status: "draft_pr_created",
+            job: { status: "testing" },
+            changed_files: changedFiles,
+          }),
+        },
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.todo_claim_sync.reason, "openhands_build_attempt_recorded");
+      assert.equal(result.todo_claim_sync.comment_id, "memory-admin-comment-1");
+      assert.equal(result.todo_claim_sync.comment_transport, "memory-admin-fallback");
+      assert.deepEqual(calls.map((call) => call.body?.params?.name || new URL(call.url).searchParams.get("action")), [
+        "list_actionable_todos",
+        "comment_on",
+        "fishbowl_comment_on",
+      ]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records OpenHands execute holds as execution packets in quiet-window proof", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (_url, init = {}) => {
+        calls.push({ body: JSON.parse(init.body) });
+        const toolName = calls.at(-1).body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-execute-hold-1",
+                            title: "OpenHands execute packet proof",
+                            status: "open",
+                            priority: "high",
+                            assigned_to_agent_id: "runner-plex-1",
+                            created_at: "2026-05-08T05:00:00.000Z",
+                            scope_pack: {
+                              owned_files: ["docs/runner-scope.md"],
+                              acceptance: ["Execute bridge records OpenHands packet proof"],
+                              verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({ comment: { id: "comment-execute-hold-1" } }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        policy: { allowExecute: true },
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-08T05:30:00.000Z",
+        wakeSource: "schedule",
+        openHandsExecutor: {
+          enabled: true,
+          env: { OPENHANDS_TEST_MODE: "1" },
+          testMode: true,
+          openHands: async () => ({
+            ok: false,
+            reason: "writerlane_free_chain_exhausted",
+            exit_code: 0,
+            output: "OpenHands completed without a unified diff.",
+            attempts: [
+              {
+                modelId: "gpt-oss-120b",
+                openRouterModel: "openai/gpt-oss-120b:free",
+                status: "proven",
+                ok: false,
+                reason: "writerlane_no_file_contents",
+              },
+            ],
+          }),
+        },
+      });
+
+      assert.equal(result.ok, false);
+      assert.equal(result.action, "blocked");
+      assert.equal(result.reason, "writerlane_free_chain_exhausted");
+      assert.equal(result.todo_claim_sync.reason, "openhands_build_hold_recorded");
+      assert.match(calls[1].body.params.arguments.text, /OpenHands build attempt HOLD/);
+      assert.match(calls[1].body.params.arguments.text, /attempts=gpt-oss-120b:writerlane_no_file_contents/);
+      assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "proof_packet");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "claim_or_lease",
+        "execution_packet",
+        "build_attempt_or_commonsense_blocker",
+      ]);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -1839,6 +2267,37 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(typeof executor.openHands, "function");
     assert.equal(typeof executor.coderoom, "function");
     assert.equal(executor.testMode, true);
+  });
+
+  it("keeps the OpenHands CLI writer when AUTONOMOUS_RUNNER_WRITER is unset", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
+      OPENHANDS_TEST_MODE: "1",
+    });
+    assert.equal(executor.enabled, true);
+    assert.equal(typeof executor.openHands, "function");
+    assert.equal(typeof executor.coderoom, "function");
+  });
+
+  it("routes the writer through the WriterLane free-model adapter when opted in", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
+      AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+      OPENHANDS_TEST_MODE: "1",
+    });
+    assert.equal(executor.enabled, true);
+    assert.equal(typeof executor.openHands, "function");
+    assert.equal(typeof executor.coderoom, "function");
+    assert.equal(executor.testMode, true);
+  });
+
+  it("never builds a live writer while execute stays disabled, even with the writer flag", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+    });
+    assert.equal(executor.enabled, false);
+    assert.equal(executor.openHands, null);
+    assert.equal(executor.coderoom, null);
   });
 
   it("emits a quiet-window proof receipt that rejects manual runner triggers", async () => {
@@ -2798,7 +3257,7 @@ describe("PinballWake autonomous Runner seat", () => {
 
       const fetchImpl = async (_url, init = {}) => {
         const body = JSON.parse(init.body);
-        if (body.params.name === "list_actionable_todos") {
+        if (body.params?.name === "list_actionable_todos") {
           return {
             ok: true,
             async json() {

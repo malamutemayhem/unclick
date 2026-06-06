@@ -192,6 +192,33 @@ items:
     tags: [lifecycle, capabilities, spec-compliance]
     profiles: [standard, deep]
 
+  # ── MCP tool metadata and risk annotations ────────────────────────────────
+
+  - id: TOOL-META-001
+    title: Every tool declares MCP risk annotations
+    category: tool-hygiene
+    severity: high
+    check_type: deterministic
+    description: >
+      Call tools/list and confirm every advertised tool includes boolean
+      annotations for readOnlyHint, destructiveHint, idempotentHint, and
+      openWorldHint. These hints are not a hard safety boundary, but they are
+      the current MCP risk vocabulary clients use for approval prompts,
+      retry policy, and open-world trust warnings.
+    expected:
+      annotations:
+        readOnlyHint: boolean
+        destructiveHint: boolean
+        idempotentHint: boolean
+        openWorldHint: boolean
+    on_fail: >
+      Add annotations to every tool definition. Use readOnlyHint true only for
+      non-mutating tools, destructiveHint true for tools that can overwrite or
+      delete, idempotentHint true only when safe to retry with the same input,
+      and openWorldHint true when the tool touches external or untrusted data.
+    tags: [tools, annotations, security, approval, spec-hygiene]
+    profiles: [standard, deep]
+
   # ── UnClick tool surface ───────────────────────────────────────────────────
 
   - id: TOOL-001

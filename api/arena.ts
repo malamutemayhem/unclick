@@ -21,6 +21,7 @@ import {
   decideAiProviderCall,
   type AiProviderCallDecision,
 } from "./lib/ai-provider-inventory";
+import { resolveModelForRole } from "./lib/model-routing/model-split";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -289,7 +290,10 @@ function solutionsForProblem(problemId: string): Solution[] {
 const ARENA_MAX_CONTENT_LENGTH = 2000;
 const ARENA_MAX_NAME_LENGTH = 80;
 const ARENA_ANTHROPIC_PROVIDER_PATH_ID = "arena.anthropic.bot-solve";
-const ARENA_DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
+// Arena bot-solve is a low-context, high-frequency call: the "editor" role in the
+// architect/editor split. Resolved via the shared selector so the default is
+// env-overridable (EDITOR_MODEL) while staying behaviour-preserving by default.
+const ARENA_DEFAULT_ANTHROPIC_MODEL = resolveModelForRole("editor");
 const VALID_CATEGORIES = [
   "cat_automation","cat_business","cat_content","cat_data",
   "cat_devtools","cat_life","cat_scheduling","cat_security","cat_web",

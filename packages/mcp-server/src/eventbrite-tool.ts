@@ -4,6 +4,8 @@
 // Docs: https://www.eventbrite.com/platform/api
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const EVENTBRITE_BASE = "https://www.eventbriteapi.com/v3";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -15,6 +17,8 @@ function getToken(args: Record<string, unknown>): string | null {
     null
   );
 }
+
+const EVENTBRITE_TIMEOUT_MS = Number(process.env.EVENTBRITE_TIMEOUT_MS) || 10000;
 
 async function ebFetch(
   path: string,
@@ -31,6 +35,8 @@ async function ebFetch(
     }
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EVENTBRITE_TIMEOUT_MS);
   const init: RequestInit = {
     method: method ?? "GET",
     headers: {
@@ -39,26 +45,37 @@ async function ebFetch(
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    signal: controller.signal,
   };
 
   let response: Response;
   try {
     response = await fetch(url.toString(), init);
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Eventbrite request timed out after ${EVENTBRITE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    return { error: `Eventbrite rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`, status: 429 };
   }
 
   let data: unknown;
   try {
     data = await response.json();
   } catch {
-    return { error: `Non-JSON response (HTTP ${response.status})`, status: response.status };
+    return { error: `Non-JSON response (status ${response.status})`, status: response.status };
   }
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
     return {
-      error: e.error_description ?? e.error ?? `HTTP ${response.status}`,
+      error: e.error_description ?? e.error ?? `status ${response.status}`,
       status: response.status,
     };
   }
@@ -72,12 +89,17 @@ export async function eventbriteSearchEvents(args: Record<string, unknown>): Pro
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  return ebFetch("/events/search/", token, {
+  const __res = await ebFetch("/events/search/", token, {
     q:                        args.q                        ? String(args.q)                        : undefined,
     "location.address":       args.location_address        ? String(args.location_address)        : undefined,
     "start_date.range_start": args.start_date_range_start  ? String(args.start_date_range_start)  : undefined,
     categories:               args.category_id             ? String(args.category_id)             : undefined,
     sort_by:                  args.sort_by                 ? String(args.sort_by)                 : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Eventbrite",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use eventbrite_get_event with a result id, or eventbrite_get_venue for the venue."],
   });
 }
 
@@ -87,7 +109,7 @@ export async function eventbriteGetEvent(args: Record<string, unknown>): Promise
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.event_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/events/${id}/`, token);
@@ -99,7 +121,7 @@ export async function eventbriteGetEventAttendees(args: Record<string, unknown>)
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.event_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/events/${id}/attendees/`, token);
@@ -111,17 +133,22 @@ export async function eventbriteCreateEvent(args: Record<string, unknown>): Prom
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const organization_id = String(args.organization_id ?? "").trim();
+  const organization_id = String(args.organization_id ?? args.organizer_id ?? "").trim();
   if (!organization_id) return { error: "organization_id is required." };
 
   const name     = args.name     ? String(args.name)     : undefined;
-  const start    = args.start;
-  const end      = args.end;
+  const timezone = args.timezone ? String(args.timezone) : undefined;
+  const startUtc = args.start_utc ? String(args.start_utc) : undefined;
+  const endUtc   = args.end_utc   ? String(args.end_utc)   : undefined;
+  // Accept the flat start_utc/end_utc/timezone contract, or a pre-built
+  // { utc, timezone } object for either bound.
+  const start    = args.start ?? (startUtc && timezone ? { utc: startUtc, timezone } : undefined);
+  const end      = args.end   ?? (endUtc   && timezone ? { utc: endUtc,   timezone } : undefined);
   const currency = args.currency ? String(args.currency) : undefined;
 
   if (!name)     return { error: "name is required." };
-  if (!start)    return { error: "start is required (object with utc and timezone)." };
-  if (!end)      return { error: "end is required (object with utc and timezone)." };
+  if (!start)    return { error: "start_utc and timezone are required." };
+  if (!end)      return { error: "end_utc and timezone are required." };
   if (!currency) return { error: "currency is required (e.g. 'USD')." };
 
   const eventBody: Record<string, unknown> = {
@@ -152,7 +179,7 @@ export async function eventbriteGetVenue(args: Record<string, unknown>): Promise
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.venue_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/venues/${id}/`, token);

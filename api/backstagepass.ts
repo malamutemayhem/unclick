@@ -755,7 +755,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let ok = false;
     let status = 0;
-    let message = "";
+    let message: string;
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5_000);

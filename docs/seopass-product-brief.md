@@ -33,4 +33,25 @@ The current adapter is plan-only and public-safe. It accepts GEOPass-shaped sour
 
 ## Positioning
 
-TestPass checks agent tools. UXPass checks user experience. SEOPass checks whether the public web can find and trust the page.
+TestPass checks agent tools. UIPass checks the visible interface. UXPass checks user journeys. SEOPass checks whether the public web can find and trust the page.
+
+## 2026 research refresh: SEO plus AI search
+
+SEOPass and GEOPass should share one rule: AI search readiness is not a separate promise from search quality. Google says AI Overviews and AI Mode use the same foundational SEO requirements, with no extra technical requirements beyond being indexed, snippet-eligible, accessible, policy-compliant, and useful.
+
+That keeps SEOPass focused on boring, provable facts:
+
+- robots, sitemap, canonical, redirects, status codes, and internal links
+- metadata and visible page structure
+- structured data that matches visible content
+- people-first content and clear evidence for claims
+- Search Console / analytics framing that measures traffic and engagement without promising AI placement
+
+SEOPass must not claim it can guarantee rank, guarantee rich results, guarantee AI Overview inclusion, or certify that AI systems will cite a page. Structured data should be treated as an eligibility and clarity signal, not a ranking guarantee.
+
+Reference sources:
+
+- https://developers.google.com/search/docs/appearance/ai-features
+- https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+- https://developers.google.com/search/docs/appearance/structured-data/sd-policies
+- https://developers.google.com/search/docs/essentials/spam-policies

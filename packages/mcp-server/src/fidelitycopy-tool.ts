@@ -1,13 +1,21 @@
 import { createHash, randomUUID } from "node:crypto";
 
 type FidelityCopyMode = "raw_bytes" | "text_exact" | "json_canonical" | "approved_transform";
-type FidelityCopyVerdict = "PASS" | "BLOCKER" | "HOLD" | "ROUTE" | "SUPPRESS";
+type FidelityCopyVerdict = "PASS" | "BLOCKER" | "HOLD" | "ROUTE" | "SUPPRESS" | "N/A";
 
 interface Payload {
   kind: "text" | "base64";
   bytes: Buffer;
   text: string;
   ref: string;
+}
+
+interface CopyRoomSourcePacketInput {
+  source_id: string;
+  source_pointer: string;
+  text: string;
+  encoding?: "utf8";
+  newline_policy?: "preserve";
 }
 
 interface CanonicalizationReceipt {
@@ -20,6 +28,7 @@ interface CanonicalizationReceipt {
 interface FidelityCopyReceipt {
   kind: "fidelitycopy_receipt_v1";
   receipt_id: string;
+  mode: FidelityCopyMode;
   source_ref: string;
   source_hash: string;
   output_ref: string;
@@ -39,9 +48,23 @@ interface FidelityCopyReceipt {
   action_needed: string[];
 }
 
+interface FidelityPassNotApplicableReceipt {
+  kind: "fidelitypass_scope_receipt_v1";
+  status: "not_applicable";
+  verdict: "N/A";
+  checked_scope: "no_exact_copy";
+  reason: string;
+  action_needed: string[];
+  tool_version: string;
+  timestamp: string;
+  provenance_ref: string;
+}
+
 const TOOL_VERSION = "fidelitycopy-v1";
 const DEFAULT_SOURCE_REF = "fidelitycopy://inline-source";
 const DEFAULT_OUTPUT_REF = "fidelitycopy://inline-output";
+const DEFAULT_NOT_APPLICABLE_REASON =
+  "No exact 1:1 copy, transcription, mirroring, or preservation is in scope for this target.";
 
 export async function fidelitycopyCopy(args: Record<string, unknown>): Promise<unknown> {
   const mode = parseMode(args.mode);
@@ -64,6 +87,17 @@ export async function fidelitycopyCopy(args: Record<string, unknown>): Promise<u
 }
 
 export async function fidelitypassVerifyCopy(args: Record<string, unknown>): Promise<unknown> {
+  const scope = parseFidelityPassScope(args);
+  if ("error" in scope) return { error: scope.error };
+  if (scope.notApplicable) {
+    const receipt = buildNotApplicableReceipt(args);
+    return {
+      verdict: "N/A",
+      receipt,
+      action_needed: receipt.action_needed,
+    };
+  }
+
   const receiptPayload = parseReceipt(args.receipt_payload ?? args.receipt);
   const mode = parseMode(args.mode) ?? modeFromReceipt(receiptPayload);
   if (!mode) return { error: "mode must be one of: raw_bytes, text_exact, json_canonical, approved_transform" };
@@ -100,6 +134,41 @@ export async function fidelitypassVerifyCopy(args: Record<string, unknown>): Pro
   }
 
   return { verdict: receipt.verdict, receipt };
+}
+
+function parseFidelityPassScope(args: Record<string, unknown>): { notApplicable: boolean } | { error: string } {
+  const copyScope = readString(args.copy_scope);
+  const exactCopyRequired = args.exact_copy_required;
+
+  if (copyScope !== null && copyScope !== "" && copyScope !== "exact_copy" && copyScope !== "not_applicable") {
+    return { error: "copy_scope must be exact_copy or not_applicable" };
+  }
+  if (exactCopyRequired !== undefined && exactCopyRequired !== null && typeof exactCopyRequired !== "boolean") {
+    return { error: "exact_copy_required must be a boolean" };
+  }
+  if (copyScope === "exact_copy" && exactCopyRequired === false) {
+    return { error: "FidelityPass scope conflict: copy_scope=exact_copy cannot be combined with exact_copy_required=false." };
+  }
+  if (copyScope === "not_applicable" && exactCopyRequired === true) {
+    return { error: "FidelityPass scope conflict: copy_scope=not_applicable cannot be combined with exact_copy_required=true." };
+  }
+
+  return { notApplicable: copyScope === "not_applicable" || exactCopyRequired === false };
+}
+
+function buildNotApplicableReceipt(args: Record<string, unknown>): FidelityPassNotApplicableReceipt {
+  const reason = readString(args.scope_reason)?.trim() || DEFAULT_NOT_APPLICABLE_REASON;
+  return {
+    kind: "fidelitypass_scope_receipt_v1",
+    status: "not_applicable",
+    verdict: "N/A",
+    checked_scope: "no_exact_copy",
+    reason,
+    action_needed: [],
+    tool_version: TOOL_VERSION,
+    timestamp: new Date().toISOString(),
+    provenance_ref: readString(args.provenance_ref) || "mcp://fidelitypass/not-applicable",
+  };
 }
 
 function createCopyOutput(
@@ -140,6 +209,7 @@ function buildReceipt(
   const base: FidelityCopyReceipt = {
     kind: "fidelitycopy_receipt_v1",
     receipt_id: `fidelitycopy_${randomUUID()}`,
+    mode,
     source_ref: source.ref,
     source_hash: sourceHash,
     output_ref: output.ref,
@@ -245,6 +315,21 @@ function parsePayload(
   prefix: "source" | "output",
   fallbackRef: string,
 ): Payload | { error: string } {
+  if (prefix === "source" && args.copyroom_source_packet !== undefined && args.copyroom_source_packet !== null) {
+    if (readString(args.source_text) !== null || readString(args.source_base64) !== null) {
+      return { error: "copyroom_source_packet cannot be combined with source_text or source_base64" };
+    }
+
+    const packet = parseCopyRoomSourcePacketInput(args.copyroom_source_packet);
+    if ("error" in packet) return { error: packet.error };
+    return {
+      kind: "text",
+      bytes: Buffer.from(packet.text, "utf8"),
+      text: packet.text,
+      ref: packet.source_pointer,
+    };
+  }
+
   const text = readString(args[`${prefix}_text`]);
   const base64 = readString(args[`${prefix}_base64`]);
   const ref = readString(args[`${prefix}_ref`]) || (prefix === "output" ? resolveOutputRef(args) : fallbackRef);
@@ -274,11 +359,42 @@ function modeFromReceipt(receipt: Partial<FidelityCopyReceipt> | null): Fidelity
 }
 
 function hasAnyPayload(args: Record<string, unknown>, prefix: "source" | "output"): boolean {
+  if (prefix === "source" && args.copyroom_source_packet !== undefined && args.copyroom_source_packet !== null) {
+    return true;
+  }
   return readString(args[`${prefix}_text`]) !== null || readString(args[`${prefix}_base64`]) !== null;
 }
 
 function readString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function parseCopyRoomSourcePacketInput(value: unknown): CopyRoomSourcePacketInput | { error: string } {
+  if (!isRecord(value)) {
+    return { error: "COPYROOM_MISSING: copyroom_source_packet must be an object." };
+  }
+
+  const sourceId = readString(value.source_id);
+  const sourcePointer = readString(value.source_pointer);
+  const text = readString(value.text);
+  const encoding = value.encoding === undefined || value.encoding === "utf8" ? "utf8" : null;
+  const newlinePolicy = value.newline_policy === undefined || value.newline_policy === "preserve" ? "preserve" : null;
+
+  if (!sourceId?.trim() || !sourcePointer?.trim() || text === null) {
+    return {
+      error: "COPYROOM_MISSING: copyroom_source_packet must include source_id, source_pointer, and text.",
+    };
+  }
+  if (!encoding) return { error: "COPYROOM_MISSING: copyroom_source_packet encoding must be utf8." };
+  if (!newlinePolicy) return { error: "COPYROOM_MISSING: copyroom_source_packet newline_policy must be preserve." };
+
+  return {
+    source_id: sourceId.trim(),
+    source_pointer: sourcePointer.trim(),
+    text,
+    encoding,
+    newline_policy: newlinePolicy,
+  };
 }
 
 function parseAllowedChanges(value: unknown): string[] {
@@ -304,8 +420,11 @@ function decodeBase64(value: string): Buffer | null {
   try {
     const normalized = value.replace(/\s+/g, "");
     if (!normalized) return null;
+    if (normalized.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) return null;
     const decoded = Buffer.from(normalized, "base64");
     if (decoded.length === 0 && normalized !== "") return null;
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    if (decoded.toString("base64") !== padded) return null;
     return decoded;
   } catch {
     return null;
@@ -353,6 +472,10 @@ function stableJsonStringify(value: unknown): string {
 function parseReceipt(value: unknown): Partial<FidelityCopyReceipt> | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
   return value as Partial<FidelityCopyReceipt>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function compareProvidedReceipt(

@@ -1,0 +1,44 @@
+{
+  "name": "@unclick/musicbrainz-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/musicbrainz",
+  "description": "Open music metadata: artists, releases, and recordings from MusicBrainz. No API key. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "music",
+    "musicbrainz",
+    "metadata"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "musicbrainz-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/musicbrainz-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

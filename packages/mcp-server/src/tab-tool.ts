@@ -3,16 +3,32 @@
 // Docs: https://api.beta.tab.com.au/
 // Base URL: https://api.beta.tab.com.au/v1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const TAB_BASE = "https://api.beta.tab.com.au/v1";
 
 async function tabGet(path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${TAB_BASE}${path}${qs}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const TAB_TIMEOUT_MS = Number(process.env.TAB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TAB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TAB_BASE}${path}${qs}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TAB API request timed out after ${TAB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TAB API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 404) throw new Error("Resource not found on TAB API.");
   if (res.status === 429) throw new Error("TAB API rate limit exceeded.");
   if (!res.ok) {
@@ -43,7 +59,7 @@ export async function getTabMeetings(args: Record<string, unknown>): Promise<unk
       !raceType || (m["raceType"] as string)?.toUpperCase() === raceType
     );
 
-    return {
+    return stampMeta({
       race_type: raceType,
       jurisdiction,
       count: filtered.length,
@@ -64,7 +80,11 @@ export async function getTabMeetings(args: Record<string, unknown>): Promise<unk
           status: r["raceStatus"],
         })),
       })),
-    };
+    }, {
+      source: "TAB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use tab_race for a specific race, or tab_sports_markets for sports betting."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

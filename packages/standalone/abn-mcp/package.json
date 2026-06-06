@@ -1,0 +1,44 @@
+{
+  "name": "@unclick/abn-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/abn",
+  "description": "Australian Business Number lookup and business name search. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "abn",
+    "business",
+    "australia"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "abn-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/abn-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

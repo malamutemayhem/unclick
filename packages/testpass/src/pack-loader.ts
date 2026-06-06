@@ -25,7 +25,9 @@ export function loadPackFromYaml(yamlString: string): Pack {
   try {
     parsed = yaml.load(yamlString);
   } catch (err) {
-    throw new Error(`YAML parse error: ${(err as Error).message}`);
+    const error = new Error(`YAML parse error: ${(err as Error).message}`);
+    Object.assign(error, { cause: err });
+    throw error;
   }
   const result = PackSchema.safeParse(parsed);
   if (!result.success) {

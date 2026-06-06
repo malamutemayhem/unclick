@@ -24,13 +24,14 @@ describe("PassGuard disclaimer-banner", () => {
     expect(DISCLAIMER_TARGETS.tos).toBe(312);
   });
 
-  it("each disclaimer disclaims being a lawyer", () => {
+  it("each disclaimer disclaims being a lawyer or law firm", () => {
     for (const length of ["chat", "results", "tos"] as const) {
       const text = getDisclaimer(length).toLowerCase();
       expect(
         text.includes("not a lawyer") ||
           text.includes("is not a lawyer") ||
-          text.includes("not a lawyer,")
+          text.includes("not a lawyer,") ||
+          text.includes("not a law firm")
       ).toBe(true);
     }
   });

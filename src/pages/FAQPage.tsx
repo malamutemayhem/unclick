@@ -1,7 +1,5 @@
-import { useEffect } from "react";
-import Navbar from "@/components/Navbar";
+import PageShell from "@/components/PageShell";
 import FAQ from "@/components/FAQ";
-import Footer from "@/components/Footer";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 
@@ -10,17 +8,19 @@ const FAQPage = () => {
   useMetaTags({
     title: "FAQ - UnClick",
     ogTitle: "FAQ - UnClick",
-    ogDescription: "Answers to common questions about UnClick, MCP tools, the Arena, and how to get started.",
+    ogDescription:
+      "Answers to common questions about UnClick, MCP tools, the Arena, and how to get started.",
     ogUrl: "https://unclick.world/faq",
   });
+
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="pt-14">
-        <FAQ />
-      </div>
-      <Footer />
-    </div>
+    <PageShell
+      eyebrow="FAQ"
+      title="Frequently asked."
+      lede="Common questions about UnClick, MCP tools, the Arena, and getting started."
+    >
+      <FAQ />
+    </PageShell>
   );
 };
 

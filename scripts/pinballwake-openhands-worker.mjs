@@ -100,10 +100,12 @@ export async function runOpenHandsWorker({
       job: normalizedJob,
       executorSeatId,
       now: safeNow,
-      reason: "openhands_reported_failure",
+      reason: result?.reason || "openhands_reported_failure",
       evidence: {
         exit_code: result?.exit_code ?? null,
         output: clipOutput(result?.output, 2000),
+        model: clip(result?.model, 120),
+        attempts: summarizeRunnerAttempts(result?.attempts),
       },
     });
   }
@@ -171,6 +173,8 @@ export async function runOpenHandsWorker({
       evidence: {
         reason: coderoomResult?.reason ?? "unknown",
         file: coderoomResult?.file ?? null,
+        output: clipOutput(coderoomResult?.output, 1200),
+        dirty_files: normalizeChangedFiles(coderoomResult?.dirty_files || []),
         changed_files: changedFiles,
       },
     });
@@ -188,6 +192,8 @@ export async function runOpenHandsWorker({
       test_run_id: coderoomResult.test_run_id ?? result.test_run_id ?? null,
       test_exit_code: coderoomResult.test_exit_code ?? result.test_exit_code ?? null,
       coderoom_status: coderoomResult.job?.status ?? coderoomResult.status ?? null,
+      model: clip(result.model, 120),
+      attempts: summarizeRunnerAttempts(result.attempts),
     },
   });
 }
@@ -196,12 +202,13 @@ export function buildOpenHandsTaskPrompt({ job = {}, scopePack = {} } = {}) {
   const ownedFiles = normalizeChangedFiles(scopePack.owned_files || job.owned_files || []);
   const acceptance = normalizeList(scopePack.acceptance || job.acceptance || job.expected_proof?.tests);
   const verification = normalizeList(scopePack.verification || scopePack.tests || []);
+  const fixtureDiffHint = buildFixtureDiffHint({ job, ownedFiles });
   const lines = [
     "You are OpenHands running in UnClick test mode.",
     "Return a unified diff patch only. Do not commit, push, merge, deploy, or touch secrets.",
     `Job: ${compact(job.title || job.job_id || job.id || "untitled job", 300)}`,
     `Chip: ${compact(job.chip || "none", 300)}`,
-    `Todo: ${job.todo_id || job.id || "unknown"}`,
+    `Todo: ${resolveJobTodoId(job) || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
     "Acceptance:",
@@ -218,7 +225,38 @@ export function buildOpenHandsTaskPrompt({ job = {}, scopePack = {} } = {}) {
     lines.push(compact(scopePack.body || scopePack.description, 4000));
   }
 
+  if (fixtureDiffHint) {
+    lines.push("Canary fixture diff:");
+    lines.push("For this fixture task, return this unified diff shape and nothing else:");
+    lines.push(fixtureDiffHint);
+  }
+
   return lines.join("\n");
+}
+
+function buildFixtureDiffHint({ job = {}, ownedFiles = [] } = {}) {
+  const fixtureFile = ownedFiles.find((file) => file === "docs/openhands-proof-fixture.md");
+  if (!fixtureFile) return "";
+
+  const proofId = compact(
+    job.claim_id ||
+      job.claimId ||
+      resolveJobTodoId(job) ||
+      job.job_id ||
+      "openhands-afk-canary",
+    160,
+  );
+  return [
+    `diff --git a/${fixtureFile} b/${fixtureFile}`,
+    `--- a/${fixtureFile}`,
+    `+++ b/${fixtureFile}`,
+    "@@ -3,4 +3,5 @@",
+    " This fixture exists so the autopilot can prove a docs-only patch path without",
+    " touching product code, production data, secrets, billing, DNS, or deploys.",
+    "",
+    " <!-- openhands-proof-lines -->",
+    `+- proof run: ${proofId}`,
+  ].join("\n");
 }
 
 export function isOpenHandsTestMode({ env = process.env, testMode = false } = {}) {
@@ -270,6 +308,7 @@ async function defaultCoderoomSubmit({ job, changedFiles, summary, testRunId }) 
 }
 
 function pass({ job, executorSeatId, now, evidence }) {
+  const todoId = resolveJobTodoId(job);
   return {
     ok: true,
     reason: "openhands_worker_pass",
@@ -277,7 +316,7 @@ function pass({ job, executorSeatId, now, evidence }) {
       receipt_type: RECEIPT_TYPE_PASS,
       emitted_at: now.toISOString(),
       job_id: job?.job_id ?? null,
-      todo_id: job?.todo_id ?? job?.id ?? null,
+      todo_id: todoId || null,
       executor_seat_id: executorSeatId,
       evidence,
       proof_required: PROOF_REQUIRED,
@@ -288,6 +327,7 @@ function pass({ job, executorSeatId, now, evidence }) {
 }
 
 function hold({ job, executorSeatId, now, reason, evidence }) {
+  const todoId = resolveJobTodoId(job);
   return {
     ok: false,
     reason,
@@ -295,7 +335,7 @@ function hold({ job, executorSeatId, now, reason, evidence }) {
       receipt_type: RECEIPT_TYPE_HOLD,
       emitted_at: now.toISOString(),
       job_id: job?.job_id ?? null,
-      todo_id: job?.todo_id ?? job?.id ?? null,
+      todo_id: todoId || null,
       executor_seat_id: executorSeatId,
       hold_reason: reason,
       evidence,
@@ -329,6 +369,17 @@ function normalizeJob(job, scopePack) {
       requires_tests: true,
     },
   };
+}
+
+function resolveJobTodoId(job = {}) {
+  return String(
+    job?.todo_id ||
+      job?.todoId ||
+      job?.id ||
+      job?.source_state?.todo_id ||
+      job?.sourceState?.todo_id ||
+      "",
+  ).trim();
 }
 
 function normalizeChangedFiles(values) {
@@ -383,6 +434,21 @@ function clipOutput(value, max) {
   const head = Math.ceil(budget * 0.35);
   const tail = Math.max(0, budget - head);
   return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
+}
+
+function summarizeRunnerAttempts(attempts, maxAttempts = 8) {
+  if (!Array.isArray(attempts)) return [];
+  return attempts
+    .slice(0, maxAttempts)
+    .map((attempt) => ({
+      model_id: clip(attempt?.modelId || attempt?.model_id || "", 80),
+      openrouter_model: clip(attempt?.openRouterModel || attempt?.openrouter_model || "", 140),
+      status: clip(attempt?.status || "", 40),
+      ok: attempt?.ok === true,
+      reason: clip(attempt?.reason || "", 160),
+      http_status: typeof attempt?.http_status === "number" ? attempt.http_status : null,
+    }))
+    .filter((attempt) => attempt.model_id || attempt.openrouter_model || attempt.reason);
 }
 
 function toDate(value) {

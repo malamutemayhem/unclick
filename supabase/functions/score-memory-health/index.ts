@@ -11,9 +11,11 @@
 //      which upserts mc_memory_health.
 //   3. Return a small JSON summary for observability.
 
-// deno-lint-ignore-file no-explicit-any
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+type MemoryHashRow = {
+  api_key_hash?: string | null;
+};
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -47,7 +49,7 @@ Deno.serve(async () => {
   const hashes = Array.from(
     new Set(
       [...(factRows ?? []), ...(summaryRows ?? [])]
-        .map((r: any) => r.api_key_hash)
+        .map((r: MemoryHashRow) => r.api_key_hash)
         .filter(Boolean),
     ),
   );

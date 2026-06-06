@@ -19,6 +19,7 @@ import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.m
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
 import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
 import { createOpenHandsCliRunner, createSafeCodeRoomSubmitter } from "./pinballwake-openhands-proof-runner.mjs";
+import { createWriterLaneFreeWriterRunner } from "./pinballwake-writerlane-free-writer.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -39,6 +40,8 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
   allowedActionReasons: ["unassigned_open"],
   allowedTodoRoles: ["builder", "plex-builder", "implementation", "test_fix", "docs_update", "code"],
 };
+
+export const WRITERLANE_FREE_SAFE_TODO_ROLES = ["docs_update", "test_fix"];
 
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
 export const UNCLICK_TODO_COMMENT_HYDRATION_LIMIT = 50;
@@ -98,6 +101,20 @@ function parseList(value, fallback = []) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export function shouldUseWriterLaneFreeSafeQueue(env = process.env) {
+  const safeEnv = env || {};
+  const writer = String(safeEnv.AUTONOMOUS_RUNNER_WRITER ?? "").trim();
+  return writer === "writerlane_free" && !parseBoolean(safeEnv.AUTONOMOUS_RUNNER_WRITER_ALLOW_BROAD_QUEUE);
+}
+
+export function resolveAutonomousRunnerAllowedTodoRolesFromEnv(env = process.env) {
+  const safeEnv = env || {};
+  if (shouldUseWriterLaneFreeSafeQueue(safeEnv)) {
+    return WRITERLANE_FREE_SAFE_TODO_ROLES;
+  }
+  return safeEnv.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES;
 }
 
 function getArg(name, fallback = "") {
@@ -579,10 +596,25 @@ export async function createAutonomousRunnerOpenHandsClaimProbeReceipt({
 export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env) {
   const safeEnv = env || {};
   const enabled = parseBoolean(safeEnv.AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE);
+  // Opt-in writer swap. Unset (the default) keeps today's OpenHands CLI runner +
+  // default CodeRoom submitter byte-for-byte. "writerlane_free" routes the writer
+  // through the direct-OpenRouter free-model adapter and FORCES the CodeRoom
+  // submitter to draft + no-auto-merge (the default submitter is draft:false /
+  // autoMerge:true, which must NOT apply to the free-writer's first live step).
+  const useWriterLaneFree =
+    String(safeEnv.AUTONOMOUS_RUNNER_WRITER ?? "").trim() === "writerlane_free";
   return {
     enabled,
-    openHands: enabled ? createOpenHandsCliRunner({ env: safeEnv }) : null,
-    coderoom: enabled ? createSafeCodeRoomSubmitter({ env: safeEnv }) : null,
+    openHands: enabled
+      ? useWriterLaneFree
+        ? createWriterLaneFreeWriterRunner({ env: safeEnv })
+        : createOpenHandsCliRunner({ env: safeEnv })
+      : null,
+    coderoom: enabled
+      ? useWriterLaneFree
+        ? createSafeCodeRoomSubmitter({ env: safeEnv, draft: true, autoMerge: false })
+        : createSafeCodeRoomSubmitter({ env: safeEnv })
+      : null,
     env: safeEnv,
     testMode: parseBoolean(safeEnv.OPENHANDS_TEST_MODE),
     executorSeatId: safeEnv.OPENHANDS_EXECUTOR_SEAT_ID || "pinballwake-openhands-worker",
@@ -712,6 +744,162 @@ async function callUnClickMcpTool({
   return {
     ok: true,
     data: extractMcpTextJson(payload),
+  };
+}
+
+async function callUnClickMemoryAdminAction({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  action,
+  body = {},
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (!apiKey) {
+    return { ok: false, reason: "missing_unclick_api_key" };
+  }
+  if (!mcpUrl) {
+    return { ok: false, reason: "missing_unclick_mcp_url" };
+  }
+  if (!action) {
+    return { ok: false, reason: "missing_unclick_memory_admin_action" };
+  }
+  if (typeof fetchImpl !== "function") {
+    return { ok: false, reason: "missing_fetch_impl" };
+  }
+
+  const response = await fetchImpl(memoryAdminActionUrlFromMcpUrl(mcpUrl, action), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response?.json?.().catch(() => ({}));
+  if (!response?.ok) {
+    return {
+      ok: false,
+      reason: "unclick_memory_admin_http_error",
+      status: response?.status ?? null,
+      error: compact(payload?.error || payload?.message || "", 500) || null,
+    };
+  }
+  if (payload?.error) {
+    return {
+      ok: false,
+      reason: "unclick_memory_admin_action_error",
+      error: compact(payload.error, 500),
+    };
+  }
+
+  return {
+    ok: true,
+    data: payload && typeof payload === "object" ? payload : {},
+  };
+}
+
+function decorateMemoryAdminFallbackSuccess(data = {}, failedMcpResult = {}) {
+  return {
+    ok: true,
+    data,
+    queue_transport: "memory-admin-fallback",
+    fallback_from: {
+      transport: "mcp",
+      reason: failedMcpResult.reason || null,
+      status: failedMcpResult.status ?? null,
+      error: failedMcpResult.error ?? null,
+    },
+  };
+}
+
+function decorateMemoryAdminWriteFallbackSuccess(data = {}, failedMcpResult = {}) {
+  return {
+    ok: true,
+    data,
+    write_transport: "memory-admin-fallback",
+    fallback_from: {
+      transport: "mcp",
+      reason: failedMcpResult.reason || null,
+      status: failedMcpResult.status ?? null,
+      error: failedMcpResult.error ?? null,
+    },
+  };
+}
+
+async function callUnClickQueueToolWithMemoryAdminFallback({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  fetchImpl = globalThis.fetch,
+  toolName,
+  memoryAdminAction,
+  arguments: toolArguments = {},
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName,
+    arguments: toolArguments,
+  });
+  if (result.ok) {
+    return {
+      ...result,
+      queue_transport: "mcp",
+    };
+  }
+
+  const fallback = await callUnClickMemoryAdminAction({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    action: memoryAdminAction,
+    body: toolArguments,
+  });
+  if (fallback.ok) {
+    return decorateMemoryAdminFallbackSuccess(fallback.data, result);
+  }
+
+  return {
+    ...result,
+    memory_admin_fallback: fallback,
+  };
+}
+
+async function callUnClickCommentToolWithMemoryAdminFallback({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  fetchImpl = globalThis.fetch,
+  arguments: toolArguments = {},
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "comment_on",
+    arguments: toolArguments,
+  });
+  if (result.ok) {
+    return {
+      ...result,
+      write_transport: "mcp",
+    };
+  }
+
+  const fallback = await callUnClickMemoryAdminAction({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    action: "fishbowl_comment_on",
+    body: toolArguments,
+  });
+  if (fallback.ok) {
+    return decorateMemoryAdminWriteFallbackSuccess(fallback.data, result);
+  }
+
+  return {
+    ...result,
+    memory_admin_fallback: fallback,
   };
 }
 
@@ -896,11 +1084,12 @@ export async function fetchUnClickActionableTodos({
   apiKey = "",
   fetchImpl = globalThis.fetch,
 } = {}) {
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_actionable_todos",
+    memoryAdminAction: "fishbowl_list_actionable_todos",
     arguments: {
       agent_id: agentId,
       limit,
@@ -915,6 +1104,8 @@ export async function fetchUnClickActionableTodos({
     ok: true,
     todos,
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
@@ -925,11 +1116,12 @@ export async function fetchUnClickAssignedTodos({
   apiKey = "",
   fetchImpl = globalThis.fetch,
 } = {}) {
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_todos",
+    memoryAdminAction: "fishbowl_list_todos",
     arguments: {
       agent_id: agentId,
       assigned_to_agent_id: agentId,
@@ -974,6 +1166,8 @@ export async function fetchUnClickAssignedTodos({
     ok: true,
     todos: enrichedTodos,
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
@@ -989,11 +1183,12 @@ export async function fetchUnClickTodoComments({
     return { ok: true, comments: [], response_bounds: null, skipped: true, reason: "missing_todo_id" };
   }
 
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_comments",
+    memoryAdminAction: "fishbowl_list_comments",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -1008,6 +1203,8 @@ export async function fetchUnClickTodoComments({
     ok: true,
     comments: Array.isArray(result.data?.comments) ? result.data.comments : [],
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
@@ -1244,6 +1441,11 @@ const BOARDROOM_SCOPING_ACTION_REASONS = new Set([
   "stale_assigned_open",
   "role_assigned_open",
 ]);
+const BOARDROOM_SELF_ASSIGNED_ACTION_REASONS = new Set([
+  "assigned_open",
+  "role_assigned_open",
+  "stale_assigned_open",
+]);
 
 function boardroomClaimAgentId(runner = {}) {
   const safeRunner = createAutonomousRunner(runner);
@@ -1345,11 +1547,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
   }
 
   if (openHandsExecuteResult) {
-    const comment = await callUnClickMcpTool({
+    const comment = await callUnClickCommentToolWithMemoryAdminFallback({
       mcpUrl,
       apiKey,
       fetchImpl,
-      toolName: "comment_on",
       arguments: {
         agent_id: agentId,
         target_kind: "todo",
@@ -1395,6 +1596,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
       comment_id: comment.data?.comment?.id || null,
       comment_detail: null,
       comment_status: null,
+      comment_transport: comment.write_transport || null,
       openhands_execute: openHandsExecuteResult,
     };
   }
@@ -1409,11 +1611,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
   }
 
   if (testOnlyExecutorPacketResult) {
-    const comment = await callUnClickMcpTool({
+    const comment = await callUnClickCommentToolWithMemoryAdminFallback({
       mcpUrl,
       apiKey,
       fetchImpl,
-      toolName: "comment_on",
       arguments: {
         agent_id: agentId,
         target_kind: "todo",
@@ -1452,6 +1653,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
     return {
       ok: true,
       skipped: true,
+      action: "hold",
+      hold: true,
+      execute_disabled: true,
+      hold_reason: "claim_only_execute_disabled",
       reason: "test_only_executor_packet_not_active_claim",
       todo_id: todoId,
       assigned_to_agent_id: job?.source_state?.assigned_to_agent_id || null,
@@ -1460,6 +1665,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
       comment_id: comment.data?.comment?.id || null,
       comment_detail: null,
       comment_status: null,
+      comment_transport: comment.write_transport || null,
       test_only_executor_packet: testOnlyExecutorPacketResult,
       openhands_claim_probe: openHandsClaimProbeResult,
     };
@@ -1488,11 +1694,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
     };
   }
 
-  const comment = await callUnClickMcpTool({
+  const comment = await callUnClickCommentToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
-    toolName: "comment_on",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -1533,6 +1738,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
     status: "in_progress",
     comment_ok: true,
     comment_id: comment.data?.comment?.id || null,
+    comment_transport: comment.write_transport || null,
     test_only_executor_packet: testOnlyExecutorPacketResult,
   };
 }
@@ -1790,6 +1996,7 @@ function createQuietWindowAutonomyProofReceipt({
   finalReason = "",
   commonsensepass = {},
   testOnlyExecutorPacket = null,
+  openHandsExecute = null,
 } = {}) {
   const triggerSource = normalizeQuietWindowToken(wakeSource || "unknown");
   const imported = numberOption(queueSourceResult.imported, 0);
@@ -1835,6 +2042,39 @@ function createQuietWindowAutonomyProofReceipt({
       packet_id: testOnlyExecutorPacket.packet.packet_id || null,
       receipt_type: testOnlyExecutorPacket.receipt?.receipt_type || null,
     });
+  }
+
+  if (openHandsExecute?.receipt) {
+    const evidence = openHandsExecute.receipt.evidence || {};
+    events.push({
+      rung: "execution_packet",
+      at: now,
+      packet_id: openHandsExecute.receipt.job_id || claimedResult?.job?.job_id || null,
+      receipt_type: openHandsExecute.receipt.receipt_type || null,
+    });
+    events.push({
+      rung: "build_attempt",
+      at: now,
+      reason: openHandsExecute.reason || openHandsExecute.receipt.hold_reason || null,
+      receipt_type: openHandsExecute.receipt.receipt_type || null,
+      ok: Boolean(openHandsExecute.ok),
+    });
+    if (openHandsExecute.ok && (evidence.pr_url || evidence.head_sha_after || evidence.changed_files?.length)) {
+      events.push({
+        rung: "proof_packet",
+        at: now,
+        pr_url: evidence.pr_url || null,
+        head_sha_after: evidence.head_sha_after || null,
+        changed_files: evidence.changed_files || [],
+        receipt_type: openHandsExecute.receipt.receipt_type || null,
+      });
+      events.push({
+        rung: "terminal_receipt",
+        at: now,
+        status: evidence.coderoom_status || "openhands_build_attempt_recorded",
+        receipt_type: openHandsExecute.receipt.receipt_type || null,
+      });
+    }
   }
 
   if (blockedResult || commonsensepass.verdict !== "PASS") {
@@ -2107,11 +2347,10 @@ export async function syncBoardroomTodoScopingRequestToUnClick({
     formatTestOnlyExecutorPacketReceipt(testOnlyExecutorPacketResult),
   ].filter(Boolean).join(" ");
 
-  const comment = await callUnClickMcpTool({
+  const comment = await callUnClickCommentToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
-    toolName: "comment_on",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -2128,6 +2367,7 @@ export async function syncBoardroomTodoScopingRequestToUnClick({
     comment_ok: comment.ok,
     comment_id: comment.ok ? comment.data?.comment?.id || null : null,
     comment_detail: comment.ok ? null : comment.reason || comment.error || null,
+    comment_transport: comment.ok ? comment.write_transport || null : null,
     scopepack_hydration: hydration.action === "needs_manual_scoping" ? null : hydration,
     test_only_executor_packet: testOnlyExecutorPacketResult,
   };
@@ -2174,6 +2414,9 @@ function formatOpenHandsBuildAttemptReceipt(result) {
   ];
   const holdReason = receipt.hold_reason || result.reason || "";
   if (holdReason) parts.push(`openhands_hold_reason=${holdReason}.`);
+  if (evidence.model) parts.push(`model=${evidence.model}.`);
+  const attemptSummary = formatOpenHandsAttemptSummary(evidence.attempts);
+  if (attemptSummary) parts.push(`attempts=${attemptSummary}.`);
   if (Array.isArray(evidence.changed_files) && evidence.changed_files.length > 0) {
     parts.push(`changed_files=${evidence.changed_files.join(",")}.`);
   }
@@ -2181,7 +2424,19 @@ function formatOpenHandsBuildAttemptReceipt(result) {
   if (evidence.pr_url) parts.push(`pr=${evidence.pr_url}.`);
   if (evidence.head_sha_after) parts.push(`head_sha=${evidence.head_sha_after}.`);
   if (receipt.next_action) parts.push(`openhands_next=${receipt.next_action}.`);
-  return compact(parts.join(" "), 600);
+  return compact(parts.join(" "), 900);
+}
+
+function formatOpenHandsAttemptSummary(attempts) {
+  if (!Array.isArray(attempts) || attempts.length === 0) return "";
+  return attempts
+    .slice(0, 4)
+    .map((attempt) => {
+      const model = compact(attempt?.model_id || attempt?.modelId || "unknown", 50);
+      const reason = attempt?.ok === true ? "ok" : compact(attempt?.reason || "failed", 70);
+      return `${model}:${reason}`;
+    })
+    .join(",");
 }
 
 export function createCodingRoomJobFromBoardroomTodo(todo = {}, { now = new Date().toISOString() } = {}) {
@@ -2272,7 +2527,7 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
   const actionReason = normalizeToken(todo.actionability_reason || "");
   const safeActionReasons = tokenSet(allowedActionReasons, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons);
   const selfAssignedActionReason =
-    assignedToRunner && (actionReason === "role_assigned_open" || actionReason === "assigned_open");
+    assignedToRunner && BOARDROOM_SELF_ASSIGNED_ACTION_REASONS.has(actionReason);
   if (actionReason && safeActionReasons.size > 0 && !safeActionReasons.has(actionReason) && !selfAssignedActionReason) {
     return { ok: false, reason: "boardroom_todo_action_reason_not_allowed", actionability_reason: actionReason };
   }
@@ -2535,7 +2790,7 @@ export function createAutonomousRunnerFromEnv(env = process.env) {
   const base = createCodingRoomRunnerFromEnv(env);
   return createAutonomousRunner({
     ...base,
-    id: env.AUTONOMOUS_RUNNER_ID || base.id || DEFAULT_AUTONOMOUS_RUNNER.id,
+    id: env.AUTONOMOUS_RUNNER_ID || env.CODING_ROOM_RUNNER_ID || DEFAULT_AUTONOMOUS_RUNNER.id,
     readiness: env.AUTONOMOUS_RUNNER_READINESS || base.readiness || DEFAULT_AUTONOMOUS_RUNNER.readiness,
     capabilities: parseList(
       env.AUTONOMOUS_RUNNER_CAPABILITIES,
@@ -3110,6 +3365,7 @@ export async function runAutonomousRunnerFile({
     finalReason,
     commonsensepass,
     testOnlyExecutorPacket: todoClaimSync.test_only_executor_packet || todoScopingSync.test_only_executor_packet,
+    openHandsExecute: todoClaimSync.openhands_execute,
   });
   claimabilityScorecard = {
     ...claimabilityScorecard,
@@ -3222,7 +3478,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       maxCycles: parseIntOption(getArg("max-cycles", process.env.AUTONOMOUS_RUNNER_MAX_CYCLES), 1),
       allowedPriorities: process.env.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES,
       allowedActionReasons: process.env.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS,
-      allowedTodoRoles: process.env.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES,
+      allowedTodoRoles: resolveAutonomousRunnerAllowedTodoRolesFromEnv(process.env),
     }),
   })
     .then((result) => {
