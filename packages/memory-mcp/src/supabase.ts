@@ -437,14 +437,15 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   private async embedAndStore(table: string, id: string, text: string): Promise<void> {
-    const { embedText, EMBEDDING_MODEL } = await import("./embeddings.js");
+    const { embedText, getEmbeddingState, EMBEDDING_MODEL } = await import("./embeddings.js");
+    const state = getEmbeddingState();
     const vec = await embedText(text);
     if (!vec) return;
     await this.sb
       .from(table)
       .update({
         embedding: JSON.stringify(vec),
-        embedding_model: EMBEDDING_MODEL,
+        embedding_model: state.model ?? EMBEDDING_MODEL,
         embedding_created_at: now(),
       })
       .eq("id", id);

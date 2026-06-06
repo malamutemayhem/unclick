@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
   "appCount": 218,
-  "toolCount": 913,
+  "toolCount": 914,
   "categories": [
     "AI",
     "Books",
@@ -4153,13 +4153,13 @@
       "slug": "reddit",
       "name": "Reddit",
       "category": "Social",
-      "blurb": "Read posts from a Reddit subreddit.",
+      "blurb": "Read public posts from a Reddit subreddit. OAuth is optional for public reads.",
       "domain": "reddit.com",
-      "toolCount": 7,
+      "toolCount": 8,
       "tools": [
         {
           "name": "reddit_read",
-          "description": "Read posts from a Reddit subreddit."
+          "description": "Read public posts from a Reddit subreddit. OAuth is optional for public reads."
         },
         {
           "name": "reddit_post",
@@ -4171,11 +4171,15 @@
         },
         {
           "name": "reddit_search",
-          "description": "Search Reddit posts."
+          "description": "Search public Reddit posts. OAuth is optional for public reads."
+        },
+        {
+          "name": "reddit_thread",
+          "description": "Read a public Reddit thread, including the post and comments."
         },
         {
           "name": "reddit_user",
-          "description": "Get a Reddit user profile and posts."
+          "description": "Get a public Reddit user profile and recent activity. OAuth is optional for public reads."
         },
         {
           "name": "reddit_vote",

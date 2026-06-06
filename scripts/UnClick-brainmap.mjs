@@ -147,6 +147,7 @@ const STATIC_SYSTEMS = [
   ["Passes and gates", "FidelityPass", "fidelity gate", "Checks exactness and invariant preservation when copying, refactoring, or translating content.", "scripts/fidelitycopy.test.mjs", ""],
   ["Passes and gates", "CommonSensePass", "judgment gate", "Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims.", "api/commonsensepass-bridge.test.ts", ""],
   ["Passes and gates", "WakePass", "wake gate", "Verifies ACKs, stale handoffs, and worker wake requests before motion claims.", "docs/pinballwake-igniteonly-api.md", ""],
+  ["Passes and gates", "UIPass Toolbox", "component source gate", "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.", "packages/uxpass/src/ui-toolbox.ts", ""],
   ["Wrappers and protocols", "NudgeOnly", "bridge", "Low-risk receipt nudges that never mutate source-of-truth state.", "docs/pinballwake-nudgeonly-api.md", ""],
   ["Wrappers and protocols", "IgniteOnly", "bridge", "Verified worker wake packets only, never build, merge, or completion state.", "docs/pinballwake-igniteonly-api.md", ""],
   ["Wrappers and protocols", "SeatRelay", "claim lifecycle", "Stale release, smart reassignment, and bonded handoff for stuck worker claims.", "docs/UnClick-brainmap.generated.md", ""],
@@ -234,6 +235,9 @@ function meaningForComponent(component, file) {
 }
 
 function displayPageName(component, file) {
+  if (component === "Fishbowl" || path.basename(file, path.extname(file)) === "Fishbowl") {
+    return "Boardroom";
+  }
   const sourceBase = path.basename(file, path.extname(file));
   if (component.endsWith("Page") && (PAGE_MEANINGS[sourceBase] || PUBLIC_PAGE_MEANINGS[sourceBase])) {
     return titleFromName(sourceBase);

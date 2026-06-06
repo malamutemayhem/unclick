@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UI_TOOLBOX_GATE_IDS, UI_TOOLBOX_SOURCE_IDS } from "./ui-toolbox.js";
 
 export const SeveritySchema = z.enum(["critical", "high", "medium", "low"]);
 
@@ -32,6 +33,19 @@ export const HAT_IDS = [
 
 export const HatIdSchema = z.string().min(1);
 
+const [FIRST_UI_TOOLBOX_SOURCE_ID, ...REST_UI_TOOLBOX_SOURCE_IDS] = UI_TOOLBOX_SOURCE_IDS;
+const [FIRST_UI_TOOLBOX_GATE_ID, ...REST_UI_TOOLBOX_GATE_IDS] = UI_TOOLBOX_GATE_IDS;
+
+export const UIToolboxSourceIdSchema = z.enum([
+  FIRST_UI_TOOLBOX_SOURCE_ID,
+  ...REST_UI_TOOLBOX_SOURCE_IDS,
+]);
+
+export const UIToolboxGateIdSchema = z.enum([
+  FIRST_UI_TOOLBOX_GATE_ID,
+  ...REST_UI_TOOLBOX_GATE_IDS,
+]);
+
 // Budget assertions follow the TestPass-style operator string ("&gt;= 80",
 // "no critical", "zero", etc.). We keep the values as plain strings here and
 // let the runner parse them at execution time.
@@ -60,6 +74,20 @@ export const RemediationSchema = z
   })
   .catchall(RemediationTargetSchema);
 
+export const UIToolboxCandidateSchema = z.object({
+  source_id: UIToolboxSourceIdSchema,
+  component_name: z.string().min(1).optional(),
+  intended_use: z.string().min(1).optional(),
+  required_gates: z.array(UIToolboxGateIdSchema).optional(),
+});
+
+export const UIToolboxSchema = z.object({
+  sources: z.array(UIToolboxSourceIdSchema).optional(),
+  required_gates: z.array(UIToolboxGateIdSchema).optional(),
+  candidates: z.array(UIToolboxCandidateSchema).optional(),
+  scoreboard: z.boolean().default(true),
+});
+
 export const UXPassPackSchema = z.object({
   name: z.string().min(1, "name is required"),
   url: z.string().url("url must be a valid URL"),
@@ -69,6 +97,7 @@ export const UXPassPackSchema = z.object({
   synthesiser: z.string().min(1, "synthesiser is required"),
   budgets: BudgetsSchema,
   remediation: RemediationSchema,
+  ui_toolbox: UIToolboxSchema.optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
 });
@@ -80,3 +109,5 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export type Budgets = z.infer<typeof BudgetsSchema>;
 export type Remediation = z.infer<typeof RemediationSchema>;
 export type RemediationTarget = z.infer<typeof RemediationTargetSchema>;
+export type UIToolboxCandidate = z.infer<typeof UIToolboxCandidateSchema>;
+export type UIToolboxConfig = z.infer<typeof UIToolboxSchema>;

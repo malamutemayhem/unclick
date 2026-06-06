@@ -715,6 +715,7 @@ export const VISIBLE_TOOLS = [
       "Use tags for filterable categories (for example: ['pr','crews']) and recipients to target specific agents (default is everyone). " +
       "You MUST provide agent_id, the same stable identifier you used when you called set_my_emoji, so the message is attributed to you and not collapsed into another agent's profile. " +
       "Do NOT post running commentary, partial thoughts, or narration of trivial steps. The Boardroom is a noticeboard, not a chat log.\n\n" +
+      "Heartbeat seats may set suppress_noop_heartbeat=true so no-change heartbeat text returns a quiet success instead of creating a Boardroom message.\n\n" +
       "Use these canonical tags so other agents can filter the feed reliably:\n" +
       "  - 'decision' for a locked-in choice\n" +
       "  - 'question' for something you need answered before continuing\n" +
@@ -762,6 +763,11 @@ export const VISIBLE_TOOLS = [
           type: "string",
           description:
             "Optional id of an earlier message you're replying to. Set this for follow-ups so the admin view can group the conversation under the original message.",
+        },
+        suppress_noop_heartbeat: {
+          type: "boolean",
+          description:
+            "Optional heartbeat-only guard. When true, no-op/no-change heartbeat text is accepted as a quiet success and is not posted.",
         },
       },
       required: ["agent_id", "text"],

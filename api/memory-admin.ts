@@ -146,6 +146,7 @@ import {
   findExpressRoomDraftsByMirror,
   type ExpressRoomDraftQuery,
 } from "./lib/expressroom-draft-search.js";
+import { shouldSuppressNoopHeartbeatPost } from "./lib/fishbowl-quiet-post.js";
 import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
@@ -204,7 +205,13 @@ import {
 import {
   isSensitiveMemorySnapshotText,
   writeMemoryTaxonomySnapshotsToLibrary,
+  SupabaseBackend,
 } from "../packages/mcp-server/src/memory/supabase.js";
+import {
+  autoCaptureFromTurn,
+  codeAutoCaptureEnabled,
+  libraryAutoCaptureEnabled,
+} from "../packages/mcp-server/src/memory/auto-capture.js";
 import type {
   LibraryDocInput,
   MemoryTaxonomySnapshotSource,
@@ -1177,6 +1184,20 @@ async function resolveSessionUser(
   } catch {
     return null;
   }
+}
+
+export type ChannelStatusAuthOutcome =
+  | { kind: "authorized" }
+  | { kind: "soft_unconfigured" }
+  | { kind: "unauthorized" };
+
+export function resolveChannelStatusAuthOutcome(input: {
+  apiKeyHash: string | null;
+  hasValidSession: boolean;
+}): ChannelStatusAuthOutcome {
+  if (input.apiKeyHash) return { kind: "authorized" };
+  if (input.hasValidSession) return { kind: "soft_unconfigured" };
+  return { kind: "unauthorized" };
 }
 
 // ─── AI chat helpers ───────────────────────────────────────────────────────
@@ -6922,6 +6943,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
         if (error) throw error;
 
+        // Auto-capture (flag-gated, best-effort): mirror the MCP log_conversation
+        // path so hosted web-chat turns also fill the code-dump and library
+        // layers. Wrapped end-to-end so it can never break the turn ingest.
+        // Managed tenants only: BYOD users keep memory in their own Supabase, so
+        // writing to the central mc_* tables would be the wrong store.
+        if (role === "user" && (codeAutoCaptureEnabled() || libraryAutoCaptureEnabled())) {
+          try {
+            const { data: byodConfig } = await supabase
+              .from("memory_configs")
+              .select("api_key_hash")
+              .eq("api_key_hash", apiKeyHash)
+              .maybeSingle();
+            if (!byodConfig) {
+              const captureBackend = new SupabaseBackend({
+                url: supabaseUrl,
+                serviceRoleKey: supabaseKey,
+                tenancy: { mode: "managed", apiKeyHash },
+              });
+              await autoCaptureFromTurn(captureBackend, {
+                session_id: sessionId,
+                role,
+                content: safeContent,
+              });
+            }
+          } catch {
+            // best-effort; never block the turn ingest
+          }
+        }
+
         return res.status(200).json({
           turn_id: data.id,
           session_id: data.session_id,
@@ -6933,7 +6983,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "admin_channel_status": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
-        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const hasValidSession = apiKeyHash
+          ? true
+          : Boolean(await resolveSessionUser(req, supabaseUrl, supabaseKey));
+        const authOutcome = resolveChannelStatusAuthOutcome({ apiKeyHash, hasValidSession });
+        if (authOutcome.kind === "unauthorized") {
+          return res.status(401).json({ error: "Authorization header required" });
+        }
+        if (authOutcome.kind === "soft_unconfigured") {
+          return res.status(200).json({
+            channel_active: false,
+            configured: false,
+            last_seen: null,
+            client_info: null,
+          });
+        }
+
         const { data, error } = await supabase
           .from("channel_status")
           .select("last_seen, client_info")
@@ -6947,6 +7012,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           channel_active: active,
+          configured: true,
           last_seen: lastSeen,
           client_info: data?.client_info ?? null,
         });
@@ -9005,6 +9071,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user_agent_hint?: string | null;
           agent_id?: string | null;
           thread_id?: string | null;
+          suppress_noop_heartbeat?: boolean | null;
         };
 
         const agentId = (body.agent_id ?? "").toString().trim();
@@ -9061,6 +9128,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
           }
           tags = body.tags;
+        }
+
+        if (
+          shouldSuppressNoopHeartbeatPost({
+            text,
+            tags,
+            suppressNoopHeartbeat: body.suppress_noop_heartbeat === true,
+          })
+        ) {
+          return res.status(200).json({
+            quiet: true,
+            suppressed: true,
+            reason: "noop_heartbeat",
+            message: null,
+          });
         }
 
         let recipients: string[] = ["all"];

@@ -226,6 +226,90 @@ describe("local memory scoring", () => {
     });
     assert.ok(partial.finalScore > unrelated.finalScore);
   });
+
+  test("length normalization keeps concise identity facts above verbose logs", async () => {
+    const { tokenizeLocalMemoryQuery, scoreLocalMemoryContent } = await import("../supabase.js");
+    const query = "Chris timezone";
+    const tokens = tokenizeLocalMemoryQuery(query);
+    const concise = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: "Chris timezone is Australia Sydney.",
+      confidence: 1,
+      source: "fact",
+    });
+    const verbose = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: `Chris timezone appears in this long operational log. ${"heartbeat memory status ".repeat(80)}`,
+      confidence: 1,
+      source: "fact",
+    });
+    assert.ok(concise.kwScore > verbose.kwScore);
+    assert.ok(concise.finalScore > verbose.finalScore);
+  });
+
+  test("local ranking rows publish the lane 6 score contract", async () => {
+    const {
+      rankLocalMemorySearchRows,
+      reciprocalRankScore,
+      scoreLocalMemoryContent,
+      tokenizeLocalMemoryQuery,
+    } = await import("../supabase.js");
+    const query = "Chris timezone";
+    const tokens = tokenizeLocalMemoryQuery(query);
+    const shortScore = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: "Chris timezone is Australia Sydney.",
+      confidence: 1,
+      source: "fact",
+    });
+    const longScore = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: `Chris timezone was mentioned during a noisy status update. ${"routing status ".repeat(60)}`,
+      confidence: 1,
+      source: "fact",
+    });
+
+    const ranked = rankLocalMemorySearchRows(
+      [
+        {
+          id: "long-log",
+          source: "fact",
+          content: "long log",
+          category: "status",
+          confidence: 1,
+          created_at: "2026-06-04T00:00:00Z",
+          score: longScore,
+        },
+        {
+          id: "short-identity",
+          source: "fact",
+          content: "short fact",
+          category: "identity",
+          confidence: 1,
+          created_at: "2026-06-04T00:00:00Z",
+          score: shortScore,
+        },
+      ],
+      2,
+      "2026-06-04T00:00:00Z"
+    );
+
+    const first = ranked[0];
+    const second = ranked[1];
+    assert.ok(first);
+    assert.ok(second);
+    assert.equal(first.id, "short-identity");
+    assert.equal(first.keyword_rank, 1);
+    assert.equal(first.vector_rank, null);
+    assert.equal(first.cosine_score, null);
+    assert.equal(first.rrf_score, reciprocalRankScore(1, null));
+    assert.equal(first.kw_score, shortScore.kwScore);
+    assert.ok(first.final_score > second.final_score);
+  });
 });
 
 // ─── 2a. Keyword fallback asOf filtering ─────────────────────────────────────

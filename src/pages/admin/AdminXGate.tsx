@@ -15,12 +15,27 @@ import {
   ShieldAlert,
   ShieldHalf,
   ShieldOff,
+  Sparkles,
   Terminal,
+  Zap,
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import {
+  applyMasterXGateMode,
+  applyXGatePreset,
+  defaultXGateModes,
+  resolveMasterXGateMode,
+  setIndividualXGateMode,
+  XGATE_MODE_COPY,
+  XGATE_PRODUCT_CONFIGS,
+  XGATE_PRESETS,
+  type XGateControlMode,
+  type XGateMasterMode,
+  type XGatePresetId,
+} from "./xgateModeModel";
 
 type XGateVerdict = "allow" | "deny" | "ask" | "rewrite";
-type XGateMode = "off" | "shadow" | "block";
+type XGateApiMode = "off" | "shadow" | "block";
 
 interface XGateDecision {
   id: string;
@@ -34,6 +49,16 @@ interface XGateDecision {
   reason: string;
 }
 
+interface GateDetail {
+  Icon: typeof Terminal;
+  accent: keyof typeof ACCENT;
+  watches: string;
+  examples: string[];
+  outcome: "blocks" | "asks first" | "rewrites";
+}
+
+const MODE_ORDER: XGateControlMode[] = ["off", "watch", "block"];
+
 const VERDICT_STYLE: Record<XGateVerdict, { label: string; className: string }> = {
   allow: { label: "Allow", className: "bg-emerald-400 text-black" },
   ask: { label: "Ask", className: "bg-[#E2B93B] text-black" },
@@ -41,80 +66,173 @@ const VERDICT_STYLE: Record<XGateVerdict, { label: string; className: string }> 
   rewrite: { label: "Rewrite", className: "bg-[#61C1C4] text-black" },
 };
 
-const MODE_META: Record<XGateMode, { label: string; Icon: typeof Eye; blurb: string; active: string; ring: string; glow: string }> = {
-  off: { label: "Off", Icon: ShieldOff, blurb: "Dormant. No checks, no warnings, no notes.", active: "bg-white/90 text-black", ring: "ring-white/50", glow: "from-white/10" },
-  shadow: { label: "Watch", Icon: Eye, blurb: "Watches everything and logs it. Never blocks.", active: "bg-[#61C1C4] text-black", ring: "ring-[#61C1C4]/60", glow: "from-[#61C1C4]/20" },
-  block: { label: "Block", Icon: ShieldAlert, blurb: "Actually stops flagged actions. Real teeth.", active: "bg-red-500 text-white", ring: "ring-red-400/60", glow: "from-red-500/20" },
+const MODE_STYLE: Record<XGateControlMode, { active: string; inactive: string; pill: string; Icon: typeof Eye }> = {
+  off: {
+    active: "border-white/25 bg-white/15 text-white",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-white/[0.08] hover:text-white",
+    pill: "bg-white/15 text-white/70",
+    Icon: ShieldOff,
+  },
+  watch: {
+    active: "border-[#61C1C4]/45 bg-[#61C1C4]/15 text-[#61C1C4]",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-[#61C1C4]/10 hover:text-[#61C1C4]",
+    pill: "bg-[#61C1C4]/15 text-[#61C1C4]",
+    Icon: Eye,
+  },
+  block: {
+    active: "border-red-400/45 bg-red-400/15 text-red-200",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-red-400/10 hover:text-red-200",
+    pill: "bg-red-400/15 text-red-200",
+    Icon: ShieldAlert,
+  },
 };
-const MODE_ORDER: XGateMode[] = ["off", "shadow", "block"];
 
-interface AccentStyle {
-  text: string;
-  chip: string;
-  ring: string;
-  bar: string;
-}
-const ACCENT: Record<string, AccentStyle> = {
+const ACCENT = {
   amber: { text: "text-amber-300", chip: "bg-amber-400/10 text-amber-300", ring: "ring-amber-400/50", bar: "bg-amber-400" },
   orange: { text: "text-orange-300", chip: "bg-orange-400/10 text-orange-300", ring: "ring-orange-400/50", bar: "bg-orange-400" },
   sky: { text: "text-sky-300", chip: "bg-sky-400/10 text-sky-300", ring: "ring-sky-400/50", bar: "bg-sky-400" },
   rose: { text: "text-rose-300", chip: "bg-rose-400/10 text-rose-300", ring: "ring-rose-400/50", bar: "bg-rose-400" },
+  teal: { text: "text-teal-300", chip: "bg-teal-400/10 text-teal-300", ring: "ring-teal-400/50", bar: "bg-teal-400" },
   violet: { text: "text-violet-300", chip: "bg-violet-400/10 text-violet-300", ring: "ring-violet-400/50", bar: "bg-violet-400" },
   emerald: { text: "text-emerald-300", chip: "bg-emerald-400/10 text-emerald-300", ring: "ring-emerald-400/50", bar: "bg-emerald-400" },
   yellow: { text: "text-yellow-300", chip: "bg-yellow-400/10 text-yellow-300", ring: "ring-yellow-400/50", bar: "bg-yellow-400" },
+  red: { text: "text-red-300", chip: "bg-red-400/10 text-red-300", ring: "ring-red-400/50", bar: "bg-red-400" },
 };
 
-interface GateInfo {
-  id: string;
-  name: string;
-  Icon: typeof Terminal;
-  accent: keyof typeof ACCENT;
-  watches: string;
-  examples: string[];
-  outcome: "blocks" | "asks first";
-}
-const GATES: GateInfo[] = [
-  { id: "commandgate", name: "CommandGate", Icon: Terminal, accent: "amber", outcome: "blocks", watches: "Terminal commands. It reads the command and stops the scary, can't-undo ones before they ever run.", examples: ["rm -rf /", "dd if=/dev/zero of=/dev/sda", ":(){ :|:& };:"] },
-  { id: "gitgate", name: "GitGate", Icon: GitBranch, accent: "orange", outcome: "blocks", watches: "Git. Stops moves that erase work, like force-pushing over history or deleting a branch.", examples: ["git push --force origin main", "git branch -D main", "git reset --hard"] },
-  { id: "datagate", name: "DataGate", Icon: Database, accent: "sky", outcome: "blocks", watches: "Database commands. It parses the SQL and stops the ones that wipe or delete data.", examples: ["DROP TABLE users", "DELETE FROM orders  (no WHERE)", "TRUNCATE payments"] },
-  { id: "secretgate", name: "SecretGate", Icon: KeyRound, accent: "rose", outcome: "blocks", watches: "Passwords, API keys and tokens. A leaked secret is irreversible the moment it lands, so this stops it first.", examples: ["commit sk-live_4eC39H...", "send an AWS access key", "paste a private key"] },
-  { id: "shipgate", name: "ShipGate", Icon: Rocket, accent: "violet", outcome: "asks first", watches: "Deploys, releases, DNS and infrastructure changes. Makes sure going to live isn't done carelessly.", examples: ["deploy to prod without proof", "terraform apply", "change live DNS"] },
-  { id: "scopegate", name: "ScopeGate", Icon: Crosshair, accent: "emerald", outcome: "asks first", watches: "Which files get touched. Keeps the agent in its own lane so it doesn't edit things it doesn't own.", examples: ["editing /etc files", "writing outside the repo", "touching another team's code"] },
-  { id: "spendgate", name: "SpendGate", Icon: Banknote, accent: "yellow", outcome: "asks first", watches: "Spending. Pauses anything that would cost more than your set limit before real money goes out.", examples: ["an API call over $1", "a large paid batch job", "buying credits"] },
-];
+const GATE_DETAILS: Record<string, GateDetail> = {
+  CommandGate: {
+    Icon: Terminal,
+    accent: "amber",
+    outcome: "blocks",
+    watches: "Terminal commands routed through UnClick.",
+    examples: ["rm -rf /", "dd if=/dev/zero of=/dev/sda", "git clean -xfd"],
+  },
+  GitGate: {
+    Icon: GitBranch,
+    accent: "orange",
+    outcome: "blocks",
+    watches: "Git history, protected branches, resets, and force pushes.",
+    examples: ["git push --force origin main", "git branch -D main", "git reset --hard"],
+  },
+  DataGate: {
+    Icon: Database,
+    accent: "sky",
+    outcome: "blocks",
+    watches: "Database commands, migrations, tenant filters, and destructive SQL.",
+    examples: ["DROP TABLE users", "DELETE FROM orders", "TRUNCATE payments"],
+  },
+  SecretGate: {
+    Icon: KeyRound,
+    accent: "rose",
+    outcome: "blocks",
+    watches: "Passwords, API keys, tokens, private keys, and outbound credential exposure.",
+    examples: ["commit sk-live...", "send an AWS key", "paste a private key"],
+  },
+  TrendSlopGate: {
+    Icon: Sparkles,
+    accent: "teal",
+    outcome: "rewrites",
+    watches: "Over-agreeable, generic, fashionable, or poorly grounded AI advice.",
+    examples: ["you are absolutely right", "agentic flywheel", "launch today"],
+  },
+  ShipGate: {
+    Icon: Rocket,
+    accent: "violet",
+    outcome: "asks first",
+    watches: "Deploys, releases, rollbacks, DNS, and production-affecting changes.",
+    examples: ["deploy to prod", "terraform apply", "change live DNS"],
+  },
+  ScopeGate: {
+    Icon: Crosshair,
+    accent: "emerald",
+    outcome: "asks first",
+    watches: "File and repo boundaries for the active ScopePack or owned files.",
+    examples: ["outside the repo", "another team's code", "unowned config"],
+  },
+  SpendGate: {
+    Icon: Banknote,
+    accent: "yellow",
+    outcome: "asks first",
+    watches: "Model, API, infrastructure, and third-party spend.",
+    examples: ["paid batch job", "large model run", "buy credits"],
+  },
+  KillGate: {
+    Icon: Zap,
+    accent: "red",
+    outcome: "blocks",
+    watches: "Global stop, unsafe autonomy, and emergency hold conditions.",
+    examples: ["kill switch active", "unsafe unattended run", "deny circuit"],
+  },
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
+
 function readString(value: unknown): string {
   if (typeof value === "string") return value;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return "";
 }
+
+function isXGateControlMode(value: unknown): value is XGateControlMode {
+  return value === "off" || value === "watch" || value === "block";
+}
+
 function normalizeVerdict(value: unknown): XGateVerdict {
   if (value === "deny" || value === "ask" || value === "rewrite" || value === "allow") return value;
   return "ask";
 }
-function normalizeMode(value: unknown): XGateMode {
-  return value === "off" || value === "shadow" || value === "block" ? value : "shadow";
+
+function normalizeApiMode(value: unknown, fallback: XGateApiMode = "shadow"): XGateApiMode {
+  return value === "off" || value === "shadow" || value === "block" ? value : fallback;
 }
+
+function apiToControlMode(value: XGateApiMode): XGateControlMode {
+  return value === "shadow" ? "watch" : value;
+}
+
+function controlToApiMode(value: XGateControlMode): XGateApiMode {
+  return value === "watch" ? "shadow" : value;
+}
+
+function apiModeForMaster(masterMode: XGateMasterMode, fallback: XGateApiMode): XGateApiMode {
+  return masterMode === "custom" ? fallback : controlToApiMode(masterMode);
+}
+
+function sanitizeGateModes(value: unknown, base: Record<string, XGateControlMode>): Record<string, XGateControlMode> {
+  if (!isRecord(value)) return base;
+  const next = { ...base };
+  for (const product of XGATE_PRODUCT_CONFIGS) {
+    if (isXGateControlMode(value[product.id])) next[product.id] = value[product.id];
+  }
+  return next;
+}
+
+function modesFromBody(record: Record<string, unknown>, apiMode: XGateApiMode): Record<string, XGateControlMode> {
+  return sanitizeGateModes(record.gateModes, applyMasterXGateMode(apiToControlMode(apiMode)));
+}
+
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value || "Unknown";
   return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
+
 function pickRows(body: Record<string, unknown>): unknown[] {
   for (const candidate of [body.decisions, body.history, body.entries, body.rows, body.ledger]) {
     if (Array.isArray(candidate)) return candidate;
   }
   return [];
 }
+
 function normalizeDecision(row: unknown, index: number): XGateDecision {
   const record = isRecord(row) ? row : {};
   const deciding = isRecord(record.deciding) ? record.deciding : {};
   const ts = readString(record.ts) || readString(record.created_at) || readString(record.createdAt);
   const ruleId = readString(record.rule_id) || readString(record.ruleId) || readString(deciding.ruleId);
   const gate = readString(record.gate) || readString(deciding.gate) || (ruleId ? ruleId.split(".")[0] : "XGate");
+
   return {
     id: readString(record.id) || `${ts || "xgate"}-${index}`,
     ts,
@@ -147,49 +265,133 @@ function StatCard({ label, value, hint, className }: { label: string; value: str
   );
 }
 
-function ModeSelector({ mode, saving, onChange }: { mode: XGateMode; saving: boolean; onChange: (next: XGateMode) => void }) {
-  const meta = MODE_META[mode];
+function ModeButton({
+  mode,
+  active,
+  disabled,
+  onClick,
+  compact = false,
+}: {
+  mode: XGateControlMode;
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  compact?: boolean;
+}) {
+  const copy = XGATE_MODE_COPY[mode];
+  const style = MODE_STYLE[mode];
+  const Icon = style.Icon;
+
   return (
-    <section className={`relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br ${meta.glow} to-transparent p-5`}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${meta.active}`}>
-            <meta.Icon className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-sm font-semibold text-white">
-              Mode: <span className="font-bold">{meta.label}</span>
-            </h2>
-            <p className="text-xs text-white/55">{meta.blurb}</p>
-          </div>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      title={copy.detail}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-md border font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+        compact ? "min-w-[70px] px-2 py-1 text-[11px]" : "min-w-[92px] px-3 py-2 text-xs"
+      } ${active ? style.active : style.inactive}`}
+    >
+      <Icon className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+      {copy.label}
+    </button>
+  );
+}
+
+function XGateModePanel({
+  modes,
+  saving,
+  onMasterMode,
+  onGateMode,
+  onPreset,
+}: {
+  modes: Record<string, XGateControlMode>;
+  saving: boolean;
+  onMasterMode: (mode: XGateControlMode) => void;
+  onGateMode: (gateId: string, mode: XGateControlMode) => void;
+  onPreset: (presetId: XGatePresetId) => void;
+}) {
+  const masterMode = resolveMasterXGateMode(modes);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Gate modes</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-white/45">
+            Master sets every gate. Individual changes create Custom.
+          </p>
         </div>
-        {saving && <Loader2 className="h-4 w-4 animate-spin text-white/50" />}
+        <span className="rounded bg-[#61C1C4]/10 px-2 py-1 text-[11px] font-semibold text-[#61C1C4]">
+          Master: {masterMode === "custom" ? "Custom" : XGATE_MODE_COPY[masterMode].label}
+        </span>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        {MODE_ORDER.map((value) => {
-          const m = MODE_META[value];
-          const selected = value === mode;
+      <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold text-white">Master XGate</p>
+            <p className="mt-1 text-[11px] leading-5 text-white/45">
+              Off, Watch, or Block here applies to every gate at once.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <div className="flex flex-wrap gap-2">
+              {MODE_ORDER.map((mode) => (
+                <ModeButton
+                  key={mode}
+                  mode={mode}
+                  disabled={saving}
+                  active={masterMode === mode}
+                  onClick={() => onMasterMode(mode)}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {XGATE_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => onPreset(preset.id)}
+                  title={preset.detail}
+                  className="rounded-md border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-[11px] font-semibold text-[#61C1C4] transition-colors hover:bg-[#61C1C4]/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {XGATE_PRODUCT_CONFIGS.map((product) => {
+          const mode = modes[product.id] ?? product.defaultMode;
           return (
-            <button
-              key={value}
-              type="button"
-              disabled={saving}
-              onClick={() => onChange(value)}
-              className={`group flex items-start gap-2 rounded-xl border p-3 text-left transition-all disabled:opacity-60 ${
-                selected
-                  ? `border-transparent ring-2 ${m.ring} bg-white/[0.06]`
-                  : "border-white/[0.07] bg-black/20 hover:bg-white/[0.04]"
-              }`}
-            >
-              <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${selected ? m.active : "bg-white/[0.06] text-white/50"}`}>
-                <m.Icon className="h-4 w-4" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-white">{m.label}</span>
-                <span className="block text-[11px] leading-4 text-white/45">{m.blurb}</span>
-              </span>
-            </button>
+            <div key={product.id} id={product.id.toLowerCase()} className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-white">{product.name}</h3>
+                  <p className="mt-1 text-xs leading-5 text-white/45">{product.summary}</p>
+                </div>
+                <span className={`shrink-0 rounded px-2 py-1 text-[10px] font-bold ${MODE_STYLE[mode].pill}`}>
+                  {XGATE_MODE_COPY[mode].label}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {MODE_ORDER.map((nextMode) => (
+                  <ModeButton
+                    key={nextMode}
+                    mode={nextMode}
+                    compact
+                    disabled={saving}
+                    active={mode === nextMode}
+                    onClick={() => onGateMode(product.id, nextMode)}
+                  />
+                ))}
+              </div>
+            </div>
           );
         })}
       </div>
@@ -230,12 +432,13 @@ function DecisionTable({ decisions }: { decisions: XGateDecision[] }) {
   );
 }
 
-function GateCard({ gate, active }: { gate: GateInfo; active: boolean }) {
-  const a = ACCENT[gate.accent];
+function GateGuideCard({ product, active }: { product: (typeof XGATE_PRODUCT_CONFIGS)[number]; active: boolean }) {
+  const detail = GATE_DETAILS[product.id] ?? GATE_DETAILS.CommandGate;
+  const a = ACCENT[detail.accent];
+
   return (
     <section
-      id={gate.id}
-      className={`scroll-mt-24 overflow-hidden rounded-xl border bg-[#111] transition-all ${
+      className={`overflow-hidden rounded-xl border bg-[#111] transition-all ${
         active ? `border-transparent ring-2 ${a.ring}` : "border-white/[0.06]"
       }`}
     >
@@ -243,22 +446,26 @@ function GateCard({ gate, active }: { gate: GateInfo; active: boolean }) {
         <div className={`w-1 shrink-0 ${a.bar}`} />
         <div className="flex flex-1 gap-4 p-4">
           <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${a.chip}`}>
-            <gate.Icon className="h-5 w-5" />
+            <detail.Icon className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className={`text-sm font-semibold ${a.text}`}>{gate.name}</h3>
+              <h3 className={`text-sm font-semibold ${a.text}`}>{product.name}</h3>
               <span
                 className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-                  gate.outcome === "blocks" ? "bg-red-500/15 text-red-300" : "bg-[#E2B93B]/15 text-[#E2B93B]"
+                  detail.outcome === "blocks"
+                    ? "bg-red-500/15 text-red-300"
+                    : detail.outcome === "rewrites"
+                      ? "bg-[#61C1C4]/15 text-[#61C1C4]"
+                      : "bg-[#E2B93B]/15 text-[#E2B93B]"
                 }`}
               >
-                {gate.outcome === "blocks" ? "Blocks it" : "Asks first"}
+                {detail.outcome === "rewrites" ? "Rewrites" : detail.outcome === "blocks" ? "Blocks it" : "Asks first"}
               </span>
             </div>
-            <p className="mt-1 text-xs leading-6 text-white/60">{gate.watches}</p>
+            <p className="mt-1 text-xs leading-6 text-white/60">{detail.watches}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {gate.examples.map((ex) => (
+              {detail.examples.map((ex) => (
                 <code key={ex} className="rounded bg-black/40 px-2 py-1 font-mono text-[10.5px] text-white/45">
                   {ex}
                 </code>
@@ -280,7 +487,8 @@ export default function AdminXGate() {
   const [endpointReady, setEndpointReady] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<XGateDecision[]>([]);
-  const [mode, setMode] = useState<XGateMode>("shadow");
+  const [apiMode, setApiMode] = useState<XGateApiMode>("shadow");
+  const [gateModes, setGateModes] = useState<Record<string, XGateControlMode>>(defaultXGateModes);
   const [savingMode, setSavingMode] = useState(false);
 
   const load = useCallback(async () => {
@@ -305,9 +513,11 @@ export default function AdminXGate() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Failed to load XGate history");
       const record = isRecord(body) ? body : {};
+      const nextApiMode = normalizeApiMode(record.mode);
       setEndpointReady(true);
       setDecisions(pickRows(record).map(normalizeDecision));
-      setMode(normalizeMode(record.mode));
+      setApiMode(nextApiMode);
+      setGateModes(modesFromBody(record, nextApiMode));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -319,35 +529,66 @@ export default function AdminXGate() {
     void load();
   }, [load]);
 
-  // Scroll to (and briefly highlight) the gate named in the URL hash.
   useEffect(() => {
     if (loading || !location.hash) return;
-    const el = document.getElementById(location.hash.slice(1));
+    const el = document.getElementById(location.hash.slice(1).toLowerCase());
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [loading, location.hash]);
 
-  const changeMode = useCallback(
-    async (next: XGateMode) => {
-      if (!session || next === mode || savingMode) return;
-      if (next === "block" && !window.confirm("Switch XGate to Block? This will actually stop flagged agent actions.")) return;
+  const saveModes = useCallback(
+    async (nextModes: Record<string, XGateControlMode>, nextApiMode: XGateApiMode) => {
+      if (!session || savingMode) return;
       setSavingMode(true);
       setError(null);
+      setGateModes(nextModes);
+      setApiMode(nextApiMode);
       try {
         const response = await fetch("/api/xgate-check?action=set_mode", {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: next }),
+          body: JSON.stringify({ mode: nextApiMode, gateModes: nextModes }),
         });
         const body = await response.json();
         if (!response.ok) throw new Error(body.error ?? "Could not change mode");
-        setMode(normalizeMode(body.mode));
+        const record = isRecord(body) ? body : {};
+        const savedApiMode = normalizeApiMode(record.mode, nextApiMode);
+        setApiMode(savedApiMode);
+        setGateModes(modesFromBody(record, savedApiMode));
+        if (record.gateModesPersisted === false) {
+          setError("Master mode saved. Individual gate modes need the latest database migration before they persist.");
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not change mode");
+        void load();
       } finally {
         setSavingMode(false);
       }
     },
-    [session, mode, savingMode],
+    [load, savingMode, session],
+  );
+
+  const changeMasterMode = useCallback(
+    (mode: XGateControlMode) => {
+      if (mode === "block" && !window.confirm("Switch every XGate product to Block? Flagged actions may stop before they run.")) return;
+      void saveModes(applyMasterXGateMode(mode), controlToApiMode(mode));
+    },
+    [saveModes],
+  );
+
+  const changeGateMode = useCallback(
+    (gateId: string, mode: XGateControlMode) => {
+      const next = setIndividualXGateMode(gateModes, gateId, mode);
+      void saveModes(next, apiModeForMaster(resolveMasterXGateMode(next), apiMode));
+    },
+    [apiMode, gateModes, saveModes],
+  );
+
+  const applyPreset = useCallback(
+    (presetId: XGatePresetId) => {
+      const next = applyXGatePreset(presetId, gateModes);
+      void saveModes(next, apiModeForMaster(resolveMasterXGateMode(next), apiMode));
+    },
+    [apiMode, gateModes, saveModes],
   );
 
   if (adminVerified === false) {
@@ -368,8 +609,10 @@ export default function AdminXGate() {
     );
   }
 
-  const activeId = location.hash.slice(1);
+  const activeId = location.hash.slice(1).toLowerCase();
   const stopped = decisions.filter((d) => d.verdict === "deny" || d.verdict === "ask").length;
+  const masterMode = resolveMasterXGateMode(gateModes);
+  const trendSlopMode = gateModes.TrendSlopGate ?? "watch";
 
   return (
     <div className="space-y-6">
@@ -380,7 +623,7 @@ export default function AdminXGate() {
             <h1 className="text-2xl font-semibold text-white">XGate</h1>
           </div>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-white/55">
-            The guardrail that decides what an agent is allowed to do, before it does it. Seven gates each watch one kind of risky action.
+            The guardrail that decides what an agent is allowed to do, before it does it.
           </p>
         </div>
         <button
@@ -392,19 +635,30 @@ export default function AdminXGate() {
         </button>
       </div>
 
-      <ModeSelector mode={mode} saving={savingMode} onChange={changeMode} />
-
       <div className="grid gap-3 sm:grid-cols-3">
         <StatCard label="Decisions" value={String(decisions.length)} hint="Recent control-ledger rows." />
         <StatCard label="Stopped" value={String(stopped)} hint="Deny + ask verdicts." className={stopped > 0 ? "text-[#E2B93B]" : "text-white"} />
-        <StatCard label="Posture" value={MODE_META[mode].label} hint="Current XGate mode." className={mode === "block" ? "text-red-400" : mode === "off" ? "text-white/70" : "text-[#61C1C4]"} />
+        <StatCard
+          label="Posture"
+          value={masterMode === "custom" ? "Custom" : XGATE_MODE_COPY[masterMode].label}
+          hint={`TrendSlopGate is ${XGATE_MODE_COPY[trendSlopMode].label}.`}
+          className={masterMode === "block" ? "text-red-400" : masterMode === "off" ? "text-white/70" : "text-[#61C1C4]"}
+        />
       </div>
+
+      <XGateModePanel
+        modes={gateModes}
+        saving={savingMode}
+        onMasterMode={changeMasterMode}
+        onGateMode={changeGateMode}
+        onPreset={applyPreset}
+      />
 
       {error && <div className="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-xs text-red-300">{error}</div>}
 
       {!endpointReady && (
         <div className="rounded-xl border border-[#E2B93B]/20 bg-[#E2B93B]/[0.05] p-4 text-xs leading-5 text-[#E2B93B]">
-          XGate history endpoint is not responding yet. The dial and gate guide below still work.
+          XGate history endpoint is not responding yet. The gate controls and guide below still work.
         </div>
       )}
 
@@ -422,11 +676,11 @@ export default function AdminXGate() {
       </div>
 
       <div>
-        <h2 className="mb-1 text-sm font-semibold text-white">The seven gates</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">The gates</h2>
         <p className="mb-3 text-xs text-white/45">Each one watches a different kind of risk. The sidebar links jump straight to a gate.</p>
         <div className="space-y-3">
-          {GATES.map((gate) => (
-            <GateCard key={gate.id} gate={gate} active={activeId === gate.id} />
+          {XGATE_PRODUCT_CONFIGS.map((product) => (
+            <GateGuideCard key={product.id} product={product} active={activeId === product.id.toLowerCase()} />
           ))}
         </div>
       </div>

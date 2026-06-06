@@ -22,6 +22,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { getBackend } from "./db.js";
+import { getEmbeddingState } from "./embeddings.js";
 
 const server = new McpServer({
   name: "unclick-memory",
@@ -322,6 +323,20 @@ server.tool(
     try {
       const db = await getBackend();
       const data = await db.getConversationDetail(session_id);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    } catch (err: unknown) {
+      return { content: [{ type: "text" as const, text: `Error: ${(err as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "embedding_state",
+  "Inspect memory embedding backend state: disabled, local open-source, or OpenAI missing credentials/ready.",
+  {},
+  async () => {
+    try {
+      const data = getEmbeddingState();
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
     } catch (err: unknown) {
       return { content: [{ type: "text" as const, text: `Error: ${(err as Error).message}` }], isError: true };
