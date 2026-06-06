@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 621,
+    "inventory": 620,
     "source_manifest": 193,
     "pages": 84,
     "tools": 219,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 116
+      "count": 115
     },
     {
       "id": "launch-and-onboarding",
@@ -2268,16 +2268,6 @@
       "kind": "component",
       "meaning": "Memory admin panel for Storage Bar.",
       "source": "src/pages/admin/memory/StorageBar.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "modules-and-apps-component-todos-src-pages-admin-fishbowl-todos-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Todos",
-      "kind": "component",
-      "meaning": "Admin surface for Todos.",
-      "source": "src/pages/admin/fishbowl/Todos.tsx",
       "route": "",
       "tags": []
     },
