@@ -6,9 +6,9 @@ Closes UnClick todo "Chip-firer dirty-branch hygiene: 3 PRs in a row leaking api
 
 Three PRs in a row touched `api/memory-admin.ts` and `server.ts` despite those files being outside the PRs' declared scope. This produces:
 
-- **Review noise** — reviewers have to scan unrelated files to figure out if the change matters.
-- **Unsafe merges** — drive-by edits to bootstrap or admin code can land without targeted review.
-- **Throughput drag** — each false-positive review round adds latency.
+- **Review noise** - reviewers have to scan unrelated files to figure out if the change matters.
+- **Unsafe merges** - drive-by edits to bootstrap or admin code can land without targeted review.
+- **Throughput drag** - each false-positive review round adds latency.
 
 This guard catches the leak before merge.
 
@@ -35,7 +35,7 @@ Add as a pre-push hook in `.git/hooks/pre-push`:
 ```bash
 #!/bin/sh
 git diff --name-only origin/main | node scripts/check-dirty-branch.mjs --stdin --pr-body-file ./.git/PR_BODY 2>&1 || {
-  echo "Dirty-branch hygiene warning — see above. To bypass, push with --no-verify."
+  echo "Dirty-branch hygiene warning - see above. To bypass, push with --no-verify."
   exit 0  # warn-only; change to `exit 1` to make it blocking locally
 }
 ```
@@ -71,9 +71,9 @@ For files with common mnemonics, add a regex variant to `SCOPE_MENTION_PATTERNS`
 
 ## Non-goals (deferred)
 
-- Hardening to blocking gate — deferred until the warning-only version has been in flight for a week and the false-positive rate is known.
-- Auto-revert of leak-prone files — too aggressive; humans should decide whether the change was intentional.
-- Integration with the Build E PR template — the template already has a "Risk" checklist row that covers this verbally; this guard is the automated companion.
+- Hardening to blocking gate - deferred until the warning-only version has been in flight for a week and the false-positive rate is known.
+- Auto-revert of leak-prone files - too aggressive; humans should decide whether the change was intentional.
+- Integration with the Build E PR template - the template already has a "Risk" checklist row that covers this verbally; this guard is the automated companion.
 
 ## Source
 
