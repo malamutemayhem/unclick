@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T04:25:00.000Z",
+  "updatedAt": "2026-06-07T04:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -849,6 +849,76 @@
       "testedAt": "2026-06-07T04:25:00.000Z",
       "toolsTested": [
         "weather_current"
+      ]
+    },
+    "openai": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs OpenAI API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": []
+    },
+    "openaq": {
+      "status": "fail",
+      "note": "openaq_countries network error (fetch failed); OpenAQ API may be down or unreachable",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "openaq_countries"
+      ]
+    },
+    "openf1": {
+      "status": "pass",
+      "note": "f1_sessions returned 123 sessions for 2025 season with full schedule data - no auth needed",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "f1_sessions"
+      ]
+    },
+    "pagerduty": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs PagerDuty API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": []
+    },
+    "pandascore": {
+      "status": "attention",
+      "note": "PANDASCORE_TOKEN required; register at pandascore.co for API access",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "esports_tournaments"
+      ]
+    },
+    "paypal": {
+      "status": "attention",
+      "note": "all tools require client_id and client_secret as mandatory params; needs PayPal app credentials",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": []
+    },
+    "perplexity": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or PERPLEXITY_API_KEY",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "perplexity_chat_completion"
+      ]
+    },
+    "pika": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid video generation service",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": []
+    },
+    "pinecone": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Pinecone API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": []
+    },
+    "pinterest": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or PINTEREST_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "list_pinterest_boards"
       ]
     }
   }
