@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:48:39.000Z",
+  "updatedAt": "2026-06-07T03:49:32.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -488,6 +488,76 @@
       "note": "generic action tool only (gitlab_action); needs manual test with token",
       "testedAt": "2026-06-07T03:48:39.000Z",
       "toolsTested": []
+    },
+    "groq": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or GROQ_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": []
+    },
+    "guardian": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or GUARDIAN_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "guardian_search_articles"
+      ]
+    },
+    "gumroad": {
+      "status": "attention",
+      "note": "all tools require auth credentials; needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": []
+    },
+    "hackernews": {
+      "status": "pass",
+      "note": "hn_top_stories returned 3 stories with titles, URLs, scores, and comment counts from Firebase API",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hn_top_stories"
+      ]
+    },
+    "haveibeenpwned": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or HIBP_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hibp_all_breaches"
+      ]
+    },
+    "heygen": {
+      "status": "attention",
+      "note": "paid or side-effecting only (create_avatar_video); heygen_list_avatars needs key; needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": []
+    },
+    "higgsfield": {
+      "status": "attention",
+      "note": "paid or side-effecting only (generate_video/image); needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": []
+    },
+    "hubspot": {
+      "status": "attention",
+      "note": "all tools require HubSpot auth; needs manual test with credentials",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": []
+    },
+    "hunter": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or HUNTER_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hunter_domain_info"
+      ]
+    },
+    "igdb": {
+      "status": "attention",
+      "note": "not_connected; needs Twitch/IGDB client_id and client_secret",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "igdb_search_games"
+      ]
     }
   }
 }
