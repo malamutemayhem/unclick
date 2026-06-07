@@ -11,7 +11,7 @@
     "divisions": 12,
     "inventory": 641,
     "source_manifest": 214,
-    "pages": 88,
+    "pages": 87,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -6540,12 +6540,6 @@
       "src/pages/admin/AdminAppTesting.tsx"
     ],
     [
-      "/admin/app-testing",
-      "Admin App Testing",
-      "Admin surface for Admin App Testing.",
-      "src/pages/admin/AdminAppTesting.tsx"
-    ],
-    [
       "/admin/apps",
       "Admin Tools",
       "Apps, tools, and connector capability surface.",
@@ -8515,8 +8509,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "a64843b4edcc",
-      "bytes": 15659
+      "hash": "0321c830b3bc",
+      "bytes": 15563
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -8755,8 +8749,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "6e6c7f498b4d",
-      "bytes": 1680
+      "hash": "87bc594da785",
+      "bytes": 1598
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -9005,8 +8999,8 @@
     },
     {
       "source": "src/pages/VibeCoding.tsx",
-      "hash": "e09d777363c0",
-      "bytes": 8012
+      "hash": "ef96865a608b",
+      "bytes": 7998
     },
     {
       "source": "src/pages/Developers.tsx",
@@ -9025,8 +9019,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "4103b5e68d6c",
-      "bytes": 16693
+      "hash": "8608d2a82e46",
+      "bytes": 16679
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -9090,8 +9084,8 @@
     },
     {
       "source": "src/pages/SmartHome.tsx",
-      "hash": "3671f5d143b1",
-      "bytes": 20733
+      "hash": "1d7898e16b70",
+      "bytes": 20719
     },
     {
       "source": "src/pages/Terms.tsx",
@@ -9125,8 +9119,8 @@
     },
     {
       "source": "src/pages/XPass.tsx",
-      "hash": "5f07b2f32036",
-      "bytes": 8713
+      "hash": "717c00a85c16",
+      "bytes": 8699
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",

@@ -1,19 +1,50 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useSession } from "@/lib/auth";
 
 /**
- * Navbar (Apple-inspired polish pass, 2026-05-28).
+ * Public site navigation (2026-06-07).
  *
- *  - Text-only links. No per-item icons. Apple-style restraint.
- *  - Sentence case labels.
- *  - Border appears only after scroll. Otherwise the bar is transparent over the page.
- *  - "Boardroom" replaces any reference to Fishbowl.
- *  - BuildDesk and BackstagePass are not surfaced here per Chris 2026-05-28.
+ *  - Mirrors the logged-in admin sidebar product surfaces, shown the same
+ *    whether signed in or out. App surfaces resolve to /admin/* (login-gated
+ *    for signed-out visitors); Apps, Memory, Docs, New to AI, and XPass have
+ *    public pages.
+ *  - Autopilot is a dropdown (desktop) / expandable group (mobile).
+ *  - Border appears only after scroll; otherwise the bar is translucent over
+ *    the aurora canvas. "Boardroom" never appears as "Fishbowl".
  */
+
+type NavChild = { label: string; href: string };
+type NavItem = { label: string; href: string; children?: NavChild[] };
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Apps", href: "/apps" },
+  { label: "Skills", href: "/skills" },
+  { label: "Orchestrator", href: "/admin/orchestrator" },
+  { label: "Passport", href: "/admin/keychain" },
+  { label: "Seats", href: "/admin/agents" },
+  { label: "Memory", href: "/memory" },
+  {
+    label: "Autopilot",
+    href: "/admin/autopilot",
+    children: [
+      { label: "XPass", href: "/xpass" },
+      { label: "XGate", href: "/admin/xgate" },
+      { label: "Jobs", href: "/admin/jobs" },
+      { label: "Control Tower", href: "/admin/controltower" },
+      { label: "Ledger", href: "/admin/ledger" },
+      { label: "Workers", href: "/admin/workers" },
+    ],
+  },
+  { label: "Docs", href: "/docs" },
+  { label: "New to AI", href: "/new-to-ai" },
+];
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [mobileAutopilotOpen, setMobileAutopilotOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -28,16 +59,13 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const navLinks = [
-    { label: "Apps", href: "/apps" },
-    { label: "Memory", href: "/memory" },
-    { label: "XPass", href: "/xpass" },
-    { label: "Docs", href: "/docs" },
-    { label: "New to AI", href: "/new-to-ai" },
-  ];
-
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  const linkClass = (href: string) =>
+    `inline-flex min-h-6 items-center text-sm transition-colors hover:text-heading ${
+      isActive(href) ? "text-heading" : "text-body"
+    }`;
 
   return (
     <nav
@@ -48,7 +76,7 @@ const Navbar = () => {
       }`}
       style={{ top: "var(--bbn-h, 0px)" }}
     >
-      <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-6">
+      <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6">
         <Link to="/" className="inline-flex min-h-6 shrink-0 items-center" aria-label="UnClick home">
           <img
             src="/logo-wordmark.svg"
@@ -59,18 +87,38 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-7 lg:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              to={link.href}
-              className={`inline-flex min-h-6 items-center text-sm transition-colors hover:text-heading ${
-                isActive(link.href) ? "text-heading" : "text-body"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="hidden items-center gap-x-5 xl:flex">
+          {NAV_ITEMS.map((item) =>
+            item.children ? (
+              <div key={item.label} className="group relative">
+                <Link to={item.href} className={`${linkClass(item.href)} gap-1`}>
+                  {item.label}
+                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
+                </Link>
+                <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <div className="min-w-[190px] rounded-2xl border border-[#86dadd]/15 bg-[#0a2c3c]/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.label}
+                        to={child.href}
+                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                          isActive(child.href)
+                            ? "bg-primary/10 text-primary"
+                            : "text-body hover:bg-white/[0.05] hover:text-heading"
+                        }`}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link key={item.label} to={item.href} className={linkClass(item.href)}>
+                {item.label}
+              </Link>
+            ),
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -100,7 +148,7 @@ const Navbar = () => {
 
           {/* Hamburger */}
           <button
-            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 lg:hidden"
+            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 xl:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={open}
@@ -132,45 +180,86 @@ const Navbar = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md lg:hidden"
+            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md xl:hidden"
           >
-            <div className="flex flex-col gap-1 px-6 py-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {isLoggedIn ? (
-                <Link
-                  to="/admin/you"
-                  onClick={() => setOpen(false)}
-                  className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <>
+            <div className="flex max-h-[70vh] flex-col gap-1 overflow-y-auto px-6 py-4">
+              {NAV_ITEMS.map((item) =>
+                item.children ? (
+                  <div key={item.label}>
+                    <div className="flex items-center">
+                      <Link
+                        to={item.href}
+                        onClick={() => setOpen(false)}
+                        className="flex min-h-8 flex-1 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                      >
+                        {item.label}
+                      </Link>
+                      <button
+                        onClick={() => setMobileAutopilotOpen((v) => !v)}
+                        aria-label={`Toggle ${item.label} submenu`}
+                        aria-expanded={mobileAutopilotOpen}
+                        className="flex h-8 w-8 items-center justify-center text-muted-foreground"
+                      >
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${mobileAutopilotOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    </div>
+                    {mobileAutopilotOpen && (
+                      <div className="ml-3 flex flex-col gap-0.5 border-l border-border/40 pl-3">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.label}
+                            to={child.href}
+                            onClick={() => setOpen(false)}
+                            className="flex min-h-8 items-center py-1.5 text-sm text-body transition-colors hover:text-heading"
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <Link
-                    to="/login"
+                    key={item.label}
+                    to={item.href}
                     onClick={() => setOpen(false)}
-                    className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
                   >
-                    Log in
+                    {item.label}
                   </Link>
-                  <a
-                    href={installHref}
-                    onClick={() => setOpen(false)}
-                    className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
-                  >
-                    Get started
-                  </a>
-                </>
+                ),
               )}
+
+              <div className="mt-2 border-t border-border/40 pt-3">
+                {isLoggedIn ? (
+                  <Link
+                    to="/admin/you"
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setOpen(false)}
+                      className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                    >
+                      Log in
+                    </Link>
+                    <a
+                      href={installHref}
+                      onClick={() => setOpen(false)}
+                      className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                    >
+                      Get started
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

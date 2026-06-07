@@ -58,7 +58,7 @@ const steps = [
 ];
 
 const VibeCoding = () => (
-  <div className="min-h-screen bg-background">
+  <div className="min-h-screen">
     <Navbar />
 
     <main className="mx-auto max-w-4xl px-6 py-24">

@@ -10,6 +10,7 @@
  * prefers-reduced-motion).
  */
 import { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,6 +24,16 @@ export const AuroraBackground = () => (
     <div className="aurora-grid" aria-hidden="true" />
   </>
 );
+
+/**
+ * Renders the AuroraBackground on public marketing pages only (not /admin),
+ * so the canvas stays consistent site-wide without editing every page.
+ */
+export const SiteAurora = () => {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/admin")) return null;
+  return <AuroraBackground />;
+};
 
 /** UPPERCASE, wide-tracked teal label with a short leading tick. */
 export const Eyebrow = ({

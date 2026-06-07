@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | a64843b4edcc | 15659 |
+| src/App.tsx | 0321c830b3bc | 15563 |
 | src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -70,7 +70,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 6e6c7f498b4d | 1680 |
+| src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
@@ -120,11 +120,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
-| src/pages/VibeCoding.tsx | e09d777363c0 | 8012 |
+| src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 4103b5e68d6c | 16693 |
+| src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | da0fc0d07f50 | 62558 |
@@ -137,14 +137,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
-| src/pages/SmartHome.tsx | 3671f5d143b1 | 20733 |
+| src/pages/SmartHome.tsx | 1d7898e16b70 | 20719 |
 | src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/XPass.tsx | 5f07b2f32036 | 8713 |
+| src/pages/XPass.tsx | 717c00a85c16 | 8699 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -281,7 +281,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/agents/heartbeat | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | src/pages/admin/AdminSeatHeartbeat.tsx |
 | /admin/agents | Admin Agents | Admin surface for Admin Agents. | src/pages/admin/AdminAgents.tsx |
 | /admin/analytics | Admin Analytics | Internal analytics view for platform signals and usage. | src/pages/admin/AdminAnalytics.tsx |
-| /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/apps | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |

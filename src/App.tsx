@@ -50,6 +50,7 @@ import VerifyMfaPage from "./pages/VerifyMfa.tsx";
 import RequireAuth from "./components/RequireAuth.tsx";
 import RequireAdmin from "./components/RequireAdmin.tsx";
 import BetaBanner from "./components/BetaBanner.tsx";
+import { SiteAurora } from "@/components/brand";
 import AdminShell from "./pages/admin/AdminShell.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminYou from "./pages/admin/AdminYou.tsx";
@@ -87,7 +88,6 @@ import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
 import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
-import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
 import AdminXGate from "./pages/admin/AdminXGate.tsx";
 import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
@@ -124,6 +124,7 @@ const App = () => (
       <Sonner />
       <Analytics />
       <BrowserRouter>
+        <SiteAurora />
         <AnalyticsPageviewTracker />
         <BetaBanner />
         <Routes>
@@ -227,7 +228,6 @@ const App = () => (
             <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
-            <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
