@@ -92,7 +92,7 @@ export default function XPassPage() {
   const products = dogfoodReport.xpassIndex;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
 
       <main className="overflow-hidden">
