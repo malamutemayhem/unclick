@@ -58,8 +58,16 @@
     @apply border-border;
   }
 
+  /* Navy canvas lives on <html> so it sits BEHIND the fixed aurora layers
+     (which use a negative z-index). <body> must stay transparent or it paints
+     over the aurora and the whole background goes flat. */
+  html {
+    @apply bg-background;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
+    background: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
