@@ -118,7 +118,7 @@ The same credential can have multiple tags.
 Owner hints are advisory. They can come from:
 
 - the signed-in UnClick account email
-- a label such as `creativelead` or `byrneck`
+- a label such as `team-lead` or `ops-admin`
 - a provider account ID
 - a GitHub/Vercel secret naming convention
 - a manually entered note
