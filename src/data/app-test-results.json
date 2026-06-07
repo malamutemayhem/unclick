@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:42:28.000Z",
+  "updatedAt": "2026-06-07T03:43:25.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -214,6 +214,74 @@
       "toolsTested": [
         "crypto_trending"
       ]
+    },
+    "coinmarketcap": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or COINMARKETCAP_API_KEY",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "cmc_global_metrics"
+      ]
+    },
+    "color": {
+      "status": "pass",
+      "note": "color_info returned correct hex/rgb/hsl/name/luminance for #3498db (turquoise)",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "color_info"
+      ]
+    },
+    "commonsensepass": {
+      "status": "pass",
+      "note": "commonsensepass_rules returned full rule catalog (6 rules, 5 verdicts, fixture ids)",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "commonsensepass_rules"
+      ]
+    },
+    "compliancepass": {
+      "status": "attention",
+      "note": "compliancepass_status requires a run_id from prior compliancepass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
+    },
+    "confluence": {
+      "status": "attention",
+      "note": "requires site, email, and api_token as mandatory params",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
+    },
+    "contentful": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or env var",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
+    },
+    "convertkit": {
+      "status": "attention",
+      "note": "api_secret is a required param; needs secret via keychain or env var",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
+    },
+    "copypass": {
+      "status": "attention",
+      "note": "copypass_status requires a run_id from prior copypass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
+    },
+    "crews": {
+      "status": "pass",
+      "note": "list_runs returned 1 crew run with id and status (failed); API working",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "list_runs"
+      ]
+    },
+    "datadog": {
+      "status": "attention",
+      "note": "requires api_key and app_key as mandatory params",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": []
     }
   }
 }
