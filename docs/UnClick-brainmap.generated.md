@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | a64843b4edcc | 15659 |
+| src/App.tsx | 0321c830b3bc | 15563 |
 | src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -70,7 +70,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 6e6c7f498b4d | 1680 |
+| src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
@@ -281,7 +281,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/agents/heartbeat | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | src/pages/admin/AdminSeatHeartbeat.tsx |
 | /admin/agents | Admin Agents | Admin surface for Admin Agents. | src/pages/admin/AdminAgents.tsx |
 | /admin/analytics | Admin Analytics | Internal analytics view for platform signals and usage. | src/pages/admin/AdminAnalytics.tsx |
-| /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/apps | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |

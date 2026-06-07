@@ -1,4 +1,3 @@
-import { AuroraBackground } from "@/components/brand";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Problem from "@/components/Problem";
@@ -34,7 +33,6 @@ const Index = () => {
 
   return (
     <div className={presets.page}>
-      <AuroraBackground />
       <Navbar />
       <Hero />
       <Problem />
