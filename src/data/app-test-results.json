@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T09:37:28.711Z",
+  "updatedAt": "2026-06-07T09:39:36.511Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -35,17 +35,17 @@
     },
     "alphavantage": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or ALPHAVANTAGE_API_KEY",
-      "testedAt": "2026-06-07T02:47:52.000Z",
+      "note": "not_connected; needs free API key from alphavantage.co. Set ALPHAVANTAGE_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
-        "stock_search"
+        "stock_quote"
       ],
       "comment": ""
     },
     "amazon": {
       "status": "attention",
-      "note": "requires access_key, secret_key, and partner_tag as mandatory params",
-      "testedAt": "2026-06-07T02:47:52.000Z",
+      "note": "Requires Amazon Product Advertising API credentials (access_key, secret_key, partner_tag).",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "amazon_search"
       ],
@@ -110,9 +110,11 @@
     },
     "bluesky": {
       "status": "attention",
-      "note": "generic action tool only (bluesky_action); needs manual test with credentials",
-      "testedAt": "2026-06-07T03:01:02.000Z",
-      "toolsTested": [],
+      "note": "Search requires identifier (handle). Needs Bluesky credentials for API access.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
+      "toolsTested": [
+        "bluesky_action"
+      ],
       "comment": ""
     },
     "bgg": {
@@ -247,10 +249,10 @@
     },
     "coinmarketcap": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or COINMARKETCAP_API_KEY",
-      "testedAt": "2026-06-07T03:43:25.000Z",
+      "note": "not_connected; needs API key from pro.coinmarketcap.com. Set COINMARKETCAP_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
-        "cmc_global_metrics"
+        "cmc_trending"
       ],
       "comment": ""
     },
@@ -391,8 +393,8 @@
     },
     "ebay": {
       "status": "attention",
-      "note": "requires client_id and client_secret as mandatory params",
-      "testedAt": "2026-06-07T03:45:53.000Z",
+      "note": "Requires eBay developer credentials (client_id, client_secret).",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [],
       "comment": ""
     },
@@ -430,8 +432,8 @@
     },
     "etsy": {
       "status": "attention",
-      "note": "api_key is a required param for all tools",
-      "testedAt": "2026-06-07T03:47:22.000Z",
+      "note": "Requires Etsy API key.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [],
       "comment": ""
     },
@@ -572,8 +574,8 @@
     },
     "guardian": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or GUARDIAN_API_KEY",
-      "testedAt": "2026-06-07T03:49:32.000Z",
+      "note": "not_connected; needs API key from open-platform.theguardian.com/access/. Set GUARDIAN_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "guardian_search_articles"
       ],
@@ -636,8 +638,8 @@
     },
     "igdb": {
       "status": "attention",
-      "note": "not_connected; needs Twitch/IGDB client_id and client_secret",
-      "testedAt": "2026-06-07T03:49:32.000Z",
+      "note": "not_connected; needs Twitch client credentials. Set IGDB_CLIENT_ID and IGDB_CLIENT_SECRET.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "igdb_search_games"
       ],
@@ -796,8 +798,8 @@
     },
     "mastodon": {
       "status": "attention",
-      "note": "mastodon_search requires access_token; generic action tool needs credentials",
-      "testedAt": "2026-06-07T04:15:00.000Z",
+      "note": "Requires access_token for API calls. Set up via keychain.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "mastodon_action"
       ],
@@ -890,8 +892,8 @@
     },
     "newsapi": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or NEWS_API_KEY",
-      "testedAt": "2026-06-07T04:25:00.000Z",
+      "note": "not_connected; needs API key from newsapi.org/account. Set NEWS_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "news_top_headlines"
       ],
@@ -1012,10 +1014,10 @@
     },
     "pandascore": {
       "status": "attention",
-      "note": "PANDASCORE_TOKEN required; register at pandascore.co for API access",
-      "testedAt": "2026-06-07T04:30:00.000Z",
+      "note": "Requires API token from pandascore.co. Set PANDASCORE_TOKEN.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
-        "esports_tournaments"
+        "esports_matches"
       ],
       "comment": ""
     },
@@ -1074,10 +1076,10 @@
     },
     "podcastindex": {
       "status": "attention",
-      "note": "not_connected; needs api_key and api_secret via keychain or PODCASTINDEX_API_KEY",
-      "testedAt": "2026-06-07T04:35:00.000Z",
+      "note": "not_connected; needs API key and secret from api.podcastindex.org. Set PODCASTINDEX_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
-        "podcast_trending"
+        "podcast_search"
       ],
       "comment": ""
     },
@@ -1190,10 +1192,11 @@
     },
     "reddit": {
       "status": "attention",
-      "note": "reddit_read returned 'forbidden' even for public subreddit; Reddit API now requires OAuth for all access",
-      "testedAt": "2026-06-07T04:40:00.000Z",
+      "note": "Public read endpoints returning 403 forbidden. Reddit may now require OAuth for all API access. Set up via keychain.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
-        "reddit_read"
+        "reddit_read",
+        "reddit_search"
       ],
       "comment": ""
     },
@@ -1233,8 +1236,8 @@
     },
     "riot": {
       "status": "attention",
-      "note": "RIOT_API_KEY required; get key at developer.riotgames.com",
-      "testedAt": "2026-06-07T04:45:00.000Z",
+      "note": "Requires API key from developer.riotgames.com. Set RIOT_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "riot_summoner"
       ],
@@ -1302,8 +1305,8 @@
     },
     "setlistfm": {
       "status": "attention",
-      "note": "SETLISTFM_API_KEY required; needs API key from api.setlist.fm",
-      "testedAt": "2026-06-07T04:50:00.000Z",
+      "note": "Requires API key from setlist.fm/settings/api. Set SETLISTFM_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "setlistfm_search_artist"
       ],
@@ -1375,8 +1378,8 @@
     },
     "spotify": {
       "status": "attention",
-      "note": "all tools require bearer_token as mandatory param; needs Spotify OAuth token",
-      "testedAt": "2026-06-07T04:50:00.000Z",
+      "note": "Requires bearer_token (OAuth). Set up via keychain_secure_connect.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [],
       "comment": ""
     },
@@ -1524,8 +1527,8 @@
     },
     "tomorrowio": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or TOMORROWIO_API_KEY",
-      "testedAt": "2026-06-07T05:00:00.000Z",
+      "note": "not_connected; needs API key from app.tomorrow.io. Set TOMORROWIO_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "tomorrow_realtime"
       ],
@@ -1572,8 +1575,8 @@
     },
     "twitch": {
       "status": "attention",
-      "note": "not_connected; needs client_id and client_secret via keychain or TWITCH_CLIENT_ID",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "not_connected; needs Twitch developer credentials. Set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "twitch_top_games"
       ],
@@ -1757,8 +1760,8 @@
     },
     "youtube": {
       "status": "attention",
-      "note": "all tools require api_key as mandatory param; needs YouTube Data API v3 key",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "Requires API key from Google Cloud Console. Set YOUTUBE_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [],
       "comment": ""
     },
