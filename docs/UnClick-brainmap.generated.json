@@ -8358,13 +8358,13 @@
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
-      "hash": "4b5e69217a39",
-      "bytes": 14848
+      "hash": "a3cf298f1eda",
+      "bytes": 4203
     },
     {
       "source": "src/lib/skillLibrary.ts",
-      "hash": "7d69323f9491",
-      "bytes": 10487
+      "hash": "0ac8025f46f5",
+      "bytes": 12351
     },
     {
       "source": "src/lib/skillLibrarySeeds.ts",
