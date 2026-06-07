@@ -27,8 +27,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
-| src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
-| src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
+| src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
+| src/lib/skillLibrary.ts | 0ac8025f46f5 | 12351 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |

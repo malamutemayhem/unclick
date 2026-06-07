@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildSkillLibrarySummary,
   filterSkills,
+  isRecommendedMode,
   parseSkillMarkdown,
+  skillCategoryLabel,
   sortSkillsForLibrary,
 } from "./skillLibrary";
 import { STARTER_SKILLS } from "./skillLibrarySeeds";
@@ -80,5 +82,28 @@ Do risky things.
     const sorted = sortSkillsForLibrary(STARTER_SKILLS);
     expect(sorted[0].unclickUsefulness).toBe(5);
     expect(["hardwired", "hybrid"]).toContain(sorted[0].nativeMode);
+  });
+
+  it("derives the recommended (leave-on) group from the native rails", () => {
+    expect(isRecommendedMode("hardwired")).toBe(true);
+    expect(isRecommendedMode("hybrid")).toBe(false);
+    expect(isRecommendedMode("skill")).toBe(false);
+
+    const summary = buildSkillLibrarySummary(STARTER_SKILLS);
+    expect(summary.recommended).toBe(summary.hardwired);
+    expect(summary.recommended + summary.optional).toBe(summary.total);
+
+    const router = STARTER_SKILLS.find((skill) => skill.slug === "coordinator-router");
+    expect(router?.recommended).toBe(true);
+  });
+
+  it("humanises category slugs and filters by category", () => {
+    expect(skillCategoryLabel("agent-orchestration")).toBe("Agent orchestration");
+    expect(skillCategoryLabel("github-pr")).toBe("GitHub PR");
+    expect(skillCategoryLabel("brand-new-area")).toBe("Brand new area");
+
+    const research = filterSkills(STARTER_SKILLS, "", "research");
+    expect(research.length).toBeGreaterThan(0);
+    expect(research.every((skill) => skill.category === "research")).toBe(true);
   });
 });
