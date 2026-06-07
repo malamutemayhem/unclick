@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { GradientText } from "@/components/brand";
 import OrchestratorStory from "@/components/OrchestratorStory";
 import ExpandableImage from "@/components/ExpandableImage";
+import JobsBoardSample from "@/components/JobsBoardSample";
 import {
   Sparkles, Zap, Plug, RefreshCw,
   Clock, Compass, Link2, MonitorSmartphone,
@@ -42,6 +43,7 @@ export type BrochureContent = {
   featuresTitle?: string;
   features?: Feature[];
   steps?: { title: string; desc: string }[];
+  tail?: ReactNode;
   meta: { title: string; description: string };
 };
 
@@ -140,6 +142,7 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
       { title: "Publish", desc: "It ships the finished work and goes live." },
       { title: "Repair", desc: "If something breaks, it loops back and fixes it." },
     ],
+    tail: <JobsBoardSample />,
     meta: { title: "Autopilot - UnClick", description: "Autopilot plans, builds, checks, and ships work for you, with approvals and proof at every step." },
   },
   xgate: {

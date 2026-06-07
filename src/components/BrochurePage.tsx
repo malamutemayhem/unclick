@@ -127,6 +127,20 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
             </div>
           </section>
         )}
+
+        {/* Optional tail showcase (e.g. the sample Jobs board) */}
+        {page.tail && (
+          <section className="px-6 pb-28">
+            <div className="mx-auto max-w-5xl">
+              <FadeIn>
+                <h2 className="mb-8 text-center text-2xl font-bold tracking-tight text-heading sm:text-3xl">
+                  Your work, on one board.
+                </h2>
+              </FadeIn>
+              <FadeIn delay={0.05}>{page.tail}</FadeIn>
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
