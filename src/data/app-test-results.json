@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T04:30:00.000Z",
+  "updatedAt": "2026-06-07T04:40:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -919,6 +919,150 @@
       "testedAt": "2026-06-07T04:30:00.000Z",
       "toolsTested": [
         "list_pinterest_boards"
+      ]
+    },
+    "pipedrive": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Pipedrive API token",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "plaid": {
+      "status": "attention",
+      "note": "all tools require client_id, secret, and access_token as mandatory params",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "podcastindex": {
+      "status": "attention",
+      "note": "not_connected; needs api_key and api_secret via keychain or PODCASTINDEX_API_KEY",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "podcast_trending"
+      ]
+    },
+    "posthog": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs PostHog personal API key",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "postman": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Postman API key",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "postmark": {
+      "status": "attention",
+      "note": "all tools require api_key (server token) as mandatory param",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "ptv": {
+      "status": "pass",
+      "note": "ptv_search returned Melbourne transit stops/routes for 'Flinders Street' with live service status - no auth needed",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "ptv_search"
+      ]
+    },
+    "pushonly": {
+      "status": "pass",
+      "note": "pushonly_policy returned full PushOnlyAPI guardrails with worker routes and quality gates",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "pushonly_policy"
+      ]
+    },
+    "pushover": {
+      "status": "attention",
+      "note": "all tools require app_token as mandatory param; needs Pushover app token",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": []
+    },
+    "qc": {
+      "status": "pass",
+      "note": "qc_run_checklist passed 3/3 checks on example.com (site_loads, ssl_valid, response_time) in 38ms",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "qc_run_checklist"
+      ]
+    },
+    "quickbooks": {
+      "status": "attention",
+      "note": "all tools require access_token and realm_id as mandatory params; needs QuickBooks OAuth2",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": []
+    },
+    "radiobrowser": {
+      "status": "pass",
+      "note": "radio_search returned 3 BBC stations with stream URLs and metadata - no auth needed",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "radio_search"
+      ]
+    },
+    "raindrop": {
+      "status": "attention",
+      "note": "not_connected; needs token credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "raindrop_action"
+      ]
+    },
+    "random": {
+      "status": "pass",
+      "note": "random_roll_dice returned valid 1d6 result (rolled 1) - no auth needed, internal tool",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "random_roll_dice"
+      ]
+    },
+    "rawg": {
+      "status": "attention",
+      "note": "RAWG_API_KEY required; free key available at rawg.io/apidocs",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "rawg_search_games"
+      ]
+    },
+    "readwise": {
+      "status": "attention",
+      "note": "not_connected; needs token credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "readwise_action"
+      ]
+    },
+    "reddit": {
+      "status": "attention",
+      "note": "reddit_read returned 'forbidden' even for public subreddit; Reddit API now requires OAuth for all access",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "reddit_read"
+      ]
+    },
+    "render": {
+      "status": "attention",
+      "note": "api_key required; needs Render API key from dashboard.render.com",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "render_list_services"
+      ]
+    },
+    "replicate": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Replicate API token",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": []
+    },
+    "resend": {
+      "status": "attention",
+      "note": "Invalid API key error; needs valid Resend API key",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "resend_list_domains"
       ]
     }
   }
