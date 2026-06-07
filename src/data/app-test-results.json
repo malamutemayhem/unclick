@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:47:22.000Z",
+  "updatedAt": "2026-06-07T03:48:39.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -419,6 +419,74 @@
       "status": "attention",
       "note": "all tools require Figma file key and likely auth token; needs manual test",
       "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "flowpass": {
+      "status": "attention",
+      "note": "flowpass_status requires run_id from prior flowpass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": []
+    },
+    "flyio": {
+      "status": "attention",
+      "note": "api_key required; needs Fly.io token from fly auth token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "fly_list_apps"
+      ]
+    },
+    "foursquare": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or FOURSQUARE_API_KEY",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "foursquare_search_places"
+      ]
+    },
+    "gdelt": {
+      "status": "attention",
+      "note": "connector works but hit 429 rate limit on gdelt_trending; retry later",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "gdelt_trending"
+      ]
+    },
+    "genius": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or GENIUS_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "genius_search"
+      ]
+    },
+    "geopass": {
+      "status": "attention",
+      "note": "geopass_status requires run_id from prior geopass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": []
+    },
+    "ghost": {
+      "status": "attention",
+      "note": "requires site_url and content_key as mandatory params",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": []
+    },
+    "giphy": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or GIPHY_API_KEY",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": []
+    },
+    "github": {
+      "status": "attention",
+      "note": "generic action tool only (github_action); needs manual test with token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": []
+    },
+    "gitlab": {
+      "status": "attention",
+      "note": "generic action tool only (gitlab_action); needs manual test with token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
       "toolsTested": []
     }
   }
