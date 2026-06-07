@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:01:02.000Z",
+  "updatedAt": "2026-06-07T03:42:28.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -142,6 +142,77 @@
       "testedAt": "2026-06-07T03:01:02.000Z",
       "toolsTested": [
         "calc_tip"
+      ]
+    },
+    "calendly": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or CALENDLY_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "get_calendly_user"
+      ]
+    },
+    "carboninterface": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or CARBONINTERFACE_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "carbon_flight_emissions"
+      ]
+    },
+    "chessdotcom": {
+      "status": "pass",
+      "note": "chess_player returned full profile for hikaru (GM, 1.3M followers); chess_puzzles_random returned valid puzzle with FEN/PGN",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "chess_player",
+        "chess_puzzles_random"
+      ]
+    },
+    "circleci": {
+      "status": "attention",
+      "note": "api_key is a required param; needs token via keychain or CIRCLECI_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": []
+    },
+    "clickup": {
+      "status": "attention",
+      "note": "generic action tool only (clickup_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": []
+    },
+    "clockify": {
+      "status": "attention",
+      "note": "generic action tool only (clockify_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": []
+    },
+    "cloudinary": {
+      "status": "attention",
+      "note": "requires cloud_name, api_key, and api_secret as mandatory params",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": []
+    },
+    "coda": {
+      "status": "attention",
+      "note": "api_token is a required param; needs token via keychain or CODA_API_TOKEN",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": []
+    },
+    "cohere": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or COHERE_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "cohere_list_models"
+      ]
+    },
+    "coingecko": {
+      "status": "pass",
+      "note": "crypto_trending returned 15 trending coins with full market data (BTC, SOL, ETH, etc.)",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "crypto_trending"
       ]
     }
   }
