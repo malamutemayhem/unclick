@@ -40,4 +40,17 @@ describe("AdminAppTesting", () => {
     expect(screen.getByText("Alpha Vantage")).toBeInTheDocument();
     expect(screen.queryByText("CoinGecko")).not.toBeInTheDocument();
   });
+
+  it("matches app names with spaces and broken fragments", () => {
+    renderPage();
+
+    const search = screen.getByPlaceholderText(/search apps/i);
+    fireEvent.change(search, { target: { value: "job smith" } });
+    expect(screen.getByRole("link", { name: /jobsmith/i })).toBeInTheDocument();
+    expect(screen.queryByText("CoinGecko")).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "jo smi" } });
+    expect(screen.getByRole("link", { name: /jobsmith/i })).toBeInTheDocument();
+    expect(screen.queryByText("CoinGecko")).not.toBeInTheDocument();
+  });
 });

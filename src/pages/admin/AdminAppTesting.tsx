@@ -18,6 +18,7 @@ import {
   APP_TEST_STATUS_ORDER,
   type AppTestStatus,
 } from "@/lib/appTestResults";
+import { appMatchesSearch } from "@/lib/appSearch";
 
 const YELLOW = "#E2B93B";
 
@@ -65,15 +66,9 @@ export default function AdminAppTesting() {
   const pctTested = APP_COUNT > 0 ? Math.round((tested / APP_COUNT) * 100) : 0;
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return rows.filter(({ app, result }) => {
       if (status !== "all" && result.status !== status) return false;
-      if (!q) return true;
-      return (
-        app.name.toLowerCase().includes(q) ||
-        app.category.toLowerCase().includes(q) ||
-        app.slug.includes(q)
-      );
+      return appMatchesSearch(app, query);
     });
   }, [rows, status, query]);
 
