@@ -98,6 +98,29 @@ export interface ControlTowerClaim {
   message: string;
 }
 
+export interface ControlTowerClaimReceipt {
+  kind: "controltower_lane_claim_v1";
+  planId: string;
+  planTitle: string;
+  laneId: string | null;
+  laneTitle: string | null;
+  claimType: ControlTowerClaim["claimType"];
+  workerId: string;
+  workerNumber: number;
+  workerTotal: number;
+  sourceJobId: string | null;
+  sourceOfTruth: string;
+  proofNeeded: string;
+  resumeSafe: boolean;
+  createdAt: string;
+  text: string;
+}
+
+export interface BuildControlTowerClaimReceiptInput {
+  workerId?: string;
+  now?: Date | string;
+}
+
 const DEFAULT_MAX_ACTIVE_WORKERS = 4;
 const DEFAULT_TOTAL_LANES = 7;
 const STALE_AFTER_MS = 8 * 60 * 60 * 1000;
@@ -384,8 +407,24 @@ function workerCounts(lanes: ControlTowerLane[], maxActiveWorkers: number): Cont
   };
 }
 
+function claimLaneRank(lane: ControlTowerLane): number {
+  if (lane.status === "stale" && lane.source === "job_board") return 0;
+  if (lane.status === "stale") return 1;
+  if (lane.status === "waiting" && lane.source === "job_board") return 2;
+  if (lane.status === "waiting" && lane.source === "paste_intake") return 3;
+  if (lane.status === "waiting") return 4;
+  return 99;
+}
+
+function nextClaimableLane(lanes: ControlTowerLane[]): ControlTowerLane | null {
+  return lanes
+    .map((lane, index) => ({ lane, index, rank: claimLaneRank(lane) }))
+    .filter((candidate) => candidate.rank < 99)
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)[0]?.lane ?? null;
+}
+
 function buildMasterCopyBox(plan: Omit<ControlTowerPlan, "masterCopyBox">): string {
-  const firstOpenLane = plan.lanes.find((lane) => lane.status === "waiting" || lane.status === "stale");
+  const firstOpenLane = nextClaimableLane(plan.lanes);
   const firstLaneText = firstOpenLane ? `${firstOpenLane.title} (${firstOpenLane.id})` : "Ask Control Tower for a helper role";
 
   return [
@@ -466,7 +505,7 @@ export function claimControlTowerLane(plan: ControlTowerPlan, input: ClaimContro
     };
   }
 
-  const lane = plan.lanes.find((candidate) => candidate.status === "stale") ?? plan.lanes.find((candidate) => candidate.status === "waiting");
+  const lane = nextClaimableLane(plan.lanes);
   if (!lane) {
     return {
       claimType: "done",
@@ -489,5 +528,60 @@ export function claimControlTowerLane(plan: ControlTowerPlan, input: ClaimContro
     workerNumber,
     workerTotal,
     message: `I am Worker ${workerNumber} of ${workerTotal} for ${lane.title}.${staleNote} I will work only this lane and report proof back to Boardroom Jobs.`,
+  };
+}
+
+export function buildControlTowerClaimReceipt(
+  plan: ControlTowerPlan,
+  claim: ControlTowerClaim,
+  input: BuildControlTowerClaimReceiptInput = {},
+): ControlTowerClaimReceipt {
+  const createdAt = asDate(input.now).toISOString();
+  const workerId = compactText(input.workerId || "unassigned-controltower-worker", 120);
+  const lane = claim.lane ?? null;
+  const proofNeeded =
+    lane?.proofNeeded ??
+    (claim.claimType === "helper"
+      ? "Support an active worker as a Scout, Reviewer, or Proof Checker without starting random work."
+      : "Report status only; no open Control Tower lane was available.");
+  const resumeSafe = claim.claimType === "lane" || claim.claimType === "stale_takeover" || claim.claimType === "helper";
+  const sourceJobId = lane?.sourceJobId ?? null;
+  const targetLine = sourceJobId
+    ? `Boardroom job: ${sourceJobId}`
+    : "Boardroom job: none yet - post this to the parent Control Tower job or create a scoped Boardroom job first.";
+
+  const text = [
+    "CONTROLTOWER_LANE_CLAIM v1",
+    `Control Tower job: ${plan.title}`,
+    `Plan id: ${plan.id}`,
+    `Lane: ${lane ? `${lane.title} (${lane.id})` : "helper/status lane"}`,
+    `Worker: ${workerId} as Worker ${claim.workerNumber} of ${claim.workerTotal}`,
+    `Claim type: ${claim.claimType}`,
+    targetLine,
+    `Source of truth: ${plan.sourceOfTruth}`,
+    `Resume safe: ${resumeSafe ? "yes" : "no"}`,
+    `Proof needed: ${proofNeeded}`,
+    "",
+    claim.message,
+    "",
+    "Rules: work only this lane, do not start random extra work, and post proof or an exact blocker before calling it done.",
+  ].join("\n");
+
+  return {
+    kind: "controltower_lane_claim_v1",
+    planId: plan.id,
+    planTitle: plan.title,
+    laneId: lane?.id ?? null,
+    laneTitle: lane?.title ?? null,
+    claimType: claim.claimType,
+    workerId,
+    workerNumber: claim.workerNumber,
+    workerTotal: claim.workerTotal,
+    sourceJobId,
+    sourceOfTruth: plan.sourceOfTruth,
+    proofNeeded,
+    resumeSafe,
+    createdAt,
+    text,
   };
 }

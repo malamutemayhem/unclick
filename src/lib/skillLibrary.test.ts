@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildSkillLibrarySummary,
   filterSkills,
+  isRecommendedMode,
   parseSkillMarkdown,
+  skillCategoryLabel,
   sortSkillsForLibrary,
 } from "./skillLibrary";
 import { STARTER_SKILLS } from "./skillLibrarySeeds";
@@ -61,14 +63,19 @@ Do risky things.
     expect(parsed.validationIssues.map((issue) => issue.code)).toContain("restricted_hardwire");
   });
 
-  it("ships a validated top-20 starter pack with native rails separated from optional skills", () => {
-    expect(STARTER_SKILLS).toHaveLength(20);
+  it("ships a validated starter pack with native rails plus user-facing capability skills", () => {
+    expect(STARTER_SKILLS).toHaveLength(36);
     expect(STARTER_SKILLS.every((skill) => skill.validationIssues.every((issue) => issue.severity !== "error"))).toBe(true);
 
     const summary = buildSkillLibrarySummary(STARTER_SKILLS);
     expect(summary.hardwired).toBeGreaterThanOrEqual(6);
     expect(summary.hybrid).toBeGreaterThanOrEqual(4);
     expect(summary.categories).toEqual(expect.arrayContaining(["agent-orchestration", "testing-qa", "code-review"]));
+
+    // Trending, user-facing capability skills were brought in (documents, frontend, data...).
+    expect(summary.categories).toEqual(expect.arrayContaining(["documents", "frontend", "data", "content"]));
+    const slugs = STARTER_SKILLS.map((skill) => skill.slug);
+    expect(slugs).toEqual(expect.arrayContaining(["pdf-toolkit", "mcp-server-builder", "seo-content-optimizer", "skill-creator"]));
   });
 
   it("searches across names, tags, tools, roles, and bodies", () => {
@@ -80,5 +87,28 @@ Do risky things.
     const sorted = sortSkillsForLibrary(STARTER_SKILLS);
     expect(sorted[0].unclickUsefulness).toBe(5);
     expect(["hardwired", "hybrid"]).toContain(sorted[0].nativeMode);
+  });
+
+  it("derives the recommended (leave-on) group from the native rails", () => {
+    expect(isRecommendedMode("hardwired")).toBe(true);
+    expect(isRecommendedMode("hybrid")).toBe(false);
+    expect(isRecommendedMode("skill")).toBe(false);
+
+    const summary = buildSkillLibrarySummary(STARTER_SKILLS);
+    expect(summary.recommended).toBe(summary.hardwired);
+    expect(summary.recommended + summary.optional).toBe(summary.total);
+
+    const router = STARTER_SKILLS.find((skill) => skill.slug === "coordinator-router");
+    expect(router?.recommended).toBe(true);
+  });
+
+  it("humanises category slugs and filters by category", () => {
+    expect(skillCategoryLabel("agent-orchestration")).toBe("Agent orchestration");
+    expect(skillCategoryLabel("github-pr")).toBe("GitHub PR");
+    expect(skillCategoryLabel("brand-new-area")).toBe("Brand new area");
+
+    const research = filterSkills(STARTER_SKILLS, "", "research");
+    expect(research.length).toBeGreaterThan(0);
+    expect(research.every((skill) => skill.category === "research")).toBe(true);
   });
 });
