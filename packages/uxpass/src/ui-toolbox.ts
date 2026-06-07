@@ -7,6 +7,7 @@ export const UI_TOOLBOX_GATE_IDS = [
   "reduced-motion",
   "performance-budget",
   "brand-fit",
+  "product-specificity",
   "screenshot-proof",
 ] as const;
 
@@ -91,6 +92,7 @@ export const UI_TOOLBOX_GATE_LABELS: Record<UIToolboxGateId, string> = {
   "reduced-motion": "Motion respects prefers-reduced-motion and has a static fallback.",
   "performance-budget": "Bundle, animation, media, and layout-shift cost are inside budget.",
   "brand-fit": "The component supports the product tone instead of adding generic visual noise.",
+  "product-specificity": "The surface shows real product mechanics and avoids generic AI/template sameness.",
   "screenshot-proof": "Before/after screenshots or visual run evidence exist for the target surface.",
 };
 
@@ -111,6 +113,7 @@ const MOTION_GATES: UIToolboxGateId[] = [
   "reduced-motion",
   "performance-budget",
   "brand-fit",
+  "product-specificity",
   "screenshot-proof",
 ];
 
@@ -123,6 +126,7 @@ const COMMUNITY_GATES: UIToolboxGateId[] = [
   "reduced-motion",
   "performance-budget",
   "brand-fit",
+  "product-specificity",
   "screenshot-proof",
 ];
 

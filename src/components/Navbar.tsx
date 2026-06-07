@@ -106,17 +106,17 @@ const Navbar = () => {
             aria-expanded={open}
           >
             <motion.span
-              className="block h-0.5 w-5 bg-heading origin-center"
+              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))] origin-center"
               animate={open ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className="block h-0.5 w-5 bg-heading"
+              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))]"
               animate={open ? { opacity: 0 } : { opacity: 1 }}
               transition={{ duration: 0.1 }}
             />
             <motion.span
-              className="block h-0.5 w-5 bg-heading origin-center"
+              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))] origin-center"
               animate={open ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
