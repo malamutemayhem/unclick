@@ -1,0 +1,77 @@
+{
+  "updatedAt": "2026-06-07T02:47:52.000Z",
+  "results": {
+    "abn": {
+      "status": "attention",
+      "note": "API responded but returned GUID error for name search; connector reachable but may have parameter issue",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "abn_search"
+      ]
+    },
+    "abuseipdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or ABUSEIPDB_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "abuseipdb_check_ip"
+      ]
+    },
+    "airtable": {
+      "status": "attention",
+      "note": "generic action tool only (airtable_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": []
+    },
+    "algolia": {
+      "status": "attention",
+      "note": "not_connected; requires app_id and api_key as mandatory params",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": []
+    },
+    "alphavantage": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or ALPHAVANTAGE_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "stock_search"
+      ]
+    },
+    "amazon": {
+      "status": "attention",
+      "note": "requires access_key, secret_key, and partner_tag as mandatory params",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "amazon_search"
+      ]
+    },
+    "amber": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or AMBER_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "amber_current_price"
+      ]
+    },
+    "anthropic": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ANTHROPIC_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": []
+    },
+    "asana": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or ASANA_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "list_asana_workspaces"
+      ]
+    },
+    "assemblyai": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ASSEMBLYAI_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": []
+    }
+  }
+}
