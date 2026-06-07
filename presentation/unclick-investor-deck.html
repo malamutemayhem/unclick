@@ -134,22 +134,6 @@ b,strong{font-weight:700;color:var(--ink)} .slide.dark b,.slide.dark strong{colo
 .cover-sub{font-size:clamp(18px,2.1vw,28px);font-weight:600;color:var(--teal-bright);margin-top:18px}
 .cover-one{margin-top:26px;max-width:54ch}
 
-/* Cover hero: slide 1 with the universal-remote art on the right */
-.slide.cover-hero{justify-content:flex-start}
-.slide.cover-hero::before,.slide.cover-hero::after{content:none}
-.slide.cover-hero .inner{width:min(620px,54vw);margin-left:clamp(28px,5vw,92px);z-index:3}
-.slide.cover-hero h1{font-size:clamp(27px,3.5vw,44px)}
-.slide.cover-hero h1 .nw{white-space:nowrap}
-.slide.cover-hero .lead{display:none}
-.hero-art{position:absolute;top:0;right:0;bottom:0;width:58%;z-index:1;pointer-events:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20%);mask-image:linear-gradient(90deg,transparent 0,#000 20%)}
-.hero-art svg{width:100%;height:100%;display:block}
-@media (max-width:880px){
-  .slide.cover-hero{justify-content:center}
-  .slide.cover-hero .inner{width:auto;margin-left:0}
-  .hero-art{opacity:.28;width:100%;mask-image:none;-webkit-mask-image:none}
-}
-
 /* ===================== Pillars hub (slide 6) ===================== */
 .hub{display:flex;flex-direction:column;align-items:center;margin-top:26px}
 .hub-badge{display:inline-flex;align-items:center;gap:12px;padding:14px 26px;border-radius:16px;
@@ -373,67 +357,14 @@ body.printmode .chrome,body.printmode .progress,body.printmode .brandtag{display
 <div class="deck" id="deck">
 
 <!-- ========================= 1. COVER ========================= -->
-<section class="slide dark cover-hero active">
-  <div class="hero-art anim" style="--d:3" aria-hidden="true">
-    <svg viewBox="0 0 740 720" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="cg" cx="56%" cy="40%" r="52%">
-          <stop offset="0" stop-color="#61c1c4" stop-opacity=".42"/>
-          <stop offset="55%" stop-color="#3aa0a6" stop-opacity=".10"/>
-          <stop offset="100%" stop-color="#61c1c4" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#1c4658"/><stop offset=".5" stop-color="#0e2c3a"/><stop offset="1" stop-color="#06141d"/>
-        </linearGradient>
-        <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffffff" stop-opacity=".12"/><stop offset=".3" stop-color="#ffffff" stop-opacity="0"/>
-        </linearGradient>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <ellipse cx="440" cy="320" rx="340" ry="320" fill="url(#cg)"/>
-      <!-- connecting arcs -->
-      <g stroke="#61c1c4" stroke-width="2" stroke-opacity=".5" fill="none" filter="url(#glow)">
-        <path d="M470 205 Q372 96 332 78"/>
-        <path d="M468 214 Q340 172 256 240"/>
-        <path d="M462 244 Q300 360 214 466"/>
-        <path d="M482 210 Q588 198 642 252"/>
-        <path d="M488 252 Q616 322 662 432"/>
-        <path d="M472 300 Q508 452 502 596"/>
-      </g>
-      <!-- remote -->
-      <g transform="rotate(-17 410 390)">
-        <rect x="335" y="175" width="150" height="420" rx="46" fill="url(#body)" stroke="#327082" stroke-width="1.5"/>
-        <rect x="346" y="186" width="128" height="150" rx="36" fill="url(#sheen)"/>
-        <circle cx="384" cy="256" r="18" fill="#61c1c4" filter="url(#glow)" opacity=".85"/>
-        <circle cx="438" cy="256" r="15" fill="#0c2330" stroke="#3a7d86" stroke-width="1.5"/>
-        <path d="M432 252h12M438 250v8" stroke="#5fb6c0" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="380" cy="345" r="15" fill="#0d2733" stroke="#3a7d86" stroke-width="1.5"/>
-        <circle cx="380" cy="345" r="4.5" fill="#5fb6c0"/>
-        <circle cx="380" cy="402" r="15" fill="#0d2733" stroke="#3a7d86" stroke-width="1.5"/>
-        <path d="M375 396l9 6-9 6z" fill="#5fb6c0"/>
-        <rect x="420" y="322" width="34" height="96" rx="17" fill="#0d2733" stroke="#3a7d86" stroke-width="1.5"/>
-        <path d="M437 334v14M430 341h14M430 396h14" stroke="#5fb6c0" stroke-width="1.6" stroke-linecap="round"/>
-      </g>
-      <!-- app icon chips -->
-      <g stroke-linecap="round" stroke-linejoin="round">
-        <g transform="translate(304,50)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(16,17)" stroke="#aef0f2" stroke-width="2" fill="none"><rect x="0" y="0" width="24" height="18" rx="2.5"/><path d="M1 3l11 8 11-8"/></g></g>
-        <g transform="translate(228,210)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(16,17)" stroke="#aef0f2" stroke-width="2" fill="none"><path d="M2 3h20v13H9l-5 4v-4H2z"/></g></g>
-        <g transform="translate(184,440)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(16,16)" stroke="#aef0f2" stroke-width="2" fill="none"><rect x="1" y="2" width="22" height="20" rx="2.5"/><path d="M1 8h22M8 0v4M16 0v4M8 15l3 3 5-5"/></g></g>
-        <g transform="translate(614,224)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(16,16)" stroke="#aef0f2" stroke-width="2" fill="none"><path d="M8 5l-6 7 6 7M16 5l6 7-6 7"/></g></g>
-        <g transform="translate(634,406)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(15,16)" stroke="#aef0f2" stroke-width="2" fill="none"><path d="M1 2h3l2.5 13h12l2.5-9H6"/><circle cx="9" cy="20.5" r="1.6"/><circle cx="18" cy="20.5" r="1.6"/></g></g>
-        <g transform="translate(474,570)"><rect width="56" height="56" rx="15" fill="#0b2531" fill-opacity=".82" stroke="#61c1c4" stroke-opacity=".55" stroke-width="1.5"/><g transform="translate(16,15)" stroke="#aef0f2" stroke-width="2" fill="none"><path d="M8 19V5l12-2.5V16"/><circle cx="5.4" cy="19" r="2.6"/><circle cx="17" cy="16" r="2.6"/></g></g>
-      </g>
-    </svg>
-  </div>
+<section class="slide dark active">
   <div class="inner">
     <div class="cover-logo anim" style="--d:0"><svg class="mark"><use href="#bot"/></svg><span class="word">UnClick</span></div>
     <div class="eyebrow anim" style="--d:1">Investor Overview &middot; 2026</div>
-    <h1 class="anim" style="--d:2"><span class="nw">The universal remote</span><br><span class="grad">for AI</span></h1>
+    <h1 class="anim" style="--d:2">The universal remote<br><span class="grad">for AI</span></h1>
     <div class="cover-sub anim" style="--d:3">Where AI belongs. Humans welcome.</div>
     <p class="lead cover-one anim" style="--d:4">One install gives any AI agent every tool it needs, memory that remembers across every session and device, and built-in proof the work was done right.</p>
-    <div class="anim" style="--d:5"><span class="pill mt24">unclick.world &middot; Built in Melbourne, Australia</span></div>
+    <div class="anim" style="--d:5" ><span class="pill mt24">unclick.world &middot; Built in Melbourne, Australia</span></div>
   </div>
 </section>
 
