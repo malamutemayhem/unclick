@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T04:40:00.000Z",
+  "updatedAt": "2026-06-07T04:50:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1064,6 +1064,144 @@
       "toolsTested": [
         "resend_list_domains"
       ]
+    },
+    "restcountries": {
+      "status": "pass",
+      "note": "country_by_name returned Australia with full metadata (population, currencies, timezones) - no auth needed",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "country_by_name"
+      ]
+    },
+    "riot": {
+      "status": "attention",
+      "note": "RIOT_API_KEY required; get key at developer.riotgames.com",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "riot_summoner"
+      ]
+    },
+    "runway": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid video generation service",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "seatgeek": {
+      "status": "attention",
+      "note": "not_connected; needs client_id via keychain_secure_connect or SEATGEEK_CLIENT_ID",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "seatgeek_search_events"
+      ]
+    },
+    "securitypass": {
+      "status": "attention",
+      "note": "securitypass_status requires run_id from prior securitypass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "segment": {
+      "status": "attention",
+      "note": "all tools require api_key and workspace_id as mandatory params",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "sendgrid": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs SendGrid API key",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "sendle": {
+      "status": "attention",
+      "note": "not_connected; needs api_key and sendle_id via keychain or env var",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "sendle_get_quote"
+      ]
+    },
+    "sentry": {
+      "status": "attention",
+      "note": "all tools require auth_token as mandatory param; needs Sentry auth token",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "seopass": {
+      "status": "attention",
+      "note": "seopass_status requires run_id from prior seopass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": []
+    },
+    "setlistfm": {
+      "status": "attention",
+      "note": "SETLISTFM_API_KEY required; needs API key from api.setlist.fm",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "setlistfm_search_artist"
+      ]
+    },
+    "shodan": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or SHODAN_API_KEY",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "shodan_search"
+      ]
+    },
+    "shopify": {
+      "status": "attention",
+      "note": "requires shop_domain plus access_token or api_key; needs Shopify store credentials",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": []
+    },
+    "shortcut": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Shortcut API token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": []
+    },
+    "slack": {
+      "status": "attention",
+      "note": "all tools require bot_token as mandatory param; needs Slack bot token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": []
+    },
+    "sleeper": {
+      "status": "pass",
+      "note": "sleeper_nfl_state returned 2026 off-season state (week 0) - no auth needed",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "sleeper_nfl_state"
+      ]
+    },
+    "sloppass": {
+      "status": "attention",
+      "note": "sloppass_run requires target and files/diff input; internal pass tool, needs specific invocation context",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": []
+    },
+    "speedrun": {
+      "status": "pass",
+      "note": "speedrun_search_games returned 3 Mario games with speedrun.com links - no auth needed",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "speedrun_search_games"
+      ]
+    },
+    "splitwise": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "splitwise_action"
+      ]
+    },
+    "spotify": {
+      "status": "attention",
+      "note": "all tools require bearer_token as mandatory param; needs Spotify OAuth token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": []
     }
   }
 }
