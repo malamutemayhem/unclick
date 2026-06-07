@@ -5,7 +5,7 @@
   "owner_visibility": {
     "route": "/admin/brainmap",
     "audience": "private yellow admin",
-    "owner_email": "creativelead@malamutemayhem.com"
+    "owner_email": "(configured via env)"
   },
   "counts": {
     "divisions": 12,

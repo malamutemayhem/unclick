@@ -284,7 +284,7 @@ export interface OrchestratorSceneBuilderPacket {
   risk_level: "low" | "medium" | "high";
   next_safe_action: string;
   stop_conditions: string[];
-  chris_needed: boolean;
+  owner_needed: boolean;
   source_receipts: OrchestratorSourceLink[];
   memory_lease_expires_at: string;
   copyroom_required: boolean;
@@ -758,7 +758,7 @@ function buildSceneBuilderPacket({
       ? "Claim one scoped Boardroom job or post the exact missing proof/blocker; never mark DONE from status text alone."
       : proofState === "proof_required"
         ? "Continue the fresh active job only with named proof, tests, PR, deploy, screenshot, or blocker evidence."
-        : "Stay quiet unless new Boardroom work, proof drift, or a Chris decision appears.";
+        : "Stay quiet unless new Boardroom work, proof drift, or an operator decision appears.";
   const memoryLeaseExpiresAt = new Date(Date.parse(generatedAt) + ACTIVE_WINDOW_MS).toISOString();
 
   return {
@@ -773,7 +773,7 @@ function buildSceneBuilderPacket({
     risk_level: riskLevel,
     next_safe_action: nextSafeAction,
     stop_conditions: sceneBuilderStopConditions,
-    chris_needed: blockers.some((blocker) => /human|chris|operator|decision/i.test(blocker)),
+    owner_needed: blockers.some((blocker) => /human|operator|decision/i.test(blocker)),
     source_receipts: sourceReceipts,
     memory_lease_expires_at: memoryLeaseExpiresAt,
     copyroom_required: focusTodo != null,

@@ -1255,7 +1255,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Safety Rules
 
 - Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.
-- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.
+- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.
 - NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.
 - IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.
 - Heartbeats must never print keys or credentials.
