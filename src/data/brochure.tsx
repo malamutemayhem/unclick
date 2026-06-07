@@ -119,7 +119,7 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     secondaryCta: { label: "See the proof", href: "/xpass" },
     showcase: (
       <ExpandableImage
-        src="/autopilot-pipeline.png"
+        src="/Unclick_Autopilot_Web.jpg"
         alt="The Autopilot line, step by step: intake, orchestrator, research, plan, jobs, build, test, review, safety, audit, workers, merge, publish, repair."
       />
     ),

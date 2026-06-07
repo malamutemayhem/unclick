@@ -132,7 +132,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
-| src/pages/NewToAI.tsx | a928e28f8759 | 13178 |
+| src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
