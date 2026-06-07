@@ -19,40 +19,46 @@ function statValue(label: string): string {
 }
 
 describe("AdminControlTower", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((input: RequestInfo | URL) => {
-        const url = String(input);
-        if (url.includes("fishbowl_admin_claim")) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ profile: { agent_id: "admin-seat" } }),
-          });
-        }
-        if (url.includes("fishbowl_list_todos")) {
-          return Promise.resolve({
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                todos: [
-                  {
-                    id: "job-homepage-proof",
-                    title: "Fix homepage proof",
-                    description: "Needs browser screenshot and UIPass judgment.",
-                    status: "open",
-                    priority: "urgent",
-                    assigned_to_agent_id: null,
-                    updated_at: "2026-06-07T08:00:00.000Z",
-                    proof_state: "missing",
-                  },
-                ],
-              }),
-          });
-        }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-      }),
-    );
+    fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("fishbowl_admin_claim")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ profile: { agent_id: "admin-seat" } }),
+        });
+      }
+      if (url.includes("fishbowl_list_todos")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              todos: [
+                {
+                  id: "job-homepage-proof",
+                  title: "Fix homepage proof",
+                  description: "Needs browser screenshot and UIPass judgment.",
+                  status: "open",
+                  priority: "urgent",
+                  assigned_to_agent_id: null,
+                  updated_at: "2026-06-07T08:00:00.000Z",
+                  proof_state: "missing",
+                },
+              ],
+            }),
+        });
+      }
+      if (url.includes("fishbowl_comment_on")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ comment: { id: "comment-1" } }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
@@ -74,7 +80,35 @@ describe("AdminControlTower", () => {
     expect(copyBox.value).toContain("CONTROL TOWER JOB");
     expect(copyBox.value).toContain("Boardroom Jobs");
     expect(copyBox.value).toContain("I am Worker X of Y");
-    expect(screen.getByText(/I am Worker 1 of/)).toBeInTheDocument();
+    expect(screen.getAllByText(/I am Worker 1 of/).length).toBeGreaterThan(0);
+  });
+
+  it("posts the next worker claim as a Boardroom receipt", async () => {
+    render(
+      <MemoryRouter>
+        <AdminControlTower />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Fix homepage proof")).toBeInTheDocument();
+    const claimReceipt = screen.getByLabelText("Claim receipt") as HTMLTextAreaElement;
+    expect(claimReceipt.value).toContain("CONTROLTOWER_LANE_CLAIM v1");
+    expect(claimReceipt.value).toContain("Boardroom job: job-homepage-proof");
+
+    fireEvent.click(screen.getByRole("button", { name: /Post to Boardroom/i }));
+
+    await screen.findByText("Claim posted to Boardroom.");
+    const commentCall = fetchMock.mock.calls.find(([input]) => String(input).includes("fishbowl_comment_on"));
+    expect(commentCall).toBeTruthy();
+
+    const body = JSON.parse(String((commentCall?.[1] as RequestInit | undefined)?.body));
+    expect(body).toMatchObject({
+      agent_id: "admin-seat",
+      target_kind: "todo",
+      target_id: "job-homepage-proof",
+    });
+    expect(body.text).toContain("CONTROLTOWER_LANE_CLAIM v1");
+    expect(body.text).toContain("Worker: admin-seat as Worker 1 of");
   });
 
   it("shows duplicate and redaction counts for messy pasted updates", async () => {

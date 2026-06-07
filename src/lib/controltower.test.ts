@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   analyzePasteIntake,
+  buildControlTowerClaimReceipt,
   claimControlTowerLane,
   createControlTowerPlan,
   shouldTriggerControlTower,
@@ -99,6 +100,77 @@ describe("controltower planner", () => {
     expect(claim.claimType).toBe("lane");
     expect(claim.message).toContain("I am Worker 1 of 7");
     expect(claim.message).toContain("report proof back to Boardroom Jobs");
+  });
+
+  it("builds a durable Boardroom claim receipt for the next worker lane", () => {
+    const plan = createControlTowerPlan({
+      prompt: "ControlTower: finish the XPass homepage proof job.",
+      jobBoardItems: [
+        {
+          id: "job-homepage-proof",
+          title: "Fix homepage proof",
+          status: "open",
+          priority: "urgent",
+          updatedAt: "2026-06-07T09:00:00.000Z",
+        },
+      ],
+      now: "2026-06-07T10:00:00.000Z",
+    });
+
+    const claim = claimControlTowerLane(plan);
+    const receipt = buildControlTowerClaimReceipt(plan, claim, {
+      workerId: "admin-seat",
+      now: "2026-06-07T10:01:00.000Z",
+    });
+
+    expect(receipt).toMatchObject({
+      kind: "controltower_lane_claim_v1",
+      laneTitle: "Fix homepage proof",
+      workerId: "admin-seat",
+      workerNumber: 1,
+      workerTotal: 7,
+      sourceJobId: "job-homepage-proof",
+      resumeSafe: true,
+    });
+    expect(receipt.text).toContain("CONTROLTOWER_LANE_CLAIM v1");
+    expect(receipt.text).toContain("Boardroom job: job-homepage-proof");
+    expect(receipt.text).toContain("Worker: admin-seat as Worker 1 of 7");
+    expect(receipt.text).toContain("work only this lane");
+  });
+
+  it("builds a helper receipt instead of starting random work when lanes are full", () => {
+    const plan = createControlTowerPlan({
+      prompt: "ControlTower: finish the entire site.",
+      jobBoardItems: [
+        {
+          id: "job-a",
+          title: "A",
+          status: "in_progress",
+          assignedTo: "worker-a",
+          priority: "urgent",
+          updatedAt: "2026-06-07T09:30:00.000Z",
+        },
+        {
+          id: "job-b",
+          title: "B",
+          status: "in_progress",
+          assignedTo: "worker-b",
+          priority: "high",
+          updatedAt: "2026-06-07T09:30:00.000Z",
+        },
+      ],
+      maxActiveWorkers: 2,
+      now: "2026-06-07T10:00:00.000Z",
+    });
+
+    const claim = claimControlTowerLane(plan);
+    const receipt = buildControlTowerClaimReceipt(plan, claim, { workerId: "overflow-seat" });
+
+    expect(receipt.claimType).toBe("helper");
+    expect(receipt.sourceJobId).toBeNull();
+    expect(receipt.resumeSafe).toBe(true);
+    expect(receipt.text).toContain("Boardroom job: none yet");
+    expect(receipt.text).toContain("do not start random extra work");
   });
 
   it("lets a worker take over a stale lane", () => {

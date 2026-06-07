@@ -24,9 +24,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 1957fc5513d9 | 15323 |
 | src/pages/admin/AdminShell.tsx | f1d9032ae6ed | 24781 |
-| src/pages/admin/AdminControlTower.tsx | 6ca638bd7002 | 17570 |
-| src/lib/controltower.ts | 4f5aef742c4a | 18625 |
-| docs/prd/controltower.md | db23d54c71d8 | 3830 |
+| src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
+| src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
+| docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
