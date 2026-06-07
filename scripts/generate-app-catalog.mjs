@@ -36,15 +36,15 @@ bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper"
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary"]);
 bucket("Images", ["unsplash", "giphy", "dogceo"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -77,6 +77,8 @@ const NAME_OF = {
   jikan: "Jikan (MyAnimeList)", chucknorris: "Chuck Norris", catfacts: "Cat Facts",
   swapi: "Star Wars API", dnd5e: "D&D 5e SRD", deckofcards: "Deck of Cards",
   adviceslip: "Advice Slip", agify: "Name Analysis", quotable: "Quotable",
+  bored: "Bored API", superhero: "Superhero DB", opennotify: "ISS Tracker",
+  tarot: "Tarot Cards", aoe2: "Age of Empires II", affirmation: "Affirmations",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -160,6 +162,12 @@ const BLURB_OF = {
   adviceslip: "Get random advice or search advice by topic.",
   agify: "Predict age, gender, and nationality from a first name.",
   quotable: "Browse and search inspirational quotes by author or tag.",
+  bored: "Get random activity suggestions when you need inspiration.",
+  superhero: "Look up comic book superhero and villain stats and bios.",
+  opennotify: "Track the ISS location and see who is in space right now.",
+  tarot: "Draw tarot cards and look up card meanings.",
+  aoe2: "Browse Age of Empires II civilizations, units, and technologies.",
+  affirmation: "Get random positive affirmations for daily motivation.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -217,6 +225,9 @@ const DOMAIN_OF = {
   jikan: "jikan.moe", chucknorris: "api.chucknorris.io", catfacts: "catfact.ninja",
   swapi: "swapi.dev", dnd5e: "dnd5eapi.co", deckofcards: "deckofcardsapi.com",
   adviceslip: "api.adviceslip.com", agify: "agify.io", quotable: "quotable.io",
+  bored: "bored-api.appbrewery.com", superhero: "akabab.github.io",
+  opennotify: "open-notify.org", tarot: "tarotapi.dev",
+  aoe2: "age-of-empires-2-api.herokuapp.com", affirmation: "affirmations.dev",
 };
 
 function titleCase(slug) {

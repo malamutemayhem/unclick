@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (211 external connectors)
+## Distribution (217 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 172 | 82% |
+| L5 | Agentic | 178 | 82% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 17% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 207 of 211 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 213 of 217 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 172 of 175 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 178 of 181 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -49,18 +49,21 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `abn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `abuseipdb` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `adviceslip` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `affirmation` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `agify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `algolia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `alphavantage` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `amazon` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `amber` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `anthropic` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `aoe2` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `asana` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `assemblyai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `australiapost` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bandsintown` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bgg` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bitbucket` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bored` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `brevo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `brewery` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bungie` | Yes | - | - | Yes | Yes | no-memory |
@@ -151,6 +154,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openlibrary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openmeteo` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `opennotify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pagerduty` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `pandascore` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pika` | Yes | - | - | Yes | Yes | no-memory |
@@ -184,8 +188,10 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `stability` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `steam` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `superhero` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `swapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tab` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `tarot` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `thelott` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tiktok` | Yes | - | - | Yes | Yes | no-memory |

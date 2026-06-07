@@ -64,6 +64,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "affirmation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "affirmation_random",
+        "description": "Get a random positive affirmation."
+      }
+    ]
+  },
+  {
     "app": "agify",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -194,6 +204,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "anthropic_list_models",
         "description": "List all Claude models available via the Anthropic API."
+      }
+    ]
+  },
+  {
+    "app": "aoe2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "aoe2_civilizations",
+        "description": "List all Age of Empires II civilizations."
+      },
+      {
+        "name": "aoe2_civilization",
+        "description": "Get an Age of Empires II civilization by ID."
+      },
+      {
+        "name": "aoe2_units",
+        "description": "List all Age of Empires II units."
+      },
+      {
+        "name": "aoe2_unit",
+        "description": "Get an Age of Empires II unit by ID."
+      },
+      {
+        "name": "aoe2_technologies",
+        "description": "List all Age of Empires II technologies."
       }
     ]
   },
@@ -348,6 +384,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bluesky_action",
         "description": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow."
+      }
+    ]
+  },
+  {
+    "app": "bored",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bored_random",
+        "description": "Get a random activity suggestion."
+      },
+      {
+        "name": "bored_by_type",
+        "description": "Get an activity by type (education, recreational, social, diy, charity, cooking, relaxation, music, busywork)."
+      },
+      {
+        "name": "bored_by_participants",
+        "description": "Get an activity for a specific number of participants."
       }
     ]
   },
@@ -3006,6 +3060,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "opennotify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_location",
+        "description": "Get the current location of the International Space Station."
+      },
+      {
+        "name": "iss_astronauts",
+        "description": "Get the list of astronauts currently in space."
+      }
+    ]
+  },
+  {
     "app": "pagerduty",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -4320,6 +4388,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "superhero",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hero_get_by_id",
+        "description": "Get a superhero/villain by ID from the comic book database."
+      },
+      {
+        "name": "hero_all",
+        "description": "List all superheroes and villains (returns first 50 with IDs)."
+      },
+      {
+        "name": "hero_powerstats",
+        "description": "Get power statistics for a superhero/villain."
+      }
+    ]
+  },
+  {
     "app": "swapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4364,6 +4450,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tab_sports_markets",
         "description": "Get TAB sports betting markets."
+      }
+    ]
+  },
+  {
+    "app": "tarot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tarot_all_cards",
+        "description": "List all tarot cards in the deck."
+      },
+      {
+        "name": "tarot_draw",
+        "description": "Draw random tarot cards for a reading."
+      },
+      {
+        "name": "tarot_search",
+        "description": "Search for a specific tarot card by name."
       }
     ]
   },

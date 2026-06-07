@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T12:45:00.000Z",
+  "updatedAt": "2026-06-07T12:50:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1937,6 +1937,54 @@
       "testedAt": "2026-06-07T12:45:00.000Z",
       "toolsTested": [
         "quote_random"
+      ]
+    },
+    "bored": {
+      "status": "pass",
+      "note": "bored_random() returned activity suggestion with type and participants. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "bored_random"
+      ]
+    },
+    "superhero": {
+      "status": "pass",
+      "note": "hero_get_by_id(id=1) returned character data with powerstats. Free GitHub-hosted API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "hero_get_by_id"
+      ]
+    },
+    "opennotify": {
+      "status": "pass",
+      "note": "iss_location() returned ISS lat/lon position and timestamp. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "iss_location"
+      ]
+    },
+    "tarot": {
+      "status": "pass",
+      "note": "tarot_draw(count=3) returned 3 random tarot cards with meanings. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "tarot_draw"
+      ]
+    },
+    "aoe2": {
+      "status": "pass",
+      "note": "aoe2_civilizations() returned all AoE2 civilizations with bonuses. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "aoe2_civilizations"
+      ]
+    },
+    "affirmation": {
+      "status": "pass",
+      "note": "affirmation_random() returned a positive affirmation. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "affirmation_random"
       ]
     }
   },

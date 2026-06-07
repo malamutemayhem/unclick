@@ -316,6 +316,21 @@ import {
   quoteListTags, quoteListAuthors,
 } from "./quotable-tool.js";
 
+import { boredRandom, boredByType, boredByParticipants } from "./bored-tool.js";
+
+import { heroGetById, heroAll, heroPowerstats } from "./superhero-tool.js";
+
+import { issLocation, issAstronauts } from "./opennotify-tool.js";
+
+import { tarotAllCards, tarotDraw, tarotSearch } from "./tarot-tool.js";
+
+import {
+  aoe2Civilizations, aoe2Civilization, aoe2Units,
+  aoe2Unit, aoe2Technologies,
+} from "./aoe2-tool.js";
+
+import { affirmationRandom } from "./affirmation-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5151,6 +5166,158 @@ export const ADDITIONAL_TOOLS = [
         limit: { type: "number", description: "Max results (default 20)" },
       },
     },
+  },
+
+  // ── bored-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "bored_random",
+    description: "Get a random activity suggestion.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "bored_by_type",
+    description: "Get an activity by type (education, recreational, social, diy, charity, cooking, relaxation, music, busywork).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", description: "Activity type" },
+      },
+      required: ["type"],
+    },
+  },
+  {
+    name: "bored_by_participants",
+    description: "Get an activity for a specific number of participants.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        participants: { type: "number", description: "Number of participants" },
+      },
+      required: ["participants"],
+    },
+  },
+
+  // ── superhero-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "hero_get_by_id",
+    description: "Get a superhero/villain by ID from the comic book database.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "hero_all",
+    description: "List all superheroes and villains (returns first 50 with IDs).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hero_powerstats",
+    description: "Get power statistics for a superhero/villain.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── opennotify-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "iss_location",
+    description: "Get the current location of the International Space Station.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "iss_astronauts",
+    description: "Get the list of astronauts currently in space.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── tarot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "tarot_all_cards",
+    description: "List all tarot cards in the deck.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "tarot_draw",
+    description: "Draw random tarot cards for a reading.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of cards to draw (default 3)" },
+      },
+    },
+  },
+  {
+    name: "tarot_search",
+    description: "Search for a specific tarot card by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Card name (e.g. 'The Fool', 'Death', 'Ace of Cups')" },
+      },
+      required: ["query"],
+    },
+  },
+
+  // ── aoe2-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "aoe2_civilizations",
+    description: "List all Age of Empires II civilizations.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "aoe2_civilization",
+    description: "Get an Age of Empires II civilization by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Civilization ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "aoe2_units",
+    description: "List all Age of Empires II units.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "aoe2_unit",
+    description: "Get an Age of Empires II unit by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Unit ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "aoe2_technologies",
+    description: "List all Age of Empires II technologies.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── affirmation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "affirmation_random",
+    description: "Get a random positive affirmation.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -15895,6 +16062,35 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   quote_by_author:         (args) => quoteByAuthor(args),
   quote_list_tags:         (args) => quoteListTags(args),
   quote_list_authors:      (args) => quoteListAuthors(args),
+
+  // bored-tool.ts
+  bored_random:            (args) => boredRandom(args),
+  bored_by_type:           (args) => boredByType(args),
+  bored_by_participants:   (args) => boredByParticipants(args),
+
+  // superhero-tool.ts
+  hero_get_by_id:          (args) => heroGetById(args),
+  hero_all:                (args) => heroAll(args),
+  hero_powerstats:         (args) => heroPowerstats(args),
+
+  // opennotify-tool.ts
+  iss_location:            (args) => issLocation(args),
+  iss_astronauts:          (args) => issAstronauts(args),
+
+  // tarot-tool.ts
+  tarot_all_cards:         (args) => tarotAllCards(args),
+  tarot_draw:              (args) => tarotDraw(args),
+  tarot_search:            (args) => tarotSearch(args),
+
+  // aoe2-tool.ts
+  aoe2_civilizations:      (args) => aoe2Civilizations(args),
+  aoe2_civilization:       (args) => aoe2Civilization(args),
+  aoe2_units:              (args) => aoe2Units(args),
+  aoe2_unit:               (args) => aoe2Unit(args),
+  aoe2_technologies:       (args) => aoe2Technologies(args),
+
+  // affirmation-tool.ts
+  affirmation_random:      (args) => affirmationRandom(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

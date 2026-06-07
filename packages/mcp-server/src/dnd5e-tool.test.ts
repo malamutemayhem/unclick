@@ -33,7 +33,7 @@ describe("dnd5e connector resilience (L2)", () => {
     }));
     vi.stubGlobal("fetch", fn);
     await dndGetSpell({ spell: "magic missile" });
-    expect(fn.mock.calls[0][0]).toContain("magic-missile");
+    expect(String(fn.mock.calls.at(0)?.at(0) ?? "")).toContain("magic-missile");
   });
 
   it("maps class data with unclick_meta", async () => {
@@ -54,6 +54,6 @@ describe("dnd5e connector resilience (L2)", () => {
     vi.stubGlobal("fetch", fn);
     const r = await dndListMonsters({ challenge_rating: "1" }) as Record<string, unknown>;
     expect(r.count).toBe(5);
-    expect(fn.mock.calls[0][0]).toContain("challenge_rating=1");
+    expect(String(fn.mock.calls.at(0)?.at(0) ?? "")).toContain("challenge_rating=1");
   });
 });
