@@ -287,3 +287,41 @@ describe("runtime tool schema validation", () => {
     expect(advertisedNames.has("securitypass_verify_scope")).toBe(true);
   });
 });
+
+describe("collapsed advertised tool surface", () => {
+  const advertisedNames = new Set<string>(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+  it("advertises the four discovery meta-tools so the hidden catalog stays reachable", () => {
+    for (const meta of ["unclick_search", "unclick_browse", "unclick_tool_info", "unclick_call"]) {
+      expect(advertisedNames.has(meta), meta).toBe(true);
+    }
+  });
+
+  it("does NOT advertise the ~800 integration tools individually", () => {
+    for (const hidden of [
+      "bgg_search",
+      "spotify_search",
+      "stripe_customers",
+      "testpass_run",
+      "flowpass_run",
+      "weather_current",
+    ]) {
+      expect(advertisedNames.has(hidden), `${hidden} should be hidden from tools/list`).toBe(false);
+    }
+  });
+
+  it("keeps the advertised surface to a handful, not hundreds", () => {
+    // Guards against accidentally re-flattening ADDITIONAL_TOOLS into tools/list.
+    expect(ADVERTISED_TOOLS.length).toBeLessThan(60);
+  });
+
+  it("keeps hidden integration tools callable (runtime schema still enforced)", () => {
+    // Hidden does not mean gone: the schema is still registered, so unknown
+    // fields are rejected and the tool remains invocable by name / unclick_call.
+    const error = validateToolArgumentsForRuntime("bgg_search", {
+      query: "catan",
+      bogus_field: "should reject",
+    });
+    expect(error, "hidden integration tool should still validate at runtime").toBeTruthy();
+  });
+});

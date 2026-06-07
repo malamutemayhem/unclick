@@ -62,14 +62,22 @@ npm run test --workspace=@unclick/mcp-server
 
 This is the canonical tool-surface summary for this repo.
 
-**Hidden internal meta-tools** let agents discover and call catalog endpoints without crowding the default MCP tool list:
+**Discovery meta-tools** let agents find and call the ~800 catalog and
+integration endpoints without crowding the default MCP tool list. These four
+ARE advertised in `ListTools` (they are the entry point to everything else):
 
-- `unclick_search` - find tools by keyword
-- `unclick_browse` - list tools, optionally by category
-- `unclick_tool_info` - get endpoint and parameter details for a specific tool
-- `unclick_call` - execute any endpoint with parameters
+- `unclick_search` - find tools by keyword (searches the catalog AND the integration tools)
+- `unclick_browse` - list tools; the catalog by category plus integration tools grouped by provider
+- `unclick_tool_info` - get parameter details for a catalog tool slug or an integration tool name
+- `unclick_call` - execute any endpoint or integration tool by id/name with parameters
 
-These tools remain callable by name, but they are hidden from `ListTools` to keep the default surface clean.
+The ~800 catalog and integration tools in `tool-wiring.ts` (`ADDITIONAL_TOOLS`)
+are deliberately HIDDEN from `ListTools` so connectors show a handful of
+permission rows instead of hundreds. They stay fully callable two ways: directly
+by name, or via `unclick_call` with `endpoint_id` set to the tool name. The
+advertised surface is the four meta-tools plus the visible first-party tools
+below (about 40 tools total). If you change what `ListTools` advertises, keep
+`tool-schema-validation.test.ts` ("collapsed advertised tool surface") in sync.
 
 **Visible first-party tools** expose the workflows agents should use directly. They include:
 
