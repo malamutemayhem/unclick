@@ -13,8 +13,10 @@ export type AppTestStatus = "pass" | "fail" | "attention" | "untested";
 
 export interface AppTestResult {
   status: AppTestStatus;
-  /** One-line human note: what was tested and what happened. */
+  /** One-line auto result from the loop: what was tested and what happened. */
   note?: string;
+  /** Free-text admin comment (behind-the-scenes). Preserved across loop runs. */
+  comment?: string;
   /** ISO timestamp of the last test, or null/undefined if never tested. */
   testedAt?: string | null;
   /** Which tool action(s) were exercised. */

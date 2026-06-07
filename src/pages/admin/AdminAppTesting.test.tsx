@@ -24,6 +24,11 @@ describe("AdminAppTesting", () => {
     expect(
       screen.getByText(/Works, but needs a manual step/i),
     ).toBeInTheDocument();
+    // Comments column header + a seeded admin comment are rendered.
+    expect(screen.getByText("Comments")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Connect Alpha Vantage in Passport/i),
+    ).toBeInTheDocument();
   });
 
   it("filters the table by search query", () => {

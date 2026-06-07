@@ -42,6 +42,7 @@ pay, or generate.
 6. Update `src/data/app-test-results.json`:
    - set `results[<slug>]` to `{ status, note, testedAt: <now ISO>, toolsTested: [<tool>] }`.
    - the `note` is ONE line: what was called and what happened.
+   - **Preserve** any existing `comment` field (admin notes). Never overwrite or delete it.
    - bump top-level `updatedAt`.
    - **Never** write keys, tokens, secrets, or raw credentials into a note. Redact.
 7. Commit the data file to the current branch and push (data-only update, ship

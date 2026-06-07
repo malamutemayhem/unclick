@@ -39,12 +39,12 @@ function StatusBadge({ status }: { status: AppTestStatus }) {
 }
 
 function whenLabel(testedAt?: string | null): string {
-  if (!testedAt) return "—";
+  if (!testedAt) return "-";
   // Date portion of the ISO string; locale-free so it stays stable.
   return testedAt.slice(0, 10);
 }
 
-const COLS = "grid-cols-[132px_minmax(120px,1.3fr)_minmax(90px,0.8fr)_52px_minmax(0,2fr)_92px]";
+const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.4fr)_minmax(0,1.4fr)_82px]";
 
 export default function AdminAppTesting() {
   const [status, setStatus] = useState<AppTestStatus | "all">("all");
@@ -102,7 +102,8 @@ export default function AdminAppTesting() {
         <p className="mt-1">
           The AppTesting loop works through the catalog a batch at a time, calls a safe action on each app,
           and records the outcome. Paid or side-effecting actions (send, post, generate) are marked for a
-          manual check rather than fired automatically.
+          manual check rather than fired automatically. The Comments column holds admin notes and is
+          preserved across runs.
         </p>
       </div>
 
@@ -140,13 +141,14 @@ export default function AdminAppTesting() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111111]">
-        <div className="min-w-[760px]">
+        <div className="min-w-[940px]">
           <div className={`grid ${COLS} items-center gap-3 border-b border-white/[0.08] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35`}>
             <span>Status</span>
             <span>App</span>
             <span>Category</span>
             <span className="text-right">Actions</span>
-            <span>Last result</span>
+            <span>Result</span>
+            <span>Comments</span>
             <span className="text-right">Tested</span>
           </div>
           <div className="divide-y divide-white/[0.04]">
@@ -158,7 +160,8 @@ export default function AdminAppTesting() {
                 </Link>
                 <span className="truncate text-white/45">{app.category}</span>
                 <span className="text-right tabular-nums text-white/40">{app.toolCount}</span>
-                <span className="truncate text-white/50" title={result.note ?? ""}>{result.note ?? "—"}</span>
+                <span className="truncate text-white/50" title={result.note ?? ""}>{result.note ?? "-"}</span>
+                <span className="truncate text-white/70" title={result.comment ?? ""}>{result.comment ?? "-"}</span>
                 <span className="text-right tabular-nums text-white/35">{whenLabel(result.testedAt)}</span>
               </div>
             ))}
