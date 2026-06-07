@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 624,
-    "source_manifest": 197,
-    "pages": 86,
+    "inventory": 625,
+    "source_manifest": 198,
+    "pages": 87,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 51
+      "count": 52
     },
     {
       "id": "public-surfaces",
@@ -119,6 +119,16 @@
       "meaning": "Internal analytics view for platform signals and usage.",
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "route": "/admin/analytics",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-app-testing-src-pages-admin-adminapptesting-tsx-admin-app-testing",
+      "division": "Admin surfaces",
+      "name": "Admin App Testing",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin App Testing.",
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "route": "/admin/app-testing",
       "tags": []
     },
     {
@@ -6364,6 +6374,12 @@
       "src/pages/admin/AdminAnalytics.tsx"
     ],
     [
+      "/admin/app-testing",
+      "Admin App Testing",
+      "Admin surface for Admin App Testing.",
+      "src/pages/admin/AdminAppTesting.tsx"
+    ],
+    [
       "/admin/apps",
       "Admin Tools",
       "Apps, tools, and connector capability surface.",
@@ -8333,13 +8349,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "1957fc5513d9",
-      "bytes": 15323
+      "hash": "029cc9d35a24",
+      "bytes": 15491
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "f1d9032ae6ed",
-      "bytes": 24781
+      "hash": "a3883c627a08",
+      "bytes": 24869
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -8515,6 +8531,11 @@
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "hash": "8e3ab82ef00f",
       "bytes": 10336
+    },
+    {
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "hash": "8470f67fdb86",
+      "bytes": 10027
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
