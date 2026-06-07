@@ -70,7 +70,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 87bc594da785 | 1598 |
+| src/pages/Index.tsx | 6e6c7f498b4d | 1680 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
