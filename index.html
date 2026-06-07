@@ -164,9 +164,13 @@
     <!-- AI agent discovery -->
     <link rel="alternate" type="text/plain" href="/llms.txt" title="UnClick for AI agents" />
 
-    <!-- Pre-app paint: navy canvas + a subtle loader, so there is no white flash -->
+    <!-- Pre-app paint: navy canvas + a subtle loader, so there is no white flash.
+         The navy lives on <html> only. <body> MUST stay transparent: the aurora
+         layers use a negative z-index, so any opaque background on <body> paints
+         over them and the canvas goes flat (regression fixed 2026-06-07). -->
     <style>
-      html, body { margin: 0; background: #06202c; }
+      html { margin: 0; background: #06202c; }
+      body { margin: 0; }
       @keyframes uc-spin { to { transform: rotate(360deg); } }
     </style>
   </head>
