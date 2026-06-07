@@ -42,7 +42,7 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: "Docs", href: "/docs" },
-  { label: "New to AI", href: "/new-to-ai" },
+  { label: "Intro", href: "/new-to-ai" },
 ];
 
 const Navbar = () => {

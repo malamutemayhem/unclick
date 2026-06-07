@@ -9,12 +9,14 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { GradientText } from "@/components/brand";
+import OrchestratorStory from "@/components/OrchestratorStory";
+import ExpandableImage from "@/components/ExpandableImage";
 import {
   Sparkles, Zap, Plug, RefreshCw,
-  BookOpen, Clock, Compass, Link2,
+  Clock, Compass, Link2, MonitorSmartphone,
   KeyRound, Puzzle, ShieldCheck, Lock,
   Users, HeartPulse, Brain, SlidersHorizontal,
-  Search, Wrench, ClipboardCheck, GitMerge, ShieldHalf, Hand,
+  Search, ShieldHalf,
   Terminal, CreditCard, Ban,
   ListTodo, Bell, ReceiptText,
   TowerControl, TriangleAlert, Wind,
@@ -36,8 +38,10 @@ export type BrochureContent = {
   lede: string;
   primaryCta?: Cta;
   secondaryCta?: Cta;
+  showcase?: ReactNode;
   featuresTitle?: string;
-  features: Feature[];
+  features?: Feature[];
+  steps?: { title: string; desc: string }[];
   meta: { title: string; description: string };
 };
 
@@ -64,16 +68,17 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     path: "/orchestrator",
     eyebrow: "Orchestrator",
     title: <>The running <GradientText>story</GradientText> of your work.</>,
-    lede: "Orchestrator keeps the through-line of every job, so you and your agents stay clear on what just happened and what is next.",
+    lede: "Every job, receipt, and decision, written as one plain-English story you can follow. The same running story shows on each device and seat you connect.",
     primaryCta: GET_STARTED,
-    featuresTitle: "Never lose the thread.",
+    showcase: <OrchestratorStory />,
+    featuresTitle: "One story, everywhere you work.",
     features: [
-      { icon: BookOpen, title: "One clear story", desc: "Every job, in plain language, from start to finish." },
-      { icon: Clock, title: "Live timeline", desc: "See what changed, when, and why." },
-      { icon: Compass, title: "Knows the next step", desc: "Points to the next action, not just history." },
-      { icon: Link2, title: "Source-linked", desc: "Every claim traces back to where it came from." },
+      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read, with the raw timeline underneath." },
+      { icon: MonitorSmartphone, title: "Every connected device", desc: "The same running story on each PC and seat you connect." },
+      { icon: Users, title: "Built for teams", desc: "Share an account and everyone follows the same story." },
+      { icon: Link2, title: "Any seat or account", desc: "Connect a seat or AI account and its work joins the story." },
     ],
-    meta: { title: "Orchestrator - UnClick", description: "The running story of your work, so your agents always know what is next." },
+    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team." },
   },
   passport: {
     path: "/passport",
@@ -112,14 +117,28 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     lede: "Autopilot plans, builds, checks, and ships work for you, with visible approvals and a clear stop button at every step.",
     primaryCta: GET_STARTED,
     secondaryCta: { label: "See the proof", href: "/xpass" },
-    featuresTitle: "From idea to shipped, on a line you can see.",
-    features: [
-      { icon: Search, title: "Research and plan", desc: "It works out what to do before touching anything." },
-      { icon: Wrench, title: "Build", desc: "Focused changes, one scoped step at a time." },
-      { icon: ClipboardCheck, title: "Check with XPass", desc: "Every result is proven before it moves on." },
-      { icon: GitMerge, title: "Review and ship", desc: "You approve. It merges and publishes." },
-      { icon: ShieldHalf, title: "Guarded by XGate", desc: "Risky actions are stopped before they run." },
-      { icon: Hand, title: "Stop anytime", desc: "One clear stop path. You are always in command." },
+    showcase: (
+      <ExpandableImage
+        src="/Unclick_Autopilot_Web.jpg"
+        alt="The Autopilot line, step by step: intake, orchestrator, research, plan, jobs, build, test, review, safety, audit, workers, merge, publish, repair."
+      />
+    ),
+    featuresTitle: "From idea to shipped, step by step.",
+    steps: [
+      { title: "Intake", desc: "You ask for something. Autopilot takes it in and gets the details straight." },
+      { title: "Orchestrator", desc: "It logs the job into the running story so you can follow along." },
+      { title: "Research", desc: "It looks up whatever it needs to know before starting." },
+      { title: "Plan", desc: "It maps out the steps before touching anything." },
+      { title: "Jobs", desc: "The work is split into small, clear tasks." },
+      { title: "Build", desc: "It does the actual work, one task at a time." },
+      { title: "Test", desc: "It runs the work to confirm it actually works." },
+      { title: "Review", desc: "A second pass catches mistakes before they ship." },
+      { title: "Safety", desc: "Risky actions get checked against your rules before they run." },
+      { title: "Audit", desc: "Every step is recorded as proof you can check later." },
+      { title: "Workers", desc: "Role-based helpers each take the part they do best." },
+      { title: "Merge", desc: "Approved work is combined into the real thing." },
+      { title: "Publish", desc: "It ships the finished work and goes live." },
+      { title: "Repair", desc: "If something breaks, it loops back and fixes it." },
     ],
     meta: { title: "Autopilot - UnClick", description: "Autopilot plans, builds, checks, and ships work for you, with approvals and proof at every step." },
   },

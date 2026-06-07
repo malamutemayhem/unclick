@@ -83,7 +83,7 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/[0.06] bg-[#111] p-6">
+        <section className="rounded-2xl border border-[#86dadd]/15 bg-white/[0.04] p-6 backdrop-blur-sm">
           <h2 className="text-sm font-semibold text-white">What needs you</h2>
           <ul className="mt-4 space-y-3">
             {needsYou.map((item) => (
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
             <Link
               key={item.title}
               to={item.href}
-              className="rounded-2xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]"
+              className="rounded-2xl border border-[#86dadd]/15 bg-white/[0.04] p-5 backdrop-blur-sm transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.07]"
             >
               <div className="mb-3 flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#61C1C4]/10 text-[#61C1C4]">

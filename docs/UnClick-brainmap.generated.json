@@ -8514,8 +8514,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "c8bab38bba5e",
-      "bytes": 24827
+      "hash": "2c6ec8581d6c",
+      "bytes": 25721
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -8849,8 +8849,8 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "7ee015247aa8",
-      "bytes": 5257
+      "hash": "c6c9093d733d",
+      "bytes": 5303
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -9059,8 +9059,8 @@
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "a28cb1d9ece8",
-      "bytes": 12559
+      "hash": "e2d14ccf9af9",
+      "bytes": 13179
     },
     {
       "source": "src/pages/Organiser.tsx",
