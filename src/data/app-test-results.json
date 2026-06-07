@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T09:55:00.000Z",
+  "updatedAt": "2026-06-07T12:25:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1829,6 +1829,66 @@
       "note": "Support API; needs ZENDESK credentials.",
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "rickandmorty": {
+      "status": "pass",
+      "note": "New connector: Rick and Morty API. Free public API, no key needed. Characters, episodes, locations. 5 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "ram_get_character",
+        "ram_search_characters"
+      ],
+      "comment": ""
+    },
+    "xkcd": {
+      "status": "pass",
+      "note": "New connector: xkcd. Free public API, no key needed. Latest, by number, or random comics. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "xkcd_latest",
+        "xkcd_comic"
+      ],
+      "comment": ""
+    },
+    "brewery": {
+      "status": "pass",
+      "note": "New connector: Open Brewery DB. Free public API, no key needed. Search, browse, filter breweries worldwide. 4 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "brewery_search",
+        "brewery_random"
+      ],
+      "comment": ""
+    },
+    "jikan": {
+      "status": "pass",
+      "note": "New connector: Jikan (MyAnimeList). Free public API, no key needed. Anime, manga, characters search and rankings. 5 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "jikan_search_anime",
+        "jikan_top_anime"
+      ],
+      "comment": ""
+    },
+    "chucknorris": {
+      "status": "pass",
+      "note": "New connector: Chuck Norris API. Free public API, no key needed. Random jokes, search, categories. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "chuck_random",
+        "chuck_categories"
+      ],
+      "comment": ""
+    },
+    "catfacts": {
+      "status": "pass",
+      "note": "New connector: Cat Facts API. Free public API, no key needed. Random facts and cat breed data. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "cat_fact",
+        "cat_breeds"
+      ],
       "comment": ""
     }
   },

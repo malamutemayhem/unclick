@@ -334,6 +334,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "brewery",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "brewery_search",
+        "description": "Search breweries by name."
+      },
+      {
+        "name": "brewery_get",
+        "description": "Get a brewery by ID."
+      },
+      {
+        "name": "brewery_list",
+        "description": "List breweries, optionally filtered by city, state, or type."
+      },
+      {
+        "name": "brewery_random",
+        "description": "Get random breweries."
+      }
+    ]
+  },
+  {
     "app": "bungie",
     "category": "Gaming",
     "tools": [
@@ -444,6 +466,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "catfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cat_fact",
+        "description": "Get a random cat fact."
+      },
+      {
+        "name": "cat_facts",
+        "description": "Get multiple cat facts with pagination."
+      },
+      {
+        "name": "cat_breeds",
+        "description": "List cat breeds with details."
+      }
+    ]
+  },
+  {
     "app": "chessdotcom",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -466,6 +506,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "chess_leaderboards",
         "description": "Get Chess.com leaderboards."
+      }
+    ]
+  },
+  {
+    "app": "chucknorris",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chuck_random",
+        "description": "Get a random Chuck Norris joke."
+      },
+      {
+        "name": "chuck_search",
+        "description": "Search Chuck Norris jokes by keyword."
+      },
+      {
+        "name": "chuck_categories",
+        "description": "List available Chuck Norris joke categories."
       }
     ]
   },
@@ -1952,6 +2010,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_patents",
         "description": "Search Australian patents via IP Australia."
+      }
+    ]
+  },
+  {
+    "app": "jikan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jikan_search_anime",
+        "description": "Search anime on MyAnimeList via Jikan API."
+      },
+      {
+        "name": "jikan_get_anime",
+        "description": "Get anime details by MyAnimeList ID."
+      },
+      {
+        "name": "jikan_top_anime",
+        "description": "Get top-ranked anime from MyAnimeList."
+      },
+      {
+        "name": "jikan_search_manga",
+        "description": "Search manga on MyAnimeList via Jikan API."
+      },
+      {
+        "name": "jikan_get_character",
+        "description": "Get an anime/manga character by MyAnimeList ID."
       }
     ]
   },
@@ -3536,6 +3620,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rickandmorty",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ram_get_character",
+        "description": "Get a Rick and Morty character by ID."
+      },
+      {
+        "name": "ram_search_characters",
+        "description": "Search Rick and Morty characters by name, status, species, or gender."
+      },
+      {
+        "name": "ram_get_episode",
+        "description": "Get a Rick and Morty episode by ID."
+      },
+      {
+        "name": "ram_search_episodes",
+        "description": "Search Rick and Morty episodes by name or episode code."
+      },
+      {
+        "name": "ram_get_location",
+        "description": "Get a Rick and Morty location by ID."
+      }
+    ]
+  },
+  {
     "app": "riot",
     "category": "Gaming",
     "tools": [
@@ -5014,6 +5124,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "xero_organisation",
         "description": "Get organisation details from Xero."
+      }
+    ]
+  },
+  {
+    "app": "xkcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "xkcd_latest",
+        "description": "Get the latest xkcd comic."
+      },
+      {
+        "name": "xkcd_comic",
+        "description": "Get a specific xkcd comic by number."
+      },
+      {
+        "name": "xkcd_random",
+        "description": "Get a random xkcd comic."
       }
     ]
   },

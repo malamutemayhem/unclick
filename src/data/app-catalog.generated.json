@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 224,
-  "toolCount": 937,
+  "appCount": 230,
+  "toolCount": 960,
   "categories": [
     "AI",
     "Books",
@@ -598,6 +598,30 @@
       "hardened": true
     },
     {
+      "slug": "catfacts",
+      "name": "Cat Facts",
+      "category": "Utilities",
+      "blurb": "Get random cat facts and browse cat breeds.",
+      "domain": "catfact.ninja",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "cat_fact",
+          "description": "Get a random cat fact."
+        },
+        {
+          "name": "cat_facts",
+          "description": "Get multiple cat facts with pagination."
+        },
+        {
+          "name": "cat_breeds",
+          "description": "List cat breeds with details."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "chessdotcom",
       "name": "Chess.com",
       "category": "Games & esports",
@@ -624,6 +648,30 @@
         {
           "name": "chess_leaderboards",
           "description": "Get Chess.com leaderboards."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "chucknorris",
+      "name": "Chuck Norris",
+      "category": "Utilities",
+      "blurb": "Get random Chuck Norris jokes by category.",
+      "domain": "api.chucknorris.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "chuck_random",
+          "description": "Get a random Chuck Norris joke."
+        },
+        {
+          "name": "chuck_search",
+          "description": "Search Chuck Norris jokes by keyword."
+        },
+        {
+          "name": "chuck_categories",
+          "description": "List available Chuck Norris joke categories."
         }
       ],
       "level": 5,
@@ -2438,6 +2486,38 @@
       "hardened": true
     },
     {
+      "slug": "jikan",
+      "name": "Jikan (MyAnimeList)",
+      "category": "Music & video",
+      "blurb": "Search anime, manga, and characters from MyAnimeList.",
+      "domain": "jikan.moe",
+      "toolCount": 5,
+      "tools": [
+        {
+          "name": "jikan_search_anime",
+          "description": "Search anime on MyAnimeList via Jikan API."
+        },
+        {
+          "name": "jikan_get_anime",
+          "description": "Get anime details by MyAnimeList ID."
+        },
+        {
+          "name": "jikan_top_anime",
+          "description": "Get top-ranked anime from MyAnimeList."
+        },
+        {
+          "name": "jikan_search_manga",
+          "description": "Search manga on MyAnimeList via Jikan API."
+        },
+        {
+          "name": "jikan_get_character",
+          "description": "Get an anime/manga character by MyAnimeList ID."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "jira",
       "name": "Jira",
       "category": "Productivity",
@@ -3336,6 +3416,34 @@
         {
           "name": "omdb_by_id",
           "description": "Get an OMDB movie/show by IMDb ID."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "brewery",
+      "name": "Open Brewery DB",
+      "category": "Travel, maps & local",
+      "blurb": "Search and browse breweries worldwide.",
+      "domain": "openbrewerydb.org",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "brewery_search",
+          "description": "Search breweries by name."
+        },
+        {
+          "name": "brewery_get",
+          "description": "Get a brewery by ID."
+        },
+        {
+          "name": "brewery_list",
+          "description": "List breweries, optionally filtered by city, state, or type."
+        },
+        {
+          "name": "brewery_random",
+          "description": "Get random breweries."
         }
       ],
       "level": 5,
@@ -4448,6 +4556,38 @@
         {
           "name": "country_by_language",
           "description": "Get countries by language from REST Countries."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "rickandmorty",
+      "name": "Rick and Morty",
+      "category": "Social",
+      "blurb": "Search Rick and Morty characters, episodes, and locations.",
+      "domain": "rickandmortyapi.com",
+      "toolCount": 5,
+      "tools": [
+        {
+          "name": "ram_get_character",
+          "description": "Get a Rick and Morty character by ID."
+        },
+        {
+          "name": "ram_search_characters",
+          "description": "Search Rick and Morty characters by name, status, species, or gender."
+        },
+        {
+          "name": "ram_get_episode",
+          "description": "Get a Rick and Morty episode by ID."
+        },
+        {
+          "name": "ram_search_episodes",
+          "description": "Search Rick and Morty episodes by name or episode code."
+        },
+        {
+          "name": "ram_get_location",
+          "description": "Get a Rick and Morty location by ID."
         }
       ],
       "level": 5,
@@ -6347,6 +6487,30 @@
         }
       ],
       "level": 2,
+      "hardened": true
+    },
+    {
+      "slug": "xkcd",
+      "name": "xkcd",
+      "category": "Social",
+      "blurb": "Read xkcd comics - latest, by number, or random.",
+      "domain": "xkcd.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "xkcd_latest",
+          "description": "Get the latest xkcd comic."
+        },
+        {
+          "name": "xkcd_comic",
+          "description": "Get a specific xkcd comic by number."
+        },
+        {
+          "name": "xkcd_random",
+          "description": "Get a random xkcd comic."
+        }
+      ],
+      "level": 5,
       "hardened": true
     },
     {

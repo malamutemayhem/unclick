@@ -31,20 +31,20 @@ bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", 
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
-bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews"]);
+bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
-bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb"]);
+bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary"]);
 bucket("Images", ["unsplash", "giphy", "dogceo"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -73,6 +73,8 @@ const NAME_OF = {
   virustotal: "VirusTotal", woocommerce: "WooCommerce",
   pokeapi: "PokeAPI", cocktail: "TheCocktailDB", dictionary: "Dictionary",
   joke: "JokeAPI", holidays: "Public Holidays", dogceo: "Dog CEO",
+  rickandmorty: "Rick and Morty", xkcd: "xkcd", brewery: "Open Brewery DB",
+  jikan: "Jikan (MyAnimeList)", chucknorris: "Chuck Norris", catfacts: "Cat Facts",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -144,6 +146,12 @@ const BLURB_OF = {
   joke: "Get random jokes by category from JokeAPI.",
   holidays: "Get public holidays, long weekends, and country calendars.",
   dogceo: "Get random dog images and browse breeds.",
+  rickandmorty: "Search Rick and Morty characters, episodes, and locations.",
+  xkcd: "Read xkcd comics - latest, by number, or random.",
+  brewery: "Search and browse breweries worldwide.",
+  jikan: "Search anime, manga, and characters from MyAnimeList.",
+  chucknorris: "Get random Chuck Norris jokes by category.",
+  catfacts: "Get random cat facts and browse cat breeds.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -197,6 +205,8 @@ const DOMAIN_OF = {
   bitbucket: "bitbucket.org", cloudinary: "cloudinary.com", wordpress: "wordpress.org", ghost: "ghost.org",
   pokeapi: "pokeapi.co", cocktail: "thecocktaildb.com", dictionary: "dictionaryapi.dev",
   joke: "jokeapi.dev", holidays: "date.nager.at", dogceo: "dog.ceo",
+  rickandmorty: "rickandmortyapi.com", xkcd: "xkcd.com", brewery: "openbrewerydb.org",
+  jikan: "jikan.moe", chucknorris: "api.chucknorris.io", catfacts: "catfact.ninja",
 };
 
 function titleCase(slug) {

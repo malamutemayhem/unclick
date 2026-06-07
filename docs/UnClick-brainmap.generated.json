@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 647,
+    "inventory": 653,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 225,
+    "tools": 231,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 225
+      "count": 231
     },
     {
       "id": "rooms",
@@ -4332,6 +4332,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-brewery-packages-mcp-server-src-brewery-tool-ts-no-route",
+      "division": "Tools",
+      "name": "brewery",
+      "kind": "MCP tool",
+      "meaning": "brewery MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/brewery-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bungie-packages-mcp-server-src-bungie-tool-ts-no-route",
       "division": "Tools",
       "name": "bungie",
@@ -4382,12 +4392,32 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-catfacts-packages-mcp-server-src-catfacts-tool-ts-no-route",
+      "division": "Tools",
+      "name": "catfacts",
+      "kind": "MCP tool",
+      "meaning": "catfacts MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/catfacts-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-chessdotcom-packages-mcp-server-src-chessdotcom-tool-ts-no-route",
       "division": "Tools",
       "name": "chessdotcom",
       "kind": "MCP tool",
       "meaning": "chessdotcom MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/chessdotcom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-chucknorris-packages-mcp-server-src-chucknorris-tool-ts-no-route",
+      "division": "Tools",
+      "name": "chucknorris",
+      "kind": "MCP tool",
+      "meaning": "chucknorris MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/chucknorris-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5072,6 +5102,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-jikan-packages-mcp-server-src-jikan-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jikan",
+      "kind": "MCP tool",
+      "meaning": "jikan MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jikan-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-jira-packages-mcp-server-src-jira-tool-ts-no-route",
       "division": "Tools",
       "name": "jira",
@@ -5752,6 +5792,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rickandmorty-packages-mcp-server-src-rickandmorty-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rickandmorty",
+      "kind": "MCP tool",
+      "meaning": "rickandmorty MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rickandmorty-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-riot-packages-mcp-server-src-riot-tool-ts-no-route",
       "division": "Tools",
       "name": "riot",
@@ -6378,6 +6428,16 @@
       "kind": "MCP tool",
       "meaning": "xero MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/xero-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-xkcd-packages-mcp-server-src-xkcd-tool-ts-no-route",
+      "division": "Tools",
+      "name": "xkcd",
+      "kind": "MCP tool",
+      "meaning": "xkcd MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/xkcd-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7240,6 +7300,11 @@
       "packages/mcp-server/src/brevo-tool.ts"
     ],
     [
+      "brewery",
+      "brewery MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/brewery-tool.ts"
+    ],
+    [
       "bungie",
       "bungie MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bungie-tool.ts"
@@ -7265,9 +7330,19 @@
       "packages/mcp-server/src/carboninterface-tool.ts"
     ],
     [
+      "catfacts",
+      "catfacts MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/catfacts-tool.ts"
+    ],
+    [
       "chessdotcom",
       "chessdotcom MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/chessdotcom-tool.ts"
+    ],
+    [
+      "chucknorris",
+      "chucknorris MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/chucknorris-tool.ts"
     ],
     [
       "circleci",
@@ -7610,6 +7685,11 @@
       "packages/mcp-server/src/ipaustralia-tool.ts"
     ],
     [
+      "jikan",
+      "jikan MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jikan-tool.ts"
+    ],
+    [
       "jira",
       "jira MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/jira-tool.ts"
@@ -7950,6 +8030,11 @@
       "packages/mcp-server/src/restcountries-tool.ts"
     ],
     [
+      "rickandmorty",
+      "rickandmorty MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rickandmorty-tool.ts"
+    ],
+    [
       "riot",
       "riot MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/riot-tool.ts"
@@ -8263,6 +8348,11 @@
       "xero",
       "xero MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/xero-tool.ts"
+    ],
+    [
+      "xkcd",
+      "xkcd MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/xkcd-tool.ts"
     ],
     [
       "xpass aggregated verdict",
@@ -9408,6 +9498,11 @@
       "bytes": 3314
     },
     {
+      "source": "packages/mcp-server/src/brewery-tool.ts",
+      "hash": "9a69cc3c3ebc",
+      "bytes": 5073
+    },
+    {
       "source": "packages/mcp-server/src/bungie-tool.ts",
       "hash": "a6a1a1915cc3",
       "bytes": 7686
@@ -9433,9 +9528,19 @@
       "bytes": 7953
     },
     {
+      "source": "packages/mcp-server/src/catfacts-tool.ts",
+      "hash": "b26fb7cb21ac",
+      "bytes": 3721
+    },
+    {
       "source": "packages/mcp-server/src/chessdotcom-tool.ts",
       "hash": "29bbcfa26e3f",
       "bytes": 7874
+    },
+    {
+      "source": "packages/mcp-server/src/chucknorris-tool.ts",
+      "hash": "64ad27ea413e",
+      "bytes": 3369
     },
     {
       "source": "packages/mcp-server/src/circleci-tool.ts",
@@ -9511,21 +9616,6 @@
       "source": "packages/mcp-server/src/convertkit-tool.ts",
       "hash": "d6f0f01e6032",
       "bytes": 10595
-    },
-    {
-      "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "3cbadbc448a0",
-      "bytes": 33377
-    },
-    {
-      "source": "packages/mcp-server/src/crews-tool.ts",
-      "hash": "aefc67a40964",
-      "bytes": 14093
-    },
-    {
-      "source": "packages/mcp-server/src/csuite-tool.ts",
-      "hash": "0ab5af89bb49",
-      "bytes": 70236
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

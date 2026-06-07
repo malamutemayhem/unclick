@@ -276,6 +276,26 @@ import {
 } from "./dogceo-tool.js";
 
 import {
+  ramGetCharacter, ramSearchCharacters, ramGetEpisode,
+  ramSearchEpisodes, ramGetLocation,
+} from "./rickandmorty-tool.js";
+
+import { xkcdLatest, xkcdComic, xkcdRandom } from "./xkcd-tool.js";
+
+import {
+  brewerySearch, breweryGet, breweryList, breweryRandom,
+} from "./brewery-tool.js";
+
+import {
+  jikanSearchAnime, jikanGetAnime, jikanTopAnime,
+  jikanSearchManga, jikanGetCharacter,
+} from "./jikan-tool.js";
+
+import { chuckRandom, chuckSearch, chuckCategories } from "./chucknorris-tool.js";
+
+import { catFact, catFacts, catBreeds } from "./catfacts-tool.js";
+
+import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
 } from "./nasa-tool.js";
@@ -4514,6 +4534,297 @@ export const ADDITIONAL_TOOLS = [
         breed: { type: "string", description: "Breed name (e.g. bulldog, hound)" },
       },
       required: ["breed"],
+    },
+  },
+
+  // ── rickandmorty-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ram_get_character",
+    description: "Get a Rick and Morty character by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ram_search_characters",
+    description: "Search Rick and Morty characters by name, status, species, or gender.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        status: { type: "string", enum: ["alive", "dead", "unknown"] },
+        species: { type: "string" },
+        gender: { type: "string", enum: ["female", "male", "genderless", "unknown"] },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "ram_get_episode",
+    description: "Get a Rick and Morty episode by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Episode ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ram_search_episodes",
+    description: "Search Rick and Morty episodes by name or episode code.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        episode_code: { type: "string", description: "e.g. S01E01" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "ram_get_location",
+    description: "Get a Rick and Morty location by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Location ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── xkcd-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "xkcd_latest",
+    description: "Get the latest xkcd comic.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "xkcd_comic",
+    description: "Get a specific xkcd comic by number.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "Comic number" },
+      },
+      required: ["number"],
+    },
+  },
+  {
+    name: "xkcd_random",
+    description: "Get a random xkcd comic.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── brewery-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "brewery_search",
+    description: "Search breweries by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        per_page: { type: "number", description: "Results per page (max 50)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "brewery_get",
+    description: "Get a brewery by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "brewery_list",
+    description: "List breweries, optionally filtered by city, state, or type.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        city: { type: "string" },
+        state: { type: "string" },
+        type: { type: "string", description: "micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, closed" },
+        per_page: { type: "number" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "brewery_random",
+    description: "Get random breweries.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        size: { type: "number", description: "Number of breweries (1-50, default 1)" },
+      },
+    },
+  },
+
+  // ── jikan-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "jikan_search_anime",
+    description: "Search anime on MyAnimeList via Jikan API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        limit: { type: "number", description: "Max results (up to 25)" },
+        page: { type: "number" },
+        type: { type: "string", description: "tv, movie, ova, special, ona, music" },
+        status: { type: "string", description: "airing, complete, upcoming" },
+        order_by: { type: "string", description: "score, popularity, rank" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "jikan_get_anime",
+    description: "Get anime details by MyAnimeList ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "MyAnimeList anime ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "jikan_top_anime",
+    description: "Get top-ranked anime from MyAnimeList.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number" },
+        page: { type: "number" },
+        type: { type: "string", description: "tv, movie, ova, special, ona, music" },
+        filter: { type: "string", description: "airing, upcoming, bypopularity, favorite" },
+      },
+    },
+  },
+  {
+    name: "jikan_search_manga",
+    description: "Search manga on MyAnimeList via Jikan API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        limit: { type: "number" },
+        page: { type: "number" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "jikan_get_character",
+    description: "Get an anime/manga character by MyAnimeList ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "MyAnimeList character ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── chucknorris-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "chuck_random",
+    description: "Get a random Chuck Norris joke.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Joke category (use chuck_categories to list)" },
+      },
+    },
+  },
+  {
+    name: "chuck_search",
+    description: "Search Chuck Norris jokes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (min 3 chars)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "chuck_categories",
+    description: "List available Chuck Norris joke categories.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── catfacts-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cat_fact",
+    description: "Get a random cat fact.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cat_facts",
+    description: "Get multiple cat facts with pagination.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of facts (max 50, default 5)" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "cat_breeds",
+    description: "List cat breeds with details.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds (max 50, default 10)" },
+        page: { type: "number" },
+      },
     },
   },
 
@@ -15186,6 +15497,41 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   dog_breed_image:         (args) => dogBreedImage(args),
   dog_list_breeds:         (args) => dogListBreeds(args),
   dog_breed_list:          (args) => dogBreedList(args),
+
+  // rickandmorty-tool.ts
+  ram_get_character:       (args) => ramGetCharacter(args),
+  ram_search_characters:   (args) => ramSearchCharacters(args),
+  ram_get_episode:         (args) => ramGetEpisode(args),
+  ram_search_episodes:     (args) => ramSearchEpisodes(args),
+  ram_get_location:        (args) => ramGetLocation(args),
+
+  // xkcd-tool.ts
+  xkcd_latest:             (args) => xkcdLatest(args),
+  xkcd_comic:              (args) => xkcdComic(args),
+  xkcd_random:             (args) => xkcdRandom(args),
+
+  // brewery-tool.ts
+  brewery_search:          (args) => brewerySearch(args),
+  brewery_get:             (args) => breweryGet(args),
+  brewery_list:            (args) => breweryList(args),
+  brewery_random:          (args) => breweryRandom(args),
+
+  // jikan-tool.ts
+  jikan_search_anime:      (args) => jikanSearchAnime(args),
+  jikan_get_anime:         (args) => jikanGetAnime(args),
+  jikan_top_anime:         (args) => jikanTopAnime(args),
+  jikan_search_manga:      (args) => jikanSearchManga(args),
+  jikan_get_character:     (args) => jikanGetCharacter(args),
+
+  // chucknorris-tool.ts
+  chuck_random:            (args) => chuckRandom(args),
+  chuck_search:            (args) => chuckSearch(args),
+  chuck_categories:        (args) => chuckCategories(args),
+
+  // catfacts-tool.ts
+  cat_fact:                (args) => catFact(args),
+  cat_facts:               (args) => catFacts(args),
+  cat_breeds:              (args) => catBreeds(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
