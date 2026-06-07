@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T07:53:52.816Z",
+  "updatedAt": "2026-06-07T09:37:28.711Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -340,10 +340,12 @@
       "comment": ""
     },
     "deezer": {
-      "status": "fail",
-      "note": "deezer_chart crashed: Cannot read properties of undefined (reading data); FIXED - response shape mismatch in getDeezerChart",
-      "testedAt": "2026-06-07T03:45:53.000Z",
+      "status": "pass",
+      "note": "All endpoints working. search, get_artist, chart return rich structured data. No auth required.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
+        "deezer_search",
+        "deezer_get_artist",
         "deezer_chart"
       ],
       "comment": ""
@@ -357,10 +359,10 @@
     },
     "discogs": {
       "status": "attention",
-      "note": "not_connected; needs personal access token via keychain_secure_connect or DISCOGS_TOKEN",
-      "testedAt": "2026-06-07T03:45:53.000Z",
+      "note": "not_connected; needs personal access token. Set DISCOGS_TOKEN or connect via keychain.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
-        "discogs_search_releases"
+        "discogs_search_artists"
       ],
       "comment": ""
     },
@@ -396,8 +398,8 @@
     },
     "ebird": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or EBIRD_API_KEY",
-      "testedAt": "2026-06-07T03:45:53.000Z",
+      "note": "not_connected; needs API key from ebird.org/api/keygen. Set EBIRD_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "ebird_recent_observations"
       ],
@@ -499,8 +501,8 @@
     },
     "foursquare": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or FOURSQUARE_API_KEY",
-      "testedAt": "2026-06-07T03:48:39.000Z",
+      "note": "not_connected; needs API key from foursquare.com/developers. Set FOURSQUARE_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "foursquare_search_places"
       ],
@@ -508,17 +510,19 @@
     },
     "gdelt": {
       "status": "attention",
-      "note": "connector works but hit 429 rate limit on gdelt_trending; retry later",
-      "testedAt": "2026-06-07T03:48:39.000Z",
+      "note": "API rate limited (429) on news_search. geo_events returned 404. Service may be intermittent. No auth required.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
-        "gdelt_trending"
+        "gdelt_news_search",
+        "gdelt_trending",
+        "gdelt_geo_events"
       ],
       "comment": ""
     },
     "genius": {
       "status": "attention",
-      "note": "not_connected; needs access token via keychain_secure_connect or GENIUS_ACCESS_TOKEN",
-      "testedAt": "2026-06-07T03:48:39.000Z",
+      "note": "not_connected; needs access token from genius.com/api-clients. Set GENIUS_ACCESS_TOKEN.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "genius_search"
       ],
@@ -593,8 +597,8 @@
     },
     "haveibeenpwned": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or HIBP_API_KEY",
-      "testedAt": "2026-06-07T03:49:32.000Z",
+      "note": "not_connected; needs API key from haveibeenpwned.com/API/Key. Set HIBP_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "hibp_all_breaches"
       ],
@@ -723,8 +727,8 @@
     },
     "lastfm": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or LASTFM_API_KEY",
-      "testedAt": "2026-06-07T04:15:00.000Z",
+      "note": "not_connected; needs API key from last.fm/api/account/create. Set LASTFM_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "lastfm_chart_top_artists"
       ],
@@ -739,8 +743,8 @@
     },
     "lego": {
       "status": "attention",
-      "note": "REBRICKABLE_API_KEY required; free key available at rebrickable.com/api/",
-      "testedAt": "2026-06-07T04:15:00.000Z",
+      "note": "Requires free API key from rebrickable.com/api/. Set REBRICKABLE_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "lego_themes"
       ],
@@ -859,11 +863,14 @@
       "comment": ""
     },
     "nasa": {
-      "status": "attention",
-      "note": "DEMO_KEY has strict rate limits (30/hr). Register for a free API key at api.nasa.gov and set NASA_API_KEY. Timeout increased to 20s.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
+      "status": "pass",
+      "note": "APOD and Asteroids work with DEMO_KEY. EPIC and Mars Photos return 404 (may need different params). Timeout set to 20s.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
-        "nasa_apod"
+        "nasa_apod",
+        "nasa_asteroids",
+        "nasa_epic",
+        "nasa_mars_photos"
       ],
       "comment": ""
     },
@@ -909,9 +916,9 @@
       "comment": ""
     },
     "numbers": {
-      "status": "attention",
-      "note": "numbersapi.com service is intermittently unavailable (403/404). Code is correct; external service issue.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
+      "status": "fail",
+      "note": "numbersapi.com returning HTTP 404. Service appears down. No code fix possible.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "number_fact"
       ],
@@ -928,8 +935,8 @@
     },
     "omdb": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or OMDB_API_KEY",
-      "testedAt": "2026-06-07T04:25:00.000Z",
+      "note": "not_connected; needs API key from omdbapi.com/apikey.aspx. Set OMDB_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "omdb_search"
       ],
@@ -945,9 +952,9 @@
       "comment": ""
     },
     "openfoodfacts": {
-      "status": "attention",
-      "note": "Fixed domain from .net (staging) to .org (production). Search endpoint (/cgi/search.pl) may be intermittent; barcode lookups are reliable.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
+      "status": "pass",
+      "note": "Search returns structured product data with nutrition info. No auth required. Domain fixed to .org.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "food_search"
       ],
@@ -1165,8 +1172,8 @@
     },
     "rawg": {
       "status": "attention",
-      "note": "RAWG_API_KEY required; free key available at rawg.io/apidocs",
-      "testedAt": "2026-06-07T04:40:00.000Z",
+      "note": "Requires free API key from rawg.io/apidocs. Set RAWG_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "rawg_search_games"
       ],
@@ -1242,8 +1249,8 @@
     },
     "seatgeek": {
       "status": "attention",
-      "note": "not_connected; needs client_id via keychain_secure_connect or SEATGEEK_CLIENT_ID",
-      "testedAt": "2026-06-07T04:45:00.000Z",
+      "note": "not_connected; needs client ID from seatgeek.com/account/develop. Set SEATGEEK_CLIENT_ID.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "seatgeek_search_events"
       ],
@@ -1405,9 +1412,11 @@
     },
     "supercell": {
       "status": "attention",
-      "note": "coc_player requires playerTag (mandatory); api_key optional but likely needed",
-      "testedAt": "2026-06-07T04:55:00.000Z",
-      "toolsTested": [],
+      "note": "All Supercell game APIs (CoC, CR, BS) need API keys from developer portals.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
+      "toolsTested": [
+        "cr_top_players"
+      ],
       "comment": ""
     },
     "tab": {
@@ -1445,18 +1454,19 @@
       "comment": ""
     },
     "thelott": {
-      "status": "attention",
-      "note": "Migrated from dead REST API to data.api.thelott.com POST endpoint. No auth required. Endpoint pattern may need field-name tuning.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
+      "status": "fail",
+      "note": "POST endpoint at data.api.thelott.com returning \"Game or draw not found\". Product filter names may need adjustment.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
-        "lott_results"
+        "lott_results",
+        "lott_jackpots"
       ],
       "comment": ""
     },
     "ticketmaster": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or TICKETMASTER_API_KEY",
-      "testedAt": "2026-06-07T05:00:00.000Z",
+      "note": "not_connected; needs API key from developer.ticketmaster.com. Set TICKETMASTER_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "tm_search_events"
       ],
@@ -1473,8 +1483,8 @@
     },
     "tmdb": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or TMDB_API_KEY",
-      "testedAt": "2026-06-07T05:00:00.000Z",
+      "note": "not_connected; needs API key from themoviedb.org/settings/api. Set TMDB_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "tmdb_trending"
       ],
@@ -1539,8 +1549,8 @@
     },
     "trove": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or TROVE_API_KEY",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "not_connected; needs API key from trove.nla.gov.au. Set TROVE_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "trove_search"
       ],
@@ -1594,8 +1604,8 @@
     },
     "untappd": {
       "status": "attention",
-      "note": "UNTAPPD_CLIENT_ID and UNTAPPD_CLIENT_SECRET required; register at untappd.com/api/register",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "Requires client ID and secret from untappd.com/api/register. Set UNTAPPD_CLIENT_ID.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "untappd_search_beer"
       ],
@@ -1658,8 +1668,8 @@
     },
     "virustotal": {
       "status": "attention",
-      "note": "not_connected; needs API key via keychain_secure_connect or VIRUSTOTAL_API_KEY",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "not_connected; needs API key from virustotal.com/gui/my-apikey. Set VIRUSTOTAL_API_KEY.",
+      "testedAt": "2026-06-07T09:37:28.711Z",
       "toolsTested": [
         "virustotal_scan_domain"
       ],
