@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T04:15:00.000Z",
+  "updatedAt": "2026-06-07T04:25:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -697,6 +697,158 @@
       "testedAt": "2026-06-07T04:15:00.000Z",
       "toolsTested": [
         "mastodon_action"
+      ]
+    },
+    "meal": {
+      "status": "pass",
+      "note": "meal_search returned recipe for 'pasta' (Mediterranean Pasta Salad) - no auth needed, TheMealDB",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "meal_search"
+      ]
+    },
+    "miro": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Miro OAuth token",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": []
+    },
+    "mistral": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or MISTRAL_API_KEY",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "mistral_list_models"
+      ]
+    },
+    "mixpanel": {
+      "status": "attention",
+      "note": "all tools require service_account_username, service_account_secret, project_id as mandatory params",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": []
+    },
+    "monday": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or MONDAY_API_KEY",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "list_monday_boards"
+      ]
+    },
+    "monica": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "monica_action"
+      ]
+    },
+    "musicbrainz": {
+      "status": "pass",
+      "note": "mb_search_artists returned 29 results for 'Radiohead' with metadata - no auth needed",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "mb_search_artists"
+      ]
+    },
+    "nasa": {
+      "status": "fail",
+      "note": "nasa_apod timed out after 10000ms on two attempts; DEMO_KEY rate-limited or API slow",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "nasa_apod"
+      ]
+    },
+    "neon": {
+      "status": "attention",
+      "note": "tools have optional api_key but likely need it; skipped (needs Neon account)",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": []
+    },
+    "netlify": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Netlify personal access token",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": []
+    },
+    "newsapi": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or NEWS_API_KEY",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "news_top_headlines"
+      ]
+    },
+    "notion": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "notion_action"
+      ]
+    },
+    "nudgeonly": {
+      "status": "pass",
+      "note": "nudgeonly_policy returned full NudgeOnlyAPI guardrails, painpoint catalog, and receipt bridge",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "nudgeonly_policy"
+      ]
+    },
+    "numbers": {
+      "status": "fail",
+      "note": "number_fact returned HTTP 404 for number 42 trivia; numbersapi.com may be down or HTTP blocked",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "number_fact"
+      ]
+    },
+    "nvd": {
+      "status": "pass",
+      "note": "get_recent_cves returned successfully (empty result set is valid - no recent CVEs matched)",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "get_recent_cves"
+      ]
+    },
+    "omdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or OMDB_API_KEY",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "omdb_search"
+      ]
+    },
+    "openexchangerates": {
+      "status": "pass",
+      "note": "exchangerate_latest returned USD rates (updated 2026-06-07) - works without API key on free tier",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "exchangerate_latest"
+      ]
+    },
+    "openfoodfacts": {
+      "status": "fail",
+      "note": "food_search returned HTTP 503 (service unavailable) from world.openfoodfacts.org",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "food_search"
+      ]
+    },
+    "openlibrary": {
+      "status": "pass",
+      "note": "openlibrary_search returned 44540 results for 'dune' with full metadata - no auth needed",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "openlibrary_search"
+      ]
+    },
+    "openmeteo": {
+      "status": "pass",
+      "note": "weather_current returned Melbourne weather (16.7C, partly cloudy) - no auth needed",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "weather_current"
       ]
     }
   }
