@@ -18,6 +18,7 @@ import {
   KeyRound, Puzzle, ShieldCheck, Lock,
   Users, HeartPulse, Brain, SlidersHorizontal,
   Search, ShieldHalf,
+  MessageSquare, Bot, Network, LayoutGrid, Code2, BadgeCheck, ClipboardList, GitMerge, Rocket, RotateCcw,
   Terminal, CreditCard, Ban,
   ListTodo, Bell, ReceiptText,
   TowerControl, TriangleAlert, Wind,
@@ -41,8 +42,9 @@ export type BrochureContent = {
   secondaryCta?: Cta;
   showcase?: ReactNode;
   featuresTitle?: string;
+  featuresSubtitle?: string;
   features?: Feature[];
-  steps?: { title: string; desc: string }[];
+  steps?: { icon: LucideIcon; title: string; desc: string }[];
   tail?: ReactNode;
   meta: { title: string; description: string };
 };
@@ -126,21 +128,22 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
       />
     ),
     featuresTitle: "From idea to shipped, step by step.",
+    featuresSubtitle: "Two checkpoints wrap the work: XGate stops risky things from starting (before), and XPass proves the finished work is good (after).",
     steps: [
-      { title: "Intake", desc: "You ask for something. Autopilot takes it in and gets the details straight." },
-      { title: "Orchestrator", desc: "It logs the job into the running story so you can follow along." },
-      { title: "Research", desc: "It looks up whatever it needs to know before starting." },
-      { title: "Plan", desc: "It maps out the steps before touching anything." },
-      { title: "Jobs", desc: "The work is split into small, clear tasks." },
-      { title: "Build", desc: "It does the actual work, one task at a time." },
-      { title: "Test", desc: "It runs the work to confirm it actually works." },
-      { title: "Review", desc: "A second pass catches mistakes before they ship." },
-      { title: "Safety", desc: "Risky actions get checked against your rules before they run." },
-      { title: "Audit", desc: "Every step is recorded as proof you can check later." },
-      { title: "Workers", desc: "Role-based helpers each take the part they do best." },
-      { title: "Merge", desc: "Approved work is combined into the real thing." },
-      { title: "Publish", desc: "It ships the finished work and goes live." },
-      { title: "Repair", desc: "If something breaks, it loops back and fixes it." },
+      { icon: MessageSquare, title: "Intake", desc: "You ask for something in plain language. Autopilot takes it in, asks anything it needs, and pins down the details before any work starts." },
+      { icon: Bot, title: "Orchestrator", desc: "It logs the job into the running story, so you and every connected seat can follow what is happening and what is next." },
+      { icon: Search, title: "Research", desc: "It looks up whatever it needs to know first, so the plan is built on facts instead of guesses." },
+      { icon: Network, title: "Plan", desc: "It maps the steps and breaks the work down before touching anything, so there are no surprises later." },
+      { icon: LayoutGrid, title: "Jobs", desc: "The plan becomes small, clear tasks on the board, each with an owner and a finish line." },
+      { icon: Code2, title: "Build", desc: "It does the actual work, one task at a time, and shows progress as it goes." },
+      { icon: FlaskConical, title: "Test", desc: "Where XPass begins: it runs the work and proves it truly works. TestPass lives here." },
+      { icon: BadgeCheck, title: "Review", desc: "The rest of XPass: a second pass checks quality, UX, security, copy, legal, and search, catching mistakes before they ship." },
+      { icon: ShieldCheck, title: "Safety", desc: "This is XGate, the safety gate before anything risky runs. It checks dangerous moves like leaking a secret, wiping data, or a surprise deploy against your rules and blocks them, with a master kill switch you can hit anytime." },
+      { icon: ClipboardList, title: "Audit", desc: "Every step is recorded as proof, so you can go back and see what happened and why." },
+      { icon: Users, title: "Workers", desc: "Role-based helpers each take the part they do best, from building to checking to shipping." },
+      { icon: GitMerge, title: "Merge", desc: "Once XPass proves the work and XGate clears it, approved changes are combined into the real thing." },
+      { icon: Rocket, title: "Publish", desc: "It ships the finished work and goes live, again only after the gate gives the all-clear." },
+      { icon: RotateCcw, title: "Repair", desc: "If something breaks later, it loops back, fixes it, and runs the checks again." },
     ],
     tail: <JobsBoardSample />,
     meta: { title: "Autopilot - UnClick", description: "Autopilot plans, builds, checks, and ships work for you, with approvals and proof at every step." },
@@ -151,6 +154,12 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     title: <>Guardrails <GradientText>before</GradientText> your AI acts.</>,
     lede: "XGate checks every risky action against your rules before it runs, so nothing happens that you would not allow.",
     primaryCta: GET_STARTED,
+    showcase: (
+      <ExpandableImage
+        src="/xgate_web.jpg"
+        alt="XGate: an AI action passes through gates - Commands, Data, Publish, Secrets - that open green when allowed and block in red when risky, all checked before it runs, with a master kill switch."
+      />
+    ),
     featuresTitle: "Stop problems before they start.",
     features: [
       { icon: Terminal, title: "Command and Git gates", desc: "Stops unsafe commands and risky code changes." },

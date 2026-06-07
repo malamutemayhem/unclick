@@ -88,9 +88,16 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
             <div className="mx-auto max-w-5xl">
               {page.featuresTitle && (
                 <FadeIn>
-                  <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-heading sm:text-3xl">
-                    {page.featuresTitle}
-                  </h2>
+                  <div className="mb-10 text-center">
+                    <h2 className="text-2xl font-bold tracking-tight text-heading sm:text-3xl">
+                      {page.featuresTitle}
+                    </h2>
+                    {page.featuresSubtitle && (
+                      <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">
+                        {page.featuresSubtitle}
+                      </p>
+                    )}
+                  </div>
                 </FadeIn>
               )}
               {page.steps ? (
@@ -98,9 +105,12 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
                   {page.steps.map((s, i) => (
                     <FadeIn key={s.title} delay={0.03 * i}>
                       <div className="flex h-full gap-4 rounded-xl border border-[#86dadd]/12 bg-white/[0.03] p-4 backdrop-blur-sm">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 font-mono text-sm font-bold text-primary">
-                          {i + 1}
-                        </span>
+                        <div className="flex shrink-0 flex-col items-center gap-2">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 font-mono text-sm font-bold text-primary">
+                            {i + 1}
+                          </span>
+                          <s.icon className="h-5 w-5 text-primary/60" />
+                        </div>
                         <div>
                           <h3 className="text-sm font-semibold text-heading">{s.title}</h3>
                           <p className="mt-1 text-sm leading-relaxed text-body">{s.desc}</p>
