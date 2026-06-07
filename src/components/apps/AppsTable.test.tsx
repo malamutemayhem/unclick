@@ -6,6 +6,7 @@ import type { AppEntry } from "@/lib/appCatalog";
 
 const APPS: AppEntry[] = [
   { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
+  { slug: "jobsmith", name: "Jobsmith", category: "Productivity", blurb: "Create source-backed job applications.", domain: null, toolCount: 2, tools: [{ name: "jobsmith_check", description: "Check application quality." }], level: 5, hardened: true },
   { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
 ];
 
@@ -29,6 +30,19 @@ describe("AppsTable", () => {
     renderTable(<AppsTable apps={APPS} mode="public" />);
     fireEvent.change(screen.getByPlaceholderText(/search apps/i), { target: { value: "weather" } });
     expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+  });
+
+  it("search matches app names with spaces and broken fragments", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    const search = screen.getByPlaceholderText(/search apps/i);
+
+    fireEvent.change(search, { target: { value: "job smith" } });
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "jo smi" } });
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
     expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
   });
 

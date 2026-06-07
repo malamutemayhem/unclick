@@ -39,7 +39,6 @@ import {
   Sparkles,
   BookOpen,
   FlaskConical,
-  PenSquare,
   ShieldAlert,
   Users as UsersIcon,
   Gauge,
@@ -302,6 +301,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
+  { path: "/admin/app-testing",   label: "AppTesting",            icon: FlaskConical },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -494,7 +494,6 @@ function SidebarNav({
       <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
       <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
