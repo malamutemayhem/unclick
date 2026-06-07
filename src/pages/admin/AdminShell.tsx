@@ -299,6 +299,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
+  { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
 ] as const;
