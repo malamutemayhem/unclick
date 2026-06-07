@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:43:25.000Z",
+  "updatedAt": "2026-06-07T03:45:53.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -282,6 +282,76 @@
       "note": "requires api_key and app_key as mandatory params",
       "testedAt": "2026-06-07T03:43:25.000Z",
       "toolsTested": []
+    },
+    "datetime": {
+      "status": "pass",
+      "note": "datetime_current_time returned correct local time for Australia/Melbourne timezone",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "datetime_current_time"
+      ]
+    },
+    "deepl": {
+      "status": "attention",
+      "note": "auth_key is a required param; needs key via keychain or DEEPL_AUTH_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": []
+    },
+    "deezer": {
+      "status": "fail",
+      "note": "deezer_chart crashed: Cannot read properties of undefined (reading data); FIXED - response shape mismatch in getDeezerChart",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "deezer_chart"
+      ]
+    },
+    "digitalocean": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or env var",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": []
+    },
+    "discogs": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or DISCOGS_TOKEN",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "discogs_search_releases"
+      ]
+    },
+    "discord": {
+      "status": "attention",
+      "note": "paid or side-effecting only (send/read/react/thread); needs manual test with bot token",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": []
+    },
+    "domain": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or DOMAIN_API_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "domain_search_listings"
+      ]
+    },
+    "dropbox": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or DROPBOX_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": []
+    },
+    "ebay": {
+      "status": "attention",
+      "note": "requires client_id and client_secret as mandatory params",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": []
+    },
+    "ebird": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or EBIRD_API_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "ebird_recent_observations"
+      ]
     }
   }
 }
