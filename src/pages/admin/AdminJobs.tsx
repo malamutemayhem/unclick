@@ -150,7 +150,7 @@ const STAGES = ["Brief", "Build", "Proof", "Review", "Ship"] as const;
 const TITLE_MAX_CHARS = 90;
 
 const JOB_ROW_GRID =
-  "md:grid md:grid-cols-[48px_minmax(320px,1.2fr)_48px_58px_minmax(96px,0.35fr)_40px_minmax(190px,0.5fr)_78px_30px_18px] md:items-center md:gap-1.5";
+  "md:grid md:grid-cols-[48px_minmax(276px,1.2fr)_90px_60px_minmax(96px,0.35fr)_40px_minmax(190px,0.5fr)_78px_30px_18px] md:items-center md:gap-1.5";
 
 interface JobDisplayCopy {
   title: string;
@@ -835,7 +835,7 @@ function JobRow({
       </div>
 
       {expanded && (
-        <div className="mx-3 mb-2 space-y-2 rounded-md border border-white/[0.06] bg-black/20 p-2.5">
+        <div className="mx-3 mb-2 space-y-2 rounded-md border border-white/[0.06] bg-white/[0.03] p-2.5">
           <div className="grid gap-3 text-xs text-white/50 sm:grid-cols-5">
             <div>
               <span className="block text-[10px] uppercase tracking-wide text-white/30">Created</span>
@@ -882,7 +882,7 @@ function JobRow({
               <p className="text-xs leading-5 text-white/50">{highlightSearchText(displayCopy.context, searchQuery)}</p>
             </div>
             {showDetails && (
-              <div className="mt-3 rounded-[5px] border border-white/[0.05] bg-black/20 p-2">
+              <div className="mt-3 rounded-[5px] border border-white/[0.05] bg-white/[0.03] p-2">
                 <p className="text-[10px] uppercase tracking-wide text-white/25">Original source</p>
                 <p className="mt-1 text-xs font-medium leading-5 text-white/60">{highlightSearchText(todo.title, searchQuery)}</p>
                 {description ? (
@@ -1004,7 +1004,7 @@ function JobSection({
   };
 
   return (
-    <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#101010]">
+    <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
       <div className={`h-0.5 ${sectionAccent[sectionKey]}`} />
       <div className="flex items-center justify-between border-b border-white/[0.08] bg-white/[0.045] px-3 py-2">
         <button
@@ -1016,7 +1016,7 @@ function JobSection({
           {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           {SECTION_LABELS[sectionKey]}
         </button>
-        <span className="rounded-[4px] border border-white/[0.08] bg-black/20 px-2 py-0.5 text-[11px] font-semibold text-white/50">
+        <span className="rounded-[4px] border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[11px] font-semibold text-white/50">
           {showLoading
             ? "Loading"
             : open
@@ -1046,7 +1046,7 @@ function JobSection({
         </div>
       ) : (
         <ul>
-          <li className={`hidden border-b border-white/[0.05] bg-black/20 px-3 py-1.5 text-[10px] font-semibold uppercase text-white/30 ${JOB_ROW_GRID}`}>
+          <li className={`hidden border-b border-white/[0.05] bg-white/[0.03] px-3 py-1.5 text-[10px] font-semibold uppercase text-white/30 ${JOB_ROW_GRID}`}>
             <SortHeader label="#" value="queue" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
             <SortHeader label="Job" value="title" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
             <SortHeader label="State" value="status" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
@@ -1557,7 +1557,7 @@ export default function AdminJobs() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Filter jobs"
-            className="w-full rounded-md border border-white/[0.06] bg-black/20 py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
+            className="w-full rounded-md border border-white/[0.06] bg-white/[0.03] py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
           />
           {searchQuery && (
             <button
