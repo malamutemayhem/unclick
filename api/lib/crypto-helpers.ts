@@ -1,6 +1,6 @@
 // api/lib/crypto-helpers.ts
 //
-// Shared crypto helpers — single source of truth for PBKDF2 key derivation
+// Shared crypto helpers - single source of truth for PBKDF2 key derivation
 // and AES-256-GCM encrypt/decrypt across the API surface.
 //
 // Closes UnClick todo "Architecture QC: shared API crypto helper v1".
@@ -69,7 +69,7 @@ export interface DerivedKey {
 /**
  * Derive a 256-bit key from a passphrase using PBKDF2-HMAC-SHA256.
  *
- * @param passphrase utf8 string — the input secret.
+ * @param passphrase utf8 string - the input secret.
  * @param salt       optional Buffer; a fresh random salt is generated when omitted.
  * @param iterations optional override; defaults to PBKDF2_ITERATIONS. Increase for new use cases; never decrease.
  */
@@ -120,7 +120,7 @@ export interface EncryptedString {
 }
 
 export interface EncryptOptions {
-  /** Additional Authenticated Data — bound into the tag, not encrypted. */
+  /** Additional Authenticated Data - bound into the tag, not encrypted. */
   aad?: Buffer | string;
 }
 
@@ -158,7 +158,7 @@ export interface DecryptOptions {
 
 /**
  * Decrypt the canonical `${ivB64}.${tagB64}.${ciphertextB64}` payload.
- * Throws on auth failure (tag mismatch) — never returns a partial plaintext.
+ * Throws on auth failure (tag mismatch) - never returns a partial plaintext.
  */
 export function decryptGcm(
   payload: string,
