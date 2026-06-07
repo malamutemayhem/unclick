@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 624,
-    "source_manifest": 197,
-    "pages": 86,
+    "inventory": 641,
+    "source_manifest": 214,
+    "pages": 87,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 51
+      "count": 52
     },
     {
       "id": "public-surfaces",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 115
+      "count": 131
     },
     {
       "id": "launch-and-onboarding",
@@ -119,6 +119,16 @@
       "meaning": "Internal analytics view for platform signals and usage.",
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "route": "/admin/analytics",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-app-testing-src-pages-admin-adminapptesting-tsx-admin-app-testing",
+      "division": "Admin surfaces",
+      "name": "Admin App Testing",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin App Testing.",
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "route": "/admin/app-testing",
       "tags": []
     },
     {
@@ -2922,12 +2932,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-accessibility-audit-seed-skills-accessibility-audit-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "accessibility audit",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/accessibility-audit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-agent-handoff-packet-writer-seed-skills-agent-handoff-packet-writer-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "agent handoff packet writer",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-brand-voice-guidelines-seed-skills-brand-voice-guidelines-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "brand voice guidelines",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/brand-voice-guidelines.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -2972,6 +3002,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-data-analyst-seed-skills-data-analyst-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "data analyst",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/data-analyst.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-deep-research-analyst-seed-skills-deep-research-analyst-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "deep research analyst",
@@ -3012,6 +3052,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-frontend-design-review-seed-skills-frontend-design-review-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "frontend design review",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/frontend-design-review.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-github-pr-summariser-seed-skills-github-pr-summariser-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "github pr summariser",
@@ -3022,12 +3072,52 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-mcp-server-builder-seed-skills-mcp-server-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "mcp server builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/mcp-server-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-memory-distiller-seed-skills-memory-distiller-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "memory distiller",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/memory-distiller.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-pdf-toolkit-seed-skills-pdf-toolkit-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "pdf toolkit",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/pdf-toolkit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-presentation-builder-seed-skills-presentation-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "presentation builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/presentation-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-react-nextjs-best-practices-seed-skills-react-nextjs-best-practices-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "react nextjs best practices",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/react-nextjs-best-practices.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -3092,6 +3182,66 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-seo-content-optimizer-seed-skills-seo-content-optimizer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "seo content optimizer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/seo-content-optimizer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-skill-creator-seed-skills-skill-creator-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "skill creator",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/skill-creator.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-spreadsheet-builder-seed-skills-spreadsheet-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "spreadsheet builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/spreadsheet-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-sql-query-helper-seed-skills-sql-query-helper-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "sql query helper",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/sql-query-helper.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-tdd-workflow-seed-skills-tdd-workflow-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "tdd workflow",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/tdd-workflow.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-technical-docs-writer-seed-skills-technical-docs-writer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "technical docs writer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/technical-docs-writer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-tester-proof-plan-seed-skills-tester-proof-plan-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "tester proof plan",
@@ -3108,6 +3258,26 @@
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/watcher-heartbeat-tether.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-web-app-builder-seed-skills-web-app-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "web app builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/web-app-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-word-document-author-seed-skills-word-document-author-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "word document author",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/word-document-author.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -6364,6 +6534,12 @@
       "src/pages/admin/AdminAnalytics.tsx"
     ],
     [
+      "/admin/app-testing",
+      "Admin App Testing",
+      "Admin surface for Admin App Testing.",
+      "src/pages/admin/AdminAppTesting.tsx"
+    ],
+    [
       "/admin/apps",
       "Admin Tools",
       "Apps, tools, and connector capability surface.",
@@ -8333,13 +8509,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "1957fc5513d9",
-      "bytes": 15323
+      "hash": "71a90e55f560",
+      "bytes": 16426
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "f1d9032ae6ed",
-      "bytes": 24781
+      "hash": "c8bab38bba5e",
+      "bytes": 24827
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -8363,8 +8539,8 @@
     },
     {
       "source": "src/lib/skillLibrary.ts",
-      "hash": "0ac8025f46f5",
-      "bytes": 12351
+      "hash": "3a15b942a827",
+      "bytes": 12515
     },
     {
       "source": "src/lib/skillLibrarySeeds.ts",
@@ -8392,9 +8568,19 @@
       "bytes": 7047
     },
     {
+      "source": "seed/skills/accessibility-audit.skill.md",
+      "hash": "99984b1dccb7",
+      "bytes": 1242
+    },
+    {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
       "hash": "f9c498e48796",
       "bytes": 938
+    },
+    {
+      "source": "seed/skills/brand-voice-guidelines.skill.md",
+      "hash": "9580d2788e27",
+      "bytes": 1248
     },
     {
       "source": "seed/skills/browser-qa-tester.skill.md",
@@ -8417,6 +8603,11 @@
       "bytes": 932
     },
     {
+      "source": "seed/skills/data-analyst.skill.md",
+      "hash": "ef28e22c114e",
+      "bytes": 1233
+    },
+    {
       "source": "seed/skills/deep-research-analyst.skill.md",
       "hash": "74d773d9e04d",
       "bytes": 1069
@@ -8437,14 +8628,39 @@
       "bytes": 1080
     },
     {
+      "source": "seed/skills/frontend-design-review.skill.md",
+      "hash": "149d13cb68d0",
+      "bytes": 1377
+    },
+    {
       "source": "seed/skills/github-pr-summariser.skill.md",
       "hash": "1fd84b27d797",
       "bytes": 987
     },
     {
+      "source": "seed/skills/mcp-server-builder.skill.md",
+      "hash": "a4493b9ae2d7",
+      "bytes": 1304
+    },
+    {
       "source": "seed/skills/memory-distiller.skill.md",
       "hash": "b951415aa2a7",
       "bytes": 983
+    },
+    {
+      "source": "seed/skills/pdf-toolkit.skill.md",
+      "hash": "918db2b218b2",
+      "bytes": 1248
+    },
+    {
+      "source": "seed/skills/presentation-builder.skill.md",
+      "hash": "fea5b75a0ec7",
+      "bytes": 1250
+    },
+    {
+      "source": "seed/skills/react-nextjs-best-practices.skill.md",
+      "hash": "3e095e354af9",
+      "bytes": 1369
     },
     {
       "source": "seed/skills/research-brief-generator.skill.md",
@@ -8477,6 +8693,36 @@
       "bytes": 1104
     },
     {
+      "source": "seed/skills/seo-content-optimizer.skill.md",
+      "hash": "86c6bf39cf42",
+      "bytes": 1301
+    },
+    {
+      "source": "seed/skills/skill-creator.skill.md",
+      "hash": "4b71df983606",
+      "bytes": 1305
+    },
+    {
+      "source": "seed/skills/spreadsheet-builder.skill.md",
+      "hash": "f5d04281a0a3",
+      "bytes": 1280
+    },
+    {
+      "source": "seed/skills/sql-query-helper.skill.md",
+      "hash": "0325e8dcd07a",
+      "bytes": 1231
+    },
+    {
+      "source": "seed/skills/tdd-workflow.skill.md",
+      "hash": "ad6b48e38109",
+      "bytes": 1217
+    },
+    {
+      "source": "seed/skills/technical-docs-writer.skill.md",
+      "hash": "1f9899011b4a",
+      "bytes": 1270
+    },
+    {
       "source": "seed/skills/tester-proof-plan.skill.md",
       "hash": "d8c55bf6329a",
       "bytes": 1153
@@ -8485,6 +8731,16 @@
       "source": "seed/skills/watcher-heartbeat-tether.skill.md",
       "hash": "28acf3324343",
       "bytes": 1057
+    },
+    {
+      "source": "seed/skills/web-app-builder.skill.md",
+      "hash": "5014115e321f",
+      "bytes": 1254
+    },
+    {
+      "source": "seed/skills/word-document-author.skill.md",
+      "hash": "f8bc79a33e6a",
+      "bytes": 1307
     },
     {
       "source": "seed/skills/write-tests-for-changed-code.skill.md",
@@ -8515,6 +8771,11 @@
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "hash": "8e3ab82ef00f",
       "bytes": 10336
+    },
+    {
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "hash": "fb03a45d06bf",
+      "bytes": 10144
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
@@ -8593,8 +8854,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "43971f309033",
-      "bytes": 61590
+      "hash": "fb05696540e8",
+      "bytes": 63548
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -8738,8 +8999,8 @@
     },
     {
       "source": "src/pages/VibeCoding.tsx",
-      "hash": "e09d777363c0",
-      "bytes": 8012
+      "hash": "ef96865a608b",
+      "bytes": 7998
     },
     {
       "source": "src/pages/Developers.tsx",
@@ -8758,8 +9019,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "4103b5e68d6c",
-      "bytes": 16693
+      "hash": "8608d2a82e46",
+      "bytes": 16679
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -8823,8 +9084,8 @@
     },
     {
       "source": "src/pages/SmartHome.tsx",
-      "hash": "3671f5d143b1",
-      "bytes": 20733
+      "hash": "1d7898e16b70",
+      "bytes": 20719
     },
     {
       "source": "src/pages/Terms.tsx",
@@ -8858,8 +9119,8 @@
     },
     {
       "source": "src/pages/XPass.tsx",
-      "hash": "5f07b2f32036",
-      "bytes": 8713
+      "hash": "717c00a85c16",
+      "bytes": 8699
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",

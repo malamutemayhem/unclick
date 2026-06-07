@@ -62,6 +62,23 @@ interface JobTodo {
   release_block_reason?: string | null;
 }
 
+interface JobQueueMetrics {
+  active: number;
+  open_backlog: number;
+  done: number;
+  dropped: number;
+}
+
+interface JobListResponse {
+  todos?: JobTodo[];
+  queue_metrics?: Partial<JobQueueMetrics>;
+  response_bounds?: {
+    has_more?: boolean;
+    matching_total?: number | null;
+  };
+  error?: string;
+}
+
 type JobSectionKey = "active" | "next" | "inline" | "done";
 type SortKey = "queue" | "title" | "status" | "priority" | "worker" | "live" | "progress" | "notes" | "updated";
 type SortDirection = "asc" | "desc";
@@ -926,8 +943,10 @@ function JobSection({
   onMoveJob,
   sectionExpanded,
   visibleCount,
+  totalCount,
   onToggleSection,
   onShowMore,
+  showMoreLabel,
   hasMoreRemote,
   showMoreLoading,
   loading,
@@ -943,8 +962,10 @@ function JobSection({
   onMoveJob: (sectionKey: JobSectionKey, sourceId: string, targetId: string) => void;
   sectionExpanded?: boolean;
   visibleCount?: number;
+  totalCount?: number;
   onToggleSection?: () => void;
   onShowMore?: () => void;
+  showMoreLabel?: string;
   hasMoreRemote?: boolean;
   showMoreLoading?: boolean;
   loading?: boolean;
@@ -965,6 +986,7 @@ function JobSection({
   );
   const displayCount = Math.min(visibleCount ?? SECTION_PAGE_SIZE, cappedJobs.length);
   const visibleJobs = sortedJobs.slice(0, displayCount);
+  const sectionTotal = Math.max(totalCount ?? cappedJobs.length, cappedJobs.length);
   const canShowMore = displayCount < cappedJobs.length || hasMoreRemote === true;
   const showLoading = loading === true && jobs.length === 0;
   const sectionAccent: Record<JobSectionKey, string> = {
@@ -998,8 +1020,8 @@ function JobSection({
           {showLoading
             ? "Loading"
             : open
-              ? `${visibleJobs.length}/${jobs.length}`
-              : jobs.length}
+              ? `${visibleJobs.length}/${sectionTotal}`
+              : sectionTotal}
         </span>
       </div>
       {!open ? null : showLoading ? (
@@ -1018,7 +1040,7 @@ function JobSection({
               className="mt-3 inline-flex items-center gap-2 text-xs text-[#61C1C4]/80 hover:text-[#61C1C4] disabled:cursor-wait disabled:text-white/30"
             >
               {showMoreLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Load more
+              {showMoreLoading ? "Loading more" : showMoreLabel ?? "Load more"}
             </button>
           )}
         </div>
@@ -1066,7 +1088,7 @@ function JobSection({
                 className="inline-flex items-center gap-2 text-xs text-[#61C1C4]/80 hover:text-[#61C1C4] disabled:cursor-wait disabled:text-white/30"
               >
                 {showMoreLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-                Show more
+                {showMoreLoading ? "Loading more" : showMoreLabel ?? "Show more"}
               </button>
             </li>
           )}
@@ -1182,10 +1204,9 @@ export default function AdminJobs() {
   const [completedHistory, setCompletedHistory] = useState<JobTodo[]>([]);
   const [completedHistoryLoaded, setCompletedHistoryLoaded] = useState(false);
   const [completedHistoryLoading, setCompletedHistoryLoading] = useState(false);
+  const [completedHistoryTotal, setCompletedHistoryTotal] = useState<number | null>(null);
   // True once the server has confirmed nothing more sits behind the current
-  // batch (the API maxes out at 200 rows per call). The next iteration of
-  // this UI will add a `before_created_at` cursor for true "till exhausted"
-  // pagination; until then the client tracks "have we fetched the max?".
+  // completed-history batch.
   const [completedHistoryExhausted, setCompletedHistoryExhausted] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
@@ -1255,13 +1276,11 @@ export default function AdminJobs() {
             limit: 200,
           }),
         });
-        const body = (await res.json().catch(() => ({}))) as {
-          todos?: JobTodo[];
-          error?: string;
-        };
+        const body = (await res.json().catch(() => ({}))) as JobListResponse;
         if (!res.ok) throw new Error(body.error ?? "Failed to load jobs");
         if (!cancelled) {
           setTodos((body.todos ?? []).filter((todo) => todo.status !== "dropped"));
+          if (typeof body.queue_metrics?.done === "number") setCompletedHistoryTotal(body.queue_metrics.done);
           setError(null);
         }
       } catch (e) {
@@ -1321,6 +1340,14 @@ export default function AdminJobs() {
   const alertCount = filteredTodos.filter(needsAttention).length + (queueHydrationBlocked ? 1 : 0);
   const initialLoading = !firstLoadDone && loading;
   const visibleJobCount = todos.length + completedHistory.filter((historyJob) => !todos.some((todo) => todo.id === historyJob.id)).length;
+  const completedHistoryHasMore =
+    completedHistoryTotal == null
+      ? !completedHistoryExhausted
+      : completedHistory.length < completedHistoryTotal;
+  const completedSectionTotal =
+    searchQuery.trim().length > 0
+      ? orderedGrouped.done.length
+      : Math.max(orderedGrouped.done.length, completedHistoryTotal ?? orderedGrouped.done.length);
 
   const toggleExpanded = (id: string) => {
     setExpanded((prev) => {
@@ -1370,16 +1397,23 @@ export default function AdminJobs() {
     }));
   };
 
-  // Fetch up to the server's per-call cap (200) of completed jobs in one
-  // shot, sorted newest-first by created_at. The list_todos endpoint does
-  // not yet expose a cursor, so we fetch the whole window once and paginate
-  // the visible count on the client via SectionPreferences. When server
-  // cursor support lands, this becomes a paged loop.
+  useEffect(() => {
+    setCompletedHistory([]);
+    setCompletedHistoryLoaded(false);
+    setCompletedHistoryLoading(false);
+    setCompletedHistoryTotal(null);
+    setCompletedHistoryExhausted(false);
+  }, [jobsReadAgentId]);
+
+  // Completed history is fetched in server-backed pages so the visible
+  // counter can show the real total instead of treating the first slice as
+  // the whole archive.
   const fetchCompletedBatch = useCallback(async () => {
     if (!jobsReadAgentId) return;
     setCompletedHistoryLoading(true);
     try {
-      const requestLimit = 200;
+      const requestLimit = COMPLETED_PAGE_SIZE;
+      const requestOffset = completedHistory.length;
       const res = await fetch("/api/memory-admin?action=fishbowl_list_todos", {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
@@ -1388,16 +1422,28 @@ export default function AdminJobs() {
           include_description: true,
           status: "done",
           limit: requestLimit,
+          offset: requestOffset,
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as {
-        todos?: JobTodo[];
-        error?: string;
-      };
+      const body = (await res.json().catch(() => ({}))) as JobListResponse;
       if (!res.ok) throw new Error(body.error ?? "Failed to load completed jobs");
       const fetched = (body.todos ?? []).filter((todo) => todo.status === "done");
-      setCompletedHistory(fetched);
-      if (fetched.length < requestLimit) setCompletedHistoryExhausted(true);
+      setCompletedHistory((current) => {
+        const byId = new Map(current.map((todo) => [todo.id, todo]));
+        for (const todo of fetched) byId.set(todo.id, todo);
+        return Array.from(byId.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      });
+      const totalDone =
+        typeof body.queue_metrics?.done === "number"
+          ? body.queue_metrics.done
+          : typeof body.response_bounds?.matching_total === "number"
+            ? body.response_bounds.matching_total
+            : completedHistoryTotal;
+      if (totalDone != null) setCompletedHistoryTotal(totalDone);
+      const loadedThrough = requestOffset + fetched.length;
+      if (body.response_bounds?.has_more === false || fetched.length < requestLimit || (totalDone != null && loadedThrough >= totalDone)) {
+        setCompletedHistoryExhausted(true);
+      }
       setCompletedHistoryLoaded(true);
       setError(null);
     } catch (e) {
@@ -1405,7 +1451,7 @@ export default function AdminJobs() {
     } finally {
       setCompletedHistoryLoading(false);
     }
-  }, [authHeader, jobsReadAgentId]);
+  }, [authHeader, completedHistory.length, completedHistoryTotal, jobsReadAgentId]);
 
   // Auto-load the first batch as soon as the agent id is known. Replaces the
   // old "Show completed history" first-click gate; users now see the last
@@ -1424,7 +1470,9 @@ export default function AdminJobs() {
       showMore("done");
       return;
     }
-    // Already loaded: reveal the next 100 rows from the local cache.
+    if (sectionPrefs.visible.done >= orderedGrouped.done.length && completedHistoryHasMore) {
+      await fetchCompletedBatch();
+    }
     showMore("done");
   };
 
@@ -1599,9 +1647,11 @@ export default function AdminJobs() {
           onMoveJob={moveJob}
           sectionExpanded={sectionPrefs.expanded.done}
           visibleCount={sectionPrefs.visible.done}
+          totalCount={completedSectionTotal}
           onToggleSection={() => toggleSection("done")}
           onShowMore={loadCompletedHistory}
-          hasMoreRemote={!completedHistoryLoaded && !completedHistoryExhausted}
+          showMoreLabel="Show 100 more"
+          hasMoreRemote={completedHistoryHasMore}
           showMoreLoading={completedHistoryLoading}
           loading={initialLoading}
           searchQuery={searchQuery}
