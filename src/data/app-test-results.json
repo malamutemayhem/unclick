@@ -1,0 +1,48 @@
+{
+  "updatedAt": "2026-06-07T02:52:00.000Z",
+  "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app's MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested.",
+  "results": {
+    "datetime": {
+      "status": "pass",
+      "note": "datetime_current_time returned ISO + local time for Australia/Sydney.",
+      "comment": "",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["datetime_current_time"]
+    },
+    "random": {
+      "status": "pass",
+      "note": "random_uuid returned a valid v4 UUID.",
+      "comment": "",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["random_uuid"]
+    },
+    "calculator": {
+      "status": "pass",
+      "note": "calc_bmi(80kg, 180cm) returned 24.69 (Normal weight) with a healthy range.",
+      "comment": "",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["calc_bmi"]
+    },
+    "unit-converter": {
+      "status": "pass",
+      "note": "convert_temperature 100C returned 212F plus K and R.",
+      "comment": "",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["convert_temperature"]
+    },
+    "coingecko": {
+      "status": "pass",
+      "note": "crypto_price(bitcoin, usd) returned a live price with unclick_meta source and next_steps.",
+      "comment": "Keyless public CoinGecko endpoint; safe default.",
+      "testedAt": "2026-06-07T02:25:40.911Z",
+      "toolsTested": ["crypto_price"]
+    },
+    "alphavantage": {
+      "status": "attention",
+      "note": "stock_quote works but Alpha Vantage is not connected (no API key).",
+      "comment": "Connect Alpha Vantage in Passport, then re-test to turn this green.",
+      "testedAt": "2026-06-07T02:25:40.911Z",
+      "toolsTested": ["stock_quote"]
+    }
+  }
+}
