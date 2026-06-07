@@ -54,6 +54,25 @@ Control Tower generates a Master Copy Box for the user to paste into new chats. 
 
 If the user forgets to paste the box and just says "continue working on ControlTower jobs", the chat should still find the active Control Tower job, read Boardroom Jobs, and claim the next open or stale lane.
 
+## Claim Receipts
+
+Every lane claim should create a `CONTROLTOWER_LANE_CLAIM v1` receipt.
+
+The receipt records:
+
+- Control Tower job and plan id
+- lane title and lane id
+- Worker X of Y
+- claim type
+- linked Boardroom job id when one exists
+- source of truth
+- proof needed
+- whether the claim is safe to resume
+
+If the lane comes from Boardroom Jobs, Control Tower should post the receipt as a Boardroom job comment. If the lane does not have a Boardroom job yet, the worker should copy the receipt to the parent Control Tower job or create a scoped Boardroom job first.
+
+This stops a worker claim from living only inside one chat. Another worker can later see who claimed what, whether the lane is stale, and what proof is still missing.
+
 ## Worker Lanes
 
 Default lanes:

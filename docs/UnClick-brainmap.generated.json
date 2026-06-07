@@ -8343,18 +8343,18 @@
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "6ca638bd7002",
-      "bytes": 17570
+      "hash": "2bc870ebf30f",
+      "bytes": 21782
     },
     {
       "source": "src/lib/controltower.ts",
-      "hash": "4f5aef742c4a",
-      "bytes": 18625
+      "hash": "c9d18e61e7d8",
+      "bytes": 21703
     },
     {
       "source": "docs/prd/controltower.md",
-      "hash": "db23d54c71d8",
-      "bytes": 3830
+      "hash": "83641285316d",
+      "bytes": 4571
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
