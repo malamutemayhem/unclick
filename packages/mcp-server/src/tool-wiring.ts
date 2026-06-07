@@ -253,6 +253,29 @@ import {
 import { triviaQuestions, triviaCategories } from "./trivia-tool.js";
 
 import {
+  pokeGetPokemon, pokeSearchPokemon, pokeGetType,
+  pokeGetAbility, pokeGetGeneration,
+} from "./pokeapi-tool.js";
+
+import {
+  searchCocktails, getRandomCocktail, getCocktailById,
+  listCocktailCategories, filterCocktailsByCategory, filterCocktailsByIngredient,
+} from "./cocktail-tool.js";
+
+import { dictionaryLookup, dictionaryLookupLanguage } from "./dictionary-tool.js";
+
+import { jokeRandom, jokeCategories } from "./joke-tool.js";
+
+import {
+  holidaysByCountry, holidaysNextWorldwide,
+  holidayCountries, holidayLongWeekends,
+} from "./holidays-tool.js";
+
+import {
+  dogRandomImage, dogBreedImage, dogListBreeds, dogBreedList,
+} from "./dogceo-tool.js";
+
+import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
 } from "./nasa-tool.js";
@@ -4214,6 +4237,283 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {},
+    },
+  },
+
+  // ── pokeapi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "poke_get_pokemon",
+    description: "Get Pokemon data by name or ID from PokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Pokemon name or ID (e.g. pikachu, 25)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "poke_search_pokemon",
+    description: "List Pokemon with pagination from PokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Results per page (max 100, default 20)" },
+        offset: { type: "number", description: "Offset for pagination" },
+      },
+    },
+  },
+  {
+    name: "poke_get_type",
+    description: "Get Pokemon type info and which Pokemon have that type.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", description: "Type name or ID (e.g. electric, fire, 10)" },
+      },
+      required: ["type"],
+    },
+  },
+  {
+    name: "poke_get_ability",
+    description: "Get Pokemon ability info and which Pokemon have it.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ability: { type: "string", description: "Ability name or ID (e.g. static, levitate)" },
+      },
+      required: ["ability"],
+    },
+  },
+  {
+    name: "poke_get_generation",
+    description: "Get Pokemon generation info, region, and species list.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        generation: { type: "string", description: "Generation ID (1-9) or name" },
+      },
+      required: ["generation"],
+    },
+  },
+
+  // ── cocktail-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cocktail_search",
+    description: "Search for cocktails/drinks by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "cocktail_random",
+    description: "Get a random cocktail/drink recipe.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cocktail_get_by_id",
+    description: "Get a cocktail/drink by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "TheCocktailDB drink ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "cocktail_categories",
+    description: "List all cocktail categories from TheCocktailDB.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cocktail_filter_by_category",
+    description: "Filter cocktails by category.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "e.g. Cocktail, Shot, Punch, Shake" },
+      },
+      required: ["category"],
+    },
+  },
+  {
+    name: "cocktail_filter_by_ingredient",
+    description: "Filter cocktails by ingredient.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ingredient: { type: "string", description: "e.g. Vodka, Rum, Gin, Whiskey" },
+      },
+      required: ["ingredient"],
+    },
+  },
+
+  // ── dictionary-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "dictionary_lookup",
+    description: "Look up a word's definition, phonetics, and examples.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        word: { type: "string" },
+      },
+      required: ["word"],
+    },
+  },
+  {
+    name: "dictionary_lookup_language",
+    description: "Look up a word in a specific language (es, fr, de, it, ja, etc).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        word: { type: "string" },
+        language: { type: "string", description: "Language code (e.g. es, fr, de, it, ja)" },
+      },
+      required: ["word", "language"],
+    },
+  },
+
+  // ── joke-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "joke_random",
+    description: "Get a random joke from JokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Programming, Misc, Dark, Pun, Spooky, Christmas" },
+        type: { type: "string", enum: ["single", "twopart"], description: "single or twopart" },
+        amount: { type: "number", description: "Number of jokes (1-10)" },
+      },
+    },
+  },
+  {
+    name: "joke_categories",
+    description: "List available joke categories from JokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── holidays-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "holidays_by_country",
+    description: "Get public holidays for a country and year.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code (US, AU, GB, DE, etc)" },
+        year: { type: "number", description: "Year (defaults to current year)" },
+      },
+      required: ["country_code"],
+    },
+  },
+  {
+    name: "holidays_next",
+    description: "Get upcoming public holidays for a country.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code" },
+      },
+      required: ["country_code"],
+    },
+  },
+  {
+    name: "holidays_countries",
+    description: "List all countries supported by the public holidays API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "holidays_long_weekends",
+    description: "Get long weekends for a country and year.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code" },
+        year: { type: "number", description: "Year (defaults to current year)" },
+      },
+      required: ["country_code"],
+    },
+  },
+
+  // ── dogceo-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "dog_random_image",
+    description: "Get random dog image(s) from Dog CEO API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of images (1-50, default 1)" },
+      },
+    },
+  },
+  {
+    name: "dog_breed_image",
+    description: "Get random image(s) of a specific dog breed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        breed: { type: "string", description: "Breed name (e.g. husky, bulldog/french)" },
+        count: { type: "number", description: "Number of images (1-50, default 1)" },
+      },
+      required: ["breed"],
+    },
+  },
+  {
+    name: "dog_list_breeds",
+    description: "List all dog breeds and sub-breeds.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "dog_breed_list",
+    description: "List sub-breeds of a specific dog breed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        breed: { type: "string", description: "Breed name (e.g. bulldog, hound)" },
+      },
+      required: ["breed"],
     },
   },
 
@@ -14851,6 +15151,41 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // trivia-tool.ts
   trivia_questions:        (args) => triviaQuestions(args),
   trivia_categories:       (args) => triviaCategories(args),
+
+  // pokeapi-tool.ts
+  poke_get_pokemon:        (args) => pokeGetPokemon(args),
+  poke_search_pokemon:     (args) => pokeSearchPokemon(args),
+  poke_get_type:           (args) => pokeGetType(args),
+  poke_get_ability:        (args) => pokeGetAbility(args),
+  poke_get_generation:     (args) => pokeGetGeneration(args),
+
+  // cocktail-tool.ts
+  cocktail_search:              (args) => searchCocktails(args),
+  cocktail_random:              (args) => getRandomCocktail(args),
+  cocktail_get_by_id:           (args) => getCocktailById(args),
+  cocktail_categories:          (args) => listCocktailCategories(args),
+  cocktail_filter_by_category:  (args) => filterCocktailsByCategory(args),
+  cocktail_filter_by_ingredient:(args) => filterCocktailsByIngredient(args),
+
+  // dictionary-tool.ts
+  dictionary_lookup:          (args) => dictionaryLookup(args),
+  dictionary_lookup_language: (args) => dictionaryLookupLanguage(args),
+
+  // joke-tool.ts
+  joke_random:             (args) => jokeRandom(args),
+  joke_categories:         (args) => jokeCategories(args),
+
+  // holidays-tool.ts
+  holidays_by_country:     (args) => holidaysByCountry(args),
+  holidays_next:           (args) => holidaysNextWorldwide(args),
+  holidays_countries:      (args) => holidayCountries(args),
+  holidays_long_weekends:  (args) => holidayLongWeekends(args),
+
+  // dogceo-tool.ts
+  dog_random_image:        (args) => dogRandomImage(args),
+  dog_breed_image:         (args) => dogBreedImage(args),
+  dog_list_breeds:         (args) => dogListBreeds(args),
+  dog_breed_list:          (args) => dogBreedList(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -36,15 +36,15 @@ bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper"
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary"]);
-bucket("Images", ["unsplash", "giphy"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter"]);
+bucket("Images", ["unsplash", "giphy", "dogceo"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -71,6 +71,8 @@ const NAME_OF = {
   thelott: "The Lott", tmdb: "TMDB", togetherai: "Together AI", tomorrowio: "Tomorrow.io",
   "unit-converter": "Unit Converter", urlscan: "urlscan.io", usgs: "USGS", uxpass: "UXPass",
   virustotal: "VirusTotal", woocommerce: "WooCommerce",
+  pokeapi: "PokeAPI", cocktail: "TheCocktailDB", dictionary: "Dictionary",
+  joke: "JokeAPI", holidays: "Public Holidays", dogceo: "Dog CEO",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -136,6 +138,12 @@ const BLURB_OF = {
   sloppass: "Catch AI-code slop and quality issues.",
   trello: "Manage Trello boards, lists, and cards.",
   uxpass: "Check a page's UI and UX for usability issues.",
+  pokeapi: "Look up Pokemon stats, types, abilities, and generations.",
+  cocktail: "Search cocktail recipes, ingredients, and categories.",
+  dictionary: "Look up word definitions, phonetics, and examples.",
+  joke: "Get random jokes by category from JokeAPI.",
+  holidays: "Get public holidays, long weekends, and country calendars.",
+  dogceo: "Get random dog images and browse breeds.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -187,6 +195,8 @@ const DOMAIN_OF = {
   wikipedia: "wikipedia.org",
   coda: "coda.io", brevo: "brevo.com", uptimerobot: "uptimerobot.com", dropbox: "dropbox.com",
   bitbucket: "bitbucket.org", cloudinary: "cloudinary.com", wordpress: "wordpress.org", ghost: "ghost.org",
+  pokeapi: "pokeapi.co", cocktail: "thecocktaildb.com", dictionary: "dictionaryapi.dev",
+  joke: "jokeapi.dev", holidays: "date.nager.at", dogceo: "dog.ceo",
 };
 
 function titleCase(slug) {

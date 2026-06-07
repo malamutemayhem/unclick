@@ -5,14 +5,14 @@
   "owner_visibility": {
     "route": "/admin/brainmap",
     "audience": "private yellow admin",
-    "owner_email": "(configured via env)"
+    "owner_email": "creativelead@malamutemayhem.com"
   },
   "counts": {
     "divisions": 12,
-    "inventory": 644,
-    "source_manifest": 215,
-    "pages": 88,
-    "tools": 219,
+    "inventory": 647,
+    "source_manifest": 214,
+    "pages": 87,
+    "tools": 225,
     "rooms": 23,
     "workers": 8
   },
@@ -27,13 +27,13 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 36
+      "count": 35
     },
     {
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 219
+      "count": 225
     },
     {
       "id": "rooms",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 133
+      "count": 131
     },
     {
       "id": "launch-and-onboarding",
@@ -2152,16 +2152,6 @@
       "tags": []
     },
     {
-      "id": "modules-and-apps-component-code-tab-src-pages-admin-memory-codetab-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Code Tab",
-      "kind": "component",
-      "meaning": "Memory admin panel for Code Tab.",
-      "source": "src/pages/admin/memory/CodeTab.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
@@ -2268,16 +2258,6 @@
       "kind": "component",
       "meaning": "User-facing page for Not Found.",
       "source": "src/pages/NotFound.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "modules-and-apps-component-recycle-bin-tab-src-pages-admin-memory-recyclebintab-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Recycle Bin Tab",
-      "kind": "component",
-      "meaning": "Memory admin panel for Recycle Bin Tab.",
-      "source": "src/pages/admin/memory/RecycleBinTab.tsx",
       "route": "",
       "tags": []
     },
@@ -3822,16 +3802,6 @@
       "tags": []
     },
     {
-      "id": "public-surfaces-public-page-why-src-pages-why-tsx-why",
-      "division": "Public surfaces",
-      "name": "Why",
-      "kind": "public page",
-      "meaning": "User-facing page for Why.",
-      "source": "src/pages/Why.tsx",
-      "route": "/why",
-      "tags": []
-    },
-    {
       "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
       "division": "Public surfaces",
       "name": "XPass",
@@ -4462,6 +4432,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-cocktail-packages-mcp-server-src-cocktail-tool-ts-no-route",
+      "division": "Tools",
+      "name": "cocktail",
+      "kind": "MCP tool",
+      "meaning": "cocktail MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/cocktail-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-coda-packages-mcp-server-src-coda-tool-ts-no-route",
       "division": "Tools",
       "name": "coda",
@@ -4632,6 +4612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dictionary-packages-mcp-server-src-dictionary-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dictionary",
+      "kind": "MCP tool",
+      "meaning": "dictionary MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dictionary-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-digitalocean-packages-mcp-server-src-digitalocean-tool-ts-no-route",
       "division": "Tools",
       "name": "digitalocean",
@@ -4658,6 +4648,16 @@
       "kind": "MCP tool",
       "meaning": "discord MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/discord-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-dogceo-packages-mcp-server-src-dogceo-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dogceo",
+      "kind": "MCP tool",
+      "meaning": "dogceo MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dogceo-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4982,6 +4982,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-holidays-packages-mcp-server-src-holidays-tool-ts-no-route",
+      "division": "Tools",
+      "name": "holidays",
+      "kind": "MCP tool",
+      "meaning": "holidays MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/holidays-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-hubspot-packages-mcp-server-src-hubspot-tool-ts-no-route",
       "division": "Tools",
       "name": "hubspot",
@@ -5078,6 +5088,16 @@
       "kind": "MCP tool",
       "meaning": "jobsmith MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/jobsmith-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-joke-packages-mcp-server-src-joke-tool-ts-no-route",
+      "division": "Tools",
+      "name": "joke",
+      "kind": "MCP tool",
+      "meaning": "joke MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/joke-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5538,6 +5558,16 @@
       "kind": "MCP tool",
       "meaning": "podcastindex MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/podcastindex-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-pokeapi-packages-mcp-server-src-pokeapi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pokeapi",
+      "kind": "MCP tool",
+      "meaning": "pokeapi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pokeapi-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7050,12 +7080,6 @@
       "src/pages/HomepageSample.tsx"
     ],
     [
-      "/why",
-      "Why",
-      "User-facing page for Why.",
-      "src/pages/Why.tsx"
-    ],
-    [
       "/xpass",
       "XPass",
       "User-facing page for XPass.",
@@ -7266,6 +7290,11 @@
       "packages/mcp-server/src/cloudinary-tool.ts"
     ],
     [
+      "cocktail",
+      "cocktail MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/cocktail-tool.ts"
+    ],
+    [
       "coda",
       "coda MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/coda-tool.ts"
@@ -7351,6 +7380,11 @@
       "packages/mcp-server/src/deezer-tool.ts"
     ],
     [
+      "dictionary",
+      "dictionary MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dictionary-tool.ts"
+    ],
+    [
       "digitalocean",
       "digitalocean MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/digitalocean-tool.ts"
@@ -7364,6 +7398,11 @@
       "discord",
       "discord MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discord-tool.ts"
+    ],
+    [
+      "dogceo",
+      "dogceo MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dogceo-tool.ts"
     ],
     [
       "domain",
@@ -7526,6 +7565,11 @@
       "packages/mcp-server/src/higgsfield-tool.ts"
     ],
     [
+      "holidays",
+      "holidays MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/holidays-tool.ts"
+    ],
+    [
       "hubspot",
       "hubspot MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hubspot-tool.ts"
@@ -7574,6 +7618,11 @@
       "jobsmith",
       "jobsmith MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/jobsmith-tool.ts"
+    ],
+    [
+      "joke",
+      "joke MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/joke-tool.ts"
     ],
     [
       "keychain",
@@ -7804,6 +7853,11 @@
       "podcastindex",
       "podcastindex MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/podcastindex-tool.ts"
+    ],
+    [
+      "pokeapi",
+      "pokeapi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pokeapi-tool.ts"
     ],
     [
       "posthog",
@@ -8545,13 +8599,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ead5f39c080b",
-      "bytes": 16499
+      "hash": "0321c830b3bc",
+      "bytes": 15563
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "2c6ec8581d6c",
-      "bytes": 25721
+      "hash": "c8bab38bba5e",
+      "bytes": 24827
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -8790,13 +8844,13 @@
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
-      "hash": "48f1919d4056",
-      "bytes": 14795
+      "hash": "9de4fed78407",
+      "bytes": 14774
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "f9548c19ddab",
-      "bytes": 11641
+      "hash": "cbafa8394842",
+      "bytes": 11617
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -8805,13 +8859,13 @@
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
-      "hash": "dcc1351f518e",
-      "bytes": 10345
+      "hash": "8e3ab82ef00f",
+      "bytes": 10336
     },
     {
       "source": "src/pages/admin/AdminAppTesting.tsx",
-      "hash": "ffadb7c67d09",
-      "bytes": 10153
+      "hash": "fb03a45d06bf",
+      "bytes": 10144
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
@@ -8820,48 +8874,48 @@
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
-      "hash": "947f6c4d8c10",
-      "bytes": 877
+      "hash": "028edd82cb11",
+      "bytes": 874
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "883d77d7b764",
-      "bytes": 22924
+      "hash": "426fed992766",
+      "bytes": 22902
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "765ac778242e",
-      "bytes": 12112
+      "hash": "0f2003fd8242",
+      "bytes": 12106
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
-      "hash": "d3f1d4d1e298",
-      "bytes": 25705
+      "hash": "69eb15aaf438",
+      "bytes": 25684
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "076fd12c1831",
-      "bytes": 37563
+      "hash": "ec3c5b4f4b4f",
+      "bytes": 37557
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "825a4928a569",
-      "bytes": 26632
+      "hash": "e0edf4d7c409",
+      "bytes": 26533
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
-      "hash": "d51790b275a5",
-      "bytes": 8068
+      "hash": "ff33937fdf7b",
+      "bytes": 8044
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "64459f24dc61",
-      "bytes": 7324
+      "hash": "a7d741e75c78",
+      "bytes": 7306
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
-      "hash": "cd0198794cbc",
-      "bytes": 13912
+      "hash": "f3afb17bb001",
+      "bytes": 13909
     },
     {
       "source": "src/pages/admin/crews/CrewRun.tsx",
@@ -8885,48 +8939,48 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "c6c9093d733d",
-      "bytes": 5303
+      "hash": "7ee015247aa8",
+      "bytes": 5257
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "5417b324cff7",
-      "bytes": 64232
+      "hash": "fb05696540e8",
+      "bytes": 63548
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
-      "hash": "fd2aad657f06",
-      "bytes": 54734
+      "hash": "34ba72c04cb2",
+      "bytes": 54660
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "982902265fb2",
-      "bytes": 77151
+      "hash": "0c355d737922",
+      "bytes": 77124
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
-      "hash": "25b2ecae9ca8",
-      "bytes": 10814
+      "hash": "f001b0a54b31",
+      "bytes": 9731
     },
     {
       "source": "src/pages/admin/AdminModeration.tsx",
-      "hash": "27cae956bcfd",
-      "bytes": 883
+      "hash": "c81500ffb43d",
+      "bytes": 880
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "4741f71afba9",
+      "bytes": 94705
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
-      "hash": "4dce3c986684",
-      "bytes": 21769
+      "hash": "1b09a0b4c1b4",
+      "bytes": 21751
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "48449b4ebd11",
-      "bytes": 40601
+      "hash": "cce2a4ca6248",
+      "bytes": 40580
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
@@ -8935,63 +8989,63 @@
     },
     {
       "source": "src/pages/admin/signals/SignalsSettings.tsx",
-      "hash": "7c1d807c5e8b",
-      "bytes": 9900
+      "hash": "791cd433a5b0",
+      "bytes": 9837
     },
     {
       "source": "src/pages/admin/signals/SignalsCatalog.tsx",
-      "hash": "f5332dd8f38e",
-      "bytes": 10865
+      "hash": "7baa82ac0d7f",
+      "bytes": 10835
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",
-      "hash": "4ddaaf1282db",
-      "bytes": 870
+      "hash": "6e61ae4d3d34",
+      "bytes": 867
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
-      "hash": "ff6ef9aa1bfd",
-      "bytes": 10397
+      "hash": "fd912523ee14",
+      "bytes": 10379
     },
     {
       "source": "src/pages/admin/AdminTestPass.tsx",
-      "hash": "22a59a8de00f",
-      "bytes": 27268
+      "hash": "0b3cc7b44107",
+      "bytes": 27259
     },
     {
       "source": "src/pages/admin/testpass/ReportDetail.tsx",
-      "hash": "027acece2860",
-      "bytes": 12392
+      "hash": "b3db4032aa33",
+      "bytes": 12374
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "4412674f8382",
-      "bytes": 22000
+      "hash": "52e43b795126",
+      "bytes": 21979
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
-      "hash": "ee00d5d30b04",
-      "bytes": 21877
+      "hash": "8fc76ddd8d3f",
+      "bytes": 21847
     },
     {
       "source": "src/pages/admin/AdminTruthRate.tsx",
-      "hash": "b99175b21cc1",
-      "bytes": 8880
+      "hash": "115c5cce9b90",
+      "bytes": 8868
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
-      "hash": "222654ee0f22",
-      "bytes": 866
+      "hash": "701e7da2f201",
+      "bytes": 863
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "193295e6e4dc",
-      "bytes": 26811
+      "hash": "db31f326ff07",
+      "bytes": 26775
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "a0e051f56e86",
-      "bytes": 63243
+      "hash": "89ed912e326b",
+      "bytes": 59397
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -9025,8 +9079,8 @@
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
-      "hash": "9bfae679df42",
-      "bytes": 23493
+      "hash": "339b3a5c60ae",
+      "bytes": 23490
     },
     {
       "source": "src/pages/DeveloperSubmit.tsx",
@@ -9040,8 +9094,8 @@
     },
     {
       "source": "src/pages/Developers.tsx",
-      "hash": "c31a8a187fac",
-      "bytes": 19126
+      "hash": "9657fd564797",
+      "bytes": 19123
     },
     {
       "source": "src/pages/Dispatch.tsx",
@@ -9070,8 +9124,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "21a0ef6af00d",
-      "bytes": 62621
+      "hash": "da0fc0d07f50",
+      "bytes": 62558
     },
     {
       "source": "src/pages/Login.tsx",
@@ -9090,13 +9144,13 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "147f832aa5b9",
-      "bytes": 19192
+      "hash": "cf7f06bacc89",
+      "bytes": 18641
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "e2d14ccf9af9",
-      "bytes": 13179
+      "hash": "a28cb1d9ece8",
+      "bytes": 12559
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -9154,14 +9208,9 @@
       "bytes": 21971
     },
     {
-      "source": "src/pages/Why.tsx",
-      "hash": "a0c2574257c7",
-      "bytes": 11100
-    },
-    {
       "source": "src/pages/XPass.tsx",
-      "hash": "8a95e39abdd4",
-      "bytes": 11982
+      "hash": "717c00a85c16",
+      "bytes": 8699
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -9409,6 +9458,11 @@
       "bytes": 3562
     },
     {
+      "source": "packages/mcp-server/src/cocktail-tool.ts",
+      "hash": "1c91d74f149b",
+      "bytes": 8220
+    },
+    {
       "source": "packages/mcp-server/src/coda-tool.ts",
       "hash": "6390ba35aece",
       "bytes": 3626
@@ -9472,11 +9526,6 @@
       "source": "packages/mcp-server/src/csuite-tool.ts",
       "hash": "0ab5af89bb49",
       "bytes": 70236
-    },
-    {
-      "source": "packages/mcp-server/src/datadog-tool.ts",
-      "hash": "529fa672eb0e",
-      "bytes": 8255
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

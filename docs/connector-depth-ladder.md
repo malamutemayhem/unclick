@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (193 external connectors)
+## Distribution (199 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 154 | 80% |
+| L5 | Agentic | 160 | 80% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 19% |
+| L2 | Reliable | 36 | 18% |
 | L1 | Wrapper | 3 | 2% |
 
-**Hardened (reliability bar met): 189 of 193 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 195 of 199 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 154 of 157 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 160 of 163 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -67,6 +67,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `chessdotcom` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `circleci` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `cloudinary` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cocktail` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coda` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `cohere` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
@@ -77,8 +78,10 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `datadog` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dictionary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `digitalocean` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dogceo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `domain` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dropbox` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
@@ -103,6 +106,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `haveibeenpwned` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `heygen` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `higgsfield` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `holidays` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hubspot` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hunter` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `igdb` | Yes | - | - | Yes | Yes | no-memory |
@@ -111,6 +115,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `jira` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `jobsmith` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `joke` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `klaviyo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `kling` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
@@ -146,6 +151,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pipedrive` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `plaid` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `podcastindex` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `pokeapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |

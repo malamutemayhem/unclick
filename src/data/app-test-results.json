@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T09:41:21.082Z",
+  "updatedAt": "2026-06-07T09:55:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -256,6 +256,16 @@
       ],
       "comment": ""
     },
+    "cocktail": {
+      "status": "pass",
+      "note": "New connector: TheCocktailDB. Free public API, no key needed. Search, random, filter by category/ingredient. 6 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "cocktail_search",
+        "cocktail_random"
+      ],
+      "comment": ""
+    },
     "color": {
       "status": "pass",
       "note": "color_info returned correct hex/rgb/hsl/name/luminance for #3498db (turquoise)",
@@ -352,6 +362,15 @@
       ],
       "comment": ""
     },
+    "dictionary": {
+      "status": "pass",
+      "note": "New connector: Free Dictionary API. No key needed. Look up word definitions, phonetics, examples in English and other languages. 2 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "dictionary_lookup"
+      ],
+      "comment": ""
+    },
     "digitalocean": {
       "status": "attention",
       "note": "Cloud API; needs DIGITALOCEAN_TOKEN.",
@@ -373,6 +392,16 @@
       "note": "Chat API; needs DISCORD_BOT_TOKEN.",
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "dogceo": {
+      "status": "pass",
+      "note": "New connector: Dog CEO API. Free public API, no key needed. Random dog images, browse breeds, filter by breed. 4 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "dog_random_image",
+        "dog_list_breeds"
+      ],
       "comment": ""
     },
     "domain": {
@@ -620,6 +649,16 @@
       "toolsTested": [],
       "comment": ""
     },
+    "holidays": {
+      "status": "pass",
+      "note": "New connector: Nager.Date public holidays. Free API, no key needed. Holidays by country/year, long weekends, country list. 4 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "holidays_by_country",
+        "holidays_countries"
+      ],
+      "comment": ""
+    },
     "hubspot": {
       "status": "attention",
       "note": "CRM API; needs HUBSPOT_ACCESS_TOKEN.",
@@ -702,6 +741,16 @@
       "note": "all tools require jira_domain, email, and api_token as mandatory params",
       "testedAt": "2026-06-07T04:10:00.000Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "joke": {
+      "status": "pass",
+      "note": "New connector: JokeAPI v2. Free API, no key needed. Random jokes by category (Programming, Pun, etc), single or twopart format. 2 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "joke_random",
+        "joke_categories"
+      ],
       "comment": ""
     },
     "keychain": {
@@ -1072,6 +1121,16 @@
       "note": "Banking API; needs PLAID credentials.",
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "pokeapi": {
+      "status": "pass",
+      "note": "New connector: PokeAPI. Free public API, no key needed. Get Pokemon by name/id, search, types, abilities, generations. 5 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "poke_get_pokemon",
+        "poke_search_pokemon"
+      ],
       "comment": ""
     },
     "podcastindex": {

@@ -534,6 +534,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cocktail",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cocktail_search",
+        "description": "Search for cocktails/drinks by name."
+      },
+      {
+        "name": "cocktail_random",
+        "description": "Get a random cocktail/drink recipe."
+      },
+      {
+        "name": "cocktail_get_by_id",
+        "description": "Get a cocktail/drink by ID."
+      },
+      {
+        "name": "cocktail_categories",
+        "description": "List all cocktail categories from TheCocktailDB."
+      },
+      {
+        "name": "cocktail_filter_by_category",
+        "description": "Filter cocktails by category."
+      },
+      {
+        "name": "cocktail_filter_by_ingredient",
+        "description": "Filter cocktails by ingredient."
+      }
+    ]
+  },
+  {
     "app": "coda",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -928,6 +958,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dictionary",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dictionary_lookup",
+        "description": "Look up a word's definition, phonetics, and examples."
+      },
+      {
+        "name": "dictionary_lookup_language",
+        "description": "Look up a word in a specific language (es, fr, de, it, ja, etc)."
+      }
+    ]
+  },
+  {
     "app": "digitalocean",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1010,6 +1054,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "discord_search",
         "description": "Search messages in a Discord guild."
+      }
+    ]
+  },
+  {
+    "app": "dogceo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_random_image",
+        "description": "Get random dog image(s) from Dog CEO API."
+      },
+      {
+        "name": "dog_breed_image",
+        "description": "Get random image(s) of a specific dog breed."
+      },
+      {
+        "name": "dog_list_breeds",
+        "description": "List all dog breeds and sub-breeds."
+      },
+      {
+        "name": "dog_breed_list",
+        "description": "List sub-breeds of a specific dog breed."
       }
     ]
   },
@@ -1712,6 +1778,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "holidays",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "holidays_by_country",
+        "description": "Get public holidays for a country and year."
+      },
+      {
+        "name": "holidays_next",
+        "description": "Get upcoming public holidays for a country."
+      },
+      {
+        "name": "holidays_countries",
+        "description": "List all countries supported by the public holidays API."
+      },
+      {
+        "name": "holidays_long_weekends",
+        "description": "Get long weekends for a country and year."
+      }
+    ]
+  },
+  {
     "app": "hubspot",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1904,6 +1992,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "jobsmith_rules",
         "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+      }
+    ]
+  },
+  {
+    "app": "joke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "joke_random",
+        "description": "Get a random joke from JokeAPI."
+      },
+      {
+        "name": "joke_categories",
+        "description": "List available joke categories from JokeAPI."
       }
     ]
   },
@@ -2968,6 +3070,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "pokeapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poke_get_pokemon",
+        "description": "Get Pokemon data by name or ID from PokeAPI."
+      },
+      {
+        "name": "poke_search_pokemon",
+        "description": "List Pokemon with pagination from PokeAPI."
+      },
+      {
+        "name": "poke_get_type",
+        "description": "Get Pokemon type info and which Pokemon have that type."
+      },
+      {
+        "name": "poke_get_ability",
+        "description": "Get Pokemon ability info and which Pokemon have it."
+      },
+      {
+        "name": "poke_get_generation",
+        "description": "Get Pokemon generation info, region, and species list."
       }
     ]
   },
