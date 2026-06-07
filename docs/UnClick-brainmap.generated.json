@@ -8343,28 +8343,28 @@
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "6ca638bd7002",
-      "bytes": 17570
+      "hash": "2bc870ebf30f",
+      "bytes": 21782
     },
     {
       "source": "src/lib/controltower.ts",
-      "hash": "4f5aef742c4a",
-      "bytes": 18625
+      "hash": "c9d18e61e7d8",
+      "bytes": 21703
     },
     {
       "source": "docs/prd/controltower.md",
-      "hash": "db23d54c71d8",
-      "bytes": 3830
+      "hash": "83641285316d",
+      "bytes": 4571
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
-      "hash": "4b5e69217a39",
-      "bytes": 14848
+      "hash": "a3cf298f1eda",
+      "bytes": 4203
     },
     {
       "source": "src/lib/skillLibrary.ts",
-      "hash": "7d69323f9491",
-      "bytes": 10487
+      "hash": "0ac8025f46f5",
+      "bytes": 12351
     },
     {
       "source": "src/lib/skillLibrarySeeds.ts",

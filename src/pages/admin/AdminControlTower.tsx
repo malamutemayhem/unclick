@@ -6,6 +6,7 @@ import {
   ClipboardCopy,
   ListTodo,
   Loader2,
+  MessageSquarePlus,
   RefreshCw,
   ShieldCheck,
   TowerControl,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import {
+  buildControlTowerClaimReceipt,
   claimControlTowerLane,
   createControlTowerPlan,
   type ControlTowerJobBoardItem,
@@ -137,6 +139,9 @@ export default function AdminControlTower() {
   const [jobError, setJobError] = useState<string | null>(null);
   const [lastProcessedAt, setLastProcessedAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [claimCopied, setClaimCopied] = useState(false);
+  const [claimPosting, setClaimPosting] = useState(false);
+  const [claimPostStatus, setClaimPostStatus] = useState<{ tone: "good" | "warn" | "bad"; message: string } | null>(null);
   const jobsReadAgentId = token ? (claimedAgentId ?? CONTROLTOWER_READ_AGENT_ID) : null;
 
   useEffect(() => {
@@ -209,6 +214,10 @@ export default function AdminControlTower() {
   );
 
   const claim = useMemo(() => claimControlTowerLane(plan), [plan]);
+  const claimReceipt = useMemo(
+    () => buildControlTowerClaimReceipt(plan, claim, { workerId: jobsReadAgentId ?? CONTROLTOWER_READ_AGENT_ID }),
+    [claim, jobsReadAgentId, plan],
+  );
   const slotsFull = plan.workerCounts.activeWorkers >= plan.maxActiveWorkers;
 
   const copyMasterBox = async () => {
@@ -218,6 +227,53 @@ export default function AdminControlTower() {
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       setCopied(false);
+    }
+  };
+
+  const copyClaimReceipt = async () => {
+    try {
+      await navigator.clipboard.writeText(claimReceipt.text);
+      setClaimCopied(true);
+      window.setTimeout(() => setClaimCopied(false), 1600);
+    } catch {
+      setClaimCopied(false);
+    }
+  };
+
+  const postClaimReceipt = async () => {
+    if (!jobsReadAgentId) {
+      setClaimPostStatus({ tone: "bad", message: "Sign in before posting the claim to Boardroom." });
+      return;
+    }
+
+    if (!claimReceipt.sourceJobId) {
+      setClaimPostStatus({
+        tone: "warn",
+        message: "No Boardroom job is attached to this lane yet. Copy the receipt or create a scoped Boardroom job first.",
+      });
+      return;
+    }
+
+    setClaimPosting(true);
+    setClaimPostStatus(null);
+    try {
+      const response = await fetch("/api/memory-admin?action=fishbowl_comment_on", {
+        method: "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent_id: jobsReadAgentId,
+          target_kind: "todo",
+          target_id: claimReceipt.sourceJobId,
+          text: claimReceipt.text,
+        }),
+      });
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) throw new Error(body.error ?? "Boardroom did not save the claim");
+      setClaimPostStatus({ tone: "good", message: "Claim posted to Boardroom." });
+    } catch (error) {
+      setClaimPostStatus({ tone: "bad", message: error instanceof Error ? error.message : "Boardroom did not save the claim" });
+    } finally {
+      setClaimPosting(false);
     }
   };
 
@@ -357,10 +413,48 @@ export default function AdminControlTower() {
           <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
             <div className="flex items-start gap-3">
               <Users className="mt-0.5 h-5 w-5 text-[#E2B93B]" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <h2 className="text-sm font-semibold text-white">Next worker claim</h2>
                 <p className="mt-2 text-sm leading-6 text-white/68">{claim.message}</p>
                 <p className="mt-3 text-xs text-white/45">{plan.resumeHint}</p>
+                <textarea
+                  readOnly
+                  aria-label="Claim receipt"
+                  value={claimReceipt.text}
+                  className="mt-4 min-h-[218px] w-full resize-y rounded-lg border border-white/10 bg-black/30 px-3 py-3 font-mono text-xs leading-5 text-white/78 outline-none"
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyClaimReceipt()}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-white hover:bg-white/[0.08]"
+                  >
+                    <ClipboardCopy className="h-4 w-4" />
+                    {claimCopied ? "Copied" : "Copy claim"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void postClaimReceipt()}
+                    disabled={claimPosting || !claimReceipt.sourceJobId}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#E2B93B]/35 bg-[#E2B93B]/12 px-3 py-2 text-sm font-medium text-[#F6D778] hover:bg-[#E2B93B]/18 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-white/35"
+                  >
+                    {claimPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquarePlus className="h-4 w-4" />}
+                    Post to Boardroom
+                  </button>
+                  {claimPostStatus && (
+                    <span
+                      className={`text-xs ${
+                        claimPostStatus.tone === "good"
+                          ? "text-emerald-300"
+                          : claimPostStatus.tone === "warn"
+                            ? "text-[#F6D778]"
+                            : "text-red-200"
+                      }`}
+                    >
+                      {claimPostStatus.message}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </section>
