@@ -1,0 +1,42 @@
+{
+  "updatedAt": "2026-06-07T02:25:40.911Z",
+  "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app's MCP tools. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested.",
+  "results": {
+    "datetime": {
+      "status": "pass",
+      "note": "datetime_current_time returned ISO + local time for Australia/Sydney.",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["datetime_current_time"]
+    },
+    "random": {
+      "status": "pass",
+      "note": "random_uuid returned a valid v4 UUID.",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["random_uuid"]
+    },
+    "calculator": {
+      "status": "pass",
+      "note": "calc_bmi(80kg, 180cm) returned 24.69 (Normal weight) with a healthy range.",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["calc_bmi"]
+    },
+    "unit-converter": {
+      "status": "pass",
+      "note": "convert_temperature 100C returned 212F plus K and R.",
+      "testedAt": "2026-06-07T02:25:37.687Z",
+      "toolsTested": ["convert_temperature"]
+    },
+    "coingecko": {
+      "status": "pass",
+      "note": "crypto_price(bitcoin, usd) returned a live price with unclick_meta source and next_steps.",
+      "testedAt": "2026-06-07T02:25:40.911Z",
+      "toolsTested": ["crypto_price"]
+    },
+    "alphavantage": {
+      "status": "attention",
+      "note": "stock_quote works but Alpha Vantage is not connected (no API key). Connect via Passport, then re-test.",
+      "testedAt": "2026-06-07T02:25:40.911Z",
+      "toolsTested": ["stock_quote"]
+    }
+  }
+}

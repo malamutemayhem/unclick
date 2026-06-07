@@ -86,6 +86,7 @@ import AdminControlTower from "./pages/admin/AdminControlTower.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
+import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
 import AdminXGate from "./pages/admin/AdminXGate.tsx";
 import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
@@ -224,6 +225,7 @@ const App = () => (
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
+            <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
