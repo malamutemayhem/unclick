@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:45:53.000Z",
+  "updatedAt": "2026-06-07T03:47:22.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -352,6 +352,74 @@
       "toolsTested": [
         "ebird_recent_observations"
       ]
+    },
+    "elevenlabs": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ELEVENLABS_API_KEY",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "email": {
+      "status": "attention",
+      "note": "side-effecting tools (send/delete/mark_read); read_inbox needs credentials; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "espn": {
+      "status": "pass",
+      "note": "espn_news returned 6 NFL articles with headlines, descriptions, and URLs; requires full sport path like football/nfl",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "espn_news"
+      ]
+    },
+    "etsy": {
+      "status": "attention",
+      "note": "api_key is a required param for all tools",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "eventbrite": {
+      "status": "attention",
+      "note": "requires EVENTBRITE_TOKEN env var or token arg",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "eventbrite_list_categories"
+      ]
+    },
+    "exchangerate": {
+      "status": "pass",
+      "note": "exchangerate_latest returned USD rates with timestamps; works without API key on free tier",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "exchangerate_latest"
+      ]
+    },
+    "fpl": {
+      "status": "pass",
+      "note": "fpl_bootstrap returned 841 players, 20 teams, GW38 data, top players with points",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "fpl_bootstrap"
+      ]
+    },
+    "feedly": {
+      "status": "attention",
+      "note": "generic action tool only (feedly_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "fidelitycopy": {
+      "status": "attention",
+      "note": "fidelitycopy_copy is side-effecting; fidelitypass_verify_copy needs prior copy; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
+    },
+    "figma": {
+      "status": "attention",
+      "note": "all tools require Figma file key and likely auth token; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": []
     }
   }
 }
