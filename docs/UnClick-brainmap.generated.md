@@ -65,7 +65,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
 | src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
 | src/pages/admin/Fishbowl.tsx | ec3c5b4f4b4f | 37557 |
-| src/pages/admin/AdminBrainmap.tsx | e0edf4d7c409 | 26533 |
+| src/pages/admin/AdminBrainmap.tsx | 035fdfea24c1 | 26574 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
