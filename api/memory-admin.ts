@@ -5608,6 +5608,104 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      // ── Embed backfill (cron) ─────────────────────────────────────────
+      // Fills missing OpenAI embeddings so semantic recall stays complete.
+      // Self-heals any gap (e.g. after the embeddings flag was ever toggled
+      // off, which silently left newer facts unembedded). Paid path, so it is
+      // gated by MEMORY_OPENAI_EMBEDDINGS_ENABLED + CRON_SECRET and capped per
+      // run for cost. Skips low-value/operational text and archived rows.
+      case "embed_backfill": {
+        const cronSecret = process.env.CRON_SECRET;
+        if (!cronSecret) {
+          return res.status(503).json({ error: "CRON_SECRET not configured on the server" });
+        }
+        if (bearerFrom(req) !== cronSecret) {
+          return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const flagRaw = (process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED ?? "").trim().toLowerCase();
+        if (!(flagRaw === "1" || flagRaw === "true")) {
+          return res.status(200).json({ skipped: "MEMORY_OPENAI_EMBEDDINGS_ENABLED is off" });
+        }
+        const openaiKey = process.env.OPENAI_API_KEY;
+        if (!openaiKey) {
+          return res.status(503).json({ error: "OPENAI_API_KEY not configured" });
+        }
+
+        const EMBED_MODEL = "text-embedding-3-small";
+        const MAX_PER_RUN = 250; // cost + timeout cap per run
+        const OPENAI_BATCH = 100; // inputs per OpenAI call
+
+        const skipEmbed = (text: string): boolean => {
+          const v = (text ?? "").trim();
+          if (v.length < 24) return true;
+          const lower = v.toLowerCase();
+          if (lower.startsWith("heartbeat_last_state:")) return true;
+          if (lower.includes("<heartbeat") || lower.includes("</heartbeat>")) return true;
+          return false;
+        };
+
+        const { data: candidates, error: fetchErr } = await supabase
+          .from("mc_extracted_facts")
+          .select("id, fact")
+          .is("embedding", null)
+          .or("status.is.null,status.eq.active")
+          .not("fact", "ilike", "heartbeat_last_state:%")
+          .order("created_at", { ascending: false })
+          .limit(MAX_PER_RUN * 2);
+        if (fetchErr) throw fetchErr;
+
+        const rows = (candidates ?? [])
+          .filter((r) => typeof r.fact === "string" && !skipEmbed(r.fact))
+          .slice(0, MAX_PER_RUN);
+
+        let embedded = 0;
+        const errors: string[] = [];
+        for (let i = 0; i < rows.length; i += OPENAI_BATCH) {
+          const chunk = rows.slice(i, i + OPENAI_BATCH);
+          try {
+            const resp = await fetch("https://api.openai.com/v1/embeddings", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: EMBED_MODEL,
+                input: chunk.map((r) => String(r.fact).slice(0, 32000)),
+              }),
+            });
+            if (!resp.ok) {
+              errors.push(`openai ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+              break; // stop on provider error (auth/quota); retry next run
+            }
+            const json = (await resp.json()) as { data: Array<{ embedding: number[]; index: number }> };
+            const vectors = json.data.slice().sort((a, b) => a.index - b.index);
+            for (let j = 0; j < chunk.length; j += 1) {
+              const vec = vectors[j]?.embedding;
+              if (!vec) continue;
+              const { error: upErr } = await supabase
+                .from("mc_extracted_facts")
+                .update({
+                  embedding: JSON.stringify(vec),
+                  embedding_model: EMBED_MODEL,
+                  embedding_created_at: new Date().toISOString(),
+                })
+                .eq("id", chunk[j].id);
+              if (upErr) errors.push(`update ${chunk[j].id}: ${upErr.message}`);
+              else embedded += 1;
+            }
+          } catch (err) {
+            errors.push(err instanceof Error ? err.message : String(err));
+            break;
+          }
+        }
+
+        return res.status(200).json({
+          ran_at: new Date().toISOString(),
+          candidates: rows.length,
+          embedded,
+          errors: errors.slice(0, 5),
+        });
+      }
+
       // ── Build Desk admin actions ─────────────────────────────────────
       case "admin_build_tasks": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);

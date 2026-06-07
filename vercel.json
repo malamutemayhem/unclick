@@ -50,6 +50,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/memory-admin?action=embed_backfill",
+      "schedule": "*/30 * * * *"
+    },
+    {
       "path": "/api/signals-dispatch",
       "schedule": "*/1 * * * *"
     },
