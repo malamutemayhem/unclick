@@ -227,4 +227,30 @@ describe("controltower planner", () => {
     expect(claim.message).toContain("active worker slots are full");
     expect(["Scout", "Reviewer", "Proof Checker"]).toContain(claim.helperRole);
   });
+
+  it("marks the intake lane done when there are no useful paste items", () => {
+    const plan = createControlTowerPlan({
+      prompt: "ControlTower: build the whole XPass worker flow.",
+      pastes: [],
+      now: "2026-06-07T10:00:00.000Z",
+    });
+
+    const intakeLane = plan.lanes.find((l) => l.id === "intake-scopepack");
+    expect(intakeLane).toBeDefined();
+    expect(intakeLane!.status).toBe("done");
+    expect(intakeLane!.source).toBe("default");
+  });
+
+  it("marks the intake lane waiting when paste has useful items", () => {
+    const plan = createControlTowerPlan({
+      prompt: "ControlTower: build the whole XPass worker flow.",
+      pastes: ["Decision: use Boardroom Jobs as source of truth."],
+      now: "2026-06-07T10:00:00.000Z",
+    });
+
+    const intakeLane = plan.lanes.find((l) => l.id === "intake-scopepack");
+    expect(intakeLane).toBeDefined();
+    expect(intakeLane!.status).toBe("waiting");
+    expect(intakeLane!.source).toBe("paste_intake");
+  });
 });
