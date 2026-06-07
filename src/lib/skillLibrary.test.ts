@@ -63,14 +63,19 @@ Do risky things.
     expect(parsed.validationIssues.map((issue) => issue.code)).toContain("restricted_hardwire");
   });
 
-  it("ships a validated top-20 starter pack with native rails separated from optional skills", () => {
-    expect(STARTER_SKILLS).toHaveLength(20);
+  it("ships a validated starter pack with native rails plus user-facing capability skills", () => {
+    expect(STARTER_SKILLS).toHaveLength(36);
     expect(STARTER_SKILLS.every((skill) => skill.validationIssues.every((issue) => issue.severity !== "error"))).toBe(true);
 
     const summary = buildSkillLibrarySummary(STARTER_SKILLS);
     expect(summary.hardwired).toBeGreaterThanOrEqual(6);
     expect(summary.hybrid).toBeGreaterThanOrEqual(4);
     expect(summary.categories).toEqual(expect.arrayContaining(["agent-orchestration", "testing-qa", "code-review"]));
+
+    // Trending, user-facing capability skills were brought in (documents, frontend, data...).
+    expect(summary.categories).toEqual(expect.arrayContaining(["documents", "frontend", "data", "content"]));
+    const slugs = STARTER_SKILLS.map((skill) => skill.slug);
+    expect(slugs).toEqual(expect.arrayContaining(["pdf-toolkit", "mcp-server-builder", "seo-content-optimizer", "skill-creator"]));
   });
 
   it("searches across names, tags, tools, roles, and bodies", () => {
