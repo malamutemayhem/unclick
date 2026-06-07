@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T03:49:32.000Z",
+  "updatedAt": "2026-06-07T04:15:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -557,6 +557,146 @@
       "testedAt": "2026-06-07T03:49:32.000Z",
       "toolsTested": [
         "igdb_search_games"
+      ]
+    },
+    "igniteonly": {
+      "status": "pass",
+      "note": "igniteonly_policy returned full guardrails and worker routes successfully",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "igniteonly_policy"
+      ]
+    },
+    "instapaper": {
+      "status": "attention",
+      "note": "not_connected; needs consumer_key, consumer_secret, and username credentials",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "instapaper_action"
+      ]
+    },
+    "intercom": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Intercom OAuth setup",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": []
+    },
+    "ipapi": {
+      "status": "pass",
+      "note": "ip_lookup returned geolocation for 8.8.8.8 (Google DNS, Ashburn VA) - no auth needed",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "ip_lookup"
+      ]
+    },
+    "ipaustralia": {
+      "status": "attention",
+      "note": "not_connected; needs IPAUSTRALIA_API_KEY via keychain or env var",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "search_trademarks"
+      ]
+    },
+    "jobsmith": {
+      "status": "pass",
+      "note": "jobsmith_rules returned 229 rules across 13 categories successfully",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "jobsmith_rules"
+      ]
+    },
+    "jira": {
+      "status": "attention",
+      "note": "all tools require jira_domain, email, and api_token as mandatory params",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": []
+    },
+    "keychain": {
+      "status": "pass",
+      "note": "keychain_list_platforms returned 69 platform connectors with connection status",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "keychain_list_platforms"
+      ]
+    },
+    "klaviyo": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Klaviyo private API key",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": []
+    },
+    "kling": {
+      "status": "attention",
+      "note": "all tools require api_key; kling_get_task also needs task_id from prior generation",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": []
+    },
+    "lastfm": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or LASTFM_API_KEY",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lastfm_chart_top_artists"
+      ]
+    },
+    "legalpass": {
+      "status": "attention",
+      "note": "legalpass_status requires run_id from prior legalpass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "lego": {
+      "status": "attention",
+      "note": "REBRICKABLE_API_KEY required; free key available at rebrickable.com/api/",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lego_themes"
+      ]
+    },
+    "lemonsqueezy": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Lemon Squeezy API key",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "lichess": {
+      "status": "pass",
+      "note": "lichess_top_players returned top 10 rapid players (top rating 2854) - no auth needed",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lichess_top_players"
+      ]
+    },
+    "line": {
+      "status": "attention",
+      "note": "all tools require channel_access_token and user_id as mandatory params",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "linear": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Linear API key",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "mailchimp": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param (format: key-dc)",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "mapbox": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Mapbox access token",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": []
+    },
+    "mastodon": {
+      "status": "attention",
+      "note": "mastodon_search requires access_token; generic action tool needs credentials",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "mastodon_action"
       ]
     }
   }
