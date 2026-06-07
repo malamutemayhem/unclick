@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-06-07T02:47:52.000Z",
+  "updatedAt": "2026-06-07T03:01:02.000Z",
   "results": {
     "abn": {
       "status": "attention",
-      "note": "API responded but returned GUID error for name search; connector reachable but may have parameter issue",
+      "note": "API reachable but ABN_GUID env var not set; returns GUID error without server-side auth",
       "testedAt": "2026-06-07T02:47:52.000Z",
       "toolsTested": [
         "abn_search"
@@ -72,6 +72,77 @@
       "note": "api_key is a required param; needs key via keychain or ASSEMBLYAI_API_KEY",
       "testedAt": "2026-06-07T02:47:52.000Z",
       "toolsTested": []
+    },
+    "australiapost": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or AUSPOST_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "auspost_get_postcode"
+      ]
+    },
+    "bandsintown": {
+      "status": "attention",
+      "note": "403 forbidden with default app_id; API may have revoked public access",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bandsintown_artist"
+      ]
+    },
+    "bitbucket": {
+      "status": "attention",
+      "note": "requires username, app_password, and workspace as mandatory params",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": []
+    },
+    "bluesky": {
+      "status": "attention",
+      "note": "generic action tool only (bluesky_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": []
+    },
+    "bgg": {
+      "status": "fail",
+      "note": "HTTP 401 on free public API (search and hot endpoints); possibly transient or IP-blocked",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bgg_search",
+        "bgg_top_games"
+      ]
+    },
+    "brevo": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or BREVO_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": []
+    },
+    "bungie": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or BUNGIE_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bungie_search_player"
+      ]
+    },
+    "csuite": {
+      "status": "attention",
+      "note": "AI-powered analysis tool; skipped to avoid LLM cost; needs manual test",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": []
+    },
+    "calcom": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or CALCOM_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": []
+    },
+    "calculator": {
+      "status": "pass",
+      "note": "calc_tip returned correct tip calculation (bill=50, 15% tip = 7.50, total 57.50)",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "calc_tip"
+      ]
     }
   }
 }
