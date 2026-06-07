@@ -11,7 +11,7 @@
     "divisions": 12,
     "inventory": 641,
     "source_manifest": 214,
-    "pages": 87,
+    "pages": 88,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -6540,6 +6540,12 @@
       "src/pages/admin/AdminAppTesting.tsx"
     ],
     [
+      "/admin/app-testing",
+      "Admin App Testing",
+      "Admin surface for Admin App Testing.",
+      "src/pages/admin/AdminAppTesting.tsx"
+    ],
+    [
       "/admin/apps",
       "Admin Tools",
       "Apps, tools, and connector capability surface.",
@@ -8509,13 +8515,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "029cc9d35a24",
-      "bytes": 15491
+      "hash": "a64843b4edcc",
+      "bytes": 15659
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "ad66a896a463",
-      "bytes": 24739
+      "hash": "c8bab38bba5e",
+      "bytes": 24827
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",

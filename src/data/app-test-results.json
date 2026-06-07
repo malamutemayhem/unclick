@@ -1,48 +1,1764 @@
 {
-  "updatedAt": "2026-06-07T02:52:00.000Z",
-  "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app's MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested.",
+  "updatedAt": "2026-06-07T05:05:00.000Z",
   "results": {
-    "datetime": {
-      "status": "pass",
-      "note": "datetime_current_time returned ISO + local time for Australia/Sydney.",
-      "comment": "",
-      "testedAt": "2026-06-07T02:25:37.687Z",
-      "toolsTested": ["datetime_current_time"]
+    "abn": {
+      "status": "attention",
+      "note": "API reachable but ABN_GUID env var not set; returns GUID error without server-side auth",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "abn_search"
+      ],
+      "comment": ""
     },
-    "random": {
-      "status": "pass",
-      "note": "random_uuid returned a valid v4 UUID.",
-      "comment": "",
-      "testedAt": "2026-06-07T02:25:37.687Z",
-      "toolsTested": ["random_uuid"]
+    "abuseipdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or ABUSEIPDB_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "abuseipdb_check_ip"
+      ],
+      "comment": ""
     },
-    "calculator": {
-      "status": "pass",
-      "note": "calc_bmi(80kg, 180cm) returned 24.69 (Normal weight) with a healthy range.",
-      "comment": "",
-      "testedAt": "2026-06-07T02:25:37.687Z",
-      "toolsTested": ["calc_bmi"]
+    "airtable": {
+      "status": "attention",
+      "note": "generic action tool only (airtable_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [],
+      "comment": ""
     },
-    "unit-converter": {
-      "status": "pass",
-      "note": "convert_temperature 100C returned 212F plus K and R.",
-      "comment": "",
-      "testedAt": "2026-06-07T02:25:37.687Z",
-      "toolsTested": ["convert_temperature"]
-    },
-    "coingecko": {
-      "status": "pass",
-      "note": "crypto_price(bitcoin, usd) returned a live price with unclick_meta source and next_steps.",
-      "comment": "Keyless public CoinGecko endpoint; safe default.",
-      "testedAt": "2026-06-07T02:25:40.911Z",
-      "toolsTested": ["crypto_price"]
+    "algolia": {
+      "status": "attention",
+      "note": "not_connected; requires app_id and api_key as mandatory params",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [],
+      "comment": ""
     },
     "alphavantage": {
       "status": "attention",
-      "note": "stock_quote works but Alpha Vantage is not connected (no API key).",
-      "comment": "Connect Alpha Vantage in Passport, then re-test to turn this green.",
-      "testedAt": "2026-06-07T02:25:40.911Z",
-      "toolsTested": ["stock_quote"]
+      "note": "not_connected; needs API key via keychain_secure_connect or ALPHAVANTAGE_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "stock_search"
+      ],
+      "comment": ""
+    },
+    "amazon": {
+      "status": "attention",
+      "note": "requires access_key, secret_key, and partner_tag as mandatory params",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "amazon_search"
+      ],
+      "comment": ""
+    },
+    "amber": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or AMBER_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "amber_current_price"
+      ],
+      "comment": ""
+    },
+    "anthropic": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ANTHROPIC_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "asana": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or ASANA_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [
+        "list_asana_workspaces"
+      ],
+      "comment": ""
+    },
+    "assemblyai": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ASSEMBLYAI_API_KEY",
+      "testedAt": "2026-06-07T02:47:52.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "australiapost": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or AUSPOST_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "auspost_get_postcode"
+      ],
+      "comment": ""
+    },
+    "bandsintown": {
+      "status": "attention",
+      "note": "403 forbidden with default app_id; API may have revoked public access",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bandsintown_artist"
+      ],
+      "comment": ""
+    },
+    "bitbucket": {
+      "status": "attention",
+      "note": "requires username, app_password, and workspace as mandatory params",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "bluesky": {
+      "status": "attention",
+      "note": "generic action tool only (bluesky_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "bgg": {
+      "status": "fail",
+      "note": "HTTP 401 on free public API (search and hot endpoints); possibly transient or IP-blocked",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bgg_search",
+        "bgg_top_games"
+      ],
+      "comment": ""
+    },
+    "brevo": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or BREVO_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "bungie": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or BUNGIE_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "bungie_search_player"
+      ],
+      "comment": ""
+    },
+    "csuite": {
+      "status": "attention",
+      "note": "AI-powered analysis tool; skipped to avoid LLM cost; needs manual test",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "calcom": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or CALCOM_API_KEY",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "calculator": {
+      "status": "pass",
+      "note": "calc_tip returned correct tip calculation (bill=50, 15% tip = 7.50, total 57.50)",
+      "testedAt": "2026-06-07T03:01:02.000Z",
+      "toolsTested": [
+        "calc_tip"
+      ],
+      "comment": ""
+    },
+    "calendly": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or CALENDLY_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "get_calendly_user"
+      ],
+      "comment": ""
+    },
+    "carboninterface": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or CARBONINTERFACE_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "carbon_flight_emissions"
+      ],
+      "comment": ""
+    },
+    "chessdotcom": {
+      "status": "pass",
+      "note": "chess_player returned full profile for hikaru (GM, 1.3M followers); chess_puzzles_random returned valid puzzle with FEN/PGN",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "chess_player",
+        "chess_puzzles_random"
+      ],
+      "comment": ""
+    },
+    "circleci": {
+      "status": "attention",
+      "note": "api_key is a required param; needs token via keychain or CIRCLECI_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "clickup": {
+      "status": "attention",
+      "note": "generic action tool only (clickup_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "clockify": {
+      "status": "attention",
+      "note": "generic action tool only (clockify_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "cloudinary": {
+      "status": "attention",
+      "note": "requires cloud_name, api_key, and api_secret as mandatory params",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "coda": {
+      "status": "attention",
+      "note": "api_token is a required param; needs token via keychain or CODA_API_TOKEN",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "cohere": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or COHERE_API_KEY",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "cohere_list_models"
+      ],
+      "comment": ""
+    },
+    "coingecko": {
+      "status": "pass",
+      "note": "crypto_trending returned 15 trending coins with full market data (BTC, SOL, ETH, etc.)",
+      "testedAt": "2026-06-07T03:42:28.000Z",
+      "toolsTested": [
+        "crypto_trending"
+      ],
+      "comment": ""
+    },
+    "coinmarketcap": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or COINMARKETCAP_API_KEY",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "cmc_global_metrics"
+      ],
+      "comment": ""
+    },
+    "color": {
+      "status": "pass",
+      "note": "color_info returned correct hex/rgb/hsl/name/luminance for #3498db (turquoise)",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "color_info"
+      ],
+      "comment": ""
+    },
+    "commonsensepass": {
+      "status": "pass",
+      "note": "commonsensepass_rules returned full rule catalog (6 rules, 5 verdicts, fixture ids)",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "commonsensepass_rules"
+      ],
+      "comment": ""
+    },
+    "compliancepass": {
+      "status": "attention",
+      "note": "compliancepass_status requires a run_id from prior compliancepass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "confluence": {
+      "status": "attention",
+      "note": "requires site, email, and api_token as mandatory params",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "contentful": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or env var",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "convertkit": {
+      "status": "attention",
+      "note": "api_secret is a required param; needs secret via keychain or env var",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "copypass": {
+      "status": "attention",
+      "note": "copypass_status requires a run_id from prior copypass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "crews": {
+      "status": "pass",
+      "note": "list_runs returned 1 crew run with id and status (failed); API working",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [
+        "list_runs"
+      ],
+      "comment": ""
+    },
+    "datadog": {
+      "status": "attention",
+      "note": "requires api_key and app_key as mandatory params",
+      "testedAt": "2026-06-07T03:43:25.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "datetime": {
+      "status": "pass",
+      "note": "datetime_current_time returned correct local time for Australia/Melbourne timezone",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "datetime_current_time"
+      ],
+      "comment": ""
+    },
+    "deepl": {
+      "status": "attention",
+      "note": "auth_key is a required param; needs key via keychain or DEEPL_AUTH_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "deezer": {
+      "status": "fail",
+      "note": "deezer_chart crashed: Cannot read properties of undefined (reading data); FIXED - response shape mismatch in getDeezerChart",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "deezer_chart"
+      ],
+      "comment": ""
+    },
+    "digitalocean": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or env var",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "discogs": {
+      "status": "attention",
+      "note": "not_connected; needs personal access token via keychain_secure_connect or DISCOGS_TOKEN",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "discogs_search_releases"
+      ],
+      "comment": ""
+    },
+    "discord": {
+      "status": "attention",
+      "note": "paid or side-effecting only (send/read/react/thread); needs manual test with bot token",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "domain": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or DOMAIN_API_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "domain_search_listings"
+      ],
+      "comment": ""
+    },
+    "dropbox": {
+      "status": "attention",
+      "note": "access_token is a required param; needs token via keychain or DROPBOX_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "ebay": {
+      "status": "attention",
+      "note": "requires client_id and client_secret as mandatory params",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "ebird": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or EBIRD_API_KEY",
+      "testedAt": "2026-06-07T03:45:53.000Z",
+      "toolsTested": [
+        "ebird_recent_observations"
+      ],
+      "comment": ""
+    },
+    "elevenlabs": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or ELEVENLABS_API_KEY",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "email": {
+      "status": "attention",
+      "note": "side-effecting tools (send/delete/mark_read); read_inbox needs credentials; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "espn": {
+      "status": "pass",
+      "note": "espn_news returned 6 NFL articles with headlines, descriptions, and URLs; requires full sport path like football/nfl",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "espn_news"
+      ],
+      "comment": ""
+    },
+    "etsy": {
+      "status": "attention",
+      "note": "api_key is a required param for all tools",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "eventbrite": {
+      "status": "attention",
+      "note": "requires EVENTBRITE_TOKEN env var or token arg",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "eventbrite_list_categories"
+      ],
+      "comment": ""
+    },
+    "exchangerate": {
+      "status": "pass",
+      "note": "exchangerate_latest returned USD rates with timestamps; works without API key on free tier",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "exchangerate_latest"
+      ],
+      "comment": ""
+    },
+    "fpl": {
+      "status": "pass",
+      "note": "fpl_bootstrap returned 841 players, 20 teams, GW38 data, top players with points",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "fpl_bootstrap"
+      ],
+      "comment": ""
+    },
+    "feedly": {
+      "status": "attention",
+      "note": "generic action tool only (feedly_action); needs manual test with credentials",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "fidelitycopy": {
+      "status": "attention",
+      "note": "fidelitycopy_copy is side-effecting; fidelitypass_verify_copy needs prior copy; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "figma": {
+      "status": "attention",
+      "note": "all tools require Figma file key and likely auth token; needs manual test",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "flowpass": {
+      "status": "attention",
+      "note": "flowpass_status requires run_id from prior flowpass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "flyio": {
+      "status": "attention",
+      "note": "api_key required; needs Fly.io token from fly auth token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "fly_list_apps"
+      ],
+      "comment": ""
+    },
+    "foursquare": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or FOURSQUARE_API_KEY",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "foursquare_search_places"
+      ],
+      "comment": ""
+    },
+    "gdelt": {
+      "status": "attention",
+      "note": "connector works but hit 429 rate limit on gdelt_trending; retry later",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "gdelt_trending"
+      ],
+      "comment": ""
+    },
+    "genius": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or GENIUS_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [
+        "genius_search"
+      ],
+      "comment": ""
+    },
+    "geopass": {
+      "status": "attention",
+      "note": "geopass_status requires run_id from prior geopass_run; no standalone read-only tool",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "ghost": {
+      "status": "attention",
+      "note": "requires site_url and content_key as mandatory params",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "giphy": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or GIPHY_API_KEY",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "github": {
+      "status": "attention",
+      "note": "generic action tool only (github_action); needs manual test with token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "gitlab": {
+      "status": "attention",
+      "note": "generic action tool only (gitlab_action); needs manual test with token",
+      "testedAt": "2026-06-07T03:48:39.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "groq": {
+      "status": "attention",
+      "note": "api_key is a required param; needs key via keychain or GROQ_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "guardian": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or GUARDIAN_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "guardian_search_articles"
+      ],
+      "comment": ""
+    },
+    "gumroad": {
+      "status": "attention",
+      "note": "all tools require auth credentials; needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "hackernews": {
+      "status": "pass",
+      "note": "hn_top_stories returned 3 stories with titles, URLs, scores, and comment counts from Firebase API",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hn_top_stories"
+      ],
+      "comment": ""
+    },
+    "haveibeenpwned": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or HIBP_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hibp_all_breaches"
+      ],
+      "comment": ""
+    },
+    "heygen": {
+      "status": "attention",
+      "note": "paid or side-effecting only (create_avatar_video); heygen_list_avatars needs key; needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "higgsfield": {
+      "status": "attention",
+      "note": "paid or side-effecting only (generate_video/image); needs manual test",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "hubspot": {
+      "status": "attention",
+      "note": "all tools require HubSpot auth; needs manual test with credentials",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "hunter": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or HUNTER_API_KEY",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "hunter_domain_info"
+      ],
+      "comment": ""
+    },
+    "igdb": {
+      "status": "attention",
+      "note": "not_connected; needs Twitch/IGDB client_id and client_secret",
+      "testedAt": "2026-06-07T03:49:32.000Z",
+      "toolsTested": [
+        "igdb_search_games"
+      ],
+      "comment": ""
+    },
+    "igniteonly": {
+      "status": "pass",
+      "note": "igniteonly_policy returned full guardrails and worker routes successfully",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "igniteonly_policy"
+      ],
+      "comment": ""
+    },
+    "instapaper": {
+      "status": "attention",
+      "note": "not_connected; needs consumer_key, consumer_secret, and username credentials",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "instapaper_action"
+      ],
+      "comment": ""
+    },
+    "intercom": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Intercom OAuth setup",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "ipapi": {
+      "status": "pass",
+      "note": "ip_lookup returned geolocation for 8.8.8.8 (Google DNS, Ashburn VA) - no auth needed",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "ip_lookup"
+      ],
+      "comment": ""
+    },
+    "ipaustralia": {
+      "status": "attention",
+      "note": "not_connected; needs IPAUSTRALIA_API_KEY via keychain or env var",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "search_trademarks"
+      ],
+      "comment": ""
+    },
+    "jobsmith": {
+      "status": "pass",
+      "note": "jobsmith_rules returned 229 rules across 13 categories successfully",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "jobsmith_rules"
+      ],
+      "comment": ""
+    },
+    "jira": {
+      "status": "attention",
+      "note": "all tools require jira_domain, email, and api_token as mandatory params",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "keychain": {
+      "status": "pass",
+      "note": "keychain_list_platforms returned 69 platform connectors with connection status",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "keychain_list_platforms"
+      ],
+      "comment": ""
+    },
+    "klaviyo": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Klaviyo private API key",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "kling": {
+      "status": "attention",
+      "note": "all tools require api_key; kling_get_task also needs task_id from prior generation",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "lastfm": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or LASTFM_API_KEY",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lastfm_chart_top_artists"
+      ],
+      "comment": ""
+    },
+    "legalpass": {
+      "status": "attention",
+      "note": "legalpass_status requires run_id from prior legalpass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "lego": {
+      "status": "attention",
+      "note": "REBRICKABLE_API_KEY required; free key available at rebrickable.com/api/",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lego_themes"
+      ],
+      "comment": ""
+    },
+    "lemonsqueezy": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Lemon Squeezy API key",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "lichess": {
+      "status": "pass",
+      "note": "lichess_top_players returned top 10 rapid players (top rating 2854) - no auth needed",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "lichess_top_players"
+      ],
+      "comment": ""
+    },
+    "line": {
+      "status": "attention",
+      "note": "all tools require channel_access_token and user_id as mandatory params",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "linear": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Linear API key",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "mailchimp": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param (format: key-dc)",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "mapbox": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Mapbox access token",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "mastodon": {
+      "status": "attention",
+      "note": "mastodon_search requires access_token; generic action tool needs credentials",
+      "testedAt": "2026-06-07T04:15:00.000Z",
+      "toolsTested": [
+        "mastodon_action"
+      ],
+      "comment": ""
+    },
+    "meal": {
+      "status": "pass",
+      "note": "meal_search returned recipe for 'pasta' (Mediterranean Pasta Salad) - no auth needed, TheMealDB",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "meal_search"
+      ],
+      "comment": ""
+    },
+    "miro": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Miro OAuth token",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "mistral": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or MISTRAL_API_KEY",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "mistral_list_models"
+      ],
+      "comment": ""
+    },
+    "mixpanel": {
+      "status": "attention",
+      "note": "all tools require service_account_username, service_account_secret, project_id as mandatory params",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "monday": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or MONDAY_API_KEY",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "list_monday_boards"
+      ],
+      "comment": ""
+    },
+    "monica": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "monica_action"
+      ],
+      "comment": ""
+    },
+    "musicbrainz": {
+      "status": "pass",
+      "note": "mb_search_artists returned 29 results for 'Radiohead' with metadata - no auth needed",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "mb_search_artists"
+      ],
+      "comment": ""
+    },
+    "nasa": {
+      "status": "fail",
+      "note": "nasa_apod timed out after 10000ms on two attempts; DEMO_KEY rate-limited or API slow",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [
+        "nasa_apod"
+      ],
+      "comment": ""
+    },
+    "neon": {
+      "status": "attention",
+      "note": "tools have optional api_key but likely need it; skipped (needs Neon account)",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "netlify": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Netlify personal access token",
+      "testedAt": "2026-06-07T04:20:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "newsapi": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or NEWS_API_KEY",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "news_top_headlines"
+      ],
+      "comment": ""
+    },
+    "notion": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "notion_action"
+      ],
+      "comment": ""
+    },
+    "nudgeonly": {
+      "status": "pass",
+      "note": "nudgeonly_policy returned full NudgeOnlyAPI guardrails, painpoint catalog, and receipt bridge",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "nudgeonly_policy"
+      ],
+      "comment": ""
+    },
+    "numbers": {
+      "status": "fail",
+      "note": "number_fact returned HTTP 404 for number 42 trivia; numbersapi.com may be down or HTTP blocked",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "number_fact"
+      ],
+      "comment": ""
+    },
+    "nvd": {
+      "status": "pass",
+      "note": "get_recent_cves returned successfully (empty result set is valid - no recent CVEs matched)",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "get_recent_cves"
+      ],
+      "comment": ""
+    },
+    "omdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or OMDB_API_KEY",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "omdb_search"
+      ],
+      "comment": ""
+    },
+    "openexchangerates": {
+      "status": "pass",
+      "note": "exchangerate_latest returned USD rates (updated 2026-06-07) - works without API key on free tier",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "exchangerate_latest"
+      ],
+      "comment": ""
+    },
+    "openfoodfacts": {
+      "status": "fail",
+      "note": "food_search returned HTTP 503 (service unavailable) from world.openfoodfacts.org",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "food_search"
+      ],
+      "comment": ""
+    },
+    "openlibrary": {
+      "status": "pass",
+      "note": "openlibrary_search returned 44540 results for 'dune' with full metadata - no auth needed",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "openlibrary_search"
+      ],
+      "comment": ""
+    },
+    "openmeteo": {
+      "status": "pass",
+      "note": "weather_current returned Melbourne weather (16.7C, partly cloudy) - no auth needed",
+      "testedAt": "2026-06-07T04:25:00.000Z",
+      "toolsTested": [
+        "weather_current"
+      ],
+      "comment": ""
+    },
+    "openai": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs OpenAI API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "openaq": {
+      "status": "fail",
+      "note": "openaq_countries network error (fetch failed); OpenAQ API may be down or unreachable",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "openaq_countries"
+      ],
+      "comment": ""
+    },
+    "openf1": {
+      "status": "pass",
+      "note": "f1_sessions returned 123 sessions for 2025 season with full schedule data - no auth needed",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "f1_sessions"
+      ],
+      "comment": ""
+    },
+    "pagerduty": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs PagerDuty API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "pandascore": {
+      "status": "attention",
+      "note": "PANDASCORE_TOKEN required; register at pandascore.co for API access",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "esports_tournaments"
+      ],
+      "comment": ""
+    },
+    "paypal": {
+      "status": "attention",
+      "note": "all tools require client_id and client_secret as mandatory params; needs PayPal app credentials",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "perplexity": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or PERPLEXITY_API_KEY",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "perplexity_chat_completion"
+      ],
+      "comment": ""
+    },
+    "pika": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid video generation service",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "pinecone": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Pinecone API key",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "pinterest": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or PINTEREST_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "list_pinterest_boards"
+      ],
+      "comment": ""
+    },
+    "pipedrive": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Pipedrive API token",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "plaid": {
+      "status": "attention",
+      "note": "all tools require client_id, secret, and access_token as mandatory params",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "podcastindex": {
+      "status": "attention",
+      "note": "not_connected; needs api_key and api_secret via keychain or PODCASTINDEX_API_KEY",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "podcast_trending"
+      ],
+      "comment": ""
+    },
+    "posthog": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs PostHog personal API key",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "postman": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Postman API key",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "postmark": {
+      "status": "attention",
+      "note": "all tools require api_key (server token) as mandatory param",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "ptv": {
+      "status": "pass",
+      "note": "ptv_search returned Melbourne transit stops/routes for 'Flinders Street' with live service status - no auth needed",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "ptv_search"
+      ],
+      "comment": ""
+    },
+    "pushonly": {
+      "status": "pass",
+      "note": "pushonly_policy returned full PushOnlyAPI guardrails with worker routes and quality gates",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "pushonly_policy"
+      ],
+      "comment": ""
+    },
+    "pushover": {
+      "status": "attention",
+      "note": "all tools require app_token as mandatory param; needs Pushover app token",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "qc": {
+      "status": "pass",
+      "note": "qc_run_checklist passed 3/3 checks on example.com (site_loads, ssl_valid, response_time) in 38ms",
+      "testedAt": "2026-06-07T04:35:00.000Z",
+      "toolsTested": [
+        "qc_run_checklist"
+      ],
+      "comment": ""
+    },
+    "quickbooks": {
+      "status": "attention",
+      "note": "all tools require access_token and realm_id as mandatory params; needs QuickBooks OAuth2",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "radiobrowser": {
+      "status": "pass",
+      "note": "radio_search returned 3 BBC stations with stream URLs and metadata - no auth needed",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "radio_search"
+      ],
+      "comment": ""
+    },
+    "raindrop": {
+      "status": "attention",
+      "note": "not_connected; needs token credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "raindrop_action"
+      ],
+      "comment": ""
+    },
+    "random": {
+      "status": "pass",
+      "note": "random_roll_dice returned valid 1d6 result (rolled 1) - no auth needed, internal tool",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "random_roll_dice"
+      ],
+      "comment": ""
+    },
+    "rawg": {
+      "status": "attention",
+      "note": "RAWG_API_KEY required; free key available at rawg.io/apidocs",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "rawg_search_games"
+      ],
+      "comment": ""
+    },
+    "readwise": {
+      "status": "attention",
+      "note": "not_connected; needs token credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "readwise_action"
+      ],
+      "comment": ""
+    },
+    "reddit": {
+      "status": "attention",
+      "note": "reddit_read returned 'forbidden' even for public subreddit; Reddit API now requires OAuth for all access",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "reddit_read"
+      ],
+      "comment": ""
+    },
+    "render": {
+      "status": "attention",
+      "note": "api_key required; needs Render API key from dashboard.render.com",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "render_list_services"
+      ],
+      "comment": ""
+    },
+    "replicate": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Replicate API token",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "resend": {
+      "status": "attention",
+      "note": "Invalid API key error; needs valid Resend API key",
+      "testedAt": "2026-06-07T04:40:00.000Z",
+      "toolsTested": [
+        "resend_list_domains"
+      ],
+      "comment": ""
+    },
+    "restcountries": {
+      "status": "pass",
+      "note": "country_by_name returned Australia with full metadata (population, currencies, timezones) - no auth needed",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "country_by_name"
+      ],
+      "comment": ""
+    },
+    "riot": {
+      "status": "attention",
+      "note": "RIOT_API_KEY required; get key at developer.riotgames.com",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "riot_summoner"
+      ],
+      "comment": ""
+    },
+    "runway": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid video generation service",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "seatgeek": {
+      "status": "attention",
+      "note": "not_connected; needs client_id via keychain_secure_connect or SEATGEEK_CLIENT_ID",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "seatgeek_search_events"
+      ],
+      "comment": ""
+    },
+    "securitypass": {
+      "status": "attention",
+      "note": "securitypass_status requires run_id from prior securitypass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "segment": {
+      "status": "attention",
+      "note": "all tools require api_key and workspace_id as mandatory params",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "sendgrid": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs SendGrid API key",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "sendle": {
+      "status": "attention",
+      "note": "not_connected; needs api_key and sendle_id via keychain or env var",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [
+        "sendle_get_quote"
+      ],
+      "comment": ""
+    },
+    "sentry": {
+      "status": "attention",
+      "note": "all tools require auth_token as mandatory param; needs Sentry auth token",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "seopass": {
+      "status": "attention",
+      "note": "seopass_status requires run_id from prior seopass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T04:45:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "setlistfm": {
+      "status": "attention",
+      "note": "SETLISTFM_API_KEY required; needs API key from api.setlist.fm",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "setlistfm_search_artist"
+      ],
+      "comment": ""
+    },
+    "shodan": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or SHODAN_API_KEY",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "shodan_search"
+      ],
+      "comment": ""
+    },
+    "shopify": {
+      "status": "attention",
+      "note": "requires shop_domain plus access_token or api_key; needs Shopify store credentials",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "shortcut": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Shortcut API token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "slack": {
+      "status": "attention",
+      "note": "all tools require bot_token as mandatory param; needs Slack bot token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "sleeper": {
+      "status": "pass",
+      "note": "sleeper_nfl_state returned 2026 off-season state (week 0) - no auth needed",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "sleeper_nfl_state"
+      ],
+      "comment": ""
+    },
+    "sloppass": {
+      "status": "attention",
+      "note": "sloppass_run requires target and files/diff input; internal pass tool, needs specific invocation context",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "speedrun": {
+      "status": "pass",
+      "note": "speedrun_search_games returned 3 Mario games with speedrun.com links - no auth needed",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "speedrun_search_games"
+      ],
+      "comment": ""
+    },
+    "splitwise": {
+      "status": "attention",
+      "note": "not_connected; needs api_key credential configured via vault or env var",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [
+        "splitwise_action"
+      ],
+      "comment": ""
+    },
+    "spotify": {
+      "status": "attention",
+      "note": "all tools require bearer_token as mandatory param; needs Spotify OAuth token",
+      "testedAt": "2026-06-07T04:50:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "square": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Square OAuth token",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "stability": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid image generation service",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "steam": {
+      "status": "pass",
+      "note": "search_steam_store returned 10 Portal games with AUD pricing and metascores - no auth needed",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "search_steam_store"
+      ],
+      "comment": ""
+    },
+    "stripe": {
+      "status": "attention",
+      "note": "all tools require secret_key as mandatory param; needs Stripe secret key",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "supercell": {
+      "status": "attention",
+      "note": "coc_player requires playerTag (mandatory); api_key optional but likely needed",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "tab": {
+      "status": "fail",
+      "note": "tab_sports_markets returned HTML instead of JSON; beta API (api.beta.tab.com.au) may be defunct",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "tab_sports_markets"
+      ],
+      "comment": ""
+    },
+    "telegram": {
+      "status": "attention",
+      "note": "all tools require bot_token as mandatory param; needs Telegram bot token",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "testpass": {
+      "status": "attention",
+      "note": "testpass_list_packs returned HTTP 401; internal pass tool, requires authorization header",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "testpass_list_packs"
+      ],
+      "comment": ""
+    },
+    "text": {
+      "status": "pass",
+      "note": "text_analyse returned word count, sentence count, reading time - no auth needed, internal tool",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "text_analyse"
+      ],
+      "comment": ""
+    },
+    "thelott": {
+      "status": "fail",
+      "note": "lott_results returned 'Game or draw not found' for TattsLotto; API may have changed format or be unavailable",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "lott_results"
+      ],
+      "comment": ""
+    },
+    "ticketmaster": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TICKETMASTER_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tm_search_events"
+      ],
+      "comment": ""
+    },
+    "tiktok": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or TIKTOK_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "get_tiktok_user"
+      ],
+      "comment": ""
+    },
+    "tmdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TMDB_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tmdb_trending"
+      ],
+      "comment": ""
+    },
+    "todoist": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Todoist API token",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "togetherai": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Together AI API key",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "toggl": {
+      "status": "attention",
+      "note": "not_connected; needs API token via keychain_secure_connect or TOGGL_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "toggl_time_entries"
+      ],
+      "comment": ""
+    },
+    "toilets": {
+      "status": "pass",
+      "note": "find_nearest_toilets returned 2 public toilets near Melbourne CBD (23m and 29m away) - no auth needed",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "find_nearest_toilets"
+      ],
+      "comment": ""
+    },
+    "tomorrowio": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TOMORROWIO_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tomorrow_realtime"
+      ],
+      "comment": ""
+    },
+    "trello": {
+      "status": "attention",
+      "note": "all tools require api_key and token as mandatory params; needs Trello credentials",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "trivia": {
+      "status": "pass",
+      "note": "trivia_questions returned 2 easy questions with answers from Open Trivia DB - no auth needed",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "trivia_questions"
+      ],
+      "comment": ""
+    },
+    "trove": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TROVE_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "trove_search"
+      ],
+      "comment": ""
+    },
+    "turso": {
+      "status": "attention",
+      "note": "all tools require api_key and org as mandatory params; needs Turso API token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "twilio": {
+      "status": "attention",
+      "note": "all tools require account_sid and auth_token as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "twitch": {
+      "status": "attention",
+      "note": "not_connected; needs client_id and client_secret via keychain or TWITCH_CLIENT_ID",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "twitch_top_games"
+      ],
+      "comment": ""
+    },
+    "typeform": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Typeform personal access token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "unit-converter": {
+      "status": "pass",
+      "note": "convert_temperature returned 100C = 212F = 373.15K - no auth needed, internal tool",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "convert_temperature"
+      ],
+      "comment": ""
+    },
+    "unsplash": {
+      "status": "attention",
+      "note": "all tools require access_key as mandatory param; needs Unsplash Access Key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "untappd": {
+      "status": "attention",
+      "note": "UNTAPPD_CLIENT_ID and UNTAPPD_CLIENT_SECRET required; register at untappd.com/api/register",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "untappd_search_beer"
+      ],
+      "comment": ""
+    },
+    "upstash": {
+      "status": "attention",
+      "note": "all tools require api_key, email, and db_id as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "uptimerobot": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs UptimeRobot API key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "urlscan": {
+      "status": "pass",
+      "note": "urlscan_search returned 2 scan results for example.com with screenshots - no auth needed for search",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "urlscan_search"
+      ],
+      "comment": ""
+    },
+    "usgs": {
+      "status": "pass",
+      "note": "usgs_recent_earthquakes returned 3 M5+ quakes from past day near Timor Leste - no auth needed",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "usgs_recent_earthquakes"
+      ],
+      "comment": ""
+    },
+    "uxpass": {
+      "status": "attention",
+      "note": "uxpass_status requires run_id from prior uxpass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "vault": {
+      "status": "attention",
+      "note": "all tools require master_password as mandatory param; internal vault tool",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "vercel": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or VERCEL_TOKEN",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "vercel_list_projects"
+      ],
+      "comment": ""
+    },
+    "virustotal": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or VIRUSTOTAL_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "virustotal_scan_domain"
+      ],
+      "comment": ""
+    },
+    "webflow": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Webflow API token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "whatsapp": {
+      "status": "attention",
+      "note": "all tools require bearer_token, phone_number_id as mandatory params; side-effecting (send only)",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "wikipedia": {
+      "status": "pass",
+      "note": "wikipedia_search returned 3 results for 'Australia' with snippets and metadata - no auth needed",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "wikipedia_search"
+      ],
+      "comment": ""
+    },
+    "willyweather": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or WILLYWEATHER_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "willyweather_forecast"
+      ],
+      "comment": ""
+    },
+    "wise": {
+      "status": "attention",
+      "note": "not_connected; needs API token via keychain_secure_connect or WISE_API_TOKEN",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "wise_profile"
+      ],
+      "comment": ""
+    },
+    "woocommerce": {
+      "status": "attention",
+      "note": "all tools require store_url, consumer_key, consumer_secret as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "wordpress": {
+      "status": "attention",
+      "note": "all tools require site_url, username, app_password as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "xero": {
+      "status": "attention",
+      "note": "not_connected; needs access_token and tenant_id via vault or OAuth flow",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "xero_organisation"
+      ],
+      "comment": ""
+    },
+    "xpass-aggregated-verdict": {
+      "status": "attention",
+      "note": "internal conductor tool; requires target with sha and pass_results from prior runs",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "yelp": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or YELP_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "yelp_search_businesses"
+      ],
+      "comment": ""
+    },
+    "youtube": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs YouTube Data API v3 key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "zendesk": {
+      "status": "attention",
+      "note": "all tools require subdomain, email, api_token as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [],
+      "comment": ""
     }
-  }
+  },
+  "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
 }
