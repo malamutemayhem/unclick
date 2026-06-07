@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T05:00:00.000Z",
+  "updatedAt": "2026-06-07T05:05:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1346,6 +1346,200 @@
       "toolsTested": [
         "trivia_questions"
       ]
+    },
+    "trove": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TROVE_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "trove_search"
+      ]
+    },
+    "turso": {
+      "status": "attention",
+      "note": "all tools require api_key and org as mandatory params; needs Turso API token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "twilio": {
+      "status": "attention",
+      "note": "all tools require account_sid and auth_token as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "twitch": {
+      "status": "attention",
+      "note": "not_connected; needs client_id and client_secret via keychain or TWITCH_CLIENT_ID",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "twitch_top_games"
+      ]
+    },
+    "typeform": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Typeform personal access token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "unit-converter": {
+      "status": "pass",
+      "note": "convert_temperature returned 100C = 212F = 373.15K - no auth needed, internal tool",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "convert_temperature"
+      ]
+    },
+    "unsplash": {
+      "status": "attention",
+      "note": "all tools require access_key as mandatory param; needs Unsplash Access Key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "untappd": {
+      "status": "attention",
+      "note": "UNTAPPD_CLIENT_ID and UNTAPPD_CLIENT_SECRET required; register at untappd.com/api/register",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "untappd_search_beer"
+      ]
+    },
+    "upstash": {
+      "status": "attention",
+      "note": "all tools require api_key, email, and db_id as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "uptimerobot": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs UptimeRobot API key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "urlscan": {
+      "status": "pass",
+      "note": "urlscan_search returned 2 scan results for example.com with screenshots - no auth needed for search",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "urlscan_search"
+      ]
+    },
+    "usgs": {
+      "status": "pass",
+      "note": "usgs_recent_earthquakes returned 3 M5+ quakes from past day near Timor Leste - no auth needed",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "usgs_recent_earthquakes"
+      ]
+    },
+    "uxpass": {
+      "status": "attention",
+      "note": "uxpass_status requires run_id from prior uxpass_run; internal pass tool, no standalone read",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "vault": {
+      "status": "attention",
+      "note": "all tools require master_password as mandatory param; internal vault tool",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "vercel": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or VERCEL_TOKEN",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "vercel_list_projects"
+      ]
+    },
+    "virustotal": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or VIRUSTOTAL_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "virustotal_scan_domain"
+      ]
+    },
+    "webflow": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Webflow API token",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "whatsapp": {
+      "status": "attention",
+      "note": "all tools require bearer_token, phone_number_id as mandatory params; side-effecting (send only)",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "wikipedia": {
+      "status": "pass",
+      "note": "wikipedia_search returned 3 results for 'Australia' with snippets and metadata - no auth needed",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "wikipedia_search"
+      ]
+    },
+    "willyweather": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or WILLYWEATHER_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "willyweather_forecast"
+      ]
+    },
+    "wise": {
+      "status": "attention",
+      "note": "not_connected; needs API token via keychain_secure_connect or WISE_API_TOKEN",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "wise_profile"
+      ]
+    },
+    "woocommerce": {
+      "status": "attention",
+      "note": "all tools require store_url, consumer_key, consumer_secret as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "wordpress": {
+      "status": "attention",
+      "note": "all tools require site_url, username, app_password as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "xero": {
+      "status": "attention",
+      "note": "not_connected; needs access_token and tenant_id via vault or OAuth flow",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "xero_organisation"
+      ]
+    },
+    "xpass-aggregated-verdict": {
+      "status": "attention",
+      "note": "internal conductor tool; requires target with sha and pass_results from prior runs",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "yelp": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or YELP_API_KEY",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": [
+        "yelp_search_businesses"
+      ]
+    },
+    "youtube": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs YouTube Data API v3 key",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
+    },
+    "zendesk": {
+      "status": "attention",
+      "note": "all tools require subdomain, email, api_token as mandatory params",
+      "testedAt": "2026-06-07T05:05:00.000Z",
+      "toolsTested": []
     }
   }
 }
