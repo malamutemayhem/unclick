@@ -9,9 +9,10 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { GradientText } from "@/components/brand";
+import OrchestratorThread from "@/components/OrchestratorThread";
 import {
   Sparkles, Zap, Plug, RefreshCw,
-  BookOpen, Clock, Compass, Link2,
+  Clock, Compass, Link2, MonitorSmartphone,
   KeyRound, Puzzle, ShieldCheck, Lock,
   Users, HeartPulse, Brain, SlidersHorizontal,
   Search, Wrench, ClipboardCheck, GitMerge, ShieldHalf, Hand,
@@ -36,6 +37,7 @@ export type BrochureContent = {
   lede: string;
   primaryCta?: Cta;
   secondaryCta?: Cta;
+  showcase?: ReactNode;
   featuresTitle?: string;
   features: Feature[];
   meta: { title: string; description: string };
@@ -63,17 +65,18 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   orchestrator: {
     path: "/orchestrator",
     eyebrow: "Orchestrator",
-    title: <>The running <GradientText>story</GradientText> of your work.</>,
-    lede: "Orchestrator keeps the through-line of every job, so you and your agents stay clear on what just happened and what is next.",
+    title: <>One conversation, <GradientText>everywhere</GradientText>.</>,
+    lede: "Orchestrator keeps one running thread across the devices and AI accounts you connect. Move from laptop to phone to a teammate's screen, and the context comes with you.",
     primaryCta: GET_STARTED,
-    featuresTitle: "Never lose the thread.",
+    showcase: <OrchestratorThread />,
+    featuresTitle: "One thread, shared by everyone and everything.",
     features: [
-      { icon: BookOpen, title: "One clear story", desc: "Every job, in plain language, from start to finish." },
-      { icon: Clock, title: "Live timeline", desc: "See what changed, when, and why." },
-      { icon: Compass, title: "Knows the next step", desc: "Points to the next action, not just history." },
-      { icon: Link2, title: "Source-linked", desc: "Every claim traces back to where it came from." },
+      { icon: Clock, title: "Live timeline", desc: "A running thread you can scroll, from the first message to now." },
+      { icon: MonitorSmartphone, title: "Any device", desc: "Laptop, phone, or a fresh chat. Pick up right where you left off." },
+      { icon: Users, title: "Built for teams", desc: "Share one account and everyone works from the same thread." },
+      { icon: Link2, title: "Any AI account", desc: "Connect an AI account and its conversation joins the thread." },
     ],
-    meta: { title: "Orchestrator - UnClick", description: "The running story of your work, so your agents always know what is next." },
+    meta: { title: "Orchestrator - UnClick", description: "One running conversation across your devices, AI accounts, and team." },
   },
   passport: {
     path: "/passport",

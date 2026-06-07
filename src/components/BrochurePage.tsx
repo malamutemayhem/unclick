@@ -75,6 +75,13 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
           </div>
         </section>
 
+        {/* Optional showcase (e.g. a visual demo) between hero and features */}
+        {page.showcase && (
+          <section className="px-6 pb-6">
+            <div className="mx-auto max-w-5xl">{page.showcase}</div>
+          </section>
+        )}
+
         {/* Feature grid */}
         <section className="px-6 pb-28">
           <div className="mx-auto max-w-5xl">
