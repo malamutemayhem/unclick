@@ -126,19 +126,23 @@ const PRIORITY_RANK: Record<JobTodo["priority"], number> = {
   low: 1,
 };
 
+// Palette tuned to sit on the navy aurora canvas (no warm-red sea). The brand
+// teal carries "live/active", amber carries "waiting on proof", emerald carries
+// "shipped", and red is reserved for genuine urgency/alerts so it stays rare.
+// Kept in sync with the public brochure sample (src/components/JobsBoardSample).
 const PRIORITY_STYLE: Record<JobTodo["priority"], string> = {
-  urgent: "border-red-400/35 bg-red-500/10 text-red-200",
-  high: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
-  normal: "border-white/10 bg-white/[0.035] text-white/60",
+  urgent: "border-rose-400/30 bg-rose-500/10 text-rose-200",
+  high: "border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]",
+  normal: "border-white/12 bg-white/[0.04] text-white/60",
   low: "border-white/[0.06] bg-white/[0.02] text-white/40",
 };
 
 const STATUS_STYLE: Record<DisplayStatus, string> = {
-  open: "border-white/10 bg-white/[0.035] text-white/60",
-  in_progress: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
-  done: "border-green-400/25 bg-green-400/10 text-green-300",
+  open: "border-white/12 bg-white/[0.04] text-white/65",
+  in_progress: "border-[#61C1C4]/35 bg-[#61C1C4]/12 text-[#8EE8EB]",
+  done: "border-emerald-400/30 bg-emerald-500/12 text-emerald-300",
   dropped: "border-white/[0.06] bg-white/[0.02] text-white/35",
-  needs_proof: "border-red-300/35 bg-red-500/10 text-red-200",
+  needs_proof: "border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]",
 };
 
 const ACTION_BUTTONS = {
@@ -149,8 +153,11 @@ const ACTION_BUTTONS = {
 const STAGES = ["Brief", "Build", "Proof", "Review", "Ship"] as const;
 const TITLE_MAX_CHARS = 90;
 
+// Column widths tuned to avoid "..." where it is cheap to: the Proof and Worker
+// columns are wide enough for their real labels, and the Notes column fits the
+// header plus a two-digit count without clipping. Row height is unchanged.
 const JOB_ROW_GRID =
-  "md:grid md:grid-cols-[48px_minmax(276px,1.2fr)_90px_60px_minmax(96px,0.35fr)_40px_minmax(190px,0.5fr)_78px_30px_18px] md:items-center md:gap-1.5";
+  "md:grid md:grid-cols-[48px_minmax(260px,1.3fr)_92px_64px_minmax(116px,0.45fr)_44px_minmax(188px,0.5fr)_104px_46px_18px] md:items-center md:gap-1.5";
 
 interface JobDisplayCopy {
   title: string;
@@ -396,7 +403,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
       {signal.href && <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />}
     </>
   );
-  const className = `inline-flex max-w-[78px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
+  const className = `inline-flex max-w-[104px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
 
   if (signal.href) {
     return (
@@ -796,14 +803,14 @@ function JobRow({
             <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04] text-[11px]">
               {emoji ?? "AI"}
             </span>
-            <span className="max-w-[130px] truncate" title={ownerLabel(todo)}>
+            <span className="min-w-0 truncate" title={ownerLabel(todo)}>
               {highlightSearchText(ownerLabel(todo), searchQuery)}
             </span>
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/45">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : displayStatus === "done" ? "bg-green-300" : "bg-green-400"
+                isStaleActive(todo) ? "bg-red-300" : displayStatus === "needs_proof" ? "bg-[#E8C766]" : displayStatus === "done" ? "bg-emerald-300" : "bg-emerald-400"
               }`}
             />
             {displayStatus === "needs_proof" ? "proof" : displayStatus === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}

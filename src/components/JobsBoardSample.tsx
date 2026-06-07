@@ -3,8 +3,10 @@ import { GlassCard } from "@/components/brand";
 /**
  * A simplified, made-up sample of the real Autopilot Jobs board, for one
  * relatable project (a dog-toys shop). Shows the board's shape - state,
- * pipeline progress, and proof - in its simplest form. Labels use
- * whitespace-nowrap so badges never overflow their pills.
+ * pipeline progress, and proof - in its simplest form, with fewer jobs than a
+ * real board. The state colours mirror the admin board palette
+ * (src/pages/admin/AdminJobs.tsx): teal = active, amber = waiting on proof,
+ * emerald = shipped. Labels use whitespace-nowrap so badges never overflow.
  */
 type Stage = "done" | "active" | "todo";
 type JobState = "Active" | "Needs proof" | "Open" | "Done";
@@ -18,33 +20,33 @@ type Job = {
 
 const STAGES = ["Plan", "Build", "Test", "Ship"] as const;
 
+// Same colour language as the admin board, so this reads as a true preview.
 const stateStyle: Record<JobState, string> = {
-  Active: "bg-primary/15 text-primary",
-  "Needs proof": "bg-[#e7b14d]/15 text-[#e7b14d]",
-  Open: "bg-white/[0.06] text-muted-foreground",
-  Done: "bg-[#52c08a]/15 text-[#52c08a]",
+  Active: "border border-[#61C1C4]/35 bg-[#61C1C4]/12 text-[#8EE8EB]",
+  "Needs proof": "border border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]",
+  Open: "border border-white/12 bg-white/[0.04] text-white/65",
+  Done: "border border-emerald-400/30 bg-emerald-500/12 text-emerald-300",
 };
 
 const groups: { label: string; jobs: Job[] }[] = [
   {
     label: "Working now",
     jobs: [
-      { title: "Build the chew-toy collection page", state: "Active", progress: ["done", "active", "todo", "todo"], proof: "Proof pending" },
-      { title: "Set up Stripe checkout", state: "Needs proof", progress: ["done", "done", "done", "todo"], proof: "Needs proof" },
+      { title: "Build the squeaky-toy collection page", state: "Active", progress: ["done", "active", "todo", "todo"], proof: "Proof pending" },
+      { title: "Set up checkout for the treat boxes", state: "Needs proof", progress: ["done", "done", "done", "todo"], proof: "Needs proof" },
     ],
   },
   {
     label: "Up next",
     jobs: [
-      { title: "Write 12 product descriptions", state: "Open", progress: ["todo", "todo", "todo", "todo"], proof: "Waiting" },
-      { title: "Add customer reviews to products", state: "Open", progress: ["todo", "todo", "todo", "todo"], proof: "Waiting" },
-      { title: "Send the spring sale email", state: "Open", progress: ["todo", "todo", "todo", "todo"], proof: "Waiting" },
+      { title: "Write descriptions for 12 chew toys", state: "Open", progress: ["todo", "todo", "todo", "todo"], proof: "Waiting" },
+      { title: "Email the spring new-toys sale", state: "Open", progress: ["todo", "todo", "todo", "todo"], proof: "Waiting" },
     ],
   },
   {
     label: "Done",
     jobs: [
-      { title: "Fix the mobile cart layout", state: "Done", progress: ["done", "done", "done", "done"], proof: "PR #42" },
+      { title: "Fix the wobbly mobile cart", state: "Done", progress: ["done", "done", "done", "done"], proof: "PR #42" },
     ],
   },
 ];
@@ -80,7 +82,7 @@ export default function JobsBoardSample() {
         </div>
         <div className="flex gap-2 text-[11px] text-muted-foreground">
           <span className="rounded-full bg-white/[0.05] px-2.5 py-1">2 working</span>
-          <span className="rounded-full bg-white/[0.05] px-2.5 py-1">3 up next</span>
+          <span className="rounded-full bg-white/[0.05] px-2.5 py-1">2 up next</span>
           <span className="rounded-full bg-white/[0.05] px-2.5 py-1">1 done</span>
         </div>
       </div>
