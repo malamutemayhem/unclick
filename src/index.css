@@ -258,3 +258,28 @@ html {
     animation: none;
   }
 }
+
+/* ============================================================
+   Teal-on-navy scrollbars, matched to the theme.
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(195 28% 34% / 0.6) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(195 28% 34% / 0.55);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(182 46% 50% / 0.7);
+  background-clip: padding-box;
+}

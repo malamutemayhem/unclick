@@ -23,7 +23,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 71a90e55f560 | 16426 |
-| src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
+| src/pages/admin/AdminShell.tsx | 2c6ec8581d6c | 25721 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -90,7 +90,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
-| src/pages/admin/AdminDashboard.tsx | 7ee015247aa8 | 5257 |
+| src/pages/admin/AdminDashboard.tsx | c6c9093d733d | 5303 |
 | src/pages/admin/AdminJobs.tsx | fb05696540e8 | 63548 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
 | src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
