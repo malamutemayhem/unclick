@@ -180,8 +180,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/asana-tool.ts | 2519967f5105 | 9808 |
 | packages/mcp-server/src/assemblyai-tool.ts | 24ebe71790cf | 11837 |
 | packages/mcp-server/src/australiapost-tool.ts | ed627c360433 | 6185 |
-| packages/mcp-server/src/bandsintown-tool.ts | d255220247d1 | 4151 |
-| packages/mcp-server/src/bgg-tool.ts | 182bc6f9686a | 12028 |
+| packages/mcp-server/src/bandsintown-tool.ts | f56d1929e864 | 4850 |
+| packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
 | packages/mcp-server/src/bitbucket-tool.ts | a6a405951262 | 4388 |
 | packages/mcp-server/src/bluesky-tool.ts | 9c63ad10f656 | 16256 |
 | packages/mcp-server/src/brevo-tool.ts | b79b48fd500a | 3314 |
