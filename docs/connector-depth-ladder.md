@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (193 external connectors)
+## Distribution (189 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 154 | 80% |
+| L5 | Agentic | 153 | 81% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 19% |
-| L1 | Wrapper | 3 | 2% |
+| L1 | Wrapper | 0 | 0% |
 
-**Hardened (reliability bar met): 189 of 193 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 189 of 189 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,13 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 154 of 157 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
-
-### Climbed in depth but not yet hardened
-
-These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
-
-- `jobsmith` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+**L5-reachable connectors at L5: 153 of 153 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ## Per-connector, highest rung first
 
@@ -110,7 +104,6 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ipapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `jira` | Yes | Yes | - | Yes | Yes |  |
-| L5 Agentic | `jobsmith` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `klaviyo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `kling` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
@@ -236,11 +229,8 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L2 Reliable | `whatsapp` | Yes | - | - | - | - | L2 by design (write/send) |
 | L2 Reliable | `woocommerce` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 | L2 Reliable | `xero` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
-| L1 Wrapper | `geopass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-memory, no-source-stamp |
-| L1 Wrapper | `securitypass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `xpass-aggregated-verdict` | - | - | - | - | - | not-hardened, no-rate-limit, no-memory, no-source-stamp |
 
-Also present (graded separately, not part of the connector program): 16 internal products, 2 infra, 7 local utilities.
+Also present (graded separately, not part of the connector program): 20 internal products, 2 infra, 7 local utilities.
 
 ## How to climb
 

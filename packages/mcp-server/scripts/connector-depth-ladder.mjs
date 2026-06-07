@@ -35,7 +35,8 @@ const OUT_JSON = path.resolve(REPO, "docs/connector-depth-ladder.json");
 const INTERNAL_PRODUCTS = new Set([
   "testpass", "legalpass", "uxpass", "seopass", "compliancepass", "flowpass",
   "copypass", "sloppass", "qc", "csuite", "crews", "igniteonly", "nudgeonly",
-  "pushonly", "fidelitycopy", "commonsensepass",
+  "pushonly", "fidelitycopy", "commonsensepass", "geopass", "securitypass",
+  "xpass-aggregated-verdict", "jobsmith",
 ]);
 const INFRA = new Set(["keychain", "vault"]);
 const LOCAL_UTILITY = new Set([
