@@ -183,10 +183,53 @@ describe("buildVisualDesignDirectorReport", () => {
     );
   });
 
+  it("directs generic AI surfaces toward product-specific mechanics and judgment", () => {
+    const report = buildVisualDesignDirectorReport({
+      ...formSnapshot,
+      elements: [
+        {
+          selector: ".hero-title",
+          tagName: "h1",
+          text: "The all in one AI platform",
+          visible: true,
+          rect: rect(40, 40, 520, 64),
+          scrollWidth: 520,
+          scrollHeight: 64,
+          clientWidth: 520,
+          clientHeight: 64,
+          fontSize: 48,
+          fontWeight: 700,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+        {
+          selector: ".hero-copy",
+          tagName: "p",
+          text: "Supercharge productivity with intelligent agents that streamline workflows, unlock scale, and transform the way your team works.",
+          visible: true,
+          rect: rect(40, 124, 680, 64),
+          scrollWidth: 680,
+          scrollHeight: 64,
+          clientWidth: 680,
+          clientHeight: 64,
+          fontSize: 18,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+      ],
+    });
+    expect(report.directives.map((directive) => directive.id)).toContain("product-specificity");
+    expect(report.directives.find((directive) => directive.id === "product-specificity")?.actions.join(" ")).toMatch(
+      /named systems|proof states|strongest/i,
+    );
+    expect(report.builder_brief).toMatch(/strongest direction/i);
+  });
+
   it("returns a quiet maintain-baseline brief when no issues are found", () => {
     const report = buildVisualDesignDirectorReport(formSnapshot);
     expect(report.issue_count).toBe(0);
     expect(report.directives).toEqual([]);
     expect(report.builder_brief).toMatch(/Keep the visual baseline/i);
+    expect(report.builder_brief).toMatch(/strongest visual direction/i);
   });
 });

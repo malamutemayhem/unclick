@@ -245,6 +245,84 @@ describe("evaluateVisualAuditSnapshot", () => {
     expect(summary.byKind.palette_indiscipline).toBe(1);
   });
 
+  it("flags generic AI surfaces that hide concrete product mechanics", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        {
+          selector: ".hero-title",
+          tagName: "h1",
+          text: "The all in one AI platform",
+          visible: true,
+          rect: rect(40, 40, 520, 64),
+          scrollWidth: 520,
+          scrollHeight: 64,
+          clientWidth: 520,
+          clientHeight: 64,
+          fontSize: 48,
+          fontWeight: 700,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+        {
+          selector: ".hero-copy",
+          tagName: "p",
+          text: "Supercharge productivity with intelligent agents that streamline workflows, unlock scale, and transform the way your team works with one next generation platform for every team.",
+          visible: true,
+          rect: rect(40, 124, 680, 64),
+          scrollWidth: 680,
+          scrollHeight: 64,
+          clientWidth: 680,
+          clientHeight: 64,
+          fontSize: 18,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+      ],
+    });
+    expect(summary.byKind.generic_ai_surface).toBe(1);
+    expect(summary.byKind.missing_product_mechanics).toBe(1);
+  });
+
+  it("does not flag AI language when the surface shows real mechanics", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        {
+          selector: ".hero-title",
+          tagName: "h1",
+          text: "UnClick patchbay",
+          visible: true,
+          rect: rect(40, 40, 460, 64),
+          scrollWidth: 460,
+          scrollHeight: 64,
+          clientWidth: 460,
+          clientHeight: 64,
+          fontSize: 48,
+          fontWeight: 700,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+        {
+          selector: ".hero-copy",
+          tagName: "p",
+          text: "Plug an AI seat into tools, memory, checks, routes, GitHub, Vercel, Crews, UIPass, jobs, proof, and human approval.",
+          visible: true,
+          rect: rect(40, 124, 760, 64),
+          scrollWidth: 760,
+          scrollHeight: 64,
+          clientWidth: 760,
+          clientHeight: 64,
+          fontSize: 18,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+      ],
+    });
+    expect(summary.byKind.generic_ai_surface).toBe(0);
+    expect(summary.byKind.missing_product_mechanics).toBe(0);
+  });
+
   it("flags nested panel clutter", () => {
     const summary = evaluateVisualAuditSnapshot({
       ...cleanSnapshot,

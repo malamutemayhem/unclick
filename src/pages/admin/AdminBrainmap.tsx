@@ -162,7 +162,7 @@ const aliasRows = parseMarkdownTable("Public/Internal Alias Table");
 const coreSurfaceGroups = [
   {
     group: "Control tower",
-    routes: ["/admin/jobs", "/admin/orchestrator", "/admin/boardroom", "/admin/pinballwake", "/admin/agents/heartbeat"],
+    routes: ["/admin/controltower", "/admin/jobs", "/admin/orchestrator", "/admin/boardroom", "/admin/pinballwake", "/admin/agents/heartbeat"],
   },
   {
     group: "Knowledge",
