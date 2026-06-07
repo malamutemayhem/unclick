@@ -84,6 +84,7 @@ import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminControlTower from "./pages/admin/AdminControlTower.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
+import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
 import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
@@ -223,6 +224,7 @@ const App = () => (
             <Route path="moderation"     element={<RequireAdmin><AdminModeration /></RequireAdmin>} />
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
+            <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
             <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />

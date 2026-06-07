@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 029cc9d35a24 | 15491 |
-| src/pages/admin/AdminShell.tsx | ad66a896a463 | 24739 |
+| src/App.tsx | a64843b4edcc | 15659 |
+| src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -281,6 +281,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/agents/heartbeat | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | src/pages/admin/AdminSeatHeartbeat.tsx |
 | /admin/agents | Admin Agents | Admin surface for Admin Agents. | src/pages/admin/AdminAgents.tsx |
 | /admin/analytics | Admin Analytics | Internal analytics view for platform signals and usage. | src/pages/admin/AdminAnalytics.tsx |
+| /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/apps | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |
