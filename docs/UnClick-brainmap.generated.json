@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 653,
+    "inventory": 665,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 231,
+    "tools": 243,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 231
+      "count": 243
     },
     {
       "id": "rooms",
@@ -4192,6 +4192,36 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-adviceslip-packages-mcp-server-src-adviceslip-tool-ts-no-route",
+      "division": "Tools",
+      "name": "adviceslip",
+      "kind": "MCP tool",
+      "meaning": "adviceslip MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/adviceslip-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-affirmation-packages-mcp-server-src-affirmation-tool-ts-no-route",
+      "division": "Tools",
+      "name": "affirmation",
+      "kind": "MCP tool",
+      "meaning": "affirmation MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/affirmation-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-agify-packages-mcp-server-src-agify-tool-ts-no-route",
+      "division": "Tools",
+      "name": "agify",
+      "kind": "MCP tool",
+      "meaning": "agify MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/agify-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-airtable-packages-mcp-server-src-airtable-tool-ts-no-route",
       "division": "Tools",
       "name": "airtable",
@@ -4248,6 +4278,16 @@
       "kind": "MCP tool",
       "meaning": "anthropic MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/anthropic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-aoe2-packages-mcp-server-src-aoe2-tool-ts-no-route",
+      "division": "Tools",
+      "name": "aoe2",
+      "kind": "MCP tool",
+      "meaning": "aoe2 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/aoe2-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4318,6 +4358,16 @@
       "kind": "MCP tool",
       "meaning": "bluesky MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/bluesky-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-bored-packages-mcp-server-src-bored-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bored",
+      "kind": "MCP tool",
+      "meaning": "bored MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bored-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4622,6 +4672,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-deckofcards-packages-mcp-server-src-deckofcards-tool-ts-no-route",
+      "division": "Tools",
+      "name": "deckofcards",
+      "kind": "MCP tool",
+      "meaning": "deckofcards MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/deckofcards-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-deepl-packages-mcp-server-src-deepl-tool-ts-no-route",
       "division": "Tools",
       "name": "deepl",
@@ -4678,6 +4738,16 @@
       "kind": "MCP tool",
       "meaning": "discord MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/discord-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-dnd5e-packages-mcp-server-src-dnd5e-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dnd5e",
+      "kind": "MCP tool",
+      "meaning": "dnd5e MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dnd5e-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5502,6 +5572,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-opennotify-packages-mcp-server-src-opennotify-tool-ts-no-route",
+      "division": "Tools",
+      "name": "opennotify",
+      "kind": "MCP tool",
+      "meaning": "opennotify MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/opennotify-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-pagerduty-packages-mcp-server-src-pagerduty-tool-ts-no-route",
       "division": "Tools",
       "name": "pagerduty",
@@ -5688,6 +5768,16 @@
       "kind": "MCP tool",
       "meaning": "quickbooks MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/quickbooks-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-quotable-packages-mcp-server-src-quotable-tool-ts-no-route",
+      "division": "Tools",
+      "name": "quotable",
+      "kind": "MCP tool",
+      "meaning": "quotable MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/quotable-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6042,12 +6132,42 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-superhero-packages-mcp-server-src-superhero-tool-ts-no-route",
+      "division": "Tools",
+      "name": "superhero",
+      "kind": "MCP tool",
+      "meaning": "superhero MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/superhero-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-swapi-packages-mcp-server-src-swapi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "swapi",
+      "kind": "MCP tool",
+      "meaning": "swapi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/swapi-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-tab-packages-mcp-server-src-tab-tool-ts-no-route",
       "division": "Tools",
       "name": "tab",
       "kind": "MCP tool",
       "meaning": "tab MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/tab-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-tarot-packages-mcp-server-src-tarot-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tarot",
+      "kind": "MCP tool",
+      "meaning": "tarot MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tarot-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7230,6 +7350,21 @@
       "packages/mcp-server/src/abuseipdb-tool.ts"
     ],
     [
+      "adviceslip",
+      "adviceslip MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/adviceslip-tool.ts"
+    ],
+    [
+      "affirmation",
+      "affirmation MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/affirmation-tool.ts"
+    ],
+    [
+      "agify",
+      "agify MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/agify-tool.ts"
+    ],
+    [
       "airtable",
       "airtable MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/airtable-tool.ts"
@@ -7258,6 +7393,11 @@
       "anthropic",
       "anthropic MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/anthropic-tool.ts"
+    ],
+    [
+      "aoe2",
+      "aoe2 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/aoe2-tool.ts"
     ],
     [
       "asana",
@@ -7293,6 +7433,11 @@
       "bluesky",
       "bluesky MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bluesky-tool.ts"
+    ],
+    [
+      "bored",
+      "bored MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bored-tool.ts"
     ],
     [
       "brevo",
@@ -7445,6 +7590,11 @@
       "packages/mcp-server/src/datetime-tool.ts"
     ],
     [
+      "deckofcards",
+      "deckofcards MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/deckofcards-tool.ts"
+    ],
+    [
       "deepl",
       "deepl MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/deepl-tool.ts"
@@ -7473,6 +7623,11 @@
       "discord",
       "discord MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discord-tool.ts"
+    ],
+    [
+      "dnd5e",
+      "dnd5e MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dnd5e-tool.ts"
     ],
     [
       "dogceo",
@@ -7885,6 +8040,11 @@
       "packages/mcp-server/src/openmeteo-tool.ts"
     ],
     [
+      "opennotify",
+      "opennotify MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/opennotify-tool.ts"
+    ],
+    [
       "pagerduty",
       "pagerduty MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pagerduty-tool.ts"
@@ -7978,6 +8138,11 @@
       "quickbooks",
       "quickbooks MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/quickbooks-tool.ts"
+    ],
+    [
+      "quotable",
+      "quotable MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/quotable-tool.ts"
     ],
     [
       "radiobrowser",
@@ -8155,9 +8320,24 @@
       "packages/mcp-server/src/supercell-tool.ts"
     ],
     [
+      "superhero",
+      "superhero MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/superhero-tool.ts"
+    ],
+    [
+      "swapi",
+      "swapi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/swapi-tool.ts"
+    ],
+    [
       "tab",
       "tab MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/tab-tool.ts"
+    ],
+    [
+      "tarot",
+      "tarot MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tarot-tool.ts"
     ],
     [
       "telegram",
@@ -9428,6 +9608,21 @@
       "bytes": 6263
     },
     {
+      "source": "packages/mcp-server/src/adviceslip-tool.ts",
+      "hash": "76262ae15005",
+      "bytes": 2878
+    },
+    {
+      "source": "packages/mcp-server/src/affirmation-tool.ts",
+      "hash": "b085a34edff5",
+      "bytes": 1777
+    },
+    {
+      "source": "packages/mcp-server/src/agify-tool.ts",
+      "hash": "fe1e0fcf3274",
+      "bytes": 3309
+    },
+    {
       "source": "packages/mcp-server/src/airtable-tool.ts",
       "hash": "917c11a6f79e",
       "bytes": 7602
@@ -9456,6 +9651,11 @@
       "source": "packages/mcp-server/src/anthropic-tool.ts",
       "hash": "72906c764b43",
       "bytes": 9657
+    },
+    {
+      "source": "packages/mcp-server/src/aoe2-tool.ts",
+      "hash": "13377d4c8ad0",
+      "bytes": 3685
     },
     {
       "source": "packages/mcp-server/src/asana-tool.ts",
@@ -9491,6 +9691,11 @@
       "source": "packages/mcp-server/src/bluesky-tool.ts",
       "hash": "9c63ad10f656",
       "bytes": 16256
+    },
+    {
+      "source": "packages/mcp-server/src/bored-tool.ts",
+      "hash": "076a2a94303b",
+      "bytes": 3043
     },
     {
       "source": "packages/mcp-server/src/brevo-tool.ts",
@@ -9591,31 +9796,6 @@
       "source": "packages/mcp-server/src/color-tool.ts",
       "hash": "8e737cb9e16f",
       "bytes": 13782
-    },
-    {
-      "source": "packages/mcp-server/src/commonsensepass-tool.ts",
-      "hash": "bad23b55ea01",
-      "bytes": 1995
-    },
-    {
-      "source": "packages/mcp-server/src/compliancepass-tool.ts",
-      "hash": "bedf85b00baa",
-      "bytes": 7342
-    },
-    {
-      "source": "packages/mcp-server/src/confluence-tool.ts",
-      "hash": "f1248450cf5a",
-      "bytes": 4326
-    },
-    {
-      "source": "packages/mcp-server/src/contentful-tool.ts",
-      "hash": "fe4a6bb32986",
-      "bytes": 5202
-    },
-    {
-      "source": "packages/mcp-server/src/convertkit-tool.ts",
-      "hash": "d6f0f01e6032",
-      "bytes": 10595
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
