@@ -19,23 +19,26 @@ import { useSession } from "@/lib/auth";
 type NavChild = { label: string; href: string };
 type NavItem = { label: string; href: string; children?: NavChild[] };
 
+// Header is the brochure: every item links to a public marketing page that
+// explains the product. The interactive surfaces live in the signed-in
+// dashboard at /admin/*, reached via "Get started" / "Dashboard".
 const NAV_ITEMS: NavItem[] = [
   { label: "Apps", href: "/apps" },
   { label: "Skills", href: "/skills" },
-  { label: "Orchestrator", href: "/admin/orchestrator" },
-  { label: "Passport", href: "/admin/keychain" },
-  { label: "Seats", href: "/admin/agents" },
+  { label: "Orchestrator", href: "/orchestrator" },
+  { label: "Passport", href: "/passport" },
+  { label: "Seats", href: "/seats" },
   { label: "Memory", href: "/memory" },
   {
     label: "Autopilot",
-    href: "/admin/autopilot",
+    href: "/autopilot",
     children: [
       { label: "XPass", href: "/xpass" },
-      { label: "XGate", href: "/admin/xgate" },
-      { label: "Jobs", href: "/admin/jobs" },
-      { label: "Control Tower", href: "/admin/controltower" },
-      { label: "Ledger", href: "/admin/ledger" },
-      { label: "Workers", href: "/admin/workers" },
+      { label: "XGate", href: "/xgate" },
+      { label: "Jobs", href: "/jobs" },
+      { label: "Control Tower", href: "/control-tower" },
+      { label: "Ledger", href: "/ledger" },
+      { label: "Workers", href: "/workers" },
     ],
   },
   { label: "Docs", href: "/docs" },
