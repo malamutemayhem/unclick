@@ -257,4 +257,71 @@ describe("AdminJobs", () => {
     expect(await screen.findByText("Alpha ready job")).toBeInTheDocument();
     expect(screen.getByText("Jobs are visible, but posting comments is waiting for the admin profile.")).toBeInTheDocument();
   });
+
+  it("shows the true completed total and fetches the next 100 completed jobs", async () => {
+    const makeCompleted = (index: number, effective_status = "done") => ({
+      id: `completed-${index}`,
+      title: index === 1 ? "Completed first job" : index === 101 ? "Completed second page job" : `Completed job ${index}`,
+      description: "Already shipped.",
+      status: "done",
+      effective_status,
+      priority: "normal",
+      created_by_agent_id: "tester",
+      assigned_to_agent_id: "chatgpt-codex-desktop",
+      created_at: `2026-05-${String(Math.max(1, 28 - Math.floor(index / 10))).padStart(2, "0")}T12:00:00.000Z`,
+      completed_at: "2026-05-14T12:30:00.000Z",
+      updated_at: "2026-05-14T12:55:00.000Z",
+      comment_count: 1,
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_evidence: ["ship"],
+      proof_state: effective_status === "done" ? "close_eligible" : "missing",
+    });
+    const firstPage = [
+      ...Array.from({ length: 31 }, (_, index) => makeCompleted(index + 1)),
+      ...Array.from({ length: 69 }, (_, index) => makeCompleted(index + 32, "needs_proof")),
+    ];
+    const secondPage = [
+      makeCompleted(101),
+      ...Array.from({ length: 99 }, (_, index) => makeCompleted(index + 102, "needs_proof")),
+    ];
+    const completedOffsets: number[] = [];
+
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("fishbowl_admin_claim")) {
+        return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: "claim unavailable" }),
+        } as Response);
+      }
+      if (url.includes("fishbowl_list_todos")) {
+        const request = JSON.parse(String(init?.body ?? "{}")) as { status?: string; offset?: number };
+        if (request.status === "done") {
+          const offset = request.offset ?? 0;
+          completedOffsets.push(offset);
+          return jsonResponse({
+            todos: offset === 0 ? firstPage : secondPage,
+            queue_metrics: { done: 383 },
+            response_bounds: { has_more: true, matching_total: 383 },
+          });
+        }
+        return jsonResponse({ todos: [], queue_metrics: { done: 383 } });
+      }
+      return jsonResponse({});
+    });
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Completed first job")).toBeInTheDocument();
+    const completedSection = screen.getByRole("button", { name: /^Completed$/i }).closest("section");
+    expect(completedSection).not.toBeNull();
+    expect(within(completedSection as HTMLElement).getByText("31/383")).toBeInTheDocument();
+
+    fireEvent.click(within(completedSection as HTMLElement).getByRole("button", { name: "Show 100 more" }));
+
+    expect(await screen.findByText("Completed second page job")).toBeInTheDocument();
+    expect(within(completedSection as HTMLElement).getByText("32/383")).toBeInTheDocument();
+    expect(completedOffsets).toEqual([0, 100]);
+  });
 });
