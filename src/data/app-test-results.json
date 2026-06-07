@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T04:50:00.000Z",
+  "updatedAt": "2026-06-07T05:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1202,6 +1202,150 @@
       "note": "all tools require bearer_token as mandatory param; needs Spotify OAuth token",
       "testedAt": "2026-06-07T04:50:00.000Z",
       "toolsTested": []
+    },
+    "square": {
+      "status": "attention",
+      "note": "all tools require access_token as mandatory param; needs Square OAuth token",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": []
+    },
+    "stability": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; paid image generation service",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": []
+    },
+    "steam": {
+      "status": "pass",
+      "note": "search_steam_store returned 10 Portal games with AUD pricing and metascores - no auth needed",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "search_steam_store"
+      ]
+    },
+    "stripe": {
+      "status": "attention",
+      "note": "all tools require secret_key as mandatory param; needs Stripe secret key",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": []
+    },
+    "supercell": {
+      "status": "attention",
+      "note": "coc_player requires playerTag (mandatory); api_key optional but likely needed",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": []
+    },
+    "tab": {
+      "status": "fail",
+      "note": "tab_sports_markets returned HTML instead of JSON; beta API (api.beta.tab.com.au) may be defunct",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "tab_sports_markets"
+      ]
+    },
+    "telegram": {
+      "status": "attention",
+      "note": "all tools require bot_token as mandatory param; needs Telegram bot token",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": []
+    },
+    "testpass": {
+      "status": "attention",
+      "note": "testpass_list_packs returned HTTP 401; internal pass tool, requires authorization header",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "testpass_list_packs"
+      ]
+    },
+    "text": {
+      "status": "pass",
+      "note": "text_analyse returned word count, sentence count, reading time - no auth needed, internal tool",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "text_analyse"
+      ]
+    },
+    "thelott": {
+      "status": "fail",
+      "note": "lott_results returned 'Game or draw not found' for TattsLotto; API may have changed format or be unavailable",
+      "testedAt": "2026-06-07T04:55:00.000Z",
+      "toolsTested": [
+        "lott_results"
+      ]
+    },
+    "ticketmaster": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TICKETMASTER_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tm_search_events"
+      ]
+    },
+    "tiktok": {
+      "status": "attention",
+      "note": "not_connected; needs access token via keychain_secure_connect or TIKTOK_ACCESS_TOKEN",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "get_tiktok_user"
+      ]
+    },
+    "tmdb": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TMDB_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tmdb_trending"
+      ]
+    },
+    "todoist": {
+      "status": "attention",
+      "note": "all tools require api_token as mandatory param; needs Todoist API token",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": []
+    },
+    "togetherai": {
+      "status": "attention",
+      "note": "all tools require api_key as mandatory param; needs Together AI API key",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": []
+    },
+    "toggl": {
+      "status": "attention",
+      "note": "not_connected; needs API token via keychain_secure_connect or TOGGL_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "toggl_time_entries"
+      ]
+    },
+    "toilets": {
+      "status": "pass",
+      "note": "find_nearest_toilets returned 2 public toilets near Melbourne CBD (23m and 29m away) - no auth needed",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "find_nearest_toilets"
+      ]
+    },
+    "tomorrowio": {
+      "status": "attention",
+      "note": "not_connected; needs API key via keychain_secure_connect or TOMORROWIO_API_KEY",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "tomorrow_realtime"
+      ]
+    },
+    "trello": {
+      "status": "attention",
+      "note": "all tools require api_key and token as mandatory params; needs Trello credentials",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": []
+    },
+    "trivia": {
+      "status": "pass",
+      "note": "trivia_questions returned 2 easy questions with answers from Open Trivia DB - no auth needed",
+      "testedAt": "2026-06-07T05:00:00.000Z",
+      "toolsTested": [
+        "trivia_questions"
+      ]
     }
   }
 }
