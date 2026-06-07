@@ -36,7 +36,7 @@ bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper"
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary"]);
 bucket("Images", ["unsplash", "giphy", "dogceo"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -75,6 +75,8 @@ const NAME_OF = {
   joke: "JokeAPI", holidays: "Public Holidays", dogceo: "Dog CEO",
   rickandmorty: "Rick and Morty", xkcd: "xkcd", brewery: "Open Brewery DB",
   jikan: "Jikan (MyAnimeList)", chucknorris: "Chuck Norris", catfacts: "Cat Facts",
+  swapi: "Star Wars API", dnd5e: "D&D 5e SRD", deckofcards: "Deck of Cards",
+  adviceslip: "Advice Slip", agify: "Name Analysis", quotable: "Quotable",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -152,6 +154,12 @@ const BLURB_OF = {
   jikan: "Search anime, manga, and characters from MyAnimeList.",
   chucknorris: "Get random Chuck Norris jokes by category.",
   catfacts: "Get random cat facts and browse cat breeds.",
+  swapi: "Look up Star Wars characters, planets, and starships.",
+  dnd5e: "Browse D&D 5e classes, spells, and monster stat blocks.",
+  deckofcards: "Create, shuffle, and draw from virtual card decks.",
+  adviceslip: "Get random advice or search advice by topic.",
+  agify: "Predict age, gender, and nationality from a first name.",
+  quotable: "Browse and search inspirational quotes by author or tag.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -207,6 +215,8 @@ const DOMAIN_OF = {
   joke: "jokeapi.dev", holidays: "date.nager.at", dogceo: "dog.ceo",
   rickandmorty: "rickandmortyapi.com", xkcd: "xkcd.com", brewery: "openbrewerydb.org",
   jikan: "jikan.moe", chucknorris: "api.chucknorris.io", catfacts: "catfact.ninja",
+  swapi: "swapi.dev", dnd5e: "dnd5eapi.co", deckofcards: "deckofcardsapi.com",
+  adviceslip: "api.adviceslip.com", agify: "agify.io", quotable: "quotable.io",
 };
 
 function titleCase(slug) {

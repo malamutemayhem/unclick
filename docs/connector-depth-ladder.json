@@ -40,6 +40,46 @@
     }
   },
   {
+    "connector": "adviceslip",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "agify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "algolia",
     "level": 5,
     "levelName": "Agentic",
@@ -660,6 +700,26 @@
     }
   },
   {
+    "connector": "deckofcards",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "deepl",
     "level": 5,
     "levelName": "Agentic",
@@ -741,6 +801,26 @@
   },
   {
     "connector": "discogs",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dnd5e",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -2240,6 +2320,26 @@
     }
   },
   {
+    "connector": "quotable",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "radiobrowser",
     "level": 5,
     "levelName": "Agentic",
@@ -2641,6 +2741,26 @@
   },
   {
     "connector": "supercell",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "swapi",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T12:25:00.000Z",
+  "updatedAt": "2026-06-07T12:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -1890,6 +1890,54 @@
         "cat_breeds"
       ],
       "comment": ""
+    },
+    "swapi": {
+      "status": "pass",
+      "note": "swapi_get_person(id=1) returned Luke Skywalker character data. Free public API, no auth needed.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "swapi_get_person"
+      ]
+    },
+    "dnd5e": {
+      "status": "pass",
+      "note": "dnd_get_class(class=wizard) returned Wizard class with hit_die, proficiencies. Free SRD API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "dnd_get_class"
+      ]
+    },
+    "deckofcards": {
+      "status": "pass",
+      "note": "deck_new() returned shuffled deck with deck_id and 52 remaining. Free public API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "deck_new"
+      ]
+    },
+    "adviceslip": {
+      "status": "pass",
+      "note": "advice_random() returned a random advice slip with id and advice text. Free API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "advice_random"
+      ]
+    },
+    "agify": {
+      "status": "pass",
+      "note": "agify_age(name=michael) returned age prediction. Free tier (100 req/day without key).",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "agify_age"
+      ]
+    },
+    "quotable": {
+      "status": "pass",
+      "note": "quote_random() returned a random quote with content, author, and tags. Free public API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "quote_random"
+      ]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

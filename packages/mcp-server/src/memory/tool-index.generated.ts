@@ -46,6 +46,42 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "adviceslip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "advice_random",
+        "description": "Get a random piece of advice."
+      },
+      {
+        "name": "advice_search",
+        "description": "Search advice slips by keyword."
+      },
+      {
+        "name": "advice_by_id",
+        "description": "Get a specific advice slip by ID."
+      }
+    ]
+  },
+  {
+    "app": "agify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "agify_age",
+        "description": "Predict the age of a person based on their first name."
+      },
+      {
+        "name": "genderize_name",
+        "description": "Predict the gender of a person based on their first name."
+      },
+      {
+        "name": "nationalize_name",
+        "description": "Predict the nationality of a person based on their first name."
+      }
+    ]
+  },
+  {
     "app": "airtable",
     "category": "Developer / Productivity",
     "tools": [
@@ -964,6 +1000,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "deckofcards",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "deck_new",
+        "description": "Create and shuffle a new deck of cards."
+      },
+      {
+        "name": "deck_draw",
+        "description": "Draw cards from a deck."
+      },
+      {
+        "name": "deck_shuffle",
+        "description": "Reshuffle an existing deck."
+      }
+    ]
+  },
+  {
     "app": "deepl",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1112,6 +1166,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "discord_search",
         "description": "Search messages in a Discord guild."
+      }
+    ]
+  },
+  {
+    "app": "dnd5e",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dnd_get_class",
+        "description": "Get a D&D 5e class by index (e.g. wizard, fighter)."
+      },
+      {
+        "name": "dnd_list_classes",
+        "description": "List all D&D 5e character classes."
+      },
+      {
+        "name": "dnd_get_spell",
+        "description": "Get a D&D 5e spell by name/index."
+      },
+      {
+        "name": "dnd_list_spells",
+        "description": "List D&D 5e spells, optionally filtered."
+      },
+      {
+        "name": "dnd_get_monster",
+        "description": "Get a D&D 5e monster stat block by index."
+      },
+      {
+        "name": "dnd_list_monsters",
+        "description": "List D&D 5e monsters, optionally by challenge rating."
       }
     ]
   },
@@ -3356,6 +3440,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "quotable",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quote_random",
+        "description": "Get a random inspirational quote."
+      },
+      {
+        "name": "quote_search",
+        "description": "Search quotes by keyword."
+      },
+      {
+        "name": "quote_by_author",
+        "description": "Get quotes by a specific author."
+      },
+      {
+        "name": "quote_list_tags",
+        "description": "List all available quote tags/categories."
+      },
+      {
+        "name": "quote_list_authors",
+        "description": "List quote authors sorted by number of quotes."
+      }
+    ]
+  },
+  {
     "app": "radiobrowser",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4206,6 +4316,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bs_club",
         "description": "Get a Brawl Stars club by tag."
+      }
+    ]
+  },
+  {
+    "app": "swapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "swapi_get_person",
+        "description": "Get a Star Wars character by ID."
+      },
+      {
+        "name": "swapi_search_people",
+        "description": "Search Star Wars characters by name."
+      },
+      {
+        "name": "swapi_get_planet",
+        "description": "Get a Star Wars planet by ID."
+      },
+      {
+        "name": "swapi_search_planets",
+        "description": "Search Star Wars planets by name."
+      },
+      {
+        "name": "swapi_get_starship",
+        "description": "Get a Star Wars starship by ID."
+      },
+      {
+        "name": "swapi_search_starships",
+        "description": "Search Star Wars starships by name."
       }
     ]
   },

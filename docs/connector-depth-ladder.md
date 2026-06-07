@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (205 external connectors)
+## Distribution (211 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 166 | 81% |
+| L5 | Agentic | 172 | 82% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 18% |
+| L2 | Reliable | 36 | 17% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 201 of 205 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 207 of 211 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 166 of 169 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 172 of 175 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -48,6 +48,8 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
 | L5 Agentic | `abn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `abuseipdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `adviceslip` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `agify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `algolia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `alphavantage` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `amazon` | Yes | - | - | Yes | Yes | no-memory |
@@ -79,11 +81,13 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `contentful` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `datadog` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `deckofcards` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dictionary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `digitalocean` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dnd5e` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dogceo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `domain` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dropbox` | Yes | - | - | Yes | Yes | no-memory |
@@ -158,6 +162,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pokeapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
+| L5 Agentic | `quotable` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `rawg` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `reddit` | Yes | - | - | Yes | Yes | no-memory |
@@ -179,6 +184,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `stability` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `steam` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `swapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tab` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `thelott` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |

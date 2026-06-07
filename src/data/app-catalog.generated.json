@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 230,
-  "toolCount": 960,
+  "appCount": 236,
+  "toolCount": 986,
   "categories": [
     "AI",
     "Books",
@@ -64,6 +64,30 @@
         {
           "name": "abuseipdb_blacklist",
           "description": "Get the AbuseIPDB blacklist."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "adviceslip",
+      "name": "Advice Slip",
+      "category": "Utilities",
+      "blurb": "Get random advice or search advice by topic.",
+      "domain": "api.adviceslip.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "advice_random",
+          "description": "Get a random piece of advice."
+        },
+        {
+          "name": "advice_search",
+          "description": "Search advice slips by keyword."
+        },
+        {
+          "name": "advice_by_id",
+          "description": "Get a specific advice slip by ID."
         }
       ],
       "level": 5,
@@ -1106,6 +1130,42 @@
       "hardened": false
     },
     {
+      "slug": "dnd5e",
+      "name": "D&D 5e SRD",
+      "category": "Games & esports",
+      "blurb": "Browse D&D 5e classes, spells, and monster stat blocks.",
+      "domain": "dnd5eapi.co",
+      "toolCount": 6,
+      "tools": [
+        {
+          "name": "dnd_get_class",
+          "description": "Get a D&D 5e class by index (e.g. wizard, fighter)."
+        },
+        {
+          "name": "dnd_list_classes",
+          "description": "List all D&D 5e character classes."
+        },
+        {
+          "name": "dnd_get_spell",
+          "description": "Get a D&D 5e spell by name/index."
+        },
+        {
+          "name": "dnd_list_spells",
+          "description": "List D&D 5e spells, optionally filtered."
+        },
+        {
+          "name": "dnd_get_monster",
+          "description": "Get a D&D 5e monster stat block by index."
+        },
+        {
+          "name": "dnd_list_monsters",
+          "description": "List D&D 5e monsters, optionally by challenge rating."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "datadog",
       "name": "Datadog",
       "category": "Developer & infra",
@@ -1180,6 +1240,30 @@
       ],
       "level": null,
       "hardened": false
+    },
+    {
+      "slug": "deckofcards",
+      "name": "Deck of Cards",
+      "category": "Utilities",
+      "blurb": "Create, shuffle, and draw from virtual card decks.",
+      "domain": "deckofcardsapi.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "deck_new",
+          "description": "Create and shuffle a new deck of cards."
+        },
+        {
+          "name": "deck_draw",
+          "description": "Draw cards from a deck."
+        },
+        {
+          "name": "deck_shuffle",
+          "description": "Reshuffle an existing deck."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "deepl",
@@ -3194,6 +3278,30 @@
       "hardened": true
     },
     {
+      "slug": "agify",
+      "name": "Name Analysis",
+      "category": "Utilities",
+      "blurb": "Predict age, gender, and nationality from a first name.",
+      "domain": "agify.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "agify_age",
+          "description": "Predict the age of a person based on their first name."
+        },
+        {
+          "name": "genderize_name",
+          "description": "Predict the gender of a person based on their first name."
+        },
+        {
+          "name": "nationalize_name",
+          "description": "Predict the nationality of a person based on their first name."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "nasa",
       "name": "NASA",
       "category": "Weather & science",
@@ -4238,6 +4346,38 @@
       "hardened": true
     },
     {
+      "slug": "quotable",
+      "name": "Quotable",
+      "category": "Utilities",
+      "blurb": "Browse and search inspirational quotes by author or tag.",
+      "domain": "quotable.io",
+      "toolCount": 5,
+      "tools": [
+        {
+          "name": "quote_random",
+          "description": "Get a random inspirational quote."
+        },
+        {
+          "name": "quote_search",
+          "description": "Search quotes by keyword."
+        },
+        {
+          "name": "quote_by_author",
+          "description": "Get quotes by a specific author."
+        },
+        {
+          "name": "quote_list_tags",
+          "description": "List all available quote tags/categories."
+        },
+        {
+          "name": "quote_list_authors",
+          "description": "List quote authors sorted by number of quotes."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "radiobrowser",
       "name": "Radio Browser",
       "category": "Music & video",
@@ -5188,6 +5328,42 @@
         {
           "name": "stability_list_engines",
           "description": "List all available Stability AI generation engines."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "swapi",
+      "name": "Star Wars API",
+      "category": "Games & esports",
+      "blurb": "Look up Star Wars characters, planets, and starships.",
+      "domain": "swapi.dev",
+      "toolCount": 6,
+      "tools": [
+        {
+          "name": "swapi_get_person",
+          "description": "Get a Star Wars character by ID."
+        },
+        {
+          "name": "swapi_search_people",
+          "description": "Search Star Wars characters by name."
+        },
+        {
+          "name": "swapi_get_planet",
+          "description": "Get a Star Wars planet by ID."
+        },
+        {
+          "name": "swapi_search_planets",
+          "description": "Search Star Wars planets by name."
+        },
+        {
+          "name": "swapi_get_starship",
+          "description": "Get a Star Wars starship by ID."
+        },
+        {
+          "name": "swapi_search_starships",
+          "description": "Search Star Wars starships by name."
         }
       ],
       "level": 5,

@@ -296,6 +296,27 @@ import { chuckRandom, chuckSearch, chuckCategories } from "./chucknorris-tool.js
 import { catFact, catFacts, catBreeds } from "./catfacts-tool.js";
 
 import {
+  swapiGetPerson, swapiSearchPeople, swapiGetPlanet,
+  swapiSearchPlanets, swapiGetStarship, swapiSearchStarships,
+} from "./swapi-tool.js";
+
+import {
+  dndGetClass, dndListClasses, dndGetSpell,
+  dndListSpells, dndGetMonster, dndListMonsters,
+} from "./dnd5e-tool.js";
+
+import { deckNew, deckDraw, deckShuffle } from "./deckofcards-tool.js";
+
+import { adviceRandom, adviceSearch, adviceById } from "./adviceslip-tool.js";
+
+import { agifyAge, genderizeName, nationalizeName } from "./agify-tool.js";
+
+import {
+  quoteRandom, quoteSearch, quoteByAuthor,
+  quoteListTags, quoteListAuthors,
+} from "./quotable-tool.js";
+
+import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
 } from "./nasa-tool.js";
@@ -4824,6 +4845,310 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         limit: { type: "number", description: "Number of breeds (max 50, default 10)" },
         page: { type: "number" },
+      },
+    },
+  },
+
+  // ── swapi-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "swapi_get_person",
+    description: "Get a Star Wars character by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Character ID (e.g. 1 for Luke Skywalker)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_people",
+    description: "Search Star Wars characters by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'luke')" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "swapi_get_planet",
+    description: "Get a Star Wars planet by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Planet ID (e.g. 1 for Tatooine)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_planets",
+    description: "Search Star Wars planets by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'tatooine')" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "swapi_get_starship",
+    description: "Get a Star Wars starship by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Starship ID (e.g. 10 for Millennium Falcon)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_starships",
+    description: "Search Star Wars starships by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'falcon')" },
+      },
+      required: ["query"],
+    },
+  },
+
+  // ── dnd5e-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dnd_get_class",
+    description: "Get a D&D 5e class by index (e.g. wizard, fighter).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        class: { type: "string", description: "Class index (e.g. 'wizard', 'fighter')" },
+      },
+      required: ["class"],
+    },
+  },
+  {
+    name: "dnd_list_classes",
+    description: "List all D&D 5e character classes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dnd_get_spell",
+    description: "Get a D&D 5e spell by name/index.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        spell: { type: "string", description: "Spell index (e.g. 'fireball', 'magic-missile')" },
+      },
+      required: ["spell"],
+    },
+  },
+  {
+    name: "dnd_list_spells",
+    description: "List D&D 5e spells, optionally filtered.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        school: { type: "string", description: "Filter by school (e.g. 'evocation')" },
+        level: { type: "number", description: "Filter by spell level (0-9)" },
+      },
+    },
+  },
+  {
+    name: "dnd_get_monster",
+    description: "Get a D&D 5e monster stat block by index.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        monster: { type: "string", description: "Monster index (e.g. 'goblin', 'adult-red-dragon')" },
+      },
+      required: ["monster"],
+    },
+  },
+  {
+    name: "dnd_list_monsters",
+    description: "List D&D 5e monsters, optionally by challenge rating.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        challenge_rating: { type: "string", description: "Filter by CR (e.g. '1', '0.25')" },
+      },
+    },
+  },
+
+  // ── deckofcards-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "deck_new",
+    description: "Create and shuffle a new deck of cards.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_count: { type: "number", description: "Number of decks (default 1)" },
+      },
+    },
+  },
+  {
+    name: "deck_draw",
+    description: "Draw cards from a deck.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_id: { type: "string", description: "Deck ID from deck_new" },
+        count: { type: "number", description: "Number of cards to draw (default 1)" },
+      },
+      required: ["deck_id"],
+    },
+  },
+  {
+    name: "deck_shuffle",
+    description: "Reshuffle an existing deck.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_id: { type: "string", description: "Deck ID to reshuffle" },
+      },
+      required: ["deck_id"],
+    },
+  },
+
+  // ── adviceslip-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "advice_random",
+    description: "Get a random piece of advice.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "advice_search",
+    description: "Search advice slips by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "advice_by_id",
+    description: "Get a specific advice slip by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Advice slip ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── agify-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "agify_age",
+    description: "Predict the age of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+        country_id: { type: "string", description: "ISO 3166-1 alpha-2 country code for localization" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "genderize_name",
+    description: "Predict the gender of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+        country_id: { type: "string", description: "ISO 3166-1 alpha-2 country code for localization" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "nationalize_name",
+    description: "Predict the nationality of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── quotable-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "quote_random",
+    description: "Get a random inspirational quote.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        tags: { type: "string", description: "Comma-separated tags to filter by (e.g. 'wisdom,life')" },
+      },
+    },
+  },
+  {
+    name: "quote_search",
+    description: "Search quotes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "quote_by_author",
+    description: "Get quotes by a specific author.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        author: { type: "string", description: "Author name or slug" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["author"],
+    },
+  },
+  {
+    name: "quote_list_tags",
+    description: "List all available quote tags/categories.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "quote_list_authors",
+    description: "List quote authors sorted by number of quotes.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 20)" },
       },
     },
   },
@@ -15532,6 +15857,44 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   cat_fact:                (args) => catFact(args),
   cat_facts:               (args) => catFacts(args),
   cat_breeds:              (args) => catBreeds(args),
+
+  // swapi-tool.ts
+  swapi_get_person:        (args) => swapiGetPerson(args),
+  swapi_search_people:     (args) => swapiSearchPeople(args),
+  swapi_get_planet:        (args) => swapiGetPlanet(args),
+  swapi_search_planets:    (args) => swapiSearchPlanets(args),
+  swapi_get_starship:      (args) => swapiGetStarship(args),
+  swapi_search_starships:  (args) => swapiSearchStarships(args),
+
+  // dnd5e-tool.ts
+  dnd_get_class:           (args) => dndGetClass(args),
+  dnd_list_classes:        (args) => dndListClasses(args),
+  dnd_get_spell:           (args) => dndGetSpell(args),
+  dnd_list_spells:         (args) => dndListSpells(args),
+  dnd_get_monster:         (args) => dndGetMonster(args),
+  dnd_list_monsters:       (args) => dndListMonsters(args),
+
+  // deckofcards-tool.ts
+  deck_new:                (args) => deckNew(args),
+  deck_draw:               (args) => deckDraw(args),
+  deck_shuffle:            (args) => deckShuffle(args),
+
+  // adviceslip-tool.ts
+  advice_random:           (args) => adviceRandom(args),
+  advice_search:           (args) => adviceSearch(args),
+  advice_by_id:            (args) => adviceById(args),
+
+  // agify-tool.ts
+  agify_age:               (args) => agifyAge(args),
+  genderize_name:          (args) => genderizeName(args),
+  nationalize_name:        (args) => nationalizeName(args),
+
+  // quotable-tool.ts
+  quote_random:            (args) => quoteRandom(args),
+  quote_search:            (args) => quoteSearch(args),
+  quote_by_author:         (args) => quoteByAuthor(args),
+  quote_list_tags:         (args) => quoteListTags(args),
+  quote_list_authors:      (args) => quoteListAuthors(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
