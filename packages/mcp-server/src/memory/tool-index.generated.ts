@@ -486,6 +486,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "base64",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "base64_encode",
+        "description": "Encode text to Base64."
+      },
+      {
+        "name": "base64_decode",
+        "description": "Decode a Base64 string to text."
+      }
+    ]
+  },
+  {
     "app": "bgg",
     "category": "Gaming",
     "tools": [
@@ -1408,6 +1422,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "list_runs",
         "description": "Call this tool when the user wants a recent history of Crews runs. Returns a ConversationalCard with a run count and the newest few run ids."
+      }
+    ]
+  },
+  {
+    "app": "crontab",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crontab_explain",
+        "description": "Explain a cron expression in human-readable terms."
       }
     ]
   },
@@ -3410,6 +3434,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "jwt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jwt_decode",
+        "description": "Decode a JWT token to inspect header and payload claims (does NOT verify signature)."
+      }
+    ]
+  },
+  {
     "app": "kanye",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3808,6 +3842,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mapbox_list_tilesets",
         "description": "List Mapbox tilesets owned by a user."
+      }
+    ]
+  },
+  {
+    "app": "markdown",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markdown_to_html",
+        "description": "Convert Markdown text to HTML (headings, bold, italic, links, lists, code)."
+      },
+      {
+        "name": "markdown_stats",
+        "description": "Analyze Markdown text: count headings, links, code blocks, words, and more."
       }
     ]
   },
@@ -7194,6 +7242,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "urban_random",
         "description": "Get random Urban Dictionary definitions."
+      }
+    ]
+  },
+  {
+    "app": "urlencode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "url_encode",
+        "description": "URL-encode text (percent-encoding for query strings)."
+      },
+      {
+        "name": "url_decode",
+        "description": "Decode a URL-encoded (percent-encoded) string."
       }
     ]
   },

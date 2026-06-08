@@ -27,7 +27,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -138,6 +138,8 @@ const NAME_OF = {
   europeana: "Europeana", flyover: "ISS Flyover",
   jsoncrack: "JSON Format", "abstract-holidays": "Long Weekends",
   cocktaildb2: "Cocktail Ingredients", regexr: "Regex Tester", hashgen: "Hash Generator",
+  base64: "Base64 Codec", urlencode: "URL Encoder", crontab: "Cron Explainer",
+  jwt: "JWT Decoder", markdown: "Markdown Tools",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -396,6 +398,11 @@ const BLURB_OF = {
   cocktaildb2: "Filter cocktails by ingredient and get ingredient details.",
   regexr: "Test regex patterns against text and get match positions.",
   hashgen: "Generate and compare cryptographic hashes (MD5, SHA-256, SHA-512).",
+  base64: "Encode and decode text to/from Base64.",
+  urlencode: "URL percent-encode and decode text for query strings.",
+  crontab: "Explain cron expressions in human-readable terms.",
+  jwt: "Decode JWT tokens to inspect header and payload claims (no signature verification).",
+  markdown: "Convert Markdown to HTML and analyze document structure.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -525,6 +532,8 @@ const DOMAIN_OF = {
   europeana: "europeana.eu", flyover: "open-notify.org",
   jsoncrack: "local", "abstract-holidays": "date.nager.at",
   cocktaildb2: "thecocktaildb.com", regexr: "local", hashgen: "local",
+  base64: "local", urlencode: "local", crontab: "local",
+  jwt: "local", markdown: "local",
 };
 
 function titleCase(slug) {

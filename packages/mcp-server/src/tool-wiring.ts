@@ -576,6 +576,11 @@ import { abstractCountryInfo, abstractLongWeekends } from "./abstract-holidays-t
 import { cocktailByIngredient, cocktailIngredientInfo } from "./cocktaildb2-tool.js";
 import { regexTest } from "./regexr-tool.js";
 import { hashGenerate, hashCompare } from "./hashgen-tool.js";
+import { base64Encode, base64Decode } from "./base64-tool.js";
+import { urlEncode, urlDecode } from "./urlencode-tool.js";
+import { crontabExplain } from "./crontab-tool.js";
+import { jwtDecode } from "./jwt-tool.js";
+import { markdownToHtml, markdownStats } from "./markdown-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8934,6 +8939,88 @@ export const ADDITIONAL_TOOLS = [
         hash: { type: "string" as const, description: "Expected hash value." },
         algorithm: { type: "string" as const, description: "Hash algorithm (default: sha256)." },
       }, required: ["text", "hash"],
+    },
+  },
+
+  // ── base64-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "base64_encode",
+    description: "Encode text to Base64.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "base64_decode",
+    description: "Decode a Base64 string to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        encoded: { type: "string" as const, description: "Base64 string to decode." },
+      }, required: ["encoded"],
+    },
+  },
+
+  // ── urlencode-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "url_encode",
+    description: "URL-encode text (percent-encoding for query strings).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to URL-encode." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "url_decode",
+    description: "Decode a URL-encoded (percent-encoded) string.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        encoded: { type: "string" as const, description: "URL-encoded string to decode." },
+      }, required: ["encoded"],
+    },
+  },
+
+  // ── crontab-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "crontab_explain",
+    description: "Explain a cron expression in human-readable terms.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Cron expression (e.g. '0 9 * * 1-5') or shortcut (@daily, @hourly)." },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── jwt-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "jwt_decode",
+    description: "Decode a JWT token to inspect header and payload claims (does NOT verify signature).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        token: { type: "string" as const, description: "JWT token string." },
+      }, required: ["token"],
+    },
+  },
+
+  // ── markdown-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "markdown_to_html",
+    description: "Convert Markdown text to HTML (headings, bold, italic, links, lists, code).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        markdown: { type: "string" as const, description: "Markdown text to convert." },
+      }, required: ["markdown"],
+    },
+  },
+  {
+    name: "markdown_stats",
+    description: "Analyze Markdown text: count headings, links, code blocks, words, and more.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        markdown: { type: "string" as const, description: "Markdown text to analyze." },
+      }, required: ["markdown"],
     },
   },
 
@@ -20297,6 +20384,24 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // hashgen-tool.ts
   hash_generate:             (args) => hashGenerate(args),
   hash_compare:              (args) => hashCompare(args),
+
+  // base64-tool.ts
+  base64_encode:             (args) => base64Encode(args),
+  base64_decode:             (args) => base64Decode(args),
+
+  // urlencode-tool.ts
+  url_encode:                (args) => urlEncode(args),
+  url_decode:                (args) => urlDecode(args),
+
+  // crontab-tool.ts
+  crontab_explain:           (args) => crontabExplain(args),
+
+  // jwt-tool.ts
+  jwt_decode:                (args) => jwtDecode(args),
+
+  // markdown-tool.ts
+  markdown_to_html:          (args) => markdownToHtml(args),
+  markdown_stats:            (args) => markdownStats(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

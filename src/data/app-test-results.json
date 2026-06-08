@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T18:30:00.000Z",
+  "updatedAt": "2026-06-08T19:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3298,6 +3298,36 @@
       "note": "hash_generate and hash_compare compute crypto hashes locally. No API needed.",
       "testedAt": "2026-06-08T18:30:00.000Z",
       "toolsTested": ["hash_generate", "hash_compare"]
+    },
+    "base64": {
+      "status": "pass",
+      "note": "base64_encode and base64_decode convert text to/from Base64 locally. No API needed.",
+      "testedAt": "2026-06-08T19:00:00.000Z",
+      "toolsTested": ["base64_encode", "base64_decode"]
+    },
+    "urlencode": {
+      "status": "pass",
+      "note": "url_encode and url_decode handle URL percent-encoding locally. No API needed.",
+      "testedAt": "2026-06-08T19:00:00.000Z",
+      "toolsTested": ["url_encode", "url_decode"]
+    },
+    "crontab": {
+      "status": "pass",
+      "note": "crontab_explain parses cron expressions locally. No API needed.",
+      "testedAt": "2026-06-08T19:00:00.000Z",
+      "toolsTested": ["crontab_explain"]
+    },
+    "jwt": {
+      "status": "pass",
+      "note": "jwt_decode decodes JWT tokens locally (no signature verification). No API needed.",
+      "testedAt": "2026-06-08T19:00:00.000Z",
+      "toolsTested": ["jwt_decode"]
+    },
+    "markdown": {
+      "status": "pass",
+      "note": "markdown_to_html and markdown_stats convert and analyze Markdown locally. No API needed.",
+      "testedAt": "2026-06-08T19:00:00.000Z",
+      "toolsTested": ["markdown_to_html", "markdown_stats"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

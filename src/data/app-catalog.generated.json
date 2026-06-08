@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 411,
-  "toolCount": 1328,
+  "appCount": 416,
+  "toolCount": 1336,
   "categories": [
     "AI",
     "Books",
@@ -580,6 +580,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "base64",
+      "name": "Base64 Codec",
+      "category": "Developer & infra",
+      "blurb": "Encode and decode text to/from Base64.",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "base64_encode",
+          "description": "Encode text to Base64."
+        },
+        {
+          "name": "base64_decode",
+          "description": "Decode a Base64 string to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bgpview",
@@ -1743,6 +1763,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "crontab",
+      "name": "Cron Explainer",
+      "category": "Developer & infra",
+      "blurb": "Explain cron expressions in human-readable terms.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "crontab_explain",
+          "description": "Explain a cron expression in human-readable terms."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -4330,6 +4366,22 @@
       "hardened": true
     },
     {
+      "slug": "jwt",
+      "name": "JWT Decoder",
+      "category": "Developer & infra",
+      "blurb": "Decode JWT tokens to inspect header and payload claims (no signature verification).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "jwt_decode",
+          "description": "Decode a JWT token to inspect header and payload claims (does NOT verify signature)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "kanye",
       "name": "Kanye Quotes",
       "category": "Utilities",
@@ -4896,6 +4948,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "markdown",
+      "name": "Markdown Tools",
+      "category": "Developer & infra",
+      "blurb": "Convert Markdown to HTML and analyze document structure.",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "markdown_to_html",
+          "description": "Convert Markdown text to HTML (headings, bold, italic, links, lists, code)."
+        },
+        {
+          "name": "markdown_stats",
+          "description": "Analyze Markdown text: count headings, links, code blocks, words, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "mastodon",
@@ -9452,6 +9524,26 @@
         {
           "name": "urban_random",
           "description": "Get random Urban Dictionary definitions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "urlencode",
+      "name": "URL Encoder",
+      "category": "Developer & infra",
+      "blurb": "URL percent-encode and decode text for query strings.",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "url_encode",
+          "description": "URL-encode text (percent-encoding for query strings)."
+        },
+        {
+          "name": "url_decode",
+          "description": "Decode a URL-encoded (percent-encoded) string."
         }
       ],
       "level": 5,

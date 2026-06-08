@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 834,
+    "inventory": 839,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 412,
+    "tools": 417,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 412
+      "count": 417
     },
     {
       "id": "rooms",
@@ -4432,6 +4432,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-base64-packages-mcp-server-src-base64-tool-ts-no-route",
+      "division": "Tools",
+      "name": "base64",
+      "kind": "MCP tool",
+      "meaning": "base64 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/base64-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bgg-packages-mcp-server-src-bgg-tool-ts-no-route",
       "division": "Tools",
       "name": "bgg",
@@ -4938,6 +4948,16 @@
       "kind": "MCP tool",
       "meaning": "crews MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/crews-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-crontab-packages-mcp-server-src-crontab-tool-ts-no-route",
+      "division": "Tools",
+      "name": "crontab",
+      "kind": "MCP tool",
+      "meaning": "crontab MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/crontab-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6062,6 +6082,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-jwt-packages-mcp-server-src-jwt-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jwt",
+      "kind": "MCP tool",
+      "meaning": "jwt MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jwt-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-kanye-packages-mcp-server-src-kanye-tool-ts-no-route",
       "division": "Tools",
       "name": "kanye",
@@ -6248,6 +6278,16 @@
       "kind": "MCP tool",
       "meaning": "mapbox MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/mapbox-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-markdown-packages-mcp-server-src-markdown-tool-ts-no-route",
+      "division": "Tools",
+      "name": "markdown",
+      "kind": "MCP tool",
+      "meaning": "markdown MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/markdown-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7982,6 +8022,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-urlencode-packages-mcp-server-src-urlencode-tool-ts-no-route",
+      "division": "Tools",
+      "name": "urlencode",
+      "kind": "MCP tool",
+      "meaning": "urlencode MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/urlencode-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-urlhaus-packages-mcp-server-src-urlhaus-tool-ts-no-route",
       "division": "Tools",
       "name": "urlhaus",
@@ -9160,6 +9210,11 @@
       "packages/mcp-server/src/bandsintown-tool.ts"
     ],
     [
+      "base64",
+      "base64 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/base64-tool.ts"
+    ],
+    [
       "bgg",
       "bgg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bgg-tool.ts"
@@ -9413,6 +9468,11 @@
       "crews",
       "crews MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/crews-tool.ts"
+    ],
+    [
+      "crontab",
+      "crontab MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/crontab-tool.ts"
     ],
     [
       "crossref",
@@ -9975,6 +10035,11 @@
       "packages/mcp-server/src/jsonplaceholder-tool.ts"
     ],
     [
+      "jwt",
+      "jwt MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jwt-tool.ts"
+    ],
+    [
       "kanye",
       "kanye MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/kanye-tool.ts"
@@ -10068,6 +10133,11 @@
       "mapbox",
       "mapbox MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mapbox-tool.ts"
+    ],
+    [
+      "markdown",
+      "markdown MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/markdown-tool.ts"
     ],
     [
       "mastodon",
@@ -10933,6 +11003,11 @@
       "urbandictionary",
       "urbandictionary MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/urbandictionary-tool.ts"
+    ],
+    [
+      "urlencode",
+      "urlencode MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/urlencode-tool.ts"
     ],
     [
       "urlhaus",
@@ -12263,6 +12338,11 @@
       "bytes": 4850
     },
     {
+      "source": "packages/mcp-server/src/base64-tool.ts",
+      "hash": "b93e3d17577c",
+      "bytes": 1174
+    },
+    {
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
@@ -12326,11 +12406,6 @@
       "source": "packages/mcp-server/src/calculator-tool.ts",
       "hash": "5a3d3d30645e",
       "bytes": 7319
-    },
-    {
-      "source": "packages/mcp-server/src/calendly-tool.ts",
-      "hash": "12032f4f7f6c",
-      "bytes": 7492
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
