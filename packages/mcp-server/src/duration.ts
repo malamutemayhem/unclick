@@ -1,69 +1,52 @@
-export interface Duration {
-  days?: number;
-  hours?: number;
-  minutes?: number;
-  seconds?: number;
-  milliseconds?: number;
-}
+export class Duration {
+  readonly ms: number;
 
-export function toMs(d: Duration): number {
-  return (d.days ?? 0) * 86400000
-    + (d.hours ?? 0) * 3600000
-    + (d.minutes ?? 0) * 60000
-    + (d.seconds ?? 0) * 1000
-    + (d.milliseconds ?? 0);
-}
+  private constructor(ms: number) {
+    this.ms = ms;
+  }
 
-export function fromMs(ms: number): Duration {
-  const abs = Math.abs(ms);
-  const days = Math.floor(abs / 86400000);
-  const hours = Math.floor((abs % 86400000) / 3600000);
-  const minutes = Math.floor((abs % 3600000) / 60000);
-  const seconds = Math.floor((abs % 60000) / 1000);
-  const milliseconds = abs % 1000;
-  return { days, hours, minutes, seconds, milliseconds };
-}
+  static milliseconds(n: number): Duration { return new Duration(n); }
+  static seconds(n: number): Duration { return new Duration(n * 1000); }
+  static minutes(n: number): Duration { return new Duration(n * 60_000); }
+  static hours(n: number): Duration { return new Duration(n * 3_600_000); }
+  static days(n: number): Duration { return new Duration(n * 86_400_000); }
 
-export function format(d: Duration): string {
-  const parts: string[] = [];
-  if (d.days) parts.push(`${d.days}d`);
-  if (d.hours) parts.push(`${d.hours}h`);
-  if (d.minutes) parts.push(`${d.minutes}m`);
-  if (d.seconds) parts.push(`${d.seconds}s`);
-  if (d.milliseconds) parts.push(`${d.milliseconds}ms`);
-  return parts.length > 0 ? parts.join(" ") : "0ms";
-}
+  get seconds(): number { return this.ms / 1000; }
+  get minutes(): number { return this.ms / 60_000; }
+  get hours(): number { return this.ms / 3_600_000; }
+  get days(): number { return this.ms / 86_400_000; }
 
-export function parse(input: string): Duration {
-  const d: Duration = {};
-  const regex = /(\d+)\s*(d|h|m(?!s)|s|ms)/gi;
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(input)) !== null) {
-    const val = parseInt(match[1], 10);
-    const unit = match[2].toLowerCase();
-    switch (unit) {
-      case "d": d.days = (d.days ?? 0) + val; break;
-      case "h": d.hours = (d.hours ?? 0) + val; break;
-      case "m": d.minutes = (d.minutes ?? 0) + val; break;
-      case "s": d.seconds = (d.seconds ?? 0) + val; break;
-      case "ms": d.milliseconds = (d.milliseconds ?? 0) + val; break;
+  add(other: Duration): Duration { return new Duration(this.ms + other.ms); }
+  subtract(other: Duration): Duration { return new Duration(this.ms - other.ms); }
+  multiply(factor: number): Duration { return new Duration(this.ms * factor); }
+
+  isZero(): boolean { return this.ms === 0; }
+  isNegative(): boolean { return this.ms < 0; }
+
+  format(): string {
+    const abs = Math.abs(this.ms);
+    if (abs < 1000) return `${this.ms}ms`;
+    if (abs < 60_000) return `${(this.ms / 1000).toFixed(1)}s`;
+    if (abs < 3_600_000) return `${(this.ms / 60_000).toFixed(1)}m`;
+    if (abs < 86_400_000) return `${(this.ms / 3_600_000).toFixed(1)}h`;
+    return `${(this.ms / 86_400_000).toFixed(1)}d`;
+  }
+
+  static between(a: Date, b: Date): Duration {
+    return new Duration(b.getTime() - a.getTime());
+  }
+
+  static parse(str: string): Duration {
+    const match = str.match(/^(-?\d+(?:\.\d+)?)\s*(ms|s|m|h|d)$/);
+    if (!match) throw new Error(`Invalid duration: ${str}`);
+    const value = parseFloat(match[1]);
+    switch (match[2]) {
+      case "ms": return Duration.milliseconds(value);
+      case "s": return Duration.seconds(value);
+      case "m": return Duration.minutes(value);
+      case "h": return Duration.hours(value);
+      case "d": return Duration.days(value);
+      default: throw new Error(`Unknown unit: ${match[2]}`);
     }
   }
-  return d;
-}
-
-export function humanize(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
-  if (ms < 86400000) return `${(ms / 3600000).toFixed(1)}h`;
-  return `${(ms / 86400000).toFixed(1)}d`;
-}
-
-export function add(a: Duration, b: Duration): Duration {
-  return fromMs(toMs(a) + toMs(b));
-}
-
-export function subtract(a: Duration, b: Duration): Duration {
-  return fromMs(toMs(a) - toMs(b));
 }

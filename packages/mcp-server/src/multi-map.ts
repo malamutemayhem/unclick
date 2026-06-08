@@ -1,62 +1,62 @@
 export class MultiMap<K, V> {
-  private map = new Map<K, V[]>();
+  private data = new Map<K, V[]>();
 
-  add(key: K, value: V): void {
-    const list = this.map.get(key);
-    if (list) {
-      list.push(value);
-    } else {
-      this.map.set(key, [value]);
-    }
+  set(key: K, value: V): void {
+    if (!this.data.has(key)) this.data.set(key, []);
+    this.data.get(key)!.push(value);
   }
 
-  get(key: K): readonly V[] {
-    return this.map.get(key) ?? [];
+  get(key: K): V[] {
+    return [...(this.data.get(key) ?? [])];
   }
 
   has(key: K): boolean {
-    return this.map.has(key);
+    return this.data.has(key);
+  }
+
+  hasValue(key: K, value: V): boolean {
+    return this.data.get(key)?.includes(value) ?? false;
   }
 
   delete(key: K): boolean {
-    return this.map.delete(key);
+    return this.data.delete(key);
   }
 
-  removeValue(key: K, value: V): boolean {
-    const list = this.map.get(key);
-    if (!list) return false;
-    const idx = list.indexOf(value);
-    if (idx === -1) return false;
-    list.splice(idx, 1);
-    if (list.length === 0) this.map.delete(key);
+  deleteValue(key: K, value: V): boolean {
+    const arr = this.data.get(key);
+    if (!arr) return false;
+    const idx = arr.indexOf(value);
+    if (idx < 0) return false;
+    arr.splice(idx, 1);
+    if (arr.length === 0) this.data.delete(key);
     return true;
   }
 
+  get size(): number {
+    return this.data.size;
+  }
+
+  totalValues(): number {
+    let total = 0;
+    for (const values of this.data.values()) total += values.length;
+    return total;
+  }
+
   keys(): K[] {
-    return [...this.map.keys()];
+    return [...this.data.keys()];
   }
 
-  values(): V[] {
-    return [...this.map.values()].flat();
-  }
-
-  get keyCount(): number {
-    return this.map.size;
-  }
-
-  get totalValues(): number {
-    let count = 0;
-    for (const list of this.map.values()) count += list.length;
-    return count;
+  entries(): [K, V[]][] {
+    return [...this.data.entries()].map(([k, v]) => [k, [...v]]);
   }
 
   clear(): void {
-    this.map.clear();
+    this.data.clear();
   }
 
-  forEach(fn: (key: K, values: readonly V[]) => void): void {
-    for (const [key, values] of this.map) {
-      fn(key, values);
-    }
+  valuesFlat(): V[] {
+    const result: V[] = [];
+    for (const values of this.data.values()) result.push(...values);
+    return result;
   }
 }
