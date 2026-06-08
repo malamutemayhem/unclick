@@ -5,51 +5,51 @@ export interface WeightedItem<T> {
 
 export function weightedRandom<T>(items: WeightedItem<T>[]): T {
   if (items.length === 0) throw new Error("Empty items");
-  const total = items.reduce((sum, item) => sum + item.weight, 0);
-  if (total <= 0) throw new Error("Total weight must be positive");
-  let r = Math.random() * total;
+  const totalWeight = items.reduce((sum: number, item: WeightedItem<T>) => sum + item.weight, 0);
+  if (totalWeight <= 0) throw new Error("Total weight must be positive");
+  let random = Math.random() * totalWeight;
   for (const item of items) {
-    r -= item.weight;
-    if (r <= 0) return item.value;
+    random -= item.weight;
+    if (random <= 0) return item.value;
   }
   return items[items.length - 1].value;
 }
 
-export function weightedRandomWithSeed<T>(
-  items: WeightedItem<T>[],
-  rand: () => number
-): T {
-  if (items.length === 0) throw new Error("Empty items");
-  const total = items.reduce((sum, item) => sum + item.weight, 0);
-  if (total <= 0) throw new Error("Total weight must be positive");
-  let r = rand() * total;
-  for (const item of items) {
-    r -= item.weight;
-    if (r <= 0) return item.value;
+export function weightedSample<T>(items: WeightedItem<T>[], count: number): T[] {
+  const results: T[] = [];
+  for (let i = 0; i < count; i++) {
+    results.push(weightedRandom(items));
   }
-  return items[items.length - 1].value;
+  return results;
 }
 
-export function buildCdf<T>(items: WeightedItem<T>[]): { values: T[]; cdf: number[] } {
-  if (items.length === 0) throw new Error("Empty items");
-  const total = items.reduce((sum, item) => sum + item.weight, 0);
-  if (total <= 0) throw new Error("Total weight must be positive");
-  const values: T[] = [];
-  const cdf: number[] = [];
-  let cumulative = 0;
-  for (const item of items) {
-    cumulative += item.weight / total;
-    values.push(item.value);
-    cdf.push(cumulative);
-  }
-  cdf[cdf.length - 1] = 1;
-  return { values, cdf };
-}
+export class WeightedSelector<T> {
+  private items: WeightedItem<T>[] = [];
+  private totalWeight = 0;
+  private cumulativeWeights: number[] = [];
 
-export function sampleCdf<T>(cdf: { values: T[]; cdf: number[] }, rand?: () => number): T {
-  const r = (rand ?? Math.random)();
-  for (let i = 0; i < cdf.cdf.length; i++) {
-    if (r <= cdf.cdf[i]) return cdf.values[i];
+  add(value: T, weight: number): this {
+    if (weight <= 0) throw new Error("Weight must be positive");
+    this.items.push({ value, weight });
+    this.totalWeight += weight;
+    this.cumulativeWeights.push(this.totalWeight);
+    return this;
   }
-  return cdf.values[cdf.values.length - 1];
+
+  select(): T {
+    if (this.items.length === 0) throw new Error("No items");
+    const random = Math.random() * this.totalWeight;
+    for (let i = 0; i < this.cumulativeWeights.length; i++) {
+      if (random <= this.cumulativeWeights[i]) return this.items[i].value;
+    }
+    return this.items[this.items.length - 1].value;
+  }
+
+  get size(): number { return this.items.length; }
+
+  clear(): void {
+    this.items = [];
+    this.totalWeight = 0;
+    this.cumulativeWeights = [];
+  }
 }

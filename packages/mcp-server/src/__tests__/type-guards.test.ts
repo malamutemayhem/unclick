@@ -1,17 +1,13 @@
 import { describe, it, expect } from "vitest";
-import {
-  isString, isNumber, isBoolean, isNull, isUndefined, isNil,
-  isObject, isArray, isFunction, isError, isPromise, isNonEmpty,
-  hasProperty, assertNever,
-} from "../type-guards.js";
+import { isString, isNumber, isBoolean, isNull, isUndefined, isNullish, isDefined, isArray, isObject, isFunction, isDate, isRegExp, isError, isInteger, isPositive, isNegative, isNonEmptyString, isNonEmptyArray } from "../type-guards.js";
 
-describe("type guards", () => {
+describe("type-guards", () => {
   it("isString", () => {
-    expect(isString("hi")).toBe(true);
+    expect(isString("hello")).toBe(true);
     expect(isString(42)).toBe(false);
   });
 
-  it("isNumber excludes NaN", () => {
+  it("isNumber", () => {
     expect(isNumber(42)).toBe(true);
     expect(isNumber(NaN)).toBe(false);
     expect(isNumber("42")).toBe(false);
@@ -19,7 +15,7 @@ describe("type guards", () => {
 
   it("isBoolean", () => {
     expect(isBoolean(true)).toBe(true);
-    expect(isBoolean(0)).toBe(false);
+    expect(isBoolean(1)).toBe(false);
   });
 
   it("isNull", () => {
@@ -32,16 +28,16 @@ describe("type guards", () => {
     expect(isUndefined(null)).toBe(false);
   });
 
-  it("isNil", () => {
-    expect(isNil(null)).toBe(true);
-    expect(isNil(undefined)).toBe(true);
-    expect(isNil(0)).toBe(false);
+  it("isNullish", () => {
+    expect(isNullish(null)).toBe(true);
+    expect(isNullish(undefined)).toBe(true);
+    expect(isNullish(0)).toBe(false);
   });
 
-  it("isObject excludes arrays and null", () => {
-    expect(isObject({})).toBe(true);
-    expect(isObject([])).toBe(false);
-    expect(isObject(null)).toBe(false);
+  it("isDefined", () => {
+    expect(isDefined(42)).toBe(true);
+    expect(isDefined(null)).toBe(false);
+    expect(isDefined(undefined)).toBe(false);
   });
 
   it("isArray", () => {
@@ -49,38 +45,50 @@ describe("type guards", () => {
     expect(isArray({})).toBe(false);
   });
 
+  it("isObject", () => {
+    expect(isObject({})).toBe(true);
+    expect(isObject([])).toBe(false);
+    expect(isObject(null)).toBe(false);
+  });
+
   it("isFunction", () => {
     expect(isFunction(() => {})).toBe(true);
     expect(isFunction("fn")).toBe(false);
   });
 
+  it("isDate", () => {
+    expect(isDate(new Date())).toBe(true);
+    expect(isDate(new Date("invalid"))).toBe(false);
+  });
+
+  it("isRegExp", () => {
+    expect(isRegExp(/abc/)).toBe(true);
+    expect(isRegExp("abc")).toBe(false);
+  });
+
   it("isError", () => {
     expect(isError(new Error())).toBe(true);
-    expect(isError({ message: "not an error" })).toBe(false);
+    expect(isError("error")).toBe(false);
   });
 
-  it("isPromise", () => {
-    expect(isPromise(Promise.resolve())).toBe(true);
-    expect(isPromise({ then: () => {} })).toBe(true);
-    expect(isPromise(42)).toBe(false);
+  it("isInteger", () => {
+    expect(isInteger(5)).toBe(true);
+    expect(isInteger(5.5)).toBe(false);
   });
 
-  it("isNonEmpty", () => {
-    expect(isNonEmpty("hi")).toBe(true);
-    expect(isNonEmpty("")).toBe(false);
-    expect(isNonEmpty([1])).toBe(true);
-    expect(isNonEmpty([])).toBe(false);
-    expect(isNonEmpty(null)).toBe(false);
-    expect(isNonEmpty(undefined)).toBe(false);
+  it("isPositive / isNegative", () => {
+    expect(isPositive(5)).toBe(true);
+    expect(isPositive(-5)).toBe(false);
+    expect(isNegative(-5)).toBe(true);
   });
 
-  it("hasProperty", () => {
-    expect(hasProperty({ name: "test" }, "name")).toBe(true);
-    expect(hasProperty({}, "name")).toBe(false);
-    expect(hasProperty(null, "name")).toBe(false);
+  it("isNonEmptyString", () => {
+    expect(isNonEmptyString("hello")).toBe(true);
+    expect(isNonEmptyString("")).toBe(false);
   });
 
-  it("assertNever throws", () => {
-    expect(() => assertNever("oops" as never)).toThrow();
+  it("isNonEmptyArray", () => {
+    expect(isNonEmptyArray([1])).toBe(true);
+    expect(isNonEmptyArray([])).toBe(false);
   });
 });
