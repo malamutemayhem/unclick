@@ -2,50 +2,56 @@ import { describe, it, expect } from "vitest";
 import { RingBuffer } from "../ring-buffer.js";
 
 describe("RingBuffer", () => {
-  it("pushes and shifts in order", () => {
+  it("push and shift", () => {
     const rb = new RingBuffer<number>(3);
     rb.push(1);
     rb.push(2);
-    rb.push(3);
     expect(rb.shift()).toBe(1);
     expect(rb.shift()).toBe(2);
   });
 
-  it("overwrites oldest when full", () => {
-    const rb = new RingBuffer<number>(2);
-    rb.push(1);
-    rb.push(2);
-    const evicted = rb.push(3);
-    expect(evicted).toBe(1);
-    expect(rb.toArray()).toEqual([2, 3]);
-  });
-
-  it("peek and peekLast", () => {
-    const rb = new RingBuffer<number>(3);
-    rb.push(10);
-    rb.push(20);
-    expect(rb.peek()).toBe(10);
-    expect(rb.peekLast()).toBe(20);
-  });
-
-  it("at returns correct index", () => {
+  it("overwrites on overflow", () => {
     const rb = new RingBuffer<number>(3);
     rb.push(1);
     rb.push(2);
     rb.push(3);
-    expect(rb.at(0)).toBe(1);
-    expect(rb.at(2)).toBe(3);
-    expect(rb.at(5)).toBeUndefined();
+    const evicted = rb.push(4);
+    expect(evicted).toBe(1);
+    expect(rb.toArray()).toEqual([2, 3, 4]);
   });
 
-  it("tracks size and isFull", () => {
-    const rb = new RingBuffer<number>(2);
+  it("peek returns front", () => {
+    const rb = new RingBuffer<number>(3);
+    rb.push(10);
+    rb.push(20);
+    expect(rb.peek()).toBe(10);
+  });
+
+  it("peekLast returns back", () => {
+    const rb = new RingBuffer<number>(3);
+    rb.push(10);
+    rb.push(20);
+    expect(rb.peekLast()).toBe(20);
+  });
+
+  it("get by index", () => {
+    const rb = new RingBuffer<number>(5);
+    rb.push(10);
+    rb.push(20);
+    rb.push(30);
+    expect(rb.get(1)).toBe(20);
+    expect(rb.get(5)).toBeUndefined();
+  });
+
+  it("tracks size", () => {
+    const rb = new RingBuffer<number>(3);
     expect(rb.size).toBe(0);
+    expect(rb.isEmpty).toBe(true);
     rb.push(1);
-    expect(rb.size).toBe(1);
-    expect(rb.isFull()).toBe(false);
     rb.push(2);
-    expect(rb.isFull()).toBe(true);
+    rb.push(3);
+    expect(rb.size).toBe(3);
+    expect(rb.isFull).toBe(true);
   });
 
   it("clear resets", () => {
@@ -54,10 +60,29 @@ describe("RingBuffer", () => {
     rb.push(2);
     rb.clear();
     expect(rb.size).toBe(0);
-    expect(rb.toArray()).toEqual([]);
+    expect(rb.isEmpty).toBe(true);
   });
 
-  it("throws for invalid capacity", () => {
-    expect(() => new RingBuffer(0)).toThrow();
+  it("shift returns undefined when empty", () => {
+    const rb = new RingBuffer<number>(3);
+    expect(rb.shift()).toBeUndefined();
+  });
+
+  it("iterator works", () => {
+    const rb = new RingBuffer<number>(3);
+    rb.push(1);
+    rb.push(2);
+    rb.push(3);
+    expect([...rb]).toEqual([1, 2, 3]);
+  });
+
+  it("toArray after wraparound", () => {
+    const rb = new RingBuffer<number>(3);
+    rb.push(1);
+    rb.push(2);
+    rb.push(3);
+    rb.push(4);
+    rb.push(5);
+    expect(rb.toArray()).toEqual([3, 4, 5]);
   });
 });

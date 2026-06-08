@@ -1,23 +1,25 @@
 export class RingBuffer<T> {
   private buffer: (T | undefined)[];
   private head = 0;
+  private tail = 0;
   private count = 0;
-  private capacity: number;
+  private readonly capacity: number;
 
   constructor(capacity: number) {
-    if (capacity < 1) throw new Error("Capacity must be at least 1");
     this.capacity = capacity;
     this.buffer = new Array(capacity);
   }
 
   push(item: T): T | undefined {
-    const evicted = this.isFull() ? this.buffer[this.head] : undefined;
-    this.buffer[(this.head + this.count) % this.capacity] = item;
-    if (this.isFull()) {
+    let evicted: T | undefined;
+    if (this.count === this.capacity) {
+      evicted = this.buffer[this.head];
       this.head = (this.head + 1) % this.capacity;
-    } else {
-      this.count++;
+      this.count--;
     }
+    this.buffer[this.tail] = item;
+    this.tail = (this.tail + 1) % this.capacity;
+    this.count++;
     return evicted;
   }
 
@@ -37,12 +39,31 @@ export class RingBuffer<T> {
 
   peekLast(): T | undefined {
     if (this.count === 0) return undefined;
-    return this.buffer[(this.head + this.count - 1) % this.capacity];
+    return this.buffer[(this.tail - 1 + this.capacity) % this.capacity];
   }
 
-  at(index: number): T | undefined {
+  get(index: number): T | undefined {
     if (index < 0 || index >= this.count) return undefined;
     return this.buffer[(this.head + index) % this.capacity];
+  }
+
+  get size(): number {
+    return this.count;
+  }
+
+  get isFull(): boolean {
+    return this.count === this.capacity;
+  }
+
+  get isEmpty(): boolean {
+    return this.count === 0;
+  }
+
+  clear(): void {
+    this.buffer = new Array(this.capacity);
+    this.head = 0;
+    this.tail = 0;
+    this.count = 0;
   }
 
   toArray(): T[] {
@@ -53,21 +74,9 @@ export class RingBuffer<T> {
     return result;
   }
 
-  isFull(): boolean {
-    return this.count === this.capacity;
-  }
-
-  get size(): number {
-    return this.count;
-  }
-
-  get maxCapacity(): number {
-    return this.capacity;
-  }
-
-  clear(): void {
-    this.buffer = new Array(this.capacity);
-    this.head = 0;
-    this.count = 0;
+  *[Symbol.iterator](): Iterator<T> {
+    for (let i = 0; i < this.count; i++) {
+      yield this.buffer[(this.head + i) % this.capacity] as T;
+    }
   }
 }

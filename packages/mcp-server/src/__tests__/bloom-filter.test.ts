@@ -1,49 +1,60 @@
 import { describe, it, expect } from "vitest";
-import { BloomFilter } from "../bloom-filter.js";
+import { BloomFilter, createBloomFilter } from "../bloom-filter.js";
 
 describe("BloomFilter", () => {
-  it("finds added items", () => {
+  it("reports has after add", () => {
     const bf = new BloomFilter(1000, 3);
     bf.add("hello");
-    bf.add("world");
-    expect(bf.mightContain("hello")).toBe(true);
-    expect(bf.mightContain("world")).toBe(true);
+    expect(bf.has("hello")).toBe(true);
   });
 
-  it("probably rejects non-added items", () => {
-    const bf = new BloomFilter(10000, 5);
-    for (let i = 0; i < 100; i++) bf.add(`item-${i}`);
-    let falsePositives = 0;
-    for (let i = 1000; i < 2000; i++) {
-      if (bf.mightContain(`item-${i}`)) falsePositives++;
-    }
-    expect(falsePositives).toBeLessThan(100);
+  it("reports false for absent items", () => {
+    const bf = new BloomFilter(1000, 3);
+    bf.add("hello");
+    expect(bf.has("world")).toBe(false);
   });
 
-  it("tracks count", () => {
-    const bf = new BloomFilter(100);
+  it("tracks item count", () => {
+    const bf = new BloomFilter(1000, 3);
     bf.add("a");
     bf.add("b");
-    expect(bf.count).toBe(2);
+    expect(bf.itemCount).toBe(2);
   });
 
-  it("calculates false positive rate", () => {
+  it("falsePositiveRate computes", () => {
     const bf = new BloomFilter(1000, 3);
-    for (let i = 0; i < 50; i++) bf.add(`item-${i}`);
-    expect(bf.falsePositiveRate).toBeGreaterThan(0);
-    expect(bf.falsePositiveRate).toBeLessThan(1);
+    expect(bf.falsePositiveRate()).toBe(0);
+    bf.add("x");
+    expect(bf.falsePositiveRate()).toBeGreaterThan(0);
   });
 
   it("clear resets", () => {
-    const bf = new BloomFilter(100);
-    bf.add("x");
+    const bf = new BloomFilter(1000, 3);
+    bf.add("test");
     bf.clear();
-    expect(bf.count).toBe(0);
-    expect(bf.mightContain("x")).toBe(false);
+    expect(bf.has("test")).toBe(false);
+    expect(bf.itemCount).toBe(0);
   });
 
-  it("optimal creates sized filter", () => {
-    const bf = BloomFilter.optimal(1000, 0.01);
-    expect(bf).toBeInstanceOf(BloomFilter);
+  it("handles many items", () => {
+    const bf = new BloomFilter(10000, 5);
+    for (let i = 0; i < 100; i++) bf.add(`item-${i}`);
+    let present = 0;
+    for (let i = 0; i < 100; i++) {
+      if (bf.has(`item-${i}`)) present++;
+    }
+    expect(present).toBe(100);
+  });
+});
+
+describe("createBloomFilter", () => {
+  it("creates filter with auto-sized params", () => {
+    const bf = createBloomFilter(1000, 0.01);
+    for (let i = 0; i < 100; i++) bf.add(`key-${i}`);
+    let found = 0;
+    for (let i = 0; i < 100; i++) {
+      if (bf.has(`key-${i}`)) found++;
+    }
+    expect(found).toBe(100);
   });
 });

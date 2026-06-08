@@ -2,55 +2,47 @@ import { describe, it, expect } from "vitest";
 import { Trie } from "../trie.js";
 
 describe("Trie", () => {
-  it("inserts and finds words", () => {
+  it("insert and has", () => {
     const t = new Trie();
     t.insert("hello");
-    t.insert("help");
     expect(t.has("hello")).toBe(true);
-    expect(t.has("help")).toBe(true);
-    expect(t.has("hel")).toBe(false);
+    expect(t.has("hell")).toBe(false);
   });
 
-  it("startsWith checks prefix", () => {
-    const t = new Trie();
-    t.insert("hello");
-    expect(t.startsWith("hel")).toBe(true);
-    expect(t.startsWith("xyz")).toBe(false);
-  });
-
-  it("autocomplete returns matches", () => {
-    const t = new Trie();
-    t.insert("hello");
-    t.insert("help");
-    t.insert("hero");
-    t.insert("world");
-    const results = t.autocomplete("hel");
-    expect(results).toContain("hello");
-    expect(results).toContain("help");
-    expect(results).not.toContain("hero");
-  });
-
-  it("respects autocomplete limit", () => {
-    const t = new Trie();
-    for (let i = 0; i < 20; i++) t.insert("word" + i);
-    expect(t.autocomplete("word", 5).length).toBe(5);
-  });
-
-  it("stores and retrieves data", () => {
-    const t = new Trie();
-    t.insert("key", { score: 42 });
-    expect(t.get("key")).toEqual({ score: 42 });
+  it("stores values", () => {
+    const t = new Trie<number>();
+    t.insert("key", 42);
+    expect(t.get("key")).toBe(42);
     expect(t.get("missing")).toBeUndefined();
   });
 
-  it("deletes words", () => {
+  it("delete removes key", () => {
     const t = new Trie();
     t.insert("hello");
     t.insert("help");
     expect(t.delete("hello")).toBe(true);
     expect(t.has("hello")).toBe(false);
     expect(t.has("help")).toBe(true);
-    expect(t.size).toBe(1);
+  });
+
+  it("delete returns false for missing", () => {
+    const t = new Trie();
+    expect(t.delete("nope")).toBe(false);
+  });
+
+  it("startsWith returns matching keys", () => {
+    const t = new Trie();
+    t.insert("hello");
+    t.insert("help");
+    t.insert("world");
+    const results = t.startsWith("hel");
+    expect(results.sort()).toEqual(["hello", "help"]);
+  });
+
+  it("startsWith returns empty for no match", () => {
+    const t = new Trie();
+    t.insert("hello");
+    expect(t.startsWith("xyz")).toEqual([]);
   });
 
   it("tracks size", () => {
@@ -59,13 +51,38 @@ describe("Trie", () => {
     t.insert("b");
     t.insert("a");
     expect(t.size).toBe(2);
+    t.delete("a");
+    expect(t.size).toBe(1);
+  });
+
+  it("keys returns all keys", () => {
+    const t = new Trie();
+    t.insert("cat");
+    t.insert("car");
+    t.insert("dog");
+    expect(t.keys().sort()).toEqual(["car", "cat", "dog"]);
   });
 
   it("clear resets", () => {
     const t = new Trie();
-    t.insert("x");
+    t.insert("test");
     t.clear();
     expect(t.size).toBe(0);
-    expect(t.has("x")).toBe(false);
+    expect(t.has("test")).toBe(false);
+  });
+
+  it("longestPrefix finds match", () => {
+    const t = new Trie();
+    t.insert("http");
+    t.insert("https");
+    t.insert("httpserver");
+    expect(t.longestPrefix("httpserver123")).toBe("httpserver");
+    expect(t.longestPrefix("httprequest")).toBe("http");
+  });
+
+  it("longestPrefix returns empty when no match", () => {
+    const t = new Trie();
+    t.insert("abc");
+    expect(t.longestPrefix("xyz")).toBe("");
   });
 });
