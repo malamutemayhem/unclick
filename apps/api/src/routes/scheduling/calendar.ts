@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zv } from '../../middleware/validate.js';
-import { eq, and, gte, lte, asc } from 'drizzle-orm';
+import { eq, and, gte, lte, asc, inArray } from 'drizzle-orm';
 import { ok } from '@unclick/core';
 import type { Db } from '../../db/index.js';
-import { bookings, bookingAnswers, eventTypes } from '../../db/schema.js';
+import { bookings, eventTypes } from '../../db/schema.js';
 import type { AppVariables } from '../../middleware/types.js';
 import { requireScope } from '../../middleware/auth.js';
 
@@ -42,6 +42,17 @@ function formatBookingSummary(
     notes: row.notes ?? null,
     created_at: row.createdAt.toISOString(),
   };
+}
+
+async function loadEventTypeMap(db: Db, ids: string[]) {
+  const map = new Map<string, Pick<typeof eventTypes.$inferSelect, 'name' | 'duration' | 'color'>>();
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select({ id: eventTypes.id, name: eventTypes.name, duration: eventTypes.duration, color: eventTypes.color })
+    .from(eventTypes)
+    .where(inArray(eventTypes.id, ids));
+  for (const r of rows) map.set(r.id, r);
+  return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -82,18 +93,7 @@ export function createCalendarRouter(db: Db) {
       .where(conditions)
       .orderBy(asc(bookings.startTime));
 
-    // Load event type metadata for all unique event type IDs
-    const etIds = [...new Set(rows.map((r) => r.eventTypeId))];
-    const etMap = new Map<string, Pick<typeof eventTypes.$inferSelect, 'name' | 'duration' | 'color'>>();
-
-    for (const etId of etIds) {
-      const [et] = await db
-        .select({ name: eventTypes.name, duration: eventTypes.duration, color: eventTypes.color })
-        .from(eventTypes)
-        .where(eq(eventTypes.id, etId))
-        .limit(1);
-      if (et) etMap.set(etId, et);
-    }
+    const etMap = await loadEventTypeMap(db, [...new Set(rows.map((r) => r.eventTypeId))]);
 
     return ok(c, rows.map((row) => formatBookingSummary(row, etMap.get(row.eventTypeId))));
   });
@@ -120,16 +120,7 @@ export function createCalendarRouter(db: Db) {
       ))
       .orderBy(asc(bookings.startTime));
 
-    const etIds = [...new Set(rows.map((r) => r.eventTypeId))];
-    const etMap = new Map<string, Pick<typeof eventTypes.$inferSelect, 'name' | 'duration' | 'color'>>();
-    for (const etId of etIds) {
-      const [et] = await db
-        .select({ name: eventTypes.name, duration: eventTypes.duration, color: eventTypes.color })
-        .from(eventTypes)
-        .where(eq(eventTypes.id, etId))
-        .limit(1);
-      if (et) etMap.set(etId, et);
-    }
+    const etMap = await loadEventTypeMap(db, [...new Set(rows.map((r) => r.eventTypeId))]);
 
     return ok(c, {
       date,
@@ -165,16 +156,7 @@ export function createCalendarRouter(db: Db) {
       ))
       .orderBy(asc(bookings.startTime));
 
-    const etIds = [...new Set(rows.map((r) => r.eventTypeId))];
-    const etMap = new Map<string, Pick<typeof eventTypes.$inferSelect, 'name' | 'duration' | 'color'>>();
-    for (const etId of etIds) {
-      const [et] = await db
-        .select({ name: eventTypes.name, duration: eventTypes.duration, color: eventTypes.color })
-        .from(eventTypes)
-        .where(eq(eventTypes.id, etId))
-        .limit(1);
-      if (et) etMap.set(etId, et);
-    }
+    const etMap = await loadEventTypeMap(db, [...new Set(rows.map((r) => r.eventTypeId))]);
 
     // Group by date
     const byDate: Record<string, ReturnType<typeof formatBookingSummary>[]> = {};
