@@ -1,47 +1,56 @@
 export class Matrix {
-  private data: number[][];
   readonly rows: number;
   readonly cols: number;
+  private data: Float64Array;
 
-  constructor(rows: number, cols: number, fill = 0) {
+  constructor(rows: number, cols: number, data?: number[]) {
     this.rows = rows;
     this.cols = cols;
-    this.data = Array.from({ length: rows }, () => new Array(cols).fill(fill));
+    this.data = new Float64Array(rows * cols);
+    if (data) {
+      for (let i = 0; i < Math.min(data.length, rows * cols); i++) {
+        this.data[i] = data[i];
+      }
+    }
+  }
+
+  static identity(n: number): Matrix {
+    const m = new Matrix(n, n);
+    for (let i = 0; i < n; i++) m.set(i, i, 1);
+    return m;
+  }
+
+  static zeros(rows: number, cols: number): Matrix {
+    return new Matrix(rows, cols);
   }
 
   get(row: number, col: number): number {
-    return this.data[row][col];
+    return this.data[row * this.cols + col];
   }
 
   set(row: number, col: number, value: number): void {
-    this.data[row][col] = value;
+    this.data[row * this.cols + col] = value;
   }
 
   add(other: Matrix): Matrix {
-    if (this.rows !== other.rows || this.cols !== other.cols) {
-      throw new Error("Matrix dimensions must match");
-    }
+    if (this.rows !== other.rows || this.cols !== other.cols) throw new Error("Dimension mismatch");
     const result = new Matrix(this.rows, this.cols);
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        result.set(r, c, this.get(r, c) + other.get(r, c));
-      }
+    for (let i = 0; i < this.data.length; i++) {
+      result.data[i] = this.data[i] + other.data[i];
     }
     return result;
   }
 
   multiply(other: Matrix): Matrix {
-    if (this.cols !== other.rows) {
-      throw new Error("Incompatible dimensions for multiplication");
-    }
+    if (this.cols !== other.rows) throw new Error("Dimension mismatch");
     const result = new Matrix(this.rows, other.cols);
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < other.cols; c++) {
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < other.cols; j++) {
         let sum = 0;
         for (let k = 0; k < this.cols; k++) {
-          sum += this.get(r, k) * other.get(k, c);
+          sum += this.get(i, k) * other.get(k, j);
         }
-        result.set(r, c, sum);
+        result.set(i, j, sum);
       }
     }
     return result;
@@ -49,41 +58,39 @@ export class Matrix {
 
   scale(factor: number): Matrix {
     const result = new Matrix(this.rows, this.cols);
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        result.set(r, c, this.get(r, c) * factor);
-      }
+    for (let i = 0; i < this.data.length; i++) {
+      result.data[i] = this.data[i] * factor;
     }
     return result;
   }
 
   transpose(): Matrix {
     const result = new Matrix(this.cols, this.rows);
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        result.set(c, r, this.get(r, c));
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        result.set(j, i, this.get(i, j));
       }
     }
     return result;
   }
 
   toArray(): number[][] {
-    return this.data.map((row) => [...row]);
-  }
-
-  static identity(size: number): Matrix {
-    const m = new Matrix(size, size);
-    for (let i = 0; i < size; i++) m.set(i, i, 1);
-    return m;
-  }
-
-  static from(data: number[][]): Matrix {
-    const m = new Matrix(data.length, data[0]?.length ?? 0);
-    for (let r = 0; r < data.length; r++) {
-      for (let c = 0; c < data[r].length; c++) {
-        m.set(r, c, data[r][c]);
+    const result: number[][] = [];
+    for (let i = 0; i < this.rows; i++) {
+      const row: number[] = [];
+      for (let j = 0; j < this.cols; j++) {
+        row.push(this.get(i, j));
       }
+      result.push(row);
     }
-    return m;
+    return result;
+  }
+
+  equals(other: Matrix, epsilon = 1e-10): boolean {
+    if (this.rows !== other.rows || this.cols !== other.cols) return false;
+    for (let i = 0; i < this.data.length; i++) {
+      if (Math.abs(this.data[i] - other.data[i]) > epsilon) return false;
+    }
+    return true;
   }
 }
