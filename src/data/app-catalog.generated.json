@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 460,
-  "toolCount": 1382,
+  "appCount": 465,
+  "toolCount": 1387,
   "categories": [
     "AI",
     "Books",
@@ -1068,6 +1068,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "charcodes",
+      "name": "Character Codes",
+      "category": "Utilities",
+      "blurb": "Convert characters to Unicode code points in decimal, hex, or binary.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "charcodes_convert",
+          "description": "Convert characters to Unicode code points in decimal, hex, or binary."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "charcount",
@@ -5130,6 +5146,22 @@
       "hardened": true
     },
     {
+      "slug": "luhn",
+      "name": "Luhn Validator",
+      "category": "Utilities",
+      "blurb": "Validate or generate a Luhn check digit for credit cards and IMEI.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "luhn_validate",
+          "description": "Validate or generate a Luhn check digit (credit cards, IMEI, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lyrics",
       "name": "Lyrics.ovh",
       "category": "Music & video",
@@ -5256,6 +5288,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "markdowntable",
+      "name": "Markdown Table",
+      "category": "Utilities",
+      "blurb": "Convert CSV or TSV text into a Markdown table.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "markdowntable_convert",
+          "description": "Convert CSV or TSV text into a Markdown table."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "markdown",
@@ -8110,6 +8158,22 @@
       "hardened": false
     },
     {
+      "slug": "runlength",
+      "name": "Run-Length Encoding",
+      "category": "Utilities",
+      "blurb": "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "runlength_process",
+          "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runway",
       "name": "Runway",
       "category": "AI",
@@ -10744,6 +10808,22 @@
         {
           "name": "word_count",
           "description": "Count words, characters, sentences, and estimate reading time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "wordfreq",
+      "name": "Word Frequency",
+      "category": "Utilities",
+      "blurb": "Analyse word frequencies in text with counts and top-word ranking.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wordfreq_analyse",
+          "description": "Analyse word frequencies in text, returning counts and top words."
         }
       ],
       "level": 5,

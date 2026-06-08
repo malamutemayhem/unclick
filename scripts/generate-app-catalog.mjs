@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -158,6 +158,8 @@ const NAME_OF = {
   statistics: "Statistics Calculator", textwrap: "Text Wrapper", braille: "Braille Converter",
   piglatin: "Pig Latin Translator", rot13: "ROT13 Cipher",
   reversetext: "Text Reverser", palindrome: "Palindrome Checker", acronymgen: "Acronym Generator",
+  wordfreq: "Word Frequency", markdowntable: "Markdown Table", runlength: "Run-Length Encoding",
+  luhn: "Luhn Validator", charcodes: "Character Codes",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -465,6 +467,11 @@ const BLURB_OF = {
   reversetext: "Reverse text by characters, words, lines, or sentences.",
   palindrome: "Check if text is a palindrome and find longest palindromic substring.",
   acronymgen: "Generate an acronym from a phrase, skipping small words by default.",
+  wordfreq: "Analyse word frequencies in text with counts and top-word ranking.",
+  markdowntable: "Convert CSV or TSV text into a Markdown table.",
+  runlength: "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
+  luhn: "Validate or generate a Luhn check digit for credit cards and IMEI.",
+  charcodes: "Convert characters to Unicode code points in decimal, hex, or binary.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -614,6 +621,8 @@ const DOMAIN_OF = {
   statistics: "local", textwrap: "local", braille: "local",
   piglatin: "local", rot13: "local",
   reversetext: "local", palindrome: "local", acronymgen: "local",
+  wordfreq: "local", markdowntable: "local", runlength: "local",
+  luhn: "local", charcodes: "local",
 };
 
 function titleCase(slug) {

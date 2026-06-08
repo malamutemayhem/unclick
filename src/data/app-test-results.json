@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:45:00.000Z",
+  "updatedAt": "2026-06-08T21:50:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3592,6 +3592,36 @@
       "note": "acronym_generate creates acronyms from phrases locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
       "toolsTested": ["acronym_generate"]
+    },
+    "wordfreq": {
+      "status": "pass",
+      "note": "wordfreq_analyse counts word frequencies locally. No API needed.",
+      "testedAt": "2026-06-08T21:50:00.000Z",
+      "toolsTested": ["wordfreq_analyse"]
+    },
+    "markdowntable": {
+      "status": "pass",
+      "note": "markdowntable_convert turns CSV/TSV into Markdown tables locally. No API needed.",
+      "testedAt": "2026-06-08T21:50:00.000Z",
+      "toolsTested": ["markdowntable_convert"]
+    },
+    "runlength": {
+      "status": "pass",
+      "note": "runlength_process encodes/decodes run-length encoding locally. No API needed.",
+      "testedAt": "2026-06-08T21:50:00.000Z",
+      "toolsTested": ["runlength_process"]
+    },
+    "luhn": {
+      "status": "pass",
+      "note": "luhn_validate validates/generates Luhn check digits locally. No API needed.",
+      "testedAt": "2026-06-08T21:50:00.000Z",
+      "toolsTested": ["luhn_validate"]
+    },
+    "charcodes": {
+      "status": "pass",
+      "note": "charcodes_convert returns Unicode code points locally. No API needed.",
+      "testedAt": "2026-06-08T21:50:00.000Z",
+      "toolsTested": ["charcodes_convert"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

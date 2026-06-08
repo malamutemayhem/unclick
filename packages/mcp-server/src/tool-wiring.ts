@@ -625,6 +625,11 @@ import { rot13Convert } from "./rot13-tool.js";
 import { reverseText } from "./reversetext-tool.js";
 import { palindromeCheck } from "./palindrome-tool.js";
 import { acronymGenerate } from "./acronymgen-tool.js";
+import { wordfreqAnalyse } from "./wordfreq-tool.js";
+import { markdowntableConvert } from "./markdowntable-tool.js";
+import { runlengthProcess } from "./runlength-tool.js";
+import { luhnValidate } from "./luhn-tool.js";
+import { charcodesConvert } from "./charcodes-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9605,6 +9610,68 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Phrase to create acronym from." },
         include_small_words: { type: "boolean" as const, description: "Include small words like the, of, and (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── wordfreq-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wordfreq_analyse",
+    description: "Analyse word frequencies in text, returning counts and top words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        top: { type: "number" as const, description: "Return only the top N words (default all)." },
+        case_sensitive: { type: "boolean" as const, description: "Case-sensitive counting (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── markdowntable-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "markdowntable_convert",
+    description: "Convert CSV or TSV text into a Markdown table.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        input: { type: "string" as const, description: "CSV or TSV text." },
+        delimiter: { type: "string" as const, description: "',' (default) or 'tab'." },
+        has_header: { type: "boolean" as const, description: "First row is header (default true)." },
+      }, required: ["input"],
+    },
+  },
+
+  // ── runlength-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "runlength_process",
+    description: "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode or encoded text to decode." },
+        decode: { type: "boolean" as const, description: "Decode instead of encode (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── luhn-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "luhn_validate",
+    description: "Validate or generate a Luhn check digit (credit cards, IMEI, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        number: { type: "string" as const, description: "Digit string to validate or partial number for generation." },
+        mode: { type: "string" as const, description: "'validate' (default) or 'generate' to compute check digit." },
+      }, required: ["number"],
+    },
+  },
+
+  // ── charcodes-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "charcodes_convert",
+    description: "Convert characters to Unicode code points in decimal, hex, or binary.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+        format: { type: "string" as const, description: "'decimal' (default), 'hex', or 'binary'." },
       }, required: ["text"],
     },
   },
@@ -21121,6 +21188,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // acronymgen-tool.ts
   acronym_generate:          (args) => acronymGenerate(args),
+
+  // wordfreq-tool.ts
+  wordfreq_analyse:          (args) => wordfreqAnalyse(args),
+
+  // markdowntable-tool.ts
+  markdowntable_convert:     (args) => markdowntableConvert(args),
+
+  // runlength-tool.ts
+  runlength_process:         (args) => runlengthProcess(args),
+
+  // luhn-tool.ts
+  luhn_validate:             (args) => luhnValidate(args),
+
+  // charcodes-tool.ts
+  charcodes_convert:         (args) => charcodesConvert(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

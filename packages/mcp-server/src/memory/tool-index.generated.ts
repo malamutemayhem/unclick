@@ -892,6 +892,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "charcodes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "charcodes_convert",
+        "description": "Convert characters to Unicode code points in decimal, hex, or binary."
+      }
+    ]
+  },
+  {
     "app": "charcount",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3990,6 +4000,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "luhn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "luhn_validate",
+        "description": "Validate or generate a Luhn check digit (credit cards, IMEI, etc.)."
+      }
+    ]
+  },
+  {
     "app": "lyrics",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4080,6 +4100,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "markdown_stats",
         "description": "Analyze Markdown text: count headings, links, code blocks, words, and more."
+      }
+    ]
+  },
+  {
+    "app": "markdowntable",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markdowntable_convert",
+        "description": "Convert CSV or TSV text into a Markdown table."
       }
     ]
   },
@@ -6154,6 +6184,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "runlength",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "runlength_process",
+        "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
+      }
+    ]
+  },
+  {
     "app": "runway",
     "category": "AI Video",
     "tools": [
@@ -8062,6 +8102,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "word_count",
         "description": "Count words, characters, sentences, and estimate reading time."
+      }
+    ]
+  },
+  {
+    "app": "wordfreq",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wordfreq_analyse",
+        "description": "Analyse word frequencies in text, returning counts and top words."
       }
     ]
   },

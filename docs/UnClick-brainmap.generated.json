@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 883,
+    "inventory": 888,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 461,
+    "tools": 466,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 461
+      "count": 466
     },
     {
       "id": "rooms",
@@ -4682,6 +4682,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-charcodes-packages-mcp-server-src-charcodes-tool-ts-no-route",
+      "division": "Tools",
+      "name": "charcodes",
+      "kind": "MCP tool",
+      "meaning": "charcodes MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/charcodes-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-charcount-packages-mcp-server-src-charcount-tool-ts-no-route",
       "division": "Tools",
       "name": "charcount",
@@ -6462,6 +6472,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-luhn-packages-mcp-server-src-luhn-tool-ts-no-route",
+      "division": "Tools",
+      "name": "luhn",
+      "kind": "MCP tool",
+      "meaning": "luhn MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/luhn-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lyrics-packages-mcp-server-src-lyrics-tool-ts-no-route",
       "division": "Tools",
       "name": "lyrics",
@@ -6508,6 +6528,16 @@
       "kind": "MCP tool",
       "meaning": "markdown MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/markdown-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-markdowntable-packages-mcp-server-src-markdowntable-tool-ts-no-route",
+      "division": "Tools",
+      "name": "markdowntable",
+      "kind": "MCP tool",
+      "meaning": "markdowntable MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/markdowntable-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7682,6 +7712,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-runlength-packages-mcp-server-src-runlength-tool-ts-no-route",
+      "division": "Tools",
+      "name": "runlength",
+      "kind": "MCP tool",
+      "meaning": "runlength MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/runlength-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-runway-packages-mcp-server-src-runway-tool-ts-no-route",
       "division": "Tools",
       "name": "runway",
@@ -8658,6 +8698,16 @@
       "kind": "MCP tool",
       "meaning": "wordcount MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/wordcount-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-wordfreq-packages-mcp-server-src-wordfreq-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wordfreq",
+      "kind": "MCP tool",
+      "meaning": "wordfreq MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wordfreq-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9775,6 +9825,11 @@
       "packages/mcp-server/src/catfacts-tool.ts"
     ],
     [
+      "charcodes",
+      "charcodes MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/charcodes-tool.ts"
+    ],
+    [
       "charcount",
       "charcount MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/charcount-tool.ts"
@@ -10665,6 +10720,11 @@
       "packages/mcp-server/src/lotr-tool.ts"
     ],
     [
+      "luhn",
+      "luhn MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/luhn-tool.ts"
+    ],
+    [
       "lyrics",
       "lyrics MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lyrics-tool.ts"
@@ -10688,6 +10748,11 @@
       "markdown",
       "markdown MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/markdown-tool.ts"
+    ],
+    [
+      "markdowntable",
+      "markdowntable MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/markdowntable-tool.ts"
     ],
     [
       "mastodon",
@@ -11275,6 +11340,11 @@
       "packages/mcp-server/src/rot13-tool.ts"
     ],
     [
+      "runlength",
+      "runlength MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/runlength-tool.ts"
+    ],
+    [
       "runway",
       "runway MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/runway-tool.ts"
@@ -11763,6 +11833,11 @@
       "wordcount",
       "wordcount MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/wordcount-tool.ts"
+    ],
+    [
+      "wordfreq",
+      "wordfreq MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wordfreq-tool.ts"
     ],
     [
       "wordpress",
