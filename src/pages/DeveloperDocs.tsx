@@ -91,7 +91,7 @@ function CodeBlock({ code, filename }: { code: string; filename?: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(code).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

@@ -3807,6 +3807,9 @@ export const ADDITIONAL_TOOLS = [
         filter: { type: "object", additionalProperties: true },
         properties: { type: "object", additionalProperties: true },
         parent: { type: "object", additionalProperties: true },
+        children: { type: "array", description: "Block objects for page body content (create_page)" },
+        icon: { type: "object", additionalProperties: true, description: "Page icon (emoji or external URL)" },
+        cover: { type: "object", additionalProperties: true, description: "Page cover image (external URL)" },
         sort: { type: "object", additionalProperties: true, description: "Sort object for search ({direction, timestamp/property})" },
         sorts: { description: "Array of sort objects for query_database" },
         page_size: { type: "number", description: "Number of results per page (max 100)" },
@@ -4582,6 +4585,7 @@ export const ADDITIONAL_TOOLS = [
         s: { type: "string", description: "Search term" },
         type: { type: "string" },
         y: { type: "number" },
+        page: { type: "number", description: "Page number" },
         api_key: { type: "string" },
       },
       required: ["s"],
@@ -4809,6 +4813,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         id: { type: "number" },
         per_page: { type: "number" },
+        sort: { type: "string", description: "Sort order: title, popularity" },
         api_key: { type: "string" },
       },
       required: ["id"],
@@ -5166,6 +5171,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         artist: { type: "string" },
+        lang: { type: "string", description: "Language code for bio (e.g. en, de)" },
         api_key: { type: "string" },
       },
       required: ["artist"],
@@ -5179,7 +5185,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         artist: { type: "string" },
+        query: { type: "string", description: "Alias for artist" },
         limit: { type: "number" },
+        page: { type: "number" },
         api_key: { type: "string" },
       },
       required: ["artist"],
@@ -5194,6 +5202,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         artist: { type: "string" },
         limit: { type: "number" },
+        page: { type: "number" },
         api_key: { type: "string" },
       },
       required: ["artist"],
@@ -5221,6 +5230,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         limit: { type: "number" },
+        page: { type: "number" },
         api_key: { type: "string" },
       },
     },
@@ -5233,6 +5243,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         limit: { type: "number" },
+        page: { type: "number" },
         api_key: { type: "string" },
       },
     },
@@ -5246,6 +5257,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         artist: { type: "string" },
         album: { type: "string" },
+        lang: { type: "string", description: "Language code (e.g. en, de)" },
         api_key: { type: "string" },
       },
       required: ["artist", "album"],
@@ -5484,7 +5496,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         id: { type: "number" },
+        feed_id: { type: "number", description: "Alias for id" },
         max: { type: "number" },
+        since: { type: "number", description: "Unix timestamp to filter episodes after" },
         api_key: { type: "string" },
         api_secret: { type: "string" },
       },
@@ -5515,6 +5529,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         max: { type: "number" },
         lang: { type: "string" },
+        cat: { type: "string", description: "Category filter" },
         api_key: { type: "string" },
         api_secret: { type: "string" },
       },
@@ -6373,9 +6388,11 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        query: { type: "string", description: "Search query" },
         game_id: { type: "string" },
         user_login: { type: "string" },
         first: { type: "number" },
+        after: { type: "string", description: "Pagination cursor" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
@@ -6403,6 +6420,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         name: { type: "string" },
+        query: { type: "string", description: "Alias for name" },
+        first: { type: "number", description: "Max results to return" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
@@ -6417,6 +6436,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         first: { type: "number" },
+        after: { type: "string", description: "Pagination cursor" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
@@ -6430,8 +6450,10 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         broadcaster_id: { type: "string" },
+        channel: { type: "string", description: "Twitch channel login name" },
         game_id: { type: "string" },
         first: { type: "number" },
+        after: { type: "string", description: "Pagination cursor" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
@@ -6459,6 +6481,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         channel: { type: "string", description: "Twitch channel login name, e.g. 'shroud'" },
+        first: { type: "number", description: "Max schedule segments to return" },
+        start_time: { type: "string", description: "ISO start time filter" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },

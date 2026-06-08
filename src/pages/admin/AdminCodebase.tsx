@@ -73,7 +73,7 @@ export default function AdminCodebase() {
 
   const handleCopy = async () => {
     if (!generated) return;
-    await navigator.clipboard.writeText(generated.content);
+    await navigator.clipboard.writeText(generated.content).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

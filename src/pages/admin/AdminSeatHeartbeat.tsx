@@ -99,7 +99,7 @@ export default function AdminSeatHeartbeatPage() {
     void navigator.clipboard.writeText(schedulePrompt).then(() => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   }, [schedulePrompt]);
 
   return (

@@ -357,7 +357,7 @@ export default function RunDetail() {
 
   async function copyShareLink() {
     if (!shareUrl) return;
-    await navigator.clipboard.writeText(shareUrl);
+    await navigator.clipboard.writeText(shareUrl).catch(() => {});
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 1800);
   }
@@ -366,13 +366,13 @@ export default function RunDetail() {
     const text = failItems
       .map((i) => `## ${i.title}\n${i.on_fail_comment ?? ""}\n${(i.fix_recipe ?? []).map((s, n) => `  ${n + 1}. ${s}`).join("\n")}`)
       .join("\n\n");
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(text).catch(() => {});
     setCopiedFixes(true);
     setTimeout(() => setCopiedFixes(false), 2500);
   }
 
   async function copyStep(stepKey: string, text: string) {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(text).catch(() => {});
     setCopiedStep(stepKey);
     setTimeout(() => setCopiedStep(null), 1800);
   }
@@ -535,7 +535,7 @@ export default function RunDetail() {
             </pre>
             <button
               onClick={async () => {
-                await navigator.clipboard.writeText(agentPrompt);
+                await navigator.clipboard.writeText(agentPrompt).catch(() => {});
                 setCopiedFixes(true);
                 setTimeout(() => setCopiedFixes(false), 2500);
               }}

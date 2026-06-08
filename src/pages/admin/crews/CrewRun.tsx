@@ -126,7 +126,7 @@ export default function CrewRun() {
     void navigator.clipboard.writeText(synthMain).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   }
 
   const isActive = run?.status === "pending" || run?.status === "running";

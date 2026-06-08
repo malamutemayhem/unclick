@@ -798,14 +798,14 @@ export default function AdminJobsmith() {
 
   async function copyPlan() {
     if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(plan);
+    await navigator.clipboard.writeText(plan).catch(() => {});
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   }
 
   async function copyApplicationPacket() {
     if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(applicationPacket.text);
+    await navigator.clipboard.writeText(applicationPacket.text).catch(() => {});
     setPacketCopied(true);
     window.setTimeout(() => setPacketCopied(false), 1800);
   }

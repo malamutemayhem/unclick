@@ -50,7 +50,7 @@ export default function CrewsCatalog() {
     void navigator.clipboard.writeText(prompt).then(() => {
       setCopied(id);
       setTimeout(() => setCopied(null), 1800);
-    });
+    }).catch(() => {});
   }
 
   return (
