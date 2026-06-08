@@ -29,7 +29,7 @@ const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; })
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
 bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
-bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap"]);
+bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic", "wikidata"]);
@@ -37,14 +37,14 @@ bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linea
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife", "acnhapi"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation", "opensky"]);
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate", "gbif", "itis"]);
-bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice"]);
+bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice", "cvecircl"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -126,6 +126,8 @@ const NAME_OF = {
   coincap: "CoinCap", "open-elevation": "Open Elevation", itis: "ITIS (USDA)",
   arxiv: "arXiv", openalex: "OpenAlex", dblp: "DBLP",
   wikidata: "Wikidata", randomduck: "Random Duck", httpdog: "HTTP Dog",
+  opensky: "OpenSky Network", cvecircl: "CIRCL CVE", vatcomply: "VATcomply",
+  thecolorapi: "The Color API", placehold: "Placehold.co", languagetool: "LanguageTool",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -350,6 +352,12 @@ const BLURB_OF = {
   wikidata: "Structured knowledge base: search and retrieve entity data from Wikidata.",
   randomduck: "Random duck images from random-d.uk.",
   httpdog: "Dog images for HTTP status codes (like httpcat but with dogs).",
+  opensky: "Live aircraft tracking: positions, altitudes, and flight history worldwide.",
+  cvecircl: "CVE vulnerability lookup and recent CVE feed from CIRCL.",
+  vatcomply: "EU VAT rates and member state data from VATcomply.",
+  thecolorapi: "Detailed color information and scheme generation for any hex color.",
+  placehold: "Placeholder image URL builder with custom size, colors, and text.",
+  languagetool: "Grammar, spelling, and style checking for 30+ languages.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -467,6 +475,8 @@ const DOMAIN_OF = {
   coincap: "coincap.io", "open-elevation": "open-elevation.com", itis: "itis.gov",
   arxiv: "arxiv.org", openalex: "openalex.org", dblp: "dblp.org",
   wikidata: "wikidata.org", randomduck: "random-d.uk", httpdog: "http.dog",
+  opensky: "opensky-network.org", cvecircl: "cve.circl.lu", vatcomply: "vatcomply.com",
+  thecolorapi: "thecolorapi.com", placehold: "placehold.co", languagetool: "languagetool.org",
 };
 
 function titleCase(slug) {

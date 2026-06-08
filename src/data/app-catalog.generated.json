@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 377,
-  "toolCount": 1269,
+  "appCount": 383,
+  "toolCount": 1280,
   "categories": [
     "AI",
     "Books",
@@ -1036,6 +1036,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "cvecircl",
+      "name": "CIRCL CVE",
+      "category": "Security",
+      "blurb": "CVE vulnerability lookup and recent CVE feed from CIRCL.",
+      "domain": "cve.circl.lu",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "circl_cve_lookup",
+          "description": "Look up a CVE vulnerability by ID from CIRCL (cve.circl.lu)."
+        },
+        {
+          "name": "circl_cve_recent",
+          "description": "Get the most recently published CVE vulnerabilities from CIRCL."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "circleci",
@@ -4178,6 +4198,26 @@
       "hardened": true
     },
     {
+      "slug": "languagetool",
+      "name": "LanguageTool",
+      "category": "Utilities",
+      "blurb": "Grammar, spelling, and style checking for 30+ languages.",
+      "domain": "languagetool.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "languagetool_check",
+          "description": "Check text for grammar, spelling, and style issues using LanguageTool."
+        },
+        {
+          "name": "languagetool_languages",
+          "description": "List all languages supported by LanguageTool."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lastfm",
       "name": "Last.fm",
       "category": "Music & video",
@@ -5682,6 +5722,26 @@
       "hardened": false
     },
     {
+      "slug": "opensky",
+      "name": "OpenSky Network",
+      "category": "Travel, maps & local",
+      "blurb": "Live aircraft tracking: positions, altitudes, and flight history worldwide.",
+      "domain": "opensky-network.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "opensky_states",
+          "description": "Get live aircraft states (position, altitude, velocity) from OpenSky Network."
+        },
+        {
+          "name": "opensky_flights",
+          "description": "Get flight history from OpenSky Network for a time range (max 2 hours)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pagerduty",
       "name": "Pagerduty",
       "category": "Developer & infra",
@@ -5920,6 +5980,22 @@
         {
           "name": "placebear_image",
           "description": "Get a bear placeholder image URL at custom dimensions (no network call)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "placehold",
+      "name": "Placehold.co",
+      "category": "Images",
+      "blurb": "Placeholder image URL builder with custom size, colors, and text.",
+      "domain": "placehold.co",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "placehold_image",
+          "description": "Generate a placeholder image URL with custom size, colors, and text (no network call)."
         }
       ],
       "level": 5,
@@ -8066,6 +8142,26 @@
       "hardened": true
     },
     {
+      "slug": "thecolorapi",
+      "name": "The Color API",
+      "category": "Images",
+      "blurb": "Detailed color information and scheme generation for any hex color.",
+      "domain": "thecolorapi.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "thecolorapi_id",
+          "description": "Get detailed color information (name, RGB, HSL, CMYK) for a hex color."
+        },
+        {
+          "name": "thecolorapi_scheme",
+          "description": "Generate a color scheme from a seed hex color."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dogapi",
       "name": "The Dog API",
       "category": "Images",
@@ -8971,6 +9067,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "vatcomply",
+      "name": "VATcomply",
+      "category": "Markets & crypto",
+      "blurb": "EU VAT rates and member state data from VATcomply.",
+      "domain": "vatcomply.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "vatcomply_rates",
+          "description": "Get EU VAT rates (standard, reduced, super-reduced) per country."
+        },
+        {
+          "name": "vatcomply_countries",
+          "description": "List EU member states with country name and code."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {

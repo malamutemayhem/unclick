@@ -1376,6 +1376,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cvecircl",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "circl_cve_lookup",
+        "description": "Look up a CVE vulnerability by ID from CIRCL (cve.circl.lu)."
+      },
+      {
+        "name": "circl_cve_recent",
+        "description": "Get the most recently published CVE vulnerabilities from CIRCL."
+      }
+    ]
+  },
+  {
     "app": "dadjoke",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3288,6 +3302,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "languagetool",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "languagetool_check",
+        "description": "Check text for grammar, spelling, and style issues using LanguageTool."
+      },
+      {
+        "name": "languagetool_languages",
+        "description": "List all languages supported by LanguageTool."
+      }
+    ]
+  },
+  {
     "app": "lastfm",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4408,6 +4436,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "opensky",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "opensky_states",
+        "description": "Get live aircraft states (position, altitude, velocity) from OpenSky Network."
+      },
+      {
+        "name": "opensky_flights",
+        "description": "Get flight history from OpenSky Network for a time range (max 2 hours)."
+      }
+    ]
+  },
+  {
     "app": "opentriviadb",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4626,6 +4668,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "placebear_image",
         "description": "Get a bear placeholder image URL at custom dimensions (no network call)."
+      }
+    ]
+  },
+  {
+    "app": "placehold",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placehold_image",
+        "description": "Generate a placeholder image URL with custom size, colors, and text (no network call)."
       }
     ]
   },
@@ -6238,6 +6290,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "thecolorapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "thecolorapi_id",
+        "description": "Get detailed color information (name, RGB, HSL, CMYK) for a hex color."
+      },
+      {
+        "name": "thecolorapi_scheme",
+        "description": "Generate a color scheme from a seed hex color."
+      }
+    ]
+  },
+  {
     "app": "thelott",
     "category": "Australian / Local",
     "tools": [
@@ -6872,6 +6938,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "uxpass_register_pack",
         "description": "Register a UXPass pack from a YAML string. Validates the basic shape (required keys: name, url, viewports, themes, hats, synthesiser, budgets, remediation) and persists the pack so uxpass_run can reference it by name. Returns the assigned pack_id."
+      }
+    ]
+  },
+  {
+    "app": "vatcomply",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "vatcomply_rates",
+        "description": "Get EU VAT rates (standard, reduced, super-reduced) per country."
+      },
+      {
+        "name": "vatcomply_countries",
+        "description": "List EU member states with country name and code."
       }
     ]
   },

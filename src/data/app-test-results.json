@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T15:00:00.000Z",
+  "updatedAt": "2026-06-08T15:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3094,6 +3094,42 @@
       "note": "http_dog_image builds dog image URL for HTTP status codes locally. No network call.",
       "testedAt": "2026-06-08T15:00:00.000Z",
       "toolsTested": ["http_dog_image"]
+    },
+    "opensky": {
+      "status": "pass",
+      "note": "opensky_states returns live aircraft positions from OpenSky Network. Free, no key for anonymous.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["opensky_states", "opensky_flights"]
+    },
+    "cvecircl": {
+      "status": "pass",
+      "note": "circl_cve_lookup returns CVE vulnerability data from cve.circl.lu. Free, no key needed.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["circl_cve_lookup", "circl_cve_recent"]
+    },
+    "vatcomply": {
+      "status": "pass",
+      "note": "vatcomply_rates returns EU VAT rates. Free, no key needed.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["vatcomply_rates", "vatcomply_countries"]
+    },
+    "thecolorapi": {
+      "status": "pass",
+      "note": "thecolorapi_id returns detailed color info for a hex value. Free, no key needed.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["thecolorapi_id", "thecolorapi_scheme"]
+    },
+    "placehold": {
+      "status": "pass",
+      "note": "placehold_image builds placeholder image URL locally. No network call.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["placehold_image"]
+    },
+    "languagetool": {
+      "status": "pass",
+      "note": "languagetool_check returns grammar/spelling issues. Free public API, no key needed.",
+      "testedAt": "2026-06-08T15:30:00.000Z",
+      "toolsTested": ["languagetool_check", "languagetool_languages"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

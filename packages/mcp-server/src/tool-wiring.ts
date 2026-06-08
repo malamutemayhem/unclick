@@ -542,6 +542,12 @@ import { dblpSearchPublications, dblpSearchAuthors } from "./dblp-tool.js";
 import { wikidataSearch, wikidataGetEntity } from "./wikidata-tool.js";
 import { randomDuckImage, randomDuckList } from "./randomduck-tool.js";
 import { httpDogImage } from "./httpdog-tool.js";
+import { openskyStates, openskyFlights } from "./opensky-tool.js";
+import { circlCveLookup, circlCveRecent } from "./cvecircl-tool.js";
+import { vatcomplyRates, vatcomplyCountries } from "./vatcomply-tool.js";
+import { theColorApiId, theColorApiScheme } from "./thecolorapi-tool.js";
+import { placeholdImage } from "./placehold-tool.js";
+import { languagetoolCheck, languagetoolLanguages } from "./languagetool-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8271,6 +8277,119 @@ export const ADDITIONAL_TOOLS = [
         status_code: { type: "number" as const, description: "HTTP status code (100-599)." },
       }, required: ["status_code"],
     },
+  },
+
+  // ── opensky-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "opensky_states",
+    description: "Get live aircraft states (position, altitude, velocity) from OpenSky Network.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        icao24: { type: "string" as const, description: "Filter by ICAO24 transponder address." },
+        lamin: { type: "number" as const, description: "Bounding box min latitude." },
+        lomin: { type: "number" as const, description: "Bounding box min longitude." },
+        lamax: { type: "number" as const, description: "Bounding box max latitude." },
+        lomax: { type: "number" as const, description: "Bounding box max longitude." },
+      },
+    },
+  },
+  {
+    name: "opensky_flights",
+    description: "Get flight history from OpenSky Network for a time range (max 2 hours).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        begin: { type: "number" as const, description: "Start time (Unix timestamp)." },
+        end: { type: "number" as const, description: "End time (Unix timestamp)." },
+        icao24: { type: "string" as const, description: "Filter by ICAO24 transponder address." },
+      }, required: ["begin", "end"],
+    },
+  },
+
+  // ── cvecircl-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "circl_cve_lookup",
+    description: "Look up a CVE vulnerability by ID from CIRCL (cve.circl.lu).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cve_id: { type: "string" as const, description: "CVE ID (e.g. CVE-2024-1234)." },
+      }, required: ["cve_id"],
+    },
+  },
+  {
+    name: "circl_cve_recent",
+    description: "Get the most recently published CVE vulnerabilities from CIRCL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── vatcomply-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "vatcomply_rates",
+    description: "Get EU VAT rates (standard, reduced, super-reduced) per country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 2-letter country code (omit for all EU countries)." },
+      },
+    },
+  },
+  {
+    name: "vatcomply_countries",
+    description: "List EU member states with country name and code.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── thecolorapi-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "thecolorapi_id",
+    description: "Get detailed color information (name, RGB, HSL, CMYK) for a hex color.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. FF5733 or #FF5733)." },
+      }, required: ["hex"],
+    },
+  },
+  {
+    name: "thecolorapi_scheme",
+    description: "Generate a color scheme from a seed hex color.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Seed hex color (e.g. FF5733)." },
+        mode: { type: "string" as const, description: "Scheme mode: monochrome, analogic, complement, triad, quad (default: analogic)." },
+        count: { type: "number" as const, description: "Number of colors (default 5, max 10)." },
+      }, required: ["hex"],
+    },
+  },
+
+  // ── placehold-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "placehold_image",
+    description: "Generate a placeholder image URL with custom size, colors, and text (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Image width in pixels (default 300, max 4000)." },
+        height: { type: "number" as const, description: "Image height in pixels (default: same as width)." },
+        background: { type: "string" as const, description: "Background hex color (default: CCCCCC)." },
+        foreground: { type: "string" as const, description: "Text hex color (default: 333333)." },
+        text: { type: "string" as const, description: "Custom text overlay." },
+        font: { type: "string" as const, description: "Font name (roboto, lato, open-sans, montserrat, etc.)." },
+      },
+    },
+  },
+
+  // ── languagetool-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "languagetool_check",
+    description: "Check text for grammar, spelling, and style issues using LanguageTool.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to check." },
+        language: { type: "string" as const, description: "Language code (default: auto). E.g. en-US, de-DE, fr." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "languagetool_languages",
+    description: "List all languages supported by LanguageTool.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -19518,6 +19637,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   random_duck_list:          (args) => randomDuckList(args),
   // httpdog-tool.ts
   http_dog_image:            (args) => httpDogImage(args),
+  // opensky-tool.ts
+  opensky_states:            (args) => openskyStates(args),
+  opensky_flights:           (args) => openskyFlights(args),
+  // cvecircl-tool.ts
+  circl_cve_lookup:          (args) => circlCveLookup(args),
+  circl_cve_recent:          (args) => circlCveRecent(args),
+  // vatcomply-tool.ts
+  vatcomply_rates:           (args) => vatcomplyRates(args),
+  vatcomply_countries:       (args) => vatcomplyCountries(args),
+  // thecolorapi-tool.ts
+  thecolorapi_id:            (args) => theColorApiId(args),
+  thecolorapi_scheme:        (args) => theColorApiScheme(args),
+  // placehold-tool.ts
+  placehold_image:           (args) => placeholdImage(args),
+  // languagetool-tool.ts
+  languagetool_check:        (args) => languagetoolCheck(args),
+  languagetool_languages:    (args) => languagetoolLanguages(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
