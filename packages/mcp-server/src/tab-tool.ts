@@ -1,11 +1,13 @@
 // TAB Australia integration.
-// Read-only access to racing and sports betting odds (public data, no auth required).
-// Docs: https://api.beta.tab.com.au/
-// Base URL: https://api.beta.tab.com.au/v1/
+// Read-only access to racing and sports betting odds.
+// The beta API (api.beta.tab.com.au) was retired. TAB Studio
+// (studio.tab.com.au) is the replacement and requires registration.
+// Set TAB_API_KEY env var for authenticated access.
+// Docs: https://www.studio.tab.com.au/docs
 
 import { stampMeta } from "./connector-meta.js";
 
-const TAB_BASE = "https://api.beta.tab.com.au/v1";
+const TAB_BASE = process.env.TAB_API_BASE?.trim() || "https://api.beta.tab.com.au/v1";
 
 async function tabGet(path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
@@ -35,6 +37,13 @@ async function tabGet(path: string, params?: Record<string, string>): Promise<un
     const body = await res.text().catch(() => "");
     throw new Error(`TAB API HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
   }
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("json")) {
+    throw new Error(
+      "TAB API returned non-JSON response. The beta API may be retired. " +
+      "Set TAB_API_BASE to your TAB Studio endpoint (studio.tab.com.au)."
+    );
+  }
   return res.json() as Promise<unknown>;
 }
 
@@ -52,7 +61,8 @@ export async function getTabMeetings(args: Record<string, unknown>): Promise<unk
     const params: Record<string, string> = { jurisdiction };
     if (args.date) params["date"] = String(args.date);
 
-    const data = await tabGet(`/tab-info-service/racing/dates/2024-01-01/meetings`, params) as Record<string, unknown>;
+    const meetingDate = args.date ? String(args.date) : new Date().toISOString().slice(0, 10);
+    const data = await tabGet(`/tab-info-service/racing/dates/${meetingDate}/meetings`, params) as Record<string, unknown>;
     const meetings = data["meetings"] as Array<Record<string, unknown>> | undefined ?? [];
 
     const filtered = meetings.filter((m) =>

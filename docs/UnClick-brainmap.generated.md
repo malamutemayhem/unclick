@@ -75,7 +75,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
-| src/pages/admin/AdminAppTesting.tsx | ffadb7c67d09 | 10153 |
+| src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
 | src/pages/admin/AdminAuditLog.tsx | 947f6c4d8c10 | 877 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
@@ -131,7 +131,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | 147f832aa5b9 | 19192 |
+| src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
 | src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/Why.tsx | a0c2574257c7 | 11100 |
+| src/pages/Why.tsx | a210c068f422 | 11101 |
 | src/pages/XPass.tsx | 8a95e39abdd4 | 11982 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -170,45 +170,45 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
 | scripts/pinballwake-xpass-gate-room.mjs | 8012a4cbab9e | 32880 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
+| packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |
+| packages/mcp-server/src/acnhapi-tool.ts | 45c37b0289ed | 2427 |
+| packages/mcp-server/src/acronymgen-tool.ts | 893f3d635834 | 1113 |
+| packages/mcp-server/src/adviceslip-tool.ts | 76262ae15005 | 2878 |
+| packages/mcp-server/src/affirmation-tool.ts | b085a34edff5 | 1777 |
+| packages/mcp-server/src/agify-tool.ts | fe1e0fcf3274 | 3309 |
 | packages/mcp-server/src/airtable-tool.ts | 917c11a6f79e | 7602 |
 | packages/mcp-server/src/algolia-tool.ts | aa95d5b77b4c | 7208 |
 | packages/mcp-server/src/alphavantage-tool.ts | 2792412e3c61 | 9254 |
 | packages/mcp-server/src/amazon-tool.ts | faeea675e2f5 | 15899 |
 | packages/mcp-server/src/amber-tool.ts | 635b10e30a39 | 7078 |
+| packages/mcp-server/src/amiibo-tool.ts | 81076c40936a | 2101 |
+| packages/mcp-server/src/animechan-tool.ts | f77b9af84d81 | 1735 |
 | packages/mcp-server/src/anthropic-tool.ts | 72906c764b43 | 9657 |
+| packages/mcp-server/src/aoe2-tool.ts | 13377d4c8ad0 | 3685 |
+| packages/mcp-server/src/apifootball-tool.ts | ff6ec8c8d646 | 3682 |
+| packages/mcp-server/src/archiveorg-tool.ts | 31481deccc20 | 4106 |
+| packages/mcp-server/src/artic-tool.ts | 6e076252fe5d | 2428 |
+| packages/mcp-server/src/arxiv-tool.ts | 251cb296ee4f | 2365 |
 | packages/mcp-server/src/asana-tool.ts | 2519967f5105 | 9808 |
+| packages/mcp-server/src/aspectratio-tool.ts | 218ae813b31c | 1287 |
 | packages/mcp-server/src/assemblyai-tool.ts | 24ebe71790cf | 11837 |
+| packages/mcp-server/src/atbash-tool.ts | 90f7681ac6a5 | 863 |
 | packages/mcp-server/src/australiapost-tool.ts | ed627c360433 | 6185 |
-| packages/mcp-server/src/bandsintown-tool.ts | d255220247d1 | 4151 |
-| packages/mcp-server/src/bgg-tool.ts | 182bc6f9686a | 12028 |
+| packages/mcp-server/src/avatarapi-tool.ts | e3d94dc7e01e | 730 |
+| packages/mcp-server/src/balldontlie-tool.ts | cecae71c883d | 2403 |
+| packages/mcp-server/src/bandsintown-tool.ts | f56d1929e864 | 4850 |
+| packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
+| packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
+| packages/mcp-server/src/bgpview-tool.ts | c97cbd66581b | 2523 |
+| packages/mcp-server/src/bible-tool.ts | 94f62f2fa1c1 | 2338 |
+| packages/mcp-server/src/bibleverse-tool.ts | c5c118d0eb27 | 1698 |
+| packages/mcp-server/src/binaryconv-tool.ts | b09d86831da2 | 1337 |
 | packages/mcp-server/src/bitbucket-tool.ts | a6a405951262 | 4388 |
+| packages/mcp-server/src/bitwise-tool.ts | 5b0b0365aefe | 2091 |
 | packages/mcp-server/src/bluesky-tool.ts | 9c63ad10f656 | 16256 |
-| packages/mcp-server/src/brevo-tool.ts | b79b48fd500a | 3314 |
-| packages/mcp-server/src/bungie-tool.ts | a6a1a1915cc3 | 7686 |
-| packages/mcp-server/src/calcom-tool.ts | d287d0a01077 | 3332 |
-| packages/mcp-server/src/calculator-tool.ts | 5a3d3d30645e | 7319 |
-| packages/mcp-server/src/calendly-tool.ts | 12032f4f7f6c | 7492 |
-| packages/mcp-server/src/carboninterface-tool.ts | 14fa562b0217 | 7953 |
-| packages/mcp-server/src/chessdotcom-tool.ts | 29bbcfa26e3f | 7874 |
-| packages/mcp-server/src/circleci-tool.ts | 0c585c18d348 | 7085 |
-| packages/mcp-server/src/clickup-tool.ts | b8f6a7c21317 | 6739 |
-| packages/mcp-server/src/clockify-tool.ts | 86ae10a34bfb | 7218 |
-| packages/mcp-server/src/cloudinary-tool.ts | 66bcda722d32 | 3562 |
-| packages/mcp-server/src/coda-tool.ts | 6390ba35aece | 3626 |
-| packages/mcp-server/src/cohere-tool.ts | 91a7c36218e0 | 11278 |
-| packages/mcp-server/src/coingecko-tool.ts | 105c55971d63 | 7884 |
-| packages/mcp-server/src/coinmarketcap-tool.ts | f44ff0239baa | 8444 |
-| packages/mcp-server/src/color-tool.ts | 8e737cb9e16f | 13782 |
-| packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
-| packages/mcp-server/src/compliancepass-tool.ts | bedf85b00baa | 7342 |
-| packages/mcp-server/src/confluence-tool.ts | f1248450cf5a | 4326 |
-| packages/mcp-server/src/contentful-tool.ts | fe4a6bb32986 | 5202 |
-| packages/mcp-server/src/convertkit-tool.ts | d6f0f01e6032 | 10595 |
-| packages/mcp-server/src/copypass-tool.ts | 3cbadbc448a0 | 33377 |
-| packages/mcp-server/src/crews-tool.ts | aefc67a40964 | 14093 |
-| packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
-| packages/mcp-server/src/datadog-tool.ts | 529fa672eb0e | 8255 |
+| packages/mcp-server/src/bored-tool.ts | 076a2a94303b | 3043 |
+| packages/mcp-server/src/braille-tool.ts | a2a71da4a678 | 1894 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 219 |
+| Tools | MCP and gateway capabilities available to seats. | 491 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -371,224 +371,496 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tool family | Meaning | Source |
 | --- | --- | --- |
 | abn | abn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/abn-tool.ts |
+| abstract holidays | abstract holidays MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/abstract-holidays-tool.ts |
 | abuseipdb | abuseipdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/abuseipdb-tool.ts |
+| acnhapi | acnhapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/acnhapi-tool.ts |
+| acronymgen | acronymgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/acronymgen-tool.ts |
+| adviceslip | adviceslip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/adviceslip-tool.ts |
+| affirmation | affirmation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/affirmation-tool.ts |
+| agify | agify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/agify-tool.ts |
 | airtable | airtable MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/airtable-tool.ts |
 | algolia | algolia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/algolia-tool.ts |
 | alphavantage | alphavantage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/alphavantage-tool.ts |
 | amazon | amazon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/amazon-tool.ts |
 | amber | amber MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/amber-tool.ts |
+| amiibo | amiibo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/amiibo-tool.ts |
+| animechan | animechan MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/animechan-tool.ts |
 | anthropic | anthropic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/anthropic-tool.ts |
+| aoe2 | aoe2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/aoe2-tool.ts |
+| apifootball | apifootball MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/apifootball-tool.ts |
+| archiveorg | archiveorg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/archiveorg-tool.ts |
+| artic | artic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/artic-tool.ts |
+| arxiv | arxiv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/arxiv-tool.ts |
 | asana | asana MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/asana-tool.ts |
+| aspectratio | aspectratio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/aspectratio-tool.ts |
 | assemblyai | assemblyai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/assemblyai-tool.ts |
+| atbash | atbash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/atbash-tool.ts |
 | australiapost | australiapost MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/australiapost-tool.ts |
+| avatarapi | avatarapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/avatarapi-tool.ts |
+| balldontlie | balldontlie MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/balldontlie-tool.ts |
 | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bandsintown-tool.ts |
+| base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
 | bgg | bgg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bgg-tool.ts |
+| bgpview | bgpview MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bgpview-tool.ts |
+| bible | bible MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bible-tool.ts |
+| bibleverse | bibleverse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bibleverse-tool.ts |
+| binaryconv | binaryconv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/binaryconv-tool.ts |
 | bitbucket | bitbucket MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitbucket-tool.ts |
+| bitwise | bitwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitwise-tool.ts |
 | bluesky | bluesky MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bluesky-tool.ts |
+| bored | bored MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bored-tool.ts |
+| braille | braille MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/braille-tool.ts |
+| breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/breakingbad-tool.ts |
 | brevo | brevo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/brevo-tool.ts |
+| brewery | brewery MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/brewery-tool.ts |
 | bungie | bungie MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bungie-tool.ts |
 | calcom | calcom MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/calcom-tool.ts |
 | calculator | calculator MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/calculator-tool.ts |
 | calendly | calendly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/calendly-tool.ts |
+| camelsnake | camelsnake MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/camelsnake-tool.ts |
+| carbonintensity | carbonintensity MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/carbonintensity-tool.ts |
 | carboninterface | carboninterface MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/carboninterface-tool.ts |
+| cataas | cataas MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cataas-tool.ts |
+| catapi | catapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/catapi-tool.ts |
+| catfacts | catfacts MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/catfacts-tool.ts |
+| charcodes | charcodes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/charcodes-tool.ts |
+| charcount | charcount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/charcount-tool.ts |
+| cheapshark | cheapshark MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cheapshark-tool.ts |
 | chessdotcom | chessdotcom MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/chessdotcom-tool.ts |
+| chucknorris | chucknorris MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/chucknorris-tool.ts |
+| cidr | cidr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cidr-tool.ts |
 | circleci | circleci MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/circleci-tool.ts |
+| citybikes | citybikes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/citybikes-tool.ts |
 | clickup | clickup MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/clickup-tool.ts |
 | clockify | clockify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/clockify-tool.ts |
 | cloudinary | cloudinary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cloudinary-tool.ts |
+| cocktail | cocktail MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cocktail-tool.ts |
+| cocktaildb2 | cocktaildb2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cocktaildb2-tool.ts |
 | coda | coda MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coda-tool.ts |
 | cohere | cohere MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cohere-tool.ts |
+| coincap | coincap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coincap-tool.ts |
 | coingecko | coingecko MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coingecko-tool.ts |
+| coinlore | coinlore MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinlore-tool.ts |
 | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinmarketcap-tool.ts |
+| coinpaprika | coinpaprika MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinpaprika-tool.ts |
+| collatz | collatz MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/collatz-tool.ts |
 | color | color MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/color-tool.ts |
+| colorblend | colorblend MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colorblend-tool.ts |
+| colorconvert | colorconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colorconvert-tool.ts |
+| colormind | colormind MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colormind-tool.ts |
+| colornames | colornames MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colornames-tool.ts |
+| colr | colr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colr-tool.ts |
 | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/commonsensepass-tool.ts |
 | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/compliancepass-tool.ts |
 | confluence | confluence MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/confluence-tool.ts |
 | contentful | contentful MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/contentful-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | copypass | copypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/copypass-tool.ts |
+| corporatebs | corporatebs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/corporatebs-tool.ts |
+| cosinesim | cosinesim MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cosinesim-tool.ts |
+| countdowncalc | countdowncalc MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countdowncalc-tool.ts |
+| countryflag | countryflag MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countryflag-tool.ts |
+| countryis | countryis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countryis-tool.ts |
+| crates | crates MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crates-tool.ts |
+| crc32 | crc32 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crc32-tool.ts |
 | crews | crews MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crews-tool.ts |
+| crontab | crontab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crontab-tool.ts |
+| crossref | crossref MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crossref-tool.ts |
 | csuite | csuite MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/csuite-tool.ts |
+| csvparse | csvparse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/csvparse-tool.ts |
+| cvecircl | cvecircl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cvecircl-tool.ts |
+| dadjoke | dadjoke MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dadjoke-tool.ts |
+| damerau | damerau MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/damerau-tool.ts |
 | datadog | datadog MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/datadog-tool.ts |
+| datamuse | datamuse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/datamuse-tool.ts |
 | datetime | datetime MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/datetime-tool.ts |
+| dblp | dblp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dblp-tool.ts |
+| deckofcards | deckofcards MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deckofcards-tool.ts |
 | deepl | deepl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deepl-tool.ts |
 | deezer | deezer MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deezer-tool.ts |
+| diceware | diceware MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/diceware-tool.ts |
+| dictionary | dictionary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dictionary-tool.ts |
+| difftext | difftext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/difftext-tool.ts |
+| digimon | digimon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digimon-tool.ts |
 | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digitalocean-tool.ts |
 | discogs | discogs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/discogs-tool.ts |
 | discord | discord MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/discord-tool.ts |
+| diseasesh | diseasesh MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/diseasesh-tool.ts |
+| disneyapi | disneyapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/disneyapi-tool.ts |
+| dnd5e | dnd5e MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dnd5e-tool.ts |
+| dogapi | dogapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dogapi-tool.ts |
+| dogceo | dogceo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dogceo-tool.ts |
+| dogfacts | dogfacts MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dogfacts-tool.ts |
+| dohdns | dohdns MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dohdns-tool.ts |
 | domain | domain MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/domain-tool.ts |
+| domainsdb | domainsdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/domainsdb-tool.ts |
 | dropbox | dropbox MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dropbox-tool.ts |
+| dummyimage | dummyimage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dummyimage-tool.ts |
+| dummyjson | dummyjson MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dummyjson-tool.ts |
 | ebay | ebay MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ebay-tool.ts |
 | ebird | ebird MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ebird-tool.ts |
 | elevenlabs | elevenlabs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/elevenlabs-tool.ts |
 | email | email MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/email-tool.ts |
+| emojihub | emojihub MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/emojihub-tool.ts |
+| emojilookup | emojilookup MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/emojilookup-tool.ts |
+| entropy | entropy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/entropy-tool.ts |
+| epoch | epoch MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/epoch-tool.ts |
 | espn | espn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/espn-tool.ts |
 | etsy | etsy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/etsy-tool.ts |
+| europeana | europeana MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/europeana-tool.ts |
 | eventbrite | eventbrite MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/eventbrite-tool.ts |
+| evilinsult | evilinsult MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/evilinsult-tool.ts |
 | exchangerate | exchangerate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/exchangerate-tool.ts |
+| exchangerate2 | exchangerate2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/exchangerate2-tool.ts |
+| exchangerate3 | exchangerate3 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/exchangerate3-tool.ts |
+| excuser | excuser MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/excuser-tool.ts |
+| fakerapi | fakerapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fakerapi-tool.ts |
+| fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fakestoreapi-tool.ts |
 | feedly | feedly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/feedly-tool.ts |
+| fibonacci | fibonacci MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fibonacci-tool.ts |
 | fidelitycopy | fidelitycopy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fidelitycopy-tool.ts |
 | figma | figma MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/figma-tool.ts |
+| finalspace | finalspace MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/finalspace-tool.ts |
+| fishwatch | fishwatch MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fishwatch-tool.ts |
 | flowpass | flowpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flowpass-tool.ts |
 | flyio | flyio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flyio-tool.ts |
+| flyover | flyover MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flyover-tool.ts |
+| foodish | foodish MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/foodish-tool.ts |
 | foursquare | foursquare MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/foursquare-tool.ts |
 | fpl | fpl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fpl-tool.ts |
+| frankfurter | frankfurter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/frankfurter-tool.ts |
+| freetogame | freetogame MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/freetogame-tool.ts |
+| frequency | frequency MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/frequency-tool.ts |
+| fruityvice | fruityvice MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fruityvice-tool.ts |
+| funtranslations | funtranslations MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/funtranslations-tool.ts |
+| gameoflife | gameoflife MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gameoflife-tool.ts |
+| gbif | gbif MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gbif-tool.ts |
+| gcdlcm | gcdlcm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gcdlcm-tool.ts |
 | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gdelt-tool.ts |
+| genderize | genderize MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/genderize-tool.ts |
 | genius | genius MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/genius-tool.ts |
+| geojs | geojs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/geojs-tool.ts |
 | geopass | geopass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/geopass-tool.ts |
+| ghibli | ghibli MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ghibli-tool.ts |
 | ghost | ghost MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ghost-tool.ts |
 | giphy | giphy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/giphy-tool.ts |
+| github emoji | github emoji MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-emoji-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
 | groq | groq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/groq-tool.ts |
 | guardian | guardian MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/guardian-tool.ts |
 | gumroad | gumroad MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gumroad-tool.ts |
+| gutendex | gutendex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gutendex-tool.ts |
 | hackernews | hackernews MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hackernews-tool.ts |
+| hamming | hamming MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hamming-tool.ts |
+| harrypotter | harrypotter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/harrypotter-tool.ts |
+| hashgen | hashgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hashgen-tool.ts |
 | haveibeenpwned | haveibeenpwned MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/haveibeenpwned-tool.ts |
 | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | packages/mcp-server/src/heartbeat-protocol.ts |
 | heygen | heygen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/heygen-tool.ts |
 | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/higgsfield-tool.ts |
+| histogram | histogram MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/histogram-tool.ts |
+| holidays | holidays MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/holidays-tool.ts |
+| htmlstrip | htmlstrip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/htmlstrip-tool.ts |
+| httpbin | httpbin MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/httpbin-tool.ts |
+| httpcat | httpcat MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/httpcat-tool.ts |
+| httpdog | httpdog MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/httpdog-tool.ts |
 | hubspot | hubspot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hubspot-tool.ts |
 | hunter | hunter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hunter-tool.ts |
+| iban | iban MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/iban-tool.ts |
+| iceandfire | iceandfire MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/iceandfire-tool.ts |
 | igdb | igdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/igdb-tool.ts |
 | IgniteOnly | IgniteOnly verified worker wake packet bridge. | packages/mcp-server/src/igniteonly-tool.ts |
+| imgflip | imgflip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/imgflip-tool.ts |
 | instapaper | instapaper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/instapaper-tool.ts |
 | intercom | intercom MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/intercom-tool.ts |
+| ipaddrinfo | ipaddrinfo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipaddrinfo-tool.ts |
 | ipapi | ipapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipapi-tool.ts |
 | ipaustralia | ipaustralia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipaustralia-tool.ts |
+| ipify | ipify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipify-tool.ts |
+| ipinfo | ipinfo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipinfo-tool.ts |
+| ipvalidate | ipvalidate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipvalidate-tool.ts |
+| iseven | iseven MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/iseven-tool.ts |
+| isup | isup MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/isup-tool.ts |
+| itis | itis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/itis-tool.ts |
+| jaccard | jaccard MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jaccard-tool.ts |
+| jikan | jikan MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jikan-tool.ts |
 | jira | jira MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jira-tool.ts |
+| jisho | jisho MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jisho-tool.ts |
 | jobsmith | jobsmith MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jobsmith-tool.ts |
+| joke | joke MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/joke-tool.ts |
+| jsoncrack | jsoncrack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jsoncrack-tool.ts |
+| jsonformat | jsonformat MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jsonformat-tool.ts |
+| jsonplaceholder | jsonplaceholder MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jsonplaceholder-tool.ts |
+| jwt | jwt MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/jwt-tool.ts |
+| kanye | kanye MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kanye-tool.ts |
 | keychain | keychain MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/keychain-tool.ts |
 | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/klaviyo-tool.ts |
 | kling | kling MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kling-tool.ts |
+| languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
 | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/legalpass-tool.ts |
 | lego | lego MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lego-tool.ts |
 | lemonsqueezy | lemonsqueezy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lemonsqueezy-tool.ts |
+| levenshtein | levenshtein MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/levenshtein-tool.ts |
+| libretranslate | libretranslate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/libretranslate-tool.ts |
 | lichess | lichess MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lichess-tool.ts |
 | line | line MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/line-tool.ts |
 | linear | linear MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/linear-tool.ts |
+| lorem | lorem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem-tool.ts |
+| lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem2-tool.ts |
+| loremname | loremname MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/loremname-tool.ts |
+| lotr | lotr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lotr-tool.ts |
+| luhn | luhn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/luhn-tool.ts |
+| lyrics | lyrics MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lyrics-tool.ts |
 | mailchimp | mailchimp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mailchimp-tool.ts |
+| makeup | makeup MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/makeup-tool.ts |
 | mapbox | mapbox MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mapbox-tool.ts |
+| markdown | markdown MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/markdown-tool.ts |
+| markdowntable | markdowntable MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/markdowntable-tool.ts |
+| markov | markov MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/markov-tool.ts |
 | mastodon | mastodon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mastodon-tool.ts |
+| matrix | matrix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrix-tool.ts |
+| mcsrvstat | mcsrvstat MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mcsrvstat-tool.ts |
 | meal | meal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/meal-tool.ts |
+| mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mediawiki-tool.ts |
+| memegen | memegen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/memegen-tool.ts |
+| metaphone | metaphone MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metaphone-tool.ts |
+| metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metmuseum-tool.ts |
+| mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mhwdb-tool.ts |
 | miro | miro MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/miro-tool.ts |
 | mistral | mistral MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mistral-tool.ts |
 | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mixpanel-tool.ts |
 | monday | monday MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monday-tool.ts |
 | monica | monica MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monica-tool.ts |
+| morse | morse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/morse-tool.ts |
+| mtg | mtg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mtg-tool.ts |
+| multiavatar | multiavatar MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/multiavatar-tool.ts |
 | musicbrainz | musicbrainz MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/musicbrainz-tool.ts |
+| mymemory | mymemory MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mymemory-tool.ts |
 | nasa | nasa MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nasa-tool.ts |
+| nationalize | nationalize MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nationalize-tool.ts |
+| natoalphabet | natoalphabet MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/natoalphabet-tool.ts |
 | neon | neon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/neon-tool.ts |
 | netlify | netlify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/netlify-tool.ts |
 | newsapi | newsapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/newsapi-tool.ts |
+| newton | newton MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/newton-tool.ts |
+| ngram | ngram MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ngram-tool.ts |
+| nhtsa | nhtsa MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nhtsa-tool.ts |
+| nobelprize | nobelprize MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nobelprize-tool.ts |
+| nominatim | nominatim MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nominatim-tool.ts |
 | notion | notion MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/notion-tool.ts |
+| npm registry | npm registry MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/npm-registry-tool.ts |
 | NudgeOnly | NudgeOnly low-token receipt bridge and advisory classifier. | packages/mcp-server/src/nudgeonly-tool.ts |
 | numbers | numbers MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/numbers-tool.ts |
 | nvd | nvd MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nvd-tool.ts |
+| oeis | oeis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/oeis-tool.ts |
+| officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/officialjoke-tool.ts |
 | omdb | omdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/omdb-tool.ts |
+| open elevation | open elevation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/open-elevation-tool.ts |
 | openai | openai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openai-tool.ts |
+| openalex | openalex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openalex-tool.ts |
 | openaq | openaq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openaq-tool.ts |
+| openchargemap | openchargemap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openchargemap-tool.ts |
+| opendota | opendota MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/opendota-tool.ts |
 | openexchangerates | openexchangerates MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openexchangerates-tool.ts |
 | openf1 | openf1 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openf1-tool.ts |
+| openfda | openfda MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openfda-tool.ts |
+| openfigi | openfigi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openfigi-tool.ts |
 | openfoodfacts | openfoodfacts MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openfoodfacts-tool.ts |
+| openlib2 | openlib2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openlib2-tool.ts |
 | openlibrary | openlibrary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openlibrary-tool.ts |
+| openmeteo airquality | openmeteo airquality MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-airquality-tool.ts |
+| openmeteo climate | openmeteo climate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-climate-tool.ts |
+| openmeteo flood | openmeteo flood MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-flood-tool.ts |
+| openmeteo historical | openmeteo historical MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-historical-tool.ts |
+| openmeteo marine | openmeteo marine MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-marine-tool.ts |
 | openmeteo | openmeteo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openmeteo-tool.ts |
+| opennotify | opennotify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/opennotify-tool.ts |
+| opensky | opensky MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/opensky-tool.ts |
+| opentriviadb | opentriviadb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/opentriviadb-tool.ts |
 | pagerduty | pagerduty MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pagerduty-tool.ts |
+| palindrome | palindrome MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/palindrome-tool.ts |
 | pandascore | pandascore MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pandascore-tool.ts |
+| pascaltri | pascaltri MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pascaltri-tool.ts |
+| passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/passwordgen-tool.ts |
 | paypal | paypal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/paypal-tool.ts |
+| percentage | percentage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/percentage-tool.ts |
 | perplexity | perplexity MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/perplexity-tool.ts |
+| phonetic | phonetic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/phonetic-tool.ts |
+| picsum | picsum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/picsum-tool.ts |
+| piglatin | piglatin MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/piglatin-tool.ts |
 | pika | pika MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pika-tool.ts |
 | pinecone | pinecone MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pinecone-tool.ts |
 | pinterest | pinterest MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pinterest-tool.ts |
 | pipedrive | pipedrive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pipedrive-tool.ts |
+| placebear | placebear MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/placebear-tool.ts |
+| placehold | placehold MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/placehold-tool.ts |
+| placekitten | placekitten MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/placekitten-tool.ts |
 | plaid | plaid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/plaid-tool.ts |
 | podcastindex | podcastindex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/podcastindex-tool.ts |
+| poetrydb | poetrydb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/poetrydb-tool.ts |
+| pokeapi | pokeapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pokeapi-tool.ts |
+| pokemontcg | pokemontcg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pokemontcg-tool.ts |
+| postcodes | postcodes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/postcodes-tool.ts |
 | posthog | posthog MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/posthog-tool.ts |
 | postman | postman MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/postman-tool.ts |
 | postmark | postmark MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/postmark-tool.ts |
+| primecheck | primecheck MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primecheck-tool.ts |
 | ptv | ptv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ptv-tool.ts |
+| pubchem | pubchem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pubchem-tool.ts |
+| publicapis | publicapis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/publicapis-tool.ts |
+| punkapi | punkapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/punkapi-tool.ts |
 | pushonly | pushonly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pushonly-tool.ts |
 | pushover | pushover MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pushover-tool.ts |
+| pypi | pypi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pypi-tool.ts |
 | qc | qc MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/qc-tool.ts |
+| qrserver | qrserver MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/qrserver-tool.ts |
 | quickbooks | quickbooks MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/quickbooks-tool.ts |
+| quotable | quotable MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/quotable-tool.ts |
 | radiobrowser | radiobrowser MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/radiobrowser-tool.ts |
+| railfence | railfence MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/railfence-tool.ts |
 | raindrop | raindrop MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/raindrop-tool.ts |
 | random | random MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/random-tool.ts |
+| randomduck | randomduck MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/randomduck-tool.ts |
+| randomfox | randomfox MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/randomfox-tool.ts |
+| randomuser | randomuser MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/randomuser-tool.ts |
 | rawg | rawg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rawg-tool.ts |
+| rdap | rdap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rdap-tool.ts |
+| readability | readability MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/readability-tool.ts |
 | readwise | readwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/readwise-tool.ts |
 | reddit | reddit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reddit-tool.ts |
+| regexr | regexr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/regexr-tool.ts |
+| regression | regression MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/regression-tool.ts |
 | render | render MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/render-tool.ts |
 | replicate | replicate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/replicate-tool.ts |
+| reqres | reqres MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reqres-tool.ts |
 | resend | resend MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/resend-tool.ts |
 | restcountries | restcountries MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/restcountries-tool.ts |
+| reversetext | reversetext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reversetext-tool.ts |
+| rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rickandmorty-tool.ts |
 | riot | riot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/riot-tool.ts |
+| ripe | ripe MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ripe-tool.ts |
+| robohash | robohash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/robohash-tool.ts |
+| roman | roman MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/roman-tool.ts |
+| rot13 | rot13 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rot13-tool.ts |
+| runlength | runlength MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/runlength-tool.ts |
 | runway | runway MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/runway-tool.ts |
 | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/seatgeek-tool.ts |
 | securitypass | securitypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/securitypass-tool.ts |
 | segment | segment MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/segment-tool.ts |
+| semver | semver MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/semver-tool.ts |
 | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendgrid-tool.ts |
 | sendle | sendle MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendle-tool.ts |
 | sentry | sentry MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sentry-tool.ts |
 | seopass | seopass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/seopass-tool.ts |
 | setlistfm | setlistfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/setlistfm-tool.ts |
+| setops | setops MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/setops-tool.ts |
+| shibe | shibe MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/shibe-tool.ts |
 | shodan | shodan MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/shodan-tool.ts |
 | shopify | shopify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/shopify-tool.ts |
 | shortcut | shortcut MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/shortcut-tool.ts |
 | slack | slack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slack-tool.ts |
 | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sleeper-tool.ts |
 | sloppass | sloppass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sloppass-tool.ts |
+| slug | slug MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slug-tool.ts |
+| solarsystem | solarsystem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/solarsystem-tool.ts |
+| sortlines | sortlines MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sortlines-tool.ts |
+| soundex | soundex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/soundex-tool.ts |
+| spaceflight | spaceflight MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/spaceflight-tool.ts |
+| spacex | spacex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/spacex-tool.ts |
 | speedrun | speedrun MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/speedrun-tool.ts |
 | splitwise | splitwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/splitwise-tool.ts |
 | spotify | spotify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/spotify-tool.ts |
 | square | square MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/square-tool.ts |
 | stability | stability MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stability-tool.ts |
+| stackexchange | stackexchange MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stackexchange-tool.ts |
+| stapi | stapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stapi-tool.ts |
+| statistics | statistics MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/statistics-tool.ts |
 | steam | steam MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/steam-tool.ts |
+| stringcase | stringcase MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stringcase-tool.ts |
 | stripe | stripe MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stripe-tool.ts |
+| sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sunrisesunset-tool.ts |
 | supercell | supercell MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/supercell-tool.ts |
+| superhero | superhero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/superhero-tool.ts |
+| swapi | swapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/swapi-tool.ts |
 | tab | tab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tab-tool.ts |
+| tacofancy | tacofancy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tacofancy-tool.ts |
+| tarot | tarot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tarot-tool.ts |
 | telegram | telegram MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/telegram-tool.ts |
+| tempconvert | tempconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tempconvert-tool.ts |
 | testpass | TestPass proof and test orchestration capability. | packages/mcp-server/src/testpass-tool.ts |
 | text | text MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/text-tool.ts |
+| textstats | textstats MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/textstats-tool.ts |
+| textwrap | textwrap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/textwrap-tool.ts |
+| tfidf | tfidf MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tfidf-tool.ts |
+| thecolorapi | thecolorapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/thecolorapi-tool.ts |
 | thelott | thelott MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/thelott-tool.ts |
 | ticketmaster | ticketmaster MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ticketmaster-tool.ts |
 | tiktok | tiktok MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tiktok-tool.ts |
+| timeapi | timeapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/timeapi-tool.ts |
+| timezone | timezone MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/timezone-tool.ts |
 | tmdb | tmdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tmdb-tool.ts |
 | todoist | todoist MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/todoist-tool.ts |
 | togetherai | togetherai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/togetherai-tool.ts |
 | toggl | toggl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toggl-tool.ts |
 | toilets | toilets MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toilets-tool.ts |
+| tokencount | tokencount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tokencount-tool.ts |
 | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tomorrowio-tool.ts |
 | trello | trello MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trello-tool.ts |
 | trivia | trivia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trivia-tool.ts |
 | trove | trove MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trove-tool.ts |
 | turso | turso MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/turso-tool.ts |
+| tvmaze | tvmaze MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tvmaze-tool.ts |
 | twilio | twilio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/twilio-tool.ts |
 | twitch | twitch MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/twitch-tool.ts |
 | typeform | typeform MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/typeform-tool.ts |
+| ukpolice | ukpolice MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ukpolice-tool.ts |
 | unit converter | unit converter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/unit-converter-tool.ts |
+| unitpressure | unitpressure MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/unitpressure-tool.ts |
+| universities | universities MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/universities-tool.ts |
 | unsplash | unsplash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/unsplash-tool.ts |
 | untappd | untappd MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/untappd-tool.ts |
+| upcitemdb | upcitemdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/upcitemdb-tool.ts |
 | upstash | upstash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/upstash-tool.ts |
 | uptimerobot | uptimerobot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/uptimerobot-tool.ts |
+| urbandictionary | urbandictionary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/urbandictionary-tool.ts |
+| urlencode | urlencode MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/urlencode-tool.ts |
+| urlhaus | urlhaus MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/urlhaus-tool.ts |
 | urlscan | urlscan MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/urlscan-tool.ts |
+| uselessfacts | uselessfacts MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/uselessfacts-tool.ts |
 | usgs | usgs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/usgs-tool.ts |
+| uuidgen | uuidgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/uuidgen-tool.ts |
 | uxpass | UXPass experience verification capability. | packages/mcp-server/src/uxpass-tool.ts |
+| vatcomply | vatcomply MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vatcomply-tool.ts |
 | vault | vault MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vault-tool.ts |
 | vercel | vercel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vercel-tool.ts |
+| vigenere | vigenere MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vigenere-tool.ts |
 | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/virustotal-tool.ts |
+| wayback | wayback MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wayback-tool.ts |
 | webflow | webflow MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/webflow-tool.ts |
+| wger | wger MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wger-tool.ts |
 | whatsapp | whatsapp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/whatsapp-tool.ts |
+| wheretheiss | wheretheiss MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wheretheiss-tool.ts |
+| wikidata | wikidata MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wikidata-tool.ts |
 | wikipedia | wikipedia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wikipedia-tool.ts |
 | willyweather | willyweather MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/willyweather-tool.ts |
 | wise | wise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wise-tool.ts |
 | woocommerce | woocommerce MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/woocommerce-tool.ts |
+| wordcount | wordcount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordcount-tool.ts |
+| wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordfreq-tool.ts |
 | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordpress-tool.ts |
+| worldbank | worldbank MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldbank-tool.ts |
+| worldtime | worldtime MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldtime-tool.ts |
 | xero | xero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xero-tool.ts |
+| xkcd | xkcd MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xkcd-tool.ts |
 | xpass aggregated verdict | xpass aggregated verdict MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xpass-aggregated-verdict-tool.ts |
 | yelp | yelp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/yelp-tool.ts |
+| yesno | yesno MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/yesno-tool.ts |
 | youtube | youtube MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/youtube-tool.ts |
 | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zendesk-tool.ts |
+| zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zenquotes-tool.ts |
+| zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zippopotamus-tool.ts |
 
 ## Tool and Worker Tree
 
@@ -1006,224 +1278,496 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Source of truth | state module | memory Taxonomy | memory Taxonomy shared frontend logic. | - | src/lib/memoryTaxonomy.ts |
 | Source of truth | state module | orchestrator context | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/orchestrator-context.ts |
 | Tools | MCP tool | abn | abn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/abn-tool.ts |
+| Tools | MCP tool | abstract holidays | abstract holidays MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/abstract-holidays-tool.ts |
 | Tools | MCP tool | abuseipdb | abuseipdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/abuseipdb-tool.ts |
+| Tools | MCP tool | acnhapi | acnhapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/acnhapi-tool.ts |
+| Tools | MCP tool | acronymgen | acronymgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/acronymgen-tool.ts |
+| Tools | MCP tool | adviceslip | adviceslip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/adviceslip-tool.ts |
+| Tools | MCP tool | affirmation | affirmation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/affirmation-tool.ts |
+| Tools | MCP tool | agify | agify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/agify-tool.ts |
 | Tools | MCP tool | airtable | airtable MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/airtable-tool.ts |
 | Tools | MCP tool | algolia | algolia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/algolia-tool.ts |
 | Tools | MCP tool | alphavantage | alphavantage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/alphavantage-tool.ts |
 | Tools | MCP tool | amazon | amazon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/amazon-tool.ts |
 | Tools | MCP tool | amber | amber MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/amber-tool.ts |
+| Tools | MCP tool | amiibo | amiibo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/amiibo-tool.ts |
+| Tools | MCP tool | animechan | animechan MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/animechan-tool.ts |
 | Tools | MCP tool | anthropic | anthropic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/anthropic-tool.ts |
+| Tools | MCP tool | aoe2 | aoe2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/aoe2-tool.ts |
+| Tools | MCP tool | apifootball | apifootball MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/apifootball-tool.ts |
+| Tools | MCP tool | archiveorg | archiveorg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/archiveorg-tool.ts |
+| Tools | MCP tool | artic | artic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/artic-tool.ts |
+| Tools | MCP tool | arxiv | arxiv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/arxiv-tool.ts |
 | Tools | MCP tool | asana | asana MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/asana-tool.ts |
+| Tools | MCP tool | aspectratio | aspectratio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/aspectratio-tool.ts |
 | Tools | MCP tool | assemblyai | assemblyai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/assemblyai-tool.ts |
+| Tools | MCP tool | atbash | atbash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/atbash-tool.ts |
 | Tools | MCP tool | australiapost | australiapost MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/australiapost-tool.ts |
+| Tools | MCP tool | avatarapi | avatarapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/avatarapi-tool.ts |
+| Tools | MCP tool | balldontlie | balldontlie MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/balldontlie-tool.ts |
 | Tools | MCP tool | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bandsintown-tool.ts |
+| Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
 | Tools | MCP tool | bgg | bgg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bgg-tool.ts |
+| Tools | MCP tool | bgpview | bgpview MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bgpview-tool.ts |
+| Tools | MCP tool | bible | bible MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bible-tool.ts |
+| Tools | MCP tool | bibleverse | bibleverse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bibleverse-tool.ts |
+| Tools | MCP tool | binaryconv | binaryconv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/binaryconv-tool.ts |
 | Tools | MCP tool | bitbucket | bitbucket MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitbucket-tool.ts |
+| Tools | MCP tool | bitwise | bitwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitwise-tool.ts |
 | Tools | MCP tool | bluesky | bluesky MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bluesky-tool.ts |
+| Tools | MCP tool | bored | bored MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bored-tool.ts |
+| Tools | MCP tool | braille | braille MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/braille-tool.ts |
+| Tools | MCP tool | breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/breakingbad-tool.ts |
 | Tools | MCP tool | brevo | brevo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/brevo-tool.ts |
+| Tools | MCP tool | brewery | brewery MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/brewery-tool.ts |
 | Tools | MCP tool | bungie | bungie MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bungie-tool.ts |
 | Tools | MCP tool | calcom | calcom MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/calcom-tool.ts |
 | Tools | MCP tool | calculator | calculator MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/calculator-tool.ts |
 | Tools | MCP tool | calendly | calendly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/calendly-tool.ts |
+| Tools | MCP tool | camelsnake | camelsnake MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/camelsnake-tool.ts |
+| Tools | MCP tool | carbonintensity | carbonintensity MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/carbonintensity-tool.ts |
 | Tools | MCP tool | carboninterface | carboninterface MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/carboninterface-tool.ts |
+| Tools | MCP tool | cataas | cataas MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cataas-tool.ts |
+| Tools | MCP tool | catapi | catapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/catapi-tool.ts |
+| Tools | MCP tool | catfacts | catfacts MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/catfacts-tool.ts |
+| Tools | MCP tool | charcodes | charcodes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/charcodes-tool.ts |
+| Tools | MCP tool | charcount | charcount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/charcount-tool.ts |
+| Tools | MCP tool | cheapshark | cheapshark MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cheapshark-tool.ts |
 | Tools | MCP tool | chessdotcom | chessdotcom MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/chessdotcom-tool.ts |
+| Tools | MCP tool | chucknorris | chucknorris MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/chucknorris-tool.ts |
+| Tools | MCP tool | cidr | cidr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cidr-tool.ts |
 | Tools | MCP tool | circleci | circleci MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/circleci-tool.ts |
+| Tools | MCP tool | citybikes | citybikes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/citybikes-tool.ts |
 | Tools | MCP tool | clickup | clickup MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/clickup-tool.ts |
 | Tools | MCP tool | clockify | clockify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/clockify-tool.ts |
 | Tools | MCP tool | cloudinary | cloudinary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cloudinary-tool.ts |
+| Tools | MCP tool | cocktail | cocktail MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cocktail-tool.ts |
+| Tools | MCP tool | cocktaildb2 | cocktaildb2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cocktaildb2-tool.ts |
 | Tools | MCP tool | coda | coda MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coda-tool.ts |
 | Tools | MCP tool | cohere | cohere MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cohere-tool.ts |
+| Tools | MCP tool | coincap | coincap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coincap-tool.ts |
 | Tools | MCP tool | coingecko | coingecko MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coingecko-tool.ts |
+| Tools | MCP tool | coinlore | coinlore MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinlore-tool.ts |
 | Tools | MCP tool | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinmarketcap-tool.ts |
+| Tools | MCP tool | coinpaprika | coinpaprika MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinpaprika-tool.ts |
+| Tools | MCP tool | collatz | collatz MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/collatz-tool.ts |
 | Tools | MCP tool | color | color MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/color-tool.ts |
+| Tools | MCP tool | colorblend | colorblend MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colorblend-tool.ts |
+| Tools | MCP tool | colorconvert | colorconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colorconvert-tool.ts |
+| Tools | MCP tool | colormind | colormind MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colormind-tool.ts |
+| Tools | MCP tool | colornames | colornames MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colornames-tool.ts |
+| Tools | MCP tool | colr | colr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colr-tool.ts |
 | Tools | MCP tool | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/commonsensepass-tool.ts |
 | Tools | MCP tool | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/compliancepass-tool.ts |
 | Tools | MCP tool | confluence | confluence MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/confluence-tool.ts |
 | Tools | MCP tool | contentful | contentful MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/contentful-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | copypass | copypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/copypass-tool.ts |
+| Tools | MCP tool | corporatebs | corporatebs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/corporatebs-tool.ts |
+| Tools | MCP tool | cosinesim | cosinesim MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cosinesim-tool.ts |
+| Tools | MCP tool | countdowncalc | countdowncalc MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countdowncalc-tool.ts |
+| Tools | MCP tool | countryflag | countryflag MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countryflag-tool.ts |
+| Tools | MCP tool | countryis | countryis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countryis-tool.ts |
+| Tools | MCP tool | crates | crates MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crates-tool.ts |
+| Tools | MCP tool | crc32 | crc32 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crc32-tool.ts |
 | Tools | MCP tool | crews | crews MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crews-tool.ts |
+| Tools | MCP tool | crontab | crontab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crontab-tool.ts |
+| Tools | MCP tool | crossref | crossref MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crossref-tool.ts |
 | Tools | MCP tool | csuite | csuite MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/csuite-tool.ts |
+| Tools | MCP tool | csvparse | csvparse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/csvparse-tool.ts |
+| Tools | MCP tool | cvecircl | cvecircl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cvecircl-tool.ts |
+| Tools | MCP tool | dadjoke | dadjoke MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dadjoke-tool.ts |
+| Tools | MCP tool | damerau | damerau MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/damerau-tool.ts |
 | Tools | MCP tool | datadog | datadog MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/datadog-tool.ts |
+| Tools | MCP tool | datamuse | datamuse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/datamuse-tool.ts |
 | Tools | MCP tool | datetime | datetime MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/datetime-tool.ts |
+| Tools | MCP tool | dblp | dblp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dblp-tool.ts |
+| Tools | MCP tool | deckofcards | deckofcards MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deckofcards-tool.ts |
 | Tools | MCP tool | deepl | deepl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deepl-tool.ts |
 | Tools | MCP tool | deezer | deezer MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deezer-tool.ts |
+| Tools | MCP tool | diceware | diceware MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/diceware-tool.ts |
+| Tools | MCP tool | dictionary | dictionary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dictionary-tool.ts |
+| Tools | MCP tool | difftext | difftext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/difftext-tool.ts |
+| Tools | MCP tool | digimon | digimon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digimon-tool.ts |
 | Tools | MCP tool | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digitalocean-tool.ts |
 | Tools | MCP tool | discogs | discogs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/discogs-tool.ts |
 | Tools | MCP tool | discord | discord MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/discord-tool.ts |
+| Tools | MCP tool | diseasesh | diseasesh MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/diseasesh-tool.ts |
+| Tools | MCP tool | disneyapi | disneyapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/disneyapi-tool.ts |
+| Tools | MCP tool | dnd5e | dnd5e MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dnd5e-tool.ts |
+| Tools | MCP tool | dogapi | dogapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dogapi-tool.ts |
+| Tools | MCP tool | dogceo | dogceo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dogceo-tool.ts |
+| Tools | MCP tool | dogfacts | dogfacts MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dogfacts-tool.ts |
+| Tools | MCP tool | dohdns | dohdns MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dohdns-tool.ts |
 | Tools | MCP tool | domain | domain MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/domain-tool.ts |
+| Tools | MCP tool | domainsdb | domainsdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/domainsdb-tool.ts |
 | Tools | MCP tool | dropbox | dropbox MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dropbox-tool.ts |
+| Tools | MCP tool | dummyimage | dummyimage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dummyimage-tool.ts |
+| Tools | MCP tool | dummyjson | dummyjson MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dummyjson-tool.ts |
 | Tools | MCP tool | ebay | ebay MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ebay-tool.ts |
 | Tools | MCP tool | ebird | ebird MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ebird-tool.ts |
 | Tools | MCP tool | elevenlabs | elevenlabs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/elevenlabs-tool.ts |
 | Tools | MCP tool | email | email MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/email-tool.ts |
+| Tools | MCP tool | emojihub | emojihub MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/emojihub-tool.ts |
+| Tools | MCP tool | emojilookup | emojilookup MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/emojilookup-tool.ts |
+| Tools | MCP tool | entropy | entropy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/entropy-tool.ts |
+| Tools | MCP tool | epoch | epoch MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/epoch-tool.ts |
 | Tools | MCP tool | espn | espn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/espn-tool.ts |
 | Tools | MCP tool | etsy | etsy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/etsy-tool.ts |
+| Tools | MCP tool | europeana | europeana MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/europeana-tool.ts |
 | Tools | MCP tool | eventbrite | eventbrite MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/eventbrite-tool.ts |
+| Tools | MCP tool | evilinsult | evilinsult MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/evilinsult-tool.ts |
 | Tools | MCP tool | exchangerate | exchangerate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/exchangerate-tool.ts |
+| Tools | MCP tool | exchangerate2 | exchangerate2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/exchangerate2-tool.ts |
+| Tools | MCP tool | exchangerate3 | exchangerate3 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/exchangerate3-tool.ts |
+| Tools | MCP tool | excuser | excuser MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/excuser-tool.ts |
+| Tools | MCP tool | fakerapi | fakerapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fakerapi-tool.ts |
+| Tools | MCP tool | fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fakestoreapi-tool.ts |
 | Tools | MCP tool | feedly | feedly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/feedly-tool.ts |
+| Tools | MCP tool | fibonacci | fibonacci MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fibonacci-tool.ts |
 | Tools | MCP tool | fidelitycopy | fidelitycopy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fidelitycopy-tool.ts |
 | Tools | MCP tool | figma | figma MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/figma-tool.ts |
+| Tools | MCP tool | finalspace | finalspace MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/finalspace-tool.ts |
+| Tools | MCP tool | fishwatch | fishwatch MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fishwatch-tool.ts |
 | Tools | MCP tool | flowpass | flowpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flowpass-tool.ts |
 | Tools | MCP tool | flyio | flyio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flyio-tool.ts |
+| Tools | MCP tool | flyover | flyover MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flyover-tool.ts |
+| Tools | MCP tool | foodish | foodish MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/foodish-tool.ts |
 | Tools | MCP tool | foursquare | foursquare MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/foursquare-tool.ts |
 | Tools | MCP tool | fpl | fpl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fpl-tool.ts |
+| Tools | MCP tool | frankfurter | frankfurter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/frankfurter-tool.ts |
+| Tools | MCP tool | freetogame | freetogame MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/freetogame-tool.ts |
+| Tools | MCP tool | frequency | frequency MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/frequency-tool.ts |
+| Tools | MCP tool | fruityvice | fruityvice MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fruityvice-tool.ts |
+| Tools | MCP tool | funtranslations | funtranslations MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/funtranslations-tool.ts |
+| Tools | MCP tool | gameoflife | gameoflife MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gameoflife-tool.ts |
+| Tools | MCP tool | gbif | gbif MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gbif-tool.ts |
+| Tools | MCP tool | gcdlcm | gcdlcm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gcdlcm-tool.ts |
 | Tools | MCP tool | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gdelt-tool.ts |
+| Tools | MCP tool | genderize | genderize MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/genderize-tool.ts |
 | Tools | MCP tool | genius | genius MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/genius-tool.ts |
+| Tools | MCP tool | geojs | geojs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/geojs-tool.ts |
 | Tools | MCP tool | geopass | geopass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/geopass-tool.ts |
+| Tools | MCP tool | ghibli | ghibli MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ghibli-tool.ts |
 | Tools | MCP tool | ghost | ghost MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ghost-tool.ts |
 | Tools | MCP tool | giphy | giphy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/giphy-tool.ts |
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
+| Tools | MCP tool | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-emoji-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
 | Tools | MCP tool | groq | groq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/groq-tool.ts |
 | Tools | MCP tool | guardian | guardian MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/guardian-tool.ts |
 | Tools | MCP tool | gumroad | gumroad MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gumroad-tool.ts |
+| Tools | MCP tool | gutendex | gutendex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gutendex-tool.ts |
 | Tools | MCP tool | hackernews | hackernews MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hackernews-tool.ts |
+| Tools | MCP tool | hamming | hamming MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hamming-tool.ts |
+| Tools | MCP tool | harrypotter | harrypotter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/harrypotter-tool.ts |
+| Tools | MCP tool | hashgen | hashgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hashgen-tool.ts |
 | Tools | MCP tool | haveibeenpwned | haveibeenpwned MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/haveibeenpwned-tool.ts |
 | Tools | MCP tool | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | - | packages/mcp-server/src/heartbeat-protocol.ts |
 | Tools | MCP tool | heygen | heygen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/heygen-tool.ts |
 | Tools | MCP tool | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/higgsfield-tool.ts |
+| Tools | MCP tool | histogram | histogram MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/histogram-tool.ts |
+| Tools | MCP tool | holidays | holidays MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/holidays-tool.ts |
+| Tools | MCP tool | htmlstrip | htmlstrip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/htmlstrip-tool.ts |
+| Tools | MCP tool | httpbin | httpbin MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/httpbin-tool.ts |
+| Tools | MCP tool | httpcat | httpcat MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/httpcat-tool.ts |
+| Tools | MCP tool | httpdog | httpdog MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/httpdog-tool.ts |
 | Tools | MCP tool | hubspot | hubspot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hubspot-tool.ts |
 | Tools | MCP tool | hunter | hunter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hunter-tool.ts |
+| Tools | MCP tool | iban | iban MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/iban-tool.ts |
+| Tools | MCP tool | iceandfire | iceandfire MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/iceandfire-tool.ts |
 | Tools | MCP tool | igdb | igdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/igdb-tool.ts |
 | Tools | MCP tool | IgniteOnly | IgniteOnly verified worker wake packet bridge. | - | packages/mcp-server/src/igniteonly-tool.ts |
+| Tools | MCP tool | imgflip | imgflip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/imgflip-tool.ts |
 | Tools | MCP tool | instapaper | instapaper MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/instapaper-tool.ts |
 | Tools | MCP tool | intercom | intercom MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/intercom-tool.ts |
+| Tools | MCP tool | ipaddrinfo | ipaddrinfo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipaddrinfo-tool.ts |
 | Tools | MCP tool | ipapi | ipapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipapi-tool.ts |
 | Tools | MCP tool | ipaustralia | ipaustralia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipaustralia-tool.ts |
+| Tools | MCP tool | ipify | ipify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipify-tool.ts |
+| Tools | MCP tool | ipinfo | ipinfo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipinfo-tool.ts |
+| Tools | MCP tool | ipvalidate | ipvalidate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ipvalidate-tool.ts |
+| Tools | MCP tool | iseven | iseven MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/iseven-tool.ts |
+| Tools | MCP tool | isup | isup MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/isup-tool.ts |
+| Tools | MCP tool | itis | itis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/itis-tool.ts |
+| Tools | MCP tool | jaccard | jaccard MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jaccard-tool.ts |
+| Tools | MCP tool | jikan | jikan MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jikan-tool.ts |
 | Tools | MCP tool | jira | jira MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jira-tool.ts |
+| Tools | MCP tool | jisho | jisho MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jisho-tool.ts |
 | Tools | MCP tool | jobsmith | jobsmith MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jobsmith-tool.ts |
+| Tools | MCP tool | joke | joke MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/joke-tool.ts |
+| Tools | MCP tool | jsoncrack | jsoncrack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jsoncrack-tool.ts |
+| Tools | MCP tool | jsonformat | jsonformat MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jsonformat-tool.ts |
+| Tools | MCP tool | jsonplaceholder | jsonplaceholder MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jsonplaceholder-tool.ts |
+| Tools | MCP tool | jwt | jwt MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/jwt-tool.ts |
+| Tools | MCP tool | kanye | kanye MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kanye-tool.ts |
 | Tools | MCP tool | keychain | keychain MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/keychain-tool.ts |
 | Tools | MCP tool | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/klaviyo-tool.ts |
 | Tools | MCP tool | kling | kling MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kling-tool.ts |
+| Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
 | Tools | MCP tool | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/legalpass-tool.ts |
 | Tools | MCP tool | lego | lego MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lego-tool.ts |
 | Tools | MCP tool | lemonsqueezy | lemonsqueezy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lemonsqueezy-tool.ts |
+| Tools | MCP tool | levenshtein | levenshtein MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/levenshtein-tool.ts |
+| Tools | MCP tool | libretranslate | libretranslate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/libretranslate-tool.ts |
 | Tools | MCP tool | lichess | lichess MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lichess-tool.ts |
 | Tools | MCP tool | line | line MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/line-tool.ts |
 | Tools | MCP tool | linear | linear MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/linear-tool.ts |
+| Tools | MCP tool | lorem | lorem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem-tool.ts |
+| Tools | MCP tool | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem2-tool.ts |
+| Tools | MCP tool | loremname | loremname MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/loremname-tool.ts |
+| Tools | MCP tool | lotr | lotr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lotr-tool.ts |
+| Tools | MCP tool | luhn | luhn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/luhn-tool.ts |
+| Tools | MCP tool | lyrics | lyrics MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lyrics-tool.ts |
 | Tools | MCP tool | mailchimp | mailchimp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mailchimp-tool.ts |
+| Tools | MCP tool | makeup | makeup MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/makeup-tool.ts |
 | Tools | MCP tool | mapbox | mapbox MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mapbox-tool.ts |
+| Tools | MCP tool | markdown | markdown MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/markdown-tool.ts |
+| Tools | MCP tool | markdowntable | markdowntable MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/markdowntable-tool.ts |
+| Tools | MCP tool | markov | markov MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/markov-tool.ts |
 | Tools | MCP tool | mastodon | mastodon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mastodon-tool.ts |
+| Tools | MCP tool | matrix | matrix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrix-tool.ts |
+| Tools | MCP tool | mcsrvstat | mcsrvstat MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mcsrvstat-tool.ts |
 | Tools | MCP tool | meal | meal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/meal-tool.ts |
+| Tools | MCP tool | mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mediawiki-tool.ts |
+| Tools | MCP tool | memegen | memegen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/memegen-tool.ts |
+| Tools | MCP tool | metaphone | metaphone MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metaphone-tool.ts |
+| Tools | MCP tool | metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metmuseum-tool.ts |
+| Tools | MCP tool | mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mhwdb-tool.ts |
 | Tools | MCP tool | miro | miro MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/miro-tool.ts |
 | Tools | MCP tool | mistral | mistral MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mistral-tool.ts |
 | Tools | MCP tool | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mixpanel-tool.ts |
 | Tools | MCP tool | monday | monday MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monday-tool.ts |
 | Tools | MCP tool | monica | monica MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monica-tool.ts |
+| Tools | MCP tool | morse | morse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/morse-tool.ts |
+| Tools | MCP tool | mtg | mtg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mtg-tool.ts |
+| Tools | MCP tool | multiavatar | multiavatar MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/multiavatar-tool.ts |
 | Tools | MCP tool | musicbrainz | musicbrainz MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/musicbrainz-tool.ts |
+| Tools | MCP tool | mymemory | mymemory MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mymemory-tool.ts |
 | Tools | MCP tool | nasa | nasa MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nasa-tool.ts |
+| Tools | MCP tool | nationalize | nationalize MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nationalize-tool.ts |
+| Tools | MCP tool | natoalphabet | natoalphabet MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/natoalphabet-tool.ts |
 | Tools | MCP tool | neon | neon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/neon-tool.ts |
 | Tools | MCP tool | netlify | netlify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/netlify-tool.ts |
 | Tools | MCP tool | newsapi | newsapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/newsapi-tool.ts |
+| Tools | MCP tool | newton | newton MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/newton-tool.ts |
+| Tools | MCP tool | ngram | ngram MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ngram-tool.ts |
+| Tools | MCP tool | nhtsa | nhtsa MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nhtsa-tool.ts |
+| Tools | MCP tool | nobelprize | nobelprize MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nobelprize-tool.ts |
+| Tools | MCP tool | nominatim | nominatim MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nominatim-tool.ts |
 | Tools | MCP tool | notion | notion MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/notion-tool.ts |
+| Tools | MCP tool | npm registry | npm registry MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/npm-registry-tool.ts |
 | Tools | MCP tool | NudgeOnly | NudgeOnly low-token receipt bridge and advisory classifier. | - | packages/mcp-server/src/nudgeonly-tool.ts |
 | Tools | MCP tool | numbers | numbers MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/numbers-tool.ts |
 | Tools | MCP tool | nvd | nvd MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nvd-tool.ts |
+| Tools | MCP tool | oeis | oeis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/oeis-tool.ts |
+| Tools | MCP tool | officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/officialjoke-tool.ts |
 | Tools | MCP tool | omdb | omdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/omdb-tool.ts |
+| Tools | MCP tool | open elevation | open elevation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/open-elevation-tool.ts |
 | Tools | MCP tool | openai | openai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openai-tool.ts |
+| Tools | MCP tool | openalex | openalex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openalex-tool.ts |
 | Tools | MCP tool | openaq | openaq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openaq-tool.ts |
+| Tools | MCP tool | openchargemap | openchargemap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openchargemap-tool.ts |
+| Tools | MCP tool | opendota | opendota MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/opendota-tool.ts |
 | Tools | MCP tool | openexchangerates | openexchangerates MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openexchangerates-tool.ts |
 | Tools | MCP tool | openf1 | openf1 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openf1-tool.ts |
+| Tools | MCP tool | openfda | openfda MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openfda-tool.ts |
+| Tools | MCP tool | openfigi | openfigi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openfigi-tool.ts |
 | Tools | MCP tool | openfoodfacts | openfoodfacts MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openfoodfacts-tool.ts |
+| Tools | MCP tool | openlib2 | openlib2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openlib2-tool.ts |
 | Tools | MCP tool | openlibrary | openlibrary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openlibrary-tool.ts |
 | Tools | MCP tool | openmeteo | openmeteo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-tool.ts |
+| Tools | MCP tool | openmeteo airquality | openmeteo airquality MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-airquality-tool.ts |
+| Tools | MCP tool | openmeteo climate | openmeteo climate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-climate-tool.ts |
+| Tools | MCP tool | openmeteo flood | openmeteo flood MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-flood-tool.ts |
+| Tools | MCP tool | openmeteo historical | openmeteo historical MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-historical-tool.ts |
+| Tools | MCP tool | openmeteo marine | openmeteo marine MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openmeteo-marine-tool.ts |
+| Tools | MCP tool | opennotify | opennotify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/opennotify-tool.ts |
+| Tools | MCP tool | opensky | opensky MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/opensky-tool.ts |
+| Tools | MCP tool | opentriviadb | opentriviadb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/opentriviadb-tool.ts |
 | Tools | MCP tool | pagerduty | pagerduty MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pagerduty-tool.ts |
+| Tools | MCP tool | palindrome | palindrome MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/palindrome-tool.ts |
 | Tools | MCP tool | pandascore | pandascore MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pandascore-tool.ts |
+| Tools | MCP tool | pascaltri | pascaltri MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pascaltri-tool.ts |
+| Tools | MCP tool | passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/passwordgen-tool.ts |
 | Tools | MCP tool | paypal | paypal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/paypal-tool.ts |
+| Tools | MCP tool | percentage | percentage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/percentage-tool.ts |
 | Tools | MCP tool | perplexity | perplexity MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/perplexity-tool.ts |
+| Tools | MCP tool | phonetic | phonetic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/phonetic-tool.ts |
+| Tools | MCP tool | picsum | picsum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/picsum-tool.ts |
+| Tools | MCP tool | piglatin | piglatin MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/piglatin-tool.ts |
 | Tools | MCP tool | pika | pika MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pika-tool.ts |
 | Tools | MCP tool | pinecone | pinecone MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pinecone-tool.ts |
 | Tools | MCP tool | pinterest | pinterest MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pinterest-tool.ts |
 | Tools | MCP tool | pipedrive | pipedrive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pipedrive-tool.ts |
+| Tools | MCP tool | placebear | placebear MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/placebear-tool.ts |
+| Tools | MCP tool | placehold | placehold MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/placehold-tool.ts |
+| Tools | MCP tool | placekitten | placekitten MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/placekitten-tool.ts |
 | Tools | MCP tool | plaid | plaid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/plaid-tool.ts |
 | Tools | MCP tool | podcastindex | podcastindex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/podcastindex-tool.ts |
+| Tools | MCP tool | poetrydb | poetrydb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/poetrydb-tool.ts |
+| Tools | MCP tool | pokeapi | pokeapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pokeapi-tool.ts |
+| Tools | MCP tool | pokemontcg | pokemontcg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pokemontcg-tool.ts |
+| Tools | MCP tool | postcodes | postcodes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/postcodes-tool.ts |
 | Tools | MCP tool | posthog | posthog MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/posthog-tool.ts |
 | Tools | MCP tool | postman | postman MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/postman-tool.ts |
 | Tools | MCP tool | postmark | postmark MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/postmark-tool.ts |
+| Tools | MCP tool | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primecheck-tool.ts |
 | Tools | MCP tool | ptv | ptv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ptv-tool.ts |
+| Tools | MCP tool | pubchem | pubchem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pubchem-tool.ts |
+| Tools | MCP tool | publicapis | publicapis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/publicapis-tool.ts |
+| Tools | MCP tool | punkapi | punkapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/punkapi-tool.ts |
 | Tools | MCP tool | pushonly | pushonly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pushonly-tool.ts |
 | Tools | MCP tool | pushover | pushover MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pushover-tool.ts |
+| Tools | MCP tool | pypi | pypi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pypi-tool.ts |
 | Tools | MCP tool | qc | qc MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/qc-tool.ts |
+| Tools | MCP tool | qrserver | qrserver MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/qrserver-tool.ts |
 | Tools | MCP tool | quickbooks | quickbooks MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/quickbooks-tool.ts |
+| Tools | MCP tool | quotable | quotable MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/quotable-tool.ts |
 | Tools | MCP tool | radiobrowser | radiobrowser MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/radiobrowser-tool.ts |
+| Tools | MCP tool | railfence | railfence MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/railfence-tool.ts |
 | Tools | MCP tool | raindrop | raindrop MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/raindrop-tool.ts |
 | Tools | MCP tool | random | random MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/random-tool.ts |
+| Tools | MCP tool | randomduck | randomduck MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/randomduck-tool.ts |
+| Tools | MCP tool | randomfox | randomfox MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/randomfox-tool.ts |
+| Tools | MCP tool | randomuser | randomuser MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/randomuser-tool.ts |
 | Tools | MCP tool | rawg | rawg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rawg-tool.ts |
+| Tools | MCP tool | rdap | rdap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rdap-tool.ts |
+| Tools | MCP tool | readability | readability MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/readability-tool.ts |
 | Tools | MCP tool | readwise | readwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/readwise-tool.ts |
 | Tools | MCP tool | reddit | reddit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reddit-tool.ts |
+| Tools | MCP tool | regexr | regexr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/regexr-tool.ts |
+| Tools | MCP tool | regression | regression MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/regression-tool.ts |
 | Tools | MCP tool | render | render MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/render-tool.ts |
 | Tools | MCP tool | replicate | replicate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/replicate-tool.ts |
+| Tools | MCP tool | reqres | reqres MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reqres-tool.ts |
 | Tools | MCP tool | resend | resend MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/resend-tool.ts |
 | Tools | MCP tool | restcountries | restcountries MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/restcountries-tool.ts |
+| Tools | MCP tool | reversetext | reversetext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reversetext-tool.ts |
+| Tools | MCP tool | rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rickandmorty-tool.ts |
 | Tools | MCP tool | riot | riot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/riot-tool.ts |
+| Tools | MCP tool | ripe | ripe MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ripe-tool.ts |
+| Tools | MCP tool | robohash | robohash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/robohash-tool.ts |
+| Tools | MCP tool | roman | roman MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/roman-tool.ts |
+| Tools | MCP tool | rot13 | rot13 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rot13-tool.ts |
+| Tools | MCP tool | runlength | runlength MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/runlength-tool.ts |
 | Tools | MCP tool | runway | runway MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/runway-tool.ts |
 | Tools | MCP tool | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/seatgeek-tool.ts |
 | Tools | MCP tool | securitypass | securitypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/securitypass-tool.ts |
 | Tools | MCP tool | segment | segment MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/segment-tool.ts |
+| Tools | MCP tool | semver | semver MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/semver-tool.ts |
 | Tools | MCP tool | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendgrid-tool.ts |
 | Tools | MCP tool | sendle | sendle MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendle-tool.ts |
 | Tools | MCP tool | sentry | sentry MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sentry-tool.ts |
 | Tools | MCP tool | seopass | seopass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/seopass-tool.ts |
 | Tools | MCP tool | setlistfm | setlistfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/setlistfm-tool.ts |
+| Tools | MCP tool | setops | setops MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/setops-tool.ts |
+| Tools | MCP tool | shibe | shibe MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/shibe-tool.ts |
 | Tools | MCP tool | shodan | shodan MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/shodan-tool.ts |
 | Tools | MCP tool | shopify | shopify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/shopify-tool.ts |
 | Tools | MCP tool | shortcut | shortcut MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/shortcut-tool.ts |
 | Tools | MCP tool | slack | slack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slack-tool.ts |
 | Tools | MCP tool | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sleeper-tool.ts |
 | Tools | MCP tool | sloppass | sloppass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sloppass-tool.ts |
+| Tools | MCP tool | slug | slug MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slug-tool.ts |
+| Tools | MCP tool | solarsystem | solarsystem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/solarsystem-tool.ts |
+| Tools | MCP tool | sortlines | sortlines MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sortlines-tool.ts |
+| Tools | MCP tool | soundex | soundex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/soundex-tool.ts |
+| Tools | MCP tool | spaceflight | spaceflight MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/spaceflight-tool.ts |
+| Tools | MCP tool | spacex | spacex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/spacex-tool.ts |
 | Tools | MCP tool | speedrun | speedrun MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/speedrun-tool.ts |
 | Tools | MCP tool | splitwise | splitwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/splitwise-tool.ts |
 | Tools | MCP tool | spotify | spotify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/spotify-tool.ts |
 | Tools | MCP tool | square | square MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/square-tool.ts |
 | Tools | MCP tool | stability | stability MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stability-tool.ts |
+| Tools | MCP tool | stackexchange | stackexchange MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stackexchange-tool.ts |
+| Tools | MCP tool | stapi | stapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stapi-tool.ts |
+| Tools | MCP tool | statistics | statistics MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/statistics-tool.ts |
 | Tools | MCP tool | steam | steam MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/steam-tool.ts |
+| Tools | MCP tool | stringcase | stringcase MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stringcase-tool.ts |
 | Tools | MCP tool | stripe | stripe MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stripe-tool.ts |
+| Tools | MCP tool | sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sunrisesunset-tool.ts |
 | Tools | MCP tool | supercell | supercell MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/supercell-tool.ts |
+| Tools | MCP tool | superhero | superhero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/superhero-tool.ts |
+| Tools | MCP tool | swapi | swapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/swapi-tool.ts |
 | Tools | MCP tool | tab | tab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tab-tool.ts |
+| Tools | MCP tool | tacofancy | tacofancy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tacofancy-tool.ts |
+| Tools | MCP tool | tarot | tarot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tarot-tool.ts |
 | Tools | MCP tool | telegram | telegram MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/telegram-tool.ts |
+| Tools | MCP tool | tempconvert | tempconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tempconvert-tool.ts |
 | Tools | MCP tool | testpass | TestPass proof and test orchestration capability. | - | packages/mcp-server/src/testpass-tool.ts |
 | Tools | MCP tool | text | text MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/text-tool.ts |
+| Tools | MCP tool | textstats | textstats MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/textstats-tool.ts |
+| Tools | MCP tool | textwrap | textwrap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/textwrap-tool.ts |
+| Tools | MCP tool | tfidf | tfidf MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tfidf-tool.ts |
+| Tools | MCP tool | thecolorapi | thecolorapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/thecolorapi-tool.ts |
 | Tools | MCP tool | thelott | thelott MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/thelott-tool.ts |
 | Tools | MCP tool | ticketmaster | ticketmaster MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ticketmaster-tool.ts |
 | Tools | MCP tool | tiktok | tiktok MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tiktok-tool.ts |
+| Tools | MCP tool | timeapi | timeapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/timeapi-tool.ts |
+| Tools | MCP tool | timezone | timezone MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/timezone-tool.ts |
 | Tools | MCP tool | tmdb | tmdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tmdb-tool.ts |
 | Tools | MCP tool | todoist | todoist MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/todoist-tool.ts |
 | Tools | MCP tool | togetherai | togetherai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/togetherai-tool.ts |
 | Tools | MCP tool | toggl | toggl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toggl-tool.ts |
 | Tools | MCP tool | toilets | toilets MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toilets-tool.ts |
+| Tools | MCP tool | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tokencount-tool.ts |
 | Tools | MCP tool | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tomorrowio-tool.ts |
 | Tools | MCP tool | trello | trello MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trello-tool.ts |
 | Tools | MCP tool | trivia | trivia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trivia-tool.ts |
 | Tools | MCP tool | trove | trove MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trove-tool.ts |
 | Tools | MCP tool | turso | turso MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/turso-tool.ts |
+| Tools | MCP tool | tvmaze | tvmaze MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tvmaze-tool.ts |
 | Tools | MCP tool | twilio | twilio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/twilio-tool.ts |
 | Tools | MCP tool | twitch | twitch MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/twitch-tool.ts |
 | Tools | MCP tool | typeform | typeform MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/typeform-tool.ts |
+| Tools | MCP tool | ukpolice | ukpolice MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ukpolice-tool.ts |
 | Tools | MCP tool | unit converter | unit converter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/unit-converter-tool.ts |
+| Tools | MCP tool | unitpressure | unitpressure MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/unitpressure-tool.ts |
+| Tools | MCP tool | universities | universities MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/universities-tool.ts |
 | Tools | MCP tool | unsplash | unsplash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/unsplash-tool.ts |
 | Tools | MCP tool | untappd | untappd MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/untappd-tool.ts |
+| Tools | MCP tool | upcitemdb | upcitemdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/upcitemdb-tool.ts |
 | Tools | MCP tool | upstash | upstash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/upstash-tool.ts |
 | Tools | MCP tool | uptimerobot | uptimerobot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/uptimerobot-tool.ts |
+| Tools | MCP tool | urbandictionary | urbandictionary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/urbandictionary-tool.ts |
+| Tools | MCP tool | urlencode | urlencode MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/urlencode-tool.ts |
+| Tools | MCP tool | urlhaus | urlhaus MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/urlhaus-tool.ts |
 | Tools | MCP tool | urlscan | urlscan MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/urlscan-tool.ts |
+| Tools | MCP tool | uselessfacts | uselessfacts MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/uselessfacts-tool.ts |
 | Tools | MCP tool | usgs | usgs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/usgs-tool.ts |
+| Tools | MCP tool | uuidgen | uuidgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/uuidgen-tool.ts |
 | Tools | MCP tool | uxpass | UXPass experience verification capability. | - | packages/mcp-server/src/uxpass-tool.ts |
+| Tools | MCP tool | vatcomply | vatcomply MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vatcomply-tool.ts |
 | Tools | MCP tool | vault | vault MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vault-tool.ts |
 | Tools | MCP tool | vercel | vercel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vercel-tool.ts |
+| Tools | MCP tool | vigenere | vigenere MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vigenere-tool.ts |
 | Tools | MCP tool | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/virustotal-tool.ts |
+| Tools | MCP tool | wayback | wayback MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wayback-tool.ts |
 | Tools | MCP tool | webflow | webflow MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/webflow-tool.ts |
+| Tools | MCP tool | wger | wger MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wger-tool.ts |
 | Tools | MCP tool | whatsapp | whatsapp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/whatsapp-tool.ts |
+| Tools | MCP tool | wheretheiss | wheretheiss MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wheretheiss-tool.ts |
+| Tools | MCP tool | wikidata | wikidata MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wikidata-tool.ts |
 | Tools | MCP tool | wikipedia | wikipedia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wikipedia-tool.ts |
 | Tools | MCP tool | willyweather | willyweather MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/willyweather-tool.ts |
 | Tools | MCP tool | wise | wise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wise-tool.ts |
 | Tools | MCP tool | woocommerce | woocommerce MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/woocommerce-tool.ts |
+| Tools | MCP tool | wordcount | wordcount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordcount-tool.ts |
+| Tools | MCP tool | wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordfreq-tool.ts |
 | Tools | MCP tool | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordpress-tool.ts |
+| Tools | MCP tool | worldbank | worldbank MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldbank-tool.ts |
+| Tools | MCP tool | worldtime | worldtime MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldtime-tool.ts |
 | Tools | MCP tool | xero | xero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xero-tool.ts |
+| Tools | MCP tool | xkcd | xkcd MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xkcd-tool.ts |
 | Tools | MCP tool | xpass aggregated verdict | xpass aggregated verdict MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xpass-aggregated-verdict-tool.ts |
 | Tools | MCP tool | yelp | yelp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/yelp-tool.ts |
+| Tools | MCP tool | yesno | yesno MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/yesno-tool.ts |
 | Tools | MCP tool | youtube | youtube MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/youtube-tool.ts |
 | Tools | MCP tool | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zendesk-tool.ts |
+| Tools | MCP tool | zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zenquotes-tool.ts |
+| Tools | MCP tool | zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zippopotamus-tool.ts |
 | Workers and seats | seat | Claude Reviewer Seat | External reviewer lane used for independent checks and proof review. | - | docs/fleet-worker-roles.md |
 | Workers and seats | seat | Codex Builder Seat | Codex lane used for scoped implementation, routing, and proof updates. | - | docs/fleet-worker-roles.md |
 | Workers and seats | seat | Cursor Builder Seat | External builder lane used for scoped code work and PRs. | - | docs/fleet-worker-roles.md |

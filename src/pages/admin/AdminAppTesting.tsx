@@ -7,9 +7,9 @@
 // Apps catalog with the recorded results so every app has a row, then lets you
 // filter by status and search by name. Admin access is enforced at the route.
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound } from "lucide-react";
+import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { APP_CATALOG, APP_COUNT } from "@/lib/appCatalog";
 import {
   getAppTestResult,
@@ -46,6 +46,24 @@ function whenLabel(testedAt?: string | null): string {
 }
 
 const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.4fr)_minmax(0,1.4fr)_82px]";
+
+function ExpandableCell({ text, className }: { text: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const toggle = useCallback(() => setOpen((v) => !v), []);
+  if (!text || text === "-") return <span className={`text-white/40 ${className ?? ""}`}>-</span>;
+  const needsExpand = text.length > 50;
+  if (!needsExpand) return <span className={className}>{text}</span>;
+  return (
+    <div className={className}>
+      <button type="button" onClick={toggle} className="flex w-full items-start gap-1 text-left">
+        <span className={open ? "" : "line-clamp-1"}>{text}</span>
+        {open
+          ? <ChevronUp className="mt-0.5 h-3 w-3 shrink-0 text-white/30" />
+          : <ChevronDown className="mt-0.5 h-3 w-3 shrink-0 text-white/30" />}
+      </button>
+    </div>
+  );
+}
 
 export default function AdminAppTesting() {
   const [status, setStatus] = useState<AppTestStatus | "all">("all");
@@ -148,15 +166,15 @@ export default function AdminAppTesting() {
           </div>
           <div className="divide-y divide-white/[0.04]">
             {filtered.map(({ app, result }) => (
-              <div key={app.slug} className={`grid ${COLS} items-center gap-3 px-3 py-1.5 text-xs`}>
+              <div key={app.slug} className={`grid ${COLS} items-start gap-3 px-3 py-2 text-xs`}>
                 <div><StatusBadge status={result.status} /></div>
                 <Link to={`/apps/${app.slug}`} className="truncate font-medium text-white hover:text-[#9be4e6]">
                   {app.name}
                 </Link>
                 <span className="truncate text-white/45">{app.category}</span>
                 <span className="text-right tabular-nums text-white/40">{app.toolCount}</span>
-                <span className="truncate text-white/50" title={result.note ?? ""}>{result.note ?? "-"}</span>
-                <span className="truncate text-white/70" title={result.comment ?? ""}>{result.comment ?? "-"}</span>
+                <ExpandableCell text={result.note ?? "-"} className="text-white/50" />
+                <ExpandableCell text={result.comment ?? "-"} className="text-white/70" />
                 <span className="text-right tabular-nums text-white/35">{whenLabel(result.testedAt)}</span>
               </div>
             ))}
