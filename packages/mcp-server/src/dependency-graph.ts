@@ -1,72 +1,88 @@
-export class DependencyGraph<T extends string = string> {
-  private nodes = new Set<T>();
-  private edges = new Map<T, Set<T>>();
+export class DependencyGraph {
+  private edges = new Map<string, Set<string>>();
+  private reverseEdges = new Map<string, Set<string>>();
 
-  addNode(node: T): void {
-    this.nodes.add(node);
-    if (!this.edges.has(node)) this.edges.set(node, new Set());
+  addNode(id: string): void {
+    if (!this.edges.has(id)) this.edges.set(id, new Set());
+    if (!this.reverseEdges.has(id)) this.reverseEdges.set(id, new Set());
   }
 
-  addDependency(node: T, dependsOn: T): void {
-    this.addNode(node);
-    this.addNode(dependsOn);
-    this.edges.get(node)!.add(dependsOn);
+  addDependency(from: string, to: string): void {
+    this.addNode(from);
+    this.addNode(to);
+    this.edges.get(from)!.add(to);
+    this.reverseEdges.get(to)!.add(from);
   }
 
-  dependenciesOf(node: T): T[] {
-    return [...(this.edges.get(node) ?? [])];
+  dependenciesOf(id: string): string[] {
+    return [...(this.edges.get(id) ?? [])];
   }
 
-  dependentsOf(node: T): T[] {
-    const result: T[] = [];
-    for (const [n, deps] of this.edges) {
-      if (deps.has(node)) result.push(n);
-    }
-    return result;
+  dependantsOf(id: string): string[] {
+    return [...(this.reverseEdges.get(id) ?? [])];
   }
 
-  topologicalSort(): T[] {
-    const visited = new Set<T>();
-    const temp = new Set<T>();
-    const order: T[] = [];
-
-    const visit = (node: T): void => {
-      if (visited.has(node)) return;
-      if (temp.has(node)) throw new CyclicDependencyError(node);
-      temp.add(node);
-      for (const dep of this.edges.get(node) ?? []) {
-        visit(dep);
-      }
-      temp.delete(node);
-      visited.add(node);
-      order.push(node);
-    };
-
-    for (const node of this.nodes) {
-      visit(node);
-    }
-    return order;
+  nodes(): string[] {
+    return [...this.edges.keys()];
   }
 
   hasCycle(): boolean {
-    try {
-      this.topologicalSort();
+    const visited = new Set<string>();
+    const stack = new Set<string>();
+    const dfs = (node: string): boolean => {
+      if (stack.has(node)) return true;
+      if (visited.has(node)) return false;
+      visited.add(node);
+      stack.add(node);
+      for (const dep of this.edges.get(node) ?? []) {
+        if (dfs(dep)) return true;
+      }
+      stack.delete(node);
       return false;
-    } catch {
-      return true;
+    };
+    for (const node of this.edges.keys()) {
+      if (dfs(node)) return true;
     }
+    return false;
   }
 
-  get size(): number {
-    return this.nodes.size;
+  topologicalOrder(): string[] {
+    const inDegree = new Map<string, number>();
+    for (const node of this.edges.keys()) inDegree.set(node, 0);
+    for (const deps of this.edges.values()) {
+      for (const dep of deps) {
+        inDegree.set(dep, (inDegree.get(dep) ?? 0) + 1);
+      }
+    }
+    const queue: string[] = [];
+    for (const [node, deg] of inDegree) {
+      if (deg === 0) queue.push(node);
+    }
+    const result: string[] = [];
+    while (queue.length > 0) {
+      const node = queue.shift()!;
+      result.push(node);
+      for (const dep of this.edges.get(node) ?? []) {
+        const newDeg = inDegree.get(dep)! - 1;
+        inDegree.set(dep, newDeg);
+        if (newDeg === 0) queue.push(dep);
+      }
+    }
+    if (result.length !== this.edges.size) throw new Error("Cycle detected");
+    return result;
   }
-}
 
-export class CyclicDependencyError extends Error {
-  readonly node: string;
-  constructor(node: string) {
-    super(`Cyclic dependency detected at node: ${node}`);
-    this.name = "CyclicDependencyError";
-    this.node = node;
+  transitiveDependencies(id: string): string[] {
+    const result = new Set<string>();
+    const visit = (node: string) => {
+      for (const dep of this.edges.get(node) ?? []) {
+        if (!result.has(dep)) {
+          result.add(dep);
+          visit(dep);
+        }
+      }
+    };
+    visit(id);
+    return [...result];
   }
 }

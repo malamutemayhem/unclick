@@ -6,36 +6,44 @@ describe("BloomFilter", () => {
     const bf = new BloomFilter(100);
     bf.add("hello");
     bf.add("world");
-    expect(bf.mightContain("hello")).toBe(true);
-    expect(bf.mightContain("world")).toBe(true);
+    expect(bf.test("hello")).toBe(true);
+    expect(bf.test("world")).toBe(true);
   });
 
-  it("reports missing items as absent (usually)", () => {
-    const bf = new BloomFilter(1000);
-    bf.add("hello");
-    expect(bf.mightContain("goodbye")).toBe(false);
-    expect(bf.mightContain("test123")).toBe(false);
+  it("reports non-added items as absent (mostly)", () => {
+    const bf = new BloomFilter(1000, 0.001);
+    for (let i = 0; i < 100; i++) bf.add(`item-${i}`);
+    let falsePositives = 0;
+    for (let i = 100; i < 200; i++) {
+      if (bf.test(`item-${i}`)) falsePositives++;
+    }
+    expect(falsePositives).toBeLessThan(10);
   });
 
-  it("tracks item count", () => {
+  it("tracks count", () => {
     const bf = new BloomFilter(100);
     bf.add("a");
     bf.add("b");
-    expect(bf.size).toBe(2);
+    expect(bf.count).toBe(2);
   });
 
-  it("has reasonable capacity", () => {
-    const bf = new BloomFilter(1000, 0.01);
-    expect(bf.capacity).toBeGreaterThan(1000);
+  it("clears the filter", () => {
+    const bf = new BloomFilter(100);
+    bf.add("hello");
+    bf.clear();
+    expect(bf.test("hello")).toBe(false);
+    expect(bf.count).toBe(0);
   });
 
-  it("low false positive rate with proper sizing", () => {
-    const bf = new BloomFilter(10000, 0.01);
-    for (let i = 0; i < 10000; i++) bf.add(`item-${i}`);
-    let falsePositives = 0;
-    for (let i = 0; i < 10000; i++) {
-      if (bf.mightContain(`other-${i}`)) falsePositives++;
-    }
-    expect(falsePositives / 10000).toBeLessThan(0.05);
+  it("has positive size and hash count", () => {
+    const bf = new BloomFilter(100, 0.01);
+    expect(bf.size).toBeGreaterThan(0);
+    expect(bf.hashCount).toBeGreaterThan(0);
+  });
+
+  it("handles empty string", () => {
+    const bf = new BloomFilter(100);
+    bf.add("");
+    expect(bf.test("")).toBe(true);
   });
 });

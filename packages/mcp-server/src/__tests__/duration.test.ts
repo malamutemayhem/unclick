@@ -1,92 +1,60 @@
 import { describe, it, expect } from "vitest";
-import { formatDuration, parseDuration, durationBetween } from "../duration.js";
+import { Duration } from "../duration.js";
 
-describe("formatDuration", () => {
-  it("formats milliseconds", () => {
-    expect(formatDuration(500)).toBe("500ms");
+describe("Duration", () => {
+  it("creates from various units", () => {
+    expect(Duration.milliseconds(500).toMilliseconds()).toBe(500);
+    expect(Duration.seconds(2).toMilliseconds()).toBe(2000);
+    expect(Duration.minutes(1).toSeconds()).toBe(60);
+    expect(Duration.hours(1).toMinutes()).toBe(60);
+    expect(Duration.days(1).toHours()).toBe(24);
   });
 
-  it("formats seconds", () => {
-    expect(formatDuration(3000)).toBe("3s");
+  it("parses strings", () => {
+    expect(Duration.parse("500ms").toMilliseconds()).toBe(500);
+    expect(Duration.parse("2s").toSeconds()).toBe(2);
+    expect(Duration.parse("5m").toMinutes()).toBe(5);
+    expect(Duration.parse("1h").toHours()).toBe(1);
+    expect(Duration.parse("1d").toDays()).toBe(1);
   });
 
-  it("formats minutes and seconds", () => {
-    expect(formatDuration(90_000)).toBe("1m 30s");
+  it("throws on invalid parse", () => {
+    expect(() => Duration.parse("abc")).toThrow("Invalid duration");
   });
 
-  it("formats hours and minutes", () => {
-    expect(formatDuration(3_660_000)).toBe("1h 1m");
+  it("adds durations", () => {
+    const d = Duration.seconds(10).add(Duration.seconds(5));
+    expect(d.toSeconds()).toBe(15);
   });
 
-  it("formats days and hours", () => {
-    expect(formatDuration(90_000_000)).toBe("1d 1h");
+  it("subtracts durations", () => {
+    const d = Duration.minutes(5).subtract(Duration.minutes(2));
+    expect(d.toMinutes()).toBe(3);
   });
 
-  it("drops zero sub-units", () => {
-    expect(formatDuration(60_000)).toBe("1m");
-    expect(formatDuration(3_600_000)).toBe("1h");
-    expect(formatDuration(86_400_000)).toBe("1d");
+  it("multiplies by factor", () => {
+    const d = Duration.seconds(10).multiply(3);
+    expect(d.toSeconds()).toBe(30);
   });
 
-  it("handles zero", () => {
-    expect(formatDuration(0)).toBe("0ms");
+  it("checks zero and negative", () => {
+    expect(Duration.milliseconds(0).isZero()).toBe(true);
+    expect(Duration.seconds(-1).isNegative()).toBe(true);
+    expect(Duration.seconds(1).isNegative()).toBe(false);
   });
 
-  it("handles negative as zero", () => {
-    expect(formatDuration(-100)).toBe("0ms");
-  });
-});
-
-describe("parseDuration", () => {
-  it("parses milliseconds", () => {
-    expect(parseDuration("500ms")).toBe(500);
-  });
-
-  it("parses seconds", () => {
-    expect(parseDuration("30s")).toBe(30_000);
-    expect(parseDuration("30sec")).toBe(30_000);
+  it("toString formats correctly", () => {
+    expect(Duration.milliseconds(0).toString()).toBe("0ms");
+    expect(Duration.milliseconds(500).toString()).toBe("500ms");
+    expect(Duration.seconds(5).toString()).toBe("5s");
+    expect(Duration.minutes(10).toString()).toBe("10m");
+    expect(Duration.hours(2).toString()).toBe("2h");
+    expect(Duration.days(1).toString()).toBe("1d");
   });
 
-  it("parses minutes", () => {
-    expect(parseDuration("5m")).toBe(300_000);
-    expect(parseDuration("5min")).toBe(300_000);
-  });
-
-  it("parses hours", () => {
-    expect(parseDuration("2h")).toBe(7_200_000);
-    expect(parseDuration("2hr")).toBe(7_200_000);
-  });
-
-  it("parses days", () => {
-    expect(parseDuration("1d")).toBe(86_400_000);
-    expect(parseDuration("1day")).toBe(86_400_000);
-  });
-
-  it("handles decimals", () => {
-    expect(parseDuration("1.5h")).toBe(5_400_000);
-  });
-
-  it("returns undefined for invalid input", () => {
-    expect(parseDuration("abc")).toBeUndefined();
-    expect(parseDuration("")).toBeUndefined();
-    expect(parseDuration("10x")).toBeUndefined();
-  });
-
-  it("trims whitespace", () => {
-    expect(parseDuration("  5s  ")).toBe(5000);
-  });
-});
-
-describe("durationBetween", () => {
-  it("formats the difference between two dates", () => {
-    const start = new Date("2025-01-01T00:00:00Z");
-    const end = new Date("2025-01-01T01:30:00Z");
-    expect(durationBetween(start, end)).toBe("1h 30m");
-  });
-
-  it("handles reversed order", () => {
-    const start = new Date("2025-01-01T01:00:00Z");
-    const end = new Date("2025-01-01T00:00:00Z");
-    expect(durationBetween(start, end)).toBe("1h");
+  it("compares durations", () => {
+    expect(Duration.seconds(5).equals(Duration.milliseconds(5000))).toBe(true);
+    expect(Duration.seconds(10).greaterThan(Duration.seconds(5))).toBe(true);
+    expect(Duration.seconds(5).lessThan(Duration.seconds(10))).toBe(true);
   });
 });
