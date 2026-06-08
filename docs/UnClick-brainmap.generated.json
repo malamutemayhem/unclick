@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 863,
+    "inventory": 868,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 441,
+    "tools": 446,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 441
+      "count": 446
     },
     {
       "id": "rooms",
@@ -4852,6 +4852,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-colorblend-packages-mcp-server-src-colorblend-tool-ts-no-route",
+      "division": "Tools",
+      "name": "colorblend",
+      "kind": "MCP tool",
+      "meaning": "colorblend MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/colorblend-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-colorconvert-packages-mcp-server-src-colorconvert-tool-ts-no-route",
       "division": "Tools",
       "name": "colorconvert",
@@ -5498,6 +5508,16 @@
       "kind": "MCP tool",
       "meaning": "feedly MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/feedly-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-fibonacci-packages-mcp-server-src-fibonacci-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fibonacci",
+      "kind": "MCP tool",
+      "meaning": "fibonacci MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fibonacci-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7222,6 +7242,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-primecheck-packages-mcp-server-src-primecheck-tool-ts-no-route",
+      "division": "Tools",
+      "name": "primecheck",
+      "kind": "MCP tool",
+      "meaning": "primecheck MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/primecheck-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-ptv-packages-mcp-server-src-ptv-tool-ts-no-route",
       "division": "Tools",
       "name": "ptv",
@@ -7732,6 +7762,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sortlines-packages-mcp-server-src-sortlines-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sortlines",
+      "kind": "MCP tool",
+      "meaning": "sortlines MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sortlines-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-spaceflight-packages-mcp-server-src-spaceflight-tool-ts-no-route",
       "division": "Tools",
       "name": "spaceflight",
@@ -8008,6 +8048,16 @@
       "kind": "MCP tool",
       "meaning": "timeapi MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/timeapi-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-timezone-packages-mcp-server-src-timezone-tool-ts-no-route",
+      "division": "Tools",
+      "name": "timezone",
+      "kind": "MCP tool",
+      "meaning": "timezone MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/timezone-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9660,6 +9710,11 @@
       "packages/mcp-server/src/color-tool.ts"
     ],
     [
+      "colorblend",
+      "colorblend MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/colorblend-tool.ts"
+    ],
+    [
       "colorconvert",
       "colorconvert MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/colorconvert-tool.ts"
@@ -9983,6 +10038,11 @@
       "feedly",
       "feedly MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/feedly-tool.ts"
+    ],
+    [
+      "fibonacci",
+      "fibonacci MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fibonacci-tool.ts"
     ],
     [
       "fidelitycopy",
@@ -10845,6 +10905,11 @@
       "packages/mcp-server/src/postmark-tool.ts"
     ],
     [
+      "primecheck",
+      "primecheck MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/primecheck-tool.ts"
+    ],
+    [
       "ptv",
       "ptv MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ptv-tool.ts"
@@ -11100,6 +11165,11 @@
       "packages/mcp-server/src/solarsystem-tool.ts"
     ],
     [
+      "sortlines",
+      "sortlines MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sortlines-tool.ts"
+    ],
+    [
       "spaceflight",
       "spaceflight MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/spaceflight-tool.ts"
@@ -11238,6 +11308,11 @@
       "timeapi",
       "timeapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/timeapi-tool.ts"
+    ],
+    [
+      "timezone",
+      "timezone MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/timezone-tool.ts"
     ],
     [
       "tmdb",

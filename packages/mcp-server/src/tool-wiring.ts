@@ -605,6 +605,11 @@ import { numberBaseConvert } from "./binaryconv-tool.js";
 import { stringDistance } from "./levenshtein-tool.js";
 import { loremNameGenerate } from "./loremname-tool.js";
 import { textReadability } from "./textstats-tool.js";
+import { timezoneInfo } from "./timezone-tool.js";
+import { colorBlend } from "./colorblend-tool.js";
+import { fibonacciSequence } from "./fibonacci-tool.js";
+import { primeCheck } from "./primecheck-tool.js";
+import { sortLines } from "./sortlines-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9345,6 +9350,69 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text to analyze for readability." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── timezone-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "timezone_info",
+    description: "Look up timezone offset and details by abbreviation, or list all timezones.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timezone: { type: "string" as const, description: "Timezone abbreviation (e.g. EST, AEST). Omit to list all." },
+      },
+    },
+  },
+
+  // ── colorblend-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "color_blend",
+    description: "Blend two hex colors together, optionally generating a gradient palette.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        color1: { type: "string" as const, description: "First hex color." },
+        color2: { type: "string" as const, description: "Second hex color." },
+        weight: { type: "number" as const, description: "Blend weight 0-1 (default 0.5)." },
+        steps: { type: "number" as const, description: "Number of gradient steps (1-20, default 1)." },
+      }, required: ["color1", "color2"],
+    },
+  },
+
+  // ── fibonacci-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "fibonacci_sequence",
+    description: "Generate Fibonacci numbers and optionally check if a number is Fibonacci.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "How many Fibonacci numbers (1-100, default 10)." },
+        check: { type: "number" as const, description: "Optional number to test if it is a Fibonacci number." },
+      },
+    },
+  },
+
+  // ── primecheck-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "prime_check",
+    description: "Check if a number is prime, get its factorization, and find adjacent primes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        number: { type: "number" as const, description: "Non-negative integer to check (max 1 trillion)." },
+      }, required: ["number"],
+    },
+  },
+
+  // ── sortlines-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "sort_lines",
+    description: "Sort, deduplicate, or reverse lines of text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Multi-line text to sort." },
+        reverse: { type: "boolean" as const, description: "Sort descending (default false)." },
+        deduplicate: { type: "boolean" as const, description: "Remove duplicate lines (default false)." },
+        numeric: { type: "boolean" as const, description: "Sort numerically (default false)." },
+        case_insensitive: { type: "boolean" as const, description: "Case-insensitive sort (default false)." },
       }, required: ["text"],
     },
   },
@@ -20801,6 +20869,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // textstats-tool.ts
   text_readability:          (args) => textReadability(args),
+
+  // timezone-tool.ts
+  timezone_info:             (args) => timezoneInfo(args),
+
+  // colorblend-tool.ts
+  color_blend:               (args) => colorBlend(args),
+
+  // fibonacci-tool.ts
+  fibonacci_sequence:        (args) => fibonacciSequence(args),
+
+  // primecheck-tool.ts
+  prime_check:               (args) => primeCheck(args),
+
+  // sortlines-tool.ts
+  sort_lines:                (args) => sortLines(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

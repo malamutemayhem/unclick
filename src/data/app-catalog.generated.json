@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 440,
-  "toolCount": 1362,
+  "appCount": 445,
+  "toolCount": 1367,
   "categories": [
     "AI",
     "Books",
@@ -1510,6 +1510,22 @@
       "hardened": false
     },
     {
+      "slug": "colorblend",
+      "name": "Color Blender",
+      "category": "Developer & infra",
+      "blurb": "Blend two hex colors together and generate gradient palettes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "color_blend",
+          "description": "Blend two hex colors together, optionally generating a gradient palette."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "colorconvert",
       "name": "Color Converter",
       "category": "Utilities",
@@ -3012,6 +3028,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "fibonacci",
+      "name": "Fibonacci Generator",
+      "category": "Utilities",
+      "blurb": "Generate Fibonacci sequences and check if a number is Fibonacci.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fibonacci_sequence",
+          "description": "Generate Fibonacci numbers and optionally check if a number is Fibonacci."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fidelitycopy",
@@ -4884,6 +4916,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "sortlines",
+      "name": "Line Sorter",
+      "category": "Utilities",
+      "blurb": "Sort, deduplicate, and reverse lines of text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sort_lines",
+          "description": "Sort, deduplicate, or reverse lines of text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "linear",
@@ -6960,6 +7008,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "primecheck",
+      "name": "Prime Checker",
+      "category": "Utilities",
+      "blurb": "Check primality, get prime factorization, and find adjacent primes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prime_check",
+          "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "openlib2",
@@ -9260,6 +9324,22 @@
         {
           "name": "time_api_timezones",
           "description": "List all available IANA timezone names from timeapi.io."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "timezone",
+      "name": "Timezone Reference",
+      "category": "Utilities",
+      "blurb": "Look up timezone abbreviations, UTC offsets, and full names.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "timezone_info",
+          "description": "Look up timezone offset and details by abbreviation, or list all timezones."
         }
       ],
       "level": 5,

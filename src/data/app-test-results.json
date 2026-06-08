@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T20:45:00.000Z",
+  "updatedAt": "2026-06-08T21:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3472,6 +3472,36 @@
       "note": "text_readability analyzes Flesch-Kincaid readability locally. No API needed.",
       "testedAt": "2026-06-08T20:45:00.000Z",
       "toolsTested": ["text_readability"]
+    },
+    "timezone": {
+      "status": "pass",
+      "note": "timezone_info looks up timezone offsets locally. No API needed.",
+      "testedAt": "2026-06-08T21:00:00.000Z",
+      "toolsTested": ["timezone_info"]
+    },
+    "colorblend": {
+      "status": "pass",
+      "note": "color_blend blends hex colors locally. No API needed.",
+      "testedAt": "2026-06-08T21:00:00.000Z",
+      "toolsTested": ["color_blend"]
+    },
+    "fibonacci": {
+      "status": "pass",
+      "note": "fibonacci_sequence generates Fibonacci numbers locally. No API needed.",
+      "testedAt": "2026-06-08T21:00:00.000Z",
+      "toolsTested": ["fibonacci_sequence"]
+    },
+    "primecheck": {
+      "status": "pass",
+      "note": "prime_check tests primality and factors numbers locally. No API needed.",
+      "testedAt": "2026-06-08T21:00:00.000Z",
+      "toolsTested": ["prime_check"]
+    },
+    "sortlines": {
+      "status": "pass",
+      "note": "sort_lines sorts and deduplicates text lines locally. No API needed.",
+      "testedAt": "2026-06-08T21:00:00.000Z",
+      "toolsTested": ["sort_lines"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

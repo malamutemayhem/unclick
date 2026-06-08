@@ -1246,6 +1246,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "colorblend",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_blend",
+        "description": "Blend two hex colors together, optionally generating a gradient palette."
+      }
+    ]
+  },
+  {
     "app": "colorconvert",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2388,6 +2398,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "feedly_action",
         "description": "Perform a Feedly action: get_feedly_feeds, get_feedly_streams, search_feedly, get_feedly_categories, mark_as_read."
+      }
+    ]
+  },
+  {
+    "app": "fibonacci",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fibonacci_sequence",
+        "description": "Generate Fibonacci numbers and optionally check if a number is Fibonacci."
       }
     ]
   },
@@ -5378,6 +5398,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "primecheck",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prime_check",
+        "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+      }
+    ]
+  },
+  {
     "app": "ptv",
     "category": "Australian / Local",
     "tools": [
@@ -6396,6 +6426,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sortlines",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sort_lines",
+        "description": "Sort, deduplicate, or reverse lines of text."
+      }
+    ]
+  },
+  {
     "app": "spaceflight",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6984,6 +7024,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "time_api_timezones",
         "description": "List all available IANA timezone names from timeapi.io."
+      }
+    ]
+  },
+  {
+    "app": "timezone",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "timezone_info",
+        "description": "Look up timezone offset and details by abbreviation, or list all timezones."
       }
     ]
   },
