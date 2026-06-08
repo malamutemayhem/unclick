@@ -610,6 +610,11 @@ import { colorBlend } from "./colorblend-tool.js";
 import { fibonacciSequence } from "./fibonacci-tool.js";
 import { primeCheck } from "./primecheck-tool.js";
 import { sortLines } from "./sortlines-tool.js";
+import { countdownCalc } from "./countdowncalc-tool.js";
+import { pressureConvert } from "./unitpressure-tool.js";
+import { emojiLookup } from "./emojilookup-tool.js";
+import { natoConvert } from "./natoalphabet-tool.js";
+import { bitwiseCalc } from "./bitwise-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9414,6 +9419,65 @@ export const ADDITIONAL_TOOLS = [
         numeric: { type: "boolean" as const, description: "Sort numerically (default false)." },
         case_insensitive: { type: "boolean" as const, description: "Case-insensitive sort (default false)." },
       }, required: ["text"],
+    },
+  },
+
+  // ── countdowncalc-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "countdown_calc",
+    description: "Calculate days, weeks until or since a given date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        date: { type: "string" as const, description: "Target date (YYYY-MM-DD)." },
+      }, required: ["date"],
+    },
+  },
+
+  // ── unitpressure-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "pressure_convert",
+    description: "Convert pressure between Pa, hPa, kPa, bar, atm, psi, torr, mmHg, inHg.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Pressure value to convert." },
+        from: { type: "string" as const, description: "Source unit (default pa)." },
+        to: { type: "string" as const, description: "Target unit (omit for all)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── emojilookup-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "emoji_lookup",
+    description: "Search emojis by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term (e.g. heart, fire, smile)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── natoalphabet-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "nato_convert",
+    description: "Convert text to NATO phonetic alphabet or decode NATO words back to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or NATO words to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── bitwise-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bitwise_calc",
+    description: "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First integer." },
+        b: { type: "number" as const, description: "Second integer (not needed for NOT)." },
+        operation: { type: "string" as const, description: "Operation: and, or, xor, not, nand, nor, shift_left, shift_right (default and)." },
+      }, required: ["a"],
     },
   },
 
@@ -20884,6 +20948,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // sortlines-tool.ts
   sort_lines:                (args) => sortLines(args),
+
+  // countdowncalc-tool.ts
+  countdown_calc:            (args) => countdownCalc(args),
+
+  // unitpressure-tool.ts
+  pressure_convert:          (args) => pressureConvert(args),
+
+  // emojilookup-tool.ts
+  emoji_lookup:              (args) => emojiLookup(args),
+
+  // natoalphabet-tool.ts
+  nato_convert:              (args) => natoConvert(args),
+
+  // bitwise-tool.ts
+  bitwise_calc:              (args) => bitwiseCalc(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:00:00.000Z",
+  "updatedAt": "2026-06-08T21:15:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3502,6 +3502,36 @@
       "note": "sort_lines sorts and deduplicates text lines locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
       "toolsTested": ["sort_lines"]
+    },
+    "countdowncalc": {
+      "status": "pass",
+      "note": "countdown_calc calculates days until/since a date locally. No API needed.",
+      "testedAt": "2026-06-08T21:15:00.000Z",
+      "toolsTested": ["countdown_calc"]
+    },
+    "unitpressure": {
+      "status": "pass",
+      "note": "pressure_convert converts pressure units locally. No API needed.",
+      "testedAt": "2026-06-08T21:15:00.000Z",
+      "toolsTested": ["pressure_convert"]
+    },
+    "emojilookup": {
+      "status": "pass",
+      "note": "emoji_lookup searches emojis by keyword locally. No API needed.",
+      "testedAt": "2026-06-08T21:15:00.000Z",
+      "toolsTested": ["emoji_lookup"]
+    },
+    "natoalphabet": {
+      "status": "pass",
+      "note": "nato_convert encodes/decodes NATO phonetic alphabet locally. No API needed.",
+      "testedAt": "2026-06-08T21:15:00.000Z",
+      "toolsTested": ["nato_convert"]
+    },
+    "bitwise": {
+      "status": "pass",
+      "note": "bitwise_calc performs bitwise operations locally. No API needed.",
+      "testedAt": "2026-06-08T21:15:00.000Z",
+      "toolsTested": ["bitwise_calc"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

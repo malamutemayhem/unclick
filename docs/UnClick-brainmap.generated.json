@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 868,
+    "inventory": 873,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 446,
+    "tools": 451,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 446
+      "count": 451
     },
     {
       "id": "rooms",
@@ -4512,6 +4512,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bitwise-packages-mcp-server-src-bitwise-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bitwise",
+      "kind": "MCP tool",
+      "meaning": "bitwise MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bitwise-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bluesky-packages-mcp-server-src-bluesky-tool-ts-no-route",
       "division": "Tools",
       "name": "bluesky",
@@ -4972,6 +4982,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-countdowncalc-packages-mcp-server-src-countdowncalc-tool-ts-no-route",
+      "division": "Tools",
+      "name": "countdowncalc",
+      "kind": "MCP tool",
+      "meaning": "countdowncalc MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/countdowncalc-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-countryflag-packages-mcp-server-src-countryflag-tool-ts-no-route",
       "division": "Tools",
       "name": "countryflag",
@@ -5378,6 +5398,16 @@
       "kind": "MCP tool",
       "meaning": "emojihub MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/emojihub-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-emojilookup-packages-mcp-server-src-emojilookup-tool-ts-no-route",
+      "division": "Tools",
+      "name": "emojilookup",
+      "kind": "MCP tool",
+      "meaning": "emojilookup MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/emojilookup-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6638,6 +6668,16 @@
       "kind": "MCP tool",
       "meaning": "nationalize MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/nationalize-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-natoalphabet-packages-mcp-server-src-natoalphabet-tool-ts-no-route",
+      "division": "Tools",
+      "name": "natoalphabet",
+      "kind": "MCP tool",
+      "meaning": "natoalphabet MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/natoalphabet-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8222,6 +8262,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-unitpressure-packages-mcp-server-src-unitpressure-tool-ts-no-route",
+      "division": "Tools",
+      "name": "unitpressure",
+      "kind": "MCP tool",
+      "meaning": "unitpressure MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/unitpressure-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-universities-packages-mcp-server-src-universities-tool-ts-no-route",
       "division": "Tools",
       "name": "universities",
@@ -9540,6 +9590,11 @@
       "packages/mcp-server/src/bitbucket-tool.ts"
     ],
     [
+      "bitwise",
+      "bitwise MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bitwise-tool.ts"
+    ],
+    [
       "bluesky",
       "bluesky MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bluesky-tool.ts"
@@ -9770,6 +9825,11 @@
       "packages/mcp-server/src/corporatebs-tool.ts"
     ],
     [
+      "countdowncalc",
+      "countdowncalc MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/countdowncalc-tool.ts"
+    ],
+    [
       "countryflag",
       "countryflag MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/countryflag-tool.ts"
@@ -9973,6 +10033,11 @@
       "emojihub",
       "emojihub MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/emojihub-tool.ts"
+    ],
+    [
+      "emojilookup",
+      "emojilookup MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/emojilookup-tool.ts"
     ],
     [
       "epoch",
@@ -10603,6 +10668,11 @@
       "nationalize",
       "nationalize MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/nationalize-tool.ts"
+    ],
+    [
+      "natoalphabet",
+      "natoalphabet MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/natoalphabet-tool.ts"
     ],
     [
       "neon",
@@ -11393,6 +11463,11 @@
       "unit converter",
       "unit converter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/unit-converter-tool.ts"
+    ],
+    [
+      "unitpressure",
+      "unitpressure MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/unitpressure-tool.ts"
     ],
     [
       "universities",
@@ -12813,6 +12888,11 @@
       "bytes": 4388
     },
     {
+      "source": "packages/mcp-server/src/bitwise-tool.ts",
+      "hash": "5b0b0365aefe",
+      "bytes": 2091
+    },
+    {
       "source": "packages/mcp-server/src/bluesky-tool.ts",
       "hash": "9c63ad10f656",
       "bytes": 16256
@@ -12836,11 +12916,6 @@
       "source": "packages/mcp-server/src/brewery-tool.ts",
       "hash": "9a69cc3c3ebc",
       "bytes": 5073
-    },
-    {
-      "source": "packages/mcp-server/src/bungie-tool.ts",
-      "hash": "a6a1a1915cc3",
-      "bytes": 7686
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

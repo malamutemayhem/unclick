@@ -610,6 +610,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitwise",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bitwise_calc",
+        "description": "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers."
+      }
+    ]
+  },
+  {
     "app": "bluesky",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1434,6 +1444,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "countdowncalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "countdown_calc",
+        "description": "Calculate days, weeks until or since a given date."
+      }
+    ]
+  },
+  {
     "app": "countryflag",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2168,6 +2188,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "emojihub_by_category",
         "description": "Browse emojis by category (smileys, animals, food, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "emojilookup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "emoji_lookup",
+        "description": "Search emojis by name or keyword."
       }
     ]
   },
@@ -4342,6 +4372,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "nationalize_predict",
         "description": "Predict likely nationalities from a first name with probability scores."
+      }
+    ]
+  },
+  {
+    "app": "natoalphabet",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nato_convert",
+        "description": "Convert text to NATO phonetic alphabet or decode NATO words back to text."
       }
     ]
   },
@@ -7390,6 +7430,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "convert_data_storage",
         "description": "Convert between data storage units."
+      }
+    ]
+  },
+  {
+    "app": "unitpressure",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pressure_convert",
+        "description": "Convert pressure between Pa, hPa, kPa, bar, atm, psi, torr, mmHg, inHg."
       }
     ]
   },

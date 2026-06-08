@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 445,
-  "toolCount": 1367,
+  "appCount": 450,
+  "toolCount": 1372,
   "categories": [
     "AI",
     "Books",
@@ -684,6 +684,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bitwise",
+      "name": "Bitwise Calculator",
+      "category": "Developer & infra",
+      "blurb": "Perform bitwise operations (AND, OR, XOR, NOT, shifts) on integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bitwise_calc",
+          "description": "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bluesky",
@@ -1770,6 +1786,22 @@
       "hardened": true
     },
     {
+      "slug": "countdowncalc",
+      "name": "Countdown Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate days and weeks until or since any date.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "countdown_calc",
+          "description": "Calculate days, weeks until or since a given date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "countryflag",
       "name": "Country Flags",
       "category": "Images",
@@ -2680,6 +2712,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "emojilookup",
+      "name": "Emoji Lookup",
+      "category": "Utilities",
+      "blurb": "Search emojis by name or keyword.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "emoji_lookup",
+          "description": "Search emojis by name or keyword."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "emojihub",
@@ -5602,6 +5650,22 @@
       "hardened": false
     },
     {
+      "slug": "natoalphabet",
+      "name": "NATO Phonetic Alphabet",
+      "category": "Utilities",
+      "blurb": "Convert text to NATO phonetic alphabet or decode NATO words.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "nato_convert",
+          "description": "Convert text to NATO phonetic alphabet or decode NATO words back to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "neon",
       "name": "Neon",
       "category": "Developer & infra",
@@ -7008,6 +7072,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "unitpressure",
+      "name": "Pressure Converter",
+      "category": "Developer & infra",
+      "blurb": "Convert pressure between Pa, bar, atm, psi, torr, and more.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pressure_convert",
+          "description": "Convert pressure between Pa, hPa, kPa, bar, atm, psi, torr, mmHg, inHg."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "primecheck",
