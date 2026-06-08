@@ -5,50 +5,69 @@ export interface DomainEvent {
   version: number;
 }
 
-export class EventStore {
-  private streams = new Map<string, DomainEvent[]>();
+export type Reducer<S> = (state: S, event: DomainEvent) => S;
 
-  append(streamId: string, type: string, payload: unknown): DomainEvent {
-    if (!this.streams.has(streamId)) this.streams.set(streamId, []);
-    const events = this.streams.get(streamId)!;
+export class EventStore<S> {
+  private events: DomainEvent[] = [];
+  private snapshots: { version: number; state: S }[] = [];
+  private reducer: Reducer<S>;
+  private initialState: S;
+  private snapshotInterval: number;
+
+  constructor(reducer: Reducer<S>, initialState: S, snapshotInterval = 10) {
+    this.reducer = reducer;
+    this.initialState = initialState;
+    this.snapshotInterval = snapshotInterval;
+  }
+
+  append(type: string, payload: unknown): DomainEvent {
     const event: DomainEvent = {
       type,
       payload,
       timestamp: Date.now(),
-      version: events.length + 1,
+      version: this.events.length + 1,
     };
-    events.push(event);
+    this.events.push(event);
+    if (this.events.length % this.snapshotInterval === 0) {
+      this.snapshots.push({ version: event.version, state: this.currentState });
+    }
     return event;
   }
 
-  getStream(streamId: string, fromVersion?: number): DomainEvent[] {
-    const events = this.streams.get(streamId) ?? [];
-    if (fromVersion !== undefined) {
-      return events.filter((e) => e.version >= fromVersion);
+  get currentState(): S {
+    return this.stateAt(this.events.length);
+  }
+
+  stateAt(version: number): S {
+    let state = this.initialState;
+    let startIdx = 0;
+    for (const snap of this.snapshots) {
+      if (snap.version <= version) {
+        state = snap.state;
+        startIdx = snap.version;
+      }
     }
-    return [...events];
+    for (let i = startIdx; i < Math.min(version, this.events.length); i++) {
+      state = this.reducer(state, this.events[i]);
+    }
+    return state;
   }
 
-  getLatestVersion(streamId: string): number {
-    const events = this.streams.get(streamId);
-    return events ? events.length : 0;
+  get eventLog(): DomainEvent[] {
+    return [...this.events];
   }
 
-  streamIds(): string[] {
-    return [...this.streams.keys()];
+  get version(): number {
+    return this.events.length;
   }
 
-  get totalEvents(): number {
-    let total = 0;
-    for (const events of this.streams.values()) total += events.length;
-    return total;
+  eventsSince(version: number): DomainEvent[] {
+    return this.events.slice(version);
   }
-}
 
-export function replay<S>(
-  events: DomainEvent[],
-  reducer: (state: S, event: DomainEvent) => S,
-  initial: S
-): S {
-  return events.reduce(reducer, initial);
+  replay(events: DomainEvent[]): S {
+    let state = this.initialState;
+    for (const event of events) state = this.reducer(state, event);
+    return state;
+  }
 }

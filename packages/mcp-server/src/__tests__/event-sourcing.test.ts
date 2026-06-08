@@ -1,70 +1,80 @@
 import { describe, it, expect } from "vitest";
-import { EventStore, replay } from "../event-sourcing.js";
+import { EventStore } from "../event-sourcing.js";
 
-describe("event-sourcing", () => {
-  it("append stores events with versions", () => {
-    const store = new EventStore();
-    const e1 = store.append("order-1", "created", { total: 100 });
-    const e2 = store.append("order-1", "paid", { method: "card" });
-    expect(e1.version).toBe(1);
-    expect(e2.version).toBe(2);
-    expect(e1.type).toBe("created");
+interface Counter { count: number }
+
+const counterReducer = (state: Counter, event: { type: string; payload: unknown }) => {
+  switch (event.type) {
+    case "increment": return { count: state.count + (event.payload as number) };
+    case "decrement": return { count: state.count - (event.payload as number) };
+    case "reset": return { count: 0 };
+    default: return state;
+  }
+};
+
+describe("EventStore", () => {
+  it("starts with initial state", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    expect(store.currentState).toEqual({ count: 0 });
   });
 
-  it("getStream returns all events", () => {
-    const store = new EventStore();
-    store.append("s1", "a", {});
-    store.append("s1", "b", {});
-    expect(store.getStream("s1")).toHaveLength(2);
+  it("append and replay", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    store.append("increment", 5);
+    store.append("increment", 3);
+    store.append("decrement", 2);
+    expect(store.currentState).toEqual({ count: 6 });
   });
 
-  it("getStream with fromVersion filters", () => {
-    const store = new EventStore();
-    store.append("s1", "a", {});
-    store.append("s1", "b", {});
-    store.append("s1", "c", {});
-    expect(store.getStream("s1", 2)).toHaveLength(2);
+  it("version tracks event count", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    store.append("increment", 1);
+    store.append("increment", 1);
+    expect(store.version).toBe(2);
   });
 
-  it("getStream returns empty for unknown stream", () => {
-    const store = new EventStore();
-    expect(store.getStream("nope")).toEqual([]);
+  it("stateAt returns historical state", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    store.append("increment", 10);
+    store.append("increment", 20);
+    store.append("increment", 30);
+    expect(store.stateAt(1)).toEqual({ count: 10 });
+    expect(store.stateAt(2)).toEqual({ count: 30 });
   });
 
-  it("getLatestVersion tracks version", () => {
-    const store = new EventStore();
-    store.append("s1", "a", {});
-    store.append("s1", "b", {});
-    expect(store.getLatestVersion("s1")).toBe(2);
-    expect(store.getLatestVersion("nope")).toBe(0);
+  it("eventLog returns all events", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    store.append("increment", 1);
+    store.append("reset", null);
+    expect(store.eventLog.length).toBe(2);
+    expect(store.eventLog[0].type).toBe("increment");
+    expect(store.eventLog[1].type).toBe("reset");
   });
 
-  it("streamIds lists all streams", () => {
-    const store = new EventStore();
-    store.append("a", "x", {});
-    store.append("b", "y", {});
-    expect(store.streamIds().sort()).toEqual(["a", "b"]);
+  it("eventsSince returns subset", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    store.append("increment", 1);
+    store.append("increment", 2);
+    store.append("increment", 3);
+    const since = store.eventsSince(2);
+    expect(since.length).toBe(1);
+    expect(since[0].payload).toBe(3);
   });
 
-  it("totalEvents counts across streams", () => {
-    const store = new EventStore();
-    store.append("a", "x", {});
-    store.append("a", "y", {});
-    store.append("b", "z", {});
-    expect(store.totalEvents).toBe(3);
+  it("replay computes state from events", () => {
+    const store = new EventStore(counterReducer, { count: 0 });
+    const events = [
+      { type: "increment", payload: 5, timestamp: 0, version: 1 },
+      { type: "increment", payload: 3, timestamp: 0, version: 2 },
+    ];
+    expect(store.replay(events)).toEqual({ count: 8 });
   });
 
-  it("replay rebuilds state from events", () => {
-    const store = new EventStore();
-    store.append("counter", "increment", { amount: 5 });
-    store.append("counter", "increment", { amount: 3 });
-    store.append("counter", "decrement", { amount: 2 });
-
-    const events = store.getStream("counter");
-    const total = replay(events, (state, event) => {
-      const amount = (event.payload as { amount: number }).amount;
-      return event.type === "increment" ? state + amount : state - amount;
-    }, 0);
-    expect(total).toBe(6);
+  it("takes snapshots", () => {
+    const store = new EventStore(counterReducer, { count: 0 }, 2);
+    store.append("increment", 1);
+    store.append("increment", 1);
+    store.append("increment", 1);
+    expect(store.currentState).toEqual({ count: 3 });
   });
 });
