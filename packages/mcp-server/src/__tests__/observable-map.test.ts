@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { ObservableMap } from "../observable-map";
+import { ObservableMap } from "../observable-map.js";
 
 describe("ObservableMap", () => {
   it("sets and gets values", () => {

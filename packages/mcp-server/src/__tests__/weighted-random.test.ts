@@ -1,55 +1,96 @@
 import { describe, it, expect } from "vitest";
-import { weightedRandomWithSeed, normalizeWeights } from "../weighted-random.js";
+import { weightedRandom, weightedRandomWithSeed, buildCdf, sampleCdf } from "../weighted-random.js";
 
 describe("weighted-random", () => {
-  it("weightedRandomWithSeed returns deterministic results", () => {
-    const items = [
-      { item: "a", weight: 1 },
-      { item: "b", weight: 10 },
-      { item: "c", weight: 1 },
-    ];
-    const r1 = weightedRandomWithSeed(items, 42);
-    const r2 = weightedRandomWithSeed(items, 42);
-    expect(r1).toBe(r2);
+  describe("weightedRandom", () => {
+    it("throws on empty items", () => {
+      expect(() => weightedRandom([])).toThrow("Empty items");
+    });
+
+    it("returns a value from the items", () => {
+      const items = [
+        { value: "a", weight: 1 },
+        { value: "b", weight: 1 },
+      ];
+      const result = weightedRandom(items);
+      expect(["a", "b"]).toContain(result);
+    });
+
+    it("returns only item when single entry", () => {
+      const result = weightedRandom([{ value: "x", weight: 5 }]);
+      expect(result).toBe("x");
+    });
   });
 
-  it("heavily weighted item wins most selections", () => {
-    const items = [
-      { item: "rare", weight: 1 },
-      { item: "common", weight: 1000 },
-    ];
-    const counts: Record<string, number> = { rare: 0, common: 0 };
-    for (let seed = 0; seed < 100; seed++) {
-      const picked = weightedRandomWithSeed(items, seed);
-      counts[picked]++;
-    }
-    expect(counts.common).toBeGreaterThan(counts.rare);
+  describe("weightedRandomWithSeed", () => {
+    it("picks first item when rand returns 0", () => {
+      const items = [
+        { value: "a", weight: 1 },
+        { value: "b", weight: 1 },
+      ];
+      const result = weightedRandomWithSeed(items, () => 0);
+      expect(result).toBe("a");
+    });
+
+    it("picks last item when rand returns near 1", () => {
+      const items = [
+        { value: "a", weight: 1 },
+        { value: "b", weight: 1 },
+      ];
+      const result = weightedRandomWithSeed(items, () => 0.999);
+      expect(result).toBe("b");
+    });
+
+    it("respects weights", () => {
+      const items = [
+        { value: "a", weight: 3 },
+        { value: "b", weight: 7 },
+      ];
+      const result = weightedRandomWithSeed(items, () => 0.2);
+      expect(result).toBe("a");
+      const result2 = weightedRandomWithSeed(items, () => 0.5);
+      expect(result2).toBe("b");
+    });
+
+    it("throws on empty", () => {
+      expect(() => weightedRandomWithSeed([], () => 0.5)).toThrow("Empty items");
+    });
   });
 
-  it("throws on empty items", () => {
-    expect(() => weightedRandomWithSeed([], 1)).toThrow("empty");
-  });
+  describe("buildCdf / sampleCdf", () => {
+    it("builds a CDF from items", () => {
+      const items = [
+        { value: "a", weight: 1 },
+        { value: "b", weight: 3 },
+      ];
+      const cdf = buildCdf(items);
+      expect(cdf.values).toEqual(["a", "b"]);
+      expect(cdf.cdf[0]).toBeCloseTo(0.25);
+      expect(cdf.cdf[1]).toBe(1);
+    });
 
-  it("throws on zero total weight", () => {
-    expect(() =>
-      weightedRandomWithSeed([{ item: "a", weight: 0 }], 1)
-    ).toThrow("positive");
-  });
+    it("samples from CDF deterministically", () => {
+      const items = [
+        { value: "x", weight: 1 },
+        { value: "y", weight: 1 },
+      ];
+      const cdf = buildCdf(items);
+      expect(sampleCdf(cdf, () => 0.1)).toBe("x");
+      expect(sampleCdf(cdf, () => 0.9)).toBe("y");
+    });
 
-  it("normalizeWeights sums to 1", () => {
-    const items = [
-      { item: "a", weight: 3 },
-      { item: "b", weight: 7 },
-    ];
-    const norm = normalizeWeights(items);
-    const total = norm.reduce((s, i) => s + i.weight, 0);
-    expect(total).toBeCloseTo(1, 10);
-    expect(norm[0].weight).toBeCloseTo(0.3, 10);
-    expect(norm[1].weight).toBeCloseTo(0.7, 10);
-  });
+    it("throws on empty items for buildCdf", () => {
+      expect(() => buildCdf([])).toThrow("Empty items");
+    });
 
-  it("normalizeWeights handles zero total", () => {
-    const norm = normalizeWeights([{ item: "a", weight: 0 }]);
-    expect(norm[0].weight).toBe(0);
+    it("last CDF entry is always 1", () => {
+      const items = [
+        { value: "a", weight: 1 },
+        { value: "b", weight: 2 },
+        { value: "c", weight: 3 },
+      ];
+      const cdf = buildCdf(items);
+      expect(cdf.cdf[cdf.cdf.length - 1]).toBe(1);
+    });
   });
 });

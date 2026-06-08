@@ -1,48 +1,50 @@
 export class ObjectPool<T> {
   private pool: T[] = [];
-  private factory: () => T;
-  private resetter?: (obj: T) => void;
-  private maxSize: number;
+  private _created = 0;
+  private _reused = 0;
 
-  constructor(opts: {
-    factory: () => T;
-    reset?: (obj: T) => void;
-    initialSize?: number;
-    maxSize?: number;
-  }) {
-    this.factory = opts.factory;
-    this.resetter = opts.reset;
-    this.maxSize = opts.maxSize ?? 100;
-    const initial = opts.initialSize ?? 0;
-    for (let i = 0; i < initial; i++) {
-      this.pool.push(this.factory());
-    }
+  constructor(
+    private factory: () => T,
+    private reset?: (obj: T) => void,
+    private maxSize = 64
+  ) {}
+
+  get created(): number {
+    return this._created;
+  }
+
+  get reused(): number {
+    return this._reused;
+  }
+
+  get available(): number {
+    return this.pool.length;
   }
 
   acquire(): T {
     if (this.pool.length > 0) {
+      this._reused++;
       return this.pool.pop()!;
     }
+    this._created++;
     return this.factory();
   }
 
   release(obj: T): void {
     if (this.pool.length >= this.maxSize) return;
-    if (this.resetter) this.resetter(obj);
+    if (this.reset) this.reset(obj);
     this.pool.push(obj);
   }
 
-  prewarm(count: number): void {
-    for (let i = 0; i < count && this.pool.length < this.maxSize; i++) {
+  drain(): void {
+    this.pool.length = 0;
+  }
+
+  fill(count: number): void {
+    const toCreate = Math.min(count, this.maxSize) - this.pool.length;
+    for (let i = 0; i < toCreate; i++) {
+      this._created++;
       this.pool.push(this.factory());
     }
-  }
-
-  clear(): void {
-    this.pool = [];
-  }
-
-  get available(): number {
-    return this.pool.length;
   }
 }

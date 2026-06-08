@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { SortedLinkedList } from "../sorted-linked-list";
+import { SortedLinkedList } from "../sorted-linked-list.js";
 
 describe("SortedLinkedList", () => {
   it("inserts in sorted order", () => {
@@ -96,7 +96,7 @@ describe("SortedLinkedList", () => {
   });
 
   it("supports custom comparator", () => {
-    const list = new SortedLinkedList<string>((a, b) => a.length - b.length);
+    const list = new SortedLinkedList<string>((a: string, b: string) => a.length - b.length);
     list.insert("ccc");
     list.insert("a");
     list.insert("bb");

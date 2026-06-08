@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EntityStore } from "../entity-store";
+import { EntityStore } from "../entity-store.js";
 
 interface User {
   id: string;
@@ -72,7 +72,7 @@ describe("EntityStore", () => {
     store.put({ id: "3", name: "Carol", role: "admin" });
     const admins = store.findBy("role", "admin");
     expect(admins).toHaveLength(2);
-    expect(admins.map((u) => u.id).sort()).toEqual(["1", "3"]);
+    expect(admins.map((u: User) => u.id).sort()).toEqual(["1", "3"]);
   });
 
   it("index updates when entity is overwritten", () => {

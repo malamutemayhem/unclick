@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, extractVars, compile } from "../string-template";
+import { render, extractVars, compile } from "../string-template.js";
 
 describe("string-template", () => {
   describe("render", () => {

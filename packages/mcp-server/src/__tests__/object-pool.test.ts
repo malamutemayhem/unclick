@@ -1,51 +1,33 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { ObjectPool } from "../object-pool.js";
 
 describe("ObjectPool", () => {
-  it("acquire creates new objects", () => {
-    let id = 0;
-    const pool = new ObjectPool({ factory: () => ({ id: ++id }) });
-    const a = pool.acquire();
-    const b = pool.acquire();
-    expect(a.id).toBe(1);
-    expect(b.id).toBe(2);
-  });
-
-  it("release returns objects for reuse", () => {
-    let id = 0;
-    const pool = new ObjectPool({ factory: () => ({ id: ++id }) });
-    const a = pool.acquire();
-    pool.release(a);
-    const b = pool.acquire();
-    expect(b).toBe(a);
-    expect(id).toBe(1);
-  });
-
-  it("reset function is called on release", () => {
-    const pool = new ObjectPool({
-      factory: () => ({ value: 0 }),
-      reset: (obj) => { obj.value = 0; },
-    });
+  it("creates new objects via factory", () => {
+    const pool = new ObjectPool(() => ({ x: 0 }));
     const obj = pool.acquire();
-    obj.value = 42;
+    expect(obj).toEqual({ x: 0 });
+    expect(pool.created).toBe(1);
+  });
+
+  it("reuses released objects", () => {
+    const pool = new ObjectPool(() => ({ x: 0 }));
+    const obj = pool.acquire();
     pool.release(obj);
-    const reused = pool.acquire();
-    expect(reused.value).toBe(0);
+    const obj2 = pool.acquire();
+    expect(obj2).toBe(obj);
+    expect(pool.reused).toBe(1);
   });
 
-  it("initialSize pre-creates objects", () => {
-    const pool = new ObjectPool({
-      factory: () => ({}),
-      initialSize: 5,
-    });
-    expect(pool.available).toBe(5);
+  it("calls reset on release", () => {
+    const reset = vi.fn();
+    const pool = new ObjectPool(() => ({ x: 0 }), reset);
+    const obj = pool.acquire();
+    pool.release(obj);
+    expect(reset).toHaveBeenCalledWith(obj);
   });
 
-  it("respects maxSize for pool", () => {
-    const pool = new ObjectPool({
-      factory: () => ({}),
-      maxSize: 2,
-    });
+  it("respects maxSize limit", () => {
+    const pool = new ObjectPool(() => ({}), undefined, 2);
     const a = pool.acquire();
     const b = pool.acquire();
     const c = pool.acquire();
@@ -55,21 +37,43 @@ describe("ObjectPool", () => {
     expect(pool.available).toBe(2);
   });
 
-  it("prewarm adds objects up to maxSize", () => {
-    const pool = new ObjectPool({
-      factory: () => ({}),
-      maxSize: 3,
-    });
-    pool.prewarm(10);
-    expect(pool.available).toBe(3);
+  it("tracks available count", () => {
+    const pool = new ObjectPool(() => ({}));
+    expect(pool.available).toBe(0);
+    const obj = pool.acquire();
+    pool.release(obj);
+    expect(pool.available).toBe(1);
   });
 
-  it("clear empties the pool", () => {
-    const pool = new ObjectPool({
-      factory: () => ({}),
-      initialSize: 5,
-    });
-    pool.clear();
+  it("drains the pool", () => {
+    const pool = new ObjectPool(() => ({}));
+    const obj = pool.acquire();
+    pool.release(obj);
+    pool.drain();
     expect(pool.available).toBe(0);
+  });
+
+  it("fills the pool with pre-created objects", () => {
+    const pool = new ObjectPool(() => ({ v: 1 }));
+    pool.fill(3);
+    expect(pool.available).toBe(3);
+    expect(pool.created).toBe(3);
+  });
+
+  it("fill respects maxSize", () => {
+    const pool = new ObjectPool(() => ({}), undefined, 2);
+    pool.fill(5);
+    expect(pool.available).toBe(2);
+  });
+
+  it("tracks created and reused counts", () => {
+    const pool = new ObjectPool(() => ({}));
+    pool.acquire();
+    pool.acquire();
+    const obj = pool.acquire();
+    pool.release(obj);
+    pool.acquire();
+    expect(pool.created).toBe(3);
+    expect(pool.reused).toBe(1);
   });
 });
