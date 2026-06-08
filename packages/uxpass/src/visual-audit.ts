@@ -16,7 +16,8 @@ export type VisualAuditIssueKind =
   | "generic_ai_surface"
   | "missing_product_mechanics"
   | "unlabelled_action"
-  | "crowded_action_cluster";
+  | "crowded_action_cluster"
+  | "text_widow";
 
 export interface VisualRect {
   x: number;
@@ -105,9 +106,14 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "missing_product_mechanics",
   "unlabelled_action",
   "crowded_action_cluster",
+  "text_widow",
 ];
 
 const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "low"];
+
+// A widow ("hanger") leaves one or two short words alone on a heading's last
+// line. Estimated from the rendered rect, font size, and text.
+const WIDOW_CHAR_EM = 0.5;
 
 const MIN_TOUCH_TARGET = 24;
 const TEXT_CLIP_TOLERANCE = 2;
@@ -245,6 +251,55 @@ function isHeadingLike(element: VisualAuditElement): boolean {
   const tag = element.tagName.toLowerCase();
   const role = (element.role ?? "").toLowerCase();
   return /^h[1-6]$/.test(tag) || role === "heading";
+}
+
+function measuredLineCount(element: VisualAuditElement): number {
+  const fontSize = element.fontSize ?? 0;
+  if (fontSize <= 0) return 1;
+  const height = element.clientHeight ?? element.rect.height;
+  return Math.max(1, Math.round(height / (fontSize * 1.2)));
+}
+
+interface WidowEstimate {
+  lines: number;
+  lastLineWords: number;
+  lastLineChars: number;
+  charsPerLine: number;
+}
+
+/**
+ * Greedy-wrap a heading's words into estimated lines using the rendered width
+ * and font size, so we can tell whether the last line is a lonely word or two.
+ */
+function estimateWidow(element: VisualAuditElement): WidowEstimate | null {
+  const fontSize = element.fontSize ?? 0;
+  const width = element.clientWidth ?? element.rect.width;
+  if (fontSize <= 0 || width <= 0) return null;
+  const text = compactText(element.text);
+  const words = text.split(" ").filter(Boolean);
+  if (words.length < 4) return null;
+  const charsPerLine = Math.floor(width / (fontSize * WIDOW_CHAR_EM));
+  if (charsPerLine < 4 || text.length <= charsPerLine) return null;
+
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    if (current.length === 0) current = word;
+    else if (current.length + 1 + word.length <= charsPerLine) current += ` ${word}`;
+    else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current.length > 0) lines.push(current);
+
+  const lastLine = lines[lines.length - 1] ?? "";
+  return {
+    lines: lines.length,
+    lastLineWords: lastLine.split(" ").filter(Boolean).length,
+    lastLineChars: lastLine.length,
+    charsPerLine,
+  };
 }
 
 function visualWeight(element: VisualAuditElement): number {
@@ -511,6 +566,35 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
           },
           remediation: "Increase foreground contrast or darken/lighten the background token for this state.",
         });
+      }
+
+      const isDisplayText = isHeadingLike(element) || (element.fontSize ?? 0) >= 22;
+      if (isDisplayText && measuredLineCount(element) >= 2) {
+        const widow = estimateWidow(element);
+        if (
+          widow &&
+          widow.lines >= 2 &&
+          widow.lastLineWords <= 2 &&
+          widow.lastLineChars <= Math.floor(widow.charsPerLine * 0.5)
+        ) {
+          pushIssue(issues, {
+            kind: "text_widow",
+            severity: "low",
+            title: "Heading drops a short last line",
+            description: `${describeElement(element)} wraps so the last line holds only ${widow.lastLineWords} short word${widow.lastLineWords === 1 ? "" : "s"}.`,
+            selector: element.selector,
+            elementId: element.id,
+            evidence: {
+              text: text.slice(0, 120),
+              estimated_lines: widow.lines,
+              last_line_words: widow.lastLineWords,
+              last_line_chars: widow.lastLineChars,
+              chars_per_line: widow.charsPerLine,
+              font_size: element.fontSize ?? null,
+            },
+            remediation: "Bind the last two words with a non-breaking space, or apply text-wrap: balance (or pretty), so the heading does not leave one or two words on their own line.",
+          });
+        }
       }
     }
 
