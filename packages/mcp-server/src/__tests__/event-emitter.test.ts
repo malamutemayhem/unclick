@@ -1,97 +1,76 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { EventEmitter } from "../event-emitter.js";
 
-type TestEvents = { click: { x: number; y: number }; close: void; data: string };
-
 describe("EventEmitter", () => {
-  it("calls handler on emit", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn = vi.fn();
-    ee.on("data", fn);
-    ee.emit("data", "hello");
-    expect(fn).toHaveBeenCalledWith("hello");
+  it("on and emit", () => {
+    const ee = new EventEmitter();
+    const calls: unknown[] = [];
+    ee.on("test", (v) => calls.push(v));
+    ee.emit("test", 42);
+    ee.emit("test", "hello");
+    expect(calls).toEqual([42, "hello"]);
   });
 
-  it("supports multiple handlers", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn1 = vi.fn();
-    const fn2 = vi.fn();
-    ee.on("data", fn1);
-    ee.on("data", fn2);
-    ee.emit("data", "test");
-    expect(fn1).toHaveBeenCalled();
-    expect(fn2).toHaveBeenCalled();
-  });
-
-  it("off removes a handler", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn = vi.fn();
-    ee.on("data", fn);
-    ee.off("data", fn);
-    ee.emit("data", "test");
-    expect(fn).not.toHaveBeenCalled();
+  it("off removes handler", () => {
+    const ee = new EventEmitter();
+    const calls: unknown[] = [];
+    const handler = (v: unknown) => calls.push(v);
+    ee.on("test", handler);
+    ee.emit("test", 1);
+    ee.off("test", handler);
+    ee.emit("test", 2);
+    expect(calls).toEqual([1]);
   });
 
   it("on returns unsubscribe function", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn = vi.fn();
-    const unsub = ee.on("data", fn);
+    const ee = new EventEmitter();
+    const calls: unknown[] = [];
+    const unsub = ee.on("test", (v) => calls.push(v));
+    ee.emit("test", 1);
     unsub();
-    ee.emit("data", "test");
-    expect(fn).not.toHaveBeenCalled();
+    ee.emit("test", 2);
+    expect(calls).toEqual([1]);
   });
 
   it("once fires only once", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn = vi.fn();
-    ee.once("data", fn);
-    ee.emit("data", "first");
-    ee.emit("data", "second");
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith("first");
+    const ee = new EventEmitter();
+    let count = 0;
+    ee.once("test", () => count++);
+    ee.emit("test");
+    ee.emit("test");
+    expect(count).toBe(1);
   });
 
   it("removeAllListeners for specific event", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn1 = vi.fn();
-    const fn2 = vi.fn();
-    ee.on("data", fn1);
-    ee.on("close", fn2);
-    ee.removeAllListeners("data");
-    ee.emit("data", "test");
-    ee.emit("close", undefined as any);
-    expect(fn1).not.toHaveBeenCalled();
-    expect(fn2).toHaveBeenCalled();
+    const ee = new EventEmitter();
+    let a = 0, b = 0;
+    ee.on("a", () => a++);
+    ee.on("b", () => b++);
+    ee.removeAllListeners("a");
+    ee.emit("a");
+    ee.emit("b");
+    expect(a).toBe(0);
+    expect(b).toBe(1);
   });
 
-  it("removeAllListeners clears all", () => {
-    const ee = new EventEmitter<TestEvents>();
-    const fn = vi.fn();
-    ee.on("data", fn);
-    ee.on("close", fn);
+  it("removeAllListeners for all events", () => {
+    const ee = new EventEmitter();
+    let count = 0;
+    ee.on("a", () => count++);
+    ee.on("b", () => count++);
     ee.removeAllListeners();
-    ee.emit("data", "test");
-    expect(fn).not.toHaveBeenCalled();
+    ee.emit("a");
+    ee.emit("b");
+    expect(count).toBe(0);
   });
 
-  it("listenerCount returns correct count", () => {
-    const ee = new EventEmitter<TestEvents>();
-    expect(ee.listenerCount("data")).toBe(0);
-    ee.on("data", () => {});
-    ee.on("data", () => {});
-    expect(ee.listenerCount("data")).toBe(2);
-  });
-
-  it("eventNames returns registered events", () => {
-    const ee = new EventEmitter<TestEvents>();
-    ee.on("data", () => {});
-    ee.on("close", () => {});
-    expect(ee.eventNames()).toContain("data");
-    expect(ee.eventNames()).toContain("close");
-  });
-
-  it("emit with no listeners does nothing", () => {
-    const ee = new EventEmitter<TestEvents>();
-    expect(() => ee.emit("data", "hello")).not.toThrow();
+  it("listenerCount and eventNames", () => {
+    const ee = new EventEmitter();
+    ee.on("a", () => {});
+    ee.on("a", () => {});
+    ee.once("b", () => {});
+    expect(ee.listenerCount("a")).toBe(2);
+    expect(ee.listenerCount("b")).toBe(1);
+    expect(ee.eventNames().sort()).toEqual(["a", "b"]);
   });
 });

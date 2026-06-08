@@ -1,45 +1,58 @@
-type Handler<T = any> = (data: T) => void;
+type Handler = (...args: unknown[]) => void;
 
-export class EventEmitter<Events extends Record<string, any> = Record<string, any>> {
-  private handlers = new Map<keyof Events, Set<Handler>>();
+export class EventEmitter {
+  private handlers = new Map<string, Set<Handler>>();
+  private onceHandlers = new Map<string, Set<Handler>>();
 
-  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
+  on(event: string, handler: Handler): () => void {
     if (!this.handlers.has(event)) this.handlers.set(event, new Set());
     this.handlers.get(event)!.add(handler);
     return () => this.off(event, handler);
   }
 
-  once<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
-    const wrapper: Handler<Events[K]> = (data) => {
-      this.off(event, wrapper);
-      handler(data);
-    };
-    return this.on(event, wrapper);
+  once(event: string, handler: Handler): () => void {
+    if (!this.onceHandlers.has(event)) this.onceHandlers.set(event, new Set());
+    this.onceHandlers.get(event)!.add(handler);
+    return () => this.onceHandlers.get(event)?.delete(handler);
   }
 
-  off<K extends keyof Events>(event: K, handler: Handler<Events[K]>): void {
+  off(event: string, handler: Handler): void {
     this.handlers.get(event)?.delete(handler);
+    this.onceHandlers.get(event)?.delete(handler);
   }
 
-  emit<K extends keyof Events>(event: K, data: Events[K]): void {
-    const set = this.handlers.get(event);
-    if (!set) return;
-    for (const handler of [...set]) handler(data);
-  }
-
-  removeAllListeners(event?: keyof Events): void {
-    if (event) {
-      this.handlers.delete(event);
-    } else {
-      this.handlers.clear();
+  emit(event: string, ...args: unknown[]): void {
+    const regular = this.handlers.get(event);
+    if (regular) {
+      for (const h of regular) h(...args);
+    }
+    const once = this.onceHandlers.get(event);
+    if (once) {
+      for (const h of once) h(...args);
+      once.clear();
     }
   }
 
-  listenerCount(event: keyof Events): number {
-    return this.handlers.get(event)?.size ?? 0;
+  removeAllListeners(event?: string): void {
+    if (event) {
+      this.handlers.delete(event);
+      this.onceHandlers.delete(event);
+    } else {
+      this.handlers.clear();
+      this.onceHandlers.clear();
+    }
   }
 
-  eventNames(): (keyof Events)[] {
-    return [...this.handlers.keys()];
+  listenerCount(event: string): number {
+    return (this.handlers.get(event)?.size || 0) + (this.onceHandlers.get(event)?.size || 0);
+  }
+
+  eventNames(): string[] {
+    const names = new Set<string>();
+    for (const key of this.handlers.keys()) names.add(key);
+    for (const key of this.onceHandlers.keys()) {
+      if (this.onceHandlers.get(key)!.size > 0) names.add(key);
+    }
+    return [...names];
   }
 }

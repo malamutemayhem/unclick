@@ -1,12 +1,12 @@
 export class UnionFind {
   private parent: number[];
   private rank: number[];
-  private count: number;
+  private _components: number;
 
   constructor(size: number) {
     this.parent = Array.from({ length: size }, (_, i) => i);
     this.rank = new Array(size).fill(0);
-    this.count = size;
+    this._components = size;
   }
 
   find(x: number): number {
@@ -28,7 +28,7 @@ export class UnionFind {
       this.parent[ry] = rx;
       this.rank[rx]++;
     }
-    this.count--;
+    this._components--;
     return true;
   }
 
@@ -36,16 +36,20 @@ export class UnionFind {
     return this.find(x) === this.find(y);
   }
 
-  get componentCount(): number {
-    return this.count;
+  get components(): number {
+    return this._components;
+  }
+
+  get size(): number {
+    return this.parent.length;
   }
 
   componentSize(x: number): number {
     const root = this.find(x);
-    let size = 0;
+    let count = 0;
     for (let i = 0; i < this.parent.length; i++) {
-      if (this.find(i) === root) size++;
+      if (this.find(i) === root) count++;
     }
-    return size;
+    return count;
   }
 }

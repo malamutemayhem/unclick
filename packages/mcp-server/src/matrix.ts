@@ -6,20 +6,15 @@ export class Matrix {
   constructor(rows: number, cols: number, data?: number[]) {
     this.rows = rows;
     this.cols = cols;
-    this.data = new Float64Array(rows * cols);
-    if (data) {
-      for (let i = 0; i < Math.min(data.length, rows * cols); i++) {
-        this.data[i] = data[i];
-      }
-    }
+    this.data = data ? new Float64Array(data) : new Float64Array(rows * cols);
   }
 
-  get(row: number, col: number): number {
-    return this.data[row * this.cols + col];
+  get(r: number, c: number): number {
+    return this.data[r * this.cols + c];
   }
 
-  set(row: number, col: number, value: number): void {
-    this.data[row * this.cols + col] = value;
+  set(r: number, c: number, value: number): void {
+    this.data[r * this.cols + c] = value;
   }
 
   add(other: Matrix): Matrix {
@@ -44,9 +39,9 @@ export class Matrix {
       for (let c = 0; c < other.cols; c++) {
         let sum = 0;
         for (let k = 0; k < this.cols; k++) {
-          sum += this.data[r * this.cols + k] * other.data[k * other.cols + c];
+          sum += this.get(r, k) * other.get(k, c);
         }
-        result.data[r * other.cols + c] = sum;
+        result.set(r, c, sum);
       }
     }
     return result;
@@ -64,33 +59,10 @@ export class Matrix {
     const result = new Matrix(this.cols, this.rows);
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        result.data[c * this.rows + r] = this.data[r * this.cols + c];
+        result.set(c, r, this.get(r, c));
       }
     }
     return result;
-  }
-
-  determinant(): number {
-    if (this.rows !== this.cols) throw new Error("Determinant requires square matrix");
-    if (this.rows === 1) return this.data[0];
-    if (this.rows === 2) return this.data[0] * this.data[3] - this.data[1] * this.data[2];
-    let det = 0;
-    for (let c = 0; c < this.cols; c++) {
-      det += (c % 2 === 0 ? 1 : -1) * this.data[c] * this.minor(0, c).determinant();
-    }
-    return det;
-  }
-
-  private minor(row: number, col: number): Matrix {
-    const data: number[] = [];
-    for (let r = 0; r < this.rows; r++) {
-      if (r === row) continue;
-      for (let c = 0; c < this.cols; c++) {
-        if (c === col) continue;
-        data.push(this.data[r * this.cols + c]);
-      }
-    }
-    return new Matrix(this.rows - 1, this.cols - 1, data);
   }
 
   toArray(): number[][] {
@@ -98,11 +70,19 @@ export class Matrix {
     for (let r = 0; r < this.rows; r++) {
       const row: number[] = [];
       for (let c = 0; c < this.cols; c++) {
-        row.push(this.data[r * this.cols + c]);
+        row.push(this.get(r, c));
       }
       result.push(row);
     }
     return result;
+  }
+
+  equals(other: Matrix, epsilon = 1e-10): boolean {
+    if (this.rows !== other.rows || this.cols !== other.cols) return false;
+    for (let i = 0; i < this.data.length; i++) {
+      if (Math.abs(this.data[i] - other.data[i]) > epsilon) return false;
+    }
+    return true;
   }
 
   static identity(size: number): Matrix {
@@ -111,7 +91,10 @@ export class Matrix {
     return m;
   }
 
-  static zeros(rows: number, cols: number): Matrix {
-    return new Matrix(rows, cols);
+  static from(data: number[][]): Matrix {
+    const rows = data.length;
+    const cols = data[0]?.length || 0;
+    const flat = data.flat();
+    return new Matrix(rows, cols, flat);
   }
 }
