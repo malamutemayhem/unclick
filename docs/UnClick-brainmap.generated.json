@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 643,
-    "source_manifest": 214,
-    "pages": 87,
+    "inventory": 644,
+    "source_manifest": 215,
+    "pages": 88,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 35
+      "count": 36
     },
     {
       "id": "tools",
@@ -3822,6 +3822,16 @@
       "tags": []
     },
     {
+      "id": "public-surfaces-public-page-why-src-pages-why-tsx-why",
+      "division": "Public surfaces",
+      "name": "Why",
+      "kind": "public page",
+      "meaning": "User-facing page for Why.",
+      "source": "src/pages/Why.tsx",
+      "route": "/why",
+      "tags": []
+    },
+    {
       "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
       "division": "Public surfaces",
       "name": "XPass",
@@ -7040,6 +7050,12 @@
       "src/pages/HomepageSample.tsx"
     ],
     [
+      "/why",
+      "Why",
+      "User-facing page for Why.",
+      "src/pages/Why.tsx"
+    ],
+    [
       "/xpass",
       "XPass",
       "User-facing page for XPass.",
@@ -8529,8 +8545,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "71a90e55f560",
-      "bytes": 16426
+      "hash": "e9b8edbb20e3",
+      "bytes": 16519
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -9074,8 +9090,8 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "cf7f06bacc89",
-      "bytes": 18641
+      "hash": "fda4fcf632cb",
+      "bytes": 19192
     },
     {
       "source": "src/pages/NewToAI.tsx",
@@ -9138,9 +9154,14 @@
       "bytes": 21971
     },
     {
+      "source": "src/pages/Why.tsx",
+      "hash": "0205ed9e7ae2",
+      "bytes": 15946
+    },
+    {
       "source": "src/pages/XPass.tsx",
-      "hash": "5fbc740e27f1",
-      "bytes": 11145
+      "hash": "ab4f0fe214f6",
+      "bytes": 11093
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",

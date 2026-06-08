@@ -189,7 +189,16 @@ export default function XPassPage() {
               </div>
             </FadeIn>
 
-            <FadeIn delay={0.15}>
+            <FadeIn delay={0.12}>
+              <div className="mt-10">
+                <ExpandableImage
+                  src="/UnClick_Xpass_web.jpg"
+                  alt="XPass: AI work moves along a line of checks - Works, Reads well, Safe, Honest, Looks right - and earns a proof receipt stamped PASS."
+                />
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
               <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card/40">
                 {HERO_ROWS.map((row) => (
                   <div
@@ -202,17 +211,6 @@ export default function XPassPage() {
                   </div>
                 ))}
               </div>
-            </FadeIn>
-          </div>
-        </section>
-
-        <section className="px-4 pt-10 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <FadeIn>
-              <ExpandableImage
-                src="/UnClick_Xpass_web.jpg"
-                alt="XPass: AI work moves along a line of checks - Works, Reads well, Safe, Honest, Looks right - and earns a proof receipt stamped PASS."
-              />
             </FadeIn>
           </div>
         </section>

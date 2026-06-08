@@ -12,6 +12,7 @@ import { GradientText } from "@/components/brand";
 import OrchestratorStory from "@/components/OrchestratorStory";
 import ExpandableImage from "@/components/ExpandableImage";
 import JobsBoardSample from "@/components/JobsBoardSample";
+import XGateGates from "@/components/XGateGates";
 import {
   Sparkles, Zap, Plug, RefreshCw,
   Clock, Compass, Link2, MonitorSmartphone,
@@ -20,7 +21,7 @@ import {
   Search, ShieldHalf,
   MessageSquare, Bot, Network, LayoutGrid, Code2, BadgeCheck, ClipboardList, GitMerge, Rocket, RotateCcw,
   Terminal, CreditCard, Ban,
-  ListTodo, Bell, ReceiptText,
+  ListTodo, Bell, ReceiptText, Gauge,
   TowerControl, TriangleAlert, Wind,
   ScrollText, Download,
   Hammer, FlaskConical, Eye,
@@ -44,8 +45,12 @@ export type BrochureContent = {
   featuresTitle?: string;
   featuresSubtitle?: string;
   features?: Feature[];
+  /** Feature grid columns. 2 = fewer, larger tiles; default 3. */
+  featuresCols?: 2 | 3;
   steps?: { icon: LucideIcon; title: string; desc: string }[];
   tail?: ReactNode;
+  /** Heading above the tail section. Defaults to the Jobs-board wording. */
+  tailTitle?: string;
   meta: { title: string; description: string };
 };
 
@@ -151,7 +156,7 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   xgate: {
     path: "/xgate",
     eyebrow: "Autopilot - XGate",
-    title: <>Guardrails <GradientText>before</GradientText> your AI acts.</>,
+    title: <>Guardrails <GradientText>before</GradientText> <span className="whitespace-nowrap">your AI acts.</span></>,
     lede: "XGate checks every risky action against your rules before it runs, so nothing happens that you would not allow.",
     primaryCta: GET_STARTED,
     showcase: (
@@ -161,13 +166,16 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
       />
     ),
     featuresTitle: "Stop problems before they start.",
+    featuresCols: 2,
     features: [
-      { icon: Terminal, title: "Command and Git gates", desc: "Stops unsafe commands and risky code changes." },
-      { icon: Lock, title: "Secret and Data gates", desc: "Protects credentials and sensitive data." },
-      { icon: CreditCard, title: "Spend and Ship gates", desc: "No surprise costs or unreviewed releases." },
-      { icon: Ban, title: "Kill switch", desc: "One switch halts everything, instantly." },
+      { icon: Terminal, title: "Command and Git gates", desc: "Risky terminal commands and code changes are checked first, so a bad line never just runs." },
+      { icon: Lock, title: "Secret and Data gates", desc: "Your keys, passwords, and important data are protected from leaks and accidental wipes." },
+      { icon: CreditCard, title: "Spend and Ship gates", desc: "No surprise bills, and nothing goes live until it has a clear, human OK." },
+      { icon: Ban, title: "Kill switch", desc: "One switch stops everything the moment you want it to, no questions asked." },
     ],
-    meta: { title: "XGate - UnClick", description: "XGate checks risky AI actions against your rules before they run." },
+    tail: <XGateGates />,
+    tailTitle: "Every gate, in plain English.",
+    meta: { title: "XGate - UnClick", description: "XGate checks risky AI actions against your rules before they run, with a full family of gates." },
   },
   jobs: {
     path: "/jobs",
@@ -178,9 +186,11 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     featuresTitle: "Always know where things stand.",
     features: [
       { icon: ListTodo, title: "Clear status", desc: "See every job at a glance: doing, done, or blocked." },
-      { icon: Compass, title: "Owns the next action", desc: "Each job knows its next step." },
-      { icon: Bell, title: "Needs-you flags", desc: "It tells you when something needs a human." },
-      { icon: ReceiptText, title: "Receipts when done", desc: "Finished work comes with proof." },
+      { icon: Gauge, title: "Live progress", desc: "A percent and pipeline stages, from Brief to Ship, update as the work moves." },
+      { icon: Bot, title: "Run by your AI", desc: "Jobs are created, worked, commented, and pushed for you, automatically." },
+      { icon: Compass, title: "Owns the next action", desc: "Each job knows its next step and keeps itself moving." },
+      { icon: Bell, title: "Needs-you flags", desc: "It taps you on the shoulder only when something needs a human." },
+      { icon: ReceiptText, title: "Receipts when done", desc: "Finished work arrives with proof: PRs, tests, and screenshots." },
     ],
     tail: <JobsBoardSample />,
     meta: { title: "Jobs - UnClick", description: "The simple queue of what your AI is doing, what is done, and what needs you." },
