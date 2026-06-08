@@ -1,93 +1,126 @@
-export interface QueueItem<T = unknown> {
-  id: string;
-  payload: T;
+export interface RetryQueueOptions {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay?: number;
+  backoff?: "exponential" | "linear" | "fixed";
+}
+
+interface QueueItem<T> {
+  data: T;
   attempts: number;
-  maxAttempts: number;
-  nextAttemptAt: number;
-  createdAt: number;
+  nextAttempt: number;
+  firstAttempt: number;
   lastError?: string;
 }
 
-export class RetryQueue<T = unknown> {
-  private items = new Map<string, QueueItem<T>>();
-  private deadLetter: QueueItem<T>[] = [];
-  private counter = 0;
-  private maxAttempts: number;
-  private baseDelayMs: number;
+export class RetryQueue<T> {
+  private active: QueueItem<T>[] = [];
+  private deadLetters: QueueItem<T>[] = [];
+  private readonly options: Required<RetryQueueOptions>;
+  private processed = 0;
 
-  constructor(maxAttempts = 3, baseDelayMs = 1000) {
-    this.maxAttempts = maxAttempts;
-    this.baseDelayMs = baseDelayMs;
+  constructor(options: RetryQueueOptions) {
+    this.options = {
+      maxRetries: options.maxRetries,
+      baseDelay: options.baseDelay,
+      maxDelay: options.maxDelay ?? 60_000,
+      backoff: options.backoff ?? "exponential",
+    };
   }
 
-  enqueue(payload: T, maxAttempts?: number): string {
-    const id = `rq_${++this.counter}`;
-    this.items.set(id, {
-      id, payload, attempts: 0,
-      maxAttempts: maxAttempts ?? this.maxAttempts,
-      nextAttemptAt: Date.now(),
-      createdAt: Date.now(),
+  enqueue(data: T): void {
+    this.active.push({
+      data,
+      attempts: 0,
+      nextAttempt: Date.now(),
+      firstAttempt: Date.now(),
     });
-    return id;
   }
 
-  dequeue(now = Date.now()): QueueItem<T> | undefined {
-    for (const item of this.items.values()) {
-      if (item.nextAttemptAt <= now) return item;
+  async process(handler: (data: T) => Promise<void>, now?: number): Promise<{ succeeded: number; failed: number; retried: number }> {
+    const timestamp = now ?? Date.now();
+    const ready = this.active.filter((item) => item.nextAttempt <= timestamp);
+    let succeeded = 0;
+    let failed = 0;
+    let retried = 0;
+
+    for (const item of ready) {
+      try {
+        await handler(item.data);
+        succeeded++;
+        this.processed++;
+        this.active = this.active.filter((i) => i !== item);
+      } catch (err) {
+        item.attempts++;
+        item.lastError = err instanceof Error ? err.message : String(err);
+        if (item.attempts >= this.options.maxRetries) {
+          failed++;
+          this.deadLetters.push(item);
+          this.active = this.active.filter((i) => i !== item);
+        } else {
+          retried++;
+          item.nextAttempt = timestamp + this.calculateDelay(item.attempts);
+        }
+      }
     }
-    return undefined;
+
+    return { succeeded, failed, retried };
   }
 
-  ack(id: string): boolean {
-    return this.items.delete(id);
+  getDeadLetters(): T[] {
+    return this.deadLetters.map((item) => item.data);
   }
 
-  nack(id: string, error?: string): boolean {
-    const item = this.items.get(id);
-    if (!item) return false;
-    item.attempts++;
-    item.lastError = error;
-    if (item.attempts >= item.maxAttempts) {
-      this.deadLetter.push(item);
-      this.items.delete(id);
-    } else {
-      item.nextAttemptAt = Date.now() + this.baseDelayMs * Math.pow(2, item.attempts);
-    }
-    return true;
-  }
-
-  getDeadLetter(): QueueItem<T>[] {
-    return [...this.deadLetter];
-  }
-
-  retry(id: string): boolean {
-    const idx = this.deadLetter.findIndex((i) => i.id === id);
-    if (idx === -1) return false;
-    const item = this.deadLetter.splice(idx, 1)[0];
+  requeue(index: number): boolean {
+    if (index < 0 || index >= this.deadLetters.length) return false;
+    const item = this.deadLetters.splice(index, 1)[0];
     item.attempts = 0;
-    item.nextAttemptAt = Date.now();
-    this.items.set(item.id, item);
+    item.nextAttempt = Date.now();
+    this.active.push(item);
     return true;
   }
 
-  get size(): number {
-    return this.items.size;
-  }
-
-  get deadLetterSize(): number {
-    return this.deadLetter.length;
-  }
-
-  pending(now = Date.now()): number {
-    let count = 0;
-    for (const item of this.items.values()) {
-      if (item.nextAttemptAt <= now) count++;
+  requeueAll(): number {
+    const count = this.deadLetters.length;
+    for (const item of this.deadLetters) {
+      item.attempts = 0;
+      item.nextAttempt = Date.now();
+      this.active.push(item);
     }
+    this.deadLetters = [];
     return count;
   }
 
+  get pendingCount(): number {
+    return this.active.length;
+  }
+
+  get deadLetterCount(): number {
+    return this.deadLetters.length;
+  }
+
+  get processedCount(): number {
+    return this.processed;
+  }
+
   clear(): void {
-    this.items.clear();
-    this.deadLetter = [];
+    this.active = [];
+    this.deadLetters = [];
+  }
+
+  private calculateDelay(attempt: number): number {
+    let delay: number;
+    switch (this.options.backoff) {
+      case "exponential":
+        delay = this.options.baseDelay * Math.pow(2, attempt - 1);
+        break;
+      case "linear":
+        delay = this.options.baseDelay * attempt;
+        break;
+      case "fixed":
+        delay = this.options.baseDelay;
+        break;
+    }
+    return Math.min(delay, this.options.maxDelay);
   }
 }

@@ -1,76 +1,77 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { EventEmitter } from "../event-emitter.js";
 
 describe("EventEmitter", () => {
-  it("on and emit", () => {
-    const ee = new EventEmitter();
-    const calls: unknown[] = [];
-    ee.on("test", (v) => calls.push(v));
-    ee.emit("test", 42);
-    ee.emit("test", "hello");
-    expect(calls).toEqual([42, "hello"]);
+  it("emits events to listeners", () => {
+    const ee = new EventEmitter<{ greet: string }>();
+    const fn = vi.fn();
+    ee.on("greet", fn);
+    ee.emit("greet", "hello");
+    expect(fn).toHaveBeenCalledWith("hello");
   });
 
-  it("off removes handler", () => {
-    const ee = new EventEmitter();
-    const calls: unknown[] = [];
-    const handler = (v: unknown) => calls.push(v);
-    ee.on("test", handler);
-    ee.emit("test", 1);
-    ee.off("test", handler);
-    ee.emit("test", 2);
-    expect(calls).toEqual([1]);
-  });
-
-  it("on returns unsubscribe function", () => {
-    const ee = new EventEmitter();
-    const calls: unknown[] = [];
-    const unsub = ee.on("test", (v) => calls.push(v));
-    ee.emit("test", 1);
-    unsub();
-    ee.emit("test", 2);
-    expect(calls).toEqual([1]);
+  it("supports multiple listeners", () => {
+    const ee = new EventEmitter<{ x: number }>();
+    const a = vi.fn();
+    const b = vi.fn();
+    ee.on("x", a);
+    ee.on("x", b);
+    ee.emit("x", 42);
+    expect(a).toHaveBeenCalledWith(42);
+    expect(b).toHaveBeenCalledWith(42);
   });
 
   it("once fires only once", () => {
-    const ee = new EventEmitter();
-    let count = 0;
-    ee.once("test", () => count++);
-    ee.emit("test");
-    ee.emit("test");
-    expect(count).toBe(1);
+    const ee = new EventEmitter<{ x: number }>();
+    const fn = vi.fn();
+    ee.once("x", fn);
+    ee.emit("x", 1);
+    ee.emit("x", 2);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("removeAllListeners for specific event", () => {
-    const ee = new EventEmitter();
-    let a = 0, b = 0;
-    ee.on("a", () => a++);
-    ee.on("b", () => b++);
-    ee.removeAllListeners("a");
-    ee.emit("a");
-    ee.emit("b");
-    expect(a).toBe(0);
-    expect(b).toBe(1);
+  it("off removes listener", () => {
+    const ee = new EventEmitter<{ x: number }>();
+    const fn = vi.fn();
+    ee.on("x", fn);
+    ee.off("x", fn);
+    ee.emit("x", 1);
+    expect(fn).not.toHaveBeenCalled();
   });
 
-  it("removeAllListeners for all events", () => {
+  it("emit returns false for no listeners", () => {
     const ee = new EventEmitter();
-    let count = 0;
-    ee.on("a", () => count++);
-    ee.on("b", () => count++);
+    expect(ee.emit("nope", null)).toBe(false);
+  });
+
+  it("removeAllListeners clears all", () => {
+    const ee = new EventEmitter<{ a: number; b: number }>();
+    ee.on("a", () => {});
+    ee.on("b", () => {});
     ee.removeAllListeners();
-    ee.emit("a");
-    ee.emit("b");
-    expect(count).toBe(0);
+    expect(ee.eventNames()).toEqual([]);
   });
 
-  it("listenerCount and eventNames", () => {
-    const ee = new EventEmitter();
+  it("removeAllListeners with event clears specific", () => {
+    const ee = new EventEmitter<{ a: number; b: number }>();
     ee.on("a", () => {});
-    ee.on("a", () => {});
-    ee.once("b", () => {});
-    expect(ee.listenerCount("a")).toBe(2);
+    ee.on("b", () => {});
+    ee.removeAllListeners("a");
+    expect(ee.listenerCount("a")).toBe(0);
     expect(ee.listenerCount("b")).toBe(1);
+  });
+
+  it("listenerCount returns count", () => {
+    const ee = new EventEmitter<{ x: number }>();
+    ee.on("x", () => {});
+    ee.on("x", () => {});
+    expect(ee.listenerCount("x")).toBe(2);
+  });
+
+  it("eventNames returns active events", () => {
+    const ee = new EventEmitter<{ a: number; b: string }>();
+    ee.on("a", () => {});
+    ee.on("b", () => {});
     expect(ee.eventNames().sort()).toEqual(["a", "b"]);
   });
 });

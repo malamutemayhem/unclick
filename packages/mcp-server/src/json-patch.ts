@@ -6,117 +6,154 @@ export type PatchOp =
   | { op: "copy"; from: string; path: string }
   | { op: "test"; path: string; value: unknown };
 
-export function applyPatch<T>(doc: T, patches: PatchOp[]): T {
+export function applyPatch<T>(doc: T, ops: PatchOp[]): T {
   let result = structuredClone(doc);
-  for (const patch of patches) {
-    result = applyOne(result, patch);
+  for (const op of ops) {
+    result = applyOp(result, op);
   }
   return result;
 }
 
-export function createPatch(before: unknown, after: unknown, path = ""): PatchOp[] {
-  if (deepEqual(before, after)) return [];
-
-  if (typeof before !== typeof after || before === null || after === null || typeof before !== "object") {
-    return [{ op: "replace", path: path || "/", value: after }];
-  }
-
-  const patches: PatchOp[] = [];
-  const beforeObj = before as Record<string, unknown>;
-  const afterObj = after as Record<string, unknown>;
-
-  for (const key of Object.keys(afterObj)) {
-    const p = `${path}/${escapeKey(key)}`;
-    if (!(key in beforeObj)) {
-      patches.push({ op: "add", path: p, value: afterObj[key] });
-    } else {
-      patches.push(...createPatch(beforeObj[key], afterObj[key], p));
-    }
-  }
-
-  for (const key of Object.keys(beforeObj)) {
-    if (!(key in afterObj)) {
-      patches.push({ op: "remove", path: `${path}/${escapeKey(key)}` });
-    }
-  }
-
-  return patches;
-}
-
-export function testPatch(doc: unknown, patches: PatchOp[]): boolean {
-  try {
-    applyPatch(doc, patches);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function applyOne<T>(doc: T, patch: PatchOp): T {
-  const obj = doc as Record<string, unknown>;
-
-  switch (patch.op) {
+function applyOp<T>(doc: T, op: PatchOp): T {
+  switch (op.op) {
     case "add":
-    case "replace": {
-      const { parent, key } = resolve(obj, patch.path);
-      (parent as Record<string, unknown>)[key] = patch.value;
-      return doc;
-    }
-    case "remove": {
-      const { parent, key } = resolve(obj, patch.path);
-      if (Array.isArray(parent)) parent.splice(Number(key), 1);
-      else delete (parent as Record<string, unknown>)[key];
-      return doc;
-    }
+      return setAtPath(doc, op.path, op.value);
+    case "remove":
+      return removeAtPath(doc, op.path);
+    case "replace":
+      return setAtPath(doc, op.path, op.value);
     case "move": {
-      const { parent: fromParent, key: fromKey } = resolve(obj, patch.from);
-      const value = (fromParent as Record<string, unknown>)[fromKey];
-      if (Array.isArray(fromParent)) fromParent.splice(Number(fromKey), 1);
-      else delete (fromParent as Record<string, unknown>)[fromKey];
-      const { parent: toParent, key: toKey } = resolve(obj, patch.path);
-      (toParent as Record<string, unknown>)[toKey] = value;
-      return doc;
+      const val = getAtPath(doc, op.from);
+      const removed = removeAtPath(doc, op.from);
+      return setAtPath(removed, op.path, val);
     }
     case "copy": {
-      const { parent: fromParent, key: fromKey } = resolve(obj, patch.from);
-      const value = structuredClone((fromParent as Record<string, unknown>)[fromKey]);
-      const { parent: toParent, key: toKey } = resolve(obj, patch.path);
-      (toParent as Record<string, unknown>)[toKey] = value;
-      return doc;
+      const val = getAtPath(doc, op.from);
+      return setAtPath(doc, op.path, structuredClone(val));
     }
     case "test": {
-      const { parent, key } = resolve(obj, patch.path);
-      if (!deepEqual((parent as Record<string, unknown>)[key], patch.value)) {
-        throw new Error(`Test failed at ${patch.path}`);
+      const val = getAtPath(doc, op.path);
+      if (JSON.stringify(val) !== JSON.stringify(op.value)) {
+        throw new Error(`Test failed at ${op.path}`);
       }
       return doc;
     }
   }
 }
 
-function resolve(obj: unknown, path: string): { parent: unknown; key: string } {
-  const parts = path.split("/").filter(Boolean).map(unescapeKey);
-  let current = obj;
-  for (let i = 0; i < parts.length - 1; i++) {
-    current = (current as Record<string, unknown>)[parts[i]];
+function parsePath(path: string): string[] {
+  if (path === "") return [];
+  if (!path.startsWith("/")) throw new Error(`Invalid path: ${path}`);
+  return path.slice(1).split("/").map((s) => s.replace(/~1/g, "/").replace(/~0/g, "~"));
+}
+
+function getAtPath(doc: unknown, path: string): unknown {
+  const parts = parsePath(path);
+  let current = doc;
+  for (const part of parts) {
+    if (Array.isArray(current)) {
+      current = current[parseInt(part, 10)];
+    } else if (typeof current === "object" && current !== null) {
+      current = (current as Record<string, unknown>)[part];
+    } else {
+      throw new Error(`Cannot traverse path: ${path}`);
+    }
   }
-  return { parent: current, key: parts[parts.length - 1] };
+  return current;
 }
 
-function escapeKey(key: string): string {
-  return key.replace(/~/g, "~0").replace(/\//g, "~1");
+function setAtPath<T>(doc: T, path: string, value: unknown): T {
+  const parts = parsePath(path);
+  if (parts.length === 0) return value as T;
+
+  const result = structuredClone(doc) as unknown;
+  let current = result;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (Array.isArray(current)) {
+      current = current[parseInt(parts[i], 10)];
+    } else {
+      current = (current as Record<string, unknown>)[parts[i]];
+    }
+  }
+
+  const last = parts[parts.length - 1];
+  if (Array.isArray(current)) {
+    if (last === "-") {
+      current.push(value);
+    } else {
+      current.splice(parseInt(last, 10), 0, value);
+    }
+  } else {
+    (current as Record<string, unknown>)[last] = value;
+  }
+
+  return result as T;
 }
 
-function unescapeKey(key: string): string {
-  return key.replace(/~1/g, "/").replace(/~0/g, "~");
+function removeAtPath<T>(doc: T, path: string): T {
+  const parts = parsePath(path);
+  if (parts.length === 0) throw new Error("Cannot remove root");
+
+  const result = structuredClone(doc) as unknown;
+  let current = result;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (Array.isArray(current)) {
+      current = current[parseInt(parts[i], 10)];
+    } else {
+      current = (current as Record<string, unknown>)[parts[i]];
+    }
+  }
+
+  const last = parts[parts.length - 1];
+  if (Array.isArray(current)) {
+    current.splice(parseInt(last, 10), 1);
+  } else {
+    delete (current as Record<string, unknown>)[last];
+  }
+
+  return result as T;
 }
 
-function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (a === null || b === null || typeof a !== typeof b) return false;
-  if (typeof a !== "object") return false;
-  const keysA = Object.keys(a as Record<string, unknown>);
-  const keysB = Object.keys(b as Record<string, unknown>);
-  if (keysA.length !== keysB.length) return false;
-  return keysA.every((k) => deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+export function diff(a: unknown, b: unknown, path = ""): PatchOp[] {
+  if (JSON.stringify(a) === JSON.stringify(b)) return [];
+
+  if (typeof a !== typeof b || a === null || b === null || typeof a !== "object") {
+    return [{ op: "replace", path, value: b }];
+  }
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    const ops: PatchOp[] = [];
+    const max = Math.max(a.length, b.length);
+    for (let i = 0; i < max; i++) {
+      if (i >= a.length) {
+        ops.push({ op: "add", path: `${path}/${i}`, value: b[i] });
+      } else if (i >= b.length) {
+        ops.push({ op: "remove", path: `${path}/${a.length - 1 - (i - b.length)}` });
+      } else {
+        ops.push(...diff(a[i], b[i], `${path}/${i}`));
+      }
+    }
+    return ops;
+  }
+
+  const aObj = a as Record<string, unknown>;
+  const bObj = b as Record<string, unknown>;
+  const ops: PatchOp[] = [];
+
+  for (const key of Object.keys(aObj)) {
+    const escaped = key.replace(/~/g, "~0").replace(/\//g, "~1");
+    if (!(key in bObj)) {
+      ops.push({ op: "remove", path: `${path}/${escaped}` });
+    } else {
+      ops.push(...diff(aObj[key], bObj[key], `${path}/${escaped}`));
+    }
+  }
+  for (const key of Object.keys(bObj)) {
+    if (!(key in aObj)) {
+      const escaped = key.replace(/~/g, "~0").replace(/\//g, "~1");
+      ops.push({ op: "add", path: `${path}/${escaped}`, value: bObj[key] });
+    }
+  }
+
+  return ops;
 }

@@ -1,91 +1,85 @@
 import { describe, it, expect } from "vitest";
-import { applyPatch, createPatch, testPatch, PatchOp } from "../json-patch.js";
+import { applyPatch, diff } from "../json-patch.js";
 
 describe("applyPatch", () => {
   it("add operation", () => {
-    const doc = { a: 1 };
-    const result = applyPatch(doc, [{ op: "add", path: "/b", value: 2 }]);
+    const result = applyPatch({ a: 1 }, [{ op: "add", path: "/b", value: 2 }]);
     expect(result).toEqual({ a: 1, b: 2 });
   });
 
   it("remove operation", () => {
-    const doc = { a: 1, b: 2 };
-    const result = applyPatch(doc, [{ op: "remove", path: "/b" }]);
+    const result = applyPatch({ a: 1, b: 2 }, [{ op: "remove", path: "/b" }]);
     expect(result).toEqual({ a: 1 });
   });
 
   it("replace operation", () => {
-    const doc = { a: 1 };
-    const result = applyPatch(doc, [{ op: "replace", path: "/a", value: 99 }]);
+    const result = applyPatch({ a: 1 }, [{ op: "replace", path: "/a", value: 99 }]);
     expect(result).toEqual({ a: 99 });
   });
 
   it("move operation", () => {
-    const doc = { a: 1, b: 2 };
-    const result = applyPatch(doc, [{ op: "move", from: "/a", path: "/c" }]);
+    const result = applyPatch({ a: 1, b: 2 }, [{ op: "move", from: "/a", path: "/c" }]);
     expect(result).toEqual({ b: 2, c: 1 });
   });
 
   it("copy operation", () => {
-    const doc = { a: 1 };
-    const result = applyPatch(doc, [{ op: "copy", from: "/a", path: "/b" }]);
+    const result = applyPatch({ a: 1 }, [{ op: "copy", from: "/a", path: "/b" }]);
     expect(result).toEqual({ a: 1, b: 1 });
   });
 
   it("test operation passes", () => {
-    const doc = { a: 1 };
-    const result = applyPatch(doc, [{ op: "test", path: "/a", value: 1 }]);
+    const result = applyPatch({ a: 1 }, [{ op: "test", path: "/a", value: 1 }]);
     expect(result).toEqual({ a: 1 });
   });
 
   it("test operation fails", () => {
-    const doc = { a: 1 };
-    expect(() => applyPatch(doc, [{ op: "test", path: "/a", value: 2 }])).toThrow();
+    expect(() => applyPatch({ a: 1 }, [{ op: "test", path: "/a", value: 2 }])).toThrow("Test failed");
   });
 
-  it("does not mutate original", () => {
-    const doc = { a: 1 };
-    applyPatch(doc, [{ op: "add", path: "/b", value: 2 }]);
-    expect(doc).toEqual({ a: 1 });
+  it("nested path", () => {
+    const result = applyPatch({ a: { b: 1 } }, [{ op: "replace", path: "/a/b", value: 2 }]);
+    expect(result).toEqual({ a: { b: 2 } });
   });
 
-  it("applies multiple patches", () => {
-    const doc = { a: 1 };
-    const result = applyPatch(doc, [
-      { op: "add", path: "/b", value: 2 },
-      { op: "replace", path: "/a", value: 10 },
+  it("array add", () => {
+    const result = applyPatch({ items: [1, 2] }, [{ op: "add", path: "/items/-", value: 3 }]);
+    expect(result).toEqual({ items: [1, 2, 3] });
+  });
+
+  it("multiple operations", () => {
+    const result = applyPatch({ x: 1 }, [
+      { op: "add", path: "/y", value: 2 },
+      { op: "replace", path: "/x", value: 10 },
     ]);
-    expect(result).toEqual({ a: 10, b: 2 });
+    expect(result).toEqual({ x: 10, y: 2 });
   });
 });
 
-describe("createPatch", () => {
+describe("diff", () => {
+  it("produces empty patch for identical objects", () => {
+    expect(diff({ a: 1 }, { a: 1 })).toEqual([]);
+  });
+
   it("detects additions", () => {
-    const patches = createPatch({ a: 1 }, { a: 1, b: 2 });
-    expect(patches.some((p) => p.op === "add")).toBe(true);
+    const ops = diff({ a: 1 }, { a: 1, b: 2 });
+    expect(ops.some((op) => op.op === "add" && op.path === "/b")).toBe(true);
   });
 
   it("detects removals", () => {
-    const patches = createPatch({ a: 1, b: 2 }, { a: 1 });
-    expect(patches.some((p) => p.op === "remove")).toBe(true);
+    const ops = diff({ a: 1, b: 2 }, { a: 1 });
+    expect(ops.some((op) => op.op === "remove" && op.path === "/b")).toBe(true);
   });
 
-  it("detects replacements", () => {
-    const patches = createPatch({ a: 1 }, { a: 2 });
-    expect(patches.some((p) => p.op === "replace")).toBe(true);
+  it("detects changes", () => {
+    const ops = diff({ a: 1 }, { a: 2 });
+    expect(ops.some((op) => op.op === "replace")).toBe(true);
   });
 
-  it("returns empty for identical objects", () => {
-    expect(createPatch({ a: 1 }, { a: 1 })).toEqual([]);
-  });
-});
-
-describe("testPatch", () => {
-  it("returns true for valid patches", () => {
-    expect(testPatch({ a: 1 }, [{ op: "replace", path: "/a", value: 2 }])).toBe(true);
-  });
-
-  it("returns false for failing test op", () => {
-    expect(testPatch({ a: 1 }, [{ op: "test", path: "/a", value: 999 }])).toBe(false);
+  it("roundtrips", () => {
+    const before = { name: "Alice", age: 30, tags: ["a"] };
+    const after = { name: "Bob", age: 30, tags: ["a", "b"] };
+    const ops = diff(before, after);
+    const result = applyPatch(before, ops);
+    expect(result).toEqual(after);
   });
 });
