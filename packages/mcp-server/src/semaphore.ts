@@ -1,15 +1,11 @@
-// Async semaphore for controlling concurrent access to shared resources.
-// Like a bouncer at a club - only lets N people in at a time.
-// Callers wait in line until a slot opens up.
-
 export class Semaphore {
   private permits: number;
   private readonly maxPermits: number;
-  private waiters: Array<() => void> = [];
+  private waitQueue: Array<() => void> = [];
 
-  constructor(maxPermits: number) {
-    this.maxPermits = maxPermits;
-    this.permits = maxPermits;
+  constructor(permits: number) {
+    this.permits = permits;
+    this.maxPermits = permits;
   }
 
   async acquire(): Promise<void> {
@@ -18,17 +14,25 @@ export class Semaphore {
       return;
     }
     return new Promise<void>((resolve) => {
-      this.waiters.push(resolve);
+      this.waitQueue.push(resolve);
     });
   }
 
   release(): void {
-    const next = this.waiters.shift();
-    if (next) {
+    if (this.waitQueue.length > 0) {
+      const next = this.waitQueue.shift()!;
       next();
-    } else {
-      this.permits = Math.min(this.permits + 1, this.maxPermits);
+    } else if (this.permits < this.maxPermits) {
+      this.permits++;
     }
+  }
+
+  get available(): number {
+    return this.permits;
+  }
+
+  get waiting(): number {
+    return this.waitQueue.length;
   }
 
   async withPermit<T>(fn: () => Promise<T>): Promise<T> {
@@ -39,28 +43,24 @@ export class Semaphore {
       this.release();
     }
   }
-
-  get available(): number {
-    return this.permits;
-  }
-
-  get waiting(): number {
-    return this.waiters.length;
-  }
 }
 
-// Named semaphore registry for per-resource concurrency control.
-const registry = new Map<string, Semaphore>();
+export class Mutex {
+  private semaphore = new Semaphore(1);
 
-export function getSemaphore(name: string, maxPermits = 1): Semaphore {
-  let sem = registry.get(name);
-  if (!sem) {
-    sem = new Semaphore(maxPermits);
-    registry.set(name, sem);
+  async lock(): Promise<void> {
+    await this.semaphore.acquire();
   }
-  return sem;
-}
 
-export function resetSemaphores(): void {
-  registry.clear();
+  unlock(): void {
+    this.semaphore.release();
+  }
+
+  get isLocked(): boolean {
+    return this.semaphore.available === 0;
+  }
+
+  async withLock<T>(fn: () => Promise<T>): Promise<T> {
+    return this.semaphore.withPermit(fn);
+  }
 }

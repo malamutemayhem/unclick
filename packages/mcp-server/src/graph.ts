@@ -1,32 +1,29 @@
 export class Graph<T = string> {
   private adjacency = new Map<T, Set<T>>();
-  private directed: boolean;
 
-  constructor(directed = false) {
-    this.directed = directed;
-  }
-
-  addNode(node: T): void {
+  addNode(node: T): this {
     if (!this.adjacency.has(node)) this.adjacency.set(node, new Set());
+    return this;
   }
 
-  addEdge(from: T, to: T): void {
+  addEdge(from: T, to: T): this {
     this.addNode(from);
     this.addNode(to);
     this.adjacency.get(from)!.add(to);
-    if (!this.directed) this.adjacency.get(to)!.add(from);
+    return this;
   }
 
-  removeEdge(from: T, to: T): void {
+  removeEdge(from: T, to: T): this {
     this.adjacency.get(from)?.delete(to);
-    if (!this.directed) this.adjacency.get(to)?.delete(from);
+    return this;
   }
 
-  removeNode(node: T): void {
+  removeNode(node: T): this {
     this.adjacency.delete(node);
     for (const neighbors of this.adjacency.values()) {
       neighbors.delete(node);
     }
+    return this;
   }
 
   hasNode(node: T): boolean {
@@ -34,113 +31,133 @@ export class Graph<T = string> {
   }
 
   hasEdge(from: T, to: T): boolean {
-    return this.adjacency.get(from)?.has(to) === true;
+    return this.adjacency.get(from)?.has(to) ?? false;
   }
 
   neighbors(node: T): T[] {
     return [...(this.adjacency.get(node) ?? [])];
   }
 
-  nodes(): T[] {
-    return [...this.adjacency.keys()];
-  }
-
   get nodeCount(): number {
     return this.adjacency.size;
   }
 
-  bfs(start: T): T[] {
+  get edgeCount(): number {
+    let count = 0;
+    for (const neighbors of this.adjacency.values()) count += neighbors.size;
+    return count;
+  }
+
+  nodes(): T[] {
+    return [...this.adjacency.keys()];
+  }
+
+  dfs(start: T, visitor: (node: T) => void): void {
     const visited = new Set<T>();
-    const queue: T[] = [start];
-    const result: T[] = [];
-    visited.add(start);
-    while (queue.length > 0) {
-      const node = queue.shift()!;
-      result.push(node);
-      for (const neighbor of this.adjacency.get(node) ?? []) {
-        if (!visited.has(neighbor)) {
-          visited.add(neighbor);
-          queue.push(neighbor);
+    const stack: T[] = [start];
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+      if (visited.has(node)) continue;
+      visited.add(node);
+      visitor(node);
+      const adj = this.adjacency.get(node);
+      if (adj) {
+        for (const neighbor of [...adj].reverse()) {
+          if (!visited.has(neighbor)) stack.push(neighbor);
         }
       }
     }
-    return result;
   }
 
-  dfs(start: T): T[] {
+  bfs(start: T, visitor: (node: T) => void): void {
     const visited = new Set<T>();
-    const result: T[] = [];
-    const visit = (node: T): void => {
-      if (visited.has(node)) return;
-      visited.add(node);
-      result.push(node);
-      for (const neighbor of this.adjacency.get(node) ?? []) {
-        visit(neighbor);
+    const queue: T[] = [start];
+    visited.add(start);
+    while (queue.length > 0) {
+      const node = queue.shift()!;
+      visitor(node);
+      const adj = this.adjacency.get(node);
+      if (adj) {
+        for (const neighbor of adj) {
+          if (!visited.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push(neighbor);
+          }
+        }
       }
-    };
-    visit(start);
-    return result;
+    }
   }
 
   shortestPath(start: T, end: T): T[] | null {
-    if (!this.hasNode(start) || !this.hasNode(end)) return null;
+    if (!this.adjacency.has(start) || !this.adjacency.has(end)) return null;
+    if (start === end) return [start];
     const visited = new Set<T>();
-    const queue: T[][] = [[start]];
+    const parent = new Map<T, T>();
+    const queue: T[] = [start];
     visited.add(start);
     while (queue.length > 0) {
-      const path = queue.shift()!;
-      const node = path[path.length - 1];
-      if (node === end) return path;
-      for (const neighbor of this.adjacency.get(node) ?? []) {
-        if (!visited.has(neighbor)) {
-          visited.add(neighbor);
-          queue.push([...path, neighbor]);
+      const node = queue.shift()!;
+      const adj = this.adjacency.get(node);
+      if (!adj) continue;
+      for (const neighbor of adj) {
+        if (visited.has(neighbor)) continue;
+        visited.add(neighbor);
+        parent.set(neighbor, node);
+        if (neighbor === end) {
+          const path: T[] = [];
+          let current: T | undefined = end;
+          while (current !== undefined) {
+            path.unshift(current);
+            current = parent.get(current);
+          }
+          return path;
         }
+        queue.push(neighbor);
       }
     }
     return null;
   }
 
   hasCycle(): boolean {
-    if (this.directed) return this.hasCycleDirected();
-    return this.hasCycleUndirected();
-  }
-
-  private hasCycleDirected(): boolean {
-    const white = new Set(this.adjacency.keys());
+    const white = new Set<T>(this.adjacency.keys());
     const gray = new Set<T>();
-    const visit = (node: T): boolean => {
+    const dfs = (node: T): boolean => {
       white.delete(node);
       gray.add(node);
-      for (const neighbor of this.adjacency.get(node) ?? []) {
-        if (gray.has(neighbor)) return true;
-        if (white.has(neighbor) && visit(neighbor)) return true;
+      const adj = this.adjacency.get(node);
+      if (adj) {
+        for (const neighbor of adj) {
+          if (gray.has(neighbor)) return true;
+          if (white.has(neighbor) && dfs(neighbor)) return true;
+        }
       }
       gray.delete(node);
       return false;
     };
     for (const node of [...white]) {
-      if (white.has(node) && visit(node)) return true;
+      if (white.has(node) && dfs(node)) return true;
     }
     return false;
   }
 
-  private hasCycleUndirected(): boolean {
-    const visited = new Set<T>();
-    const visit = (node: T, parent: T | null): boolean => {
-      visited.add(node);
-      for (const neighbor of this.adjacency.get(node) ?? []) {
-        if (!visited.has(neighbor)) {
-          if (visit(neighbor, node)) return true;
-        } else if (neighbor !== parent) {
-          return true;
-        }
-      }
-      return false;
-    };
-    for (const node of this.adjacency.keys()) {
-      if (!visited.has(node) && visit(node, null)) return true;
+  inDegree(node: T): number {
+    let count = 0;
+    for (const neighbors of this.adjacency.values()) {
+      if (neighbors.has(node)) count++;
     }
-    return false;
+    return count;
+  }
+
+  outDegree(node: T): number {
+    return this.adjacency.get(node)?.size ?? 0;
+  }
+
+  transpose(): Graph<T> {
+    const g = new Graph<T>();
+    for (const node of this.adjacency.keys()) g.addNode(node);
+    for (const [from, neighbors] of this.adjacency) {
+      for (const to of neighbors) g.addEdge(to, from);
+    }
+    return g;
   }
 }

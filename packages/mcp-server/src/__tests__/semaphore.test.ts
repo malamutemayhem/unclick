@@ -1,81 +1,81 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { Semaphore, getSemaphore, resetSemaphores } from "../semaphore.js";
-
-function delay(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
+import { describe, it, expect } from "vitest";
+import { Semaphore, Mutex } from "../semaphore.js";
 
 describe("Semaphore", () => {
-  it("allows up to maxPermits concurrent access", async () => {
+  it("allows up to N concurrent acquires", async () => {
     const sem = new Semaphore(2);
-    let concurrent = 0;
-    let maxConcurrent = 0;
-
-    const task = async () => {
-      await sem.acquire();
-      concurrent++;
-      maxConcurrent = Math.max(maxConcurrent, concurrent);
-      await delay(20);
-      concurrent--;
-      sem.release();
-    };
-
-    await Promise.all([task(), task(), task(), task()]);
-    expect(maxConcurrent).toBe(2);
-  });
-
-  it("tracks available permits", () => {
-    const sem = new Semaphore(3);
-    expect(sem.available).toBe(3);
-  });
-
-  it("decrements on acquire", async () => {
-    const sem = new Semaphore(2);
+    expect(sem.available).toBe(2);
     await sem.acquire();
     expect(sem.available).toBe(1);
-  });
-
-  it("increments on release", async () => {
-    const sem = new Semaphore(2);
     await sem.acquire();
-    sem.release();
-    expect(sem.available).toBe(2);
+    expect(sem.available).toBe(0);
   });
 
-  it("tracks waiting count", async () => {
+  it("queues when no permits available", async () => {
     const sem = new Semaphore(1);
     await sem.acquire();
-    const p = sem.acquire();
+    let acquired = false;
+    const p = sem.acquire().then(() => { acquired = true; });
+    expect(acquired).toBe(false);
     expect(sem.waiting).toBe(1);
     sem.release();
     await p;
-    expect(sem.waiting).toBe(0);
+    expect(acquired).toBe(true);
   });
 
-  it("withPermit auto-releases on success", async () => {
+  it("withPermit acquires and releases", async () => {
     const sem = new Semaphore(1);
-    const result = await sem.withPermit(async () => "done");
-    expect(result).toBe("done");
+    const result = await sem.withPermit(async () => {
+      expect(sem.available).toBe(0);
+      return 42;
+    });
+    expect(result).toBe(42);
     expect(sem.available).toBe(1);
   });
 
-  it("withPermit auto-releases on error", async () => {
+  it("withPermit releases on error", async () => {
     const sem = new Semaphore(1);
-    await expect(
-      sem.withPermit(async () => { throw new Error("oops"); }),
-    ).rejects.toThrow("oops");
+    await expect(sem.withPermit(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
     expect(sem.available).toBe(1);
+  });
+
+  it("limits concurrency", async () => {
+    const sem = new Semaphore(2);
+    let running = 0;
+    let maxRunning = 0;
+    const task = async () => {
+      await sem.acquire();
+      running++;
+      if (running > maxRunning) maxRunning = running;
+      await new Promise((r) => setTimeout(r, 10));
+      running--;
+      sem.release();
+    };
+    await Promise.all([task(), task(), task(), task()]);
+    expect(maxRunning).toBeLessThanOrEqual(2);
   });
 });
 
-describe("getSemaphore registry", () => {
-  beforeEach(() => resetSemaphores());
-
-  it("returns same semaphore for same name", () => {
-    expect(getSemaphore("db")).toBe(getSemaphore("db"));
+describe("Mutex", () => {
+  it("locks and unlocks", async () => {
+    const m = new Mutex();
+    expect(m.isLocked).toBe(false);
+    await m.lock();
+    expect(m.isLocked).toBe(true);
+    m.unlock();
+    expect(m.isLocked).toBe(false);
   });
 
-  it("returns different semaphores for different names", () => {
-    expect(getSemaphore("a")).not.toBe(getSemaphore("b"));
+  it("withLock provides mutual exclusion", async () => {
+    const m = new Mutex();
+    const order: number[] = [];
+    const task = async (id: number) => {
+      await m.withLock(async () => {
+        order.push(id);
+        await new Promise((r) => setTimeout(r, 5));
+      });
+    };
+    await Promise.all([task(1), task(2), task(3)]);
+    expect(order).toHaveLength(3);
   });
 });

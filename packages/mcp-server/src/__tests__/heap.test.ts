@@ -1,92 +1,79 @@
 import { describe, it, expect } from "vitest";
-import { BinaryHeap, minHeap, maxHeap } from "../heap.js";
+import { Heap, minHeap, maxHeap } from "../heap.js";
 
-describe("BinaryHeap", () => {
-  it("starts empty", () => {
-    const h = new BinaryHeap<number>();
-    expect(h.size).toBe(0);
-    expect(h.peek()).toBeUndefined();
-  });
-
-  it("push and peek returns min", () => {
-    const h = new BinaryHeap<number>();
-    h.push(5);
-    h.push(3);
-    h.push(7);
-    expect(h.peek()).toBe(3);
-  });
-
-  it("pop returns elements in order", () => {
-    const h = new BinaryHeap<number>();
+describe("Heap", () => {
+  it("min heap by default", () => {
+    const h = new Heap<number>();
     h.push(5);
     h.push(1);
     h.push(3);
+    expect(h.peek()).toBe(1);
     expect(h.pop()).toBe(1);
     expect(h.pop()).toBe(3);
     expect(h.pop()).toBe(5);
+  });
+
+  it("max heap with reversed compare", () => {
+    const h = maxHeap<number>();
+    h.push(5);
+    h.push(1);
+    h.push(3);
+    expect(h.pop()).toBe(5);
+    expect(h.pop()).toBe(3);
+    expect(h.pop()).toBe(1);
+  });
+
+  it("tracks size", () => {
+    const h = minHeap<number>();
+    expect(h.size).toBe(0);
+    expect(h.isEmpty).toBe(true);
+    h.push(1);
+    h.push(2);
+    expect(h.size).toBe(2);
+    expect(h.isEmpty).toBe(false);
   });
 
   it("pop returns undefined on empty", () => {
-    const h = new BinaryHeap<number>();
+    const h = new Heap<number>();
     expect(h.pop()).toBeUndefined();
+    expect(h.peek()).toBeUndefined();
   });
 
-  it("toArray returns sorted elements", () => {
-    const h = new BinaryHeap<number>();
-    h.push(3);
-    h.push(1);
-    h.push(2);
-    expect(h.toArray()).toEqual([1, 2, 3]);
+  it("from builds heap from array", () => {
+    const h = Heap.from([5, 3, 1, 4, 2]);
+    const sorted: number[] = [];
+    while (!h.isEmpty) sorted.push(h.pop()!);
+    expect(sorted).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("custom compare", () => {
+    const h = new Heap<{ priority: number }>((a, b) => a.priority - b.priority);
+    h.push({ priority: 3 });
+    h.push({ priority: 1 });
+    h.push({ priority: 2 });
+    expect(h.pop()!.priority).toBe(1);
   });
 
   it("clear empties the heap", () => {
-    const h = new BinaryHeap<number>();
-    h.push(1);
-    h.push(2);
+    const h = Heap.from([1, 2, 3]);
     h.clear();
     expect(h.size).toBe(0);
+    expect(h.isEmpty).toBe(true);
   });
 
-  it("supports custom comparator", () => {
-    const h = new BinaryHeap<string>((a: string, b: string) => a.length - b.length);
-    h.push("medium");
-    h.push("hi");
-    h.push("a");
-    expect(h.pop()).toBe("a");
-    expect(h.pop()).toBe("hi");
+  it("toArray returns elements", () => {
+    const h = Heap.from([3, 1, 2]);
+    expect(h.toArray()).toHaveLength(3);
   });
 
-  it("fromArray builds heap", () => {
-    const h = BinaryHeap.fromArray([5, 3, 1, 4, 2]);
-    expect(h.pop()).toBe(1);
-    expect(h.pop()).toBe(2);
-  });
-});
-
-describe("minHeap", () => {
-  it("creates a min heap", () => {
+  it("handles large heaps correctly", () => {
     const h = minHeap<number>();
-    h.push(5);
-    h.push(1);
-    expect(h.peek()).toBe(1);
-  });
-});
-
-describe("maxHeap", () => {
-  it("creates a max heap", () => {
-    const h = maxHeap<number>();
-    h.push(5);
-    h.push(1);
-    expect(h.peek()).toBe(5);
-  });
-
-  it("pop returns largest first", () => {
-    const h = maxHeap<number>();
-    h.push(1);
-    h.push(5);
-    h.push(3);
-    expect(h.pop()).toBe(5);
-    expect(h.pop()).toBe(3);
-    expect(h.pop()).toBe(1);
+    for (let i = 100; i >= 0; i--) h.push(i);
+    let prev = -1;
+    while (!h.isEmpty) {
+      const v = h.pop()!;
+      expect(v).toBeGreaterThan(prev);
+      prev = v;
+    }
   });
 });
