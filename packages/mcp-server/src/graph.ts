@@ -7,17 +7,25 @@ export class Graph<T = string> {
   }
 
   addNode(node: T): void {
-    if (!this.adjacency.has(node)) {
-      this.adjacency.set(node, new Set());
-    }
+    if (!this.adjacency.has(node)) this.adjacency.set(node, new Set());
   }
 
   addEdge(from: T, to: T): void {
     this.addNode(from);
     this.addNode(to);
     this.adjacency.get(from)!.add(to);
-    if (!this.directed) {
-      this.adjacency.get(to)!.add(from);
+    if (!this.directed) this.adjacency.get(to)!.add(from);
+  }
+
+  removeEdge(from: T, to: T): void {
+    this.adjacency.get(from)?.delete(to);
+    if (!this.directed) this.adjacency.get(to)?.delete(from);
+  }
+
+  removeNode(node: T): void {
+    this.adjacency.delete(node);
+    for (const neighbors of this.adjacency.values()) {
+      neighbors.delete(node);
     }
   }
 
@@ -26,14 +34,14 @@ export class Graph<T = string> {
   }
 
   hasEdge(from: T, to: T): boolean {
-    return this.adjacency.get(from)?.has(to) ?? false;
+    return this.adjacency.get(from)?.has(to) === true;
   }
 
   neighbors(node: T): T[] {
     return [...(this.adjacency.get(node) ?? [])];
   }
 
-  get nodes(): T[] {
+  nodes(): T[] {
     return [...this.adjacency.keys()];
   }
 
@@ -43,8 +51,8 @@ export class Graph<T = string> {
 
   bfs(start: T): T[] {
     const visited = new Set<T>();
-    const result: T[] = [];
     const queue: T[] = [start];
+    const result: T[] = [];
     visited.add(start);
     while (queue.length > 0) {
       const node = queue.shift()!;
@@ -62,44 +70,31 @@ export class Graph<T = string> {
   dfs(start: T): T[] {
     const visited = new Set<T>();
     const result: T[] = [];
-    const stack: T[] = [start];
-    while (stack.length > 0) {
-      const node = stack.pop()!;
-      if (visited.has(node)) continue;
+    const visit = (node: T): void => {
+      if (visited.has(node)) return;
       visited.add(node);
       result.push(node);
-      const neighbors = [...(this.adjacency.get(node) ?? [])];
-      for (let i = neighbors.length - 1; i >= 0; i--) {
-        if (!visited.has(neighbors[i])) {
-          stack.push(neighbors[i]);
-        }
+      for (const neighbor of this.adjacency.get(node) ?? []) {
+        visit(neighbor);
       }
-    }
+    };
+    visit(start);
     return result;
   }
 
-  shortestPath(from: T, to: T): T[] | null {
-    if (!this.adjacency.has(from) || !this.adjacency.has(to)) return null;
+  shortestPath(start: T, end: T): T[] | null {
+    if (!this.hasNode(start) || !this.hasNode(end)) return null;
     const visited = new Set<T>();
-    const parent = new Map<T, T>();
-    const queue: T[] = [from];
-    visited.add(from);
+    const queue: T[][] = [[start]];
+    visited.add(start);
     while (queue.length > 0) {
-      const node = queue.shift()!;
-      if (node === to) {
-        const path: T[] = [];
-        let current: T | undefined = to;
-        while (current !== undefined) {
-          path.unshift(current);
-          current = parent.get(current);
-        }
-        return path;
-      }
+      const path = queue.shift()!;
+      const node = path[path.length - 1];
+      if (node === end) return path;
       for (const neighbor of this.adjacency.get(node) ?? []) {
         if (!visited.has(neighbor)) {
           visited.add(neighbor);
-          parent.set(neighbor, node);
-          queue.push(neighbor);
+          queue.push([...path, neighbor]);
         }
       }
     }
@@ -112,43 +107,39 @@ export class Graph<T = string> {
   }
 
   private hasCycleDirected(): boolean {
-    const white = new Set<T>(this.adjacency.keys());
+    const white = new Set(this.adjacency.keys());
     const gray = new Set<T>();
-    for (const node of this.adjacency.keys()) {
-      if (white.has(node) && this.dfsDetectCycle(node, white, gray)) return true;
+    const visit = (node: T): boolean => {
+      white.delete(node);
+      gray.add(node);
+      for (const neighbor of this.adjacency.get(node) ?? []) {
+        if (gray.has(neighbor)) return true;
+        if (white.has(neighbor) && visit(neighbor)) return true;
+      }
+      gray.delete(node);
+      return false;
+    };
+    for (const node of [...white]) {
+      if (white.has(node) && visit(node)) return true;
     }
-    return false;
-  }
-
-  private dfsDetectCycle(node: T, white: Set<T>, gray: Set<T>): boolean {
-    white.delete(node);
-    gray.add(node);
-    for (const neighbor of this.adjacency.get(node) ?? []) {
-      if (gray.has(neighbor)) return true;
-      if (white.has(neighbor) && this.dfsDetectCycle(neighbor, white, gray)) return true;
-    }
-    gray.delete(node);
     return false;
   }
 
   private hasCycleUndirected(): boolean {
     const visited = new Set<T>();
+    const visit = (node: T, parent: T | null): boolean => {
+      visited.add(node);
+      for (const neighbor of this.adjacency.get(node) ?? []) {
+        if (!visited.has(neighbor)) {
+          if (visit(neighbor, node)) return true;
+        } else if (neighbor !== parent) {
+          return true;
+        }
+      }
+      return false;
+    };
     for (const node of this.adjacency.keys()) {
-      if (!visited.has(node)) {
-        if (this.dfsCycleUndirected(node, null, visited)) return true;
-      }
-    }
-    return false;
-  }
-
-  private dfsCycleUndirected(node: T, parent: T | null, visited: Set<T>): boolean {
-    visited.add(node);
-    for (const neighbor of this.adjacency.get(node) ?? []) {
-      if (!visited.has(neighbor)) {
-        if (this.dfsCycleUndirected(neighbor, node, visited)) return true;
-      } else if (neighbor !== parent) {
-        return true;
-      }
+      if (!visited.has(node) && visit(node, null)) return true;
     }
     return false;
   }
