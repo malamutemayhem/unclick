@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 431,
-  "toolCount": 1353,
+  "appCount": 436,
+  "toolCount": 1358,
   "categories": [
     "AI",
     "Books",
@@ -456,6 +456,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "aspectratio",
+      "name": "Aspect Ratio Calculator",
+      "category": "Developer & infra",
+      "blurb": "Calculate the simplified aspect ratio for any width and height.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "aspect_ratio",
+          "description": "Calculate the aspect ratio of given width and height."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "assemblyai",
@@ -5386,6 +5402,22 @@
       "hardened": false
     },
     {
+      "slug": "morse",
+      "name": "Morse Code",
+      "category": "Utilities",
+      "blurb": "Encode text to Morse code or decode Morse code to text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "morse_convert",
+          "description": "Encode text to Morse code or decode Morse code to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "multiavatar",
       "name": "Multiavatar",
       "category": "Images",
@@ -6464,6 +6496,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "percentage",
+      "name": "Percentage Calculator",
+      "category": "Developer & infra",
+      "blurb": "Perform percentage calculations: of, change, increase, decrease.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "percentage_calc",
+          "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "perplexity",
@@ -7758,6 +7806,22 @@
       "hardened": false
     },
     {
+      "slug": "roman",
+      "name": "Roman Numerals",
+      "category": "Utilities",
+      "blurb": "Convert between Roman numerals and decimal numbers (1-3999).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "roman_convert",
+          "description": "Convert between Roman numerals and decimal numbers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runway",
       "name": "Runway",
       "category": "AI",
@@ -8556,6 +8620,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "stringcase",
+      "name": "String Case Converter",
+      "category": "Developer & infra",
+      "blurb": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "string_case",
+          "description": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "stripe",

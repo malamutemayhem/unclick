@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 854,
+    "inventory": 859,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 432,
+    "tools": 437,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 432
+      "count": 437
     },
     {
       "id": "rooms",
@@ -4382,6 +4382,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-aspectratio-packages-mcp-server-src-aspectratio-tool-ts-no-route",
+      "division": "Tools",
+      "name": "aspectratio",
+      "kind": "MCP tool",
+      "meaning": "aspectratio MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/aspectratio-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-assemblyai-packages-mcp-server-src-assemblyai-tool-ts-no-route",
       "division": "Tools",
       "name": "assemblyai",
@@ -6512,6 +6522,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-morse-packages-mcp-server-src-morse-tool-ts-no-route",
+      "division": "Tools",
+      "name": "morse",
+      "kind": "MCP tool",
+      "meaning": "morse MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/morse-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-mtg-packages-mcp-server-src-mtg-tool-ts-no-route",
       "division": "Tools",
       "name": "mtg",
@@ -6978,6 +6998,16 @@
       "kind": "MCP tool",
       "meaning": "paypal MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/paypal-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-percentage-packages-mcp-server-src-percentage-tool-ts-no-route",
+      "division": "Tools",
+      "name": "percentage",
+      "kind": "MCP tool",
+      "meaning": "percentage MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/percentage-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7472,6 +7502,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-roman-packages-mcp-server-src-roman-tool-ts-no-route",
+      "division": "Tools",
+      "name": "roman",
+      "kind": "MCP tool",
+      "meaning": "roman MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/roman-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-runway-packages-mcp-server-src-runway-tool-ts-no-route",
       "division": "Tools",
       "name": "runway",
@@ -7758,6 +7798,16 @@
       "kind": "MCP tool",
       "meaning": "steam MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/steam-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-stringcase-packages-mcp-server-src-stringcase-tool-ts-no-route",
+      "division": "Tools",
+      "name": "stringcase",
+      "kind": "MCP tool",
+      "meaning": "stringcase MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/stringcase-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9335,6 +9385,11 @@
       "packages/mcp-server/src/asana-tool.ts"
     ],
     [
+      "aspectratio",
+      "aspectratio MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/aspectratio-tool.ts"
+    ],
+    [
       "assemblyai",
       "assemblyai MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/assemblyai-tool.ts"
@@ -10400,6 +10455,11 @@
       "packages/mcp-server/src/monica-tool.ts"
     ],
     [
+      "morse",
+      "morse MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/morse-tool.ts"
+    ],
+    [
       "mtg",
       "mtg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mtg-tool.ts"
@@ -10633,6 +10693,11 @@
       "paypal",
       "paypal MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/paypal-tool.ts"
+    ],
+    [
+      "percentage",
+      "percentage MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/percentage-tool.ts"
     ],
     [
       "perplexity",
@@ -10880,6 +10945,11 @@
       "packages/mcp-server/src/robohash-tool.ts"
     ],
     [
+      "roman",
+      "roman MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/roman-tool.ts"
+    ],
+    [
       "runway",
       "runway MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/runway-tool.ts"
@@ -11023,6 +11093,11 @@
       "steam",
       "steam MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/steam-tool.ts"
+    ],
+    [
+      "stringcase",
+      "stringcase MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/stringcase-tool.ts"
     ],
     [
       "stripe",
@@ -12538,6 +12613,11 @@
       "bytes": 9808
     },
     {
+      "source": "packages/mcp-server/src/aspectratio-tool.ts",
+      "hash": "218ae813b31c",
+      "bytes": 1287
+    },
+    {
       "source": "packages/mcp-server/src/assemblyai-tool.ts",
       "hash": "24ebe71790cf",
       "bytes": 11837
@@ -12626,11 +12706,6 @@
       "source": "packages/mcp-server/src/calcom-tool.ts",
       "hash": "d287d0a01077",
       "bytes": 3332
-    },
-    {
-      "source": "packages/mcp-server/src/calculator-tool.ts",
-      "hash": "5a3d3d30645e",
-      "bytes": 7319
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -392,6 +392,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "aspectratio",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "aspect_ratio",
+        "description": "Calculate the aspect ratio of given width and height."
+      }
+    ]
+  },
+  {
     "app": "assemblyai",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4176,6 +4186,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "morse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "morse_convert",
+        "description": "Encode text to Morse code or decode Morse code to text."
+      }
+    ]
+  },
+  {
     "app": "mtg",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4966,6 +4986,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "paypal_invoices",
         "description": "List, create, or send PayPal invoices."
+      }
+    ]
+  },
+  {
+    "app": "percentage",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "percentage_calc",
+        "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
       }
     ]
   },
@@ -5944,6 +5974,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "roman",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "roman_convert",
+        "description": "Convert between Roman numerals and decimal numbers."
+      }
+    ]
+  },
+  {
     "app": "runway",
     "category": "AI Video",
     "tools": [
@@ -6530,6 +6570,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_steam_store",
         "description": "Search the Steam store for games by name."
+      }
+    ]
+  },
+  {
+    "app": "stringcase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "string_case",
+        "description": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more."
       }
     ]
   },

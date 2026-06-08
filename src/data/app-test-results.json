@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T20:15:00.000Z",
+  "updatedAt": "2026-06-08T20:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3418,6 +3418,36 @@
       "note": "ip_validate validates and classifies IP addresses locally. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
       "toolsTested": ["ip_validate"]
+    },
+    "stringcase": {
+      "status": "pass",
+      "note": "string_case converts between camelCase, snake_case, kebab-case locally. No API needed.",
+      "testedAt": "2026-06-08T20:30:00.000Z",
+      "toolsTested": ["string_case"]
+    },
+    "aspectratio": {
+      "status": "pass",
+      "note": "aspect_ratio calculates simplified ratios locally. No API needed.",
+      "testedAt": "2026-06-08T20:30:00.000Z",
+      "toolsTested": ["aspect_ratio"]
+    },
+    "percentage": {
+      "status": "pass",
+      "note": "percentage_calc performs percentage calculations locally. No API needed.",
+      "testedAt": "2026-06-08T20:30:00.000Z",
+      "toolsTested": ["percentage_calc"]
+    },
+    "roman": {
+      "status": "pass",
+      "note": "roman_convert converts Roman numerals and decimal numbers locally. No API needed.",
+      "testedAt": "2026-06-08T20:30:00.000Z",
+      "toolsTested": ["roman_convert"]
+    },
+    "morse": {
+      "status": "pass",
+      "note": "morse_convert encodes/decodes Morse code locally. No API needed.",
+      "testedAt": "2026-06-08T20:30:00.000Z",
+      "toolsTested": ["morse_convert"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

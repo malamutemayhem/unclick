@@ -596,6 +596,11 @@ import { htmlStrip } from "./htmlstrip-tool.js";
 import { uuidGenerate } from "./uuidgen-tool.js";
 import { charFrequency } from "./charcount-tool.js";
 import { ipValidate } from "./ipvalidate-tool.js";
+import { stringCase } from "./stringcase-tool.js";
+import { aspectRatio } from "./aspectratio-tool.js";
+import { percentageCalc } from "./percentage-tool.js";
+import { romanConvert } from "./roman-tool.js";
+import { morseConvert } from "./morse-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9229,6 +9234,64 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         ip: { type: "string" as const, description: "IP address to validate." },
       }, required: ["ip"],
+    },
+  },
+
+  // ── stringcase-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "string_case",
+    description: "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── aspectratio-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "aspect_ratio",
+    description: "Calculate the aspect ratio of given width and height.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Width in pixels." },
+        height: { type: "number" as const, description: "Height in pixels." },
+      }, required: ["width", "height"],
+    },
+  },
+
+  // ── percentage-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "percentage_calc",
+    description: "Perform percentage calculations (of, change, increase, decrease, is_what_percent).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: of, is_what_percent, change, increase, decrease (default of)." },
+        a: { type: "number" as const, description: "First number." },
+        b: { type: "number" as const, description: "Second number." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── roman-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "roman_convert",
+    description: "Convert between Roman numerals and decimal numbers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "string" as const, description: "Integer 1-3999 or Roman numeral string." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── morse-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "morse_convert",
+    description: "Encode text to Morse code or decode Morse code to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or Morse code to convert." },
+      }, required: ["text"],
     },
   },
 
@@ -20657,6 +20720,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // ipvalidate-tool.ts
   ip_validate:               (args) => ipValidate(args),
+
+  // stringcase-tool.ts
+  string_case:               (args) => stringCase(args),
+
+  // aspectratio-tool.ts
+  aspect_ratio:              (args) => aspectRatio(args),
+
+  // percentage-tool.ts
+  percentage_calc:           (args) => percentageCalc(args),
+
+  // roman-tool.ts
+  roman_convert:             (args) => romanConvert(args),
+
+  // morse-tool.ts
+  morse_convert:             (args) => morseConvert(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

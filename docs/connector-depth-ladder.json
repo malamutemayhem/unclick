@@ -400,6 +400,26 @@
     }
   },
   {
+    "connector": "aspectratio",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "assemblyai",
     "level": 5,
     "levelName": "Agentic",
@@ -4100,6 +4120,26 @@
     }
   },
   {
+    "connector": "morse",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "mtg",
     "level": 5,
     "levelName": "Agentic",
@@ -4960,6 +5000,26 @@
     }
   },
   {
+    "connector": "percentage",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "picsum",
     "level": 5,
     "levelName": "Agentic",
@@ -5720,6 +5780,26 @@
     }
   },
   {
+    "connector": "roman",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "runway",
     "level": 5,
     "levelName": "Agentic",
@@ -6109,6 +6189,26 @@
     "signals": {
       "hasTimeout": true,
       "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "stringcase",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
