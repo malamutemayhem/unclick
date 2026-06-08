@@ -660,6 +660,36 @@ import { gcdCalculate } from "./gcd-tool.js";
 import { permutationCalc } from "./permutation-tool.js";
 import { combinationCalc } from "./combination-tool.js";
 import { proportionSolve } from "./proportion-tool.js";
+import { quadraticSolve } from "./quadratic-tool.js";
+import { primeFactor } from "./primefactor-tool.js";
+import { zscoreCalculate } from "./zscore-tool.js";
+import { angleConvert } from "./angleconv-tool.js";
+import { polygonCalculate } from "./polygon-tool.js";
+import { sigmoidCalculate } from "./sigmoid-tool.js";
+import { interpolateCalc } from "./interpolate-tool.js";
+import { modularArithmetic } from "./modpow-tool.js";
+import { ratioSimplify } from "./ratiosimplify-tool.js";
+import { binomialProbability } from "./binomprob-tool.js";
+import { normalDistribution } from "./normaldistr-tool.js";
+import { triangleSolve } from "./trianglesolve-tool.js";
+import { standardForm } from "./standardform-tool.js";
+import { complexCalc } from "./complexnum-tool.js";
+import { wavelengthConvert } from "./wavelength-tool.js";
+import { midpointCalc } from "./midpoint-tool.js";
+import { slopeIntercept } from "./slopeintercept-tool.js";
+import { logBase } from "./logbase-tool.js";
+import { nthRoot } from "./nthroot-tool.js";
+import { areaCalculate } from "./areacalc-tool.js";
+import { dotProduct } from "./dotproduct-tool.js";
+import { crossProduct } from "./crossproduct-tool.js";
+import { weightedMean } from "./weightedmean-tool.js";
+import { varianceCalc } from "./variancecalc-tool.js";
+import { poissonProbability } from "./poisson-tool.js";
+import { exponentialGrowth } from "./expgrowth-tool.js";
+import { geometricSeries } from "./geomseries-tool.js";
+import { harmonicSeries } from "./harmonicseries-tool.js";
+import { piApprox } from "./piapprox-tool.js";
+import { taylorExpand } from "./taylor-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10068,6 +10098,389 @@ export const ADDITIONAL_TOOLS = [
         c: { type: "number" as const, description: "Value c." },
         d: { type: "number" as const, description: "Value d." },
       },
+    },
+  },
+
+  // ── quadratic-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "quadratic_solve",
+    description: "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Coefficient a (must not be 0)." },
+        b: { type: "number" as const, description: "Coefficient b." },
+        c: { type: "number" as const, description: "Coefficient c." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── primefactor-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "prime_factor",
+    description: "Find the prime factorization of an integer.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Integer to factorize (>= 2, max 1 trillion)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zscore-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "zscore_calculate",
+    description: "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "The observed value." },
+        mean: { type: "number" as const, description: "Population mean." },
+        stddev: { type: "number" as const, description: "Population standard deviation (positive)." },
+      }, required: ["value", "mean", "stddev"],
+    },
+  },
+
+  // ── angleconv-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "angle_convert",
+    description: "Convert angles between degrees, radians, gradians, and turns. Includes trig values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Angle value to convert." },
+        from: { type: "string" as const, description: "Unit of input: degrees, radians, gradians, or turns." },
+      }, required: ["value", "from"],
+    },
+  },
+
+  // ── polygon-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "polygon_calculate",
+    description: "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        sides: { type: "number" as const, description: "Number of sides (>= 3)." },
+        side_length: { type: "number" as const, description: "Length of each side." },
+      }, required: ["sides", "side_length"],
+    },
+  },
+
+  // ── sigmoid-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "sigmoid_calculate",
+    description: "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "Input value." },
+        function: { type: "string" as const, description: "Activation function: sigmoid, tanh, relu, leaky_relu, elu, or swish. Default: sigmoid." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── interpolate-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "interpolate_calc",
+    description: "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X coordinate of first point." },
+        y1: { type: "number" as const, description: "Y coordinate of first point." },
+        x2: { type: "number" as const, description: "X coordinate of second point." },
+        y2: { type: "number" as const, description: "Y coordinate of second point." },
+        x: { type: "number" as const, description: "X value to interpolate at." },
+      }, required: ["x1", "y1", "x2", "y2", "x"],
+    },
+  },
+
+  // ── modpow-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "modular_arithmetic",
+    description: "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: modpow, modinverse, or mod." },
+        a: { type: "number" as const, description: "Base value." },
+        b: { type: "number" as const, description: "Exponent (required for modpow)." },
+        m: { type: "number" as const, description: "Modulus (positive integer)." },
+      }, required: ["operation", "a", "m"],
+    },
+  },
+
+  // ── ratiosimplify-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ratio_simplify",
+    description: "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First value." },
+        b: { type: "number" as const, description: "Second value (non-zero)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── binomprob-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "binomial_probability",
+    description: "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of trials (0-1000)." },
+        k: { type: "number" as const, description: "Number of successes (0 to n)." },
+        p: { type: "number" as const, description: "Probability of success per trial (0 to 1)." },
+      }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── normaldistr-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "normal_distribution",
+    description: "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "The value to evaluate." },
+        mean: { type: "number" as const, description: "Distribution mean (default 0)." },
+        stddev: { type: "number" as const, description: "Standard deviation (default 1, must be positive)." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── trianglesolve-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "triangle_solve",
+    description: "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Side a length." },
+        b: { type: "number" as const, description: "Side b length." },
+        c: { type: "number" as const, description: "Side c length." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── standardform-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "standard_form",
+    description: "Convert a number to scientific and engineering notation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to convert." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── complexnum-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "complex_calc",
+    description: "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: add, subtract, multiply, divide, magnitude, conjugate, or polar." },
+        real1: { type: "number" as const, description: "Real part of first complex number." },
+        imag1: { type: "number" as const, description: "Imaginary part of first complex number." },
+        real2: { type: "number" as const, description: "Real part of second complex number (for binary ops)." },
+        imag2: { type: "number" as const, description: "Imaginary part of second complex number (for binary ops)." },
+      }, required: ["operation", "real1", "imag1"],
+    },
+  },
+
+  // ── wavelength-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "wavelength_convert",
+    description: "Convert between wavelength and frequency. Returns energy and EM spectrum band.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        wavelength_m: { type: "number" as const, description: "Wavelength in meters." },
+        frequency_hz: { type: "number" as const, description: "Frequency in hertz." },
+      },
+    },
+  },
+
+  // ── midpoint-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "midpoint_calc",
+    description: "Calculate the midpoint, distance, slope, and angle between two 2D points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── slopeintercept-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "slope_intercept",
+    description: "Find the line equation (slope-intercept and standard form) from two points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── logbase-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "log_base",
+    description: "Compute logarithm with any base. Also returns ln, log10, and log2.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Positive number to compute log of." },
+        base: { type: "number" as const, description: "Logarithm base (default 10, must be positive and not 1)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── nthroot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "nth_root",
+    description: "Calculate the nth root of a number. Default is square root (n=2).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to find root of." },
+        n: { type: "number" as const, description: "Root degree (default 2 for square root)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── areacalc-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "area_calculate",
+    description: "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        shape: { type: "string" as const, description: "Shape: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, or sector." },
+        radius: { type: "number" as const, description: "Radius (circle, sector)." },
+        width: { type: "number" as const, description: "Width (rectangle)." },
+        height: { type: "number" as const, description: "Height (rectangle, triangle, trapezoid, parallelogram)." },
+        base: { type: "number" as const, description: "Base (triangle, parallelogram)." },
+        base1: { type: "number" as const, description: "First base (trapezoid)." },
+        base2: { type: "number" as const, description: "Second base (trapezoid)." },
+        semi_major: { type: "number" as const, description: "Semi-major axis (ellipse)." },
+        semi_minor: { type: "number" as const, description: "Semi-minor axis (ellipse)." },
+        angle_degrees: { type: "number" as const, description: "Angle in degrees (sector)." },
+      }, required: ["shape"],
+    },
+  },
+
+  // ── dotproduct-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dot_product",
+    description: "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First vector." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second vector (same length)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── crossproduct-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cross_product",
+    description: "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First 3D vector [x,y,z]." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second 3D vector [x,y,z]." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── weightedmean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "weighted_mean",
+    description: "Compute weighted, arithmetic, geometric, and harmonic means of a set of values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values." },
+        weights: { type: "array" as const, items: { type: "number" as const }, description: "Optional weights (same length as values)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── variancecalc-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "variance_calc",
+    description: "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values (at least 2)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── poisson-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "poisson_probability",
+    description: "Calculate Poisson distribution PMF and CDF for k events with rate lambda.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        k: { type: "number" as const, description: "Number of events (non-negative integer)." },
+        lambda: { type: "number" as const, description: "Expected rate (positive)." },
+      }, required: ["k", "lambda"],
+    },
+  },
+
+  // ── expgrowth-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "exponential_growth",
+    description: "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        initial: { type: "number" as const, description: "Initial value." },
+        rate: { type: "number" as const, description: "Growth rate (positive=growth, negative=decay)." },
+        time: { type: "number" as const, description: "Time elapsed." },
+      }, required: ["initial", "rate", "time"],
+    },
+  },
+
+  // ── geomseries-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "geometric_series",
+    description: "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ...",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First term." },
+        r: { type: "number" as const, description: "Common ratio." },
+        n: { type: "number" as const, description: "Number of terms (1-1000)." },
+      }, required: ["a", "r", "n"],
+    },
+  },
+
+  // ── harmonicseries-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "harmonic_series",
+    description: "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of terms (1-100000)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── piapprox-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pi_approx",
+    description: "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        terms: { type: "number" as const, description: "Number of terms (default 1000, max 1000000)." },
+      },
+    },
+  },
+
+  // ── taylor-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "taylor_expand",
+    description: "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        function: { type: "string" as const, description: "Function: exp, sin, cos, ln1p, or atan." },
+        x: { type: "number" as const, description: "Point to evaluate at." },
+        terms: { type: "number" as const, description: "Number of terms (default 10, max 50)." },
+      }, required: ["function", "x"],
     },
   },
 
@@ -21688,6 +22101,96 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // proportion-tool.ts
   proportion_solve:          (args) => proportionSolve(args),
+
+  // quadratic-tool.ts
+  quadratic_solve:           (args) => quadraticSolve(args),
+
+  // primefactor-tool.ts
+  prime_factor:              (args) => primeFactor(args),
+
+  // zscore-tool.ts
+  zscore_calculate:          (args) => zscoreCalculate(args),
+
+  // angleconv-tool.ts
+  angle_convert:             (args) => angleConvert(args),
+
+  // polygon-tool.ts
+  polygon_calculate:         (args) => polygonCalculate(args),
+
+  // sigmoid-tool.ts
+  sigmoid_calculate:         (args) => sigmoidCalculate(args),
+
+  // interpolate-tool.ts
+  interpolate_calc:          (args) => interpolateCalc(args),
+
+  // modpow-tool.ts
+  modular_arithmetic:        (args) => modularArithmetic(args),
+
+  // ratiosimplify-tool.ts
+  ratio_simplify:            (args) => ratioSimplify(args),
+
+  // binomprob-tool.ts
+  binomial_probability:      (args) => binomialProbability(args),
+
+  // normaldistr-tool.ts
+  normal_distribution:       (args) => normalDistribution(args),
+
+  // trianglesolve-tool.ts
+  triangle_solve:            (args) => triangleSolve(args),
+
+  // standardform-tool.ts
+  standard_form:             (args) => standardForm(args),
+
+  // complexnum-tool.ts
+  complex_calc:              (args) => complexCalc(args),
+
+  // wavelength-tool.ts
+  wavelength_convert:        (args) => wavelengthConvert(args),
+
+  // midpoint-tool.ts
+  midpoint_calc:             (args) => midpointCalc(args),
+
+  // slopeintercept-tool.ts
+  slope_intercept:           (args) => slopeIntercept(args),
+
+  // logbase-tool.ts
+  log_base:                  (args) => logBase(args),
+
+  // nthroot-tool.ts
+  nth_root:                  (args) => nthRoot(args),
+
+  // areacalc-tool.ts
+  area_calculate:            (args) => areaCalculate(args),
+
+  // dotproduct-tool.ts
+  dot_product:               (args) => dotProduct(args),
+
+  // crossproduct-tool.ts
+  cross_product:             (args) => crossProduct(args),
+
+  // weightedmean-tool.ts
+  weighted_mean:             (args) => weightedMean(args),
+
+  // variancecalc-tool.ts
+  variance_calc:             (args) => varianceCalc(args),
+
+  // poisson-tool.ts
+  poisson_probability:       (args) => poissonProbability(args),
+
+  // expgrowth-tool.ts
+  exponential_growth:        (args) => exponentialGrowth(args),
+
+  // geomseries-tool.ts
+  geometric_series:          (args) => geometricSeries(args),
+
+  // harmonicseries-tool.ts
+  harmonic_series:           (args) => harmonicSeries(args),
+
+  // piapprox-tool.ts
+  pi_approx:                 (args) => piApprox(args),
+
+  // taylor-tool.ts
+  taylor_expand:             (args) => taylorExpand(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

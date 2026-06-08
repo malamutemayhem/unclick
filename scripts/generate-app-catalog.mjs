@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -175,6 +175,21 @@ const NAME_OF = {
   baseconvert: "Base Converter", gcd: "GCD/LCM Calculator",
   permutation: "Permutations", combination: "Combinations",
   proportion: "Proportion Solver",
+  quadratic: "Quadratic Solver", primefactor: "Prime Factorization",
+  zscore: "Z-Score Calculator", angleconv: "Angle Converter",
+  polygon: "Polygon Calculator", sigmoid: "Activation Functions",
+  interpolate: "Interpolation", modpow: "Modular Arithmetic",
+  ratiosimplify: "Ratio Simplifier", binomprob: "Binomial Probability",
+  normaldistr: "Normal Distribution", trianglesolve: "Triangle Solver",
+  standardform: "Scientific Notation", complexnum: "Complex Numbers",
+  wavelength: "Wavelength Converter", midpoint: "Midpoint & Distance",
+  slopeintercept: "Line Equation", logbase: "Logarithm Calculator",
+  nthroot: "Nth Root", areacalc: "Area Calculator",
+  dotproduct: "Dot Product", crossproduct: "Cross Product",
+  weightedmean: "Weighted Mean", variancecalc: "Variance Calculator",
+  poisson: "Poisson Distribution", expgrowth: "Exponential Growth",
+  geomseries: "Geometric Series", harmonicseries: "Harmonic Series",
+  piapprox: "Pi Approximation", taylor: "Taylor Series",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -517,6 +532,36 @@ const BLURB_OF = {
   permutation: "Calculate permutations P(n,r) for ordered arrangements.",
   combination: "Calculate combinations C(n,r) for unordered selections.",
   proportion: "Solve a proportion a/b = c/d given any three of the four values.",
+  quadratic: "Solve quadratic equations with real or complex roots, discriminant, and vertex.",
+  primefactor: "Find the prime factorization of any integer up to one trillion.",
+  zscore: "Calculate z-scores, cumulative probabilities, and percentiles.",
+  angleconv: "Convert between degrees, radians, gradians, and turns with trig values.",
+  polygon: "Calculate area, perimeter, angles, apothem, and circumradius of regular polygons.",
+  sigmoid: "Compute activation functions (sigmoid, tanh, relu, etc.) and their derivatives.",
+  interpolate: "Linear interpolation and extrapolation between two points.",
+  modpow: "Modular exponentiation, modular inverse, and modular reduction.",
+  ratiosimplify: "Simplify ratios to lowest terms with decimal and percentage forms.",
+  binomprob: "Binomial distribution probability, cumulative probabilities, mean, and variance.",
+  normaldistr: "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
+  trianglesolve: "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
+  standardform: "Convert numbers to scientific and engineering notation.",
+  complexnum: "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
+  wavelength: "Convert between wavelength and frequency with energy and EM spectrum band.",
+  midpoint: "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
+  slopeintercept: "Line equation from two points in slope-intercept and standard form.",
+  logbase: "Logarithm with any base, plus natural log, log10, and log2.",
+  nthroot: "Nth root of a number with verification and integer detection.",
+  areacalc: "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
+  dotproduct: "Dot product of two vectors with angle and orthogonality detection.",
+  crossproduct: "Cross product of two 3D vectors with magnitude and parallelism check.",
+  weightedmean: "Weighted, arithmetic, geometric, and harmonic means of a value set.",
+  variancecalc: "Population/sample variance, standard deviation, median, range, and CV.",
+  poisson: "Poisson distribution PMF and CDF for modeling rare events.",
+  expgrowth: "Exponential growth and decay with doubling time and half-life.",
+  geomseries: "Finite and infinite sums of geometric series.",
+  harmonicseries: "Partial sums of the harmonic series with ln approximation.",
+  piapprox: "Approximate pi using Leibniz, Nilakantha, and Wallis formulas.",
+  taylor: "Taylor series approximation for exp, sin, cos, ln(1+x), and atan.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -680,6 +725,12 @@ const DOMAIN_OF = {
   setops: "local",
   collatz: "local", pascaltri: "local", histogram: "local", regression: "local",
   baseconvert: "local", gcd: "local", permutation: "local", combination: "local", proportion: "local",
+  quadratic: "local", primefactor: "local", zscore: "local", angleconv: "local", polygon: "local",
+  sigmoid: "local", interpolate: "local", modpow: "local", ratiosimplify: "local", binomprob: "local",
+  normaldistr: "local", trianglesolve: "local", standardform: "local", complexnum: "local", wavelength: "local",
+  midpoint: "local", slopeintercept: "local", logbase: "local", nthroot: "local", areacalc: "local",
+  dotproduct: "local", crossproduct: "local", weightedmean: "local", variancecalc: "local", poisson: "local",
+  expgrowth: "local", geomseries: "local", harmonicseries: "local", piapprox: "local", taylor: "local",
 };
 
 function titleCase(slug) {
