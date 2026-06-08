@@ -164,7 +164,7 @@ export default function AdminSearchBar() {
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search facts, sessions, context..."
-          className="w-full rounded-lg border border-white/[0.08] bg-[#111] px-9 py-2 text-sm text-[#ccc] placeholder:text-[#666] focus:border-[#61C1C4]/60 focus:outline-none focus:ring-1 focus:ring-[#61C1C4]/40"
+          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-9 py-2 text-sm text-[#ccc] placeholder:text-[#666] focus:border-[#61C1C4]/60 focus:outline-none focus:ring-1 focus:ring-[#61C1C4]/40"
         />
         <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-[#888]">
           {shortcutHint}
@@ -172,7 +172,7 @@ export default function AdminSearchBar() {
       </div>
 
       {showDropdown && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-lg border border-white/[0.08] bg-[#111] shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.03] shadow-2xl">
           {loading && (
             <div className="flex items-center gap-2 px-4 py-3 text-xs text-[#888]">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

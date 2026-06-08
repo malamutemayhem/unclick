@@ -467,7 +467,7 @@ export default function AdminTestPass() {
       </div>
 
       {/* Section 1 - Pack editor */}
-      <section className="mb-8 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+      <section className="mb-8 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
         <h2 className="mb-3 text-sm font-semibold text-white">Pack editor</h2>
         {loadingPack && (
           <p className="mb-3 flex items-center gap-2 text-xs text-[#888]">
@@ -511,7 +511,7 @@ export default function AdminTestPass() {
       </section>
 
       {/* Section 2 - Run controls */}
-      <section className="mb-8 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+      <section className="mb-8 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-white">Run</h2>
           <span className="font-mono text-[11px] text-[#888]">{loadedPack?.slug ?? CORE_PACK_SLUG}</span>
@@ -554,7 +554,7 @@ export default function AdminTestPass() {
 
       {/* Section 3 - Results */}
       {items.length > 0 && (
-        <section className="mb-8 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+        <section className="mb-8 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-white">Results</h2>
             <div className="flex flex-wrap items-center gap-3">

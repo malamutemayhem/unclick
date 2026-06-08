@@ -37,7 +37,7 @@ function pct(n: number): string {
 function StatCard({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "good" | "bad" | "neutral" }) {
   const color = tone === "good" ? "#4ade80" : tone === "bad" ? "#f87171" : "#fff";
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
       <div className="text-xs uppercase tracking-wider text-[#888]">{label}</div>
       <div className="mt-2 text-3xl font-semibold" style={{ color }}>{value}</div>
       {hint && <div className="mt-1 text-xs text-[#666]">{hint}</div>}
@@ -146,7 +146,7 @@ export default function AdminTruthRate() {
       )}
 
       {!loading && data && !summary && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-sm text-[#888]">{data.note ?? "No jobs in this window yet."}</p>
         </div>
       )}
@@ -174,7 +174,7 @@ export default function AdminTruthRate() {
             />
           </div>
 
-          <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+          <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-3 text-xs uppercase tracking-wider text-[#888]">Outcome breakdown</div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 text-center">
               <Breakdown label="Verified" value={summary.verified} color="#4ade80" />
@@ -216,7 +216,7 @@ function Breakdown({ label, value, color }: { label: string; value: number; colo
 
 function ActionList({ title, icon, ids, empty }: { title: string; icon: React.ReactNode; ids: string[]; empty: string }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium text-white">
         {icon}
         {title}

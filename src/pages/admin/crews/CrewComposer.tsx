@@ -188,7 +188,7 @@ export default function CrewComposer() {
           <select
             value={templateSlug}
             onChange={(e) => setTemplateSlug(e.target.value)}
-            className="w-full rounded-lg border border-white/[0.07] bg-[#0e0e0e] px-3 py-2 text-sm text-[#eee] focus:border-[#61C1C4]/40 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-sm text-[#eee] focus:border-[#61C1C4]/40 focus:outline-none"
           >
             {CREW_TEMPLATES.map((t) => (
               <option key={t.slug} value={t.slug}>
