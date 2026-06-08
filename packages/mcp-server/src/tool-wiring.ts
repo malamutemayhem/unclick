@@ -5258,6 +5258,8 @@ export const ADDITIONAL_TOOLS = [
         organization_id: { type: "string", description: "Eventbrite organization id that will own the event" },
         start_utc: { type: "string", description: "Start time in UTC, e.g. 2026-07-01T19:00:00Z" },
         end_utc: { type: "string", description: "End time in UTC, e.g. 2026-07-01T21:00:00Z" },
+        start: { type: "object", description: "Alternative start object with utc and timezone fields." },
+        end: { type: "object", description: "Alternative end object with utc and timezone fields." },
         timezone: { type: "string", description: "IANA timezone, e.g. America/New_York" },
         currency: { type: "string", description: "ISO currency code, e.g. USD" },
         venue_id: { type: "string" },
