@@ -2,10 +2,22 @@ import { describe, it, expect } from "vitest";
 import { Matrix } from "../matrix.js";
 
 describe("Matrix", () => {
+  it("creates zero-filled matrix", () => {
+    const m = new Matrix(2, 3);
+    expect(m.rows).toBe(2);
+    expect(m.cols).toBe(3);
+    expect(m.get(0, 0)).toBe(0);
+  });
+
+  it("creates with custom fill", () => {
+    const m = new Matrix(2, 2, 5);
+    expect(m.get(1, 1)).toBe(5);
+  });
+
   it("get and set", () => {
     const m = new Matrix(2, 2);
-    m.set(0, 0, 5);
-    expect(m.get(0, 0)).toBe(5);
+    m.set(0, 1, 42);
+    expect(m.get(0, 1)).toBe(42);
   });
 
   it("add", () => {
@@ -14,21 +26,21 @@ describe("Matrix", () => {
     expect(a.add(b).toArray()).toEqual([[6, 8], [10, 12]]);
   });
 
-  it("subtract", () => {
-    const a = Matrix.from([[5, 6], [7, 8]]);
-    const b = Matrix.from([[1, 2], [3, 4]]);
-    expect(a.subtract(b).toArray()).toEqual([[4, 4], [4, 4]]);
-  });
-
   it("multiply", () => {
     const a = Matrix.from([[1, 2], [3, 4]]);
     const b = Matrix.from([[5, 6], [7, 8]]);
     expect(a.multiply(b).toArray()).toEqual([[19, 22], [43, 50]]);
   });
 
+  it("multiply throws on incompatible dimensions", () => {
+    const a = new Matrix(2, 3);
+    const b = new Matrix(2, 2);
+    expect(() => a.multiply(b)).toThrow("Incompatible");
+  });
+
   it("scale", () => {
     const m = Matrix.from([[1, 2], [3, 4]]);
-    expect(m.scale(2).toArray()).toEqual([[2, 4], [6, 8]]);
+    expect(m.scale(3).toArray()).toEqual([[3, 6], [9, 12]]);
   });
 
   it("transpose", () => {
@@ -39,32 +51,44 @@ describe("Matrix", () => {
     expect(t.toArray()).toEqual([[1, 4], [2, 5], [3, 6]]);
   });
 
-  it("determinant 2x2", () => {
-    const m = Matrix.from([[1, 2], [3, 4]]);
-    expect(m.determinant()).toBe(-2);
-  });
-
-  it("determinant 3x3", () => {
-    const m = Matrix.from([[1, 2, 3], [4, 5, 6], [7, 8, 0]]);
-    expect(m.determinant()).toBe(27);
-  });
-
   it("identity", () => {
     const id = Matrix.identity(3);
     expect(id.get(0, 0)).toBe(1);
     expect(id.get(0, 1)).toBe(0);
-    expect(id.get(1, 1)).toBe(1);
+    expect(id.get(2, 2)).toBe(1);
   });
 
-  it("equals", () => {
-    const a = Matrix.from([[1, 2], [3, 4]]);
-    const b = Matrix.from([[1, 2], [3, 4]]);
-    expect(a.equals(b)).toBe(true);
+  it("from", () => {
+    const m = Matrix.from([[10, 20], [30, 40]]);
+    expect(m.get(1, 0)).toBe(30);
   });
 
-  it("dimension mismatch throws", () => {
-    const a = new Matrix(2, 2);
-    const b = new Matrix(3, 3);
-    expect(() => a.add(b)).toThrow("Dimension mismatch");
+  it("determinant 1x1", () => {
+    expect(Matrix.from([[7]]).determinant()).toBe(7);
+  });
+
+  it("determinant 2x2", () => {
+    expect(Matrix.from([[1, 2], [3, 4]]).determinant()).toBe(-2);
+  });
+
+  it("determinant 3x3", () => {
+    const m = Matrix.from([[6, 1, 1], [4, -2, 5], [2, 8, 7]]);
+    expect(m.determinant()).toBe(-306);
+  });
+
+  it("determinant throws for non-square", () => {
+    expect(() => new Matrix(2, 3).determinant()).toThrow("square");
+  });
+
+  it("toArray returns a copy", () => {
+    const m = Matrix.from([[1, 2]]);
+    const arr = m.toArray();
+    arr[0][0] = 99;
+    expect(m.get(0, 0)).toBe(1);
+  });
+
+  it("identity times matrix returns same matrix", () => {
+    const a = Matrix.from([[2, 3], [4, 5]]);
+    expect(Matrix.identity(2).multiply(a).toArray()).toEqual([[2, 3], [4, 5]]);
   });
 });

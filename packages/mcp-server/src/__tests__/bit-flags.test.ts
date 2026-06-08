@@ -1,22 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { BitFlags, defineFlags, combine, intersect, difference } from "../bit-flags.js";
+import { BitFlags, createFlags } from "../bit-flags.js";
 
 describe("BitFlags", () => {
-  it("set and has", () => {
+  it("starts at zero by default", () => {
     const f = new BitFlags();
-    f.set(1);
-    expect(f.has(1)).toBe(true);
-    expect(f.has(2)).toBe(false);
+    expect(f.raw).toBe(0);
   });
 
-  it("clear removes flag", () => {
-    const f = new BitFlags(3);
-    f.clear(1);
-    expect(f.has(1)).toBe(false);
-    expect(f.has(2)).toBe(true);
+  it("accepts initial value", () => {
+    const f = new BitFlags(0b1010);
+    expect(f.raw).toBe(10);
   });
 
-  it("toggle flips flag", () => {
+  it("set adds a flag", () => {
+    const f = new BitFlags();
+    f.set(0b0100);
+    expect(f.raw).toBe(4);
+  });
+
+  it("set is chainable", () => {
+    const f = new BitFlags().set(1).set(2).set(4);
+    expect(f.raw).toBe(7);
+  });
+
+  it("clear removes a flag", () => {
+    const f = new BitFlags(0b111);
+    f.clear(0b010);
+    expect(f.raw).toBe(0b101);
+  });
+
+  it("toggle flips flag on and off", () => {
     const f = new BitFlags();
     f.toggle(4);
     expect(f.has(4)).toBe(true);
@@ -24,59 +37,59 @@ describe("BitFlags", () => {
     expect(f.has(4)).toBe(false);
   });
 
-  it("hasAny checks any", () => {
-    const f = new BitFlags(6);
-    expect(f.hasAny(2, 8)).toBe(true);
-    expect(f.hasAny(1, 8)).toBe(false);
+  it("has checks exact flag presence", () => {
+    const f = new BitFlags(0b110);
+    expect(f.has(0b110)).toBe(true);
+    expect(f.has(0b010)).toBe(true);
+    expect(f.has(0b001)).toBe(false);
   });
 
-  it("hasAll checks all", () => {
-    const f = new BitFlags(7);
-    expect(f.hasAll(1, 2, 4)).toBe(true);
-    expect(f.hasAll(1, 8)).toBe(false);
+  it("hasAny checks any bit overlap", () => {
+    const f = new BitFlags(0b100);
+    expect(f.hasAny(0b110)).toBe(true);
+    expect(f.hasAny(0b001)).toBe(false);
   });
 
-  it("toBinary", () => {
-    expect(new BitFlags(5).toBinary()).toBe("101");
-  });
-
-  it("toArray maps names", () => {
-    const flags = { READ: 1, WRITE: 2, EXEC: 4 };
-    const f = new BitFlags(5);
-    expect(f.toArray(flags)).toEqual(["READ", "EXEC"]);
-  });
-
-  it("count returns set bits", () => {
-    expect(new BitFlags(7).count()).toBe(3);
-    expect(new BitFlags(0).count()).toBe(0);
-  });
-
-  it("reset clears all", () => {
-    const f = new BitFlags(255);
+  it("reset clears all bits", () => {
+    const f = new BitFlags(0xFF);
     f.reset();
-    expect(f.valueOf()).toBe(0);
+    expect(f.raw).toBe(0);
+  });
+
+  it("toArray returns individual set flags", () => {
+    const f = new BitFlags(0b1010);
+    expect(f.toArray()).toEqual([2, 8]);
+  });
+
+  it("toString returns binary string", () => {
+    const f = new BitFlags(0b1101);
+    expect(f.toString()).toBe("1101");
+  });
+
+  it("combine merges flags via OR", () => {
+    expect(BitFlags.combine(1, 2, 4)).toBe(7);
+  });
+
+  it("fromArray creates from flag array", () => {
+    const f = BitFlags.fromArray([1, 4, 8]);
+    expect(f.raw).toBe(13);
+    expect(f.has(4)).toBe(true);
   });
 });
 
-describe("defineFlags", () => {
-  it("creates flag map", () => {
-    const f = defineFlags(["A", "B", "C"]);
-    expect(f.A).toBe(1);
-    expect(f.B).toBe(2);
-    expect(f.C).toBe(4);
-  });
-});
-
-describe("combine/intersect/difference", () => {
-  it("combine ORs flags", () => {
-    expect(combine(1, 2, 4)).toBe(7);
+describe("createFlags", () => {
+  it("creates power-of-two flags from names", () => {
+    const flags = createFlags(["read", "write", "execute"]);
+    expect(flags.read).toBe(1);
+    expect(flags.write).toBe(2);
+    expect(flags.execute).toBe(4);
   });
 
-  it("intersect ANDs flags", () => {
-    expect(intersect(7, 3)).toBe(3);
-  });
-
-  it("difference removes flags", () => {
-    expect(difference(7, 2)).toBe(5);
+  it("flags work with BitFlags", () => {
+    const perms = createFlags(["read", "write", "execute"]);
+    const f = new BitFlags().set(perms.read).set(perms.execute);
+    expect(f.has(perms.read)).toBe(true);
+    expect(f.has(perms.write)).toBe(false);
+    expect(f.has(perms.execute)).toBe(true);
   });
 });

@@ -1,108 +1,68 @@
 export interface ScheduledTask {
-  id: number;
-  callback: () => void;
+  id: string;
+  fn: () => void | Promise<void>;
+  intervalMs: number;
   nextRun: number;
-  interval?: number;
-  cancelled: boolean;
+  running: boolean;
 }
 
 export class Scheduler {
-  private tasks: ScheduledTask[] = [];
-  private nextId = 1;
-  private timer: ReturnType<typeof setTimeout> | null = null;
-  private _running = false;
+  private tasks = new Map<string, ScheduledTask>();
+  private timer: ReturnType<typeof setInterval> | null = null;
+  private tickInterval: number;
 
-  get running(): boolean {
-    return this._running;
+  constructor(tickInterval = 1000) {
+    this.tickInterval = tickInterval;
   }
 
-  get taskCount(): number {
-    return this.tasks.filter((t) => !t.cancelled).length;
-  }
-
-  setTimeout(callback: () => void, delayMs: number): number {
-    const id = this.nextId++;
-    const task: ScheduledTask = {
+  schedule(id: string, fn: () => void | Promise<void>, intervalMs: number, immediate = false): void {
+    this.tasks.set(id, {
       id,
-      callback,
-      nextRun: Date.now() + delayMs,
-      cancelled: false,
-    };
-    this.tasks.push(task);
-    this.scheduleNext();
-    return id;
+      fn,
+      intervalMs,
+      nextRun: immediate ? Date.now() : Date.now() + intervalMs,
+      running: false,
+    });
+    if (!this.timer) this.start();
   }
 
-  setInterval(callback: () => void, intervalMs: number): number {
-    const id = this.nextId++;
-    const task: ScheduledTask = {
-      id,
-      callback,
-      nextRun: Date.now() + intervalMs,
-      interval: intervalMs,
-      cancelled: false,
-    };
-    this.tasks.push(task);
-    this.scheduleNext();
-    return id;
+  unschedule(id: string): boolean {
+    const deleted = this.tasks.delete(id);
+    if (this.tasks.size === 0) this.stop();
+    return deleted;
   }
 
-  cancel(id: number): boolean {
-    const task = this.tasks.find((t) => t.id === id);
-    if (!task || task.cancelled) return false;
-    task.cancelled = true;
-    return true;
-  }
+  get taskCount(): number { return this.tasks.size; }
 
-  cancelAll(): void {
-    for (const task of this.tasks) task.cancelled = true;
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    this._running = false;
-  }
+  isScheduled(id: string): boolean { return this.tasks.has(id); }
 
-  private scheduleNext(): void {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-
-    const active = this.tasks.filter((t) => !t.cancelled);
-    if (active.length === 0) {
-      this._running = false;
-      return;
-    }
-
-    active.sort((a, b) => a.nextRun - b.nextRun);
-    const next = active[0];
-    const delay = Math.max(0, next.nextRun - Date.now());
-
-    this._running = true;
-    this.timer = setTimeout(() => {
-      this.tick();
-    }, delay);
-  }
-
-  private tick(): void {
+  async tick(): Promise<void> {
     const now = Date.now();
-    const due = this.tasks.filter((t) => !t.cancelled && t.nextRun <= now);
-
-    for (const task of due) {
-      if (task.cancelled) continue;
+    for (const task of this.tasks.values()) {
+      if (task.running || now < task.nextRun) continue;
+      task.running = true;
       try {
-        task.callback();
-      } catch {}
-
-      if (task.interval) {
-        task.nextRun = now + task.interval;
-      } else {
-        task.cancelled = true;
+        await task.fn();
+      } catch {
+        // swallow
+      } finally {
+        task.running = false;
+        task.nextRun = Date.now() + task.intervalMs;
       }
     }
+  }
 
-    this.tasks = this.tasks.filter((t) => !t.cancelled);
-    this.scheduleNext();
+  start(): void {
+    if (this.timer) return;
+    this.timer = setInterval(() => this.tick(), this.tickInterval);
+  }
+
+  stop(): void {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+  }
+
+  clear(): void {
+    this.tasks.clear();
+    this.stop();
   }
 }

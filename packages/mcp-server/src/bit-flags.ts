@@ -1,89 +1,41 @@
 export class BitFlags {
   private value: number;
 
-  constructor(initial = 0) {
-    this.value = initial;
-  }
+  constructor(initial = 0) { this.value = initial; }
 
-  set(flag: number): this {
-    this.value |= flag;
-    return this;
-  }
+  set(flag: number): this { this.value |= flag; return this; }
+  clear(flag: number): this { this.value &= ~flag; return this; }
+  toggle(flag: number): this { this.value ^= flag; return this; }
+  has(flag: number): boolean { return (this.value & flag) === flag; }
+  hasAny(flag: number): boolean { return (this.value & flag) !== 0; }
 
-  clear(flag: number): this {
-    this.value &= ~flag;
-    return this;
-  }
+  get raw(): number { return this.value; }
 
-  toggle(flag: number): this {
-    this.value ^= flag;
-    return this;
-  }
+  reset(): void { this.value = 0; }
 
-  has(flag: number): boolean {
-    return (this.value & flag) === flag;
-  }
-
-  hasAny(...flags: number[]): boolean {
-    for (const flag of flags) {
-      if (this.has(flag)) return true;
+  toArray(maxBit = 32): number[] {
+    const flags: number[] = [];
+    for (let i = 0; i < maxBit; i++) {
+      if (this.value & (1 << i)) flags.push(1 << i);
     }
-    return false;
+    return flags;
   }
 
-  hasAll(...flags: number[]): boolean {
-    for (const flag of flags) {
-      if (!this.has(flag)) return false;
-    }
-    return true;
+  toString(): string { return this.value.toString(2); }
+
+  static combine(...flags: number[]): number {
+    return flags.reduce((a, b) => a | b, 0);
   }
 
-  valueOf(): number {
-    return this.value;
-  }
-
-  toBinary(): string {
-    return this.value.toString(2);
-  }
-
-  toArray(flagMap: Record<string, number>): string[] {
-    return Object.entries(flagMap)
-      .filter(([, v]) => this.has(v))
-      .map(([k]) => k);
-  }
-
-  reset(): this {
-    this.value = 0;
-    return this;
-  }
-
-  count(): number {
-    let n = this.value;
-    let count = 0;
-    while (n) {
-      count += n & 1;
-      n >>>= 1;
-    }
-    return count;
+  static fromArray(flags: number[]): BitFlags {
+    return new BitFlags(BitFlags.combine(...flags));
   }
 }
 
-export function defineFlags<T extends Record<string, number>>(names: (keyof T)[]): T {
-  const flags = {} as Record<string, number>;
+export function createFlags<T extends string>(names: T[]): Record<T, number> {
+  const flags = {} as Record<T, number>;
   for (let i = 0; i < names.length; i++) {
-    flags[names[i] as string] = 1 << i;
+    flags[names[i]] = 1 << i;
   }
-  return flags as T;
-}
-
-export function combine(...flags: number[]): number {
-  return flags.reduce((acc, f) => acc | f, 0);
-}
-
-export function intersect(a: number, b: number): number {
-  return a & b;
-}
-
-export function difference(a: number, b: number): number {
-  return a & ~b;
+  return flags;
 }

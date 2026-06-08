@@ -1,110 +1,62 @@
-export interface FATransition {
-  from: string;
-  to: string;
-  on: string;
+export interface DFAConfig {
+  states: string[];
+  alphabet: string[];
+  transitions: Record<string, Record<string, string>>;
+  startState: string;
+  acceptStates: string[];
 }
 
-export interface FiniteAutomaton {
-  states: Set<string>;
-  alphabet: Set<string>;
-  transitions: FATransition[];
-  start: string;
-  accept: Set<string>;
-}
+export class DFA {
+  private config: DFAConfig;
 
-export function createFA(
-  transitions: FATransition[],
-  start: string,
-  accept: string[],
-): FiniteAutomaton {
-  const states = new Set<string>();
-  const alphabet = new Set<string>();
-  for (const t of transitions) {
-    states.add(t.from);
-    states.add(t.to);
-    alphabet.add(t.on);
-  }
-  states.add(start);
-  for (const a of accept) states.add(a);
-  return { states, alphabet, transitions, start, accept: new Set(accept) };
-}
+  constructor(config: DFAConfig) { this.config = config; }
 
-export function runDFA(fa: FiniteAutomaton, input: string): boolean {
-  let current = fa.start;
-  for (const ch of input) {
-    const t = fa.transitions.find((tr) => tr.from === current && tr.on === ch);
-    if (!t) return false;
-    current = t.to;
-  }
-  return fa.accept.has(current);
-}
-
-export function runNFA(fa: FiniteAutomaton, input: string): boolean {
-  let currentStates = new Set<string>([fa.start]);
-  currentStates = epsilonClosure(fa, currentStates);
-
-  for (const ch of input) {
-    const next = new Set<string>();
-    for (const state of currentStates) {
-      for (const t of fa.transitions) {
-        if (t.from === state && t.on === ch) {
-          next.add(t.to);
-        }
-      }
+  accepts(input: string): boolean {
+    let current = this.config.startState;
+    for (const char of input) {
+      const next = this.config.transitions[current]?.[char];
+      if (!next) return false;
+      current = next;
     }
-    currentStates = epsilonClosure(fa, next);
-    if (currentStates.size === 0) return false;
+    return this.config.acceptStates.includes(current);
   }
 
-  for (const state of currentStates) {
-    if (fa.accept.has(state)) return true;
-  }
-  return false;
-}
-
-function epsilonClosure(fa: FiniteAutomaton, states: Set<string>): Set<string> {
-  const result = new Set(states);
-  const stack = [...states];
-  while (stack.length > 0) {
-    const state = stack.pop()!;
-    for (const t of fa.transitions) {
-      if (t.from === state && t.on === "" && !result.has(t.to)) {
-        result.add(t.to);
-        stack.push(t.to);
-      }
+  run(input: string): { accepted: boolean; finalState: string; path: string[] } {
+    let current = this.config.startState;
+    const path = [current];
+    for (const char of input) {
+      const next = this.config.transitions[current]?.[char];
+      if (!next) return { accepted: false, finalState: current, path };
+      current = next;
+      path.push(current);
     }
+    return { accepted: this.config.acceptStates.includes(current), finalState: current, path };
   }
-  return result;
 }
 
-export function accepts(fa: FiniteAutomaton, input: string): boolean {
-  const hasEpsilon = fa.transitions.some((t) => t.on === "");
-  return hasEpsilon ? runNFA(fa, input) : runDFA(fa, input);
-}
+export function buildRegexDFA(pattern: string): DFA {
+  const states: string[] = [];
+  const transitions: Record<string, Record<string, string>> = {};
+  const acceptStates: string[] = [];
 
-export function getReachableStates(fa: FiniteAutomaton): Set<string> {
-  const visited = new Set<string>();
-  const stack = [fa.start];
-  while (stack.length > 0) {
-    const state = stack.pop()!;
-    if (visited.has(state)) continue;
-    visited.add(state);
-    for (const t of fa.transitions) {
-      if (t.from === state && !visited.has(t.to)) {
-        stack.push(t.to);
-      }
-    }
+  for (let i = 0; i <= pattern.length; i++) {
+    const state = `s${i}`;
+    states.push(state);
+    transitions[state] = {};
   }
-  return visited;
-}
 
-export function isComplete(fa: FiniteAutomaton): boolean {
-  for (const state of fa.states) {
-    for (const sym of fa.alphabet) {
-      if (sym === "") continue;
-      const has = fa.transitions.some((t) => t.from === state && t.on === sym);
-      if (!has) return false;
-    }
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern[i];
+    transitions[`s${i}`][char] = `s${i + 1}`;
   }
-  return true;
+
+  acceptStates.push(`s${pattern.length}`);
+
+  return new DFA({
+    states,
+    alphabet: [...new Set(pattern.split(""))],
+    transitions,
+    startState: "s0",
+    acceptStates,
+  });
 }

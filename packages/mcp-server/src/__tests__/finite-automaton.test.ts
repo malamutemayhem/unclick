@@ -1,99 +1,80 @@
 import { describe, it, expect } from "vitest";
-import { createFA, runDFA, runNFA, accepts, getReachableStates, isComplete } from "../finite-automaton.js";
+import { DFA, buildRegexDFA } from "../finite-automaton.js";
 
 describe("DFA", () => {
-  it("accepts matching string", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-      { from: "s1", to: "s2", on: "b" },
-    ], "s0", ["s2"]);
-    expect(runDFA(fa, "ab")).toBe(true);
+  const binaryEndsInOne = new DFA({
+    states: ["q0", "q1"],
+    alphabet: ["0", "1"],
+    transitions: {
+      q0: { "0": "q0", "1": "q1" },
+      q1: { "0": "q0", "1": "q1" },
+    },
+    startState: "q0",
+    acceptStates: ["q1"],
   });
 
-  it("rejects non-matching string", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-      { from: "s1", to: "s2", on: "b" },
-    ], "s0", ["s2"]);
-    expect(runDFA(fa, "ba")).toBe(false);
+  it("accepts matching input", () => {
+    expect(binaryEndsInOne.accepts("101")).toBe(true);
+    expect(binaryEndsInOne.accepts("1")).toBe(true);
+  });
+
+  it("rejects non-matching input", () => {
+    expect(binaryEndsInOne.accepts("100")).toBe(false);
+    expect(binaryEndsInOne.accepts("0")).toBe(false);
+  });
+
+  it("rejects empty input when start is not accept", () => {
+    expect(binaryEndsInOne.accepts("")).toBe(false);
+  });
+
+  it("rejects unknown chars", () => {
+    expect(binaryEndsInOne.accepts("abc")).toBe(false);
+  });
+
+  it("run returns path and final state", () => {
+    const result = binaryEndsInOne.run("101");
+    expect(result.accepted).toBe(true);
+    expect(result.finalState).toBe("q1");
+    expect(result.path).toEqual(["q0", "q1", "q0", "q1"]);
+  });
+
+  it("run stops on unknown transition", () => {
+    const result = binaryEndsInOne.run("1x0");
+    expect(result.accepted).toBe(false);
+    expect(result.path).toEqual(["q0", "q1"]);
+  });
+
+  it("run on empty string returns start state", () => {
+    const result = binaryEndsInOne.run("");
+    expect(result.finalState).toBe("q0");
+    expect(result.path).toEqual(["q0"]);
+  });
+});
+
+describe("buildRegexDFA", () => {
+  it("matches exact string", () => {
+    expect(buildRegexDFA("hello").accepts("hello")).toBe(true);
   });
 
   it("rejects partial match", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-      { from: "s1", to: "s2", on: "b" },
-    ], "s0", ["s2"]);
-    expect(runDFA(fa, "a")).toBe(false);
+    expect(buildRegexDFA("hello").accepts("hell")).toBe(false);
   });
 
-  it("accepts empty string if start is accept", () => {
-    const fa = createFA([], "s0", ["s0"]);
-    expect(runDFA(fa, "")).toBe(true);
-  });
-});
-
-describe("NFA", () => {
-  it("handles epsilon transitions", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "" },
-      { from: "s1", to: "s2", on: "a" },
-    ], "s0", ["s2"]);
-    expect(runNFA(fa, "a")).toBe(true);
+  it("rejects extra chars", () => {
+    expect(buildRegexDFA("hi").accepts("hii")).toBe(false);
   });
 
-  it("handles nondeterminism", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-      { from: "s0", to: "s2", on: "a" },
-    ], "s0", ["s2"]);
-    expect(runNFA(fa, "a")).toBe(true);
-  });
-});
-
-describe("accepts", () => {
-  it("auto-detects DFA", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "x" },
-    ], "s0", ["s1"]);
-    expect(accepts(fa, "x")).toBe(true);
+  it("rejects wrong string", () => {
+    expect(buildRegexDFA("abc").accepts("xyz")).toBe(false);
   });
 
-  it("auto-detects NFA with epsilon", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "" },
-      { from: "s1", to: "s2", on: "y" },
-    ], "s0", ["s2"]);
-    expect(accepts(fa, "y")).toBe(true);
-  });
-});
-
-describe("getReachableStates", () => {
-  it("finds reachable states", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-      { from: "s1", to: "s2", on: "b" },
-    ], "s0", ["s2"]);
-    const reachable = getReachableStates(fa);
-    expect(reachable.has("s0")).toBe(true);
-    expect(reachable.has("s1")).toBe(true);
-    expect(reachable.has("s2")).toBe(true);
-  });
-});
-
-describe("isComplete", () => {
-  it("returns true for complete DFA", () => {
-    const fa = createFA([
-      { from: "s0", to: "s0", on: "a" },
-      { from: "s0", to: "s0", on: "b" },
-    ], "s0", ["s0"]);
-    expect(isComplete(fa)).toBe(true);
+  it("matches empty pattern with empty input", () => {
+    expect(buildRegexDFA("").accepts("")).toBe(true);
   });
 
-  it("returns false for incomplete DFA", () => {
-    const fa = createFA([
-      { from: "s0", to: "s1", on: "a" },
-    ], "s0", ["s1"]);
-    fa.alphabet.add("b");
-    expect(isComplete(fa)).toBe(false);
+  it("run traces full path", () => {
+    const result = buildRegexDFA("ab").run("ab");
+    expect(result.accepted).toBe(true);
+    expect(result.path).toEqual(["s0", "s1", "s2"]);
   });
 });
