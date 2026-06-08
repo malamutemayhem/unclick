@@ -249,7 +249,7 @@ export async function crTopPlayers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCrKey(args);
-  const location = String(args.location ?? "global");
+  const location = String((args.locationId ?? args.location) ?? "global");
 
   const data = await supercellFetch<Record<string, unknown>>(
     CR_BASE,

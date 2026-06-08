@@ -16,15 +16,17 @@ const AnimatedNumber = ({ value, suffix, duration = 2000 }: { value: number; suf
 
   useEffect(() => {
     if (!inView) return;
+    let rafId: number;
     const start = Date.now();
     const tick = () => {
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(eased * value);
-      if (progress < 1) requestAnimationFrame(tick);
+      if (progress < 1) rafId = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [inView, value, duration]);
 
   const formatted = value % 1 !== 0 ? display.toFixed(value < 10 ? 1 : 2) : Math.round(display).toString();

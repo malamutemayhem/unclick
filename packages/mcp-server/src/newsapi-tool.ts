@@ -61,8 +61,8 @@ export async function newsGetTopHeadlines(args: Record<string, unknown>): Promis
     if (args.country)  params.country  = String(args.country);
     if (args.category) params.category = String(args.category);
     if (args.sources)  params.sources  = String(args.sources);
-    if (args.query)    params.q        = String(args.query);
-    if (args.page_size) params.pageSize = Number(args.page_size);
+    if (args.q ?? args.query)    params.q        = String(args.q ?? args.query);
+    if (args.pageSize ?? args.page_size) params.pageSize = Number(args.pageSize ?? args.page_size);
     if (args.page)     params.page     = Number(args.page);
     const data = await newsGet(apiKey, "/top-headlines", params);
     return stampMeta({
@@ -85,13 +85,13 @@ export async function newsSearchNews(args: Record<string, unknown>): Promise<unk
     const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
-    if (args.from_date)   params.from       = String(args.from_date);
-    if (args.to_date)     params.to         = String(args.to_date);
+    if (args.from ?? args.from_date)   params.from       = String(args.from ?? args.from_date);
+    if (args.to ?? args.to_date)       params.to         = String(args.to ?? args.to_date);
     if (args.language)    params.language   = String(args.language);
-    if (args.sort_by)     params.sortBy     = String(args.sort_by);
+    if (args.sortBy ?? args.sort_by)   params.sortBy     = String(args.sortBy ?? args.sort_by);
     if (args.sources)     params.sources    = String(args.sources);
     if (args.domains)     params.domains    = String(args.domains);
-    if (args.page_size)   params.pageSize   = Number(args.page_size);
+    if (args.pageSize ?? args.page_size)   params.pageSize   = Number(args.pageSize ?? args.page_size);
     if (args.page)        params.page       = Number(args.page);
     const data = await newsGet(apiKey, "/everything", params);
     return {

@@ -204,10 +204,10 @@ export async function getTogglSummary(args: Record<string, unknown>): Promise<un
     if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
-    const startDate = String(args.start_date ?? "").trim();
-    const endDate = String(args.end_date ?? "").trim();
-    if (!startDate) return { error: "start_date is required (YYYY-MM-DD)." };
-    if (!endDate) return { error: "end_date is required (YYYY-MM-DD)." };
+    const startDate = String((args.since ?? args.start_date) ?? "").trim();
+    const endDate = String((args.until ?? args.end_date) ?? "").trim();
+    if (!startDate) return { error: "since is required (YYYY-MM-DD)." };
+    if (!endDate) return { error: "until is required (YYYY-MM-DD)." };
 
     const body: Record<string, unknown> = {
       start_date: startDate,

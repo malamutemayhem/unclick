@@ -62,7 +62,7 @@ export async function searchDomainListings(args: Record<string, unknown>): Promi
   try {
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const listingType = String(args.listing_type ?? "residential").toLowerCase();
+    const listingType = String((args.listingType ?? args.listing_type) ?? "residential").toLowerCase();
     const endpoint = listingType === "commercial"
       ? "/listings/commercial/_search"
       : "/listings/residential/_search";
@@ -79,11 +79,11 @@ export async function searchDomainListings(args: Record<string, unknown>): Promi
 
     if (args.property_types) body["propertyTypes"] = args.property_types;
     if (args.listing_types) body["listingType"] = args.listing_types;
-    if (args.min_price) body["minPrice"] = Number(args.min_price);
-    if (args.max_price) body["maxPrice"] = Number(args.max_price);
-    if (args.min_bedrooms) body["minBedrooms"] = Number(args.min_bedrooms);
-    if (args.max_bedrooms) body["maxBedrooms"] = Number(args.max_bedrooms);
-    body["pageSize"] = Math.min(50, Number(args.page_size ?? 10));
+    if (args.minPrice ?? args.min_price) body["minPrice"] = Number(args.minPrice ?? args.min_price);
+    if (args.maxPrice ?? args.max_price) body["maxPrice"] = Number(args.maxPrice ?? args.max_price);
+    if (args.minBedrooms ?? args.min_bedrooms) body["minBedrooms"] = Number(args.minBedrooms ?? args.min_bedrooms);
+    if (args.maxBedrooms ?? args.max_bedrooms) body["maxBedrooms"] = Number(args.maxBedrooms ?? args.max_bedrooms);
+    body["pageSize"] = Math.min(50, Number((args.pageSize ?? args.page_size) ?? 10));
     if (args.page_number) body["pageNumber"] = Number(args.page_number);
 
     const data = await domainFetch(apiKey, endpoint, "POST", body) as Array<Record<string, unknown>>;
@@ -165,7 +165,7 @@ export async function getDomainSuburbStats(args: Record<string, unknown>): Promi
     if (!suburb) return { error: "suburb is required." };
     if (!state) return { error: "state is required (e.g. NSW, VIC, QLD)." };
 
-    const propertyCategory = String(args.property_category ?? "house").toLowerCase();
+    const propertyCategory = String((args.propertyCategory ?? args.property_category) ?? "house").toLowerCase();
     const bedrooms = args.bedrooms ? Number(args.bedrooms) : undefined;
 
     const path = `/suburbPerformanceStatistics/${state}/${encodeURIComponent(suburb)}/${propertyCategory}${bedrooms !== undefined ? `/${bedrooms}` : ""}`;

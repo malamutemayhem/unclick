@@ -69,7 +69,7 @@ export async function getRecentObservations(
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB', 'AU-NSW').");
 
   const back   = String(Math.min(30, Math.max(1, Number(args.back ?? 7))));
-  const maxResults = String(Math.min(10000, Math.max(1, Number(args.max_results ?? 100))));
+  const maxResults = String(Math.min(10000, Math.max(1, Number((args.maxResults ?? args.max_results) ?? 100))));
 
   const params: Record<string, string> = { back, maxResults };
   if (args.species_code) params.speciesCode = String(args.species_code);

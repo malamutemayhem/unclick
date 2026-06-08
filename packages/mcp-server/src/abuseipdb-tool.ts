@@ -94,7 +94,7 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const params: Record<string, string> = { ipAddress: ip };
-    if (args.max_age_in_days) params.maxAgeInDays = String(args.max_age_in_days);
+    if (args.maxAgeInDays ?? args.max_age_in_days) params.maxAgeInDays = String(args.maxAgeInDays ?? args.max_age_in_days);
     if (args.verbose) params.verbose = "true";
     const json = await abuseGet(apiKey, "/check", params);
     const d = json.data as Record<string, unknown> | undefined;
@@ -149,7 +149,7 @@ export async function getBlacklistAbuseipdb(args: Record<string, unknown>): Prom
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
-    if (args.confidence_minimum) params.confidenceMinimum = String(args.confidence_minimum);
+    if (args.confidenceMinimum ?? args.confidence_minimum) params.confidenceMinimum = String(args.confidenceMinimum ?? args.confidence_minimum);
     if (args.limit) params.limit = String(args.limit);
     const json = await abuseGet(apiKey, "/blacklist", params);
     const data = json.data as Array<Record<string, unknown>> | undefined;
