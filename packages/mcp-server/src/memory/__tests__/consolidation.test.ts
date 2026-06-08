@@ -123,6 +123,35 @@ describe("lane-08 consolidation", () => {
     assert.equal(superseded.every((row) => row.valid_to === now), true);
   });
 
+  test("NaN access_count does not break canonical selection sort", async () => {
+    const { buildMemoryConsolidationPlan } = await import("../consolidation.js");
+    const base = {
+      fact: "Chris prefers compact memory.",
+      category: "preference",
+      status: "active",
+      created_at: "2026-06-01T00:00:00Z",
+      valid_from: "2026-06-01T00:00:00Z",
+      valid_to: null,
+      invalidated_at: null,
+      source_type: "manual",
+      startup_fact_kind: "durable",
+    };
+    const rows = [
+      { ...base, id: "good", confidence: 0.95, access_count: 5 },
+      { ...base, id: "nan-access", confidence: 0.90, access_count: NaN as unknown as number },
+      { ...base, id: "null-access", confidence: 0.85, access_count: null },
+    ];
+    const plan = buildMemoryConsolidationPlan(rows as any, {
+      now: "2026-06-04T00:00:00Z",
+      dry_run: false,
+    });
+    assert.equal(plan.groups.length, 1, "all three duplicate facts form one group");
+    assert.equal(plan.groups[0].canonical_id, "good", "highest-scoring row is canonical");
+    const canonical = plan.patches.find((p) => p.id === "good");
+    assert.ok(canonical, "canonical patch exists");
+    assert.equal(Number.isFinite(canonical!.confidence), true, "confidence is finite");
+  });
+
   test("honors Worker 4 quarantine by excluding quarantined facts from consolidation", async () => {
     const { LocalBackend } = await import("../local.js");
     const backend = new LocalBackend();
