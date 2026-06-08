@@ -900,6 +900,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cidr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cidr_calculate",
+        "description": "Calculate subnet details from a CIDR notation (network, broadcast, mask, host count)."
+      }
+    ]
+  },
+  {
     "app": "circleci",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -1202,6 +1212,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "color_contrast_ratio",
         "description": "Check the contrast ratio between two colors."
+      }
+    ]
+  },
+  {
+    "app": "colorconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_hex_convert",
+        "description": "Convert a hex color to RGB and HSL values."
       }
     ]
   },
@@ -1678,6 +1698,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "difftext",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "diff_text",
+        "description": "Compare two texts line by line and show added/removed lines."
+      }
+    ]
+  },
+  {
     "app": "digimon",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2088,6 +2118,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "emojihub_by_category",
         "description": "Browse emojis by category (smileys, animals, food, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "epoch",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "epoch_convert",
+        "description": "Convert a Unix epoch timestamp to ISO 8601 and human-readable formats."
+      },
+      {
+        "name": "epoch_now",
+        "description": "Get the current Unix epoch timestamp in seconds and milliseconds."
       }
     ]
   },
@@ -5934,6 +5978,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "segment_get_source",
         "description": "Get details for a single Segment source including settings and enabled state."
+      }
+    ]
+  },
+  {
+    "app": "semver",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "semver_parse",
+        "description": "Parse a semantic version string into major, minor, patch, and prerelease."
+      },
+      {
+        "name": "semver_compare",
+        "description": "Compare two semantic versions (returns greater, less, or equal)."
       }
     ]
   },

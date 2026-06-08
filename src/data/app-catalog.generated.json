@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 416,
-  "toolCount": 1336,
+  "appCount": 421,
+  "toolCount": 1343,
   "categories": [
     "AI",
     "Books",
@@ -1082,6 +1082,22 @@
       "hardened": true
     },
     {
+      "slug": "cidr",
+      "name": "CIDR Calculator",
+      "category": "Developer & infra",
+      "blurb": "Calculate subnet details from CIDR notation (network, broadcast, hosts).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cidr_calculate",
+          "description": "Calculate subnet details from a CIDR notation (network, broadcast, mask, host count)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "cvecircl",
       "name": "CIRCL CVE",
       "category": "Security",
@@ -1459,6 +1475,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "colorconvert",
+      "name": "Color Converter",
+      "category": "Utilities",
+      "blurb": "Convert hex colors to RGB and HSL values locally.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "color_hex_convert",
+          "description": "Convert a hex color to RGB and HSL values."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -2600,6 +2632,26 @@
         {
           "name": "emojihub_by_category",
           "description": "Browse emojis by category (smileys, animals, food, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "epoch",
+      "name": "Epoch Converter",
+      "category": "Developer & infra",
+      "blurb": "Convert Unix epoch timestamps to ISO 8601 and human-readable formats.",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "epoch_convert",
+          "description": "Convert a Unix epoch timestamp to ISO 8601 and human-readable formats."
+        },
+        {
+          "name": "epoch_now",
+          "description": "Get the current Unix epoch timestamp in seconds and milliseconds."
         }
       ],
       "level": 5,
@@ -7726,6 +7778,26 @@
       "hardened": true
     },
     {
+      "slug": "semver",
+      "name": "Semver Tools",
+      "category": "Developer & infra",
+      "blurb": "Parse and compare semantic version strings.",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "semver_parse",
+          "description": "Parse a semantic version string into major, minor, patch, and prerelease."
+        },
+        {
+          "name": "semver_compare",
+          "description": "Compare two semantic versions (returns greater, less, or equal)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "sendgrid",
       "name": "Sendgrid",
       "category": "Messaging & email",
@@ -8683,6 +8755,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "difftext",
+      "name": "Text Diff",
+      "category": "Developer & infra",
+      "blurb": "Compare two texts line by line and show added/removed lines.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "diff_text",
+          "description": "Compare two texts line by line and show added/removed lines."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {

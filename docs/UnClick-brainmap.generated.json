@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 839,
+    "inventory": 844,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 417,
+    "tools": 422,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 417
+      "count": 422
     },
     {
       "id": "rooms",
@@ -4662,6 +4662,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-cidr-packages-mcp-server-src-cidr-tool-ts-no-route",
+      "division": "Tools",
+      "name": "cidr",
+      "kind": "MCP tool",
+      "meaning": "cidr MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/cidr-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-circleci-packages-mcp-server-src-circleci-tool-ts-no-route",
       "division": "Tools",
       "name": "circleci",
@@ -4808,6 +4818,16 @@
       "kind": "MCP tool",
       "meaning": "color MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/color-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-colorconvert-packages-mcp-server-src-colorconvert-tool-ts-no-route",
+      "division": "Tools",
+      "name": "colorconvert",
+      "kind": "MCP tool",
+      "meaning": "colorconvert MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/colorconvert-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5092,6 +5112,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-difftext-packages-mcp-server-src-difftext-tool-ts-no-route",
+      "division": "Tools",
+      "name": "difftext",
+      "kind": "MCP tool",
+      "meaning": "difftext MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/difftext-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-digimon-packages-mcp-server-src-digimon-tool-ts-no-route",
       "division": "Tools",
       "name": "digimon",
@@ -5298,6 +5328,16 @@
       "kind": "MCP tool",
       "meaning": "emojihub MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/emojihub-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-epoch-packages-mcp-server-src-epoch-tool-ts-no-route",
+      "division": "Tools",
+      "name": "epoch",
+      "kind": "MCP tool",
+      "meaning": "epoch MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/epoch-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7402,6 +7442,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-semver-packages-mcp-server-src-semver-tool-ts-no-route",
+      "division": "Tools",
+      "name": "semver",
+      "kind": "MCP tool",
+      "meaning": "semver MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/semver-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-sendgrid-packages-mcp-server-src-sendgrid-tool-ts-no-route",
       "division": "Tools",
       "name": "sendgrid",
@@ -9325,6 +9375,11 @@
       "packages/mcp-server/src/chucknorris-tool.ts"
     ],
     [
+      "cidr",
+      "cidr MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/cidr-tool.ts"
+    ],
+    [
       "circleci",
       "circleci MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/circleci-tool.ts"
@@ -9398,6 +9453,11 @@
       "color",
       "color MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/color-tool.ts"
+    ],
+    [
+      "colorconvert",
+      "colorconvert MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/colorconvert-tool.ts"
     ],
     [
       "colormind",
@@ -9540,6 +9600,11 @@
       "packages/mcp-server/src/dictionary-tool.ts"
     ],
     [
+      "difftext",
+      "difftext MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/difftext-tool.ts"
+    ],
+    [
       "digimon",
       "digimon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/digimon-tool.ts"
@@ -9643,6 +9708,11 @@
       "emojihub",
       "emojihub MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/emojihub-tool.ts"
+    ],
+    [
+      "epoch",
+      "epoch MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/epoch-tool.ts"
     ],
     [
       "espn",
@@ -10693,6 +10763,11 @@
       "segment",
       "segment MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/segment-tool.ts"
+    ],
+    [
+      "semver",
+      "semver MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/semver-tool.ts"
     ],
     [
       "sendgrid",

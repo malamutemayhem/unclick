@@ -581,6 +581,11 @@ import { urlEncode, urlDecode } from "./urlencode-tool.js";
 import { crontabExplain } from "./crontab-tool.js";
 import { jwtDecode } from "./jwt-tool.js";
 import { markdownToHtml, markdownStats } from "./markdown-tool.js";
+import { cidrCalculate } from "./cidr-tool.js";
+import { semverParse, semverCompare } from "./semver-tool.js";
+import { colorHexConvert } from "./colorconvert-tool.js";
+import { epochConvert, epochNow } from "./epoch-tool.js";
+import { diffText } from "./difftext-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9021,6 +9026,77 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         markdown: { type: "string" as const, description: "Markdown text to analyze." },
       }, required: ["markdown"],
+    },
+  },
+
+  // ── cidr-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "cidr_calculate",
+    description: "Calculate subnet details from a CIDR notation (network, broadcast, mask, host count).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cidr: { type: "string" as const, description: "CIDR notation (e.g. 192.168.1.0/24)." },
+      }, required: ["cidr"],
+    },
+  },
+
+  // ── semver-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "semver_parse",
+    description: "Parse a semantic version string into major, minor, patch, and prerelease.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        version: { type: "string" as const, description: "Version string (e.g. 2.3.1-beta.1)." },
+      }, required: ["version"],
+    },
+  },
+  {
+    name: "semver_compare",
+    description: "Compare two semantic versions (returns greater, less, or equal).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        version_a: { type: "string" as const, description: "First version." },
+        version_b: { type: "string" as const, description: "Second version." },
+      }, required: ["version_a", "version_b"],
+    },
+  },
+
+  // ── colorconvert-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "color_hex_convert",
+    description: "Convert a hex color to RGB and HSL values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. #FF5733 or FF5733)." },
+      }, required: ["hex"],
+    },
+  },
+
+  // ── epoch-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "epoch_convert",
+    description: "Convert a Unix epoch timestamp to ISO 8601 and human-readable formats.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timestamp: { type: "number" as const, description: "Unix epoch (seconds or milliseconds)." },
+      }, required: ["timestamp"],
+    },
+  },
+  {
+    name: "epoch_now",
+    description: "Get the current Unix epoch timestamp in seconds and milliseconds.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── difftext-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "diff_text",
+    description: "Compare two texts line by line and show added/removed lines.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text (original)." },
+        text_b: { type: "string" as const, description: "Second text (modified)." },
+      }, required: ["text_a", "text_b"],
     },
   },
 
@@ -20402,6 +20478,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // markdown-tool.ts
   markdown_to_html:          (args) => markdownToHtml(args),
   markdown_stats:            (args) => markdownStats(args),
+
+  // cidr-tool.ts
+  cidr_calculate:            (args) => cidrCalculate(args),
+
+  // semver-tool.ts
+  semver_parse:              (args) => semverParse(args),
+  semver_compare:            (args) => semverCompare(args),
+
+  // colorconvert-tool.ts
+  color_hex_convert:         (args) => colorHexConvert(args),
+
+  // epoch-tool.ts
+  epoch_convert:             (args) => epochConvert(args),
+  epoch_now:                 (args) => epochNow(args),
+
+  // difftext-tool.ts
+  diff_text:                 (args) => diffText(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

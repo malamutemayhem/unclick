@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T19:00:00.000Z",
+  "updatedAt": "2026-06-08T19:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3328,6 +3328,36 @@
       "note": "markdown_to_html and markdown_stats convert and analyze Markdown locally. No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
       "toolsTested": ["markdown_to_html", "markdown_stats"]
+    },
+    "cidr": {
+      "status": "pass",
+      "note": "cidr_calculate computes subnet details from CIDR notation locally. No API needed.",
+      "testedAt": "2026-06-08T19:30:00.000Z",
+      "toolsTested": ["cidr_calculate"]
+    },
+    "semver": {
+      "status": "pass",
+      "note": "semver_parse and semver_compare handle semantic versions locally. No API needed.",
+      "testedAt": "2026-06-08T19:30:00.000Z",
+      "toolsTested": ["semver_parse", "semver_compare"]
+    },
+    "colorconvert": {
+      "status": "pass",
+      "note": "color_hex_convert converts hex to RGB and HSL locally. No API needed.",
+      "testedAt": "2026-06-08T19:30:00.000Z",
+      "toolsTested": ["color_hex_convert"]
+    },
+    "epoch": {
+      "status": "pass",
+      "note": "epoch_convert and epoch_now handle Unix timestamps locally. No API needed.",
+      "testedAt": "2026-06-08T19:30:00.000Z",
+      "toolsTested": ["epoch_convert", "epoch_now"]
+    },
+    "difftext": {
+      "status": "pass",
+      "note": "diff_text compares two texts line by line locally. No API needed.",
+      "testedAt": "2026-06-08T19:30:00.000Z",
+      "toolsTested": ["diff_text"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
