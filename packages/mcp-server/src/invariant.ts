@@ -1,29 +1,33 @@
-export function invariant(condition: unknown, message?: string): asserts condition {
-  if (!condition) {
-    throw new Error(message ?? "Invariant violation");
+export class InvariantError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InvariantError";
   }
 }
 
-export function precondition(condition: unknown, message?: string): asserts condition {
-  if (!condition) {
-    throw new Error(message ?? "Precondition failed");
+export function invariant(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new InvariantError(message);
+}
+
+export function precondition(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new InvariantError(`Precondition failed: ${message}`);
+}
+
+export function postcondition(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new InvariantError(`Postcondition failed: ${message}`);
+}
+
+export function assertDefined<T>(value: T | null | undefined, name: string): asserts value is T {
+  if (value === null || value === undefined) {
+    throw new InvariantError(`Expected ${name} to be defined, got ${value}`);
   }
 }
 
-export function postcondition(condition: unknown, message?: string): asserts condition {
-  if (!condition) {
-    throw new Error(message ?? "Postcondition failed");
-  }
+export function assertNever(value: never, message?: string): never {
+  throw new InvariantError(message ?? `Unexpected value: ${value}`);
 }
 
-export function unreachable(value?: never): never {
-  throw new Error(`Unreachable code reached${value !== undefined ? `: ${value}` : ""}`);
-}
-
-export function todo(message?: string): never {
-  throw new Error(message ?? "Not yet implemented");
-}
-
-export function deprecated(message?: string): void {
-  console.warn(`DEPRECATED: ${message ?? "This function is deprecated"}`);
+export function check<T>(value: T | null | undefined, message: string): T {
+  if (value === null || value === undefined) throw new InvariantError(message);
+  return value;
 }

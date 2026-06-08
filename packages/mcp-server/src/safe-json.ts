@@ -1,6 +1,6 @@
-export function safeParse<T = unknown>(json: string, fallback?: T): T | undefined {
+export function safeParse<T = unknown>(input: string, fallback?: T): T | undefined {
   try {
-    return JSON.parse(json);
+    return JSON.parse(input) as T;
   } catch {
     return fallback;
   }
@@ -14,40 +14,33 @@ export function safeStringify(value: unknown, space?: number): string | undefine
   }
 }
 
-export function deepFreeze<T>(obj: T): Readonly<T> {
+export function parseWithDates(input: string): unknown {
+  const ISO_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+  return JSON.parse(input, (_key: string, value: unknown) => {
+    if (typeof value === "string" && ISO_DATE.test(value)) {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return value;
+  });
+}
+
+export function deepFreeze<T>(obj: T): T {
   if (obj === null || typeof obj !== "object") return obj;
   Object.freeze(obj);
-  for (const key of Object.keys(obj)) {
-    deepFreeze((obj as any)[key]);
+  for (const key of Object.keys(obj as Record<string, unknown>)) {
+    deepFreeze((obj as Record<string, unknown>)[key]);
   }
   return obj;
 }
 
-export function flattenObject(obj: Record<string, any>, prefix = ""): Record<string, any> {
-  const result: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key;
-    if (value !== null && typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
-      Object.assign(result, flattenObject(value, fullKey));
-    } else {
-      result[fullKey] = value;
-    }
+export function stripUndefined<T>(obj: T): T {
+  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return obj;
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    if (value !== undefined) result[key] = stripUndefined(value);
   }
-  return result;
-}
-
-export function unflattenObject(obj: Record<string, any>): Record<string, any> {
-  const result: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const parts = key.split(".");
-    let current = result;
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!(parts[i] in current)) current[parts[i]] = {};
-      current = current[parts[i]];
-    }
-    current[parts[parts.length - 1]] = value;
-  }
-  return result;
+  return result as T;
 }
 
 function replacer(_key: string, value: unknown): unknown {

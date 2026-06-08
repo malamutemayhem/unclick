@@ -1,57 +1,60 @@
-import { describe, it, expect, vi } from "vitest";
-import { Lazy, lazy, lazyAsync, memoizeLazy } from "../lazy.js";
+import { describe, it, expect } from "vitest";
+import { Lazy, lazy, lazySeq } from "../lazy.js";
 
-describe("lazy", () => {
-  it("defers computation until value is accessed", () => {
-    const fn = vi.fn(() => 42);
-    const lz = new Lazy(fn);
-    expect(fn).not.toHaveBeenCalled();
-    expect(lz.value).toBe(42);
-    expect(fn).toHaveBeenCalledTimes(1);
+describe("Lazy", () => {
+  it("defers computation", () => {
+    let computed = false;
+    const l = new Lazy(() => { computed = true; return 42; });
+    expect(computed).toBe(false);
+    expect(l.get()).toBe(42);
+    expect(computed).toBe(true);
   });
 
-  it("caches the result", () => {
-    const fn = vi.fn(() => Math.random());
-    const lz = lazy(fn);
-    const first = lz.value;
-    const second = lz.value;
-    expect(first).toBe(second);
-    expect(fn).toHaveBeenCalledTimes(1);
+  it("memoizes result", () => {
+    let count = 0;
+    const l = lazy(() => ++count);
+    expect(l.get()).toBe(1);
+    expect(l.get()).toBe(1);
   });
 
-  it("isInitialized tracks state", () => {
-    const lz = lazy(() => "x");
-    expect(lz.isInitialized).toBe(false);
-    lz.value;
-    expect(lz.isInitialized).toBe(true);
+  it("tracks isInitialized", () => {
+    const l = lazy(() => 1);
+    expect(l.isInitialized).toBe(false);
+    l.get();
+    expect(l.isInitialized).toBe(true);
   });
 
-  it("map creates a new lazy", () => {
-    const lz = lazy(() => 5).map((n) => n * 2);
-    expect(lz.value).toBe(10);
+  it("map transforms lazily", () => {
+    let computed = false;
+    const l = lazy(() => 5).map((v: number) => { computed = true; return v * 2; });
+    expect(computed).toBe(false);
+    expect(l.get()).toBe(10);
   });
 
   it("flatMap chains lazy values", () => {
-    const lz = lazy(() => 3).flatMap((n) => lazy(() => n + 10));
-    expect(lz.value).toBe(13);
+    const l = lazy(() => 5).flatMap((v: number) => lazy(() => v * 3));
+    expect(l.get()).toBe(15);
+  });
+});
+
+describe("LazySequence", () => {
+  it("take returns first N elements", () => {
+    const seq = lazySeq(function* () { let i = 0; while (true) yield i++; });
+    expect(seq.take(5)).toEqual([0, 1, 2, 3, 4]);
   });
 
-  it("lazyAsync defers and caches promise", async () => {
-    let calls = 0;
-    const fn = lazyAsync(async () => { calls++; return 99; });
-    const a = fn();
-    const b = fn();
-    expect(await a).toBe(99);
-    expect(await b).toBe(99);
-    expect(calls).toBe(1);
+  it("map transforms lazily", () => {
+    const seq = lazySeq(function* () { yield 1; yield 2; yield 3; });
+    expect(seq.map((v: number) => v * 2).toArray()).toEqual([2, 4, 6]);
   });
 
-  it("memoizeLazy caches per key", () => {
-    const fn = vi.fn((key: string) => key.toUpperCase());
-    const mfn = memoizeLazy(fn);
-    expect(mfn("a")).toBe("A");
-    expect(mfn("a")).toBe("A");
-    expect(mfn("b")).toBe("B");
-    expect(fn).toHaveBeenCalledTimes(2);
+  it("filter keeps matching", () => {
+    const seq = lazySeq(function* () { yield 1; yield 2; yield 3; yield 4; });
+    expect(seq.filter((v: number) => v % 2 === 0).toArray()).toEqual([2, 4]);
+  });
+
+  it("is iterable", () => {
+    const seq = lazySeq(function* () { yield 1; yield 2; });
+    expect([...seq]).toEqual([1, 2]);
   });
 });
