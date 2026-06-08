@@ -1838,6 +1838,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dohdns",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dohdns_resolve",
+        "description": "Resolve DNS records for a domain via Google DNS-over-HTTPS."
+      }
+    ]
+  },
+  {
     "app": "domain",
     "category": "Australian / Local",
     "tools": [
@@ -2726,6 +2736,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gutendex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gutendex_search",
+        "description": "Search Project Gutenberg free ebooks."
+      },
+      {
+        "name": "gutendex_book",
+        "description": "Get details for a Project Gutenberg book by ID."
+      }
+    ]
+  },
+  {
     "app": "hackernews",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2956,6 +2980,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hunter_domain_info",
         "description": "Get email information for a domain from Hunter.io."
+      }
+    ]
+  },
+  {
+    "app": "iban",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iban_validate",
+        "description": "Validate an IBAN and get bank/BIC info via OpenIBAN."
       }
     ]
   },
@@ -5304,6 +5338,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rdap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rdap_domain",
+        "description": "Look up domain registration data via RDAP (WHOIS replacement)."
+      },
+      {
+        "name": "rdap_ip",
+        "description": "Look up IP address registration data via RDAP."
+      }
+    ]
+  },
+  {
     "app": "readwise",
     "category": "Productivity",
     "tools": [
@@ -5526,6 +5574,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "riot_valorant_account",
         "description": "Get a Valorant account by game name and tag line."
+      }
+    ]
+  },
+  {
+    "app": "ripe",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ripe_network_info",
+        "description": "Get network information for an IP or prefix from RIPE NCC."
+      },
+      {
+        "name": "ripe_asn_neighbours",
+        "description": "Get peering neighbours for an ASN from RIPE NCC."
       }
     ]
   },
@@ -6044,6 +6106,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stability_list_engines",
         "description": "List all available Stability AI generation engines."
+      }
+    ]
+  },
+  {
+    "app": "stackexchange",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stackexchange_search",
+        "description": "Search Stack Exchange (default: Stack Overflow) for questions."
+      },
+      {
+        "name": "stackexchange_question",
+        "description": "Get a Stack Exchange question by ID."
       }
     ]
   },

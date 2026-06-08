@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T16:00:00.000Z",
+  "updatedAt": "2026-06-08T17:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3166,6 +3166,42 @@
       "note": "pypi_get_package returns Python package metadata from PyPI. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
       "toolsTested": ["pypi_get_package", "pypi_get_version"]
+    },
+    "rdap": {
+      "status": "pass",
+      "note": "rdap_domain returns domain registration data via RDAP protocol. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["rdap_domain", "rdap_ip"]
+    },
+    "iban": {
+      "status": "pass",
+      "note": "iban_validate validates IBANs and returns BIC/bank data via OpenIBAN. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["iban_validate"]
+    },
+    "stackexchange": {
+      "status": "pass",
+      "note": "stackexchange_search returns Stack Overflow questions. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["stackexchange_search", "stackexchange_question"]
+    },
+    "ripe": {
+      "status": "pass",
+      "note": "ripe_network_info returns IP/prefix network data from RIPE NCC. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["ripe_network_info", "ripe_asn_neighbours"]
+    },
+    "gutendex": {
+      "status": "pass",
+      "note": "gutendex_search returns Project Gutenberg free ebooks. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["gutendex_search", "gutendex_book"]
+    },
+    "dohdns": {
+      "status": "pass",
+      "note": "dohdns_resolve returns DNS records via Google DNS-over-HTTPS. Free, no key needed.",
+      "testedAt": "2026-06-08T17:00:00.000Z",
+      "toolsTested": ["dohdns_resolve"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 389,
-  "toolCount": 1291,
+  "appCount": 395,
+  "toolCount": 1301,
   "categories": [
     "AI",
     "Books",
@@ -2238,6 +2238,22 @@
       "hardened": false
     },
     {
+      "slug": "dohdns",
+      "name": "DNS over HTTPS",
+      "category": "Developer & infra",
+      "blurb": "Resolve DNS records (A, AAAA, MX, TXT, CNAME) via Google DNS-over-HTTPS.",
+      "domain": "dns.google",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dohdns_resolve",
+          "description": "Resolve DNS records for a domain via Google DNS-over-HTTPS."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dogceo",
       "name": "Dog CEO",
       "category": "Images",
@@ -3416,6 +3432,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "gutendex",
+      "name": "Gutendex (Project Gutenberg)",
+      "category": "Books",
+      "blurb": "Search and browse 70,000+ free ebooks from Project Gutenberg.",
+      "domain": "gutendex.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "gutendex_search",
+          "description": "Search Project Gutenberg free ebooks."
+        },
+        {
+          "name": "gutendex_book",
+          "description": "Get details for a Project Gutenberg book by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "hackernews",
@@ -5818,6 +5854,22 @@
       "hardened": false
     },
     {
+      "slug": "iban",
+      "name": "OpenIBAN",
+      "category": "Utilities",
+      "blurb": "Validate IBANs and get BIC/bank information via OpenIBAN.",
+      "domain": "openiban.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "iban_validate",
+          "description": "Validate an IBAN and get bank/BIC info via OpenIBAN."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "opensky",
       "name": "OpenSky Network",
       "category": "Travel, maps & local",
@@ -6870,6 +6922,26 @@
       "hardened": true
     },
     {
+      "slug": "rdap",
+      "name": "RDAP",
+      "category": "Security",
+      "blurb": "Domain and IP registration data via the RDAP protocol (WHOIS replacement).",
+      "domain": "rdap.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "rdap_domain",
+          "description": "Look up domain registration data via RDAP (WHOIS replacement)."
+        },
+        {
+          "name": "rdap_ip",
+          "description": "Look up IP address registration data via RDAP."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "readwise",
       "name": "Readwise",
       "category": "News & reading",
@@ -7148,6 +7220,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ripe",
+      "name": "RIPE NCC",
+      "category": "Security",
+      "blurb": "Network information and ASN peering data from RIPE NCC.",
+      "domain": "stat.ripe.net",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "ripe_network_info",
+          "description": "Get network information for an IP or prefix from RIPE NCC."
+        },
+        {
+          "name": "ripe_asn_neighbours",
+          "description": "Get peering neighbours for an ASN from RIPE NCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "robohash",
@@ -7816,6 +7908,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "stackexchange",
+      "name": "Stack Exchange",
+      "category": "Developer & infra",
+      "blurb": "Search Stack Overflow and Stack Exchange Q&A by keyword or question ID.",
+      "domain": "stackoverflow.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "stackexchange_search",
+          "description": "Search Stack Exchange (default: Stack Overflow) for questions."
+        },
+        {
+          "name": "stackexchange_question",
+          "description": "Get a Stack Exchange question by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "stapi",

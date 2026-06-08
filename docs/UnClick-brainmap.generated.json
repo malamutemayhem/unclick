@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 812,
+    "inventory": 818,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 390,
+    "tools": 396,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 390
+      "count": 396
     },
     {
       "id": "rooms",
@@ -5152,6 +5152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dohdns-packages-mcp-server-src-dohdns-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dohdns",
+      "kind": "MCP tool",
+      "meaning": "dohdns MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dohdns-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-domain-packages-mcp-server-src-domain-tool-ts-no-route",
       "division": "Tools",
       "name": "domain",
@@ -5632,6 +5642,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-gutendex-packages-mcp-server-src-gutendex-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gutendex",
+      "kind": "MCP tool",
+      "meaning": "gutendex MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gutendex-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-hackernews-packages-mcp-server-src-hackernews-tool-ts-no-route",
       "division": "Tools",
       "name": "hackernews",
@@ -5748,6 +5768,16 @@
       "kind": "MCP tool",
       "meaning": "hunter MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/hunter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-iban-packages-mcp-server-src-iban-tool-ts-no-route",
+      "division": "Tools",
+      "name": "iban",
+      "kind": "MCP tool",
+      "meaning": "iban MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/iban-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7032,6 +7062,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rdap-packages-mcp-server-src-rdap-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rdap",
+      "kind": "MCP tool",
+      "meaning": "rdap MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rdap-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-readwise-packages-mcp-server-src-readwise-tool-ts-no-route",
       "division": "Tools",
       "name": "readwise",
@@ -7118,6 +7158,16 @@
       "kind": "MCP tool",
       "meaning": "riot MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/riot-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-ripe-packages-mcp-server-src-ripe-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ripe",
+      "kind": "MCP tool",
+      "meaning": "ripe MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ripe-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7368,6 +7418,16 @@
       "kind": "MCP tool",
       "meaning": "stability MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/stability-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-stackexchange-packages-mcp-server-src-stackexchange-tool-ts-no-route",
+      "division": "Tools",
+      "name": "stackexchange",
+      "kind": "MCP tool",
+      "meaning": "stackexchange MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/stackexchange-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9300,6 +9360,11 @@
       "packages/mcp-server/src/dogfacts-tool.ts"
     ],
     [
+      "dohdns",
+      "dohdns MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dohdns-tool.ts"
+    ],
+    [
       "domain",
       "domain MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/domain-tool.ts"
@@ -9540,6 +9605,11 @@
       "packages/mcp-server/src/gumroad-tool.ts"
     ],
     [
+      "gutendex",
+      "gutendex MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gutendex-tool.ts"
+    ],
+    [
       "hackernews",
       "hackernews MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hackernews-tool.ts"
@@ -9598,6 +9668,11 @@
       "hunter",
       "hunter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hunter-tool.ts"
+    ],
+    [
+      "iban",
+      "iban MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/iban-tool.ts"
     ],
     [
       "iceandfire",
@@ -10240,6 +10315,11 @@
       "packages/mcp-server/src/rawg-tool.ts"
     ],
     [
+      "rdap",
+      "rdap MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rdap-tool.ts"
+    ],
+    [
       "readwise",
       "readwise MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/readwise-tool.ts"
@@ -10283,6 +10363,11 @@
       "riot",
       "riot MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/riot-tool.ts"
+    ],
+    [
+      "ripe",
+      "ripe MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ripe-tool.ts"
     ],
     [
       "robohash",
@@ -10408,6 +10493,11 @@
       "stability",
       "stability MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/stability-tool.ts"
+    ],
+    [
+      "stackexchange",
+      "stackexchange MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/stackexchange-tool.ts"
     ],
     [
       "stapi",

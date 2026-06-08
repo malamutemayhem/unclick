@@ -554,6 +554,12 @@ import { openchargemapSearch } from "./openchargemap-tool.js";
 import { cratesSearch, cratesGet } from "./crates-tool.js";
 import { npmSearch, npmGetPackage } from "./npm-registry-tool.js";
 import { pypiGetPackage, pypiGetVersion } from "./pypi-tool.js";
+import { rdapDomain, rdapIp } from "./rdap-tool.js";
+import { ibanValidate } from "./iban-tool.js";
+import { stackexchangeSearch, stackexchangeQuestion } from "./stackexchange-tool.js";
+import { ripeNetworkInfo, ripeAsnNeighbours } from "./ripe-tool.js";
+import { gutendexSearch, gutendexBook } from "./gutendex-tool.js";
+import { dohdnsResolve } from "./dohdns-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8514,6 +8520,113 @@ export const ADDITIONAL_TOOLS = [
         name: { type: "string" as const, description: "Package name." },
         version: { type: "string" as const, description: "Version string." },
       }, required: ["name", "version"],
+    },
+  },
+
+  // ── rdap-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "rdap_domain",
+    description: "Look up domain registration data via RDAP (WHOIS replacement).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain name to look up." },
+      }, required: ["domain"],
+    },
+  },
+  {
+    name: "rdap_ip",
+    description: "Look up IP address registration data via RDAP.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up." },
+      }, required: ["ip"],
+    },
+  },
+
+  // ── iban-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "iban_validate",
+    description: "Validate an IBAN and get bank/BIC info via OpenIBAN.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        iban: { type: "string" as const, description: "IBAN to validate." },
+      }, required: ["iban"],
+    },
+  },
+
+  // ── stackexchange-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "stackexchange_search",
+    description: "Search Stack Exchange (default: Stack Overflow) for questions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        site: { type: "string" as const, description: "SE site (default: stackoverflow)." },
+        page: { type: "number" as const, description: "Page number." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "stackexchange_question",
+    description: "Get a Stack Exchange question by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Question ID." },
+        site: { type: "string" as const, description: "SE site (default: stackoverflow)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── ripe-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "ripe_network_info",
+    description: "Get network information for an IP or prefix from RIPE NCC.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        resource: { type: "string" as const, description: "IP address or prefix." },
+      }, required: ["resource"],
+    },
+  },
+  {
+    name: "ripe_asn_neighbours",
+    description: "Get peering neighbours for an ASN from RIPE NCC.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN (e.g. AS13335)." },
+      }, required: ["asn"],
+    },
+  },
+
+  // ── gutendex-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "gutendex_search",
+    description: "Search Project Gutenberg free ebooks.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        page: { type: "number" as const, description: "Page number." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "gutendex_book",
+    description: "Get details for a Project Gutenberg book by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Gutenberg book ID." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── dohdns-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dohdns_resolve",
+    description: "Resolve DNS records for a domain via Google DNS-over-HTTPS.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Domain name to resolve." },
+        type: { type: "string" as const, description: "Record type: A, AAAA, MX, TXT, CNAME, NS (default: A)." },
+      }, required: ["name"],
     },
   },
 
@@ -19796,6 +19909,28 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // pypi-tool.ts
   pypi_get_package:          (args) => pypiGetPackage(args),
   pypi_get_version:          (args) => pypiGetVersion(args),
+
+  // rdap-tool.ts
+  rdap_domain:               (args) => rdapDomain(args),
+  rdap_ip:                   (args) => rdapIp(args),
+
+  // iban-tool.ts
+  iban_validate:             (args) => ibanValidate(args),
+
+  // stackexchange-tool.ts
+  stackexchange_search:      (args) => stackexchangeSearch(args),
+  stackexchange_question:    (args) => stackexchangeQuestion(args),
+
+  // ripe-tool.ts
+  ripe_network_info:         (args) => ripeNetworkInfo(args),
+  ripe_asn_neighbours:       (args) => ripeAsnNeighbours(args),
+
+  // gutendex-tool.ts
+  gutendex_search:           (args) => gutendexSearch(args),
+  gutendex_book:             (args) => gutendexBook(args),
+
+  // dohdns-tool.ts
+  dohdns_resolve:            (args) => dohdnsResolve(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
