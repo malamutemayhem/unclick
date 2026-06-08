@@ -137,7 +137,7 @@ const FRESHNESS_STYLES: Record<SeatFreshnessLabel, string> = {
   Live: "border-[#61C1C4]/35 bg-[#61C1C4]/10 text-[#61C1C4]",
   Recent: "border-white/[0.08] bg-white/[0.04] text-white/60",
   "Missed check-in": "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
-  Quiet: "border-white/[0.06] bg-black/20 text-white/35",
+  Quiet: "border-white/[0.06] bg-white/[0.03] text-white/35",
 };
 
 const ACTOR_TONE_STYLES: Record<ActorTone, string> = {
@@ -1229,7 +1229,7 @@ export default function AdminOrchestratorPage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10 text-[#61C1C4]">
             <Sparkles className="h-5 w-5" />
@@ -1243,7 +1243,7 @@ export default function AdminOrchestratorPage() {
             </p>
           </div>
         </div>
-        <div className="inline-flex w-full rounded-xl border border-white/[0.08] bg-black/20 p-1 md:w-auto">
+        <div className="inline-flex w-full rounded-xl border border-white/[0.08] bg-white/[0.03] p-1 md:w-auto">
           <Link
             to="/admin/orchestrator"
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none ${
@@ -1267,7 +1267,7 @@ export default function AdminOrchestratorPage() {
             Timeline
           </Link>
         </div>
-      </div>
+      </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
         {/* Main continuity pane */}
@@ -1363,19 +1363,19 @@ function OrchestratorStoryPanel({
   };
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-2xl shadow-black/30">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
       <div className="border-b border-white/[0.06] px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 text-[#61C1C4]">
               <BookOpen className="h-4 w-4" />
-              <h2 className="text-lg font-semibold text-white">Today's running story</h2>
+              <h2 className="text-base font-semibold text-white">Today's running story</h2>
             </div>
             <p className="mt-1 text-sm text-white/45">
               Latest first, written as a continuous read. Timeline keeps every raw receipt.
             </p>
           </div>
-          <label className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/20 px-3 py-2 text-xs text-white/55">
+          <label className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/55">
             <input
               type="checkbox"
               checked={nativeNotes}
@@ -1405,9 +1405,9 @@ function OrchestratorStoryPanel({
               const shownStory = showFullStory ? chapter.narrative : preview.text;
 
               return (
-                <li key={chapter.key} className="group relative pb-9 last:pb-0">
+                <li key={chapter.key} className="group relative pb-7 last:pb-0">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-xl font-semibold leading-7 text-white sm:text-2xl">
+                    <h3 className="text-[15px] font-semibold leading-6 text-white sm:text-base">
                       <span className="mr-2">{chapter.emoji}</span>
                       {chapter.title}
                     </h3>
@@ -1419,11 +1419,11 @@ function OrchestratorStoryPanel({
                       {formatRelative(chapter.endedAt)}
                     </time>
                   </div>
-                  <p className="mt-3 text-base leading-8 text-white/82 sm:text-[17px]">
+                  <p className="mt-1.5 text-sm leading-6 text-white/75 sm:text-[15px]">
                     {shownStory}
                   </p>
                   {nativeNotes && (
-                    <div className="mt-4 rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3 text-xs leading-6 text-white/42">
+                    <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-xs leading-6 text-white/42">
                       <div className="mb-2 font-medium text-white/55">Native notes from this chapter</div>
                       <ul className="space-y-1">
                         {chapter.nativeNotes.map((note) => (
@@ -1614,16 +1614,16 @@ function OrchestratorContinuityPanel({
   }
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03]">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
       <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
             <MessageSquareText className="h-4 w-4 text-[#61C1C4]" />
-            <h2 className="text-sm font-semibold text-white">Continuity Feed</h2>
+            <h2 className="text-base font-semibold text-white">Continuity Feed</h2>
           </div>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-white/45">
-            Read-only context from UnClick memory, Boardroom, Jobs, signals, heartbeats, and saved chat summaries.
-            Live Claude/ChatGPT subscription transcripts only appear here after those clients send or save them to UnClick.
+            A read-only view of what is saved to UnClick: memory, Boardroom, Jobs, signals, heartbeats, and chat
+            summaries. Live Claude or ChatGPT chats show up here only after they are sent or saved to UnClick.
           </p>
         </div>
         <span className="shrink-0 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#61C1C4]">
@@ -1650,7 +1650,7 @@ function OrchestratorContinuityPanel({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Filter Orchestrator feed"
-            className="w-full rounded-md border border-white/[0.06] bg-black/20 py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
+            className="w-full rounded-md border border-white/[0.06] bg-white/[0.03] py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
           />
           {searchQuery && (
             <button
@@ -1664,7 +1664,7 @@ function OrchestratorContinuityPanel({
           )}
         </div>
 
-        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
           <span>
             <span className="block text-xs font-medium text-white/75">Plain-language view</span>
             <span className="block text-[10px] text-white/35">
@@ -1698,7 +1698,7 @@ function OrchestratorContinuityPanel({
               className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition ${
                 selected
                   ? "border-[#61C1C4]/35 bg-[#61C1C4]/15 text-[#A9EEF0]"
-                  : "border-white/[0.06] bg-black/20 text-white/45 hover:border-white/[0.12] hover:text-white/70"
+                  : "border-white/[0.06] bg-white/[0.03] text-white/45 hover:border-white/[0.12] hover:text-white/70"
               }`}
             >
               {filter.label}
@@ -1719,7 +1719,7 @@ function OrchestratorContinuityPanel({
             aria-label="Dripfeed Education"
             checked={dripfeedEducation}
             onChange={(event) => toggleDripfeedEducation(event.target.checked)}
-            className="h-4 w-4 rounded border-white/[0.12] bg-black/30 accent-[#61C1C4]"
+            className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
           />
           <span>Dripfeed Education</span>
         </label>
@@ -1729,7 +1729,7 @@ function OrchestratorContinuityPanel({
             aria-label="Analogies"
             checked={analogies}
             onChange={(event) => toggleAnalogies(event.target.checked)}
-            className="h-4 w-4 rounded border-white/[0.12] bg-black/30 accent-[#61C1C4]"
+            className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
           />
           <span>Analogies</span>
         </label>
@@ -1743,13 +1743,13 @@ function OrchestratorContinuityPanel({
           <p className="text-sm text-white/45">Loading Orchestrator continuity...</p>
         )}
         {!loading && events.length === 0 && (
-          <div className="rounded-xl border border-white/[0.08] bg-black/20 p-5 text-sm leading-6 text-white/55">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-6 text-white/55">
             No continuity events are available yet. Ask a connected AI seat to save a session, post to Boardroom,
             or run the UnClick heartbeat so Orchestrator has something to show.
           </div>
         )}
         {!loading && events.length > 0 && filteredEventViews.length === 0 && (
-          <div className="rounded-xl border border-white/[0.08] bg-black/20 p-5 text-sm leading-6 text-white/55">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-6 text-white/55">
             No Orchestrator events match that filter.
           </div>
         )}
@@ -1880,7 +1880,7 @@ function ContinuityFeedRow({
         </button>
       )}
       {easyRead && (
-        <p className="mt-2 rounded-lg border border-white/[0.05] bg-black/20 px-2 py-1.5 text-[11px] leading-4 text-white/35">
+        <p className="mt-2 rounded-lg border border-white/[0.05] bg-white/[0.03] px-2 py-1.5 text-[11px] leading-4 text-white/35">
           Natural context for AI: {highlightSearchText(visibleNaturalText, searchQuery)}
         </p>
       )}
@@ -1928,7 +1928,7 @@ function OrchestratorContextCard({
 }) {
   if (loading) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm text-white/60">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           Loading Orchestrator context...
@@ -1939,7 +1939,7 @@ function OrchestratorContextCard({
 
   if (!context) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 backdrop-blur-sm">
         <header className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           <h3 className="text-sm font-semibold text-white">Orchestrator Context</h3>
@@ -1958,7 +1958,7 @@ function OrchestratorContextCard({
     .slice(0, 4);
 
   return (
-    <section className="rounded-2xl border border-[#61C1C4]/20 bg-[#101818] p-4">
+    <section className="rounded-2xl border border-[#61C1C4]/20 bg-white/[0.02] p-4 backdrop-blur-sm">
       <header className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -1981,7 +1981,7 @@ function OrchestratorContextCard({
       <div className="mt-4 space-y-3">
         {context.human_operator_time && (
           <ContextSection title="Human Time" icon={Clock}>
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-medium text-white/75">
                   {context.human_operator_time.local_time}
@@ -2001,7 +2001,7 @@ function OrchestratorContextCard({
         <ContextSection title="Next" icon={ArrowRight}>
           {state.next_actions.length > 0 ? (
             state.next_actions.slice(0, 4).map((action) => (
-              <p key={action} className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2 text-xs leading-5 text-white/65">
+              <p key={action} className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs leading-5 text-white/65">
                 {action}
               </p>
             ))
@@ -2025,7 +2025,7 @@ function OrchestratorContextCard({
 
         <ContextSection title="Connected PCs" icon={Terminal}>
           {context.profile_cards.slice(0, 5).map((profile) => (
-            <div key={profile.agent_id} className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+            <div key={profile.agent_id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <span className="min-w-0 truncate text-xs font-medium text-white/75">
                   {profile.emoji ? `${profile.emoji} ` : ""}{profile.label}
@@ -2059,7 +2059,7 @@ function OrchestratorContextCard({
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         {topSources.map(([key, value]) => (
-          <span key={key} className="rounded-md border border-white/[0.06] bg-black/20 px-2 py-1 text-[10px] text-white/35">
+          <span key={key} className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[10px] text-white/35">
             {key.replace(/_/g, " ")} {value}
           </span>
         ))}
@@ -2098,7 +2098,7 @@ function MiniMetric({
   value: number;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-black/20 p-2">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
       <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-white/35">
         <Icon className="h-3 w-3 text-[#61C1C4]/70" />
         {label}
@@ -2118,7 +2118,7 @@ function ContinuityRow({
   const actor = actorIdentityForEvent(event, profileByAgentId);
   const friendlySummary = chapterNarrative(themeForEvent(event), [event]);
   const content = (
-    <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
       <div className="mb-1 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
           <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs ${ACTOR_TONE_STYLES[actor.tone]}`}>
@@ -2145,7 +2145,7 @@ function ContinuityRow({
 
 function SnapshotRow({ snapshot }: { snapshot: OrchestratorContext["library_snapshots"][number] }) {
   const content = (
-    <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
       <div className="flex items-center justify-between gap-2">
         <p className="min-w-0 truncate text-xs font-medium text-white/75">{snapshot.title}</p>
         <span className="shrink-0 text-[10px] text-white/30">{snapshot.category}</span>
@@ -2203,7 +2203,7 @@ function ConnectionCard({
   const Icon = palette.icon;
 
   return (
-    <section className={`rounded-2xl border p-4 ${palette.border}`}>
+    <section className={`rounded-2xl border p-4 backdrop-blur-sm ${palette.border}`}>
       <header className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${palette.dot}`} />
         <h3 className={`inline-flex items-center gap-1.5 text-sm font-semibold ${palette.tone}`}>
@@ -2255,7 +2255,7 @@ function ConnectionCard({
 
 function QuickLinksCard() {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 backdrop-blur-sm">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Quick links
       </h3>
@@ -2297,7 +2297,7 @@ function LinkRow({
   return (
     <Link
       to={to}
-      className="group flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 transition-colors hover:border-[#61C1C4]/30 hover:bg-[#61C1C4]/5"
+      className="group flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors hover:border-[#61C1C4]/30 hover:bg-[#61C1C4]/5"
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#61C1C4]/10 text-[#61C1C4]">
         <Icon className="h-4 w-4" />
@@ -2325,7 +2325,7 @@ function MemoryStatsCard({
     { key: "conversations" as const, label: "Convos", icon: Brain },
   ];
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 backdrop-blur-sm">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Memory
       </h3>
@@ -2334,7 +2334,7 @@ function MemoryStatsCard({
           const value = stats?.[key];
           const display = loading ? "..." : typeof value === "number" ? value.toLocaleString() : "0";
           return (
-            <div key={key} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+            <div key={key} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-white/40">
                 <Icon className="h-3 w-3 text-[#61C1C4]/70" />
                 {label}
