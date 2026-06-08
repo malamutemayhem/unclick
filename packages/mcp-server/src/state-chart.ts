@@ -1,89 +1,96 @@
-interface StateConfig {
-  onEnter?: () => void;
-  onExit?: () => void;
-  children?: Record<string, StateConfig>;
-  initial?: string;
+export interface StateConfig<C = unknown> {
+  onEnter?: (context: C) => void;
+  onExit?: (context: C) => void;
 }
 
-interface Transition {
+export interface Transition<C = unknown> {
   from: string;
   event: string;
   to: string;
-  guard?: () => boolean;
-  action?: () => void;
+  guard?: (context: C) => boolean;
+  action?: (context: C) => void;
 }
 
-export class StateChart {
-  private states: Record<string, StateConfig> = {};
-  private transitions: Transition[] = [];
-  private _current: string[] = [];
-  private _history: string[][] = [];
+export class StateChart<C = unknown> {
+  private currentState: string;
+  private states = new Map<string, StateConfig<C>>();
+  private transitions: Transition<C>[] = [];
+  private history: string[] = [];
+  private context: C;
 
-  addState(path: string, config: StateConfig = {}): this {
-    this.states[path] = config;
+  constructor(initialState: string, context: C) {
+    this.currentState = initialState;
+    this.context = context;
+    this.history.push(initialState);
+  }
+
+  addState(name: string, config: StateConfig<C> = {}): this {
+    this.states.set(name, config);
     return this;
   }
 
-  addTransition(from: string, event: string, to: string, options?: { guard?: () => boolean; action?: () => void }): this {
-    this.transitions.push({ from, event, to, guard: options?.guard, action: options?.action });
+  addTransition(transition: Transition<C>): this {
+    this.transitions.push(transition);
     return this;
-  }
-
-  start(initial: string): void {
-    this._current = this.resolveInitial(initial);
-    this._history = [[...this._current]];
-    for (const state of this._current) {
-      this.states[state]?.onEnter?.();
-    }
   }
 
   send(event: string): boolean {
-    const currentLeaf = this._current[this._current.length - 1];
-    const transition = this.transitions.find(
-      (t) => (t.from === currentLeaf || this._current.includes(t.from)) && t.event === event
+    const matching = this.transitions.filter(
+      (t) => t.from === this.currentState && t.event === event,
     );
-    if (!transition) return false;
-    if (transition.guard && !transition.guard()) return false;
 
-    for (let i = this._current.length - 1; i >= 0; i--) {
-      this.states[this._current[i]]?.onExit?.();
+    for (const t of matching) {
+      if (t.guard && !t.guard(this.context)) continue;
+
+      const exitConfig = this.states.get(this.currentState);
+      if (exitConfig?.onExit) exitConfig.onExit(this.context);
+
+      if (t.action) t.action(this.context);
+
+      this.currentState = t.to;
+      this.history.push(t.to);
+
+      const enterConfig = this.states.get(t.to);
+      if (enterConfig?.onEnter) enterConfig.onEnter(this.context);
+
+      return true;
     }
 
-    transition.action?.();
-    this._current = this.resolveInitial(transition.to);
-    this._history.push([...this._current]);
-
-    for (const state of this._current) {
-      this.states[state]?.onEnter?.();
-    }
-
-    return true;
+    return false;
   }
 
-  get current(): string[] {
-    return [...this._current];
+  get state(): string {
+    return this.currentState;
   }
 
-  get leaf(): string {
-    return this._current[this._current.length - 1];
+  getContext(): C {
+    return this.context;
   }
 
-  get history(): string[][] {
-    return this._history.map((h) => [...h]);
+  setContext(ctx: C): void {
+    this.context = ctx;
   }
 
-  isIn(state: string): boolean {
-    return this._current.includes(state);
+  canSend(event: string): boolean {
+    return this.transitions.some(
+      (t) => t.from === this.currentState && t.event === event && (!t.guard || t.guard(this.context)),
+    );
   }
 
-  private resolveInitial(path: string): string[] {
-    const parts = [path];
-    let config = this.states[path];
-    while (config?.initial && config.children?.[config.initial]) {
-      const childPath = `${path}.${config.initial}`;
-      parts.push(childPath);
-      config = this.states[childPath];
-    }
-    return parts;
+  availableEvents(): string[] {
+    return [...new Set(
+      this.transitions
+        .filter((t) => t.from === this.currentState && (!t.guard || t.guard(this.context)))
+        .map((t) => t.event),
+    )];
+  }
+
+  getHistory(): string[] {
+    return [...this.history];
+  }
+
+  reset(state?: string): void {
+    this.currentState = state ?? this.history[0];
+    this.history = [this.currentState];
   }
 }
