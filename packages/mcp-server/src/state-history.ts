@@ -1,55 +1,68 @@
-export class StateHistory<T> {
-  private states: T[] = [];
-  private pointer = -1;
-  private readonly maxSize: number;
-  private readonly clone: (state: T) => T;
+export interface Snapshot<T> {
+  state: T;
+  timestamp: number;
+  label?: string;
+}
 
-  constructor(options?: { maxSize?: number; clone?: (state: T) => T }) {
-    this.maxSize = options?.maxSize ?? 100;
-    this.clone = options?.clone ?? ((s: T) => JSON.parse(JSON.stringify(s)) as T);
+export class StateHistory<T> {
+  private snapshots: Snapshot<T>[] = [];
+  private maxSnapshots: number;
+
+  constructor(maxSnapshots = 50) {
+    this.maxSnapshots = maxSnapshots;
   }
 
-  push(state: T): void {
-    this.states = this.states.slice(0, this.pointer + 1);
-    this.states.push(this.clone(state));
-    if (this.states.length > this.maxSize) {
-      this.states.shift();
-    } else {
-      this.pointer++;
+  save(state: T, label?: string): void {
+    this.snapshots.push({
+      state: structuredClone(state),
+      timestamp: Date.now(),
+      label,
+    });
+    if (this.snapshots.length > this.maxSnapshots) {
+      this.snapshots.shift();
     }
   }
 
-  undo(): T | undefined {
-    if (this.pointer <= 0) return undefined;
-    this.pointer--;
-    return this.clone(this.states[this.pointer]);
+  get latest(): Snapshot<T> | undefined {
+    return this.snapshots[this.snapshots.length - 1];
   }
 
-  redo(): T | undefined {
-    if (this.pointer >= this.states.length - 1) return undefined;
-    this.pointer++;
-    return this.clone(this.states[this.pointer]);
+  get oldest(): Snapshot<T> | undefined {
+    return this.snapshots[0];
   }
 
-  get current(): T | undefined {
-    if (this.pointer < 0) return undefined;
-    return this.clone(this.states[this.pointer]);
+  get count(): number { return this.snapshots.length; }
+
+  at(index: number): Snapshot<T> | undefined {
+    return this.snapshots[index];
   }
 
-  get canUndo(): boolean {
-    return this.pointer > 0;
+  findByLabel(label: string): Snapshot<T> | undefined {
+    for (let i = this.snapshots.length - 1; i >= 0; i--) {
+      if (this.snapshots[i].label === label) return this.snapshots[i];
+    }
+    return undefined;
   }
 
-  get canRedo(): boolean {
-    return this.pointer < this.states.length - 1;
+  since(timestamp: number): Snapshot<T>[] {
+    return this.snapshots.filter((s) => s.timestamp >= timestamp);
   }
 
-  get size(): number {
-    return this.states.length;
+  revert(index: number): T | undefined {
+    const snap = this.snapshots[index];
+    if (!snap) return undefined;
+    this.snapshots.length = index + 1;
+    return structuredClone(snap.state);
   }
 
-  clear(): void {
-    this.states = [];
-    this.pointer = -1;
+  clear(): void { this.snapshots.length = 0; }
+
+  toArray(): Snapshot<T>[] { return [...this.snapshots]; }
+
+  diff(from: number, to: number): { from: Snapshot<T>; to: Snapshot<T> } | undefined {
+    const f = this.snapshots[from];
+    const t = this.snapshots[to];
+    if (!f || !t) return undefined;
+    return { from: f, to: t };
   }
 }
