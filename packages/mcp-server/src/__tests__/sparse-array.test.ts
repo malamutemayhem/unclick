@@ -11,56 +11,52 @@ describe("SparseArray", () => {
     expect(sa.get(50)).toBeUndefined();
   });
 
-  it("has checks existence", () => {
-    const sa = new SparseArray<number>();
-    sa.set(5, 10);
-    expect(sa.has(5)).toBe(true);
-    expect(sa.has(6)).toBe(false);
-  });
-
-  it("delete removes", () => {
-    const sa = new SparseArray<number>();
-    sa.set(1, 10);
-    sa.delete(1);
-    expect(sa.has(1)).toBe(false);
-  });
-
-  it("size counts entries", () => {
-    const sa = new SparseArray<number>();
-    sa.set(0, 1);
-    sa.set(1000, 2);
-    expect(sa.size).toBe(2);
-  });
-
-  it("length reflects max index", () => {
+  it("length reflects highest index + 1", () => {
     const sa = new SparseArray<number>();
     sa.set(99, 1);
     expect(sa.length).toBe(100);
   });
 
-  it("density calculates", () => {
+  it("count reflects actual entries", () => {
     const sa = new SparseArray<number>();
     sa.set(0, 1);
-    sa.set(9, 2);
-    expect(sa.density).toBe(0.2);
+    sa.set(99, 2);
+    expect(sa.count).toBe(2);
   });
 
-  it("indices returns sorted indices", () => {
-    const sa = new SparseArray<string>();
-    sa.set(5, "a");
-    sa.set(1, "b");
-    sa.set(3, "c");
-    expect(sa.indices()).toEqual([1, 3, 5]);
+  it("has checks presence", () => {
+    const sa = new SparseArray<number>();
+    sa.set(5, 1);
+    expect(sa.has(5)).toBe(true);
+    expect(sa.has(6)).toBe(false);
   });
 
-  it("values returns ordered values", () => {
+  it("delete removes entry", () => {
+    const sa = new SparseArray<number>();
+    sa.set(5, 1);
+    expect(sa.delete(5)).toBe(true);
+    expect(sa.has(5)).toBe(false);
+    expect(sa.delete(5)).toBe(false);
+  });
+
+  it("clear empties", () => {
+    const sa = new SparseArray<number>();
+    sa.set(0, 1);
+    sa.clear();
+    expect(sa.length).toBe(0);
+    expect(sa.count).toBe(0);
+  });
+
+  it("forEach iterates entries", () => {
     const sa = new SparseArray<string>();
-    sa.set(2, "b");
     sa.set(0, "a");
-    expect(sa.values()).toEqual(["a", "b"]);
+    sa.set(10, "b");
+    const seen: string[] = [];
+    sa.forEach((v) => seen.push(v));
+    expect(seen.sort()).toEqual(["a", "b"]);
   });
 
-  it("map transforms", () => {
+  it("map transforms values", () => {
     const sa = new SparseArray<number>();
     sa.set(0, 1);
     sa.set(5, 2);
@@ -75,20 +71,34 @@ describe("SparseArray", () => {
     sa.set(1, 2);
     sa.set(2, 3);
     const filtered = sa.filter((v) => v > 1);
-    expect(filtered.size).toBe(2);
+    expect(filtered.count).toBe(2);
   });
 
-  it("toDense fills gaps", () => {
+  it("toArray includes gaps as undefined", () => {
     const sa = new SparseArray<number>();
     sa.set(0, 1);
     sa.set(2, 3);
-    expect(sa.toDense(0)).toEqual([1, 0, 3]);
+    expect(sa.toArray()).toEqual([1, undefined, 3]);
   });
 
-  it("clear resets", () => {
+  it("indices returns sorted indices", () => {
     const sa = new SparseArray<number>();
-    sa.set(0, 1);
-    sa.clear();
-    expect(sa.size).toBe(0);
+    sa.set(10, 1);
+    sa.set(2, 2);
+    expect(sa.indices()).toEqual([2, 10]);
+  });
+
+  it("values returns all values", () => {
+    const sa = new SparseArray<number>();
+    sa.set(0, 10);
+    sa.set(5, 20);
+    expect(sa.values().sort()).toEqual([10, 20]);
+  });
+
+  it("entries returns sorted pairs", () => {
+    const sa = new SparseArray<string>();
+    sa.set(5, "b");
+    sa.set(1, "a");
+    expect(sa.entries()).toEqual([[1, "a"], [5, "b"]]);
   });
 });

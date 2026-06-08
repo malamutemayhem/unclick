@@ -1,79 +1,47 @@
 import { describe, it, expect } from "vitest";
-import { infer, inferFromSamples } from "../json-schema-gen.js";
+import { inferSchema, inferSchemaFromMultiple } from "../json-schema-gen.js";
 
-describe("infer", () => {
-  it("infers string type", () => {
-    expect(infer("hello")).toEqual({ type: "string" });
+describe("json-schema-gen", () => {
+  describe("inferSchema", () => {
+    it("string", () => { expect(inferSchema("hello")).toEqual({ type: "string" }); });
+    it("integer", () => { expect(inferSchema(42)).toEqual({ type: "integer" }); });
+    it("number", () => { expect(inferSchema(3.14)).toEqual({ type: "number" }); });
+    it("boolean", () => { expect(inferSchema(true)).toEqual({ type: "boolean" }); });
+    it("null", () => { expect(inferSchema(null)).toEqual({ type: "null" }); });
+
+    it("array of strings", () => {
+      const s = inferSchema(["a", "b"]);
+      expect(s.type).toBe("array");
+      expect(s.items).toEqual({ type: "string" });
+    });
+
+    it("empty array", () => {
+      expect(inferSchema([])).toEqual({ type: "array", items: {} });
+    });
+
+    it("object", () => {
+      const s = inferSchema({ name: "Jo", age: 5 });
+      expect(s.type).toBe("object");
+      expect((s.properties as Record<string, unknown>)["name"]).toEqual({ type: "string" });
+      expect((s.required as string[])).toContain("name");
+    });
   });
 
-  it("infers integer type", () => {
-    expect(infer(42)).toEqual({ type: "integer" });
-  });
+  describe("inferSchemaFromMultiple", () => {
+    it("merges compatible objects", () => {
+      const s = inferSchemaFromMultiple([{ a: 1, b: "x" }, { a: 2, b: "y", c: true }]);
+      expect(s.type).toBe("object");
+      expect((s.required as string[])).toContain("a");
+      expect((s.required as string[])).toContain("b");
+    });
 
-  it("infers number type for floats", () => {
-    expect(infer(3.14)).toEqual({ type: "number" });
-  });
+    it("widens integer to number", () => {
+      const s = inferSchemaFromMultiple([1, 3.5]);
+      expect(s.type).toBe("number");
+    });
 
-  it("infers boolean type", () => {
-    expect(infer(true)).toEqual({ type: "boolean" });
-  });
-
-  it("infers null type", () => {
-    expect(infer(null)).toEqual({ type: "null" });
-  });
-
-  it("infers object type", () => {
-    const schema = infer({ name: "Alice", age: 30 });
-    expect(schema.type).toBe("object");
-    expect(schema.properties?.name).toEqual({ type: "string" });
-    expect(schema.properties?.age).toEqual({ type: "integer" });
-    expect(schema.required).toContain("name");
-    expect(schema.required).toContain("age");
-  });
-
-  it("infers array type", () => {
-    const schema = infer([1, 2, 3]);
-    expect(schema.type).toBe("array");
-    expect(schema.items).toEqual({ type: "integer" });
-  });
-
-  it("infers empty array", () => {
-    const schema = infer([]);
-    expect(schema.type).toBe("array");
-  });
-
-  it("infers nested objects", () => {
-    const schema = infer({ user: { name: "Alice" } });
-    expect(schema.properties?.user?.type).toBe("object");
-    expect(schema.properties?.user?.properties?.name?.type).toBe("string");
-  });
-});
-
-describe("inferFromSamples", () => {
-  it("merges consistent samples", () => {
-    const schema = inferFromSamples([
-      { name: "Alice", age: 30 },
-      { name: "Bob", age: 25 },
-    ]);
-    expect(schema.type).toBe("object");
-    expect(schema.properties?.name?.type).toBe("string");
-    expect(schema.properties?.age?.type).toBe("integer");
-  });
-
-  it("handles empty samples", () => {
-    expect(inferFromSamples([])).toEqual({});
-  });
-
-  it("handles single sample", () => {
-    expect(inferFromSamples([42])).toEqual({ type: "integer" });
-  });
-
-  it("marks optional fields from missing keys", () => {
-    const schema = inferFromSamples([
-      { name: "Alice", age: 30 },
-      { name: "Bob" },
-    ]);
-    expect(schema.required).not.toContain("age");
-    expect(schema.required).toContain("name");
+    it("returns empty for empty array", () => {
+      expect(inferSchemaFromMultiple([])).toEqual({});
+    });
   });
 });

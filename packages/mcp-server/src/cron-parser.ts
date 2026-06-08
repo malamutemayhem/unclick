@@ -1,37 +1,9 @@
-interface CronFields {
+export interface CronFields {
   minute: number[];
   hour: number[];
   dayOfMonth: number[];
   month: number[];
   dayOfWeek: number[];
-}
-
-function parseField(field: string, min: number, max: number): number[] {
-  const results = new Set<number>();
-
-  for (const part of field.split(",")) {
-    const stepMatch = part.match(/^(.+)\/(\d+)$/);
-    let range: string;
-    let step = 1;
-
-    if (stepMatch) {
-      range = stepMatch[1];
-      step = parseInt(stepMatch[2], 10);
-    } else {
-      range = part;
-    }
-
-    if (range === "*") {
-      for (let i = min; i <= max; i += step) results.add(i);
-    } else if (range.includes("-")) {
-      const [lo, hi] = range.split("-").map(Number);
-      for (let i = lo; i <= hi; i += step) results.add(i);
-    } else {
-      results.add(parseInt(range, 10));
-    }
-  }
-
-  return [...results].filter((n) => n >= min && n <= max).sort((a, b) => a - b);
 }
 
 export function parseCron(expression: string): CronFields {
@@ -47,6 +19,26 @@ export function parseCron(expression: string): CronFields {
   };
 }
 
+export function nextRun(expression: string, after?: Date): Date {
+  const fields = parseCron(expression);
+  const start = after ? new Date(after.getTime() + 60000) : new Date();
+  start.setSeconds(0, 0);
+
+  for (let i = 0; i < 525960; i++) {
+    const candidate = new Date(start.getTime() + i * 60000);
+    if (
+      fields.minute.includes(candidate.getMinutes()) &&
+      fields.hour.includes(candidate.getHours()) &&
+      fields.dayOfMonth.includes(candidate.getDate()) &&
+      fields.month.includes(candidate.getMonth() + 1) &&
+      fields.dayOfWeek.includes(candidate.getDay())
+    ) {
+      return candidate;
+    }
+  }
+  throw new Error("No matching time found within one year");
+}
+
 export function matches(expression: string, date: Date): boolean {
   const fields = parseCron(expression);
   return (
@@ -58,53 +50,33 @@ export function matches(expression: string, date: Date): boolean {
   );
 }
 
-export function nextMatch(expression: string, after: Date): Date {
-  const d = new Date(after.getTime());
-  d.setSeconds(0, 0);
-  d.setMinutes(d.getMinutes() + 1);
-
-  for (let i = 0; i < 525600; i++) {
-    if (matches(expression, d)) return d;
-    d.setMinutes(d.getMinutes() + 1);
-  }
-  throw new Error("No match found within one year");
-}
-
-export function nextN(expression: string, after: Date, count: number): Date[] {
-  const results: Date[] = [];
-  let cursor = after;
-  for (let i = 0; i < count; i++) {
-    cursor = nextMatch(expression, cursor);
-    results.push(new Date(cursor.getTime()));
-  }
-  return results;
-}
-
 export function describe(expression: string): string {
   const fields = parseCron(expression);
   const parts: string[] = [];
-
   if (fields.minute.length === 60) parts.push("every minute");
-  else if (fields.minute.length === 1) parts.push(`at minute ${fields.minute[0]}`);
-  else parts.push(`at minutes ${fields.minute.join(",")}`);
+  else parts.push(`at minute ${fields.minute.join(",")}`);
+  if (fields.hour.length < 24) parts.push(`hour ${fields.hour.join(",")}`);
+  return parts.join(", ");
+}
 
-  if (fields.hour.length < 24) {
-    if (fields.hour.length === 1) parts.push(`of hour ${fields.hour[0]}`);
-    else parts.push(`of hours ${fields.hour.join(",")}`);
+function parseField(field: string, min: number, max: number): number[] {
+  const values: number[] = [];
+  for (const part of field.split(",")) {
+    if (part === "*") {
+      for (let i = min; i <= max; i++) values.push(i);
+    } else if (part.includes("/")) {
+      const [range, stepStr] = part.split("/");
+      const step = parseInt(stepStr, 10);
+      const start = range === "*" ? min : parseInt(range, 10);
+      for (let i = start; i <= max; i += step) values.push(i);
+    } else if (part.includes("-")) {
+      const [startStr, endStr] = part.split("-");
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
+      for (let i = start; i <= end; i++) values.push(i);
+    } else {
+      values.push(parseInt(part, 10));
+    }
   }
-
-  if (fields.dayOfMonth.length < 31) {
-    parts.push(`on day ${fields.dayOfMonth.join(",")}`);
-  }
-
-  if (fields.month.length < 12) {
-    parts.push(`in month ${fields.month.join(",")}`);
-  }
-
-  if (fields.dayOfWeek.length < 7) {
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    parts.push(`on ${fields.dayOfWeek.map((d) => names[d]).join(",")}`);
-  }
-
-  return parts.join(" ");
+  return [...new Set(values)].sort((a, b) => a - b);
 }

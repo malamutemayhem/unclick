@@ -1,14 +1,17 @@
 export class SparseArray<T> {
   private data = new Map<number, T>();
-  private maxIndex = -1;
+  private _length = 0;
 
-  set(index: number, value: T): void {
-    this.data.set(index, value);
-    if (index > this.maxIndex) this.maxIndex = index;
-  }
+  get length(): number { return this._length; }
+  get count(): number { return this.data.size; }
 
   get(index: number): T | undefined {
     return this.data.get(index);
+  }
+
+  set(index: number, value: T): void {
+    this.data.set(index, value);
+    if (index >= this._length) this._length = index + 1;
   }
 
   has(index: number): boolean {
@@ -19,17 +22,39 @@ export class SparseArray<T> {
     return this.data.delete(index);
   }
 
-  get size(): number {
-    return this.data.size;
+  clear(): void {
+    this.data.clear();
+    this._length = 0;
   }
 
-  get length(): number {
-    return this.maxIndex + 1;
+  forEach(fn: (value: T, index: number) => void): void {
+    for (const [index, value] of this.data) {
+      fn(value, index);
+    }
   }
 
-  get density(): number {
-    if (this.maxIndex < 0) return 0;
-    return this.data.size / (this.maxIndex + 1);
+  map<U>(fn: (value: T, index: number) => U): SparseArray<U> {
+    const result = new SparseArray<U>();
+    for (const [index, value] of this.data) {
+      result.set(index, fn(value, index));
+    }
+    return result;
+  }
+
+  filter(fn: (value: T, index: number) => boolean): SparseArray<T> {
+    const result = new SparseArray<T>();
+    for (const [index, value] of this.data) {
+      if (fn(value, index)) result.set(index, value);
+    }
+    return result;
+  }
+
+  toArray(): (T | undefined)[] {
+    const arr: (T | undefined)[] = new Array(this._length);
+    for (const [index, value] of this.data) {
+      arr[index] = value;
+    }
+    return arr;
   }
 
   indices(): number[] {
@@ -37,45 +62,10 @@ export class SparseArray<T> {
   }
 
   values(): T[] {
-    return this.indices().map((i) => this.data.get(i)!);
+    return [...this.data.values()];
   }
 
   entries(): [number, T][] {
-    return this.indices().map((i) => [i, this.data.get(i)!]);
-  }
-
-  forEach(fn: (value: T, index: number) => void): void {
-    for (const [i, v] of this.entries()) {
-      fn(v, i);
-    }
-  }
-
-  map<R>(fn: (value: T, index: number) => R): SparseArray<R> {
-    const result = new SparseArray<R>();
-    for (const [i, v] of this.data) {
-      result.set(i, fn(v, i));
-    }
-    return result;
-  }
-
-  filter(predicate: (value: T, index: number) => boolean): SparseArray<T> {
-    const result = new SparseArray<T>();
-    for (const [i, v] of this.data) {
-      if (predicate(v, i)) result.set(i, v);
-    }
-    return result;
-  }
-
-  toDense(defaultValue: T): T[] {
-    const arr: T[] = [];
-    for (let i = 0; i <= this.maxIndex; i++) {
-      arr.push(this.data.has(i) ? this.data.get(i)! : defaultValue);
-    }
-    return arr;
-  }
-
-  clear(): void {
-    this.data.clear();
-    this.maxIndex = -1;
+    return [...this.data.entries()].sort(([a], [b]) => a - b);
   }
 }
