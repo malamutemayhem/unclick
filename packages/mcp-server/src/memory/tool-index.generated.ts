@@ -606,6 +606,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cataas",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cataas_random_cat",
+        "description": "Get a random cat image, optionally with a tag or text overlay."
+      },
+      {
+        "name": "cataas_list_tags",
+        "description": "List all available cat image tags."
+      }
+    ]
+  },
+  {
     "app": "catapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -902,6 +916,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "color_contrast_ratio",
         "description": "Check the contrast ratio between two colors."
+      }
+    ]
+  },
+  {
+    "app": "colormind",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "colormind_generate_palette",
+        "description": "Generate an AI-powered 5-color palette using Colormind."
+      },
+      {
+        "name": "colormind_list_models",
+        "description": "List available Colormind color models."
       }
     ]
   },
@@ -3720,6 +3748,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "punkapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "punkapi_random_beer",
+        "description": "Get a random craft beer recipe from BrewDog's Punk API."
+      },
+      {
+        "name": "punkapi_search_beers",
+        "description": "Search craft beer recipes by name."
+      },
+      {
+        "name": "punkapi_get_beer",
+        "description": "Get a specific craft beer recipe by ID."
+      }
+    ]
+  },
+  {
     "app": "pushonly",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4380,6 +4426,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "setlistfm_get_setlist",
         "description": "Get a specific setlist from Setlist.fm by ID."
+      }
+    ]
+  },
+  {
+    "app": "shibe",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "shibe_random_image",
+        "description": "Get random Shiba Inu, cat, or bird images."
       }
     ]
   },

@@ -391,6 +391,14 @@ import { baconIpsum } from "./lorem-tool.js";
 
 import { placeholderImage, placekittenImage } from "./placekitten-tool.js";
 
+import { shibeRandomImage } from "./shibe-tool.js";
+
+import { cataasRandomCat, cataasListTags } from "./cataas-tool.js";
+
+import { punkApiRandomBeer, punkApiSearchBeers, punkApiGetBeer } from "./punkapi-tool.js";
+
+import { colormindGeneratePalette, colormindListModels } from "./colormind-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6012,6 +6020,89 @@ export const ADDITIONAL_TOOLS = [
         grayscale: { type: "boolean", description: "Grayscale kitten image" },
       },
     },
+  },
+
+  // ── shibe-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "shibe_random_image",
+    description: "Get random Shiba Inu, cat, or bird images.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of images (1-10, default 1)" },
+        type: { type: "string", description: "Image type: shibes, cats, or birds (default shibes)" },
+      },
+    },
+  },
+
+  // ── cataas-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "cataas_random_cat",
+    description: "Get a random cat image, optionally with a tag or text overlay.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        tag: { type: "string", description: "Filter by tag (e.g. cute, funny, sleeping)" },
+        text: { type: "string", description: "Text to overlay on the image" },
+      },
+    },
+  },
+  {
+    name: "cataas_list_tags",
+    description: "List all available cat image tags.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── punkapi-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "punkapi_random_beer",
+    description: "Get a random craft beer recipe from BrewDog's Punk API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "punkapi_search_beers",
+    description: "Search craft beer recipes by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Beer name to search for" },
+        per_page: { type: "number", description: "Results per page (max 25, default 10)" },
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+  {
+    name: "punkapi_get_beer",
+    description: "Get a specific craft beer recipe by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Numeric beer ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── colormind-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "colormind_generate_palette",
+    description: "Generate an AI-powered 5-color palette using Colormind.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        model: { type: "string", description: "Color model to use (default: default)" },
+        input: {
+          type: "array",
+          description: "Optional 5-element array of [R,G,B] or 'N' for colors to lock/generate",
+          items: {},
+        },
+      },
+    },
+  },
+  {
+    name: "colormind_list_models",
+    description: "List available Colormind color models.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -16906,6 +16997,22 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // placekitten-tool.ts
   placeholder_image:       (args) => placeholderImage(args),
   placekitten_image:       (args) => placekittenImage(args),
+
+  // shibe-tool.ts
+  shibe_random_image:      (args) => shibeRandomImage(args),
+
+  // cataas-tool.ts
+  cataas_random_cat:       (args) => cataasRandomCat(args),
+  cataas_list_tags:        (args) => cataasListTags(args),
+
+  // punkapi-tool.ts
+  punkapi_random_beer:     (args) => punkApiRandomBeer(args),
+  punkapi_search_beers:    (args) => punkApiSearchBeers(args),
+  punkapi_get_beer:        (args) => punkApiGetBeer(args),
+
+  // colormind-tool.ts
+  colormind_generate_palette: (args) => colormindGeneratePalette(args),
+  colormind_list_models:   (args) => colormindListModels(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

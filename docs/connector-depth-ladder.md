@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (246 external connectors)
+## Distribution (250 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 207 | 84% |
+| L5 | Agentic | 211 | 84% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 15% |
+| L2 | Reliable | 36 | 14% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 246 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 250 (96%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,14 +34,18 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 207 of 210 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 211 of 214 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
 These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
 
+- `cataas` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `colormind` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
 - `jobsmith` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `placekitten` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `punkapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `shibe` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 
 ## Per-connector, highest rung first
 
@@ -74,6 +78,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `calcom` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calendly` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `carboninterface` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cataas` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `catapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `catfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `chessdotcom` | Yes | - | - | Yes | Yes | no-memory |
@@ -85,6 +90,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `cohere` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `colormind` | - | - | - | Yes | Yes | not-hardened, 2x-bare-error, no-memory |
 | L5 Agentic | `confluence` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `contentful` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
@@ -187,6 +193,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pokeapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
+| L5 Agentic | `punkapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `quotable` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `randomfox` | Yes | - | - | Yes | Yes | no-memory |
@@ -203,6 +210,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `segment` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `sendle` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `setlistfm` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `shibe` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `shodan` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `shortcut` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `sleeper` | Yes | - | - | Yes | Yes | no-memory |

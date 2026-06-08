@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 271,
-  "toolCount": 1066,
+  "appCount": 275,
+  "toolCount": 1074,
   "categories": [
     "AI",
     "Books",
@@ -730,6 +730,26 @@
       "hardened": true
     },
     {
+      "slug": "cataas",
+      "name": "Cat as a Service",
+      "category": "Images",
+      "blurb": "Random cat images with optional text overlay and tags.",
+      "domain": "cataas.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "cataas_random_cat",
+          "description": "Get a random cat image, optionally with a tag or text overlay."
+        },
+        {
+          "name": "cataas_list_tags",
+          "description": "List all available cat image tags."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "catfacts",
       "name": "Cat Facts",
       "category": "Utilities",
@@ -1055,6 +1075,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "colormind",
+      "name": "Colormind",
+      "category": "AI",
+      "blurb": "Generate AI-powered 5-color palettes for design.",
+      "domain": "colormind.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "colormind_generate_palette",
+          "description": "Generate an AI-powered 5-color palette using Colormind."
+        },
+        {
+          "name": "colormind_list_models",
+          "description": "List available Colormind color models."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -4678,6 +4718,30 @@
       "hardened": true
     },
     {
+      "slug": "punkapi",
+      "name": "Punk API",
+      "category": "Weather & science",
+      "blurb": "Browse and search BrewDog craft beer recipes.",
+      "domain": "punkapi.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "punkapi_random_beer",
+          "description": "Get a random craft beer recipe from BrewDog's Punk API."
+        },
+        {
+          "name": "punkapi_search_beers",
+          "description": "Search craft beer recipes by name."
+        },
+        {
+          "name": "punkapi_get_beer",
+          "description": "Get a specific craft beer recipe by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pushonly",
       "name": "PushOnly",
       "category": "Quality (XPass)",
@@ -5508,6 +5572,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "shibe",
+      "name": "Shibe Online",
+      "category": "Images",
+      "blurb": "Random Shiba Inu, cat, or bird images.",
+      "domain": "shibe.online",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shibe_random_image",
+          "description": "Get random Shiba Inu, cat, or bird images."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "shodan",

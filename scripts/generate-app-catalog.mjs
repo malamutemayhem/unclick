@@ -26,7 +26,7 @@ const OUT = path.join(ROOT, "src/data/app-catalog.generated.json");
 const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
-bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite"]);
+bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
 bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2"]);
@@ -38,12 +38,12 @@ bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
@@ -89,6 +89,8 @@ const NAME_OF = {
   archiveorg: "Internet Archive", ipify: "ipify", exchangerate2: "ExchangeRate-API Open",
   makeup: "Makeup API", "github-emoji": "GitHub Emojis", metmuseum: "Met Museum",
   lorem: "Bacon Ipsum", placekitten: "Placekitten",
+  shibe: "Shibe Online",
+  cataas: "Cat as a Service", punkapi: "Punk API", colormind: "Colormind",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -207,6 +209,10 @@ const BLURB_OF = {
   metmuseum: "Search the Met Museum collection and get artwork details.",
   lorem: "Generate meat-themed lorem ipsum placeholder text.",
   placekitten: "Generate placeholder image URLs with custom dimensions.",
+  shibe: "Random Shiba Inu, cat, or bird images.",
+  cataas: "Random cat images with optional text overlay and tags.",
+  punkapi: "Browse and search BrewDog craft beer recipes.",
+  colormind: "Generate AI-powered 5-color palettes for design.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -282,6 +288,8 @@ const DOMAIN_OF = {
   makeup: "makeup-api.herokuapp.com", "github-emoji": "github.com",
   metmuseum: "metmuseum.github.io", lorem: "baconipsum.com",
   placekitten: "placekitten.com",
+  shibe: "shibe.online", cataas: "cataas.com",
+  punkapi: "punkapi.com", colormind: "colormind.io",
 };
 
 function titleCase(slug) {
