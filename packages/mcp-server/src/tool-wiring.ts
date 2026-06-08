@@ -660,6 +660,16 @@ import { gcdCalculate } from "./gcd-tool.js";
 import { permutationCalc } from "./permutation-tool.js";
 import { combinationCalc } from "./combination-tool.js";
 import { proportionSolve } from "./proportion-tool.js";
+import { quadraticSolve } from "./quadratic-tool.js";
+import { primeFactor } from "./primefactor-tool.js";
+import { zscoreCalculate } from "./zscore-tool.js";
+import { angleConvert } from "./angleconv-tool.js";
+import { polygonCalculate } from "./polygon-tool.js";
+import { sigmoidCalculate } from "./sigmoid-tool.js";
+import { interpolateCalc } from "./interpolate-tool.js";
+import { modularArithmetic } from "./modpow-tool.js";
+import { ratioSimplify } from "./ratiosimplify-tool.js";
+import { binomialProbability } from "./binomprob-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10068,6 +10078,133 @@ export const ADDITIONAL_TOOLS = [
         c: { type: "number" as const, description: "Value c." },
         d: { type: "number" as const, description: "Value d." },
       },
+    },
+  },
+
+  // ── quadratic-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "quadratic_solve",
+    description: "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Coefficient a (must not be 0)." },
+        b: { type: "number" as const, description: "Coefficient b." },
+        c: { type: "number" as const, description: "Coefficient c." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── primefactor-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "prime_factor",
+    description: "Find the prime factorization of an integer.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Integer to factorize (>= 2, max 1 trillion)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zscore-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "zscore_calculate",
+    description: "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "The observed value." },
+        mean: { type: "number" as const, description: "Population mean." },
+        stddev: { type: "number" as const, description: "Population standard deviation (positive)." },
+      }, required: ["value", "mean", "stddev"],
+    },
+  },
+
+  // ── angleconv-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "angle_convert",
+    description: "Convert angles between degrees, radians, gradians, and turns. Includes trig values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Angle value to convert." },
+        from: { type: "string" as const, description: "Unit of input: degrees, radians, gradians, or turns." },
+      }, required: ["value", "from"],
+    },
+  },
+
+  // ── polygon-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "polygon_calculate",
+    description: "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        sides: { type: "number" as const, description: "Number of sides (>= 3)." },
+        side_length: { type: "number" as const, description: "Length of each side." },
+      }, required: ["sides", "side_length"],
+    },
+  },
+
+  // ── sigmoid-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "sigmoid_calculate",
+    description: "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "Input value." },
+        function: { type: "string" as const, description: "Activation function: sigmoid, tanh, relu, leaky_relu, elu, or swish. Default: sigmoid." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── interpolate-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "interpolate_calc",
+    description: "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X coordinate of first point." },
+        y1: { type: "number" as const, description: "Y coordinate of first point." },
+        x2: { type: "number" as const, description: "X coordinate of second point." },
+        y2: { type: "number" as const, description: "Y coordinate of second point." },
+        x: { type: "number" as const, description: "X value to interpolate at." },
+      }, required: ["x1", "y1", "x2", "y2", "x"],
+    },
+  },
+
+  // ── modpow-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "modular_arithmetic",
+    description: "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: modpow, modinverse, or mod." },
+        a: { type: "number" as const, description: "Base value." },
+        b: { type: "number" as const, description: "Exponent (required for modpow)." },
+        m: { type: "number" as const, description: "Modulus (positive integer)." },
+      }, required: ["operation", "a", "m"],
+    },
+  },
+
+  // ── ratiosimplify-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ratio_simplify",
+    description: "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First value." },
+        b: { type: "number" as const, description: "Second value (non-zero)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── binomprob-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "binomial_probability",
+    description: "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of trials (0-1000)." },
+        k: { type: "number" as const, description: "Number of successes (0 to n)." },
+        p: { type: "number" as const, description: "Probability of success per trial (0 to 1)." },
+      }, required: ["n", "k", "p"],
     },
   },
 
@@ -21688,6 +21825,36 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // proportion-tool.ts
   proportion_solve:          (args) => proportionSolve(args),
+
+  // quadratic-tool.ts
+  quadratic_solve:           (args) => quadraticSolve(args),
+
+  // primefactor-tool.ts
+  prime_factor:              (args) => primeFactor(args),
+
+  // zscore-tool.ts
+  zscore_calculate:          (args) => zscoreCalculate(args),
+
+  // angleconv-tool.ts
+  angle_convert:             (args) => angleConvert(args),
+
+  // polygon-tool.ts
+  polygon_calculate:         (args) => polygonCalculate(args),
+
+  // sigmoid-tool.ts
+  sigmoid_calculate:         (args) => sigmoidCalculate(args),
+
+  // interpolate-tool.ts
+  interpolate_calc:          (args) => interpolateCalc(args),
+
+  // modpow-tool.ts
+  modular_arithmetic:        (args) => modularArithmetic(args),
+
+  // ratiosimplify-tool.ts
+  ratio_simplify:            (args) => ratioSimplify(args),
+
+  // binomprob-tool.ts
+  binomial_probability:      (args) => binomialProbability(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

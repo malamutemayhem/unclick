@@ -254,6 +254,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "angleconv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "angle_convert",
+        "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
+      }
+    ]
+  },
+  {
     "app": "animechan",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -618,6 +628,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "number_base_convert",
         "description": "Convert numbers between binary, octal, decimal, hex, and any base 2-36."
+      }
+    ]
+  },
+  {
+    "app": "binomprob",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "binomial_probability",
+        "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
       }
     ]
   },
@@ -3530,6 +3550,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "interpolate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "interpolate_calc",
+        "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+      }
+    ]
+  },
+  {
     "app": "ipaddrinfo",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4452,6 +4482,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mixpanel_export_data",
         "description": "Export raw Mixpanel event data for a date range."
+      }
+    ]
+  },
+  {
+    "app": "modpow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "modular_arithmetic",
+        "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
       }
     ]
   },
@@ -5652,6 +5692,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "polygon",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "polygon_calculate",
+        "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+      }
+    ]
+  },
+  {
     "app": "postcodes",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5734,6 +5784,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "prime_check",
         "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+      }
+    ]
+  },
+  {
+    "app": "primefactor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prime_factor",
+        "description": "Find the prime factorization of an integer."
       }
     ]
   },
@@ -5910,6 +5970,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "quadratic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quadratic_solve",
+        "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
+      }
+    ]
+  },
+  {
     "app": "quickbooks",
     "category": "AI",
     "tools": [
@@ -6076,6 +6146,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "random_user",
         "description": "Generate random user profiles with names, emails, addresses, and photos."
+      }
+    ]
+  },
+  {
+    "app": "ratiosimplify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ratio_simplify",
+        "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
       }
     ]
   },
@@ -6758,6 +6838,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "shortcut_list_epics",
         "description": "List Shortcut epics."
+      }
+    ]
+  },
+  {
+    "app": "sigmoid",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sigmoid_calculate",
+        "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
       }
     ]
   },
@@ -8648,6 +8738,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zip_by_city",
         "description": "Look up zip/postal codes for a city and state."
+      }
+    ]
+  },
+  {
+    "app": "zscore",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zscore_calculate",
+        "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
       }
     ]
   }

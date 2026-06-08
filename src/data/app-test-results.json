@@ -3802,6 +3802,66 @@
       "note": "proportion_solve solves a/b = c/d locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
       "toolsTested": ["proportion_solve"]
+    },
+    "quadratic": {
+      "status": "pass",
+      "note": "quadratic_solve returns roots, discriminant, and vertex. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["quadratic_solve"]
+    },
+    "primefactor": {
+      "status": "pass",
+      "note": "prime_factor returns prime factorization up to 1 trillion. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["prime_factor"]
+    },
+    "zscore": {
+      "status": "pass",
+      "note": "zscore_calculate returns z-score, cumulative probability, percentile. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["zscore_calculate"]
+    },
+    "angleconv": {
+      "status": "pass",
+      "note": "angle_convert converts degrees/radians/gradians/turns with trig values. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["angle_convert"]
+    },
+    "polygon": {
+      "status": "pass",
+      "note": "polygon_calculate returns area, perimeter, angles for regular polygons. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["polygon_calculate"]
+    },
+    "sigmoid": {
+      "status": "pass",
+      "note": "sigmoid_calculate computes activation functions and derivatives. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["sigmoid_calculate"]
+    },
+    "interpolate": {
+      "status": "pass",
+      "note": "interpolate_calc performs linear interpolation/extrapolation. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["interpolate_calc"]
+    },
+    "modpow": {
+      "status": "pass",
+      "note": "modular_arithmetic computes modpow, modinverse, mod. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["modular_arithmetic"]
+    },
+    "ratiosimplify": {
+      "status": "pass",
+      "note": "ratio_simplify reduces ratios to lowest terms. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["ratio_simplify"]
+    },
+    "binomprob": {
+      "status": "pass",
+      "note": "binomial_probability computes PMF and CDF for binomial distribution. Local computation.",
+      "testedAt": "2026-06-09T12:56:00.000Z",
+      "toolsTested": ["binomial_probability"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

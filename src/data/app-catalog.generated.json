@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 495,
-  "toolCount": 1417,
+  "appCount": 505,
+  "toolCount": 1427,
   "categories": [
     "AI",
     "Books",
@@ -80,6 +80,22 @@
         {
           "name": "acronym_generate",
           "description": "Generate an acronym from a phrase, optionally skipping small words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sigmoid",
+      "name": "Activation Functions",
+      "category": "Utilities",
+      "blurb": "Compute activation functions (sigmoid, tanh, relu, etc.) and their derivatives.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sigmoid_calculate",
+          "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
         }
       ],
       "level": 5,
@@ -328,6 +344,22 @@
         {
           "name": "amiibo_types",
           "description": "List all Amiibo product types (figure, card, yarn, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "angleconv",
+      "name": "Angle Converter",
+      "category": "Utilities",
+      "blurb": "Convert between degrees, radians, gradians, and turns with trig values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "angle_convert",
+          "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
         }
       ],
       "level": 5,
@@ -708,6 +740,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "binomprob",
+      "name": "Binomial Probability",
+      "category": "Utilities",
+      "blurb": "Binomial distribution probability, cumulative probabilities, mean, and variance.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "binomial_probability",
+          "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bitbucket",
@@ -4490,6 +4538,22 @@
       "hardened": true
     },
     {
+      "slug": "interpolate",
+      "name": "Interpolation",
+      "category": "Utilities",
+      "blurb": "Linear interpolation and extrapolation between two points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "interpolate_calc",
+          "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ipaddrinfo",
       "name": "IP Address Info",
       "category": "Developer & infra",
@@ -5808,6 +5872,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "modpow",
+      "name": "Modular Arithmetic",
+      "category": "Utilities",
+      "blurb": "Modular exponentiation, modular inverse, and modular reduction.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "modular_arithmetic",
+          "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "monday",
@@ -7454,6 +7534,22 @@
       "hardened": false
     },
     {
+      "slug": "polygon",
+      "name": "Polygon Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate area, perimeter, angles, apothem, and circumradius of regular polygons.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "polygon_calculate",
+          "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "postcodes",
       "name": "Postcodes.io",
       "category": "Travel, maps & local",
@@ -7580,6 +7676,22 @@
         {
           "name": "prime_check",
           "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "primefactor",
+      "name": "Prime Factorization",
+      "category": "Utilities",
+      "blurb": "Find the prime factorization of any integer up to one trillion.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prime_factor",
+          "description": "Find the prime factorization of an integer."
         }
       ],
       "level": 5,
@@ -7866,6 +7978,22 @@
       "hardened": false
     },
     {
+      "slug": "quadratic",
+      "name": "Quadratic Solver",
+      "category": "Utilities",
+      "blurb": "Solve quadratic equations with real or complex roots, discriminant, and vertex.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "quadratic_solve",
+          "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "quickbooks",
       "name": "Quickbooks",
       "category": "Money & payments",
@@ -8100,6 +8228,22 @@
         {
           "name": "random_user",
           "description": "Generate random user profiles with names, emails, addresses, and photos."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ratiosimplify",
+      "name": "Ratio Simplifier",
+      "category": "Utilities",
+      "blurb": "Simplify ratios to lowest terms with decimal and percentage forms.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ratio_simplify",
+          "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
         }
       ],
       "level": 5,
@@ -11560,6 +11704,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "zscore",
+      "name": "Z-Score Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate z-scores, cumulative probabilities, and percentiles.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "zscore_calculate",
+          "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "zenquotes",
