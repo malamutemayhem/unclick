@@ -1,82 +1,74 @@
 import { describe, it, expect } from "vitest";
-import { levenshtein, similarity, findClosest, didYouMean } from "../string-distance.js";
+import { levenshtein, hammingDistance, jaroWinkler, longestCommonSubstring } from "../string-distance.js";
 
 describe("levenshtein", () => {
-  it("returns 0 for identical strings", () => {
+  it("identical strings", () => {
     expect(levenshtein("hello", "hello")).toBe(0);
   });
 
-  it("returns length for empty vs non-empty", () => {
-    expect(levenshtein("", "abc")).toBe(3);
-    expect(levenshtein("abc", "")).toBe(3);
+  it("one insertion", () => {
+    expect(levenshtein("cat", "cats")).toBe(1);
   });
 
-  it("counts single character edits", () => {
-    expect(levenshtein("cat", "hat")).toBe(1);
-    expect(levenshtein("cat", "cats")).toBe(1);
+  it("one deletion", () => {
     expect(levenshtein("cats", "cat")).toBe(1);
   });
 
-  it("handles multiple edits", () => {
-    expect(levenshtein("kitten", "sitting")).toBe(3);
+  it("one substitution", () => {
+    expect(levenshtein("cat", "car")).toBe(1);
+  });
+
+  it("completely different", () => {
+    expect(levenshtein("abc", "xyz")).toBe(3);
+  });
+
+  it("empty string", () => {
+    expect(levenshtein("", "hello")).toBe(5);
   });
 });
 
-describe("similarity", () => {
-  it("returns 1 for identical strings", () => {
-    expect(similarity("hello", "hello")).toBe(1);
+describe("hammingDistance", () => {
+  it("identical strings", () => {
+    expect(hammingDistance("abc", "abc")).toBe(0);
   });
 
-  it("returns 0 for completely different strings of same length", () => {
-    expect(similarity("abc", "xyz")).toBe(0);
+  it("one difference", () => {
+    expect(hammingDistance("abc", "axc")).toBe(1);
   });
 
-  it("returns 1 for two empty strings", () => {
-    expect(similarity("", "")).toBe(1);
-  });
-
-  it("returns value between 0 and 1", () => {
-    const sim = similarity("hello", "hallo");
-    expect(sim).toBeGreaterThan(0);
-    expect(sim).toBeLessThan(1);
+  it("throws on different lengths", () => {
+    expect(() => hammingDistance("ab", "abc")).toThrow("same length");
   });
 });
 
-describe("findClosest", () => {
-  const candidates = ["github", "gitlab", "gitea", "bitbucket", "slack", "stripe"];
-
-  it("finds close matches", () => {
-    const results = findClosest("githb", candidates);
-    expect(results[0].value).toBe("github");
+describe("jaroWinkler", () => {
+  it("identical strings score 1", () => {
+    expect(jaroWinkler("hello", "hello")).toBe(1);
   });
 
-  it("respects maxResults", () => {
-    const results = findClosest("git", candidates, { maxResults: 2 });
-    expect(results.length).toBeLessThanOrEqual(2);
+  it("completely different scores near 0", () => {
+    expect(jaroWinkler("abc", "xyz")).toBeLessThan(0.5);
   });
 
-  it("filters by minSimilarity", () => {
-    const results = findClosest("zzzzz", candidates, { minSimilarity: 0.8 });
-    expect(results).toHaveLength(0);
+  it("similar strings score high", () => {
+    expect(jaroWinkler("martha", "marhta")).toBeGreaterThan(0.9);
   });
 
-  it("returns empty for no matches", () => {
-    expect(findClosest("xyzzy", ["a", "b"], { minSimilarity: 0.9 })).toHaveLength(0);
+  it("empty string returns 0", () => {
+    expect(jaroWinkler("", "hello")).toBe(0);
   });
 });
 
-describe("didYouMean", () => {
-  const tools = ["github_action", "slack_send", "stripe_charges", "spotify_search"];
-
-  it("suggests closest match", () => {
-    expect(didYouMean("github_acton", tools)).toBe("github_action");
+describe("longestCommonSubstring", () => {
+  it("finds common substring", () => {
+    expect(longestCommonSubstring("abcdef", "zbcdf")).toBe("bcd");
   });
 
-  it("suggests for typos", () => {
-    expect(didYouMean("slack_sned", tools)).toBe("slack_send");
+  it("no common substring", () => {
+    expect(longestCommonSubstring("abc", "xyz")).toBe("");
   });
 
-  it("returns undefined for no close match", () => {
-    expect(didYouMean("xyzzy_tool", tools)).toBeUndefined();
+  it("identical strings", () => {
+    expect(longestCommonSubstring("hello", "hello")).toBe("hello");
   });
 });

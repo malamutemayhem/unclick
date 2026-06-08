@@ -1,68 +1,81 @@
-// String similarity and distance functions.
-// Useful for fuzzy matching tool names, connector names, and
-// suggesting "did you mean?" corrections when an agent misspells.
-
-// Levenshtein edit distance between two strings.
 export function levenshtein(a: string, b: string): number {
-  const aLen = a.length;
-  const bLen = b.length;
-
-  if (aLen === 0) return bLen;
-  if (bLen === 0) return aLen;
-
-  const matrix: number[][] = [];
-
-  for (let i = 0; i <= aLen; i++) {
-    matrix[i] = [i];
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i: number) =>
+    Array.from({ length: n + 1 }, (_, j: number) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+      else dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
   }
-  for (let j = 0; j <= bLen; j++) {
-    matrix[0][j] = j;
-  }
+  return dp[m][n];
+}
 
-  for (let i = 1; i <= aLen; i++) {
-    for (let j = 1; j <= bLen; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost,
-      );
+export function hammingDistance(a: string, b: string): number {
+  if (a.length !== b.length) throw new Error("Strings must be same length");
+  let dist = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) dist++;
+  }
+  return dist;
+}
+
+export function jaroWinkler(a: string, b: string): number {
+  if (a === b) return 1;
+  if (a.length === 0 || b.length === 0) return 0;
+
+  const matchWindow = Math.max(0, Math.floor(Math.max(a.length, b.length) / 2) - 1);
+  const aMatches = new Array(a.length).fill(false);
+  const bMatches = new Array(b.length).fill(false);
+  let matches = 0;
+  let transpositions = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    const start = Math.max(0, i - matchWindow);
+    const end = Math.min(i + matchWindow + 1, b.length);
+    for (let j = start; j < end; j++) {
+      if (bMatches[j] || a[i] !== b[j]) continue;
+      aMatches[i] = true;
+      bMatches[j] = true;
+      matches++;
+      break;
     }
   }
 
-  return matrix[aLen][bLen];
+  if (matches === 0) return 0;
+
+  let k = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (!aMatches[i]) continue;
+    while (!bMatches[k]) k++;
+    if (a[i] !== b[k]) transpositions++;
+    k++;
+  }
+
+  const jaro = (matches / a.length + matches / b.length + (matches - transpositions / 2) / matches) / 3;
+  let prefix = 0;
+  for (let i = 0; i < Math.min(4, a.length, b.length); i++) {
+    if (a[i] === b[i]) prefix++;
+    else break;
+  }
+  return jaro + prefix * 0.1 * (1 - jaro);
 }
 
-// Similarity score between 0 and 1 (1 = identical).
-export function similarity(a: string, b: string): number {
-  const maxLen = Math.max(a.length, b.length);
-  if (maxLen === 0) return 1;
-  return 1 - levenshtein(a, b) / maxLen;
-}
-
-// Find the best matches from a list of candidates.
-export function findClosest(
-  input: string,
-  candidates: readonly string[],
-  opts: { maxResults?: number; minSimilarity?: number } = {},
-): Array<{ value: string; similarity: number; distance: number }> {
-  const maxResults = opts.maxResults ?? 3;
-  const minSimilarity = opts.minSimilarity ?? 0.3;
-  const lower = input.toLowerCase();
-
-  const scored = candidates
-    .map((c) => {
-      const sim = similarity(lower, c.toLowerCase());
-      return { value: c, similarity: sim, distance: levenshtein(lower, c.toLowerCase()) };
-    })
-    .filter((s) => s.similarity >= minSimilarity)
-    .sort((a, b) => b.similarity - a.similarity);
-
-  return scored.slice(0, maxResults);
-}
-
-// "Did you mean?" suggestion helper.
-export function didYouMean(input: string, candidates: readonly string[]): string | undefined {
-  const matches = findClosest(input, candidates, { maxResults: 1, minSimilarity: 0.5 });
-  return matches.length > 0 ? matches[0].value : undefined;
+export function longestCommonSubstring(a: string, b: string): string {
+  let maxLen = 0;
+  let endIdx = 0;
+  const dp: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+        if (dp[i][j] > maxLen) {
+          maxLen = dp[i][j];
+          endIdx = i;
+        }
+      }
+    }
+  }
+  return a.slice(endIdx - maxLen, endIdx);
 }

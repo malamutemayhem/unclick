@@ -12,7 +12,7 @@ export interface ValidationError {
   message: string;
 }
 
-export function validate(value: unknown, schema: Schema, path = ""): ValidationError[] {
+export function validate(value: unknown, schema: Schema, path = "$"): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (schema.type === "any") return errors;
@@ -23,36 +23,18 @@ export function validate(value: unknown, schema: Schema, path = ""): ValidationE
   }
 
   if (schema.type === "string") {
-    if (typeof value !== "string") {
-      errors.push({ path, message: "Expected string" });
-      return errors;
-    }
-    if (schema.minLength !== undefined && value.length < schema.minLength) {
-      errors.push({ path, message: `Minimum length ${schema.minLength}` });
-    }
-    if (schema.maxLength !== undefined && value.length > schema.maxLength) {
-      errors.push({ path, message: `Maximum length ${schema.maxLength}` });
-    }
-    if (schema.pattern && !new RegExp(schema.pattern).test(value)) {
-      errors.push({ path, message: `Must match pattern ${schema.pattern}` });
-    }
+    if (typeof value !== "string") { errors.push({ path, message: "Expected string" }); return errors; }
+    if (schema.minLength !== undefined && value.length < schema.minLength) errors.push({ path, message: `Minimum length ${schema.minLength}` });
+    if (schema.maxLength !== undefined && value.length > schema.maxLength) errors.push({ path, message: `Maximum length ${schema.maxLength}` });
+    if (schema.pattern && !new RegExp(schema.pattern).test(value)) errors.push({ path, message: `Must match pattern ${schema.pattern}` });
     return errors;
   }
 
   if (schema.type === "number") {
-    if (typeof value !== "number") {
-      errors.push({ path, message: "Expected number" });
-      return errors;
-    }
-    if (schema.integer && !Number.isInteger(value)) {
-      errors.push({ path, message: "Expected integer" });
-    }
-    if (schema.min !== undefined && value < schema.min) {
-      errors.push({ path, message: `Minimum ${schema.min}` });
-    }
-    if (schema.max !== undefined && value > schema.max) {
-      errors.push({ path, message: `Maximum ${schema.max}` });
-    }
+    if (typeof value !== "number") { errors.push({ path, message: "Expected number" }); return errors; }
+    if (schema.integer && !Number.isInteger(value)) errors.push({ path, message: "Expected integer" });
+    if (schema.min !== undefined && value < schema.min) errors.push({ path, message: `Minimum ${schema.min}` });
+    if (schema.max !== undefined && value > schema.max) errors.push({ path, message: `Maximum ${schema.max}` });
     return errors;
   }
 
@@ -62,20 +44,13 @@ export function validate(value: unknown, schema: Schema, path = ""): ValidationE
   }
 
   if (schema.type === "array") {
-    if (!Array.isArray(value)) {
-      errors.push({ path, message: "Expected array" });
-      return errors;
-    }
-    if (schema.minItems !== undefined && value.length < schema.minItems) {
-      errors.push({ path, message: `Minimum ${schema.minItems} items` });
-    }
-    if (schema.maxItems !== undefined && value.length > schema.maxItems) {
-      errors.push({ path, message: `Maximum ${schema.maxItems} items` });
-    }
+    if (!Array.isArray(value)) { errors.push({ path, message: "Expected array" }); return errors; }
+    if (schema.minItems !== undefined && value.length < schema.minItems) errors.push({ path, message: `Minimum ${schema.minItems} items` });
+    if (schema.maxItems !== undefined && value.length > schema.maxItems) errors.push({ path, message: `Maximum ${schema.maxItems} items` });
     if (schema.items) {
-      for (let i = 0; i < value.length; i++) {
-        errors.push(...validate(value[i], schema.items, `${path}[${i}]`));
-      }
+      value.forEach((item: unknown, i: number) => {
+        errors.push(...validate(item, schema.items!, `${path}[${i}]`));
+      });
     }
     return errors;
   }
@@ -88,16 +63,12 @@ export function validate(value: unknown, schema: Schema, path = ""): ValidationE
     const obj = value as Record<string, unknown>;
     if (schema.required) {
       for (const key of schema.required) {
-        if (!(key in obj)) {
-          errors.push({ path: path ? `${path}.${key}` : key, message: "Required" });
-        }
+        if (!(key in obj)) errors.push({ path: `${path}.${key}`, message: "Required" });
       }
     }
     if (schema.properties) {
       for (const [key, propSchema] of Object.entries(schema.properties)) {
-        if (key in obj) {
-          errors.push(...validate(obj[key], propSchema, path ? `${path}.${key}` : key));
-        }
+        if (key in obj) errors.push(...validate(obj[key], propSchema, `${path}.${key}`));
       }
     }
     return errors;

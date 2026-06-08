@@ -3,13 +3,12 @@ export class SortedArray<T> {
   private compare: (a: T, b: T) => number;
 
   constructor(compare?: (a: T, b: T) => number) {
-    this.compare = compare ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    this.compare = compare ?? ((a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0));
   }
 
-  insert(item: T): number {
+  insert(item: T): void {
     const idx = this.findInsertIndex(item);
     this.items.splice(idx, 0, item);
-    return idx;
   }
 
   remove(item: T): boolean {
@@ -19,9 +18,12 @@ export class SortedArray<T> {
     return true;
   }
 
+  has(item: T): boolean {
+    return this.indexOf(item) !== -1;
+  }
+
   indexOf(item: T): number {
-    let lo = 0;
-    let hi = this.items.length - 1;
+    let lo = 0, hi = this.items.length - 1;
     while (lo <= hi) {
       const mid = (lo + hi) >>> 1;
       const cmp = this.compare(this.items[mid], item);
@@ -32,37 +34,21 @@ export class SortedArray<T> {
     return -1;
   }
 
-  has(item: T): boolean {
-    return this.indexOf(item) !== -1;
-  }
+  get(index: number): T | undefined { return this.items[index]; }
+  get first(): T | undefined { return this.items[0]; }
+  get last(): T | undefined { return this.items[this.items.length - 1]; }
+  get size(): number { return this.items.length; }
 
-  get(index: number): T | undefined {
-    return this.items[index];
-  }
+  toArray(): T[] { return [...this.items]; }
 
-  first(): T | undefined {
-    return this.items[0];
-  }
+  clear(): void { this.items = []; }
 
-  last(): T | undefined {
-    return this.items[this.items.length - 1];
-  }
-
-  toArray(): T[] {
-    return [...this.items];
-  }
-
-  get size(): number {
-    return this.items.length;
-  }
-
-  clear(): void {
-    this.items = [];
+  *[Symbol.iterator](): Iterator<T> {
+    for (const item of this.items) yield item;
   }
 
   private findInsertIndex(item: T): number {
-    let lo = 0;
-    let hi = this.items.length;
+    let lo = 0, hi = this.items.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
       if (this.compare(this.items[mid], item) < 0) lo = mid + 1;
