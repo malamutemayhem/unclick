@@ -1656,6 +1656,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "crossproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cross_product",
+        "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
+      }
+    ]
+  },
+  {
     "app": "crossref",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2182,6 +2192,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dotproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dot_product",
+        "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+      }
+    ]
+  },
+  {
     "app": "dropbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2542,6 +2562,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "excuser_random",
         "description": "Get a random excuse, optionally by category."
+      }
+    ]
+  },
+  {
+    "app": "expgrowth",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "exponential_growth",
+        "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
       }
     ]
   },
@@ -3004,6 +3034,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "geomseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "geometric_series",
+        "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
+      }
+    ]
+  },
+  {
     "app": "geopass",
     "category": "GEOPass (AI answer-engine readiness QC, sister to SEOPass)",
     "tools": [
@@ -3218,6 +3258,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hamming_distance",
         "description": "Calculate Hamming distance between two equal-length strings."
+      }
+    ]
+  },
+  {
+    "app": "harmonicseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "harmonic_series",
+        "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
       }
     ]
   },
@@ -5480,6 +5530,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "piapprox",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pi_approx",
+        "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
+      }
+    ]
+  },
+  {
     "app": "picsum",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5708,6 +5768,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "poetry_random",
         "description": "Get a random poem from PoetryDB."
+      }
+    ]
+  },
+  {
+    "app": "poisson",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poisson_probability",
+        "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
       }
     ]
   },
@@ -7422,6 +7492,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "taylor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "taylor_expand",
+        "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
+      }
+    ]
+  },
+  {
     "app": "telegram",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8302,6 +8382,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "variancecalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "variance_calc",
+        "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+      }
+    ]
+  },
+  {
     "app": "vatcomply",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8434,6 +8524,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "webflow_list_items",
         "description": "List items in a Webflow CMS collection."
+      }
+    ]
+  },
+  {
+    "app": "weightedmean",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "weighted_mean",
+        "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
       }
     ]
   },

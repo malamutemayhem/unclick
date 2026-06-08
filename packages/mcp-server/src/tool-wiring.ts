@@ -680,6 +680,16 @@ import { slopeIntercept } from "./slopeintercept-tool.js";
 import { logBase } from "./logbase-tool.js";
 import { nthRoot } from "./nthroot-tool.js";
 import { areaCalculate } from "./areacalc-tool.js";
+import { dotProduct } from "./dotproduct-tool.js";
+import { crossProduct } from "./crossproduct-tool.js";
+import { weightedMean } from "./weightedmean-tool.js";
+import { varianceCalc } from "./variancecalc-tool.js";
+import { poissonProbability } from "./poisson-tool.js";
+import { exponentialGrowth } from "./expgrowth-tool.js";
+import { geometricSeries } from "./geomseries-tool.js";
+import { harmonicSeries } from "./harmonicseries-tool.js";
+import { piApprox } from "./piapprox-tool.js";
+import { taylorExpand } from "./taylor-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10351,6 +10361,126 @@ export const ADDITIONAL_TOOLS = [
         semi_minor: { type: "number" as const, description: "Semi-minor axis (ellipse)." },
         angle_degrees: { type: "number" as const, description: "Angle in degrees (sector)." },
       }, required: ["shape"],
+    },
+  },
+
+  // ── dotproduct-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dot_product",
+    description: "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First vector." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second vector (same length)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── crossproduct-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cross_product",
+    description: "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First 3D vector [x,y,z]." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second 3D vector [x,y,z]." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── weightedmean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "weighted_mean",
+    description: "Compute weighted, arithmetic, geometric, and harmonic means of a set of values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values." },
+        weights: { type: "array" as const, items: { type: "number" as const }, description: "Optional weights (same length as values)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── variancecalc-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "variance_calc",
+    description: "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values (at least 2)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── poisson-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "poisson_probability",
+    description: "Calculate Poisson distribution PMF and CDF for k events with rate lambda.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        k: { type: "number" as const, description: "Number of events (non-negative integer)." },
+        lambda: { type: "number" as const, description: "Expected rate (positive)." },
+      }, required: ["k", "lambda"],
+    },
+  },
+
+  // ── expgrowth-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "exponential_growth",
+    description: "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        initial: { type: "number" as const, description: "Initial value." },
+        rate: { type: "number" as const, description: "Growth rate (positive=growth, negative=decay)." },
+        time: { type: "number" as const, description: "Time elapsed." },
+      }, required: ["initial", "rate", "time"],
+    },
+  },
+
+  // ── geomseries-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "geometric_series",
+    description: "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ...",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First term." },
+        r: { type: "number" as const, description: "Common ratio." },
+        n: { type: "number" as const, description: "Number of terms (1-1000)." },
+      }, required: ["a", "r", "n"],
+    },
+  },
+
+  // ── harmonicseries-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "harmonic_series",
+    description: "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of terms (1-100000)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── piapprox-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pi_approx",
+    description: "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        terms: { type: "number" as const, description: "Number of terms (default 1000, max 1000000)." },
+      },
+    },
+  },
+
+  // ── taylor-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "taylor_expand",
+    description: "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        function: { type: "string" as const, description: "Function: exp, sin, cos, ln1p, or atan." },
+        x: { type: "number" as const, description: "Point to evaluate at." },
+        terms: { type: "number" as const, description: "Number of terms (default 10, max 50)." },
+      }, required: ["function", "x"],
     },
   },
 
@@ -22031,6 +22161,36 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // areacalc-tool.ts
   area_calculate:            (args) => areaCalculate(args),
+
+  // dotproduct-tool.ts
+  dot_product:               (args) => dotProduct(args),
+
+  // crossproduct-tool.ts
+  cross_product:             (args) => crossProduct(args),
+
+  // weightedmean-tool.ts
+  weighted_mean:             (args) => weightedMean(args),
+
+  // variancecalc-tool.ts
+  variance_calc:             (args) => varianceCalc(args),
+
+  // poisson-tool.ts
+  poisson_probability:       (args) => poissonProbability(args),
+
+  // expgrowth-tool.ts
+  exponential_growth:        (args) => exponentialGrowth(args),
+
+  // geomseries-tool.ts
+  geometric_series:          (args) => geometricSeries(args),
+
+  // harmonicseries-tool.ts
+  harmonic_series:           (args) => harmonicSeries(args),
+
+  // piapprox-tool.ts
+  pi_approx:                 (args) => piApprox(args),
+
+  // taylor-tool.ts
+  taylor_expand:             (args) => taylorExpand(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

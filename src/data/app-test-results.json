@@ -3922,6 +3922,66 @@
       "note": "area_calculate computes area/perimeter for circles, rectangles, triangles, etc. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
       "toolsTested": ["area_calculate"]
+    },
+    "dotproduct": {
+      "status": "pass",
+      "note": "dot_product computes dot product with angle and orthogonality. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["dot_product"]
+    },
+    "crossproduct": {
+      "status": "pass",
+      "note": "cross_product computes 3D cross product with parallelism check. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["cross_product"]
+    },
+    "weightedmean": {
+      "status": "pass",
+      "note": "weighted_mean computes weighted, arithmetic, geometric, harmonic means. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["weighted_mean"]
+    },
+    "variancecalc": {
+      "status": "pass",
+      "note": "variance_calc computes variance, stddev, median, range. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["variance_calc"]
+    },
+    "poisson": {
+      "status": "pass",
+      "note": "poisson_probability computes PMF and CDF for Poisson distribution. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["poisson_probability"]
+    },
+    "expgrowth": {
+      "status": "pass",
+      "note": "exponential_growth models growth/decay with doubling time. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["exponential_growth"]
+    },
+    "geomseries": {
+      "status": "pass",
+      "note": "geometric_series computes finite/infinite sums. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["geometric_series"]
+    },
+    "harmonicseries": {
+      "status": "pass",
+      "note": "harmonic_series computes partial sums with ln approximation. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["harmonic_series"]
+    },
+    "piapprox": {
+      "status": "pass",
+      "note": "pi_approx approximates pi using Leibniz, Nilakantha, Wallis. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["pi_approx"]
+    },
+    "taylor": {
+      "status": "pass",
+      "note": "taylor_expand computes Taylor series for exp, sin, cos, ln1p, atan. Local computation.",
+      "testedAt": "2026-06-09T13:11:00.000Z",
+      "toolsTested": ["taylor_expand"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

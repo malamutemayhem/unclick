@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 515,
-  "toolCount": 1437,
+  "appCount": 525,
+  "toolCount": 1447,
   "categories": [
     "AI",
     "Books",
@@ -2134,6 +2134,22 @@
       "hardened": false
     },
     {
+      "slug": "crossproduct",
+      "name": "Cross Product",
+      "category": "Utilities",
+      "blurb": "Cross product of two 3D vectors with magnitude and parallelism check.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cross_product",
+          "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "crossref",
       "name": "Crossref",
       "category": "Books",
@@ -2782,6 +2798,22 @@
       "hardened": false
     },
     {
+      "slug": "dotproduct",
+      "name": "Dot Product",
+      "category": "Utilities",
+      "blurb": "Dot product of two vectors with angle and orthogonality detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dot_product",
+          "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dropbox",
       "name": "Dropbox",
       "category": "Productivity",
@@ -3240,6 +3272,22 @@
         {
           "name": "excuser_random",
           "description": "Get a random excuse, optionally by category."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "expgrowth",
+      "name": "Exponential Growth",
+      "category": "Utilities",
+      "blurb": "Exponential growth and decay with doubling time and half-life.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "exponential_growth",
+          "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
         }
       ],
       "level": 5,
@@ -3850,6 +3898,22 @@
       "hardened": false
     },
     {
+      "slug": "geomseries",
+      "name": "Geometric Series",
+      "category": "Utilities",
+      "blurb": "Finite and infinite sums of geometric series.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "geometric_series",
+          "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "geopass",
       "name": "GeoPass",
       "category": "Quality (XPass)",
@@ -4120,6 +4184,22 @@
         {
           "name": "hamming_distance",
           "description": "Calculate Hamming distance between two equal-length strings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "harmonicseries",
+      "name": "Harmonic Series",
+      "category": "Utilities",
+      "blurb": "Partial sums of the harmonic series with ln approximation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "harmonic_series",
+          "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
         }
       ],
       "level": 5,
@@ -7314,6 +7394,22 @@
       "hardened": false
     },
     {
+      "slug": "piapprox",
+      "name": "Pi Approximation",
+      "category": "Utilities",
+      "blurb": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pi_approx",
+          "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "piglatin",
       "name": "Pig Latin Translator",
       "category": "Utilities",
@@ -7588,6 +7684,22 @@
         {
           "name": "poetry_random",
           "description": "Get a random poem from PoetryDB."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "poisson",
+      "name": "Poisson Distribution",
+      "category": "Utilities",
+      "blurb": "Poisson distribution PMF and CDF for modeling rare events.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "poisson_probability",
+          "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
         }
       ],
       "level": 5,
@@ -9926,6 +10038,22 @@
       "hardened": true
     },
     {
+      "slug": "taylor",
+      "name": "Taylor Series",
+      "category": "Utilities",
+      "blurb": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "taylor_expand",
+          "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "telegram",
       "name": "Telegram",
       "category": "Messaging & email",
@@ -11186,6 +11314,22 @@
       "hardened": false
     },
     {
+      "slug": "variancecalc",
+      "name": "Variance Calculator",
+      "category": "Utilities",
+      "blurb": "Population/sample variance, standard deviation, median, range, and CV.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "variance_calc",
+          "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "vatcomply",
       "name": "VATcomply",
       "category": "Markets & crypto",
@@ -11368,6 +11512,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "weightedmean",
+      "name": "Weighted Mean",
+      "category": "Utilities",
+      "blurb": "Weighted, arithmetic, geometric, and harmonic means of a value set.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "weighted_mean",
+          "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "wger",
