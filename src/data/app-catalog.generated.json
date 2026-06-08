@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 329,
-  "toolCount": 1182,
+  "appCount": 335,
+  "toolCount": 1191,
   "categories": [
     "AI",
     "Books",
@@ -1250,6 +1250,26 @@
       "hardened": false
     },
     {
+      "slug": "colornames",
+      "name": "Color Names",
+      "category": "Utilities",
+      "blurb": "Find the closest named color for any hex code.",
+      "domain": "color.pizza",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "color_name_lookup",
+          "description": "Find the closest named color for a hex code."
+        },
+        {
+          "name": "color_name_random",
+          "description": "Get a random named color with its hex code and name."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "colormind",
       "name": "Colormind",
       "category": "AI",
@@ -1724,6 +1744,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "diceware",
+      "name": "Diceware",
+      "category": "Utilities",
+      "blurb": "Generate secure random passphrases from a word list.",
+      "domain": null,
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "diceware_passphrase",
+          "description": "Generate a secure random passphrase using the diceware word list."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "dictionary",
@@ -3358,6 +3394,22 @@
       "hardened": true
     },
     {
+      "slug": "ipaddrinfo",
+      "name": "IP Address Info",
+      "category": "Developer & infra",
+      "blurb": "IP address geolocation, ISP, and timezone lookup via ipwho.is.",
+      "domain": "ipwho.is",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ip_address_lookup",
+          "description": "Look up geolocation, ISP, and timezone for an IP address."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ipapi",
       "name": "IP API",
       "category": "Travel, maps & local",
@@ -4334,6 +4386,26 @@
       "hardened": true
     },
     {
+      "slug": "mhwdb",
+      "name": "Monster Hunter World DB",
+      "category": "Games & esports",
+      "blurb": "Browse Monster Hunter World monsters, weapons, and armor.",
+      "domain": "mhw-db.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "mhw_monsters",
+          "description": "Search Monster Hunter World monsters by name."
+        },
+        {
+          "name": "mhw_weapons",
+          "description": "Browse Monster Hunter World weapons by type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "musicbrainz",
       "name": "MusicBrainz",
       "category": "Music & video",
@@ -4770,6 +4842,26 @@
       "hardened": true
     },
     {
+      "slug": "opentriviadb",
+      "name": "Open Trivia DB",
+      "category": "Utilities",
+      "blurb": "Trivia questions by category, difficulty, and type from Open Trivia DB.",
+      "domain": "opentdb.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "triviadb_questions",
+          "description": "Get trivia questions from Open Trivia Database by category, difficulty, or type."
+        },
+        {
+          "name": "triviadb_categories",
+          "description": "List all available Open Trivia Database question categories."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "openmeteo",
       "name": "Open-Meteo",
       "category": "Weather & science",
@@ -4792,6 +4884,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "openmeteo-marine",
+      "name": "Open-Meteo Marine",
+      "category": "Weather & science",
+      "blurb": "Ocean wave height, swell, and marine weather forecast.",
+      "domain": "open-meteo.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "marine_forecast",
+          "description": "Get ocean wave, swell, and marine weather forecast for a location."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "openai",

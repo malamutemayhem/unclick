@@ -1068,6 +1068,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "colornames",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_name_lookup",
+        "description": "Find the closest named color for a hex code."
+      },
+      {
+        "name": "color_name_random",
+        "description": "Get a random named color with its hex code and name."
+      }
+    ]
+  },
+  {
     "app": "commonsensepass",
     "category": "CommonSensePass (worker sanity-gate verdicts)",
     "tools": [
@@ -1398,6 +1412,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "diceware",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "diceware_passphrase",
+        "description": "Generate a secure random passphrase using the diceware word list."
       }
     ]
   },
@@ -2722,6 +2746,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ipaddrinfo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ip_address_lookup",
+        "description": "Look up geolocation, ISP, and timezone for an IP address."
+      }
+    ]
+  },
+  {
     "app": "ipapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3338,6 +3372,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mhwdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mhw_monsters",
+        "description": "Search Monster Hunter World monsters by name."
+      },
+      {
+        "name": "mhw_weapons",
+        "description": "Browse Monster Hunter World weapons by type."
+      }
+    ]
+  },
+  {
     "app": "miro",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3884,6 +3932,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openmeteo-marine",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "marine_forecast",
+        "description": "Get ocean wave, swell, and marine weather forecast for a location."
+      }
+    ]
+  },
+  {
     "app": "opennotify",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3894,6 +3952,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "iss_astronauts",
         "description": "Get the list of astronauts currently in space."
+      }
+    ]
+  },
+  {
+    "app": "opentriviadb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "triviadb_questions",
+        "description": "Get trivia questions from Open Trivia Database by category, difficulty, or type."
+      },
+      {
+        "name": "triviadb_categories",
+        "description": "List all available Open Trivia Database question categories."
       }
     ]
   },

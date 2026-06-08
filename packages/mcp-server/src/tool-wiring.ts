@@ -494,6 +494,12 @@ import { nationalizePredict } from "./nationalize-tool.js";
 import { qrserverGenerate } from "./qrserver-tool.js";
 import { solarsystemBodies, solarsystemBody } from "./solarsystem-tool.js";
 import { pubchemSearch, pubchemProperties } from "./pubchem-tool.js";
+import { marineForecast } from "./openmeteo-marine-tool.js";
+import { triviaDbQuestions, triviaDbCategories } from "./opentriviadb-tool.js";
+import { ipAddressLookup } from "./ipaddrinfo-tool.js";
+import { dicewarePassphrase } from "./diceware-tool.js";
+import { colorNameLookup, colorNameRandom } from "./colornames-tool.js";
+import { mhwMonsters, mhwWeapons } from "./mhwdb-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7358,6 +7364,99 @@ export const ADDITIONAL_TOOLS = [
         cid: { type: "string" as const, description: "PubChem Compound ID." },
         properties: { type: "string" as const, description: "Comma-separated property list (default: MolecularFormula,MolecularWeight,IUPACName,IsomericSMILES)." },
       }, required: ["cid"],
+    },
+  },
+
+  // ── openmeteo-marine-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "marine_forecast",
+    description: "Get ocean wave, swell, and marine weather forecast for a location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the ocean point." },
+        longitude: { type: "number" as const, description: "Longitude of the ocean point." },
+        forecast_days: { type: "number" as const, description: "Number of forecast days (default 7, max 16)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── opentriviadb-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "triviadb_questions",
+    description: "Get trivia questions from Open Trivia Database by category, difficulty, or type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        amount: { type: "number" as const, description: "Number of questions (default 5, max 50)." },
+        category: { type: "number" as const, description: "Category ID (use triviadb_categories to list them)." },
+        difficulty: { type: "string" as const, description: "Difficulty: easy, medium, or hard." },
+        type: { type: "string" as const, description: "Question type: multiple (4 choices) or boolean (true/false)." },
+      },
+    },
+  },
+  {
+    name: "triviadb_categories",
+    description: "List all available Open Trivia Database question categories.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── ipaddrinfo-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "ip_address_lookup",
+    description: "Look up geolocation, ISP, and timezone for an IP address.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up (omit for current server IP)." },
+      },
+    },
+  },
+
+  // ── diceware-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "diceware_passphrase",
+    description: "Generate a secure random passphrase using the diceware word list.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        words: { type: "number" as const, description: "Number of words (3-12, default 6)." },
+        separator: { type: "string" as const, description: "Word separator (default '-')." },
+      },
+    },
+  },
+
+  // ── colornames-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "color_name_lookup",
+    description: "Find the closest named color for a hex code.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. 'ff5733' or '#ff5733')." },
+      }, required: ["hex"],
+    },
+  },
+  {
+    name: "color_name_random",
+    description: "Get a random named color with its hex code and name.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── mhwdb-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "mhw_monsters",
+    description: "Search Monster Hunter World monsters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Monster name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "mhw_weapons",
+    description: "Browse Monster Hunter World weapons by type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        type: { type: "string" as const, description: "Weapon type (e.g. great-sword, long-sword, bow, hammer)." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
     },
   },
 
@@ -18470,6 +18569,22 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // pubchem-tool.ts
   pubchem_search:            (args) => pubchemSearch(args),
   pubchem_properties:        (args) => pubchemProperties(args),
+
+  // openmeteo-marine-tool.ts
+  marine_forecast:           (args) => marineForecast(args),
+  // opentriviadb-tool.ts
+  triviadb_questions:        (args) => triviaDbQuestions(args),
+  triviadb_categories:       (args) => triviaDbCategories(args),
+  // ipaddrinfo-tool.ts
+  ip_address_lookup:         (args) => ipAddressLookup(args),
+  // diceware-tool.ts
+  diceware_passphrase:       (args) => dicewarePassphrase(args),
+  // colornames-tool.ts
+  color_name_lookup:         (args) => colorNameLookup(args),
+  color_name_random:         (args) => colorNameRandom(args),
+  // mhwdb-tool.ts
+  mhw_monsters:              (args) => mhwMonsters(args),
+  mhw_weapons:               (args) => mhwWeapons(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

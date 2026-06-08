@@ -980,6 +980,26 @@
     }
   },
   {
+    "connector": "colornames",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "confluence",
     "level": 5,
     "levelName": "Agentic",
@@ -1193,6 +1213,26 @@
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "diceware",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
       "memoryAware": false,
       "proactive": false,
       "agentic": true,
@@ -2320,6 +2360,26 @@
     }
   },
   {
+    "connector": "ipaddrinfo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "ipapi",
     "level": 5,
     "levelName": "Agentic",
@@ -2860,6 +2920,26 @@
     }
   },
   {
+    "connector": "mhwdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "miro",
     "level": 5,
     "levelName": "Agentic",
@@ -3320,6 +3400,26 @@
     }
   },
   {
+    "connector": "openmeteo-marine",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "opennotify",
     "level": 5,
     "levelName": "Agentic",
@@ -3332,6 +3432,26 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "opentriviadb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,

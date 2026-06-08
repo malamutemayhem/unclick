@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T11:00:00.000Z",
+  "updatedAt": "2026-06-08T11:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -437,6 +437,15 @@
         "colormind_generate_palette"
       ]
     },
+    "colornames": {
+      "status": "pass",
+      "note": "color_name_lookup and color_name_random find named colors via api.color.pizza. Free, no key needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "color_name_lookup",
+        "color_name_random"
+      ]
+    },
     "coinpaprika": {
       "status": "pass",
       "note": "coinpaprika_global, coinpaprika_coin, coinpaprika_ticker return crypto market data. Free, no key needed.",
@@ -634,6 +643,14 @@
         "discogs_search_artists"
       ],
       "comment": ""
+    },
+    "diceware": {
+      "status": "pass",
+      "note": "diceware_passphrase generates secure random passphrases locally. No network needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "diceware_passphrase"
+      ]
     },
     "discord": {
       "status": "attention",
@@ -1139,6 +1156,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "ipaddrinfo": {
+      "status": "pass",
+      "note": "ip_address_lookup returns IP geolocation data from ipwho.is. Free, no key needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "ip_address_lookup"
+      ]
+    },
     "ipapi": {
       "status": "pass",
       "note": "ip_lookup returned geolocation for 8.8.8.8 (Google DNS, Ashburn VA) - no auth needed",
@@ -1408,6 +1433,15 @@
       "toolsTested": [],
       "comment": ""
     },
+    "mhwdb": {
+      "status": "pass",
+      "note": "mhw_monsters and mhw_weapons browse Monster Hunter World data from mhw-db.com. Free, no key needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "mhw_monsters",
+        "mhw_weapons"
+      ]
+    },
     "mistral": {
       "status": "attention",
       "note": "Paid or side-effecting only; needs manual test. paid LLM API; needs manual test with MISTRAL_API_KEY",
@@ -1638,12 +1672,29 @@
       ],
       "comment": ""
     },
+    "openmeteo-marine": {
+      "status": "pass",
+      "note": "marine_forecast returns ocean wave and swell data from marine-api.open-meteo.com. Free, no key needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "marine_forecast"
+      ]
+    },
     "opennotify": {
       "status": "pass",
       "note": "iss_location() returned ISS lat/lon position and timestamp. Free public API.",
       "testedAt": "2026-06-07T12:50:00.000Z",
       "toolsTested": [
         "iss_location"
+      ]
+    },
+    "opentriviadb": {
+      "status": "pass",
+      "note": "triviadb_questions and triviadb_categories get trivia from opentdb.com. Free, no key needed.",
+      "testedAt": "2026-06-08T11:30:00.000Z",
+      "toolsTested": [
+        "triviadb_questions",
+        "triviadb_categories"
       ]
     },
     "pagerduty": {
