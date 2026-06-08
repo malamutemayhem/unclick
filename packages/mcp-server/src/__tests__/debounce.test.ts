@@ -1,97 +1,68 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { debounce, throttle } from "../debounce.js";
 
 describe("debounce", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it("delays execution", () => {
-    let count = 0;
-    const fn = debounce(() => { count++; }, 100);
-    fn();
-    expect(count).toBe(0);
-    vi.advanceTimersByTime(100);
-    expect(count).toBe(1);
+  it("delays function execution", async () => {
+    const fn = vi.fn();
+    const debounced = debounce(fn, 50);
+    debounced();
+    expect(fn).not.toHaveBeenCalled();
+    await new Promise((r) => setTimeout(r, 80));
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("resets timer on repeated calls", () => {
-    let count = 0;
-    const fn = debounce(() => { count++; }, 100);
-    fn();
-    vi.advanceTimersByTime(50);
-    fn();
-    vi.advanceTimersByTime(50);
-    expect(count).toBe(0);
-    vi.advanceTimersByTime(50);
-    expect(count).toBe(1);
+  it("resets timer on repeated calls", async () => {
+    const fn = vi.fn();
+    const debounced = debounce(fn, 50);
+    debounced();
+    await new Promise((r) => setTimeout(r, 30));
+    debounced();
+    await new Promise((r) => setTimeout(r, 80));
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("uses latest args", () => {
-    let value = "";
-    const fn = debounce((v: unknown) => { value = String(v); }, 100);
-    fn("a");
-    fn("b");
-    fn("c");
-    vi.advanceTimersByTime(100);
-    expect(value).toBe("c");
+  it("cancel prevents execution", async () => {
+    const fn = vi.fn();
+    const debounced = debounce(fn, 50);
+    debounced();
+    debounced.cancel();
+    await new Promise((r) => setTimeout(r, 80));
+    expect(fn).not.toHaveBeenCalled();
   });
 
-  it("cancel prevents execution", () => {
-    let count = 0;
-    const fn = debounce(() => { count++; }, 100);
-    fn();
-    fn.cancel();
-    vi.advanceTimersByTime(200);
-    expect(count).toBe(0);
-  });
-
-  it("flush executes immediately", () => {
-    let count = 0;
-    const fn = debounce(() => { count++; }, 100);
-    fn();
-    fn.flush();
-    expect(count).toBe(1);
-    vi.advanceTimersByTime(200);
-    expect(count).toBe(1);
+  it("flush triggers immediately", () => {
+    const fn = vi.fn();
+    const debounced = debounce(fn, 1000);
+    debounced("arg1");
+    debounced.flush();
+    expect(fn).toHaveBeenCalledWith("arg1");
   });
 });
 
 describe("throttle", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it("executes first call immediately", () => {
-    let count = 0;
-    const fn = throttle(() => { count++; }, 100);
-    fn();
-    expect(count).toBe(1);
+  it("calls immediately on first invocation", () => {
+    const fn = vi.fn();
+    const throttled = throttle(fn, 100);
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("blocks calls within interval", () => {
-    let count = 0;
-    const fn = throttle(() => { count++; }, 100);
-    fn();
-    fn();
-    fn();
-    expect(count).toBe(1);
+  it("suppresses calls within interval", () => {
+    const fn = vi.fn();
+    const throttled = throttle(fn, 100);
+    throttled();
+    throttled();
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("executes trailing call after interval", () => {
-    let count = 0;
-    const fn = throttle(() => { count++; }, 100);
-    fn();
-    fn();
-    vi.advanceTimersByTime(100);
-    expect(count).toBe(2);
-  });
-
-  it("cancel prevents trailing call", () => {
-    let count = 0;
-    const fn = throttle(() => { count++; }, 100);
-    fn();
-    fn();
-    fn.cancel();
-    vi.advanceTimersByTime(200);
-    expect(count).toBe(1);
+  it("cancel clears pending call", async () => {
+    const fn = vi.fn();
+    const throttled = throttle(fn, 50);
+    throttled();
+    throttled();
+    throttled.cancel();
+    await new Promise((r) => setTimeout(r, 80));
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });

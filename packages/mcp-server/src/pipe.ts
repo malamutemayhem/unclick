@@ -1,26 +1,47 @@
-export function pipe<A, B>(a: A, ab: (a: A) => B): B;
-export function pipe<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C;
-export function pipe<A, B, C, D>(a: A, ab: (a: A) => B, bc: (b: B) => C, cd: (c: C) => D): D;
-export function pipe<A, B, C, D, E>(a: A, ab: (a: A) => B, bc: (b: B) => C, cd: (c: C) => D, de: (d: D) => E): E;
-export function pipe(initial: any, ...fns: Array<(v: any) => any>): any {
-  return fns.reduce((acc, fn) => fn(acc), initial);
+type AnyFn = (arg: any) => any;
+
+export function pipe<A, B>(a: A, fn1: (a: A) => B): B;
+export function pipe<A, B, C>(a: A, fn1: (a: A) => B, fn2: (b: B) => C): C;
+export function pipe<A, B, C, D>(a: A, fn1: (a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D): D;
+export function pipe<A, B, C, D, E>(a: A, fn1: (a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D, fn4: (d: D) => E): E;
+export function pipe(initial: unknown, ...fns: AnyFn[]): unknown {
+  return fns.reduce((acc: unknown, fn: AnyFn) => fn(acc), initial);
 }
 
-export function compose<A, B>(ab: (a: A) => B): (a: A) => B;
-export function compose<A, B, C>(bc: (b: B) => C, ab: (a: A) => B): (a: A) => C;
-export function compose<A, B, C, D>(cd: (c: C) => D, bc: (b: B) => C, ab: (a: A) => B): (a: A) => D;
-export function compose(...fns: Array<(v: any) => any>): (v: any) => any {
-  return (v: any) => fns.reduceRight((acc, fn) => fn(acc), v);
+export function compose<A, B>(fn1: (a: A) => B): (a: A) => B;
+export function compose<A, B, C>(fn1: (b: B) => C, fn2: (a: A) => B): (a: A) => C;
+export function compose<A, B, C, D>(fn1: (c: C) => D, fn2: (b: B) => C, fn3: (a: A) => B): (a: A) => D;
+export function compose(...fns: AnyFn[]): AnyFn {
+  return (arg: unknown) => fns.reduceRight((acc: unknown, fn: AnyFn) => fn(acc), arg);
 }
 
-export function tap<T>(fn: (v: T) => void): (v: T) => T {
-  return (v: T) => { fn(v); return v; };
+export function tap<T>(fn: (value: T) => void): (value: T) => T {
+  return (value: T): T => { fn(value); return value; };
 }
 
-export function when<T>(predicate: (v: T) => boolean, fn: (v: T) => T): (v: T) => T {
-  return (v: T) => predicate(v) ? fn(v) : v;
+export function identity<T>(value: T): T { return value; }
+
+export function constant<T>(value: T): () => T { return () => value; }
+
+export function memoize<T extends (...args: any[]) => any>(fn: T): T {
+  const cache = new Map<string, ReturnType<T>>();
+  return ((...args: Parameters<T>): ReturnType<T> => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key)!;
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
 }
 
-export function unless<T>(predicate: (v: T) => boolean, fn: (v: T) => T): (v: T) => T {
-  return (v: T) => predicate(v) ? v : fn(v);
+export function once<T extends (...args: any[]) => any>(fn: T): T {
+  let called = false;
+  let result: ReturnType<T>;
+  return ((...args: Parameters<T>): ReturnType<T> => {
+    if (!called) {
+      called = true;
+      result = fn(...args);
+    }
+    return result;
+  }) as T;
 }

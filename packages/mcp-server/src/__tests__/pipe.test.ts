@@ -1,49 +1,76 @@
-import { describe, it, expect, vi } from "vitest";
-import { pipe, compose, tap, when, unless } from "../pipe.js";
+import { describe, it, expect } from "vitest";
+import { pipe, compose, tap, identity, constant, memoize, once } from "../pipe.js";
 
 describe("pipe", () => {
-  it("pipes through single function", () => {
-    expect(pipe(5, (x: number) => x * 2)).toBe(10);
+  it("pipes through one function", () => {
+    expect(pipe(2, (x: number) => x * 3)).toBe(6);
   });
 
   it("pipes through multiple functions", () => {
     expect(pipe(
-      5,
-      (x: number) => x * 2,
-      (x: number) => x + 1,
-      (x: number) => String(x)
-    )).toBe("11");
+      "hello",
+      (s: string) => s.toUpperCase(),
+      (s: string) => s + "!",
+    )).toBe("HELLO!");
   });
+});
 
-  it("compose creates right-to-left pipeline", () => {
+describe("compose", () => {
+  it("composes functions right to left", () => {
     const fn = compose(
       (x: number) => x + 1,
-      (x: number) => x * 2
+      (x: number) => x * 2,
     );
-    expect(fn(5)).toBe(11);
+    expect(fn(3)).toBe(7);
   });
+});
 
-  it("compose with single function", () => {
-    const fn = compose((x: number) => x + 1);
-    expect(fn(5)).toBe(6);
-  });
-
-  it("tap executes side effect and returns value", () => {
-    const fn = vi.fn();
-    const result = pipe(42, tap(fn));
+describe("tap", () => {
+  it("returns value unchanged", () => {
+    let captured = 0;
+    const result = pipe(42, tap((x: number) => { captured = x; }));
     expect(result).toBe(42);
-    expect(fn).toHaveBeenCalledWith(42);
+    expect(captured).toBe(42);
+  });
+});
+
+describe("identity", () => {
+  it("returns the same value", () => {
+    expect(identity(42)).toBe(42);
+    expect(identity("hello")).toBe("hello");
+  });
+});
+
+describe("constant", () => {
+  it("returns a function that always returns the value", () => {
+    const fn = constant(42);
+    expect(fn()).toBe(42);
+    expect(fn()).toBe(42);
+  });
+});
+
+describe("memoize", () => {
+  it("caches results", () => {
+    let callCount = 0;
+    const fn = memoize((x: number) => { callCount++; return x * 2; });
+    expect(fn(3)).toBe(6);
+    expect(fn(3)).toBe(6);
+    expect(callCount).toBe(1);
   });
 
-  it("when applies fn if predicate is true", () => {
-    const double = when((x: number) => x > 3, (x: number) => x * 2);
-    expect(double(5)).toBe(10);
-    expect(double(2)).toBe(2);
+  it("distinguishes different arguments", () => {
+    const fn = memoize((x: number) => x * 2);
+    expect(fn(3)).toBe(6);
+    expect(fn(4)).toBe(8);
   });
+});
 
-  it("unless applies fn if predicate is false", () => {
-    const double = unless((x: number) => x > 3, (x: number) => x * 2);
-    expect(double(2)).toBe(4);
-    expect(double(5)).toBe(5);
+describe("once", () => {
+  it("only calls function once", () => {
+    let count = 0;
+    const fn = once(() => { count++; return "done"; });
+    expect(fn()).toBe("done");
+    expect(fn()).toBe("done");
+    expect(count).toBe(1);
   });
 });

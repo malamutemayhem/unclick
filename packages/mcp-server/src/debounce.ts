@@ -1,86 +1,64 @@
-// Debounce and throttle utilities.
-// Prevents rapid-fire calls from hammering APIs or flooding logs.
+export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T & { cancel: () => void; flush: () => void } {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastArgs: Parameters<T> | null = null;
+  let lastThis: any = null;
 
-export interface DebouncedFn<T extends (...args: unknown[]) => unknown> {
-  (...args: Parameters<T>): void;
-  cancel(): void;
-  flush(): void;
-}
-
-export function debounce<T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  delayMs: number,
-): DebouncedFn<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let lastArgs: Parameters<T> | undefined;
-
-  const debounced = ((...args: Parameters<T>) => {
+  const debounced = function (this: any, ...args: Parameters<T>): void {
     lastArgs = args;
+    lastThis = this;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      timer = undefined;
-      fn(...lastArgs!);
-      lastArgs = undefined;
-    }, delayMs);
-  }) as DebouncedFn<T>;
+      timer = null;
+      fn.apply(lastThis, lastArgs!);
+      lastArgs = null;
+      lastThis = null;
+    }, delay);
+  } as T & { cancel: () => void; flush: () => void };
 
-  debounced.cancel = () => {
+  debounced.cancel = (): void => {
     if (timer) clearTimeout(timer);
-    timer = undefined;
-    lastArgs = undefined;
+    timer = null;
+    lastArgs = null;
+    lastThis = null;
   };
 
-  debounced.flush = () => {
+  debounced.flush = (): void => {
     if (timer && lastArgs) {
       clearTimeout(timer);
-      timer = undefined;
-      fn(...lastArgs);
-      lastArgs = undefined;
+      timer = null;
+      fn.apply(lastThis, lastArgs);
+      lastArgs = null;
+      lastThis = null;
     }
   };
 
   return debounced;
 }
 
-export interface ThrottledFn<T extends (...args: unknown[]) => unknown> {
-  (...args: Parameters<T>): void;
-  cancel(): void;
-}
-
-export function throttle<T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  intervalMs: number,
-): ThrottledFn<T> {
+export function throttle<T extends (...args: any[]) => any>(fn: T, interval: number): T & { cancel: () => void } {
   let lastCall = 0;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let lastArgs: Parameters<T> | undefined;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const throttled = ((...args: Parameters<T>) => {
+  const throttled = function (this: any, ...args: Parameters<T>): void {
     const now = Date.now();
-    const remaining = intervalMs - (now - lastCall);
-
+    const remaining = interval - (now - lastCall);
     if (remaining <= 0) {
+      if (timer) { clearTimeout(timer); timer = null; }
       lastCall = now;
-      fn(...args);
-    } else {
-      lastArgs = args;
-      if (!timer) {
-        timer = setTimeout(() => {
-          lastCall = Date.now();
-          timer = undefined;
-          if (lastArgs) {
-            fn(...lastArgs);
-            lastArgs = undefined;
-          }
-        }, remaining);
-      }
+      fn.apply(this, args);
+    } else if (!timer) {
+      timer = setTimeout(() => {
+        lastCall = Date.now();
+        timer = null;
+        fn.apply(this, args);
+      }, remaining);
     }
-  }) as ThrottledFn<T>;
+  } as T & { cancel: () => void };
 
-  throttled.cancel = () => {
+  throttled.cancel = (): void => {
     if (timer) clearTimeout(timer);
-    timer = undefined;
-    lastArgs = undefined;
+    timer = null;
+    lastCall = 0;
   };
 
   return throttled;
