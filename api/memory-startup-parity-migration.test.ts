@@ -10,6 +10,10 @@ const hybridMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260528010000_memory_hybrid_recall_visibility.sql"),
   "utf8",
 );
+const recycleBinMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260608003000_memory_session_recycle_bin.sql"),
+  "utf8",
+);
 
 describe("memory startup parity migration", () => {
   it("centralizes startup eligibility in security-invoker views", () => {
@@ -49,5 +53,13 @@ describe("memory startup parity migration", () => {
     expect(hybridMigration).toContain("CREATE OR REPLACE FUNCTION search_memory_hybrid");
     expect(hybridMigration).toContain("COALESCE(p_startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded')");
     expect(hybridMigration).toContain("ss.created_at <= as_of_ts");
+  });
+
+  it("keeps archived session summaries out of startup recall", () => {
+    expect(recycleBinMigration).toContain("ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'");
+    expect(recycleBinMigration).toContain("mc_session_summaries_status_check");
+    expect(recycleBinMigration).toContain("session_summaries_status_check");
+    expect(recycleBinMigration).toMatch(/CREATE OR REPLACE FUNCTION public\.mc_get_startup_context[\s\S]+COALESCE\(status, 'active'\) = 'active'/);
+    expect(recycleBinMigration).toMatch(/CREATE OR REPLACE FUNCTION public\.get_startup_context[\s\S]+COALESCE\(status, 'active'\) = 'active'/);
   });
 });

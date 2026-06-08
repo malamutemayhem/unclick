@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import ExpandableImage from "@/components/ExpandableImage";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { presets } from "@/lib/design-system";
@@ -144,6 +145,18 @@ const NewToAI = () => {
       lede="UnClick gives AI assistants the tools they need to help you. Like giving a new employee the keys to the office, a phone, and a filing cabinet."
       cta={{ label: "See what is possible", href: "#how" }}
     >
+      {/* Overview infographic (tap to expand). Asset: public/UnClick_Overview_web.jpg */}
+      <section className="px-6 pt-2">
+        <div className="mx-auto max-w-4xl">
+          <FadeIn>
+            <ExpandableImage
+              src="/UnClick_Overview_web.jpg"
+              alt="How UnClick fits together: your private data island, development autopilot, connected apps, secure connections, the orchestrator, the AI memory engine, and your AI agent subscriptions across every device."
+            />
+          </FadeIn>
+        </div>
+      </section>
+
       {/* What is UnClick? */}
       <section id="how" className={presets.section}>
         <div className="mx-auto max-w-4xl">

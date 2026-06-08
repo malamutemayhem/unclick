@@ -1,63 +1,36 @@
 import { Link } from "react-router-dom";
 import PageShell from "@/components/PageShell";
 import FadeIn from "@/components/FadeIn";
+import ExpandableImage from "@/components/ExpandableImage";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { presets } from "@/lib/design-system";
 import {
-  Brain,
   Database,
   Shield,
-  Clock,
   Search,
   Code,
-  Layers,
-  Zap,
   RefreshCw,
+  Fingerprint,
+  Briefcase,
+  Library,
+  History,
+  Gauge,
 } from "lucide-react";
 
 /**
- * The six layers of memory. Plain English. Sentence case.
- * Original copy used jargon (atomic facts, supersede). Replaced with
- * what the layer actually does for the user.
+ * The eight pillars of memory, matching the product map. Plain English,
+ * sentence case. Each pillar is a different job the memory does for you.
  */
-const MEMORY_LAYERS = [
-  {
-    num: 1,
-    title: "Business context",
-    desc: "Standing rules, clients, preferences. Always loaded. Tiny footprint. The stuff that never changes.",
-    icon: Zap,
-  },
-  {
-    num: 2,
-    title: "Knowledge library",
-    desc: "Versioned reference documents. Vendor profiles, CVs, client briefs, specs. Full history kept automatically.",
-    icon: Layers,
-  },
-  {
-    num: 3,
-    title: "Session summaries",
-    desc: "One summary per session. Decisions, open loops, key topics. New sessions read the last five to pick up where you left off.",
-    icon: Clock,
-  },
-  {
-    num: 4,
-    title: "Searchable facts",
-    desc: "Conversations distilled into individual facts overnight. When a fact updates, the old version is kept, never lost.",
-    icon: Search,
-  },
-  {
-    num: 5,
-    title: "Conversation log",
-    desc: "Full verbatim history, searchable by keyword. Every exchange timestamped. Code stored separately to keep it lean.",
-    icon: Brain,
-  },
-  {
-    num: 6,
-    title: "Code dumps",
-    desc: "Code stored separately, expanded on demand. Language-tagged, filename-tagged, searchable. Only loaded when needed.",
-    icon: Code,
-  },
+const MEMORY_PILLARS = [
+  { title: "Identity", desc: "Who you are and your standing rules. Always loaded, tiny footprint, the part that never changes.", icon: Fingerprint },
+  { title: "Business context", desc: "Your clients, projects, and preferences, so every session starts already knowing your world.", icon: Briefcase },
+  { title: "Facts", desc: "Conversations distilled into single facts. When a fact changes, the old version is kept, never lost.", icon: Search },
+  { title: "Library and briefs", desc: "Versioned reference docs: vendor profiles, CVs, client briefs, specs. Full history kept automatically.", icon: Library },
+  { title: "Session continuity", desc: "One summary per session: decisions, open loops, key topics. New sessions read the last few and carry on.", icon: History },
+  { title: "Code memory", desc: "Code stored on its own and expanded on demand. Language and file tagged, searchable, loaded only when needed.", icon: Code },
+  { title: "Recall and hygiene", desc: "Used memories surface first and stale ones fade to save context. Everything stays searchable by keyword.", icon: Gauge },
+  { title: "Data island", desc: "It all lives in your own database. We never see it, and if you leave, your data stays yours.", icon: Database },
 ];
 
 /**
@@ -100,7 +73,7 @@ const CAPTURE_FEED = [
 
 const COMPARISON = [
   { feature: "Where data lives", tip: "Who controls your memory data", unclick: "Your database", mem0: "Their cloud", letta: "Their runtime", zep: "Their cloud" },
-  { feature: "Memory layers", tip: "How memory is structured and organised", unclick: "Six layers", mem0: "Flat store", letta: "Three tiers", zep: "Three subgraphs" },
+  { feature: "Memory structure", tip: "How memory is structured and organised", unclick: "Eight pillars", mem0: "Flat store", letta: "Three tiers", zep: "Three subgraphs" },
   { feature: "Code aware", tip: "Stores and searches code blocks separately", unclick: "Yes", mem0: "No", letta: "Partial", zep: "No" },
   { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", mem0: "No", letta: "No", zep: "No" },
   { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", mem0: "Yes", letta: "No", zep: "No" },
@@ -114,10 +87,10 @@ const Memory = () => {
   useMetaTags({
     title: "Persistent memory for AI agents - UnClick",
     description:
-      "Give your AI agent a six-layer memory. Business context, facts, sessions, code, library docs, and conversations. Cross-session, cross-agent, stored in your own database.",
+      "Give your AI agent an eight-pillar memory: identity, business context, facts, library, sessions, code, recall, and your own data island. Cross-session, cross-agent, stored in your own database.",
     ogTitle: "UnClick Memory - Persistent cross-session memory for AI agents",
     ogDescription:
-      "Six layers of memory for AI agents. Business context, facts, sessions, and more. All cross-session.",
+      "Eight pillars of memory for AI agents: identity, business context, facts, sessions, code, and more. All cross-session.",
     ogUrl: "https://unclick.world/memory",
   });
 
@@ -126,9 +99,21 @@ const Memory = () => {
       eyebrow="Memory"
       title="Your agent forgets everything."
       accent="Fix that."
-      lede="Drop-in persistent memory for any AI agent. Six layers. Your data stays in your database."
+      lede={<>Drop-in persistent memory for any AI agent. Eight pillars, all searchable. Your data stays in <span className="whitespace-nowrap">your database.</span></>}
       cta={{ label: "See how it works", href: "#how-it-works" }}
     >
+      {/* Infographic: the eight pillars at a glance, high on the page */}
+      <section className="px-6 pb-0 -mt-8 sm:-mt-10">
+        <div className="mx-auto max-w-5xl">
+          <FadeIn>
+            <ExpandableImage
+              src="/memory_web.jpg"
+              alt="UnClick Memory: eight pillars around a secure brain - Identity, Business context, Facts, Library and briefs, Session continuity, Code memory, Recall and hygiene, and your own data island."
+            />
+          </FadeIn>
+        </div>
+      </section>
+
       {/* The problem */}
       <section className={presets.section}>
         <div className="mx-auto max-w-3xl text-center">
@@ -214,36 +199,31 @@ const Memory = () => {
         </div>
       </section>
 
-      {/* Six layers */}
+      {/* Eight pillars */}
       <section id="how-it-works" className={presets.section}>
         <div className={presets.sectionInner}>
           <div className={presets.sectionHeader}>
             <FadeIn>
-              <h2 className={presets.h2}>Six layers of memory.</h2>
+              <h2 className={presets.h2}>Eight pillars of memory.</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
-                From always-on business context to on-demand code dumps. Each
-                layer serves a different purpose. All searchable.
+                From always-on identity to on-demand code. Each pillar does a
+                different job, and all of it is searchable.
               </p>
             </FadeIn>
           </div>
 
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {MEMORY_LAYERS.map((layer, i) => (
-              <FadeIn key={layer.num} delay={0.05 * i}>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {MEMORY_PILLARS.map((pillar, i) => (
+              <FadeIn key={pillar.title} delay={0.05 * i}>
                 <div className="group relative h-full rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-card/80">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={presets.tileIcon + " mb-0 h-9 w-9"}>
-                      <layer.icon className="h-4 w-4" />
-                    </div>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      Layer {layer.num}
-                    </span>
+                  <div className={presets.tileIcon + " mb-4 h-9 w-9"}>
+                    <pillar.icon className="h-4 w-4" />
                   </div>
-                  <h3 className={presets.h3}>{layer.title}</h3>
+                  <h3 className={presets.h3}>{pillar.title}</h3>
                   <p className="mt-2 text-sm text-body leading-relaxed">
-                    {layer.desc}
+                    {pillar.desc}
                   </p>
                 </div>
               </FadeIn>

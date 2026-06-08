@@ -20,7 +20,9 @@ import { useSession } from "@/lib/auth";
 import brainmapMarkdown from "../../../docs/UnClick-brainmap.generated.md?raw";
 import brainmapDataRaw from "../../../docs/UnClick-brainmap.generated.json?raw";
 
-const OWNER_EMAIL = "creativelead@malamutemayhem.com";
+function getOwnerEmail() {
+  return (import.meta.env.VITE_BRAINMAP_OWNER_EMAIL ?? "").trim().toLowerCase();
+}
 const MAX_VISUAL_ITEMS_PER_DIVISION = 24;
 const sectionCount = (brainmapMarkdown.match(/^## /gm) || []).length;
 const sourceCount = (brainmapMarkdown.match(/^\| .* \| [a-f0-9]{12} \| \d+ \|$/gm) || []).length;
@@ -103,7 +105,7 @@ function OwnerOnlyNotice({ denied = false }: { denied?: boolean }) {
             {denied ? "Creative lead access only" : "Checking private Brainmap access"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            This Brainmap view is reserved for the private Yellow Admin lane owned by {OWNER_EMAIL}.
+            This Brainmap view is reserved for authorized administrators only.
           </p>
         </div>
       </div>
@@ -232,7 +234,7 @@ const markdownComponents = {
 
 export default function AdminBrainmap() {
   const { session, user, loading } = useSession();
-  const directOwner = normalizeEmail(user?.email) === OWNER_EMAIL;
+  const directOwner = normalizeEmail(user?.email) === getOwnerEmail();
   const token = session?.access_token || "";
   const [profileAccess, setProfileAccess] = useState<{ token: string; status: "owner" | "denied" } | null>(null);
   const [query, setQuery] = useState("");
@@ -252,7 +254,7 @@ export default function AdminBrainmap() {
         if (cancelled) return;
         setProfileAccess({
           token,
-          status: normalizeEmail(body?.email) === OWNER_EMAIL ? "owner" : "denied",
+          status: normalizeEmail(body?.email) === getOwnerEmail() ? "owner" : "denied",
         });
       })
       .catch(() => {
@@ -321,7 +323,7 @@ export default function AdminBrainmap() {
         </div>
       </header>
 
-      <section className="rounded-lg border border-white/[0.06] bg-[#101010] p-4">
+      <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
         <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
           <div>
             <h2 className="text-lg font-semibold text-white">Human orientation</h2>
@@ -340,7 +342,7 @@ export default function AdminBrainmap() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-[#E2B93B]/15 bg-[#111] p-4">
+      <section className="rounded-lg border border-[#E2B93B]/15 bg-white/[0.03] p-4">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">Launchpad induction path</h2>
@@ -480,14 +482,14 @@ export default function AdminBrainmap() {
         {showSource && (
           <pre
             aria-label="Generated Brainmap markdown source"
-            className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-[#0B0B0B] p-4 font-mono text-xs leading-5 text-white/60"
+            className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 font-mono text-xs leading-5 text-white/60"
           >
             {brainmapMarkdown}
           </pre>
         )}
       </section>
 
-      <section className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+      <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">Core admin surfaces</h2>
@@ -517,7 +519,7 @@ export default function AdminBrainmap() {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
           <h2 className="text-lg font-semibold text-white">High-use tools and bridges</h2>
           <p className="mt-1 text-sm text-white/55">A quick first slice of what seats can use.</p>
           <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.06]">
@@ -540,7 +542,7 @@ export default function AdminBrainmap() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
           <h2 className="text-lg font-semibold text-white">Worker tree</h2>
           <p className="mt-1 text-sm text-white/55">The basic seat roles that move work through UnClick.</p>
           <div className="mt-4 space-y-2">
@@ -555,7 +557,7 @@ export default function AdminBrainmap() {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
           <h2 className="text-lg font-semibold text-white">Rooms</h2>
           <p className="mt-1 text-sm text-white/55">Where work gets routed during research, build, proof, merge, repair, and improvement.</p>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
@@ -568,7 +570,7 @@ export default function AdminBrainmap() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
           <h2 className="text-lg font-semibold text-white">Name map</h2>
           <p className="mt-1 text-sm text-white/55">Public names and internal names kept clear for transparency.</p>
           <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.06]">
@@ -595,7 +597,7 @@ export default function AdminBrainmap() {
       </section>
 
       <details
-        className="rounded-lg border border-white/[0.06] bg-[#111] p-4"
+        className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4"
         onToggle={(event) => setShowRawGenerated(event.currentTarget.open)}
       >
         <summary className="cursor-pointer text-lg font-semibold text-white">Raw generated Brainmap</summary>
@@ -603,7 +605,7 @@ export default function AdminBrainmap() {
           This is the full generated packet for AI read efficiency, source checks, and exact table lookup.
         </p>
         {showRawGenerated && (
-          <div className="mt-4 rounded-lg border border-white/[0.06] bg-[#0B0B0B] p-4">
+          <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}

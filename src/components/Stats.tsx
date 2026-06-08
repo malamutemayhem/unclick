@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useInView } from "framer-motion";
 import FadeIn from "./FadeIn";
+import { GradientText } from "@/components/brand";
 
 const stats = [
   { value: 2.4, suffix: "M+", label: "API calls last month" },
@@ -48,8 +49,10 @@ const Stats = () => (
         {stats.map((stat, i) => (
           <FadeIn key={stat.label} delay={i * 0.1}>
             <div className="text-center">
-              <div className="text-3xl font-semibold text-heading sm:text-4xl">
-                <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+              <div className="font-mono text-4xl font-extrabold tracking-tight sm:text-5xl">
+                <GradientText>
+                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                </GradientText>
               </div>
               <div className="mt-2 text-xs text-muted-foreground">{stat.label}</div>
             </div>

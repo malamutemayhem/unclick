@@ -6,14 +6,70 @@ import {
   ClipboardCheck,
   ExternalLink,
   ShieldCheck,
-  Sparkles,
+  FlaskConical,
+  Layout,
+  Route,
+  PenLine,
+  CopyCheck,
+  Scale,
+  Eraser,
+  Lightbulb,
+  Search,
+  Bot,
+  Workflow,
+  RefreshCw,
+  AlarmClock,
+  BadgeCheck,
+  type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
+import ExpandableImage from "@/components/ExpandableImage";
+import { Eyebrow, GradientText } from "@/components/brand";
+import { presets } from "@/lib/design-system";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { dogfoodReport } from "@/data/dogfoodReport";
+
+// Fitting icon per Pass (matched by product name; falls back to a checklist).
+const PASS_ICONS: Record<string, LucideIcon> = {
+  TestPass: FlaskConical,
+  UIPass: Layout,
+  UXPass: Route,
+  SecurityPass: ShieldCheck,
+  CopyPass: PenLine,
+  FidelityPass: CopyCheck,
+  LegalPass: Scale,
+  SlopPass: Eraser,
+  CommonSensePass: Lightbulb,
+  SEOPass: Search,
+  GEOPass: Bot,
+  FlowPass: Workflow,
+  RotatePass: RefreshCw,
+  WakePass: AlarmClock,
+  CompliancePass: BadgeCheck,
+};
+
+// Plain-English "what does it ask?" line per Pass (same friendly framing as the
+// in-app XPass page).
+const PASS_QUESTIONS: Record<string, string> = {
+  TestPass: "Does it work?",
+  UIPass: "Does it look right?",
+  UXPass: "Is it easy to use?",
+  SecurityPass: "Is it safe enough?",
+  CopyPass: "Is the wording clear?",
+  FidelityPass: "Was it copied exactly?",
+  LegalPass: "Is the risk language honest?",
+  SlopPass: "Is the work sloppy?",
+  CommonSensePass: "Does the claim make sense?",
+  SEOPass: "Can search read it?",
+  GEOPass: "Can AI answer engines understand it?",
+  FlowPass: "Can the user finish the path?",
+  RotatePass: "Are credentials handled safely?",
+  WakePass: "Will someone act on it?",
+  CompliancePass: "Is the readiness story honest?",
+};
 
 const HERO_ROWS = [
   {
@@ -70,12 +126,26 @@ function StatusTag({ status }: { status: string }) {
       className={`inline-flex min-h-6 min-w-[68px] items-center justify-center gap-1 rounded-full border px-2 text-[11px] font-semibold ${
         isPass
           ? "border-primary/35 bg-primary/10 text-primary"
-          : "border-border bg-background/70 text-muted-custom"
+          : "border-[#86dadd]/15 bg-white/[0.03] text-muted-custom"
       }`}
     >
       <Icon className="h-3.5 w-3.5" />
       {status}
     </span>
+  );
+}
+
+/** Centered section heading + optional subtitle, matching the brochure pages. */
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <FadeIn>
+      <div className="mb-10 text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-heading sm:text-3xl">{title}</h2>
+        {subtitle && (
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">{subtitle}</p>
+        )}
+      </div>
+    </FadeIn>
   );
 }
 
@@ -92,54 +162,76 @@ export default function XPassPage() {
   const products = dogfoodReport.xpassIndex;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={presets.page}>
       <Navbar />
 
-      <main className="overflow-hidden">
-        <section className="px-4 pt-28 sm:px-6">
-          <div className="mx-auto flex min-h-[72svh] max-w-5xl flex-col justify-center">
+      <main>
+        {/* Hero - centered, matching the brochure pages */}
+        <section className="relative px-6 pt-28 pb-10 sm:pt-32">
+          <div className="mx-auto max-w-3xl text-center">
             <FadeIn>
-              <div className="inline-flex items-center gap-2 self-start rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
-                <ClipboardCheck className="h-3.5 w-3.5" />
-                UnClick / AutoPilot / XPass
+              <div className="flex justify-center">
+                <Eyebrow>AutoPilot / XPass</Eyebrow>
               </div>
             </FadeIn>
-
             <FadeIn delay={0.05}>
-              <h1 className="mt-8 max-w-3xl text-5xl font-semibold tracking-tight text-heading sm:text-6xl">
-                XPass
+              <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-[-0.025em] text-heading sm:text-5xl md:text-6xl">
+                Proof before it <GradientText>ships</GradientText>.
               </h1>
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-body sm:text-xl">
-                XPass is AutoPilot's quality-control checklist for AI work. The family holds hundreds of checks across
-                the Pass products, records PASS, FAIL, Warning, Alert, or N/A with comments, and keeps looping until the relevant rows are green.
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-body">
+                XPass is AutoPilot's quality-control checklist for AI work. It runs the right checks,
+                records PASS, FAIL, warning, or N/A with a comment, and keeps looping until the
+                relevant rows are green.
               </p>
             </FadeIn>
-
-            <FadeIn delay={0.1}>
-              <div className="mt-8 flex flex-wrap gap-3">
+            <FadeIn delay={0.15}>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   to="/admin/checks"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]"
                 >
                   Open XPass in Admin
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   to="/dogfood"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-background/70 px-5 text-sm font-medium text-heading transition-colors hover:bg-card"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#86dadd]/20 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-white/[0.07]"
                 >
                   View public receipt
                   <ExternalLink className="h-4 w-4" />
                 </Link>
               </div>
             </FadeIn>
+          </div>
+        </section>
 
-            <FadeIn delay={0.15}>
-              <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card/40">
+        {/* Banner showcase - high on the page */}
+        <section className="px-6 pb-6">
+          <div className="mx-auto max-w-5xl">
+            <FadeIn>
+              <ExpandableImage
+                src="/UnClick_Xpass_web.jpg"
+                alt="XPass: AI work moves along a line of checks - Works, Reads well, Safe, Honest, Looks right - and earns a proof receipt stamped PASS."
+              />
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* What a receipt looks like */}
+        <section className="px-6 py-16">
+          <div className="mx-auto max-w-3xl">
+            <SectionHeading
+              title="A receipt, not a vibe."
+              subtitle="Every run records each row with a status and a comment, so the result is evidence you can read."
+            />
+            <FadeIn delay={0.05}>
+              <div className="overflow-hidden rounded-xl border border-[#86dadd]/12 bg-white/[0.03] backdrop-blur-sm">
                 {HERO_ROWS.map((row) => (
                   <div
                     key={row.label}
-                    className="grid gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[180px_86px_minmax(0,1fr)] sm:items-center"
+                    className="grid gap-3 border-b border-white/[0.06] px-4 py-3 last:border-b-0 sm:grid-cols-[180px_86px_minmax(0,1fr)] sm:items-center"
                   >
                     <p className="text-sm font-medium text-heading">{row.label}</p>
                     <StatusTag status={row.status} />
@@ -151,64 +243,66 @@ export default function XPassPage() {
           </div>
         </section>
 
-        <section className="border-y border-border bg-card/25 px-4 py-16 sm:px-6">
+        {/* Pick the right checks */}
+        <section className="px-6 py-16">
           <div className="mx-auto max-w-5xl">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-semibold text-heading">How it chooses checks</h2>
-              </div>
-              <p className="mt-3 text-sm leading-7 text-body">
-                XPass does not ask people to remember every product name. Tell AutoPilot what the work is, and XPass
-                decides which checklist rows belong in the report.
-              </p>
-            </div>
-
-            <div className="mt-8 grid gap-3 md:grid-cols-2">
-              {USE_CASES.map((useCase) => (
-                <div key={useCase.title} className="rounded-lg border border-border bg-background/70 p-4">
-                  <p className="text-base font-semibold text-heading">{useCase.title}</p>
-                  <p className="mt-2 text-xs font-medium text-primary">{useCase.products}</p>
-                  <p className="mt-3 text-sm leading-6 text-body">{useCase.note}</p>
-                </div>
+            <SectionHeading
+              title="Pick the right checks."
+              subtitle="You do not memorize product names. Tell AutoPilot what the work is, and XPass selects the checklist rows that belong."
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {USE_CASES.map((useCase, i) => (
+                <FadeIn key={useCase.title} delay={0.04 * i}>
+                  <div className="h-full rounded-xl border border-[#86dadd]/12 bg-white/[0.03] p-6 backdrop-blur-sm transition-colors hover:border-primary/30 hover:bg-white/[0.05]">
+                    <p className="text-base font-semibold text-heading">{useCase.title}</p>
+                    <p className="mt-2 text-xs font-medium text-primary">{useCase.products}</p>
+                    <p className="mt-3 text-sm leading-6 text-body">{useCase.note}</p>
+                  </div>
+                </FadeIn>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="px-4 py-16 sm:px-6">
+        {/* The XPass family */}
+        <section className="px-6 pb-28">
           <div className="mx-auto max-w-5xl">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <h2 className="text-sm font-semibold text-heading">XPass family</h2>
-                </div>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-body">
-                  Each product owns one kind of checklist. XPass ties them together into one readable report.
-                </p>
-              </div>
-              <Link
-                to="/dogfood"
-                className="inline-flex min-h-8 items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
-              >
-                Latest public proof
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+            <SectionHeading
+              title="The XPass family."
+              subtitle="Each product owns one kind of checklist. XPass ties them into one readable report."
+            />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product, i) => {
+                const Icon = PASS_ICONS[product.name] ?? ClipboardCheck;
+                return (
+                  <FadeIn key={product.id} delay={0.03 * i}>
+                    <div className="h-full rounded-xl border border-[#86dadd]/12 bg-white/[0.03] p-5 backdrop-blur-sm transition-colors hover:border-primary/30 hover:bg-white/[0.05]">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-heading">{product.name}</h3>
+                          <p className="text-xs text-primary/80">{PASS_QUESTIONS[product.name] ?? product.label}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-body">{product.summary}</p>
+                    </div>
+                  </FadeIn>
+                );
+              })}
             </div>
-
-            <div className="mt-8 overflow-hidden rounded-lg border border-border">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="grid gap-2 border-b border-border bg-card/20 px-4 py-3 last:border-b-0 sm:grid-cols-[180px_160px_minmax(0,1fr)] sm:items-center"
+            <FadeIn delay={0.1}>
+              <div className="mt-10 flex justify-center">
+                <Link
+                  to="/dogfood"
+                  className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
                 >
-                  <p className="text-sm font-medium text-heading">{product.name}</p>
-                  <p className="text-xs text-muted-custom">{product.label}</p>
-                  <p className="text-sm leading-6 text-body">{product.summary}</p>
-                </div>
-              ))}
-            </div>
+                  Latest public proof
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </FadeIn>
           </div>
         </section>
       </main>

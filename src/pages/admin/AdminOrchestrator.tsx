@@ -1363,7 +1363,7 @@ function OrchestratorStoryPanel({
   };
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#101010] shadow-2xl shadow-black/30">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-2xl shadow-black/30">
       <div className="border-b border-white/[0.06] px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -1614,7 +1614,7 @@ function OrchestratorContinuityPanel({
   }
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#0d0d0d]">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03]">
       <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
@@ -1834,7 +1834,7 @@ function ContinuityFeedRow({
   const visibleNaturalText = expanded || !naturalPreview.truncated ? event.summary : naturalPreview.text;
   const canExpand = mainPreview.truncated || (easyRead && naturalPreview.truncated);
   const content = (
-    <article className="rounded-xl border border-white/[0.06] bg-[#111111] px-4 py-3">
+    <article className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3">
       <div className="mb-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-base ${ACTOR_TONE_STYLES[actor.tone]}`}>
@@ -1928,7 +1928,7 @@ function OrchestratorContextCard({
 }) {
   if (loading) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
         <div className="flex items-center gap-2 text-sm text-white/60">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           Loading Orchestrator context...
@@ -1939,7 +1939,7 @@ function OrchestratorContextCard({
 
   if (!context) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
         <header className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           <h3 className="text-sm font-semibold text-white">Orchestrator Context</h3>
@@ -2255,7 +2255,7 @@ function ConnectionCard({
 
 function QuickLinksCard() {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Quick links
       </h3>
@@ -2325,7 +2325,7 @@ function MemoryStatsCard({
     { key: "conversations" as const, label: "Convos", icon: Brain },
   ];
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Memory
       </h3>

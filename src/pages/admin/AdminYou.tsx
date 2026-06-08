@@ -30,6 +30,7 @@ import {
   Download,
   Upload,
   Database,
+  Fingerprint,
 } from "lucide-react";
 
 // Mask a saved connection secret: first 4 chars + 8 bullets + last 4.
@@ -501,6 +502,14 @@ export default function AdminYou() {
   const [aiStyleSaving, setAiStyleSaving] = useState(false);
   const [aiStyleSaved, setAiStyleSaved] = useState(false);
   const [aiStyleError, setAiStyleError] = useState<string | null>(null);
+  // `aboutYou` is the free-text identity block ("about me / my business"). It
+  // persists as a high-priority business_context row so every connected agent
+  // loads it at session start, the same path AI Style uses.
+  const [aboutYou, setAboutYou] = useState("");
+  const [savedAboutYou, setSavedAboutYou] = useState<{ text: string; updated_at?: string } | null>(null);
+  const [aboutYouSaving, setAboutYouSaving] = useState(false);
+  const [aboutYouSaved, setAboutYouSaved] = useState(false);
+  const [aboutYouError, setAboutYouError] = useState<string | null>(null);
 
   useEffect(() => {
     setDetectedTimezone(getBrowserTimezone());
@@ -531,6 +540,7 @@ export default function AdminYou() {
             generated_api_key?: string | null;
             operator_time?: OperatorTimeContext | null;
             ai_style?: AiStyle | null;
+            about_you?: { text: string; updated_at?: string } | null;
           };
           setProfile({
             user_id:   body.user_id,
@@ -545,6 +555,10 @@ export default function AdminYou() {
             const loaded: AiStyle = { ...DEFAULT_AI_STYLE, ...body.ai_style };
             setAiStyle(loaded);
             setSavedAiStyle(loaded);
+          }
+          if (body.about_you) {
+            setAboutYou(body.about_you.text ?? "");
+            setSavedAboutYou(body.about_you);
           }
           // Two paths land here.
           //
@@ -751,6 +765,35 @@ export default function AdminYou() {
     }
   }
 
+  async function saveAboutYou() {
+    if (!session) return;
+    setAboutYouSaving(true);
+    setAboutYouError(null);
+    try {
+      const res = await fetch("/api/memory-admin?action=about_you_update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ text: aboutYou }),
+      });
+      const body = (await res.json()) as { about_you?: { text: string; updated_at?: string }; error?: string };
+      if (!res.ok || !body.about_you) {
+        setAboutYouError(body.error ?? "Could not save your About You.");
+        return;
+      }
+      setAboutYou(body.about_you.text ?? "");
+      setSavedAboutYou(body.about_you);
+      setAboutYouSaved(true);
+      window.setTimeout(() => setAboutYouSaved(false), 2500);
+    } catch (e) {
+      setAboutYouError((e as Error).message);
+    } finally {
+      setAboutYouSaving(false);
+    }
+  }
+
   async function handleLogout() {
     await signOut();
     navigate("/login", { replace: true });
@@ -829,40 +872,22 @@ export default function AdminYou() {
     return Array.from(zones).sort((a, b) => a.localeCompare(b));
   }, [operatorTime?.timezone, detectedTimezone]);
   const aiStyleDirty = !savedAiStyle || !aiStyleEquals(aiStyle, savedAiStyle);
-  const setupSteps = [
-    {
-      label: "Profile",
-      state: user?.email ? "Ready" : "Needs sign-in",
-      ready: Boolean(user?.email),
-    },
-    {
-      label: "My API Key",
-      state: generatedKey || profile?.api_key?.is_active ? "Active" : "Preparing",
-      ready: Boolean(generatedKey || profile?.api_key?.is_active),
-    },
-    {
-      label: "Memory loading",
-      state: generatedKey || profile?.api_key?.prefix ? "Always on" : "Waiting for key",
-      ready: Boolean(generatedKey || profile?.api_key?.prefix),
-    },
-    {
-      label: "My Data",
-      state: "Ready",
-      ready: true,
-    },
-  ];
+  const aboutYouDirty = (savedAboutYou?.text ?? "") !== aboutYou;
+  // One compact nav strip that doubles as an at-a-glance setup status: a green
+  // dot means the section is set up, amber means it still wants attention.
   const youSections = [
-    { id: "you-profile", label: "Profile", hint: "Identity and time", icon: User },
-    { id: "you-preferences", label: "AI Style", hint: "Tone and length", icon: Sparkles },
-    { id: "you-api-key", label: "API Key", hint: "Access and setup", icon: KeyRound },
-    { id: "you-my-data", label: "My Data", hint: "Export and import", icon: Database },
+    { id: "you-profile", label: "Profile", icon: User, ready: Boolean(user?.email) },
+    { id: "you-about", label: "About You", icon: Fingerprint, ready: Boolean(savedAboutYou?.text) },
+    { id: "you-style", label: "AI Style", icon: Sparkles, ready: Boolean(savedAiStyle) },
+    { id: "you-api-key", label: "API Key", icon: KeyRound, ready: Boolean(generatedKey || profile?.api_key?.is_active) },
+    { id: "you-my-data", label: "My Data", icon: Database, ready: true },
   ];
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-white">You</h1>
-        <p className="mt-1 text-sm text-[#888]">Profile, AI Style, and access</p>
+        <p className="mt-1 text-sm text-[#888]">Tell your AI about you, set its style, and manage your key and data.</p>
       </div>
 
       <ClaimKeyBanner />
@@ -878,7 +903,7 @@ export default function AdminYou() {
           </span>
         </div>
       ) : !session ? (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-sm text-white/70">You are not signed in.</p>
           <Link
             to="/login"
@@ -889,60 +914,28 @@ export default function AdminYou() {
         </div>
       ) : (
         <>
-        <section aria-label="First visit compass" className="mb-6 rounded-xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.04] p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Sparkles className="h-4 w-4 text-[#61C1C4]" />
-                First-visit compass
-              </h2>
-              <p className="mt-1 text-xs text-white/50">Your account, key, memory, and data controls at a glance.</p>
-            </div>
-            <Link
-              to="#you-my-data"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9edfe1] hover:bg-[#61C1C4]/15"
-            >
-              Open My Data <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {setupSteps.map((step) => (
-              <div key={step.label} className="flex min-h-[54px] items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/15 px-3 py-2">
-                <span className="min-w-0 text-xs font-medium text-white/75">{step.label}</span>
-                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                  step.ready
-                    ? "border-green-400/25 bg-green-400/10 text-green-300"
-                    : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#E2B93B]"
-                }`}>
-                  {step.ready && <Check className="h-3 w-3" />}
-                  {step.state}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <nav aria-label="You page sections" className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          {youSections.map(({ id, label, hint, icon: Icon }) => (
+        <nav aria-label="Jump to a section" className="mb-6 flex flex-wrap gap-2">
+          {youSections.map(({ id, label, icon: Icon, ready }) => (
             <a
               key={id}
               href={`#${id}`}
-              className="group flex min-h-[76px] items-center gap-3 rounded-xl border border-white/[0.06] bg-[#111111] px-4 py-3 transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.04]"
+              className="group inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/70 transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.05] hover:text-white"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-[#61C1C4] group-hover:bg-[#61C1C4]/10">
-                <Icon className="h-4 w-4" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-white">{label}</span>
-                <span className="mt-0.5 block text-xs text-[#777]">{hint}</span>
-              </span>
+              <Icon className="h-3.5 w-3.5 text-[#61C1C4]" />
+              <span>{label}</span>
+              <span
+                aria-hidden="true"
+                title={ready ? "Set up" : "Needs attention"}
+                className={`h-1.5 w-1.5 rounded-full ${ready ? "bg-green-400" : "bg-[#E2B93B]"}`}
+              />
+              <span className="sr-only">{ready ? "set up" : "needs attention"}</span>
             </a>
           ))}
         </nav>
 
         <div className="space-y-6">
           {/* Profile card */}
-          <div id="you-profile" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <section id="you-profile" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -990,216 +983,80 @@ export default function AdminYou() {
                 Sign out
               </button>
             </div>
-          </div>
+          </section>
 
-          {/* Local time card */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Clock className="h-4 w-4 text-[#E2B93B]" />
-              Local Time
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
-                Orchestrator
+          {/* About You card */}
+          <section id="you-about" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Fingerprint className="h-4 w-4 text-[#E2B93B]" />
+                About You
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                  Identity
+                </span>
+              </h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#61C1C4]">
+                <ShieldCheck className="h-3 w-3" />
+                Applied every session
               </span>
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
-              Used by Orchestrator so AI seats understand your working hours. Only timezone context is saved.
-            </p>
-            <div className="mt-4 grid gap-6 md:grid-cols-2">
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-[#888]">Current local time</span>
-                  <span className="text-right text-xs font-semibold text-white">{timezonePreview}</span>
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                  <span className="text-[#888]">Timezone</span>
-                  <span className="text-right font-mono text-xs text-white">
-                    {operatorTime?.timezone ?? detectedTimezone ?? "Unknown"}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                  <span className="text-[#888]">Source</span>
-                  <span className="text-right text-xs text-white">{timezoneSourceLabel}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="timezone-select" className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">
-                  Timezone
-                </label>
-                <select
-                  id="timezone-select"
-                  value={timezoneInput || operatorTime?.timezone || detectedTimezone || "UTC"}
-                  onChange={(event) => setTimezoneInput(event.target.value)}
-                  className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
-                >
-                  {timezoneOptions.map((tz) => (
-                    <option key={tz} value={tz} className="bg-[#111111] font-mono">
-                      {tz}{tz === detectedTimezone ? " (detected)" : ""}
-                    </option>
-                  ))}
-                </select>
-                {timezoneError && <p className="text-[11px] text-red-400">{timezoneError}</p>}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => saveOperatorTimezone(timezoneInput, "manual")}
-                    disabled={timezoneSaving || !timezoneInput.trim()}
-                    className="rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
-                  >
-                    {timezoneSaving ? "Saving..." : "Save timezone"}
-                  </button>
-                  {detectedTimezone && (
-                    <button
-                      type="button"
-                      onClick={() => saveOperatorTimezone(detectedTimezone, "manual")}
-                      disabled={timezoneSaving}
-                      className="rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/[0.08] disabled:opacity-50"
-                    >
-                      Use detected
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
-          </div>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
+              Tell your AI who you are: your business, your role, how you work, and what matters to you.
+              This loads into Memory and is handed to every connected agent at the start of each session,
+              so you never have to reintroduce yourself.
+            </p>
 
-          {/* Access card */}
-          <div id="you-api-key" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-              My API Key
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
-                Connection
-              </span>
-            </h2>
-
-            {generatedKey ? (
-              <div className="mt-4 space-y-3">
-                <div className="rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 p-3">
-                  <div className="flex items-start gap-2 text-xs text-[#E2B93B]">
-                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>Your UnClick API key. Copy it now or copy the ready-made MCP URL below. Revealing the key is optional and auto-hides after 60 seconds. Signing out clears this local copy.</span>
-                  </div>
-                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <code className="min-w-0 flex-1 truncate rounded bg-[#0A0A0A] px-3 py-2 font-mono text-xs text-white">
-                      {keyRevealed ? generatedKey : maskValue(generatedKey)}
-                    </code>
-                    <button
-                      onClick={() => setKeyRevealed((v) => !v)}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/[0.08]"
-                      title={keyRevealed ? "Hide key" : "Reveal key"}
-                    >
-                      {keyRevealed ? (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Eye className="h-3.5 w-3.5" />
-                      )}
-                      {keyRevealed ? "Hide" : "Reveal"}
-                    </button>
-                    <button
-                      onClick={handleCopyKey}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15"
-                      title="Copy key to clipboard"
-                    >
-                      {copied ? (
-                        <Check className="h-3.5 w-3.5 text-green-400" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                      {copied ? "Copied" : "Copy API key"}
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 mt-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-white/70">You're almost set up</h3>
-                      <p className="mt-2 text-sm text-white/50">
-                    Connect UnClick to your AI agent. Go to your agent's MCP settings and add this as a Remote MCP Server:
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleCopyMcpUrl}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
-                    >
-                      {mcpCopied ? (
-                        <Check className="h-3.5 w-3.5 text-green-400" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                      {mcpCopied ? "Copied" : "Copy MCP URL"}
-                    </button>
-                  </div>
-                  <code className="mt-3 block bg-black/30 rounded px-3 py-2 text-xs text-white/60 break-all">
-                    https://unclick.world/api/mcp?key={keyRevealed ? generatedKey : maskValue(generatedKey)}
-                  </code>
-                  <p className="text-xs text-white/40 mt-2">
-                    Once connected, your agent loads your memory at the start of every conversation.
-                  </p>
-                </div>
+            <div className="mt-5">
+              <div className="flex items-baseline justify-between gap-2">
+                <label htmlFor="about-you" className="text-xs font-semibold text-white">
+                  About you and your business
+                </label>
+                <span className="text-[11px] text-[#666]">{aboutYou.length}/1500</span>
               </div>
-            ) : profile?.api_key ? (
-              <div className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Key</span>
-                    <code className="mt-1 inline-block rounded bg-white/[0.04] px-2 py-0.5 font-mono text-xs text-white">
-                      {profile.api_key.prefix}...
-                    </code>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Tier</span>
-                    <span className="mt-1 inline-flex items-center rounded-full border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E2B93B]">
-                      {profile.api_key.tier}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Status</span>
-                    <span className={`mt-1 block text-xs ${profile.api_key.is_active ? "text-green-400" : "text-red-400"}`}>
-                      {profile.api_key.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Total calls</span>
-                    <span className="mt-1 block font-mono text-xs text-white">
-                      {(profile.api_key.usage_count ?? 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Last used</span>
-                    <span className="mt-1 block text-xs text-white">
-                      {timeAgo(profile.api_key.last_used_at)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
-                  <p className="max-w-xl text-[11px] text-[#666]">
-                    For security, UnClick stores only a hash after setup, not the old raw key. If this browser lost the
-                    copyable value, create a new copyable key. The old key is invalidated, and saved Connections may need
-                    to be reconnected or re-saved.
-                  </p>
-                  <button
-                    onClick={handleReissueKey}
-                    disabled={reissuing}
-                    className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/[0.08] disabled:opacity-50"
-                  >
-                    {reissuing ? "Creating..." : "Create new copyable key"}
-                  </button>
-                </div>
-                {reissueError && (
-                  <p className="text-[11px] text-red-400">{reissueError}</p>
+              <textarea
+                id="about-you"
+                value={aboutYou}
+                onChange={(e) => setAboutYou(e.target.value.slice(0, 1500))}
+                rows={6}
+                placeholder="e.g. I run a small creative studio. I prefer plain-English answers that lead with the recommendation, then the why. My stack is React, TypeScript, and Supabase, and I work Australian business hours."
+                className="mt-2 w-full resize-y rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-xs leading-5 text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
+              />
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={saveAboutYou}
+                disabled={aboutYouSaving || !aboutYouDirty}
+                className="inline-flex items-center gap-2 rounded-md bg-[#61C1C4] px-4 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                {aboutYouSaving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : aboutYouSaved ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Saved
+                  </>
+                ) : (
+                  "Save About You"
                 )}
-              </div>
-            ) : (
-              <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] p-4 text-center">
-                <p className="text-xs text-[#666]">
-                  Preparing your API key. Refresh this page if it does not appear within a few seconds.
-                </p>
-              </div>
-            )}
-          </div>
+              </button>
+              {aboutYouDirty && !aboutYouSaving ? (
+                <span className="text-[11px] text-[#E2B93B]">Unsaved changes</span>
+              ) : savedAboutYou?.updated_at ? (
+                <span className="text-[11px] text-[#666]">Saved {timeAgo(savedAboutYou.updated_at)}</span>
+              ) : (
+                <span className="text-[11px] text-[#666]">Not saved yet</span>
+              )}
+            </div>
+            {aboutYouError && <p className="mt-2 text-[11px] text-red-400">{aboutYouError}</p>}
+          </section>
 
           {/* AI Style card */}
-          <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <section id="you-style" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Sparkles className="h-4 w-4 text-[#E2B93B]" />
@@ -1309,10 +1166,205 @@ export default function AdminYou() {
               )}
             </div>
             {aiStyleError && <p className="mt-2 text-[11px] text-red-400">{aiStyleError}</p>}
-          </div>
+          </section>
+
+          {/* Local time card */}
+          <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+              <Clock className="h-4 w-4 text-[#E2B93B]" />
+              Local Time
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                Orchestrator
+              </span>
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
+              Used by Orchestrator so AI seats understand your working hours. Only timezone context is saved.
+            </p>
+            <div className="mt-4 grid gap-6 md:grid-cols-2">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Current local time</span>
+                  <span className="text-right text-xs font-semibold text-white">{timezonePreview}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Timezone</span>
+                  <span className="text-right font-mono text-xs text-white">
+                    {operatorTime?.timezone ?? detectedTimezone ?? "Unknown"}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Source</span>
+                  <span className="text-right text-xs text-white">{timezoneSourceLabel}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="timezone-select" className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                  Timezone
+                </label>
+                <select
+                  id="timezone-select"
+                  value={timezoneInput || operatorTime?.timezone || detectedTimezone || "UTC"}
+                  onChange={(event) => setTimezoneInput(event.target.value)}
+                  className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
+                >
+                  {timezoneOptions.map((tz) => (
+                    <option key={tz} value={tz} className="bg-white/[0.03] font-mono">
+                      {tz}{tz === detectedTimezone ? " (detected)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {timezoneError && <p className="text-[11px] text-red-400">{timezoneError}</p>}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => saveOperatorTimezone(timezoneInput, "manual")}
+                    disabled={timezoneSaving || !timezoneInput.trim()}
+                    className="rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {timezoneSaving ? "Saving..." : "Save timezone"}
+                  </button>
+                  {detectedTimezone && (
+                    <button
+                      type="button"
+                      onClick={() => saveOperatorTimezone(detectedTimezone, "manual")}
+                      disabled={timezoneSaving}
+                      className="rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/[0.08] disabled:opacity-50"
+                    >
+                      Use detected
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* API Key card */}
+          <section id="you-api-key" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+              <KeyRound className="h-4 w-4 text-[#E2B93B]" />
+              My API Key
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                Connection
+              </span>
+            </h2>
+
+            {generatedKey ? (
+              <div className="mt-4 space-y-4">
+                <div className="rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 p-4">
+                  <div className="flex items-start gap-2 text-xs text-[#E2B93B]">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>Your UnClick API key. Copy it now or copy the ready-made MCP URL below. Revealing the key is optional and auto-hides after 60 seconds. Signing out clears this local copy.</span>
+                  </div>
+                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
+                  <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white">
+                      {keyRevealed ? generatedKey : maskValue(generatedKey)}
+                    </code>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        onClick={() => setKeyRevealed((v) => !v)}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/[0.08] sm:flex-none"
+                        title={keyRevealed ? "Hide key" : "Reveal key"}
+                      >
+                        {keyRevealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        {keyRevealed ? "Hide" : "Reveal"}
+                      </button>
+                      <button
+                        onClick={handleCopyKey}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15 sm:flex-none"
+                        title="Copy key to clipboard"
+                      >
+                        {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copied ? "Copied" : "Copy API key"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                  <h3 className="text-sm font-medium text-white">Connect your agent</h3>
+                  <p className="mt-1 text-xs leading-5 text-white/50">
+                    Add this as a Remote MCP Server in your AI agent's MCP settings.
+                  </p>
+                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Remote MCP Server URL</label>
+                  <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/70">
+                      https://unclick.world/api/mcp?key={keyRevealed ? generatedKey : maskValue(generatedKey)}
+                    </code>
+                    <button
+                      onClick={handleCopyMcpUrl}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
+                    >
+                      {mcpCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                      {mcpCopied ? "Copied" : "Copy MCP URL"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-white/40">
+                    Once connected, your agent loads your memory at the start of every conversation.
+                  </p>
+                </div>
+              </div>
+            ) : profile?.api_key ? (
+              <div className="mt-4 space-y-4">
+                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
+                  <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <code className="flex min-w-0 flex-1 items-center rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/60">
+                      {profile.api_key.prefix}{"•".repeat(16)}
+                    </code>
+                    <button
+                      onClick={handleReissueKey}
+                      disabled={reissuing}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15 disabled:opacity-50"
+                    >
+                      {reissuing ? "Creating..." : "Create new copyable key"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-5 text-[#888]">
+                    For security, UnClick stores only a hash after setup, not the old raw key. If this browser lost the
+                    copyable value, create a new copyable key. The old key is invalidated, and saved Connections may need
+                    to be reconnected or re-saved.
+                  </p>
+                  {reissueError && <p className="mt-1 text-[11px] text-red-400">{reissueError}</p>}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Tier</span>
+                    <span className="mt-1 inline-flex items-center rounded-full border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E2B93B]">
+                      {profile.api_key.tier}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Status</span>
+                    <span className={`mt-1 block text-xs ${profile.api_key.is_active ? "text-green-400" : "text-red-400"}`}>
+                      {profile.api_key.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Total calls</span>
+                    <span className="mt-1 block font-mono text-xs text-white">
+                      {(profile.api_key.usage_count ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Last used</span>
+                    <span className="mt-1 block text-xs text-white">
+                      {timeAgo(profile.api_key.last_used_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] p-4 text-center">
+                <p className="text-xs text-[#666]">
+                  Preparing your API key. Refresh this page if it does not appear within a few seconds.
+                </p>
+              </div>
+            )}
+          </section>
 
           {/* My Data card */}
-          <div id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <section id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Database className="h-4 w-4 text-[#E2B93B]" />
               My Data
@@ -1392,10 +1444,10 @@ export default function AdminYou() {
                 )}
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Security pointer */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <ShieldCheck className="h-4 w-4 text-[#E2B93B]" />
               Security lives in Settings
@@ -1410,7 +1462,7 @@ export default function AdminYou() {
             >
               Open Settings
             </Link>
-          </div>
+          </section>
 
         </div>
         </>

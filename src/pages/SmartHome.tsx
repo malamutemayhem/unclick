@@ -168,7 +168,7 @@ export default function SmartHomePage() {
   useCanonical("/smarthome");
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
       <Navbar />
 
       {/* ---- Hero ---- */}

@@ -26,6 +26,8 @@ import {
   LogOut,
   X,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Bot,
   BarChart3,
   Bell,
@@ -39,7 +41,6 @@ import {
   Sparkles,
   BookOpen,
   FlaskConical,
-  PenSquare,
   ShieldAlert,
   Users as UsersIcon,
   Gauge,
@@ -299,8 +300,10 @@ const ADMIN_SUBMENU = [
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
+  { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
+  { path: "/admin/app-testing",   label: "AppTesting",            icon: FlaskConical },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -493,7 +496,6 @@ function SidebarNav({
       <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
       <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
@@ -511,6 +513,13 @@ export default function AdminShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [signalsUnread, setSignalsUnread] = useState(0);
+  const [collapsed, setCollapsed] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem("admin-sidebar-collapsed") === "1",
+  );
+
+  useEffect(() => {
+    localStorage.setItem("admin-sidebar-collapsed", collapsed ? "1" : "0");
+  }, [collapsed]);
 
   useEffect(() => {
     const token = session?.access_token;
@@ -558,9 +567,9 @@ export default function AdminShell() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen text-foreground">
       {/* ── Desktop sidebar (md+) ──────────────────── */}
-      <aside className="fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-background md:flex" style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
+      <aside className={`fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-[#06202c]/70 backdrop-blur-xl ${collapsed ? "" : "md:flex"}`} style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
             <img
@@ -608,8 +617,16 @@ export default function AdminShell() {
       </aside>
 
       {/* ── Desktop top bar (md+) with global search ─────────── */}
-      <header className="fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-background md:flex md:pl-56" style={{ top: "var(--bbn-h, 0px)" }}>
+      <header className={`fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-[#06202c]/70 backdrop-blur-xl md:flex ${collapsed ? "md:pl-0" : "md:pl-56"}`} style={{ top: "var(--bbn-h, 0px)" }}>
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
+          <button
+            onClick={() => setCollapsed((v) => !v)}
+            className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-card/40 hover:text-foreground"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label="Toggle sidebar"
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
           <div className="flex-1">
             <AdminSearchBar />
           </div>
@@ -618,7 +635,7 @@ export default function AdminShell() {
       </header>
 
       {/* ── Mobile/tablet top bar (<md) ────────────────── */}
-      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-background px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
+      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-[#06202c]/80 backdrop-blur-xl px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
         <Link to="/">
           <img
             src="/logo-wordmark.svg"
@@ -646,7 +663,7 @@ export default function AdminShell() {
 
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
-        <div className="fixed inset-x-0 z-30 border-b border-border/40 bg-background p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
+        <div className="fixed inset-x-0 z-30 border-b border-border/40 bg-[#06202c]/95 backdrop-blur-xl p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
           <div className="mb-3">
             <AdminSearchBar />
           </div>
@@ -669,7 +686,7 @@ export default function AdminShell() {
       )}
 
       {/* ── Main content ─────────────────────────── */}
-      <main className="min-h-screen flex-1 md:ml-56" style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
+      <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
         </div>

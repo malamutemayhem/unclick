@@ -1,6 +1,6 @@
 const BACKGROUND_RECALL_CATEGORIES = new Set(["identity", "preference", "standing_rule"]);
 const BACKGROUND_RECALL_PATTERNS = [
-  /^chris('s)?\s/i,
+  /^owner('s)?\s/i,
   /^user\s/i,
   /should always/i,
   /never use/i,
@@ -95,6 +95,10 @@ export function buildRecallFactSections<T extends RecallFactInput>(
   const backgroundHeavyCandidateCount = annotatedTopOfMindCandidates.filter(
     (fact) => fact.recall_signal === "background-heavy",
   ).length;
+  const zeroAccessCount = annotatedTopFacts.filter((fact) => Number(fact.access_count ?? 0) <= 0).length;
+  const zeroAccessCandidateCount = annotatedTopOfMindCandidates.filter(
+    (fact) => Number(fact.access_count ?? 0) <= 0,
+  ).length;
 
   return {
     top_facts: annotatedTopFacts,
@@ -105,6 +109,8 @@ export function buildRecallFactSections<T extends RecallFactInput>(
       excluded_ineligible_candidate_count: topOfMindCandidates.length - visibleTopOfMindCandidates.length,
       background_heavy_count: backgroundHeavyCount,
       background_heavy_candidate_count: backgroundHeavyCandidateCount,
+      zero_access_count: zeroAccessCount,
+      zero_access_candidate_count: zeroAccessCandidateCount,
     },
   };
 }

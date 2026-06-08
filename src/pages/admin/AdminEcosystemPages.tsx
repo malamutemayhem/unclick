@@ -84,7 +84,7 @@ function TileGrid({ items }: { items: Item[] }) {
           </>
         );
 
-        const className = "block rounded-2xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]";
+        const className = "block rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]";
         return item.href ? (
           <Link key={item.title} to={item.href} className={className}>{content}</Link>
         ) : (

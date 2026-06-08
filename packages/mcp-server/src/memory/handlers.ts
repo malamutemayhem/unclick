@@ -511,6 +511,15 @@ export function normalizeActiveFactsForLoadMemory(value: unknown): unknown {
   return { ...context, active_facts: activeFacts };
 }
 
+// Always-on operator preferences set on /admin/you. These are pinned into the
+// compact startup payload so they reach every session regardless of how many
+// higher-priority standing rules an account has accumulated.
+const ALWAYS_ON_BUSINESS_KEYS = new Set(["ai_style", "about_you"]);
+function isAlwaysOnPreference(row: unknown): boolean {
+  const r = asRecord(row);
+  return r !== null && typeof r.key === "string" && ALWAYS_ON_BUSINESS_KEYS.has(r.key);
+}
+
 export function compactStartupContextForStrictClients(
   value: unknown,
   includeSessionSummaries = false
@@ -525,9 +534,20 @@ export function compactStartupContextForStrictClients(
   const facts = Array.isArray(context.active_facts) ? context.active_facts : [];
   const startupFacts = facts.filter(isEligibleStartupFact);
 
-  out.business_context = business.slice(0, 6).map((row) => {
+  // The operator's always-on preferences (AI style + About You, set on
+  // /admin/you) must reach every session. They sit at a modest priority, so on
+  // an account with many higher-priority standing rules they would otherwise be
+  // pushed past the compact top-6 cut and never load. Pin them in past the cut
+  // and give them a roomier value cap so the directive/About-You text survives.
+  const topBusiness = business.slice(0, 6);
+  const pinnedBusiness = business.filter(
+    (row) => isAlwaysOnPreference(row) && !topBusiness.includes(row)
+  );
+  const compactBusiness = [...topBusiness, ...pinnedBusiness];
+  out.business_context = compactBusiness.map((row) => {
     const r = asRecord(row) ?? {};
-    return { category: r.category, key: r.key, value: compactJsonValue(r.value, 130), priority: r.priority };
+    const valueCap = isAlwaysOnPreference(r) ? 360 : 130;
+    return { category: r.category, key: r.key, value: compactJsonValue(r.value, valueCap), priority: r.priority };
   });
   out.profile_card = buildMemoryProfileCard({ business, facts: startupFacts, sessions, includeSessionSummaries });
   out.active_facts = startupFacts.slice(0, 12).map((row) => {
@@ -555,7 +575,7 @@ export function compactStartupContextForStrictClients(
   out.retrieval_plan = buildMemoryRetrievalPlan();
   out.response_bounds = {
     compact: true,
-    business_context_returned: Math.min(business.length, 6),
+    business_context_returned: compactBusiness.length,
     knowledge_library_returned: Math.min(library.length, 6),
     recent_sessions_returned: includeSessionSummaries ? Math.min(sessions.length, 3) : 0,
     recent_sessions_available_in_loaded_window: sessions.length,

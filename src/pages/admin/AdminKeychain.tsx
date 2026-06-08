@@ -745,7 +745,7 @@ export default function AdminKeychain() {
             ["Healthy", healthyCount],
             ["Needs review", attentionCount],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-white/[0.06] bg-[#111111] px-3 py-2">
+            <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
               <p className="text-[10px] font-medium uppercase tracking-wide text-[#666]">{label}</p>
               <p className="mt-1 text-lg font-semibold text-white">{value}</p>
             </div>
@@ -775,7 +775,7 @@ export default function AdminKeychain() {
             const badge = health ? HEALTH_BADGES[health] : null;
             const HealthIcon = badge?.icon;
             return (
-              <div key={platform} className="rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+              <div key={platform} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">{platformInfo?.name ?? platform}</p>
@@ -857,7 +857,7 @@ export default function AdminKeychain() {
           <span className="text-sm">Loading Passport...</span>
         </div>
       ) : credentials.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/[0.08] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-8 text-center">
           <KeyRound className="mx-auto h-8 w-8 text-[#333]" />
           <p className="mt-3 text-sm text-[#666]">No saved access yet</p>
           <p className="mt-1 text-xs text-[#444]">
@@ -893,7 +893,7 @@ export default function AdminKeychain() {
                   return (
                     <div
                       key={cred.id}
-                      className="rounded-xl border border-white/[0.06] bg-[#111111] p-4"
+                      className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-3">
@@ -1074,7 +1074,7 @@ export default function AdminKeychain() {
         </section>
       )}
 
-      <details className="mt-6 rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+      <details className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
         <summary className="cursor-pointer text-sm font-semibold text-white">
           Advanced system inventory
           <span className="ml-2 text-xs font-normal text-[#666]">
@@ -1251,7 +1251,7 @@ export default function AdminKeychain() {
           onClick={() => { setStarterOpen(false); resetAddModal(); }}
         >
           <div
-            className="flex w-full max-w-md flex-col rounded-xl border border-white/[0.08] bg-[#111111]"
+            className="flex w-full max-w-md flex-col rounded-xl border border-white/[0.08] bg-white/[0.03]"
             style={{ maxHeight: "85vh" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1480,7 +1480,7 @@ function ModalShell({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-[#111111] p-5"
+        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-white/[0.03] p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -1722,7 +1722,7 @@ function AuditDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70" onClick={onClose}>
       <div
-        className="h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-[#0a0a0a] p-5"
+        className="h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-white/[0.02] p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -1748,7 +1748,7 @@ function AuditDrawer({
         ) : (
           <ul className="space-y-1.5">
             {entries.map((e) => (
-              <li key={e.id} className="rounded-lg border border-white/[0.04] bg-[#111111] px-3 py-2">
+              <li key={e.id} className="rounded-lg border border-white/[0.04] bg-white/[0.03] px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-xs font-medium text-white">
                     {e.success ? (

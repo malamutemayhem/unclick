@@ -11,7 +11,7 @@ export default function AdminAuditLog() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
         <p className="text-sm leading-relaxed text-[#ccc]">
           A record of every admin action taken inside UnClick. Helps answer the question "who
           changed what and when" and keeps things transparent for GDPR and compliance reviews.

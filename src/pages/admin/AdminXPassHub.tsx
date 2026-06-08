@@ -381,7 +381,7 @@ function ProductCard({ product }: { product: XPassProduct }) {
   return (
     <Link
       to={`/admin/checks/${product.id}`}
-      className="min-h-[132px] rounded-lg border border-white/[0.08] bg-[#111] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
+      className="min-h-[132px] rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30">
@@ -426,7 +426,7 @@ function RecentReports({
   const hiddenCount = Math.max(0, reports.length - visibleReports.length);
 
   return (
-    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-3">
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-white">Recent reports</h2>
         <p className="text-[11px] font-medium text-white/40">Newest first</p>
@@ -477,7 +477,7 @@ function RecentReports({
 
 function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
   return (
-    <section className="rounded-lg border border-white/[0.08] bg-[#111] p-3">
+    <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xs font-semibold text-white">{group.title}</h2>
         <span className="text-[11px] font-medium text-white/40">{group.rows.length} checks</span>
@@ -505,7 +505,7 @@ function XPassHome() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex items-start gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
             <LayoutGrid className="h-5 w-5 text-[#61C1C4]" />
@@ -558,7 +558,7 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
       </Link>
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
             <Icon className="h-5 w-5 text-[#61C1C4]" />
@@ -619,7 +619,7 @@ export default function AdminXPassHub() {
 
   if (productId && !product) {
     return (
-      <div className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <h1 className="text-xl font-semibold text-white">Pass not found</h1>
         <p className="mt-2 text-sm text-white/55">That XPass product is not in the family list.</p>
         <Link to="/admin/checks" className="mt-4 inline-flex min-h-8 items-center text-sm font-medium text-[#61C1C4]">
