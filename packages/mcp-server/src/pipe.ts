@@ -1,50 +1,26 @@
-type Fn<A = unknown, B = unknown> = (input: A) => B;
-
-export function pipe<A, B>(a: Fn<A, B>): Fn<A, B>;
-export function pipe<A, B, C>(a: Fn<A, B>, b: Fn<B, C>): Fn<A, C>;
-export function pipe<A, B, C, D>(a: Fn<A, B>, b: Fn<B, C>, c: Fn<C, D>): Fn<A, D>;
-export function pipe<A, B, C, D, E>(a: Fn<A, B>, b: Fn<B, C>, c: Fn<C, D>, d: Fn<D, E>): Fn<A, E>;
-export function pipe(...fns: Fn[]): Fn {
-  return (input: unknown) => fns.reduce((acc, fn) => fn(acc), input);
+export function pipe<A, B>(a: A, ab: (a: A) => B): B;
+export function pipe<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C;
+export function pipe<A, B, C, D>(a: A, ab: (a: A) => B, bc: (b: B) => C, cd: (c: C) => D): D;
+export function pipe<A, B, C, D, E>(a: A, ab: (a: A) => B, bc: (b: B) => C, cd: (c: C) => D, de: (d: D) => E): E;
+export function pipe(initial: any, ...fns: Array<(v: any) => any>): any {
+  return fns.reduce((acc, fn) => fn(acc), initial);
 }
 
-export function compose<A, B>(a: Fn<A, B>): Fn<A, B>;
-export function compose<A, B, C>(b: Fn<B, C>, a: Fn<A, B>): Fn<A, C>;
-export function compose<A, B, C, D>(c: Fn<C, D>, b: Fn<B, C>, a: Fn<A, B>): Fn<A, D>;
-export function compose(...fns: Fn[]): Fn {
-  return (input: unknown) => fns.reduceRight((acc, fn) => fn(acc), input);
+export function compose<A, B>(ab: (a: A) => B): (a: A) => B;
+export function compose<A, B, C>(bc: (b: B) => C, ab: (a: A) => B): (a: A) => C;
+export function compose<A, B, C, D>(cd: (c: C) => D, bc: (b: B) => C, ab: (a: A) => B): (a: A) => D;
+export function compose(...fns: Array<(v: any) => any>): (v: any) => any {
+  return (v: any) => fns.reduceRight((acc, fn) => fn(acc), v);
 }
 
-export function tap<T>(fn: (value: T) => void): Fn<T, T> {
-  return (value: T) => {
-    fn(value);
-    return value;
-  };
+export function tap<T>(fn: (v: T) => void): (v: T) => T {
+  return (v: T) => { fn(v); return v; };
 }
 
-export function identity<T>(value: T): T {
-  return value;
+export function when<T>(predicate: (v: T) => boolean, fn: (v: T) => T): (v: T) => T {
+  return (v: T) => predicate(v) ? fn(v) : v;
 }
 
-export function constant<T>(value: T): () => T {
-  return () => value;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function pipeAsync(
-  value: unknown,
-  ...fns: Array<(input: any) => any>
-): Promise<unknown> {
-  let result: unknown = value;
-  for (const fn of fns) {
-    result = await fn(result);
-  }
-  return result;
-}
-
-export function when<T>(
-  predicate: (value: T) => boolean,
-  transform: Fn<T, T>
-): Fn<T, T> {
-  return (value: T) => (predicate(value) ? transform(value) : value);
+export function unless<T>(predicate: (v: T) => boolean, fn: (v: T) => T): (v: T) => T {
+  return (v: T) => predicate(v) ? v : fn(v);
 }
