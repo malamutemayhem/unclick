@@ -30,7 +30,7 @@ describe("regression-tool", () => {
   });
 
   it("rejects mismatched lengths", async () => {
-    const r = await regressionFit({ x: [1, 2], y: [1] }) as Record<string, unknown>;
+    const r = await regressionFit({ x: [1, 2, 3], y: [1, 2] }) as Record<string, unknown>;
     expect(r.error).toMatch(/same length/i);
   });
 
