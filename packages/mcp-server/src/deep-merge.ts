@@ -4,7 +4,7 @@ function isPlainObject(value: unknown): value is PlainObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function deepMerge<T extends PlainObject>(...sources: Partial<T>[]): T {
+export function deepMerge(...sources: PlainObject[]): PlainObject {
   const result: PlainObject = {};
   for (const source of sources) {
     if (!isPlainObject(source)) continue;
@@ -18,7 +18,7 @@ export function deepMerge<T extends PlainObject>(...sources: Partial<T>[]): T {
       }
     }
   }
-  return result as T;
+  return result;
 }
 
 export function deepMergeWith(
