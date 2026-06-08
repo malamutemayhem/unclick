@@ -1,63 +1,78 @@
 import { describe, it, expect } from "vitest";
-import { Heap, minHeap, maxHeap, heapSort } from "../heap.js";
+import { MinHeap, MaxHeap } from "../heap.js";
 
-describe("Heap", () => {
-  it("min heap returns smallest first", () => {
-    const h = minHeap();
-    h.push(5); h.push(2); h.push(8); h.push(1);
-    expect(h.pop()).toBe(1);
-    expect(h.pop()).toBe(2);
-    expect(h.pop()).toBe(5);
-    expect(h.pop()).toBe(8);
+describe("MinHeap", () => {
+  it("pops in priority order", () => {
+    const h = new MinHeap<string>();
+    h.push("low", 10);
+    h.push("high", 1);
+    h.push("mid", 5);
+    expect(h.pop()).toBe("high");
+    expect(h.pop()).toBe("mid");
+    expect(h.pop()).toBe("low");
   });
 
-  it("max heap returns largest first", () => {
-    const h = maxHeap();
-    h.push(5); h.push(2); h.push(8); h.push(1);
-    expect(h.pop()).toBe(8);
-    expect(h.pop()).toBe(5);
-    expect(h.pop()).toBe(2);
-    expect(h.pop()).toBe(1);
-  });
-
-  it("peek returns top without removing", () => {
-    const h = minHeap();
-    h.push(3);
-    h.push(1);
-    expect(h.peek()).toBe(1);
+  it("peek returns min without removing", () => {
+    const h = new MinHeap<string>();
+    h.push("a", 5);
+    h.push("b", 1);
+    expect(h.peek()).toBe("b");
     expect(h.size).toBe(2);
   });
 
+  it("peekPriority returns min priority", () => {
+    const h = new MinHeap<string>();
+    h.push("a", 5);
+    h.push("b", 1);
+    expect(h.peekPriority()).toBe(1);
+  });
+
   it("handles empty heap", () => {
-    const h = minHeap();
+    const h = new MinHeap();
     expect(h.pop()).toBeUndefined();
     expect(h.peek()).toBeUndefined();
+    expect(h.isEmpty()).toBe(true);
+  });
+
+  it("toArray returns sorted", () => {
+    const h = new MinHeap<string>();
+    h.push("c", 3);
+    h.push("a", 1);
+    h.push("b", 2);
+    expect(h.toArray()).toEqual(["a", "b", "c"]);
+  });
+
+  it("clear empties heap", () => {
+    const h = new MinHeap<number>();
+    h.push(1, 1);
+    h.clear();
     expect(h.size).toBe(0);
-  });
-
-  it("custom comparator", () => {
-    const h = new Heap<{ name: string; age: number }>((a, b) => a.age - b.age);
-    h.push({ name: "Alice", age: 30 });
-    h.push({ name: "Bob", age: 20 });
-    h.push({ name: "Carol", age: 25 });
-    expect(h.pop()!.name).toBe("Bob");
-    expect(h.pop()!.name).toBe("Carol");
-  });
-
-  it("toArray returns sorted copy", () => {
-    const h = minHeap();
-    h.push(3); h.push(1); h.push(2);
-    expect(h.toArray()).toEqual([1, 2, 3]);
-    expect(h.size).toBe(3);
   });
 });
 
-describe("heapSort", () => {
-  it("sorts numbers", () => {
-    expect(heapSort([5, 3, 8, 1, 2], (a, b) => a - b)).toEqual([1, 2, 3, 5, 8]);
+describe("MaxHeap", () => {
+  it("pops highest priority first", () => {
+    const h = new MaxHeap<string>();
+    h.push("low", 1);
+    h.push("high", 10);
+    h.push("mid", 5);
+    expect(h.pop()).toBe("high");
+    expect(h.pop()).toBe("mid");
+    expect(h.pop()).toBe("low");
   });
 
-  it("handles empty", () => {
-    expect(heapSort([], (a, b) => a - b)).toEqual([]);
+  it("peek returns max", () => {
+    const h = new MaxHeap<string>();
+    h.push("a", 1);
+    h.push("b", 10);
+    expect(h.peek()).toBe("b");
+  });
+
+  it("isEmpty and size", () => {
+    const h = new MaxHeap<string>();
+    expect(h.isEmpty()).toBe(true);
+    h.push("a", 1);
+    expect(h.size).toBe(1);
+    expect(h.isEmpty()).toBe(false);
   });
 });

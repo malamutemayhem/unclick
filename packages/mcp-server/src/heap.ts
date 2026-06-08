@@ -1,29 +1,14 @@
-type Comparator<T> = (a: T, b: T) => number;
+export class MinHeap<T> {
+  private items: Array<{ value: T; priority: number }> = [];
 
-export class Heap<T> {
-  private items: T[] = [];
-  private compare: Comparator<T>;
-
-  constructor(compare: Comparator<T>) {
-    this.compare = compare;
-  }
-
-  get size(): number {
-    return this.items.length;
-  }
-
-  peek(): T | undefined {
-    return this.items[0];
-  }
-
-  push(value: T): void {
-    this.items.push(value);
+  push(value: T, priority: number): void {
+    this.items.push({ value, priority });
     this.bubbleUp(this.items.length - 1);
   }
 
   pop(): T | undefined {
     if (this.items.length === 0) return undefined;
-    const top = this.items[0];
+    const top = this.items[0].value;
     const last = this.items.pop()!;
     if (this.items.length > 0) {
       this.items[0] = last;
@@ -32,46 +17,78 @@ export class Heap<T> {
     return top;
   }
 
+  peek(): T | undefined {
+    return this.items.length > 0 ? this.items[0].value : undefined;
+  }
+
+  peekPriority(): number | undefined {
+    return this.items.length > 0 ? this.items[0].priority : undefined;
+  }
+
+  get size(): number {
+    return this.items.length;
+  }
+
+  isEmpty(): boolean {
+    return this.items.length === 0;
+  }
+
+  clear(): void {
+    this.items = [];
+  }
+
   toArray(): T[] {
-    return [...this.items].sort(this.compare);
+    return [...this.items].sort((a, b) => a.priority - b.priority).map((i) => i.value);
   }
 
-  private bubbleUp(i: number): void {
-    while (i > 0) {
-      const parent = (i - 1) >>> 1;
-      if (this.compare(this.items[i], this.items[parent]) >= 0) break;
-      [this.items[i], this.items[parent]] = [this.items[parent], this.items[i]];
-      i = parent;
+  private bubbleUp(idx: number): void {
+    while (idx > 0) {
+      const parent = Math.floor((idx - 1) / 2);
+      if (this.items[parent].priority <= this.items[idx].priority) break;
+      [this.items[parent], this.items[idx]] = [this.items[idx], this.items[parent]];
+      idx = parent;
     }
   }
 
-  private sinkDown(i: number): void {
-    const n = this.items.length;
+  private sinkDown(idx: number): void {
+    const length = this.items.length;
     while (true) {
-      let smallest = i;
-      const left = 2 * i + 1;
-      const right = 2 * i + 2;
-      if (left < n && this.compare(this.items[left], this.items[smallest]) < 0) smallest = left;
-      if (right < n && this.compare(this.items[right], this.items[smallest]) < 0) smallest = right;
-      if (smallest === i) break;
-      [this.items[i], this.items[smallest]] = [this.items[smallest], this.items[i]];
-      i = smallest;
+      let smallest = idx;
+      const left = 2 * idx + 1;
+      const right = 2 * idx + 2;
+      if (left < length && this.items[left].priority < this.items[smallest].priority) smallest = left;
+      if (right < length && this.items[right].priority < this.items[smallest].priority) smallest = right;
+      if (smallest === idx) break;
+      [this.items[smallest], this.items[idx]] = [this.items[idx], this.items[smallest]];
+      idx = smallest;
     }
   }
 }
 
-export function minHeap(): Heap<number> {
-  return new Heap<number>((a, b) => a - b);
-}
+export class MaxHeap<T> {
+  private min = new MinHeap<T>();
 
-export function maxHeap(): Heap<number> {
-  return new Heap<number>((a, b) => b - a);
-}
+  push(value: T, priority: number): void {
+    this.min.push(value, -priority);
+  }
 
-export function heapSort<T>(items: T[], compare: Comparator<T>): T[] {
-  const h = new Heap<T>(compare);
-  for (const item of items) h.push(item);
-  const result: T[] = [];
-  while (h.size > 0) result.push(h.pop()!);
-  return result;
+  pop(): T | undefined {
+    return this.min.pop();
+  }
+
+  peek(): T | undefined {
+    return this.min.peek();
+  }
+
+  get size(): number {
+    return this.min.size;
+  }
+
+  isEmpty(): boolean {
+    return this.min.isEmpty();
+  }
+
+  clear(): void {
+    this.min.clear();
+  }
 }

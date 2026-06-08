@@ -2,67 +2,90 @@ import { describe, it, expect } from "vitest";
 import { Trie } from "../trie.js";
 
 describe("Trie", () => {
-  it("insert and has", () => {
-    const t = new Trie();
-    t.insert("hello");
-    t.insert("help");
-    expect(t.has("hello")).toBe(true);
-    expect(t.has("help")).toBe(true);
-    expect(t.has("hel")).toBe(false);
-    expect(t.has("world")).toBe(false);
-  });
-
-  it("insert with values", () => {
+  it("inserts and searches", () => {
     const t = new Trie<number>();
-    t.insert("a", 1);
-    t.insert("b", 2);
-    expect(t.get("a")).toBe(1);
-    expect(t.get("b")).toBe(2);
-    expect(t.get("c")).toBeUndefined();
+    t.insert("hello", 1);
+    expect(t.search("hello")).toBe(1);
+    expect(t.has("hello")).toBe(true);
   });
 
-  it("delete removes keys", () => {
+  it("returns undefined for missing key", () => {
+    const t = new Trie();
+    expect(t.search("nope")).toBeUndefined();
+    expect(t.has("nope")).toBe(false);
+  });
+
+  it("does not match prefixes as keys", () => {
     const t = new Trie();
     t.insert("hello");
-    t.insert("help");
+    expect(t.has("hel")).toBe(false);
+  });
+
+  it("startsWith finds completions", () => {
+    const t = new Trie();
+    t.insert("apple");
+    t.insert("app");
+    t.insert("application");
+    t.insert("banana");
+    const results = t.startsWith("app");
+    expect(results).toContain("apple");
+    expect(results).toContain("app");
+    expect(results).toContain("application");
+    expect(results).not.toContain("banana");
+  });
+
+  it("delete removes key", () => {
+    const t = new Trie();
+    t.insert("hello");
     expect(t.delete("hello")).toBe(true);
     expect(t.has("hello")).toBe(false);
-    expect(t.has("help")).toBe(true);
-    expect(t.size).toBe(1);
+    expect(t.size).toBe(0);
   });
 
-  it("delete returns false for missing", () => {
+  it("delete returns false for missing key", () => {
     const t = new Trie();
     expect(t.delete("nope")).toBe(false);
   });
 
-  it("startsWith returns matching keys", () => {
+  it("delete preserves other keys", () => {
     const t = new Trie();
-    t.insert("app");
-    t.insert("apple");
-    t.insert("apply");
-    t.insert("banana");
-    const matches = t.startsWith("app");
-    expect(matches.sort()).toEqual(["app", "apple", "apply"]);
+    t.insert("hello");
+    t.insert("help");
+    t.delete("hello");
+    expect(t.has("help")).toBe(true);
   });
 
-  it("keys returns all keys", () => {
+  it("tracks size", () => {
     const t = new Trie();
     t.insert("a");
     t.insert("b");
     t.insert("c");
-    expect(t.keys().sort()).toEqual(["a", "b", "c"]);
+    expect(t.size).toBe(3);
   });
 
-  it("size tracks correctly", () => {
+  it("keys returns all keys", () => {
     const t = new Trie();
+    t.insert("cat");
+    t.insert("car");
+    t.insert("dog");
+    expect(t.keys().sort()).toEqual(["car", "cat", "dog"]);
+  });
+
+  it("clear empties trie", () => {
+    const t = new Trie();
+    t.insert("a");
+    t.clear();
     expect(t.size).toBe(0);
-    t.insert("a");
-    t.insert("b");
-    expect(t.size).toBe(2);
-    t.insert("a");
-    expect(t.size).toBe(2);
-    t.delete("a");
-    expect(t.size).toBe(1);
+    expect(t.keys()).toEqual([]);
+  });
+
+  it("longestPrefix finds longest matching key", () => {
+    const t = new Trie();
+    t.insert("he");
+    t.insert("hello");
+    t.insert("helloworld");
+    expect(t.longestPrefix("hello there")).toBe("hello");
+    expect(t.longestPrefix("hey")).toBe("he");
+    expect(t.longestPrefix("xyz")).toBe("");
   });
 });
