@@ -1,62 +1,73 @@
-export interface FSMConfig<S extends string, E extends string> {
-  initial: S;
-  transitions: Array<{ from: S; event: E; to: S }>;
-  onEnter?: Partial<Record<S, () => void>>;
-  onExit?: Partial<Record<S, () => void>>;
-}
+export type Transition<S extends string, E extends string> = {
+  from: S;
+  event: E;
+  to: S;
+  guard?: () => boolean;
+  action?: () => void;
+};
 
 export class FiniteStateMachine<S extends string, E extends string> {
-  private _state: S;
-  private transitionMap = new Map<string, S>();
-  private onEnter: Partial<Record<S, () => void>>;
-  private onExit: Partial<Record<S, () => void>>;
-  private listeners = new Set<(state: S, event: E) => void>();
+  private current: S;
+  private transitions: Transition<S, E>[] = [];
+  private listeners: Array<(from: S, to: S, event: E) => void> = [];
 
-  constructor(config: FSMConfig<S, E>) {
-    this._state = config.initial;
-    this.onEnter = config.onEnter ?? {};
-    this.onExit = config.onExit ?? {};
-    for (const t of config.transitions) {
-      this.transitionMap.set(`${t.from}:${t.event}`, t.to);
-    }
+  constructor(initial: S) {
+    this.current = initial;
+  }
+
+  addTransition(transition: Transition<S, E>): this {
+    this.transitions.push(transition);
+    return this;
+  }
+
+  addTransitions(transitions: Transition<S, E>[]): this {
+    for (const t of transitions) this.transitions.push(t);
+    return this;
+  }
+
+  send(event: E): boolean {
+    const t = this.transitions.find(
+      (tr: Transition<S, E>) =>
+        tr.from === this.current && tr.event === event && (!tr.guard || tr.guard()),
+    );
+    if (!t) return false;
+    const from = this.current;
+    this.current = t.to;
+    if (t.action) t.action();
+    for (const listener of this.listeners) listener(from, t.to, event);
+    return true;
   }
 
   get state(): S {
-    return this._state;
+    return this.current;
   }
 
   can(event: E): boolean {
-    return this.transitionMap.has(`${this._state}:${event}`);
-  }
-
-  send(event: E): S {
-    const key = `${this._state}:${event}`;
-    const next = this.transitionMap.get(key);
-    if (next === undefined) {
-      throw new Error(`No transition from "${this._state}" on "${event}"`);
-    }
-    const exitFn = this.onExit[this._state];
-    if (exitFn) exitFn();
-    this._state = next;
-    const enterFn = this.onEnter[next];
-    if (enterFn) enterFn();
-    for (const fn of this.listeners) fn(next, event);
-    return next;
-  }
-
-  subscribe(fn: (state: S, event: E) => void): () => void {
-    this.listeners.add(fn);
-    return () => this.listeners.delete(fn);
+    return this.transitions.some(
+      (tr: Transition<S, E>) =>
+        tr.from === this.current && tr.event === event && (!tr.guard || tr.guard()),
+    );
   }
 
   availableEvents(): E[] {
-    const events: E[] = [];
-    for (const key of this.transitionMap.keys()) {
-      const [from, event] = key.split(":");
-      if (from === this._state && !events.includes(event as E)) {
-        events.push(event as E);
+    const events = new Set<E>();
+    for (const t of this.transitions) {
+      if (t.from === this.current && (!t.guard || t.guard())) {
+        events.add(t.event);
       }
     }
-    return events;
+    return [...events];
+  }
+
+  onTransition(listener: (from: S, to: S, event: E) => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      const idx = this.listeners.indexOf(listener);
+      if (idx !== -1) this.listeners.splice(idx, 1);
+    };
+  }
+
+  reset(state: S): void {
+    this.current = state;
   }
 }
