@@ -3089,6 +3089,7 @@ export const ADDITIONAL_TOOLS = [
         bill: { type: "number" },
         tip_percent: { type: "number" },
         split: { type: "number" },
+        split_ways: { type: "number", description: "Alias for split." },
       },
       required: ["bill"],
     },
@@ -3304,6 +3305,8 @@ export const ADDITIONAL_TOOLS = [
         days: { type: "number" },
         hours: { type: "number" },
         minutes: { type: "number" },
+        amount: { type: "number", description: "Duration amount (use with unit)." },
+        unit: { type: "string", description: "Duration unit: days, weeks, months, years." },
       },
       required: ["date"],
     },
@@ -3433,9 +3436,11 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         text: { type: "string" },
         max_length: { type: "number" },
+        max_chars: { type: "number", description: "Alias for max_length." },
         suffix: { type: "string" },
+        ellipsis: { type: "boolean", description: "Add ellipsis when truncated (default true)." },
       },
-      required: ["text", "max_length"],
+      required: ["text"],
     },
   },
 
@@ -3677,6 +3682,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         q: { type: "string" },
+        query: { type: "string", description: "Alias for q." },
         type: { type: "string", description: "track, artist, album, playlist" },
         limit: { type: "number" },
       },
@@ -3739,6 +3745,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         q: { type: "string" },
+        query: { type: "string", description: "Alias for q." },
         limit: { type: "number" },
       },
       required: ["q"],
@@ -3871,6 +3878,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         times: { type: "number" },
+        count: { type: "number", description: "Alias for times." },
       },
     },
   },
@@ -3882,6 +3890,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         dice: { type: "string", description: "e.g. 2d6, 1d20" },
+        sides: { type: "number", description: "Number of sides (4, 6, 8, 10, 12, 20, 100)." },
+        count: { type: "number", description: "Number of dice to roll." },
       },
     },
   },
@@ -10652,6 +10662,7 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {
       api_key: { type: "string", description: "Giphy API key" },
       query: { type: "string", description: "What GIF to search for" },
+      q: { type: "string", description: "Alias for query." },
       limit: { type: "number", description: "GIFs to return (max 50, default 10)" },
       rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
     }, required: ["api_key", "query"] },

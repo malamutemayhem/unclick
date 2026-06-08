@@ -77,6 +77,7 @@ export async function esportsMatches(
   const params: Record<string, string> = {};
   if (args.status) params["filter[status]"] = String(args.status);
   if (args.page) params.page = String(args.page);
+  if (args.per_page) params.per_page = String(args.per_page);
 
   // Game filter uses the videogame slug prefix on the path
   const game = String(args.game ?? "").toLowerCase();

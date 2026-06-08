@@ -90,7 +90,8 @@ export async function getSleeperPlayers(args: Record<string, unknown>): Promise<
     };
   }
 
-  const data = await sleeperFetch<Record<string, SleeperPlayer>>("/players/nfl");
+  const sport = String(args.sport ?? "nfl").toLowerCase();
+  const data = await sleeperFetch<Record<string, SleeperPlayer>>(`/players/${encodeURIComponent(sport)}`);
   const players = Object.values(data).filter((p) => p.full_name || (p.first_name && p.last_name));
 
   return {
@@ -124,8 +125,12 @@ export async function getTrendingPlayers(args: Record<string, unknown>): Promise
     return { error: 'type must be "add" or "drop".' };
   }
 
+  const sport = String(args.sport ?? "nfl").toLowerCase();
+  const lookbackHours = args.lookback_hours ? Math.max(1, Number(args.lookback_hours)) : undefined;
   const limit = Math.min(25, Math.max(1, Number(args.limit ?? 10)));
-  const data = await sleeperFetch<TrendingPlayer[]>(`/players/nfl/trending/${type}?limit=${limit}`);
+  const qs = new URLSearchParams({ limit: String(limit) });
+  if (lookbackHours) qs.set("lookback_hours", String(lookbackHours));
+  const data = await sleeperFetch<TrendingPlayer[]>(`/players/${encodeURIComponent(sport)}/trending/${type}?${qs}`);
 
   return {
     type,
