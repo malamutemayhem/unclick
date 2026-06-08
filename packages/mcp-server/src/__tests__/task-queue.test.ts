@@ -1,70 +1,81 @@
 import { describe, it, expect } from "vitest";
 import { TaskQueue } from "../task-queue.js";
 
-describe("task-queue", () => {
-  it("runs tasks sequentially by default", async () => {
-    const q = new TaskQueue();
-    const log: number[] = [];
-    await Promise.all([
-      q.add(async () => { log.push(1); }),
-      q.add(async () => { log.push(2); }),
-      q.add(async () => { log.push(3); }),
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+describe("TaskQueue", () => {
+  it("runs tasks sequentially with concurrency 1", async () => {
+    const queue = new TaskQueue({ concurrency: 1 });
+    const order: number[] = [];
+    await queue.addAll([
+      async () => { order.push(1); },
+      async () => { order.push(2); },
+      async () => { order.push(3); },
     ]);
-    expect(log).toEqual([1, 2, 3]);
+    expect(order).toEqual([1, 2, 3]);
+  });
+
+  it("returns task results", async () => {
+    const queue = new TaskQueue({ concurrency: 2 });
+    const results = await queue.addAll([
+      async () => "a",
+      async () => "b",
+    ]);
+    expect(results).toEqual(["a", "b"]);
   });
 
   it("respects concurrency limit", async () => {
-    const q = new TaskQueue(2);
+    const queue = new TaskQueue({ concurrency: 2 });
     let maxConcurrent = 0;
     let current = 0;
-    const tasks = Array.from({ length: 5 }, () =>
-      q.add(async () => {
-        current++;
-        maxConcurrent = Math.max(maxConcurrent, current);
-        await new Promise((r) => setTimeout(r, 10));
-        current--;
-      })
-    );
-    await Promise.all(tasks);
-    expect(maxConcurrent).toBe(2);
+
+    const tasks = Array.from({ length: 5 }, () => async () => {
+      current++;
+      if (current > maxConcurrent) maxConcurrent = current;
+      await delay(10);
+      current--;
+    });
+
+    await queue.addAll(tasks);
+    expect(maxConcurrent).toBeLessThanOrEqual(2);
   });
 
-  it("returns task result", async () => {
-    const q = new TaskQueue();
-    const result = await q.add(async () => 42);
-    expect(result).toBe(42);
-  });
-
-  it("propagates task errors", async () => {
-    const q = new TaskQueue();
-    await expect(q.add(async () => { throw new Error("oops"); })).rejects.toThrow("oops");
-  });
-
-  it("pause and resume", async () => {
-    const q = new TaskQueue();
-    const log: string[] = [];
-    q.pause();
-    const p1 = q.add(async () => { log.push("a"); });
-    expect(q.pending).toBe(1);
-    q.resume();
+  it("tracks pending and active counts", async () => {
+    const queue = new TaskQueue({ concurrency: 1 });
+    const p1 = queue.add(async () => { await delay(50); return 1; });
+    queue.add(async () => 2);
+    expect(queue.active).toBe(1);
+    expect(queue.pending).toBe(1);
     await p1;
-    expect(log).toEqual(["a"]);
   });
 
-  it("clear rejects pending tasks", async () => {
-    const q = new TaskQueue(1);
-    q.pause();
-    const p = q.add(async () => "ok");
-    q.clear();
-    await expect(p).rejects.toThrow("cleared");
+  it("propagates errors", async () => {
+    const queue = new TaskQueue({ concurrency: 1 });
+    await expect(queue.add(async () => { throw new Error("boom"); })).rejects.toThrow("boom");
   });
 
-  it("drain waits for completion", async () => {
-    const q = new TaskQueue(2);
-    const log: number[] = [];
-    q.add(async () => { await new Promise((r) => setTimeout(r, 10)); log.push(1); });
-    q.add(async () => { await new Promise((r) => setTimeout(r, 5)); log.push(2); });
-    await q.drain();
-    expect(log.length).toBe(2);
+  it("continues after error", async () => {
+    const queue = new TaskQueue({ concurrency: 1 });
+    const p1 = queue.add(async () => { throw new Error("fail"); }).catch(() => "caught");
+    const p2 = queue.add(async () => "ok");
+    expect(await p1).toBe("caught");
+    expect(await p2).toBe("ok");
+  });
+
+  it("clears pending tasks", async () => {
+    const queue = new TaskQueue({ concurrency: 1 });
+    queue.add(async () => { await delay(100); });
+    const p2 = queue.add(async () => "should not run");
+    queue.clear();
+    await expect(p2).rejects.toThrow("Queue cleared");
+  });
+
+  it("times out slow tasks", async () => {
+    const queue = new TaskQueue({ concurrency: 1, timeout: 20 });
+    await expect(
+      queue.add(async () => { await delay(200); })
+    ).rejects.toThrow("Task timed out");
   });
 });

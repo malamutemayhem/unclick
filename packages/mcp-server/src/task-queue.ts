@@ -1,19 +1,23 @@
-type Task<T> = () => Promise<T>;
+export interface QueueOptions {
+  concurrency?: number;
+  timeout?: number;
+}
 
 interface QueueEntry<T> {
-  task: Task<T>;
+  fn: () => Promise<T>;
   resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
+  reject: (reason: any) => void;
 }
 
 export class TaskQueue {
-  private queue: Array<QueueEntry<unknown>> = [];
+  private queue: QueueEntry<any>[] = [];
   private running = 0;
-  private readonly concurrency: number;
-  private _paused = false;
+  private concurrency: number;
+  private timeout: number;
 
-  constructor(concurrency = 1) {
-    this.concurrency = concurrency;
+  constructor(options: QueueOptions = {}) {
+    this.concurrency = options.concurrency ?? 1;
+    this.timeout = options.timeout ?? 0;
   }
 
   get pending(): number {
@@ -24,60 +28,54 @@ export class TaskQueue {
     return this.running;
   }
 
-  get isPaused(): boolean {
-    return this._paused;
-  }
-
-  add<T>(task: Task<T>): Promise<T> {
+  add<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.queue.push({ task, resolve, reject } as QueueEntry<unknown>);
-      this.process();
+      this.queue.push({ fn, resolve, reject });
+      this.drain();
     });
   }
 
-  pause(): void {
-    this._paused = true;
-  }
-
-  resume(): void {
-    this._paused = false;
-    this.process();
+  async addAll<T>(fns: Array<() => Promise<T>>): Promise<T[]> {
+    return Promise.all(fns.map((fn) => this.add(fn)));
   }
 
   clear(): void {
     for (const entry of this.queue) {
       entry.reject(new Error("Queue cleared"));
     }
-    this.queue = [];
+    this.queue.length = 0;
   }
 
-  async drain(): Promise<void> {
-    if (this.queue.length === 0 && this.running === 0) return;
-    return new Promise<void>((resolve) => {
-      const check = (): void => {
-        if (this.queue.length === 0 && this.running === 0) {
-          resolve();
-        } else {
-          setTimeout(check, 1);
-        }
-      };
-      check();
-    });
-  }
-
-  private process(): void {
-    if (this._paused) return;
+  private drain(): void {
     while (this.running < this.concurrency && this.queue.length > 0) {
       const entry = this.queue.shift()!;
       this.running++;
-      entry
-        .task()
-        .then((value) => entry.resolve(value))
-        .catch((err) => entry.reject(err))
-        .finally(() => {
-          this.running--;
-          this.process();
-        });
+      this.run(entry);
     }
+  }
+
+  private run<T>(entry: QueueEntry<T>): void {
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const settle = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      this.running--;
+      fn();
+      this.drain();
+    };
+
+    if (this.timeout > 0) {
+      timer = setTimeout(() => {
+        settle(() => entry.reject(new Error("Task timed out")));
+      }, this.timeout);
+    }
+
+    entry.fn().then(
+      (val) => settle(() => entry.resolve(val)),
+      (err) => settle(() => entry.reject(err))
+    );
   }
 }
