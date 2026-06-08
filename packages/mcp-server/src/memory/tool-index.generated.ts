@@ -234,6 +234,42 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "apifootball",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sportsdb_search_team",
+        "description": "Search for a sports team by name on TheSportsDB."
+      },
+      {
+        "name": "sportsdb_search_player",
+        "description": "Search for a sports player by name on TheSportsDB."
+      },
+      {
+        "name": "sportsdb_team_events",
+        "description": "Get upcoming events for a team by TheSportsDB team ID."
+      },
+      {
+        "name": "sportsdb_leagues",
+        "description": "List all sports leagues on TheSportsDB."
+      }
+    ]
+  },
+  {
+    "app": "archiveorg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "archive_search",
+        "description": "Search the Internet Archive (archive.org) for items."
+      },
+      {
+        "name": "archive_metadata",
+        "description": "Get metadata for an Internet Archive item by identifier."
+      }
+    ]
+  },
+  {
     "app": "asana",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -566,6 +602,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "carbon_electricity_emissions",
         "description": "Estimate carbon emissions for electricity consumption."
+      }
+    ]
+  },
+  {
+    "app": "catapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cat_api_random_image",
+        "description": "Get a random cat image from The Cat API."
+      },
+      {
+        "name": "cat_api_breeds",
+        "description": "List cat breeds with details from The Cat API."
       }
     ]
   },
@@ -1586,6 +1636,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "exchangerate2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "er_latest_rates",
+        "description": "Get latest exchange rates from ExchangeRate-API (open endpoint)."
+      }
+    ]
+  },
+  {
     "app": "feedly",
     "category": "Productivity",
     "tools": [
@@ -2262,6 +2322,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_patents",
         "description": "Search Australian patents via IP Australia."
+      }
+    ]
+  },
+  {
+    "app": "ipify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ipify_get_ip",
+        "description": "Get your public IP address via ipify."
       }
     ]
   },
@@ -4372,6 +4442,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sloppass_run",
         "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
+      }
+    ]
+  },
+  {
+    "app": "spaceflight",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "spaceflight_articles",
+        "description": "Get latest spaceflight news articles."
+      },
+      {
+        "name": "spaceflight_blogs",
+        "description": "Get latest spaceflight blog posts."
+      },
+      {
+        "name": "spaceflight_reports",
+        "description": "Get latest spaceflight technical reports."
       }
     ]
   },

@@ -369,6 +369,18 @@ import { evilInsultRandom } from "./evilinsult-tool.js";
 
 import { dogApiRandomImage, dogApiBreeds } from "./dogapi-tool.js";
 
+import { sportsdbSearchTeam, sportsdbSearchPlayer, sportsdbTeamEvents, sportsdbLeagues } from "./apifootball-tool.js";
+
+import { catApiRandomImage, catApiBreeds } from "./catapi-tool.js";
+
+import { spaceflightArticles, spaceflightBlogs, spaceflightReports } from "./spaceflight-tool.js";
+
+import { archiveSearch, archiveMetadata } from "./archiveorg-tool.js";
+
+import { ipifyGetIp } from "./ipify-tool.js";
+
+import { erLatestRates } from "./exchangerate2-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5769,6 +5781,135 @@ export const ADDITIONAL_TOOLS = [
         limit: { type: "number", description: "Number of breeds to return (max 50, default 20)" },
         page: { type: "number", description: "Page number (default 0)" },
       },
+    },
+  },
+
+  // ── apifootball-tool.ts (TheSportsDB) ──────────────────────────────────────
+  {
+    name: "sportsdb_search_team",
+    description: "Search for a sports team by name on TheSportsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { team: { type: "string", description: "Team name to search for" } },
+      required: ["team"],
+    },
+  },
+  {
+    name: "sportsdb_search_player",
+    description: "Search for a sports player by name on TheSportsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { player: { type: "string", description: "Player name to search for" } },
+      required: ["player"],
+    },
+  },
+  {
+    name: "sportsdb_team_events",
+    description: "Get upcoming events for a team by TheSportsDB team ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { id: { type: "string", description: "TheSportsDB team ID" } },
+      required: ["id"],
+    },
+  },
+  {
+    name: "sportsdb_leagues",
+    description: "List all sports leagues on TheSportsDB.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── catapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "cat_api_random_image",
+    description: "Get a random cat image from The Cat API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "cat_api_breeds",
+    description: "List cat breeds with details from The Cat API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds (max 50, default 20)" },
+        page: { type: "number", description: "Page number (default 0)" },
+      },
+    },
+  },
+
+  // ── spaceflight-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "spaceflight_articles",
+    description: "Get latest spaceflight news articles.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of articles (max 20, default 10)" },
+        search: { type: "string", description: "Search keyword" },
+      },
+    },
+  },
+  {
+    name: "spaceflight_blogs",
+    description: "Get latest spaceflight blog posts.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of posts (max 20, default 10)" },
+        search: { type: "string", description: "Search keyword" },
+      },
+    },
+  },
+  {
+    name: "spaceflight_reports",
+    description: "Get latest spaceflight technical reports.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { limit: { type: "number", description: "Number of reports (max 20, default 10)" } },
+    },
+  },
+
+  // ── archiveorg-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "archive_search",
+    description: "Search the Internet Archive (archive.org) for items.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query" },
+        mediatype: { type: "string", description: "Filter: texts, audio, movies, software, image, collection" },
+        limit: { type: "number", description: "Results per page (max 20, default 10)" },
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "archive_metadata",
+    description: "Get metadata for an Internet Archive item by identifier.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { identifier: { type: "string", description: "Archive.org item identifier" } },
+      required: ["identifier"],
+    },
+  },
+
+  // ── ipify-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "ipify_get_ip",
+    description: "Get your public IP address via ipify.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { ipv6: { type: "boolean", description: "Use IPv6 endpoint" } },
+    },
+  },
+
+  // ── exchangerate2-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "er_latest_rates",
+    description: "Get latest exchange rates from ExchangeRate-API (open endpoint).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { base: { type: "string", description: "Base currency code (default: USD)" } },
     },
   },
 
@@ -16621,6 +16762,31 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // dogapi-tool.ts
   dog_api_random_image:    (args) => dogApiRandomImage(args),
   dog_api_breeds:          (args) => dogApiBreeds(args),
+
+  // apifootball-tool.ts (TheSportsDB)
+  sportsdb_search_team:    (args) => sportsdbSearchTeam(args),
+  sportsdb_search_player:  (args) => sportsdbSearchPlayer(args),
+  sportsdb_team_events:    (args) => sportsdbTeamEvents(args),
+  sportsdb_leagues:        (args) => sportsdbLeagues(args),
+
+  // catapi-tool.ts
+  cat_api_random_image:    (args) => catApiRandomImage(args),
+  cat_api_breeds:          (args) => catApiBreeds(args),
+
+  // spaceflight-tool.ts
+  spaceflight_articles:    (args) => spaceflightArticles(args),
+  spaceflight_blogs:       (args) => spaceflightBlogs(args),
+  spaceflight_reports:     (args) => spaceflightReports(args),
+
+  // archiveorg-tool.ts
+  archive_search:          (args) => archiveSearch(args),
+  archive_metadata:        (args) => archiveMetadata(args),
+
+  // ipify-tool.ts
+  ipify_get_ip:            (args) => ipifyGetIp(args),
+
+  // exchangerate2-tool.ts
+  er_latest_rates:         (args) => erLatestRates(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

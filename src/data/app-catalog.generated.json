@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 260,
-  "toolCount": 1045,
+  "appCount": 266,
+  "toolCount": 1058,
   "categories": [
     "AI",
     "Books",
@@ -1934,6 +1934,22 @@
       "hardened": true
     },
     {
+      "slug": "exchangerate2",
+      "name": "ExchangeRate-API Open",
+      "category": "Markets & crypto",
+      "blurb": "Open exchange rates from ExchangeRate-API (no key needed).",
+      "domain": "open.er-api.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "er_latest_rates",
+          "description": "Get latest exchange rates from ExchangeRate-API (open endpoint)."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "fpl",
       "name": "Fantasy Premier League",
       "category": "Games & esports",
@@ -2734,6 +2750,26 @@
       "hardened": true
     },
     {
+      "slug": "archiveorg",
+      "name": "Internet Archive",
+      "category": "News & reading",
+      "blurb": "Search the Internet Archive for books, movies, audio, and software.",
+      "domain": "archive.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "archive_search",
+          "description": "Search the Internet Archive (archive.org) for items."
+        },
+        {
+          "name": "archive_metadata",
+          "description": "Get metadata for an Internet Archive item by identifier."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "ipapi",
       "name": "IP API",
       "category": "Travel, maps & local",
@@ -2772,6 +2808,22 @@
         {
           "name": "search_patents",
           "description": "Search Australian patents via IP Australia."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "ipify",
+      "name": "ipify",
+      "category": "Developer & infra",
+      "blurb": "Get your public IP address (IPv4 or IPv6).",
+      "domain": "ipify.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ipify_get_ip",
+          "description": "Get your public IP address via ipify."
         }
       ],
       "level": 5,
@@ -5526,6 +5578,30 @@
       "hardened": false
     },
     {
+      "slug": "spaceflight",
+      "name": "Spaceflight News",
+      "category": "News & reading",
+      "blurb": "Latest spaceflight news articles, blog posts, and reports.",
+      "domain": "spaceflightnewsapi.net",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "spaceflight_articles",
+          "description": "Get latest spaceflight news articles."
+        },
+        {
+          "name": "spaceflight_blogs",
+          "description": "Get latest spaceflight blog posts."
+        },
+        {
+          "name": "spaceflight_reports",
+          "description": "Get latest spaceflight technical reports."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "speedrun",
       "name": "Speedrun",
       "category": "Games & esports",
@@ -6030,6 +6106,26 @@
       "hardened": false
     },
     {
+      "slug": "catapi",
+      "name": "The Cat API",
+      "category": "Images",
+      "blurb": "Random cat images and breed information from The Cat API.",
+      "domain": "thecatapi.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "cat_api_random_image",
+          "description": "Get a random cat image from The Cat API."
+        },
+        {
+          "name": "cat_api_breeds",
+          "description": "List cat breeds with details from The Cat API."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "dogapi",
       "name": "The Dog API",
       "category": "Images",
@@ -6100,6 +6196,34 @@
         {
           "name": "cocktail_filter_by_ingredient",
           "description": "Filter cocktails by ingredient."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "apifootball",
+      "name": "TheSportsDB",
+      "category": "Games & esports",
+      "blurb": "Search teams, players, leagues, and upcoming events across all sports.",
+      "domain": "thesportsdb.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "sportsdb_search_team",
+          "description": "Search for a sports team by name on TheSportsDB."
+        },
+        {
+          "name": "sportsdb_search_player",
+          "description": "Search for a sports player by name on TheSportsDB."
+        },
+        {
+          "name": "sportsdb_team_events",
+          "description": "Get upcoming events for a team by TheSportsDB team ID."
+        },
+        {
+          "name": "sportsdb_leagues",
+          "description": "List all sports leagues on TheSportsDB."
         }
       ],
       "level": 5,

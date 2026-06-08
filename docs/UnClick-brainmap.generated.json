@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 683,
+    "inventory": 689,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 261,
+    "tools": 267,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 261
+      "count": 267
     },
     {
       "id": "rooms",
@@ -4292,6 +4292,26 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-apifootball-packages-mcp-server-src-apifootball-tool-ts-no-route",
+      "division": "Tools",
+      "name": "apifootball",
+      "kind": "MCP tool",
+      "meaning": "apifootball MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/apifootball-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-archiveorg-packages-mcp-server-src-archiveorg-tool-ts-no-route",
+      "division": "Tools",
+      "name": "archiveorg",
+      "kind": "MCP tool",
+      "meaning": "archiveorg MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/archiveorg-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-asana-packages-mcp-server-src-asana-tool-ts-no-route",
       "division": "Tools",
       "name": "asana",
@@ -4448,6 +4468,16 @@
       "kind": "MCP tool",
       "meaning": "carboninterface MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/carboninterface-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-catapi-packages-mcp-server-src-catapi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "catapi",
+      "kind": "MCP tool",
+      "meaning": "catapi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/catapi-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4912,6 +4942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-exchangerate2-packages-mcp-server-src-exchangerate2-tool-ts-no-route",
+      "division": "Tools",
+      "name": "exchangerate2",
+      "kind": "MCP tool",
+      "meaning": "exchangerate2 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/exchangerate2-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-feedly-packages-mcp-server-src-feedly-tool-ts-no-route",
       "division": "Tools",
       "name": "feedly",
@@ -5238,6 +5278,16 @@
       "kind": "MCP tool",
       "meaning": "ipaustralia MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/ipaustralia-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-ipify-packages-mcp-server-src-ipify-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ipify",
+      "kind": "MCP tool",
+      "meaning": "ipify MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ipify-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6168,6 +6218,16 @@
       "kind": "MCP tool",
       "meaning": "sloppass MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sloppass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-spaceflight-packages-mcp-server-src-spaceflight-tool-ts-no-route",
+      "division": "Tools",
+      "name": "spaceflight",
+      "kind": "MCP tool",
+      "meaning": "spaceflight MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/spaceflight-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7580,6 +7640,16 @@
       "packages/mcp-server/src/aoe2-tool.ts"
     ],
     [
+      "apifootball",
+      "apifootball MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/apifootball-tool.ts"
+    ],
+    [
+      "archiveorg",
+      "archiveorg MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/archiveorg-tool.ts"
+    ],
+    [
       "asana",
       "asana MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/asana-tool.ts"
@@ -7658,6 +7728,11 @@
       "carboninterface",
       "carboninterface MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/carboninterface-tool.ts"
+    ],
+    [
+      "catapi",
+      "catapi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/catapi-tool.ts"
     ],
     [
       "catfacts",
@@ -7890,6 +7965,11 @@
       "packages/mcp-server/src/exchangerate-tool.ts"
     ],
     [
+      "exchangerate2",
+      "exchangerate2 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/exchangerate2-tool.ts"
+    ],
+    [
       "feedly",
       "feedly MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/feedly-tool.ts"
@@ -8053,6 +8133,11 @@
       "ipaustralia",
       "ipaustralia MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ipaustralia-tool.ts"
+    ],
+    [
+      "ipify",
+      "ipify MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ipify-tool.ts"
     ],
     [
       "jikan",
@@ -8518,6 +8603,11 @@
       "sloppass",
       "sloppass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sloppass-tool.ts"
+    ],
+    [
+      "spaceflight",
+      "spaceflight MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/spaceflight-tool.ts"
     ],
     [
       "speedrun",
@@ -9928,6 +10018,16 @@
       "bytes": 3685
     },
     {
+      "source": "packages/mcp-server/src/apifootball-tool.ts",
+      "hash": "ff6ec8c8d646",
+      "bytes": 3682
+    },
+    {
+      "source": "packages/mcp-server/src/archiveorg-tool.ts",
+      "hash": "31481deccc20",
+      "bytes": 4106
+    },
+    {
       "source": "packages/mcp-server/src/asana-tool.ts",
       "hash": "2519967f5105",
       "bytes": 9808
@@ -10008,6 +10108,11 @@
       "bytes": 7953
     },
     {
+      "source": "packages/mcp-server/src/catapi-tool.ts",
+      "hash": "5eae9e6f3b1f",
+      "bytes": 2426
+    },
+    {
       "source": "packages/mcp-server/src/catfacts-tool.ts",
       "hash": "b26fb7cb21ac",
       "bytes": 3721
@@ -10051,21 +10156,6 @@
       "source": "packages/mcp-server/src/coda-tool.ts",
       "hash": "6390ba35aece",
       "bytes": 3626
-    },
-    {
-      "source": "packages/mcp-server/src/cohere-tool.ts",
-      "hash": "91a7c36218e0",
-      "bytes": 11278
-    },
-    {
-      "source": "packages/mcp-server/src/coingecko-tool.ts",
-      "hash": "105c55971d63",
-      "bytes": 7884
-    },
-    {
-      "source": "packages/mcp-server/src/coinmarketcap-tool.ts",
-      "hash": "f44ff0239baa",
-      "bytes": 8444
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

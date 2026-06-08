@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T04:01:53.563Z",
+  "updatedAt": "2026-06-08T04:06:23.347Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -97,6 +97,22 @@
       "testedAt": "2026-06-07T12:50:00.000Z",
       "toolsTested": [
         "aoe2_civilizations"
+      ]
+    },
+    "apifootball": {
+      "status": "pass",
+      "note": "sportsdb_search_team returned Arsenal from thesportsdb.com; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "sportsdb_search_team"
+      ]
+    },
+    "archiveorg": {
+      "status": "pass",
+      "note": "archive_search returned items from archive.org; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "archive_search"
       ]
     },
     "asana": {
@@ -234,6 +250,14 @@
         "carbon_flight_emissions"
       ],
       "comment": ""
+    },
+    "catapi": {
+      "status": "pass",
+      "note": "cat_api_random_image returned a cat image from thecatapi.com; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "cat_api_random_image"
+      ]
     },
     "catfacts": {
       "status": "pass",
@@ -610,6 +634,14 @@
       ],
       "comment": ""
     },
+    "exchangerate2": {
+      "status": "pass",
+      "note": "er_latest_rates returned USD rates from open.er-api.com; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "er_latest_rates"
+      ]
+    },
     "feedly": {
       "status": "attention",
       "note": "RSS reader API; needs FEEDLY_ACCESS_TOKEN.",
@@ -868,6 +900,14 @@
         "search_trademarks"
       ],
       "comment": ""
+    },
+    "ipify": {
+      "status": "pass",
+      "note": "ipify_get_ip returned public IP from ipify.org; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "ipify_get_ip"
+      ]
     },
     "jikan": {
       "status": "pass",
@@ -1634,6 +1674,14 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "spaceflight": {
+      "status": "pass",
+      "note": "spaceflight_articles returned space news from spaceflightnewsapi.net; free, no key needed.",
+      "testedAt": "2026-06-08T04:06:23.347Z",
+      "toolsTested": [
+        "spaceflight_articles"
+      ]
     },
     "speedrun": {
       "status": "pass",
