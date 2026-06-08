@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 916,
+    "inventory": 921,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 491,
+    "tools": 496,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 491
+      "count": 496
     },
     {
       "id": "rooms",
@@ -4502,6 +4502,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-baseconvert-packages-mcp-server-src-baseconvert-tool-ts-no-route",
+      "division": "Tools",
+      "name": "baseconvert",
+      "kind": "MCP tool",
+      "meaning": "baseconvert MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/baseconvert-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bgg-packages-mcp-server-src-bgg-tool-ts-no-route",
       "division": "Tools",
       "name": "bgg",
@@ -4998,6 +5008,16 @@
       "kind": "MCP tool",
       "meaning": "colr MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/colr-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-combination-packages-mcp-server-src-combination-tool-ts-no-route",
+      "division": "Tools",
+      "name": "combination",
+      "kind": "MCP tool",
+      "meaning": "combination MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/combination-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5848,6 +5868,16 @@
       "kind": "MCP tool",
       "meaning": "gbif MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gbif-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gcd-packages-mcp-server-src-gcd-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gcd",
+      "kind": "MCP tool",
+      "meaning": "gcd MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gcd-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7362,6 +7392,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-permutation-packages-mcp-server-src-permutation-tool-ts-no-route",
+      "division": "Tools",
+      "name": "permutation",
+      "kind": "MCP tool",
+      "meaning": "permutation MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/permutation-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-perplexity-packages-mcp-server-src-perplexity-tool-ts-no-route",
       "division": "Tools",
       "name": "perplexity",
@@ -7568,6 +7608,16 @@
       "kind": "MCP tool",
       "meaning": "primecheck MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/primecheck-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-proportion-packages-mcp-server-src-proportion-tool-ts-no-route",
+      "division": "Tools",
+      "name": "proportion",
+      "kind": "MCP tool",
+      "meaning": "proportion MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/proportion-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10006,6 +10056,11 @@
       "packages/mcp-server/src/base64-tool.ts"
     ],
     [
+      "baseconvert",
+      "baseconvert MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/baseconvert-tool.ts"
+    ],
+    [
       "bgg",
       "bgg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bgg-tool.ts"
@@ -10254,6 +10309,11 @@
       "colr",
       "colr MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/colr-tool.ts"
+    ],
+    [
+      "combination",
+      "combination MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/combination-tool.ts"
     ],
     [
       "commonsensepass",
@@ -10679,6 +10739,11 @@
       "gbif",
       "gbif MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gbif-tool.ts"
+    ],
+    [
+      "gcd",
+      "gcd MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gcd-tool.ts"
     ],
     [
       "gcdlcm",
@@ -11436,6 +11501,11 @@
       "packages/mcp-server/src/percentage-tool.ts"
     ],
     [
+      "permutation",
+      "permutation MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/permutation-tool.ts"
+    ],
+    [
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
@@ -11539,6 +11609,11 @@
       "primecheck",
       "primecheck MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/primecheck-tool.ts"
+    ],
+    [
+      "proportion",
+      "proportion MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/proportion-tool.ts"
     ],
     [
       "ptv",
@@ -13509,6 +13584,11 @@
       "bytes": 1174
     },
     {
+      "source": "packages/mcp-server/src/baseconvert-tool.ts",
+      "hash": "bbfa716f0f7c",
+      "bytes": 1246
+    },
+    {
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
@@ -13552,11 +13632,6 @@
       "source": "packages/mcp-server/src/bored-tool.ts",
       "hash": "076a2a94303b",
       "bytes": 3043
-    },
-    {
-      "source": "packages/mcp-server/src/braille-tool.ts",
-      "hash": "a2a71da4a678",
-      "bytes": 1894
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

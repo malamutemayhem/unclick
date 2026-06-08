@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 486,
-  "toolCount": 1408,
+  "appCount": 495,
+  "toolCount": 1417,
   "categories": [
     "AI",
     "Books",
@@ -628,6 +628,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "baseconvert",
+      "name": "Base Converter",
+      "category": "Utilities",
+      "blurb": "Convert numbers between any bases (binary, octal, decimal, hex, base 2-36).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "base_convert",
+          "description": "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "base64",
@@ -1574,6 +1590,22 @@
       "hardened": false
     },
     {
+      "slug": "collatz",
+      "name": "Collatz Sequence",
+      "category": "Utilities",
+      "blurb": "Compute the Collatz (3n+1) sequence for any positive integer.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "collatz_sequence",
+          "description": "Compute the Collatz (3n+1) sequence for a positive integer."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "color",
       "name": "Color",
       "category": "Utilities",
@@ -1688,6 +1720,22 @@
         {
           "name": "colr_random_palette",
           "description": "Get a random color palette from colr.org."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "combination",
+      "name": "Combinations",
+      "category": "Utilities",
+      "blurb": "Calculate combinations C(n,r) for unordered selections.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "combination_calc",
+          "description": "Calculate the number of combinations C(n,r) - unordered selections."
         }
       ],
       "level": 5,
@@ -3602,6 +3650,22 @@
       "hardened": false
     },
     {
+      "slug": "gcd",
+      "name": "GCD/LCM Calculator",
+      "category": "Utilities",
+      "blurb": "Compute the greatest common divisor and least common multiple of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gcd_calculate",
+          "description": "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gcdlcm",
       "name": "GCD/LCM Calculator",
       "category": "Developer & infra",
@@ -4108,6 +4172,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "histogram",
+      "name": "Histogram",
+      "category": "Utilities",
+      "blurb": "Create a histogram from numeric data with configurable bins and ASCII chart.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "histogram_create",
+          "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "htmlstrip",
@@ -5204,6 +5284,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "regression",
+      "name": "Linear Regression",
+      "category": "Utilities",
+      "blurb": "Fit a linear regression to x/y data and get slope, intercept, R-squared.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "regression_fit",
+          "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "abstract-holidays",
@@ -6910,6 +7006,22 @@
       "hardened": true
     },
     {
+      "slug": "pascaltri",
+      "name": "Pascal's Triangle",
+      "category": "Utilities",
+      "blurb": "Generate rows of Pascal's triangle or fetch a specific row.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pascaltri_generate",
+          "description": "Generate rows of Pascal's triangle, optionally return a specific row."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "passwordgen",
       "name": "Password Generator",
       "category": "Developer & infra",
@@ -6956,6 +7068,22 @@
         {
           "name": "percentage_calc",
           "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "permutation",
+      "name": "Permutations",
+      "category": "Utilities",
+      "blurb": "Calculate permutations P(n,r) for ordered arrangements.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "permutation_calc",
+          "description": "Calculate the number of permutations P(n,r) - ordered arrangements."
         }
       ],
       "level": 5,
@@ -7472,6 +7600,22 @@
         {
           "name": "gutenberg_book",
           "description": "Get details for a specific Project Gutenberg book by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "proportion",
+      "name": "Proportion Solver",
+      "category": "Utilities",
+      "blurb": "Solve a proportion a/b = c/d given any three of the four values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "proportion_solve",
+          "description": "Solve a proportion a/b = c/d given any 3 values."
         }
       ],
       "level": 5,

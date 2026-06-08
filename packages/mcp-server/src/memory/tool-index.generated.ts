@@ -530,6 +530,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "baseconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "base_convert",
+        "description": "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36)."
+      }
+    ]
+  },
+  {
     "app": "bgg",
     "category": "Gaming",
     "tools": [
@@ -1280,6 +1290,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "collatz",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "collatz_sequence",
+        "description": "Compute the Collatz (3n+1) sequence for a positive integer."
+      }
+    ]
+  },
+  {
     "app": "color",
     "category": "Utilities",
     "tools": [
@@ -1360,6 +1380,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "colr_random_palette",
         "description": "Get a random color palette from colr.org."
+      }
+    ]
+  },
+  {
+    "app": "combination",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "combination_calc",
+        "description": "Calculate the number of combinations C(n,r) - unordered selections."
       }
     ]
   },
@@ -2850,6 +2880,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gcd_calculate",
+        "description": "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers."
+      }
+    ]
+  },
+  {
     "app": "gcdlcm",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3236,6 +3276,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "higgsfield_get_status",
         "description": "Check the status of a Higgsfield AI generation by ID. Returns status, video URL when complete."
+      }
+    ]
+  },
+  {
+    "app": "histogram",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "histogram_create",
+        "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
       }
     ]
   },
@@ -5256,6 +5306,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pascaltri",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pascaltri_generate",
+        "description": "Generate rows of Pascal's triangle, optionally return a specific row."
+      }
+    ]
+  },
+  {
     "app": "passwordgen",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5286,6 +5346,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "percentage_calc",
         "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+      }
+    ]
+  },
+  {
+    "app": "permutation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "permutation_calc",
+        "description": "Calculate the number of permutations P(n,r) - ordered arrangements."
       }
     ]
   },
@@ -5664,6 +5734,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "prime_check",
         "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+      }
+    ]
+  },
+  {
+    "app": "proportion",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "proportion_solve",
+        "description": "Solve a proportion a/b = c/d given any 3 values."
       }
     ]
   },
@@ -6108,6 +6188,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "regex_test",
         "description": "Test a regex pattern against text and return all matches with positions."
+      }
+    ]
+  },
+  {
+    "app": "regression",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "regression_fit",
+        "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
       }
     ]
   },

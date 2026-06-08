@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -170,6 +170,11 @@ const NAME_OF = {
   atbash: "Atbash Cipher",
   railfence: "Rail Fence Cipher", phonetic: "Phonetic Alphabet", matrix: "Matrix Calculator",
   setops: "Set Operations",
+  collatz: "Collatz Sequence", pascaltri: "Pascal's Triangle",
+  histogram: "Histogram", regression: "Linear Regression",
+  baseconvert: "Base Converter", gcd: "GCD/LCM Calculator",
+  permutation: "Permutations", combination: "Combinations",
+  proportion: "Proportion Solver",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -503,6 +508,15 @@ const BLURB_OF = {
   phonetic: "Spell out text using NATO or IPA phonetic alphabet.",
   matrix: "Perform matrix operations: add, multiply, transpose, determinant.",
   setops: "Perform set operations: union, intersection, difference, subset checks.",
+  collatz: "Compute the Collatz (3n+1) sequence for any positive integer.",
+  pascaltri: "Generate rows of Pascal's triangle or fetch a specific row.",
+  histogram: "Create a histogram from numeric data with configurable bins and ASCII chart.",
+  regression: "Fit a linear regression to x/y data and get slope, intercept, R-squared.",
+  baseconvert: "Convert numbers between any bases (binary, octal, decimal, hex, base 2-36).",
+  gcd: "Compute the greatest common divisor and least common multiple of integers.",
+  permutation: "Calculate permutations P(n,r) for ordered arrangements.",
+  combination: "Calculate combinations C(n,r) for unordered selections.",
+  proportion: "Solve a proportion a/b = c/d given any three of the four values.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -664,6 +678,8 @@ const DOMAIN_OF = {
   atbash: "local",
   railfence: "local", phonetic: "local", matrix: "local",
   setops: "local",
+  collatz: "local", pascaltri: "local", histogram: "local", regression: "local",
+  baseconvert: "local", gcd: "local", permutation: "local", combination: "local", proportion: "local",
 };
 
 function titleCase(slug) {

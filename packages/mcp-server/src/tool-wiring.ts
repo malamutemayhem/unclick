@@ -651,6 +651,15 @@ import { railfenceProcess } from "./railfence-tool.js";
 import { phoneticSpell } from "./phonetic-tool.js";
 import { matrixOperate } from "./matrix-tool.js";
 import { setopsCalculate } from "./setops-tool.js";
+import { collatzSequence } from "./collatz-tool.js";
+import { pascaltriGenerate } from "./pascaltri-tool.js";
+import { histogramCreate } from "./histogram-tool.js";
+import { regressionFit } from "./regression-tool.js";
+import { baseConvert } from "./baseconvert-tool.js";
+import { gcdCalculate } from "./gcd-tool.js";
+import { permutationCalc } from "./permutation-tool.js";
+import { combinationCalc } from "./combination-tool.js";
+import { proportionSolve } from "./proportion-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9950,6 +9959,115 @@ export const ADDITIONAL_TOOLS = [
         set_a: { type: "array" as const, description: "First set (array of values)." },
         set_b: { type: "array" as const, description: "Second set (array of values)." },
       }, required: ["set_a", "set_b"],
+    },
+  },
+
+  // ── collatz-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "collatz_sequence",
+    description: "Compute the Collatz (3n+1) sequence for a positive integer.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        number: { type: "number" as const, description: "Positive integer to start the sequence." },
+      }, required: ["number"],
+    },
+  },
+
+  // ── pascaltri-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "pascaltri_generate",
+    description: "Generate rows of Pascal's triangle, optionally return a specific row.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        rows: { type: "number" as const, description: "Number of rows to generate (1-50, default 10)." },
+        nth_row: { type: "number" as const, description: "Return a specific row (0-indexed)." },
+      },
+    },
+  },
+
+  // ── histogram-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "histogram_create",
+    description: "Create a histogram from numeric data with configurable bins and ASCII visualization.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, description: "Array of numbers to histogram." },
+        bins: { type: "number" as const, description: "Number of bins (default 10)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── regression-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "regression_fit",
+    description: "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "array" as const, description: "Array of x values (numbers)." },
+        y: { type: "array" as const, description: "Array of y values (numbers)." },
+      }, required: ["x", "y"],
+    },
+  },
+
+  // ── baseconvert-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "base_convert",
+    description: "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "string" as const, description: "The number to convert (as string)." },
+        from_base: { type: "number" as const, description: "Source base (2-36, default 10)." },
+        to_base: { type: "number" as const, description: "Target base (2-36, default 16)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── gcd-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "gcd_calculate",
+    description: "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        numbers: { type: "array" as const, description: "Array of integers (at least 2)." },
+      }, required: ["numbers"],
+    },
+  },
+
+  // ── permutation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "permutation_calc",
+    description: "Calculate the number of permutations P(n,r) - ordered arrangements.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Total number of items." },
+        r: { type: "number" as const, description: "Number of items to arrange (defaults to n)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── combination-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "combination_calc",
+    description: "Calculate the number of combinations C(n,r) - unordered selections.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Total number of items." },
+        r: { type: "number" as const, description: "Number of items to choose." },
+      }, required: ["n", "r"],
+    },
+  },
+
+  // ── proportion-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "proportion_solve",
+    description: "Solve a proportion a/b = c/d given any 3 values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Value a." },
+        b: { type: "number" as const, description: "Value b." },
+        c: { type: "number" as const, description: "Value c." },
+        d: { type: "number" as const, description: "Value d." },
+      },
     },
   },
 
@@ -21543,6 +21661,33 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // setops-tool.ts
   setops_calculate:          (args) => setopsCalculate(args),
+
+  // collatz-tool.ts
+  collatz_sequence:          (args) => collatzSequence(args),
+
+  // pascaltri-tool.ts
+  pascaltri_generate:        (args) => pascaltriGenerate(args),
+
+  // histogram-tool.ts
+  histogram_create:          (args) => histogramCreate(args),
+
+  // regression-tool.ts
+  regression_fit:            (args) => regressionFit(args),
+
+  // baseconvert-tool.ts
+  base_convert:              (args) => baseConvert(args),
+
+  // gcd-tool.ts
+  gcd_calculate:             (args) => gcdCalculate(args),
+
+  // permutation-tool.ts
+  permutation_calc:          (args) => permutationCalc(args),
+
+  // combination-tool.ts
+  combination_calc:          (args) => combinationCalc(args),
+
+  // proportion-tool.ts
+  proportion_solve:          (args) => proportionSolve(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
