@@ -394,6 +394,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "balldontlie",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nba_players",
+        "description": "Search NBA players by name."
+      },
+      {
+        "name": "nba_teams",
+        "description": "List all NBA teams."
+      },
+      {
+        "name": "nba_games",
+        "description": "Browse NBA game scores and results."
+      }
+    ]
+  },
+  {
     "app": "bandsintown",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -650,6 +668,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "list_calendly_invitees",
         "description": "List invitees for a Calendly scheduled event."
+      }
+    ]
+  },
+  {
+    "app": "carbonintensity",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "carbon_intensity_current",
+        "description": "Get current UK electricity grid carbon intensity (gCO2/kWh)."
+      },
+      {
+        "name": "carbon_intensity_forecast",
+        "description": "Get 24-hour forecast of UK grid carbon intensity."
+      },
+      {
+        "name": "carbon_intensity_generation",
+        "description": "Get current UK electricity generation mix by fuel type."
       }
     ]
   },
@@ -1244,6 +1280,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "datadog_list_events",
         "description": "List Datadog events stream for a time range."
+      }
+    ]
+  },
+  {
+    "app": "datamuse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "datamuse_words",
+        "description": "Find words by meaning, sound, spelling, rhyme, or adjective/noun relationship."
+      },
+      {
+        "name": "datamuse_suggestions",
+        "description": "Get autocomplete suggestions for a word prefix."
       }
     ]
   },
@@ -3080,6 +3130,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "lotr_quotes",
         "description": "Get Lord of the Rings movie quotes."
+      }
+    ]
+  },
+  {
+    "app": "lyrics",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lyrics_get",
+        "description": "Get song lyrics by artist and title."
       }
     ]
   },
@@ -5936,6 +5996,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "urbandictionary",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "urban_define",
+        "description": "Look up slang definitions on Urban Dictionary."
+      },
+      {
+        "name": "urban_random",
+        "description": "Get random Urban Dictionary definitions."
+      }
+    ]
+  },
+  {
     "app": "urlhaus",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6256,6 +6330,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wordpress_list_pages",
         "description": "List WordPress pages."
+      }
+    ]
+  },
+  {
+    "app": "worldbank",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "worldbank_country",
+        "description": "Get country info from the World Bank. Pass a code (US, GB) or omit for all."
+      },
+      {
+        "name": "worldbank_indicator",
+        "description": "Get economic/development indicator data from the World Bank."
       }
     ]
   },

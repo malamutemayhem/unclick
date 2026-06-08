@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T09:00:00.000Z",
+  "updatedAt": "2026-06-08T10:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -172,6 +172,16 @@
       ],
       "comment": ""
     },
+    "balldontlie": {
+      "status": "pass",
+      "note": "nba_players, nba_teams, nba_games connect to balldontlie.io for NBA stats. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "nba_players",
+        "nba_teams",
+        "nba_games"
+      ]
+    },
     "bgg": {
       "status": "attention",
       "note": "BGG now requires a Bearer token. Set BGG_API_TOKEN env var. Code updated with auth support and 401 handling.",
@@ -290,6 +300,16 @@
         "carbon_flight_emissions"
       ],
       "comment": ""
+    },
+    "carbonintensity": {
+      "status": "pass",
+      "note": "carbon_intensity_current, carbon_intensity_forecast, carbon_intensity_generation connect to carbonintensity.org.uk for UK grid data. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "carbon_intensity_current",
+        "carbon_intensity_forecast",
+        "carbon_intensity_generation"
+      ]
     },
     "catapi": {
       "status": "pass",
@@ -544,6 +564,15 @@
         "datetime_current_time"
       ],
       "comment": ""
+    },
+    "datamuse": {
+      "status": "pass",
+      "note": "datamuse_words and datamuse_suggestions query the Datamuse word-finding API. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "datamuse_words",
+        "datamuse_suggestions"
+      ]
     },
     "deckofcards": {
       "status": "pass",
@@ -1271,6 +1300,14 @@
         "lotr_books",
         "lotr_characters",
         "lotr_quotes"
+      ]
+    },
+    "lyrics": {
+      "status": "pass",
+      "note": "lyrics_get fetches song lyrics from lyrics.ovh by artist and title. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "lyrics_get"
       ]
     },
     "mailchimp": {
@@ -2367,6 +2404,15 @@
         "urlhaus_recent"
       ]
     },
+    "urbandictionary": {
+      "status": "pass",
+      "note": "urban_define and urban_random look up slang definitions from urbandictionary.com. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "urban_define",
+        "urban_random"
+      ]
+    },
     "uselessfacts": {
       "status": "pass",
       "note": "useless_fact_random returned a random fact from uselessfacts.jsph.pl; free, no key needed.",
@@ -2487,6 +2533,15 @@
       "testedAt": "2026-06-08T04:01:53.563Z",
       "toolsTested": [
         "worldtime_by_ip"
+      ]
+    },
+    "worldbank": {
+      "status": "pass",
+      "note": "worldbank_country and worldbank_indicator fetch country profiles and economic data from worldbank.org. Free, no key needed.",
+      "testedAt": "2026-06-08T10:00:00.000Z",
+      "toolsTested": [
+        "worldbank_country",
+        "worldbank_indicator"
       ]
     },
     "xero": {

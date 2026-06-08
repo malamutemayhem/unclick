@@ -35,16 +35,16 @@ bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtu
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
-bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark"]);
+bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -103,6 +103,8 @@ const NAME_OF = {
   breakingbad: "Breaking Bad Quotes", tacofancy: "Taco Fancy", publicapis: "Public APIs Directory",
   wger: "wger Workout DB", animechan: "AnimeChan", lotr: "Lord of the Rings API",
   coinpaprika: "Coinpaprika", openfda: "OpenFDA", funtranslations: "Fun Translations",
+  datamuse: "Datamuse", balldontlie: "balldontlie (NBA)", worldbank: "World Bank",
+  carbonintensity: "Carbon Intensity UK", lyrics: "Lyrics.ovh", urbandictionary: "Urban Dictionary",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -261,6 +263,12 @@ const BLURB_OF = {
   coinpaprika: "Cryptocurrency market data, coin info, and live tickers.",
   openfda: "Search FDA drug labels, recalls, and adverse event reports.",
   funtranslations: "Translate text into Yoda, Pirate, Shakespeare, and more.",
+  datamuse: "Find words by meaning, rhyme, sound, or spelling pattern.",
+  balldontlie: "NBA player stats, team info, and game scores.",
+  worldbank: "Country profiles and economic indicators from the World Bank.",
+  carbonintensity: "UK national grid carbon intensity - current, forecast, and generation mix.",
+  lyrics: "Look up song lyrics by artist and title.",
+  urbandictionary: "Look up slang definitions or browse trending words.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -355,6 +363,8 @@ const DOMAIN_OF = {
   tacofancy: "taco-randomizer.herokuapp.com", publicapis: "api.publicapis.org",
   wger: "wger.de", animechan: "animechan.io", lotr: "the-one-api.dev",
   coinpaprika: "coinpaprika.com", openfda: "api.fda.gov", funtranslations: "funtranslations.com",
+  datamuse: "datamuse.com", balldontlie: "balldontlie.io", worldbank: "worldbank.org",
+  carbonintensity: "carbonintensity.org.uk", lyrics: "lyrics.ovh", urbandictionary: "urbandictionary.com",
 };
 
 function titleCase(slug) {

@@ -471,6 +471,18 @@ import { openfdaDrugSearch, openfdaRecallSearch, openfdaAdverseEvents } from "./
 
 import { funTranslate } from "./funtranslations-tool.js";
 
+import { datamuseWords, datamuseSuggestions } from "./datamuse-tool.js";
+
+import { nbaPlayers, nbaTeams, nbaGames } from "./balldontlie-tool.js";
+
+import { worldbankCountry, worldbankIndicator } from "./worldbank-tool.js";
+
+import { carbonIntensityCurrent, carbonIntensityForecast, carbonIntensityGeneration } from "./carbonintensity-tool.js";
+
+import { lyricsGet } from "./lyrics-tool.js";
+
+import { urbanDefine, urbanRandom } from "./urbandictionary-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6944,6 +6956,150 @@ export const ADDITIONAL_TOOLS = [
         dialect: { type: "string", description: "Dialect: yoda, pirate, shakespeare, minion, dothraki, valyrian, pig-latin, morse (default yoda)" },
       },
       required: ["text"],
+    },
+  },
+
+  // ── datamuse-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "datamuse_words",
+    description: "Find words by meaning, sound, spelling, rhyme, or adjective/noun relationship.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        means_like: { type: "string", description: "Words with similar meaning" },
+        sounds_like: { type: "string", description: "Words that sound similar" },
+        spelled_like: { type: "string", description: "Wildcard pattern (? = one char, * = any)" },
+        rhymes_with: { type: "string", description: "Words that rhyme" },
+        adjectives_for: { type: "string", description: "Adjectives commonly used with this noun" },
+        nouns_for: { type: "string", description: "Nouns commonly described by this adjective" },
+        limit: { type: "number", description: "Max results (default 20)" },
+      },
+    },
+  },
+  {
+    name: "datamuse_suggestions",
+    description: "Get autocomplete suggestions for a word prefix.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        prefix: { type: "string", description: "Word prefix to autocomplete" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["prefix"],
+    },
+  },
+
+  // ── balldontlie-tool.ts (NBA) ───────────────────────────────────────────────
+  {
+    name: "nba_players",
+    description: "Search NBA players by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        search: { type: "string", description: "Player name to search for" },
+        limit: { type: "number", description: "Results per page (default 25)" },
+      },
+    },
+  },
+  {
+    name: "nba_teams",
+    description: "List all NBA teams.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "nba_games",
+    description: "Browse NBA game scores and results.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        season: { type: "number", description: "Season year (e.g. 2023)" },
+        team_id: { type: "number", description: "Filter by team ID (use nba_teams for IDs)" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+
+  // ── worldbank-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "worldbank_country",
+    description: "Get country info from the World Bank. Pass a code (US, GB) or omit for all.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        code: { type: "string", description: "ISO 3166-1 alpha-2 or alpha-3 code (default all)" },
+      },
+    },
+  },
+  {
+    name: "worldbank_indicator",
+    description: "Get economic/development indicator data from the World Bank.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country: { type: "string", description: "Country code (default US)" },
+        indicator: { type: "string", description: "Indicator ID (e.g. NY.GDP.MKTP.CD for GDP, SP.POP.TOTL for population)" },
+        date: { type: "string", description: "Year range (e.g. 2015:2023, default last 8 years)" },
+      },
+      required: ["indicator"],
+    },
+  },
+
+  // ── carbonintensity-tool.ts (UK grid) ───────────────────────────────────────
+  {
+    name: "carbon_intensity_current",
+    description: "Get current UK electricity grid carbon intensity (gCO2/kWh).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "carbon_intensity_forecast",
+    description: "Get 24-hour forecast of UK grid carbon intensity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "carbon_intensity_generation",
+    description: "Get current UK electricity generation mix by fuel type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── lyrics-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "lyrics_get",
+    description: "Get song lyrics by artist and title.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        artist: { type: "string", description: "Artist/band name" },
+        title: { type: "string", description: "Song title" },
+      },
+      required: ["artist", "title"],
+    },
+  },
+
+  // ── urbandictionary-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "urban_define",
+    description: "Look up slang definitions on Urban Dictionary.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        term: { type: "string", description: "Slang term to define" },
+      },
+      required: ["term"],
+    },
+  },
+  {
+    name: "urban_random",
+    description: "Get random Urban Dictionary definitions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
     },
   },
 
@@ -17999,6 +18155,26 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // funtranslations-tool.ts
   fun_translate:           (args) => funTranslate(args),
+
+  // datamuse-tool.ts
+  datamuse_words:            (args) => datamuseWords(args),
+  datamuse_suggestions:      (args) => datamuseSuggestions(args),
+  // balldontlie-tool.ts
+  nba_players:               (args) => nbaPlayers(args),
+  nba_teams:                 (args) => nbaTeams(args),
+  nba_games:                 (args) => nbaGames(args),
+  // worldbank-tool.ts
+  worldbank_country:         (args) => worldbankCountry(args),
+  worldbank_indicator:       (args) => worldbankIndicator(args),
+  // carbonintensity-tool.ts
+  carbon_intensity_current:  (args) => carbonIntensityCurrent(args),
+  carbon_intensity_forecast: (args) => carbonIntensityForecast(args),
+  carbon_intensity_generation: (args) => carbonIntensityGeneration(args),
+  // lyrics-tool.ts
+  lyrics_get:                (args) => lyricsGet(args),
+  // urbandictionary-tool.ts
+  urban_define:              (args) => urbanDefine(args),
+  urban_random:              (args) => urbanRandom(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
