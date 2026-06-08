@@ -1,26 +1,16 @@
 import PageShell from "@/components/PageShell";
 import FadeIn from "@/components/FadeIn";
+import ExpandableImage from "@/components/ExpandableImage";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { presets } from "@/lib/design-system";
 import {
   Package,
-  Layers,
-  Gauge,
-  Stamp,
-  Compass,
-  Bookmark,
-  Bell,
   ShieldCheck,
-  RefreshCw,
   Database,
-  History,
-  Fingerprint,
   BadgeCheck,
-  Users,
   CreditCard,
-  GitBranch,
-  MapPin,
+  RefreshCw,
   Bot,
   Github,
   HardDrive,
@@ -28,139 +18,50 @@ import {
 } from "lucide-react";
 
 /**
- * Why UnClick (2026-06-08).
+ * Why UnClick (2026-06-08, tidied).
  *
- * The moat page. Honest, at-a-glance reasons to adopt UnClick, grouped into
- * five pillars that mirror the homepage promise (every tool, your memory,
- * signed permissions, built-in proof, one install). Then a balanced
- * comparison against self-hosted agent runtimes: where UnClick shines, and
- * where those runtimes still lead.
+ * The moat page, simplified to scan at a glance: one comparison infographic
+ * (the hard way vs UnClick), six plain reasons, then an honest comparison
+ * against self-hosted agents (where UnClick wins, where they still lead).
  *
  * Framing rule (per standing guidance): UnClick is the universal remote for
  * AI, the layer your assistant plugs into. Not an OS, not a runtime. No
  * competitor is named; we compare to the category ("self-hosted agents").
- * Numbers come from the live catalog (218 apps / 914 tools / 20 categories,
- * stated conservatively). No unverified performance stats.
+ * Numbers stated conservatively. No unverified performance stats.
  */
 
 type Reason = { icon: typeof Package; title: string; desc: string };
-type Pillar = { eyebrow: string; reasons: Reason[] };
 
-const PILLARS: Pillar[] = [
+const REASONS: Reason[] = [
   {
-    eyebrow: "Every tool, one install",
-    reasons: [
-      {
-        icon: Package,
-        title: "900+ tools, 200+ apps, one install",
-        desc: "Your AI goes from chatting to doing across 20 categories, with no wiring or securing a single integration.",
-      },
-      {
-        icon: Layers,
-        title: "They all behave the same",
-        desc: "One sign-in pattern, one error shape, one standard across the whole catalog. The consistency is the point.",
-      },
-      {
-        icon: Gauge,
-        title: "It does not bloat your context",
-        desc: "Tools are found on demand, so hundreds of them never crowd the window. A tool call costs a fraction of the tokens of clicking through a web UI.",
-      },
-    ],
+    icon: Package,
+    title: "Every tool, one install",
+    desc: "900+ tools and 200+ apps added in a single MCP install. No wiring or securing one integration at a time.",
   },
   {
-    eyebrow: "Tools you can trust",
-    reasons: [
-      {
-        icon: Stamp,
-        title: "Every answer is stamped",
-        desc: "Each result says where it came from and how fresh it is, so you can trust the number instead of hoping.",
-      },
-      {
-        icon: Compass,
-        title: "Every answer points to the next step",
-        desc: "Each tool hands your agent the next useful tool, so it stops guessing what to do next.",
-      },
-      {
-        icon: Bookmark,
-        title: "Tools remember your defaults",
-        desc: "Ask for the next train without repeating your home stop. Set it once and it sticks.",
-      },
-      {
-        icon: Bell,
-        title: "Tools tap you on the shoulder",
-        desc: "A tool can flag a change you care about, a delay, an incident, a price move, into your own inbox.",
-      },
-      {
-        icon: ShieldCheck,
-        title: "Hardened to one standard",
-        desc: "Timeouts, rate-limit handling, clean errors, and a test on every tool. Built to behave under pressure.",
-      },
-    ],
+    icon: ShieldCheck,
+    title: "Tools you can trust",
+    desc: "Every tool is hardened and tested, stamps where its answer came from, and hands your agent the next step.",
   },
   {
-    eyebrow: "Memory that is genuinely yours",
-    reasons: [
-      {
-        icon: RefreshCw,
-        title: "One memory across every tool and device",
-        desc: "Start in one assistant, continue in another, finish on mobile. You never re-explain your world.",
-      },
-      {
-        icon: Database,
-        title: "Your data, your database",
-        desc: "Memory lives in your own database. We never see it, and if you leave, it is already yours. Zero lock-in.",
-      },
-      {
-        icon: History,
-        title: "Nothing is silently lost",
-        desc: "When a fact changes, the old version is kept, and you can watch a live feed of what gets learned.",
-      },
-      {
-        icon: Gauge,
-        title: "It keeps itself lean",
-        desc: "Used memories surface first, stale ones fade to save context, and all of it stays searchable.",
-      },
-    ],
+    icon: Database,
+    title: "Memory that is yours",
+    desc: "One memory across every assistant and device, kept in your own database. Nothing is silently lost, and there is zero lock-in.",
   },
   {
-    eyebrow: "Permissions and proof, built in",
-    reasons: [
-      {
-        icon: Fingerprint,
-        title: "Signed permissions",
-        desc: "Per-account isolation, install tickets, and device pairing keep your keys and access scoped, never shared.",
-      },
-      {
-        icon: BadgeCheck,
-        title: "Built-in proof the work was done right",
-        desc: "Quality badges and answer receipts mark work pass, warn, or fail. You get evidence, not vibes.",
-      },
-      {
-        icon: Users,
-        title: "A council that argues, not a yes-bot",
-        desc: "For decisions that matter, a crew of expert views weighs in with dissent and evidence.",
-      },
-    ],
+    icon: BadgeCheck,
+    title: "Permissions and proof",
+    desc: "Signed, scoped access plus built-in proof the work was done right. You get evidence, not vibes.",
   },
   {
-    eyebrow: "Calm to own",
-    reasons: [
-      {
-        icon: CreditCard,
-        title: "Flat, predictable subscription",
-        desc: "No token meter running while you sleep, and nothing to host, patch, or secure.",
-      },
-      {
-        icon: GitBranch,
-        title: "No lock-in, built in public",
-        desc: "MIT-licensed SDKs, an API-first design, and your data stays portable.",
-      },
-      {
-        icon: MapPin,
-        title: "Australian made, sovereignty options",
-        desc: "Built in Melbourne, with data residency options and no surprise overseas transfers.",
-      },
-    ],
+    icon: CreditCard,
+    title: "Calm to own",
+    desc: "One flat subscription. Nothing to host, patch, or secure, and no token meter running while you sleep.",
+  },
+  {
+    icon: RefreshCw,
+    title: "The layer, not the rival",
+    desc: "Plugs into Claude, Cursor, ChatGPT, and even a self-hosted agent. It travels with you, not the other way around.",
   },
 ];
 
@@ -196,8 +97,6 @@ const HONEST: Reason[] = [
   },
 ];
 
-const CLIENTS = ["Claude Code", "Cursor", "Cowork", "Self-hosted agents", "Any MCP client"];
-
 const Why = () => {
   useCanonical("/why");
   useMetaTags({
@@ -217,62 +116,60 @@ const Why = () => {
       accent="In one install."
       lede={
         <>
-          UnClick is the layer your AI plugs into. 900+ tools, a memory that
-          stays yours, signed permissions, and built-in proof, across every
+          UnClick is the layer your AI plugs into: tools that behave, a memory
+          that stays yours, signed permissions, and built-in proof, across every
           assistant and device you use.
         </>
       }
-      cta={{ label: "See what makes it different", href: "#moat" }}
+      cta={{ label: "See the difference", href: "#compare" }}
     >
-      {/* The five pillars */}
-      <section id="moat" className={presets.section}>
+      {/* The big picture: the hard way vs UnClick */}
+      <section id="compare" className="px-6 pb-0 -mt-8 sm:-mt-10">
+        <div className="mx-auto max-w-5xl">
+          <FadeIn>
+            <ExpandableImage
+              src="/whyunclick_web.jpg"
+              alt="The hard way: a tangled mess of MCP plugins, API keys, and a memory plugin you host and secure yourself, burning tokens, with context that does not travel. UnClick: one MCP install giving apps, memory, connections, and permissions with proof, on one subscription, with the same shared context across Claude, ChatGPT, Copilot, and Cursor."
+            />
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Six plain reasons */}
+      <section className={presets.section}>
         <div className={presets.sectionInner}>
           <div className={presets.sectionHeader}>
             <FadeIn>
-              <h2 className={presets.h2}>What makes it different.</h2>
+              <h2 className={presets.h2}>The whole working layer.</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
-                Most tools give your AI one more thing to call. UnClick gives it
-                a whole working layer: tools that behave, a memory that travels,
-                and proof the work was done right.
+                Not one more thing to call. Tools that behave, a memory that
+                travels, permissions and proof, in one calm subscription.
               </p>
             </FadeIn>
           </div>
 
-          <div className="mt-16 space-y-16">
-            {PILLARS.map((pillar, p) => (
-              <div key={pillar.eyebrow}>
-                <FadeIn>
-                  <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 backdrop-blur-sm">
-                    <span className="font-mono text-xs font-medium tracking-wide text-primary">
-                      {pillar.eyebrow}
-                    </span>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {REASONS.map((reason, i) => (
+              <FadeIn key={reason.title} delay={0.05 * i}>
+                <div className={presets.tile}>
+                  <div className={presets.tileIcon}>
+                    <reason.icon className="h-4 w-4" />
                   </div>
-                </FadeIn>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {pillar.reasons.map((reason, i) => (
-                    <FadeIn key={reason.title} delay={0.05 * i}>
-                      <div className={presets.tile}>
-                        <div className={presets.tileIcon}>
-                          <reason.icon className="h-4 w-4" />
-                        </div>
-                        <h3 className={presets.h3}>{reason.title}</h3>
-                        <p className="mt-2 text-sm text-body leading-relaxed">
-                          {reason.desc}
-                        </p>
-                      </div>
-                    </FadeIn>
-                  ))}
+                  <h3 className={presets.h3}>{reason.title}</h3>
+                  <p className="mt-2 text-sm text-body leading-relaxed">
+                    {reason.desc}
+                  </p>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Comparison: where UnClick shines */}
-      <section id="compare" className={presets.section + " bg-card/30"}>
+      {/* Honest comparison: where UnClick is the easier choice */}
+      <section className={presets.section + " bg-card/30"}>
         <div className="mx-auto max-w-4xl">
           <div className={presets.sectionHeader}>
             <FadeIn>
@@ -280,8 +177,8 @@ const Why = () => {
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
-                Self-hosted agents are powerful, and they are a different shape.
-                Here is where UnClick is the easier, calmer choice.
+                Self-hosted agents are powerful, and a different shape. Here is
+                where UnClick is the easier, calmer choice.
               </p>
             </FadeIn>
           </div>
@@ -292,9 +189,7 @@ const Why = () => {
                 <thead>
                   <tr className="border-b border-border/40 bg-card/80">
                     <th className="p-3 text-left font-medium text-muted-foreground" />
-                    <th className="p-3 text-left font-semibold text-primary">
-                      UnClick
-                    </th>
+                    <th className="p-3 text-left font-semibold text-primary">UnClick</th>
                     <th className="p-3 text-left font-medium text-muted-foreground">
                       Self-hosted agents
                     </th>
@@ -327,7 +222,7 @@ const Why = () => {
         <div className={presets.sectionInner}>
           <div className={presets.sectionHeader}>
             <FadeIn>
-              <h2 className={presets.h2}>Where self-hosted agents lead today.</h2>
+              <h2 className={presets.h2}>Where self-hosted agents lead.</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
@@ -345,9 +240,7 @@ const Why = () => {
                     <item.icon className="h-4 w-4" />
                   </div>
                   <h3 className={presets.h3}>{item.title}</h3>
-                  <p className="mt-2 text-sm text-body leading-relaxed">
-                    {item.desc}
-                  </p>
+                  <p className="mt-2 text-sm text-body leading-relaxed">{item.desc}</p>
                 </div>
               </FadeIn>
             ))}
@@ -355,48 +248,11 @@ const Why = () => {
         </div>
       </section>
 
-      {/* The layer that plugs into anything */}
-      <section className={presets.section + " bg-card/30"}>
-        <div className="mx-auto max-w-3xl">
-          <div className={presets.sectionHeader}>
-            <FadeIn>
-              <h2 className={presets.h2}>The layer, not the rival.</h2>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <p className="mt-6 text-lg text-body leading-relaxed">
-                UnClick is not trying to be your agent. It is the tools and
-                memory your agent plugs into. Use it inside the assistant you
-                already have, or alongside a self-hosted agent. It travels with
-                you, not the other way around.
-              </p>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.15}>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              {CLIENTS.map((c) => (
-                <div
-                  key={c}
-                  className="flex items-center gap-2 rounded-full border border-border/40 bg-card/60 px-4 py-2 backdrop-blur-sm"
-                >
-                  <RefreshCw className="h-3 w-3 text-primary" />
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {c}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className={presets.section}>
         <div className="mx-auto max-w-2xl text-center">
           <FadeIn>
-            <h2 className={presets.h2}>
-              Give your AI the layer it has been missing.
-            </h2>
+            <h2 className={presets.h2}>Give your AI the layer it has been missing.</h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <div className="mt-10 flex justify-center">
