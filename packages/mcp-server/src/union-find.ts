@@ -1,51 +1,71 @@
-export class UnionFind {
-  private parent: number[];
-  private rank: number[];
-  private count: number;
+export class UnionFind<T extends string | number = number> {
+  private parent = new Map<T, T>();
+  private rank = new Map<T, number>();
+  private componentCount = 0;
 
-  constructor(size: number) {
-    this.parent = Array.from({ length: size }, (_, i) => i);
-    this.rank = new Array(size).fill(0);
-    this.count = size;
+  makeSet(x: T): void {
+    if (this.parent.has(x)) return;
+    this.parent.set(x, x);
+    this.rank.set(x, 0);
+    this.componentCount++;
   }
 
-  find(x: number): number {
-    if (this.parent[x] !== x) {
-      this.parent[x] = this.find(this.parent[x]);
+  find(x: T): T {
+    if (!this.parent.has(x)) throw new Error(`Element ${String(x)} not in set`);
+    if (this.parent.get(x) !== x) {
+      this.parent.set(x, this.find(this.parent.get(x)!));
     }
-    return this.parent[x];
+    return this.parent.get(x)!;
   }
 
-  union(x: number, y: number): boolean {
-    const rx = this.find(x);
-    const ry = this.find(y);
-    if (rx === ry) return false;
-    if (this.rank[rx] < this.rank[ry]) {
-      this.parent[rx] = ry;
-    } else if (this.rank[rx] > this.rank[ry]) {
-      this.parent[ry] = rx;
+  union(x: T, y: T): boolean {
+    const rootX = this.find(x);
+    const rootY = this.find(y);
+    if (rootX === rootY) return false;
+
+    const rankX = this.rank.get(rootX)!;
+    const rankY = this.rank.get(rootY)!;
+
+    if (rankX < rankY) {
+      this.parent.set(rootX, rootY);
+    } else if (rankX > rankY) {
+      this.parent.set(rootY, rootX);
     } else {
-      this.parent[ry] = rx;
-      this.rank[rx]++;
+      this.parent.set(rootY, rootX);
+      this.rank.set(rootX, rankX + 1);
     }
-    this.count--;
+
+    this.componentCount--;
     return true;
   }
 
-  connected(x: number, y: number): boolean {
+  connected(x: T, y: T): boolean {
     return this.find(x) === this.find(y);
   }
 
-  get componentCount(): number {
-    return this.count;
+  get components(): number {
+    return this.componentCount;
   }
 
-  components(): number[][] {
-    const groups = new Map<number, number[]>();
-    for (let i = 0; i < this.parent.length; i++) {
-      const root = this.find(i);
+  get size(): number {
+    return this.parent.size;
+  }
+
+  componentMembers(x: T): T[] {
+    const root = this.find(x);
+    const members: T[] = [];
+    for (const key of this.parent.keys()) {
+      if (this.find(key) === root) members.push(key);
+    }
+    return members;
+  }
+
+  allComponents(): T[][] {
+    const groups = new Map<T, T[]>();
+    for (const key of this.parent.keys()) {
+      const root = this.find(key);
       if (!groups.has(root)) groups.set(root, []);
-      groups.get(root)!.push(i);
+      groups.get(root)!.push(key);
     }
     return [...groups.values()];
   }

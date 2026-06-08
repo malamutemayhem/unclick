@@ -2,50 +2,81 @@ import { describe, it, expect } from "vitest";
 import { UnionFind } from "../union-find.js";
 
 describe("UnionFind", () => {
-  it("starts with each element in its own set", () => {
-    const uf = new UnionFind(5);
-    expect(uf.componentCount).toBe(5);
-    expect(uf.connected(0, 1)).toBe(false);
+  it("makeSet and find", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
+    expect(uf.find(1)).toBe(1);
+    expect(uf.find(2)).toBe(2);
   });
 
-  it("union merges sets", () => {
-    const uf = new UnionFind(5);
-    expect(uf.union(0, 1)).toBe(true);
-    expect(uf.connected(0, 1)).toBe(true);
-    expect(uf.componentCount).toBe(4);
+  it("union connects elements", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
+    uf.union(1, 2);
+    expect(uf.connected(1, 2)).toBe(true);
   });
 
   it("union returns false for same set", () => {
-    const uf = new UnionFind(3);
-    uf.union(0, 1);
-    expect(uf.union(0, 1)).toBe(false);
-  });
-
-  it("transitive connection", () => {
-    const uf = new UnionFind(4);
-    uf.union(0, 1);
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
     uf.union(1, 2);
-    expect(uf.connected(0, 2)).toBe(true);
-    expect(uf.connected(0, 3)).toBe(false);
+    expect(uf.union(1, 2)).toBe(false);
   });
 
-  it("find with path compression", () => {
-    const uf = new UnionFind(5);
-    uf.union(0, 1);
+  it("tracks component count", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
+    uf.makeSet(3);
+    expect(uf.components).toBe(3);
     uf.union(1, 2);
+    expect(uf.components).toBe(2);
     uf.union(2, 3);
-    const root = uf.find(3);
-    expect(uf.find(0)).toBe(root);
-    expect(uf.find(1)).toBe(root);
+    expect(uf.components).toBe(1);
   });
 
-  it("components returns groups", () => {
-    const uf = new UnionFind(5);
-    uf.union(0, 1);
-    uf.union(2, 3);
-    const comps = uf.components();
-    expect(comps.length).toBe(3);
-    const sizes = comps.map((c) => c.length).sort();
-    expect(sizes).toEqual([1, 2, 2]);
+  it("componentMembers returns all in set", () => {
+    const uf = new UnionFind<string>();
+    uf.makeSet("a");
+    uf.makeSet("b");
+    uf.makeSet("c");
+    uf.union("a", "b");
+    const members = uf.componentMembers("a").sort();
+    expect(members).toEqual(["a", "b"]);
+  });
+
+  it("allComponents groups correctly", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
+    uf.makeSet(3);
+    uf.makeSet(4);
+    uf.union(1, 2);
+    uf.union(3, 4);
+    const groups = uf.allComponents();
+    expect(groups.length).toBe(2);
+  });
+
+  it("size tracks total elements", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(2);
+    expect(uf.size).toBe(2);
+  });
+
+  it("throws for unknown element", () => {
+    const uf = new UnionFind<number>();
+    expect(() => uf.find(99)).toThrow();
+  });
+
+  it("duplicate makeSet is no-op", () => {
+    const uf = new UnionFind<number>();
+    uf.makeSet(1);
+    uf.makeSet(1);
+    expect(uf.size).toBe(1);
+    expect(uf.components).toBe(1);
   });
 });

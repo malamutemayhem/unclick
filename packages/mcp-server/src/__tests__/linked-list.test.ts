@@ -2,88 +2,93 @@ import { describe, it, expect } from "vitest";
 import { LinkedList } from "../linked-list.js";
 
 describe("LinkedList", () => {
-  it("pushBack and toArray", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    ll.pushBack(3);
-    expect(ll.toArray()).toEqual([1, 2, 3]);
+  it("pushBack and popFront", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.pushBack(3);
+    expect(list.popFront()).toBe(1);
+    expect(list.popFront()).toBe(2);
   });
 
-  it("pushFront prepends", () => {
-    const ll = new LinkedList<number>();
-    ll.pushFront(3);
-    ll.pushFront(2);
-    ll.pushFront(1);
-    expect(ll.toArray()).toEqual([1, 2, 3]);
+  it("pushFront and popBack", () => {
+    const list = new LinkedList<number>();
+    list.pushFront(1);
+    list.pushFront(2);
+    expect(list.popBack()).toBe(1);
+    expect(list.popBack()).toBe(2);
   });
 
-  it("popBack removes last", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    expect(ll.popBack()).toBe(2);
-    expect(ll.toArray()).toEqual([1]);
+  it("peek operations", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(10);
+    list.pushBack(20);
+    expect(list.peekFront()).toBe(10);
+    expect(list.peekBack()).toBe(20);
   });
 
-  it("popFront removes first", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    expect(ll.popFront()).toBe(1);
-    expect(ll.toArray()).toEqual([2]);
+  it("size and isEmpty", () => {
+    const list = new LinkedList<number>();
+    expect(list.isEmpty).toBe(true);
+    list.pushBack(1);
+    expect(list.size).toBe(1);
+    expect(list.isEmpty).toBe(false);
   });
 
-  it("peek without removing", () => {
-    const ll = new LinkedList<string>();
-    ll.pushBack("a");
-    ll.pushBack("b");
-    expect(ll.peekFront()).toBe("a");
-    expect(ll.peekBack()).toBe("b");
-    expect(ll.size).toBe(2);
+  it("find locates element", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.pushBack(3);
+    expect(list.find((v) => v === 2)).toBe(2);
+    expect(list.find((v) => v === 99)).toBeUndefined();
   });
 
-  it("empty list returns undefined", () => {
-    const ll = new LinkedList<number>();
-    expect(ll.popFront()).toBeUndefined();
-    expect(ll.popBack()).toBeUndefined();
-    expect(ll.peekFront()).toBeUndefined();
+  it("remove deletes element", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.pushBack(3);
+    expect(list.remove((v) => v === 2)).toBe(true);
+    expect(list.toArray()).toEqual([1, 3]);
   });
 
-  it("size tracks count", () => {
-    const ll = new LinkedList<number>();
-    expect(ll.size).toBe(0);
-    expect(ll.isEmpty()).toBe(true);
-    ll.pushBack(1);
-    expect(ll.size).toBe(1);
-    expect(ll.isEmpty()).toBe(false);
+  it("toArray returns ordered", () => {
+    const list = new LinkedList<string>();
+    list.pushBack("a");
+    list.pushBack("b");
+    list.pushBack("c");
+    expect(list.toArray()).toEqual(["a", "b", "c"]);
   });
 
-  it("find locates value", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    ll.pushBack(3);
-    expect(ll.find((v) => v === 2)).toBe(2);
-    expect(ll.find((v) => v === 5)).toBeUndefined();
+  it("clear resets", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.clear();
+    expect(list.size).toBe(0);
+    expect(list.isEmpty).toBe(true);
   });
 
-  it("remove deletes matching node", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    ll.pushBack(3);
-    expect(ll.remove((v) => v === 2)).toBe(true);
-    expect(ll.toArray()).toEqual([1, 3]);
-    expect(ll.remove((v) => v === 5)).toBe(false);
+  it("reverse flips order", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.pushBack(3);
+    list.reverse();
+    expect(list.toArray()).toEqual([3, 2, 1]);
   });
 
-  it("clear empties list", () => {
-    const ll = new LinkedList<number>();
-    ll.pushBack(1);
-    ll.pushBack(2);
-    ll.clear();
-    expect(ll.size).toBe(0);
-    expect(ll.toArray()).toEqual([]);
+  it("iterator works", () => {
+    const list = new LinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    expect([...list]).toEqual([1, 2]);
+  });
+
+  it("pop from empty returns undefined", () => {
+    const list = new LinkedList<number>();
+    expect(list.popFront()).toBeUndefined();
+    expect(list.popBack()).toBeUndefined();
   });
 });

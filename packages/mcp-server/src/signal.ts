@@ -1,14 +1,9 @@
-type Listener<T> = (value: T) => void;
+type Listener = () => void;
 type Cleanup = () => void;
 
-export interface ReadableSignal<T> {
-  get(): T;
-  subscribe(listener: Listener<T>): Cleanup;
-}
-
-export class Signal<T> implements ReadableSignal<T> {
+export class Signal<T> {
   private value: T;
-  private listeners = new Set<Listener<T>>();
+  private listeners = new Set<Listener>();
 
   constructor(initial: T) {
     this.value = initial;
@@ -19,46 +14,53 @@ export class Signal<T> implements ReadableSignal<T> {
   }
 
   set(newValue: T): void {
-    if (newValue === this.value) return;
+    if (this.value === newValue) return;
     this.value = newValue;
-    for (const listener of this.listeners) listener(this.value);
+    this.notify();
   }
 
   update(fn: (current: T) => T): void {
     this.set(fn(this.value));
   }
 
-  subscribe(listener: Listener<T>): Cleanup {
+  subscribe(listener: Listener): Cleanup {
     this.listeners.add(listener);
-    return () => { this.listeners.delete(listener); };
+    return () => this.listeners.delete(listener);
   }
 
-  get subscriberCount(): number {
+  get listenerCount(): number {
     return this.listeners.size;
   }
-}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function computed<T>(deps: ReadableSignal<any>[], compute: () => T): Signal<T> {
-  const derived = new Signal(compute());
-  for (const dep of deps) {
-    dep.subscribe(() => derived.set(compute()));
+  private notify(): void {
+    for (const listener of this.listeners) {
+      listener();
+    }
   }
-  return derived;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function effect(deps: ReadableSignal<any>[], fn: () => void | Cleanup): Cleanup {
-  let cleanup: void | Cleanup;
+export function computed<T>(deps: Signal<unknown>[], fn: () => T): Signal<T> {
+  const signal = new Signal(fn());
+  for (const dep of deps) {
+    dep.subscribe(() => signal.set(fn()));
+  }
+  return signal;
+}
+
+export function effect(deps: Signal<unknown>[], fn: () => void | Cleanup): Cleanup {
+  let cleanup: Cleanup | void;
+
   const run = () => {
-    if (typeof cleanup === "function") cleanup();
+    if (cleanup) cleanup();
     cleanup = fn();
   };
+
   const unsubs = deps.map((dep) => dep.subscribe(run));
   run();
+
   return () => {
     for (const unsub of unsubs) unsub();
-    if (typeof cleanup === "function") cleanup();
+    if (cleanup) cleanup();
   };
 }
 

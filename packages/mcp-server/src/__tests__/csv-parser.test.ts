@@ -1,71 +1,73 @@
 import { describe, it, expect } from "vitest";
-import { parseCSV, stringifyCSV } from "../csv-parser.js";
+import { parseCSV, parseCSVWithHeaders, toCSV, objectsToCSV } from "../csv-parser.js";
 
 describe("parseCSV", () => {
   it("parses simple CSV", () => {
-    const result = parseCSV("a,b,c\n1,2,3");
-    expect(result).toEqual([["a", "b", "c"], ["1", "2", "3"]]);
+    expect(parseCSV("a,b,c\n1,2,3")).toEqual([["a", "b", "c"], ["1", "2", "3"]]);
   });
 
-  it("parses with headers", () => {
-    const result = parseCSV("name,age\nAlice,30\nBob,25", { header: true });
+  it("handles quoted fields", () => {
+    const result = parseCSV('a,"hello, world",c');
+    expect(result[0][1]).toBe("hello, world");
+  });
+
+  it("handles escaped quotes", () => {
+    const result = parseCSV('a,"say ""hi""",c');
+    expect(result[0][1]).toBe('say "hi"');
+  });
+
+  it("handles CRLF", () => {
+    const result = parseCSV("a,b\r\nc,d");
+    expect(result.length).toBe(2);
+  });
+
+  it("custom delimiter", () => {
+    const result = parseCSV("a;b;c", { delimiter: ";" });
+    expect(result[0]).toEqual(["a", "b", "c"]);
+  });
+
+  it("empty input", () => {
+    expect(parseCSV("")).toEqual([]);
+  });
+});
+
+describe("parseCSVWithHeaders", () => {
+  it("returns objects", () => {
+    const result = parseCSVWithHeaders("name,age\nAlice,30\nBob,25");
     expect(result).toEqual([
       { name: "Alice", age: "30" },
       { name: "Bob", age: "25" },
     ]);
   });
 
-  it("handles quoted fields", () => {
-    const result = parseCSV('"hello, world",test');
-    expect(result).toEqual([["hello, world", "test"]]);
-  });
-
-  it("handles escaped quotes", () => {
-    const result = parseCSV('"say ""hi""",ok');
-    expect(result).toEqual([['say "hi"', "ok"]]);
-  });
-
-  it("handles custom delimiter", () => {
-    const result = parseCSV("a;b;c", { delimiter: ";" });
-    expect(result).toEqual([["a", "b", "c"]]);
-  });
-
-  it("handles empty input", () => {
-    expect(parseCSV("")).toEqual([]);
-  });
-
-  it("handles CRLF line endings", () => {
-    const result = parseCSV("a,b\r\nc,d");
-    expect(result).toEqual([["a", "b"], ["c", "d"]]);
+  it("empty returns empty array", () => {
+    expect(parseCSVWithHeaders("")).toEqual([]);
   });
 });
 
-describe("stringifyCSV", () => {
+describe("toCSV", () => {
   it("converts arrays to CSV", () => {
-    expect(stringifyCSV([["a", "b"], ["1", "2"]])).toBe("a,b\n1,2");
+    expect(toCSV([["a", "b"], ["1", "2"]])).toBe("a,b\n1,2");
   });
 
-  it("converts objects with headers", () => {
-    const result = stringifyCSV([{ name: "Alice", age: "30" }]);
-    expect(result).toContain("name,age");
-    expect(result).toContain("Alice,30");
+  it("quotes fields with commas", () => {
+    const result = toCSV([["hello, world"]]);
+    expect(result).toBe('"hello, world"');
+  });
+});
+
+describe("objectsToCSV", () => {
+  it("converts objects", () => {
+    const result = objectsToCSV([{ a: 1, b: 2 }, { a: 3, b: 4 }]);
+    expect(result).toBe("a,b\n1,2\n3,4");
   });
 
-  it("quotes fields with delimiters", () => {
-    expect(stringifyCSV([["hello, world"]])).toBe('"hello, world"');
+  it("custom keys", () => {
+    const result = objectsToCSV([{ a: 1, b: 2, c: 3 }], ["a", "c"]);
+    expect(result).toBe("a,c\n1,3");
   });
 
-  it("escapes quotes in fields", () => {
-    expect(stringifyCSV([['say "hi"']])).toBe('"say ""hi"""');
-  });
-
-  it("returns empty for empty data", () => {
-    expect(stringifyCSV([])).toBe("");
-  });
-
-  it("roundtrips simple data", () => {
-    const data = [["name", "age"], ["Alice", "30"]];
-    const csv = stringifyCSV(data);
-    expect(parseCSV(csv)).toEqual(data);
+  it("empty returns empty", () => {
+    expect(objectsToCSV([])).toBe("");
   });
 });
