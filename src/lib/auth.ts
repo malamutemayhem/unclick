@@ -61,6 +61,9 @@ export function useSession(): {
       if (cancelled) return;
       setSession(data.session);
       setLoading(false);
+    }).catch(() => {
+      if (cancelled) return;
+      setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);

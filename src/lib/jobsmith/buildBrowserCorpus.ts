@@ -20,7 +20,9 @@ export interface BrowserCorpusResult {
 }
 
 function classifyFormat(name: string): CoverLetter["format"] {
-  const ext = name.toLowerCase().slice(name.lastIndexOf("."));
+  const dotIndex = name.lastIndexOf(".");
+  if (dotIndex === -1) return "other";
+  const ext = name.toLowerCase().slice(dotIndex);
   if (ext === ".txt" || ext === ".md") return "txt";
   if (ext === ".pdf") return "pdf";
   if (ext === ".indd") return "indd";
