@@ -55,7 +55,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/watcher-heartbeat-tether.skill.md | 28acf3324343 | 1057 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
+| src/pages/admin/AdminActivity.tsx | ffa3adfc5c57 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
@@ -95,7 +95,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
 | src/pages/admin/AdminXGate.tsx | db31f326ff07 | 26775 |
 | src/pages/admin/AdminYou.tsx | 89ed912e326b | 59397 |
-| src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
+| src/pages/AppDetail.tsx | 5d2ee9cd8690 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
