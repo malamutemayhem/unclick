@@ -91,6 +91,10 @@ export class ShuntingYard {
 
   static toPostfixString(expr: string): string {
     const postfix = this.toPostfix(this.tokenize(expr));
-    return postfix.map((t) => t.type === "number" ? String(t.value) : t.value).join(" ");
+    return postfix.map((t) => {
+      if (t.type === "number") return String(t.value);
+      if (t.type === "op") return t.value;
+      return "";
+    }).join(" ");
   }
 }
