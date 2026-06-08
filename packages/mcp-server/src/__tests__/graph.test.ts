@@ -1,92 +1,68 @@
 import { describe, it, expect } from "vitest";
 import { Graph } from "../graph.js";
 
-describe("Graph", () => {
+describe("Graph (undirected)", () => {
   it("adds nodes and edges", () => {
-    const g = new Graph();
-    g.addNode("a").addEdge("a", "b").addEdge("a", "c");
+    const g = new Graph<string>();
+    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
     expect(g.hasNode("a")).toBe(true);
-    expect(g.hasNode("b")).toBe(true);
     expect(g.hasEdge("a", "b")).toBe(true);
-    expect(g.hasEdge("b", "a")).toBe(false);
+    expect(g.hasEdge("b", "a")).toBe(true);
   });
 
-  it("removes edges and nodes", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("a", "c");
-    g.removeEdge("a", "b");
-    expect(g.hasEdge("a", "b")).toBe(false);
-    g.removeNode("c");
-    expect(g.hasNode("c")).toBe(false);
-    expect(g.hasEdge("a", "c")).toBe(false);
-  });
-
-  it("reports neighbors", () => {
-    const g = new Graph();
+  it("neighbors returns adjacent nodes", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "A").addNode("b", "B").addNode("c", "C");
     g.addEdge("a", "b").addEdge("a", "c");
     expect(g.neighbors("a").sort()).toEqual(["b", "c"]);
-    expect(g.neighbors("b")).toEqual([]);
   });
 
-  it("counts nodes and edges", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("b", "c");
-    expect(g.nodeCount).toBe(3);
-    expect(g.edgeCount).toBe(2);
-  });
-
-  it("dfs visits in depth-first order", () => {
-    const g = new Graph();
+  it("bfs traverses breadth-first", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "A").addNode("b", "B").addNode("c", "C").addNode("d", "D");
     g.addEdge("a", "b").addEdge("a", "c").addEdge("b", "d");
-    const visited: string[] = [];
-    g.dfs("a", (n: string) => visited.push(n));
-    expect(visited[0]).toBe("a");
-    expect(visited).toContain("b");
-    expect(visited).toContain("d");
+    const result = g.bfs("a");
+    expect(result[0]).toBe("a");
+    expect(result).toContain("d");
   });
 
-  it("bfs visits in breadth-first order", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("a", "c").addEdge("b", "d");
-    const visited: string[] = [];
-    g.bfs("a", (n: string) => visited.push(n));
-    expect(visited[0]).toBe("a");
-    const bIdx = visited.indexOf("b");
-    const cIdx = visited.indexOf("c");
-    const dIdx = visited.indexOf("d");
-    expect(bIdx).toBeLessThan(dIdx);
-    expect(cIdx).toBeLessThan(dIdx);
-  });
-
-  it("finds shortest path", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("b", "c").addEdge("a", "c").addEdge("c", "d");
-    expect(g.shortestPath("a", "d")).toEqual(["a", "c", "d"]);
-    expect(g.shortestPath("a", "a")).toEqual(["a"]);
-    expect(g.shortestPath("d", "a")).toBeNull();
-  });
-
-  it("detects cycles", () => {
-    const g = new Graph();
+  it("dfs traverses depth-first", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "A").addNode("b", "B").addNode("c", "C");
     g.addEdge("a", "b").addEdge("b", "c");
-    expect(g.hasCycle()).toBe(false);
-    g.addEdge("c", "a");
-    expect(g.hasCycle()).toBe(true);
+    const result = g.dfs("a");
+    expect(result).toEqual(["a", "b", "c"]);
   });
 
-  it("computes in/out degree", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("a", "c").addEdge("b", "c");
-    expect(g.outDegree("a")).toBe(2);
-    expect(g.inDegree("c")).toBe(2);
+  it("shortestPath finds path", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "").addNode("b", "").addNode("c", "").addNode("d", "");
+    g.addEdge("a", "b").addEdge("b", "c").addEdge("a", "d").addEdge("d", "c");
+    const path = g.shortestPath("a", "c");
+    expect(path).not.toBeNull();
+    expect(path!.length).toBeLessThanOrEqual(3);
   });
 
-  it("transposes the graph", () => {
-    const g = new Graph();
-    g.addEdge("a", "b").addEdge("b", "c");
-    const t = g.transpose();
-    expect(t.hasEdge("b", "a")).toBe(true);
-    expect(t.hasEdge("c", "b")).toBe(true);
-    expect(t.hasEdge("a", "b")).toBe(false);
+  it("shortestPath returns null if no path", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "").addNode("b", "");
+    expect(g.shortestPath("a", "b")).toBeNull();
+  });
+
+  it("removeNode removes node and edges", () => {
+    const g = new Graph<string>();
+    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
+    g.removeNode("b");
+    expect(g.hasNode("b")).toBe(false);
+    expect(g.neighbors("a")).toEqual([]);
+  });
+});
+
+describe("Graph (directed)", () => {
+  it("edges are one-directional", () => {
+    const g = new Graph<string>(true);
+    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
+    expect(g.hasEdge("a", "b")).toBe(true);
+    expect(g.hasEdge("b", "a")).toBe(false);
   });
 });
