@@ -189,6 +189,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/aoe2-tool.ts | 13377d4c8ad0 | 3685 |
 | packages/mcp-server/src/apifootball-tool.ts | ff6ec8c8d646 | 3682 |
 | packages/mcp-server/src/archiveorg-tool.ts | 31481deccc20 | 4106 |
+| packages/mcp-server/src/areacalc-tool.ts | 550eb5992182 | 3924 |
 | packages/mcp-server/src/artic-tool.ts | 6e076252fe5d | 2428 |
 | packages/mcp-server/src/arxiv-tool.ts | 251cb296ee4f | 2365 |
 | packages/mcp-server/src/asana-tool.ts | 2519967f5105 | 9808 |
@@ -208,7 +209,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/binaryconv-tool.ts | b09d86831da2 | 1337 |
 | packages/mcp-server/src/binomprob-tool.ts | 08174a2866e7 | 1770 |
 | packages/mcp-server/src/bitbucket-tool.ts | a6a405951262 | 4388 |
-| packages/mcp-server/src/bitwise-tool.ts | 5b0b0365aefe | 2091 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 506 |
+| Tools | MCP and gateway capabilities available to seats. | 516 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -390,6 +390,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | aoe2 | aoe2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/aoe2-tool.ts |
 | apifootball | apifootball MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/apifootball-tool.ts |
 | archiveorg | archiveorg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/archiveorg-tool.ts |
+| areacalc | areacalc MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/areacalc-tool.ts |
 | artic | artic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/artic-tool.ts |
 | arxiv | arxiv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/arxiv-tool.ts |
 | asana | asana MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/asana-tool.ts |
@@ -455,6 +456,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | colr | colr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colr-tool.ts |
 | combination | combination MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/combination-tool.ts |
 | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/commonsensepass-tool.ts |
+| complexnum | complexnum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/complexnum-tool.ts |
 | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/compliancepass-tool.ts |
 | confluence | confluence MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/confluence-tool.ts |
 | contentful | contentful MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/contentful-tool.ts |
@@ -613,6 +615,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | lichess | lichess MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lichess-tool.ts |
 | line | line MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/line-tool.ts |
 | linear | linear MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/linear-tool.ts |
+| logbase | logbase MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/logbase-tool.ts |
 | lorem | lorem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem-tool.ts |
 | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem2-tool.ts |
 | loremname | loremname MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/loremname-tool.ts |
@@ -634,6 +637,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | metaphone | metaphone MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metaphone-tool.ts |
 | metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metmuseum-tool.ts |
 | mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mhwdb-tool.ts |
+| midpoint | midpoint MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/midpoint-tool.ts |
 | miro | miro MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/miro-tool.ts |
 | mistral | mistral MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mistral-tool.ts |
 | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mixpanel-tool.ts |
@@ -656,8 +660,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | nhtsa | nhtsa MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nhtsa-tool.ts |
 | nobelprize | nobelprize MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nobelprize-tool.ts |
 | nominatim | nominatim MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nominatim-tool.ts |
+| normaldistr | normaldistr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/normaldistr-tool.ts |
 | notion | notion MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/notion-tool.ts |
 | npm registry | npm registry MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/npm-registry-tool.ts |
+| nthroot | nthroot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nthroot-tool.ts |
 | NudgeOnly | NudgeOnly low-token receipt bridge and advisory classifier. | packages/mcp-server/src/nudgeonly-tool.ts |
 | numbers | numbers MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/numbers-tool.ts |
 | nvd | nvd MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/nvd-tool.ts |
@@ -776,6 +782,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | sigmoid | sigmoid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sigmoid-tool.ts |
 | slack | slack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slack-tool.ts |
 | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sleeper-tool.ts |
+| slopeintercept | slopeintercept MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slopeintercept-tool.ts |
 | sloppass | sloppass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sloppass-tool.ts |
 | slug | slug MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slug-tool.ts |
 | solarsystem | solarsystem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/solarsystem-tool.ts |
@@ -789,6 +796,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | square | square MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/square-tool.ts |
 | stability | stability MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stability-tool.ts |
 | stackexchange | stackexchange MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stackexchange-tool.ts |
+| standardform | standardform MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/standardform-tool.ts |
 | stapi | stapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/stapi-tool.ts |
 | statistics | statistics MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/statistics-tool.ts |
 | steam | steam MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/steam-tool.ts |
@@ -822,6 +830,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tokencount-tool.ts |
 | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tomorrowio-tool.ts |
 | trello | trello MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trello-tool.ts |
+| trianglesolve | trianglesolve MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trianglesolve-tool.ts |
 | trivia | trivia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trivia-tool.ts |
 | trove | trove MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trove-tool.ts |
 | turso | turso MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/turso-tool.ts |
@@ -851,6 +860,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | vercel | vercel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vercel-tool.ts |
 | vigenere | vigenere MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vigenere-tool.ts |
 | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/virustotal-tool.ts |
+| wavelength | wavelength MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wavelength-tool.ts |
 | wayback | wayback MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wayback-tool.ts |
 | webflow | webflow MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/webflow-tool.ts |
 | wger | wger MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wger-tool.ts |
@@ -1312,6 +1322,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | aoe2 | aoe2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/aoe2-tool.ts |
 | Tools | MCP tool | apifootball | apifootball MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/apifootball-tool.ts |
 | Tools | MCP tool | archiveorg | archiveorg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/archiveorg-tool.ts |
+| Tools | MCP tool | areacalc | areacalc MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/areacalc-tool.ts |
 | Tools | MCP tool | artic | artic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/artic-tool.ts |
 | Tools | MCP tool | arxiv | arxiv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/arxiv-tool.ts |
 | Tools | MCP tool | asana | asana MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/asana-tool.ts |
@@ -1377,6 +1388,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | colr | colr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colr-tool.ts |
 | Tools | MCP tool | combination | combination MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/combination-tool.ts |
 | Tools | MCP tool | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/commonsensepass-tool.ts |
+| Tools | MCP tool | complexnum | complexnum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/complexnum-tool.ts |
 | Tools | MCP tool | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/compliancepass-tool.ts |
 | Tools | MCP tool | confluence | confluence MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/confluence-tool.ts |
 | Tools | MCP tool | contentful | contentful MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/contentful-tool.ts |
@@ -1535,6 +1547,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | lichess | lichess MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lichess-tool.ts |
 | Tools | MCP tool | line | line MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/line-tool.ts |
 | Tools | MCP tool | linear | linear MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/linear-tool.ts |
+| Tools | MCP tool | logbase | logbase MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/logbase-tool.ts |
 | Tools | MCP tool | lorem | lorem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem-tool.ts |
 | Tools | MCP tool | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem2-tool.ts |
 | Tools | MCP tool | loremname | loremname MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/loremname-tool.ts |
@@ -1556,6 +1569,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | metaphone | metaphone MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metaphone-tool.ts |
 | Tools | MCP tool | metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metmuseum-tool.ts |
 | Tools | MCP tool | mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mhwdb-tool.ts |
+| Tools | MCP tool | midpoint | midpoint MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/midpoint-tool.ts |
 | Tools | MCP tool | miro | miro MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/miro-tool.ts |
 | Tools | MCP tool | mistral | mistral MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mistral-tool.ts |
 | Tools | MCP tool | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mixpanel-tool.ts |
@@ -1578,8 +1592,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | nhtsa | nhtsa MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nhtsa-tool.ts |
 | Tools | MCP tool | nobelprize | nobelprize MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nobelprize-tool.ts |
 | Tools | MCP tool | nominatim | nominatim MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nominatim-tool.ts |
+| Tools | MCP tool | normaldistr | normaldistr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/normaldistr-tool.ts |
 | Tools | MCP tool | notion | notion MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/notion-tool.ts |
 | Tools | MCP tool | npm registry | npm registry MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/npm-registry-tool.ts |
+| Tools | MCP tool | nthroot | nthroot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nthroot-tool.ts |
 | Tools | MCP tool | NudgeOnly | NudgeOnly low-token receipt bridge and advisory classifier. | - | packages/mcp-server/src/nudgeonly-tool.ts |
 | Tools | MCP tool | numbers | numbers MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/numbers-tool.ts |
 | Tools | MCP tool | nvd | nvd MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/nvd-tool.ts |
@@ -1698,6 +1714,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | sigmoid | sigmoid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sigmoid-tool.ts |
 | Tools | MCP tool | slack | slack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slack-tool.ts |
 | Tools | MCP tool | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sleeper-tool.ts |
+| Tools | MCP tool | slopeintercept | slopeintercept MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slopeintercept-tool.ts |
 | Tools | MCP tool | sloppass | sloppass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sloppass-tool.ts |
 | Tools | MCP tool | slug | slug MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slug-tool.ts |
 | Tools | MCP tool | solarsystem | solarsystem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/solarsystem-tool.ts |
@@ -1711,6 +1728,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | square | square MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/square-tool.ts |
 | Tools | MCP tool | stability | stability MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stability-tool.ts |
 | Tools | MCP tool | stackexchange | stackexchange MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stackexchange-tool.ts |
+| Tools | MCP tool | standardform | standardform MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/standardform-tool.ts |
 | Tools | MCP tool | stapi | stapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/stapi-tool.ts |
 | Tools | MCP tool | statistics | statistics MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/statistics-tool.ts |
 | Tools | MCP tool | steam | steam MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/steam-tool.ts |
@@ -1744,6 +1762,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tokencount-tool.ts |
 | Tools | MCP tool | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tomorrowio-tool.ts |
 | Tools | MCP tool | trello | trello MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trello-tool.ts |
+| Tools | MCP tool | trianglesolve | trianglesolve MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trianglesolve-tool.ts |
 | Tools | MCP tool | trivia | trivia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trivia-tool.ts |
 | Tools | MCP tool | trove | trove MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trove-tool.ts |
 | Tools | MCP tool | turso | turso MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/turso-tool.ts |
@@ -1773,6 +1792,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | vercel | vercel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vercel-tool.ts |
 | Tools | MCP tool | vigenere | vigenere MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vigenere-tool.ts |
 | Tools | MCP tool | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/virustotal-tool.ts |
+| Tools | MCP tool | wavelength | wavelength MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wavelength-tool.ts |
 | Tools | MCP tool | wayback | wayback MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wayback-tool.ts |
 | Tools | MCP tool | webflow | webflow MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/webflow-tool.ts |
 | Tools | MCP tool | wger | wger MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wger-tool.ts |

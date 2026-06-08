@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -180,6 +180,11 @@ const NAME_OF = {
   polygon: "Polygon Calculator", sigmoid: "Activation Functions",
   interpolate: "Interpolation", modpow: "Modular Arithmetic",
   ratiosimplify: "Ratio Simplifier", binomprob: "Binomial Probability",
+  normaldistr: "Normal Distribution", trianglesolve: "Triangle Solver",
+  standardform: "Scientific Notation", complexnum: "Complex Numbers",
+  wavelength: "Wavelength Converter", midpoint: "Midpoint & Distance",
+  slopeintercept: "Line Equation", logbase: "Logarithm Calculator",
+  nthroot: "Nth Root", areacalc: "Area Calculator",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -532,6 +537,16 @@ const BLURB_OF = {
   modpow: "Modular exponentiation, modular inverse, and modular reduction.",
   ratiosimplify: "Simplify ratios to lowest terms with decimal and percentage forms.",
   binomprob: "Binomial distribution probability, cumulative probabilities, mean, and variance.",
+  normaldistr: "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
+  trianglesolve: "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
+  standardform: "Convert numbers to scientific and engineering notation.",
+  complexnum: "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
+  wavelength: "Convert between wavelength and frequency with energy and EM spectrum band.",
+  midpoint: "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
+  slopeintercept: "Line equation from two points in slope-intercept and standard form.",
+  logbase: "Logarithm with any base, plus natural log, log10, and log2.",
+  nthroot: "Nth root of a number with verification and integer detection.",
+  areacalc: "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -697,6 +712,8 @@ const DOMAIN_OF = {
   baseconvert: "local", gcd: "local", permutation: "local", combination: "local", proportion: "local",
   quadratic: "local", primefactor: "local", zscore: "local", angleconv: "local", polygon: "local",
   sigmoid: "local", interpolate: "local", modpow: "local", ratiosimplify: "local", binomprob: "local",
+  normaldistr: "local", trianglesolve: "local", standardform: "local", complexnum: "local", wavelength: "local",
+  midpoint: "local", slopeintercept: "local", logbase: "local", nthroot: "local", areacalc: "local",
 };
 
 function titleCase(slug) {

@@ -3862,6 +3862,66 @@
       "note": "binomial_probability computes PMF and CDF for binomial distribution. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
       "toolsTested": ["binomial_probability"]
+    },
+    "normaldistr": {
+      "status": "pass",
+      "note": "normal_distribution computes PDF, CDF, percentile for Gaussian distribution. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["normal_distribution"]
+    },
+    "trianglesolve": {
+      "status": "pass",
+      "note": "triangle_solve returns angles, area, inradius, circumradius from three sides. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["triangle_solve"]
+    },
+    "standardform": {
+      "status": "pass",
+      "note": "standard_form converts numbers to scientific and engineering notation. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["standard_form"]
+    },
+    "complexnum": {
+      "status": "pass",
+      "note": "complex_calc performs complex number arithmetic and polar conversion. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["complex_calc"]
+    },
+    "wavelength": {
+      "status": "pass",
+      "note": "wavelength_convert converts wavelength/frequency with energy and spectrum band. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["wavelength_convert"]
+    },
+    "midpoint": {
+      "status": "pass",
+      "note": "midpoint_calc computes midpoint, distance, slope between 2D points. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["midpoint_calc"]
+    },
+    "slopeintercept": {
+      "status": "pass",
+      "note": "slope_intercept finds line equation from two points. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["slope_intercept"]
+    },
+    "logbase": {
+      "status": "pass",
+      "note": "log_base computes logarithm with any base plus ln, log10, log2. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["log_base"]
+    },
+    "nthroot": {
+      "status": "pass",
+      "note": "nth_root calculates nth root with verification. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["nth_root"]
+    },
+    "areacalc": {
+      "status": "pass",
+      "note": "area_calculate computes area/perimeter for circles, rectangles, triangles, etc. Local computation.",
+      "testedAt": "2026-06-09T13:05:00.000Z",
+      "toolsTested": ["area_calculate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

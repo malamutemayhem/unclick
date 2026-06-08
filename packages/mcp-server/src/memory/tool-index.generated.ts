@@ -354,6 +354,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "areacalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "area_calculate",
+        "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
+      }
+    ]
+  },
+  {
     "app": "artic",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1424,6 +1434,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "commonsensepass_rules",
         "description": "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets."
+      }
+    ]
+  },
+  {
+    "app": "complexnum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "complex_calc",
+        "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
       }
     ]
   },
@@ -4122,6 +4142,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "logbase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "log_base",
+        "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
+      }
+    ]
+  },
+  {
     "app": "lorem",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4420,6 +4450,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mhw_weapons",
         "description": "Browse Monster Hunter World weapons by type."
+      }
+    ]
+  },
+  {
+    "app": "midpoint",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "midpoint_calc",
+        "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
       }
     ]
   },
@@ -4788,6 +4828,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "normaldistr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "normal_distribution",
+        "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+      }
+    ]
+  },
+  {
     "app": "notion",
     "category": "Productivity",
     "tools": [
@@ -4808,6 +4858,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "npm_get_package",
         "description": "Get metadata for an npm package (latest version)."
+      }
+    ]
+  },
+  {
+    "app": "nthroot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nth_root",
+        "description": "Calculate the nth root of a number. Default is square root (n=2)."
       }
     ]
   },
@@ -6892,6 +6952,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "slopeintercept",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "slope_intercept",
+        "description": "Find the line equation (slope-intercept and standard form) from two points."
+      }
+    ]
+  },
+  {
     "app": "sloppass",
     "category": "SlopPass (AI-code quality and slop-signal QC)",
     "tools": [
@@ -7106,6 +7176,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stackexchange_question",
         "description": "Get a Stack Exchange question by ID."
+      }
+    ]
+  },
+  {
+    "app": "standardform",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "standard_form",
+        "description": "Convert a number to scientific and engineering notation."
       }
     ]
   },
@@ -7744,6 +7824,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "trianglesolve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "triangle_solve",
+        "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
+      }
+    ]
+  },
+  {
     "app": "trivia",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8302,6 +8392,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "virustotal_scan_domain",
         "description": "Get a VirusTotal report for a domain."
+      }
+    ]
+  },
+  {
+    "app": "wavelength",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wavelength_convert",
+        "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
       }
     ]
   },

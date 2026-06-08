@@ -670,6 +670,16 @@ import { interpolateCalc } from "./interpolate-tool.js";
 import { modularArithmetic } from "./modpow-tool.js";
 import { ratioSimplify } from "./ratiosimplify-tool.js";
 import { binomialProbability } from "./binomprob-tool.js";
+import { normalDistribution } from "./normaldistr-tool.js";
+import { triangleSolve } from "./trianglesolve-tool.js";
+import { standardForm } from "./standardform-tool.js";
+import { complexCalc } from "./complexnum-tool.js";
+import { wavelengthConvert } from "./wavelength-tool.js";
+import { midpointCalc } from "./midpoint-tool.js";
+import { slopeIntercept } from "./slopeintercept-tool.js";
+import { logBase } from "./logbase-tool.js";
+import { nthRoot } from "./nthroot-tool.js";
+import { areaCalculate } from "./areacalc-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10205,6 +10215,142 @@ export const ADDITIONAL_TOOLS = [
         k: { type: "number" as const, description: "Number of successes (0 to n)." },
         p: { type: "number" as const, description: "Probability of success per trial (0 to 1)." },
       }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── normaldistr-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "normal_distribution",
+    description: "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "The value to evaluate." },
+        mean: { type: "number" as const, description: "Distribution mean (default 0)." },
+        stddev: { type: "number" as const, description: "Standard deviation (default 1, must be positive)." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── trianglesolve-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "triangle_solve",
+    description: "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Side a length." },
+        b: { type: "number" as const, description: "Side b length." },
+        c: { type: "number" as const, description: "Side c length." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── standardform-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "standard_form",
+    description: "Convert a number to scientific and engineering notation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to convert." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── complexnum-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "complex_calc",
+    description: "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: add, subtract, multiply, divide, magnitude, conjugate, or polar." },
+        real1: { type: "number" as const, description: "Real part of first complex number." },
+        imag1: { type: "number" as const, description: "Imaginary part of first complex number." },
+        real2: { type: "number" as const, description: "Real part of second complex number (for binary ops)." },
+        imag2: { type: "number" as const, description: "Imaginary part of second complex number (for binary ops)." },
+      }, required: ["operation", "real1", "imag1"],
+    },
+  },
+
+  // ── wavelength-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "wavelength_convert",
+    description: "Convert between wavelength and frequency. Returns energy and EM spectrum band.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        wavelength_m: { type: "number" as const, description: "Wavelength in meters." },
+        frequency_hz: { type: "number" as const, description: "Frequency in hertz." },
+      },
+    },
+  },
+
+  // ── midpoint-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "midpoint_calc",
+    description: "Calculate the midpoint, distance, slope, and angle between two 2D points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── slopeintercept-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "slope_intercept",
+    description: "Find the line equation (slope-intercept and standard form) from two points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── logbase-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "log_base",
+    description: "Compute logarithm with any base. Also returns ln, log10, and log2.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Positive number to compute log of." },
+        base: { type: "number" as const, description: "Logarithm base (default 10, must be positive and not 1)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── nthroot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "nth_root",
+    description: "Calculate the nth root of a number. Default is square root (n=2).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to find root of." },
+        n: { type: "number" as const, description: "Root degree (default 2 for square root)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── areacalc-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "area_calculate",
+    description: "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        shape: { type: "string" as const, description: "Shape: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, or sector." },
+        radius: { type: "number" as const, description: "Radius (circle, sector)." },
+        width: { type: "number" as const, description: "Width (rectangle)." },
+        height: { type: "number" as const, description: "Height (rectangle, triangle, trapezoid, parallelogram)." },
+        base: { type: "number" as const, description: "Base (triangle, parallelogram)." },
+        base1: { type: "number" as const, description: "First base (trapezoid)." },
+        base2: { type: "number" as const, description: "Second base (trapezoid)." },
+        semi_major: { type: "number" as const, description: "Semi-major axis (ellipse)." },
+        semi_minor: { type: "number" as const, description: "Semi-minor axis (ellipse)." },
+        angle_degrees: { type: "number" as const, description: "Angle in degrees (sector)." },
+      }, required: ["shape"],
     },
   },
 
@@ -21855,6 +22001,36 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // binomprob-tool.ts
   binomial_probability:      (args) => binomialProbability(args),
+
+  // normaldistr-tool.ts
+  normal_distribution:       (args) => normalDistribution(args),
+
+  // trianglesolve-tool.ts
+  triangle_solve:            (args) => triangleSolve(args),
+
+  // standardform-tool.ts
+  standard_form:             (args) => standardForm(args),
+
+  // complexnum-tool.ts
+  complex_calc:              (args) => complexCalc(args),
+
+  // wavelength-tool.ts
+  wavelength_convert:        (args) => wavelengthConvert(args),
+
+  // midpoint-tool.ts
+  midpoint_calc:             (args) => midpointCalc(args),
+
+  // slopeintercept-tool.ts
+  slope_intercept:           (args) => slopeIntercept(args),
+
+  // logbase-tool.ts
+  log_base:                  (args) => logBase(args),
+
+  // nthroot-tool.ts
+  nth_root:                  (args) => nthRoot(args),
+
+  // areacalc-tool.ts
+  area_calculate:            (args) => areaCalculate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

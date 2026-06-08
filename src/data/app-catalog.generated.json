@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 505,
-  "toolCount": 1427,
+  "appCount": 515,
+  "toolCount": 1437,
   "categories": [
     "AI",
     "Books",
@@ -428,6 +428,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "areacalc",
+      "name": "Area Calculator",
+      "category": "Utilities",
+      "blurb": "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "area_calculate",
+          "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "artic",
@@ -1807,6 +1823,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "complexnum",
+      "name": "Complex Numbers",
+      "category": "Utilities",
+      "blurb": "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "complex_calc",
+          "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -5318,6 +5350,22 @@
       "hardened": true
     },
     {
+      "slug": "slopeintercept",
+      "name": "Line Equation",
+      "category": "Utilities",
+      "blurb": "Line equation from two points in slope-intercept and standard form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "slope_intercept",
+          "description": "Find the line equation (slope-intercept and standard form) from two points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "sortlines",
       "name": "Line Sorter",
       "category": "Utilities",
@@ -5360,6 +5408,22 @@
         {
           "name": "regression_fit",
           "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "logbase",
+      "name": "Logarithm Calculator",
+      "category": "Utilities",
+      "blurb": "Logarithm with any base, plus natural log, log10, and log2.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "log_base",
+          "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
         }
       ],
       "level": 5,
@@ -5788,6 +5852,22 @@
         {
           "name": "metaphone_encode",
           "description": "Encode words using the Metaphone phonetic algorithm, optionally comparing two words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "midpoint",
+      "name": "Midpoint & Distance",
+      "category": "Utilities",
+      "blurb": "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "midpoint_calc",
+          "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
         }
       ],
       "level": 5,
@@ -6310,6 +6390,22 @@
       "hardened": false
     },
     {
+      "slug": "normaldistr",
+      "name": "Normal Distribution",
+      "category": "Utilities",
+      "blurb": "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "normal_distribution",
+          "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "notion",
       "name": "Notion",
       "category": "Productivity",
@@ -6340,6 +6436,22 @@
         {
           "name": "npm_get_package",
           "description": "Get metadata for an npm package (latest version)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "nthroot",
+      "name": "Nth Root",
+      "category": "Utilities",
+      "blurb": "Nth root of a number with verification and integer detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "nth_root",
+          "description": "Calculate the nth root of a number. Default is square root (n=2)."
         }
       ],
       "level": 5,
@@ -8742,6 +8854,22 @@
       "hardened": true
     },
     {
+      "slug": "standardform",
+      "name": "Scientific Notation",
+      "category": "Utilities",
+      "blurb": "Convert numbers to scientific and engineering notation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "standard_form",
+          "description": "Convert a number to scientific and engineering notation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "seatgeek",
       "name": "Seatgeek",
       "category": "Events & tickets",
@@ -10446,6 +10574,22 @@
       "hardened": true
     },
     {
+      "slug": "trianglesolve",
+      "name": "Triangle Solver",
+      "category": "Utilities",
+      "blurb": "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "triangle_solve",
+          "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "trivia",
       "name": "Trivia",
       "category": "Utilities",
@@ -11164,6 +11308,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "wavelength",
+      "name": "Wavelength Converter",
+      "category": "Utilities",
+      "blurb": "Convert between wavelength and frequency with energy and EM spectrum band.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wavelength_convert",
+          "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "wayback",
