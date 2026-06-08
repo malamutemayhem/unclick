@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 486,
-  "toolCount": 1408,
+  "appCount": 525,
+  "toolCount": 1447,
   "categories": [
     "AI",
     "Books",
@@ -80,6 +80,22 @@
         {
           "name": "acronym_generate",
           "description": "Generate an acronym from a phrase, optionally skipping small words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sigmoid",
+      "name": "Activation Functions",
+      "category": "Utilities",
+      "blurb": "Compute activation functions (sigmoid, tanh, relu, etc.) and their derivatives.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sigmoid_calculate",
+          "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
         }
       ],
       "level": 5,
@@ -334,6 +350,22 @@
       "hardened": false
     },
     {
+      "slug": "angleconv",
+      "name": "Angle Converter",
+      "category": "Utilities",
+      "blurb": "Convert between degrees, radians, gradians, and turns with trig values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "angle_convert",
+          "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "acnhapi",
       "name": "Animal Crossing NH",
       "category": "Games & esports",
@@ -396,6 +428,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "areacalc",
+      "name": "Area Calculator",
+      "category": "Utilities",
+      "blurb": "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "area_calculate",
+          "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "artic",
@@ -630,6 +678,22 @@
       "hardened": true
     },
     {
+      "slug": "baseconvert",
+      "name": "Base Converter",
+      "category": "Utilities",
+      "blurb": "Convert numbers between any bases (binary, octal, decimal, hex, base 2-36).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "base_convert",
+          "description": "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "base64",
       "name": "Base64 Codec",
       "category": "Developer & infra",
@@ -692,6 +756,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "binomprob",
+      "name": "Binomial Probability",
+      "category": "Utilities",
+      "blurb": "Binomial distribution probability, cumulative probabilities, mean, and variance.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "binomial_probability",
+          "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bitbucket",
@@ -1574,6 +1654,22 @@
       "hardened": false
     },
     {
+      "slug": "collatz",
+      "name": "Collatz Sequence",
+      "category": "Utilities",
+      "blurb": "Compute the Collatz (3n+1) sequence for any positive integer.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "collatz_sequence",
+          "description": "Compute the Collatz (3n+1) sequence for a positive integer."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "color",
       "name": "Color",
       "category": "Utilities",
@@ -1694,6 +1790,22 @@
       "hardened": false
     },
     {
+      "slug": "combination",
+      "name": "Combinations",
+      "category": "Utilities",
+      "blurb": "Calculate combinations C(n,r) for unordered selections.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "combination_calc",
+          "description": "Calculate the number of combinations C(n,r) - unordered selections."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "commonsensepass",
       "name": "CommonSensePass",
       "category": "Quality (XPass)",
@@ -1711,6 +1823,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "complexnum",
+      "name": "Complex Numbers",
+      "category": "Utilities",
+      "blurb": "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "complex_calc",
+          "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -2000,6 +2128,22 @@
         {
           "name": "crontab_explain",
           "description": "Explain a cron expression in human-readable terms."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "crossproduct",
+      "name": "Cross Product",
+      "category": "Utilities",
+      "blurb": "Cross product of two 3D vectors with magnitude and parallelism check.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cross_product",
+          "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
         }
       ],
       "level": 5,
@@ -2654,6 +2798,22 @@
       "hardened": false
     },
     {
+      "slug": "dotproduct",
+      "name": "Dot Product",
+      "category": "Utilities",
+      "blurb": "Dot product of two vectors with angle and orthogonality detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dot_product",
+          "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dropbox",
       "name": "Dropbox",
       "category": "Productivity",
@@ -3112,6 +3272,22 @@
         {
           "name": "excuser_random",
           "description": "Get a random excuse, optionally by category."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "expgrowth",
+      "name": "Exponential Growth",
+      "category": "Utilities",
+      "blurb": "Exponential growth and decay with doubling time and half-life.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "exponential_growth",
+          "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
         }
       ],
       "level": 5,
@@ -3602,6 +3778,22 @@
       "hardened": false
     },
     {
+      "slug": "gcd",
+      "name": "GCD/LCM Calculator",
+      "category": "Utilities",
+      "blurb": "Compute the greatest common divisor and least common multiple of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gcd_calculate",
+          "description": "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gcdlcm",
       "name": "GCD/LCM Calculator",
       "category": "Developer & infra",
@@ -3700,6 +3892,22 @@
         {
           "name": "geojs_lookup",
           "description": "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "geomseries",
+      "name": "Geometric Series",
+      "category": "Utilities",
+      "blurb": "Finite and infinite sums of geometric series.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "geometric_series",
+          "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
         }
       ],
       "level": 5,
@@ -3982,6 +4190,22 @@
       "hardened": false
     },
     {
+      "slug": "harmonicseries",
+      "name": "Harmonic Series",
+      "category": "Utilities",
+      "blurb": "Partial sums of the harmonic series with ln approximation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "harmonic_series",
+          "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "harrypotter",
       "name": "Harry Potter",
       "category": "Social",
@@ -4108,6 +4332,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "histogram",
+      "name": "Histogram",
+      "category": "Utilities",
+      "blurb": "Create a histogram from numeric data with configurable bins and ASCII chart.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "histogram_create",
+          "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "htmlstrip",
@@ -4408,6 +4648,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "interpolate",
+      "name": "Interpolation",
+      "category": "Utilities",
+      "blurb": "Linear interpolation and extrapolation between two points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "interpolate_calc",
+          "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "ipaddrinfo",
@@ -5174,6 +5430,22 @@
       "hardened": true
     },
     {
+      "slug": "slopeintercept",
+      "name": "Line Equation",
+      "category": "Utilities",
+      "blurb": "Line equation from two points in slope-intercept and standard form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "slope_intercept",
+          "description": "Find the line equation (slope-intercept and standard form) from two points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "sortlines",
       "name": "Line Sorter",
       "category": "Utilities",
@@ -5204,6 +5476,38 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "regression",
+      "name": "Linear Regression",
+      "category": "Utilities",
+      "blurb": "Fit a linear regression to x/y data and get slope, intercept, R-squared.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "regression_fit",
+          "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "logbase",
+      "name": "Logarithm Calculator",
+      "category": "Utilities",
+      "blurb": "Logarithm with any base, plus natural log, log10, and log2.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "log_base",
+          "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "abstract-holidays",
@@ -5634,6 +5938,22 @@
       "hardened": false
     },
     {
+      "slug": "midpoint",
+      "name": "Midpoint & Distance",
+      "category": "Utilities",
+      "blurb": "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "midpoint_calc",
+          "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "miro",
       "name": "Miro",
       "category": "Productivity",
@@ -5712,6 +6032,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "modpow",
+      "name": "Modular Arithmetic",
+      "category": "Utilities",
+      "blurb": "Modular exponentiation, modular inverse, and modular reduction.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "modular_arithmetic",
+          "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "monday",
@@ -6134,6 +6470,22 @@
       "hardened": false
     },
     {
+      "slug": "normaldistr",
+      "name": "Normal Distribution",
+      "category": "Utilities",
+      "blurb": "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "normal_distribution",
+          "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "notion",
       "name": "Notion",
       "category": "Productivity",
@@ -6164,6 +6516,22 @@
         {
           "name": "npm_get_package",
           "description": "Get metadata for an npm package (latest version)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "nthroot",
+      "name": "Nth Root",
+      "category": "Utilities",
+      "blurb": "Nth root of a number with verification and integer detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "nth_root",
+          "description": "Calculate the nth root of a number. Default is square root (n=2)."
         }
       ],
       "level": 5,
@@ -6910,6 +7278,22 @@
       "hardened": true
     },
     {
+      "slug": "pascaltri",
+      "name": "Pascal's Triangle",
+      "category": "Utilities",
+      "blurb": "Generate rows of Pascal's triangle or fetch a specific row.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pascaltri_generate",
+          "description": "Generate rows of Pascal's triangle, optionally return a specific row."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "passwordgen",
       "name": "Password Generator",
       "category": "Developer & infra",
@@ -6962,6 +7346,22 @@
       "hardened": false
     },
     {
+      "slug": "permutation",
+      "name": "Permutations",
+      "category": "Utilities",
+      "blurb": "Calculate permutations P(n,r) for ordered arrangements.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "permutation_calc",
+          "description": "Calculate the number of permutations P(n,r) - ordered arrangements."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "perplexity",
       "name": "Perplexity",
       "category": "AI",
@@ -6988,6 +7388,22 @@
         {
           "name": "phonetic_spell",
           "description": "Spell out text using NATO or IPA phonetic alphabet."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "piapprox",
+      "name": "Pi Approximation",
+      "category": "Utilities",
+      "blurb": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pi_approx",
+          "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
         }
       ],
       "level": 5,
@@ -7274,6 +7690,22 @@
       "hardened": false
     },
     {
+      "slug": "poisson",
+      "name": "Poisson Distribution",
+      "category": "Utilities",
+      "blurb": "Poisson distribution PMF and CDF for modeling rare events.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "poisson_probability",
+          "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pokeapi",
       "name": "PokeAPI",
       "category": "Games & esports",
@@ -7320,6 +7752,22 @@
         {
           "name": "pokemon_tcg_sets",
           "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "polygon",
+      "name": "Polygon Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate area, perimeter, angles, apothem, and circumradius of regular polygons.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "polygon_calculate",
+          "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
         }
       ],
       "level": 5,
@@ -7458,6 +7906,22 @@
       "hardened": false
     },
     {
+      "slug": "primefactor",
+      "name": "Prime Factorization",
+      "category": "Utilities",
+      "blurb": "Find the prime factorization of any integer up to one trillion.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prime_factor",
+          "description": "Find the prime factorization of an integer."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "openlib2",
       "name": "Project Gutenberg",
       "category": "Books",
@@ -7472,6 +7936,22 @@
         {
           "name": "gutenberg_book",
           "description": "Get details for a specific Project Gutenberg book by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "proportion",
+      "name": "Proportion Solver",
+      "category": "Utilities",
+      "blurb": "Solve a proportion a/b = c/d given any three of the four values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "proportion_solve",
+          "description": "Solve a proportion a/b = c/d given any 3 values."
         }
       ],
       "level": 5,
@@ -7722,6 +8202,22 @@
       "hardened": false
     },
     {
+      "slug": "quadratic",
+      "name": "Quadratic Solver",
+      "category": "Utilities",
+      "blurb": "Solve quadratic equations with real or complex roots, discriminant, and vertex.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "quadratic_solve",
+          "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "quickbooks",
       "name": "Quickbooks",
       "category": "Money & payments",
@@ -7956,6 +8452,22 @@
         {
           "name": "random_user",
           "description": "Generate random user profiles with names, emails, addresses, and photos."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ratiosimplify",
+      "name": "Ratio Simplifier",
+      "category": "Utilities",
+      "blurb": "Simplify ratios to lowest terms with decimal and percentage forms.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ratio_simplify",
+          "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
         }
       ],
       "level": 5,
@@ -8452,6 +8964,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "standardform",
+      "name": "Scientific Notation",
+      "category": "Utilities",
+      "blurb": "Convert numbers to scientific and engineering notation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "standard_form",
+          "description": "Convert a number to scientific and engineering notation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "seatgeek",
@@ -9510,6 +10038,22 @@
       "hardened": true
     },
     {
+      "slug": "taylor",
+      "name": "Taylor Series",
+      "category": "Utilities",
+      "blurb": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "taylor_expand",
+          "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "telegram",
       "name": "Telegram",
       "category": "Messaging & email",
@@ -10158,6 +10702,22 @@
       "hardened": true
     },
     {
+      "slug": "trianglesolve",
+      "name": "Triangle Solver",
+      "category": "Utilities",
+      "blurb": "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "triangle_solve",
+          "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "trivia",
       "name": "Trivia",
       "category": "Utilities",
@@ -10754,6 +11314,22 @@
       "hardened": false
     },
     {
+      "slug": "variancecalc",
+      "name": "Variance Calculator",
+      "category": "Utilities",
+      "blurb": "Population/sample variance, standard deviation, median, range, and CV.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "variance_calc",
+          "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "vatcomply",
       "name": "VATcomply",
       "category": "Markets & crypto",
@@ -10878,6 +11454,22 @@
       "hardened": true
     },
     {
+      "slug": "wavelength",
+      "name": "Wavelength Converter",
+      "category": "Utilities",
+      "blurb": "Convert between wavelength and frequency with energy and EM spectrum band.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wavelength_convert",
+          "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "wayback",
       "name": "Wayback Machine",
       "category": "News & reading",
@@ -10920,6 +11512,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "weightedmean",
+      "name": "Weighted Mean",
+      "category": "Utilities",
+      "blurb": "Weighted, arithmetic, geometric, and harmonic means of a value set.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "weighted_mean",
+          "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "wger",
@@ -11416,6 +12024,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "zscore",
+      "name": "Z-Score Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate z-scores, cumulative probabilities, and percentiles.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "zscore_calculate",
+          "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "zenquotes",

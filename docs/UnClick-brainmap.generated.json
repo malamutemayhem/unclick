@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 916,
+    "inventory": 951,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 491,
+    "tools": 526,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 491
+      "count": 526
     },
     {
       "id": "rooms",
@@ -4342,6 +4342,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-angleconv-packages-mcp-server-src-angleconv-tool-ts-no-route",
+      "division": "Tools",
+      "name": "angleconv",
+      "kind": "MCP tool",
+      "meaning": "angleconv MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/angleconv-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-animechan-packages-mcp-server-src-animechan-tool-ts-no-route",
       "division": "Tools",
       "name": "animechan",
@@ -4388,6 +4398,16 @@
       "kind": "MCP tool",
       "meaning": "archiveorg MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/archiveorg-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-areacalc-packages-mcp-server-src-areacalc-tool-ts-no-route",
+      "division": "Tools",
+      "name": "areacalc",
+      "kind": "MCP tool",
+      "meaning": "areacalc MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/areacalc-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4502,6 +4522,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-baseconvert-packages-mcp-server-src-baseconvert-tool-ts-no-route",
+      "division": "Tools",
+      "name": "baseconvert",
+      "kind": "MCP tool",
+      "meaning": "baseconvert MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/baseconvert-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bgg-packages-mcp-server-src-bgg-tool-ts-no-route",
       "division": "Tools",
       "name": "bgg",
@@ -4548,6 +4578,16 @@
       "kind": "MCP tool",
       "meaning": "binaryconv MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/binaryconv-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-binomprob-packages-mcp-server-src-binomprob-tool-ts-no-route",
+      "division": "Tools",
+      "name": "binomprob",
+      "kind": "MCP tool",
+      "meaning": "binomprob MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/binomprob-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5002,12 +5042,32 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-combination-packages-mcp-server-src-combination-tool-ts-no-route",
+      "division": "Tools",
+      "name": "combination",
+      "kind": "MCP tool",
+      "meaning": "combination MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/combination-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-commonsensepass-packages-mcp-server-src-commonsensepass-tool-ts-no-route",
       "division": "Tools",
       "name": "commonsensepass",
       "kind": "MCP tool",
       "meaning": "commonsensepass MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-complexnum-packages-mcp-server-src-complexnum-tool-ts-no-route",
+      "division": "Tools",
+      "name": "complexnum",
+      "kind": "MCP tool",
+      "meaning": "complexnum MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/complexnum-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5148,6 +5208,16 @@
       "kind": "MCP tool",
       "meaning": "crontab MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/crontab-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-crossproduct-packages-mcp-server-src-crossproduct-tool-ts-no-route",
+      "division": "Tools",
+      "name": "crossproduct",
+      "kind": "MCP tool",
+      "meaning": "crossproduct MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/crossproduct-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5442,6 +5512,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dotproduct-packages-mcp-server-src-dotproduct-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dotproduct",
+      "kind": "MCP tool",
+      "meaning": "dotproduct MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dotproduct-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-dropbox-packages-mcp-server-src-dropbox-tool-ts-no-route",
       "division": "Tools",
       "name": "dropbox",
@@ -5638,6 +5718,16 @@
       "kind": "MCP tool",
       "meaning": "excuser MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/excuser-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-expgrowth-packages-mcp-server-src-expgrowth-tool-ts-no-route",
+      "division": "Tools",
+      "name": "expgrowth",
+      "kind": "MCP tool",
+      "meaning": "expgrowth MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/expgrowth-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5852,6 +5942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-gcd-packages-mcp-server-src-gcd-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gcd",
+      "kind": "MCP tool",
+      "meaning": "gcd MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gcd-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-gcdlcm-packages-mcp-server-src-gcdlcm-tool-ts-no-route",
       "division": "Tools",
       "name": "gcdlcm",
@@ -5898,6 +5998,16 @@
       "kind": "MCP tool",
       "meaning": "geojs MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/geojs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-geomseries-packages-mcp-server-src-geomseries-tool-ts-no-route",
+      "division": "Tools",
+      "name": "geomseries",
+      "kind": "MCP tool",
+      "meaning": "geomseries MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/geomseries-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6028,6 +6138,16 @@
       "kind": "MCP tool",
       "meaning": "hamming MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/hamming-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-harmonicseries-packages-mcp-server-src-harmonicseries-tool-ts-no-route",
+      "division": "Tools",
+      "name": "harmonicseries",
+      "kind": "MCP tool",
+      "meaning": "harmonicseries MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/harmonicseries-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6238,6 +6358,16 @@
       "kind": "MCP tool",
       "meaning": "intercom MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/intercom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-interpolate-packages-mcp-server-src-interpolate-tool-ts-no-route",
+      "division": "Tools",
+      "name": "interpolate",
+      "kind": "MCP tool",
+      "meaning": "interpolate MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/interpolate-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6572,6 +6702,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-logbase-packages-mcp-server-src-logbase-tool-ts-no-route",
+      "division": "Tools",
+      "name": "logbase",
+      "kind": "MCP tool",
+      "meaning": "logbase MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/logbase-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lorem-packages-mcp-server-src-lorem-tool-ts-no-route",
       "division": "Tools",
       "name": "lorem",
@@ -6782,6 +6922,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-midpoint-packages-mcp-server-src-midpoint-tool-ts-no-route",
+      "division": "Tools",
+      "name": "midpoint",
+      "kind": "MCP tool",
+      "meaning": "midpoint MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/midpoint-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-miro-packages-mcp-server-src-miro-tool-ts-no-route",
       "division": "Tools",
       "name": "miro",
@@ -6808,6 +6958,16 @@
       "kind": "MCP tool",
       "meaning": "mixpanel MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/mixpanel-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-modpow-packages-mcp-server-src-modpow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "modpow",
+      "kind": "MCP tool",
+      "meaning": "modpow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/modpow-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6992,6 +7152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-normaldistr-packages-mcp-server-src-normaldistr-tool-ts-no-route",
+      "division": "Tools",
+      "name": "normaldistr",
+      "kind": "MCP tool",
+      "meaning": "normaldistr MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/normaldistr-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-notion-packages-mcp-server-src-notion-tool-ts-no-route",
       "division": "Tools",
       "name": "notion",
@@ -7008,6 +7178,16 @@
       "kind": "MCP tool",
       "meaning": "npm registry MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/npm-registry-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-nthroot-packages-mcp-server-src-nthroot-tool-ts-no-route",
+      "division": "Tools",
+      "name": "nthroot",
+      "kind": "MCP tool",
+      "meaning": "nthroot MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/nthroot-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7362,6 +7542,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-permutation-packages-mcp-server-src-permutation-tool-ts-no-route",
+      "division": "Tools",
+      "name": "permutation",
+      "kind": "MCP tool",
+      "meaning": "permutation MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/permutation-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-perplexity-packages-mcp-server-src-perplexity-tool-ts-no-route",
       "division": "Tools",
       "name": "perplexity",
@@ -7378,6 +7568,16 @@
       "kind": "MCP tool",
       "meaning": "phonetic MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/phonetic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-piapprox-packages-mcp-server-src-piapprox-tool-ts-no-route",
+      "division": "Tools",
+      "name": "piapprox",
+      "kind": "MCP tool",
+      "meaning": "piapprox MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/piapprox-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7502,6 +7702,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-poisson-packages-mcp-server-src-poisson-tool-ts-no-route",
+      "division": "Tools",
+      "name": "poisson",
+      "kind": "MCP tool",
+      "meaning": "poisson MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/poisson-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-pokeapi-packages-mcp-server-src-pokeapi-tool-ts-no-route",
       "division": "Tools",
       "name": "pokeapi",
@@ -7518,6 +7728,16 @@
       "kind": "MCP tool",
       "meaning": "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pokemontcg-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-polygon-packages-mcp-server-src-polygon-tool-ts-no-route",
+      "division": "Tools",
+      "name": "polygon",
+      "kind": "MCP tool",
+      "meaning": "polygon MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/polygon-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7568,6 +7788,26 @@
       "kind": "MCP tool",
       "meaning": "primecheck MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/primecheck-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-primefactor-packages-mcp-server-src-primefactor-tool-ts-no-route",
+      "division": "Tools",
+      "name": "primefactor",
+      "kind": "MCP tool",
+      "meaning": "primefactor MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/primefactor-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-proportion-packages-mcp-server-src-proportion-tool-ts-no-route",
+      "division": "Tools",
+      "name": "proportion",
+      "kind": "MCP tool",
+      "meaning": "proportion MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/proportion-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7662,6 +7902,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-quadratic-packages-mcp-server-src-quadratic-tool-ts-no-route",
+      "division": "Tools",
+      "name": "quadratic",
+      "kind": "MCP tool",
+      "meaning": "quadratic MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/quadratic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-quickbooks-packages-mcp-server-src-quickbooks-tool-ts-no-route",
       "division": "Tools",
       "name": "quickbooks",
@@ -7748,6 +7998,16 @@
       "kind": "MCP tool",
       "meaning": "randomuser MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/randomuser-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-ratiosimplify-packages-mcp-server-src-ratiosimplify-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ratiosimplify",
+      "kind": "MCP tool",
+      "meaning": "ratiosimplify MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ratiosimplify-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8102,6 +8362,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sigmoid-packages-mcp-server-src-sigmoid-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sigmoid",
+      "kind": "MCP tool",
+      "meaning": "sigmoid MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sigmoid-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-slack-packages-mcp-server-src-slack-tool-ts-no-route",
       "division": "Tools",
       "name": "slack",
@@ -8118,6 +8388,16 @@
       "kind": "MCP tool",
       "meaning": "sleeper MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sleeper-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-slopeintercept-packages-mcp-server-src-slopeintercept-tool-ts-no-route",
+      "division": "Tools",
+      "name": "slopeintercept",
+      "kind": "MCP tool",
+      "meaning": "slopeintercept MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/slopeintercept-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8252,6 +8532,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-standardform-packages-mcp-server-src-standardform-tool-ts-no-route",
+      "division": "Tools",
+      "name": "standardform",
+      "kind": "MCP tool",
+      "meaning": "standardform MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/standardform-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-stapi-packages-mcp-server-src-stapi-tool-ts-no-route",
       "division": "Tools",
       "name": "stapi",
@@ -8368,6 +8658,16 @@
       "kind": "MCP tool",
       "meaning": "tarot MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/tarot-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-taylor-packages-mcp-server-src-taylor-tool-ts-no-route",
+      "division": "Tools",
+      "name": "taylor",
+      "kind": "MCP tool",
+      "meaning": "taylor MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/taylor-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8578,6 +8878,16 @@
       "kind": "MCP tool",
       "meaning": "trello MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/trello-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-trianglesolve-packages-mcp-server-src-trianglesolve-tool-ts-no-route",
+      "division": "Tools",
+      "name": "trianglesolve",
+      "kind": "MCP tool",
+      "meaning": "trianglesolve MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/trianglesolve-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8822,6 +9132,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-variancecalc-packages-mcp-server-src-variancecalc-tool-ts-no-route",
+      "division": "Tools",
+      "name": "variancecalc",
+      "kind": "MCP tool",
+      "meaning": "variancecalc MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/variancecalc-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-vatcomply-packages-mcp-server-src-vatcomply-tool-ts-no-route",
       "division": "Tools",
       "name": "vatcomply",
@@ -8872,6 +9192,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-wavelength-packages-mcp-server-src-wavelength-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wavelength",
+      "kind": "MCP tool",
+      "meaning": "wavelength MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wavelength-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-wayback-packages-mcp-server-src-wayback-tool-ts-no-route",
       "division": "Tools",
       "name": "wayback",
@@ -8888,6 +9218,16 @@
       "kind": "MCP tool",
       "meaning": "webflow MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/webflow-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-weightedmean-packages-mcp-server-src-weightedmean-tool-ts-no-route",
+      "division": "Tools",
+      "name": "weightedmean",
+      "kind": "MCP tool",
+      "meaning": "weightedmean MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/weightedmean-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9108,6 +9448,16 @@
       "kind": "MCP tool",
       "meaning": "zippopotamus MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/zippopotamus-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-zscore-packages-mcp-server-src-zscore-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zscore",
+      "kind": "MCP tool",
+      "meaning": "zscore MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zscore-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9926,6 +10276,11 @@
       "packages/mcp-server/src/amiibo-tool.ts"
     ],
     [
+      "angleconv",
+      "angleconv MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/angleconv-tool.ts"
+    ],
+    [
       "animechan",
       "animechan MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/animechan-tool.ts"
@@ -9949,6 +10304,11 @@
       "archiveorg",
       "archiveorg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/archiveorg-tool.ts"
+    ],
+    [
+      "areacalc",
+      "areacalc MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/areacalc-tool.ts"
     ],
     [
       "artic",
@@ -10006,6 +10366,11 @@
       "packages/mcp-server/src/base64-tool.ts"
     ],
     [
+      "baseconvert",
+      "baseconvert MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/baseconvert-tool.ts"
+    ],
+    [
       "bgg",
       "bgg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bgg-tool.ts"
@@ -10029,6 +10394,11 @@
       "binaryconv",
       "binaryconv MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/binaryconv-tool.ts"
+    ],
+    [
+      "binomprob",
+      "binomprob MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/binomprob-tool.ts"
     ],
     [
       "bitbucket",
@@ -10256,9 +10626,19 @@
       "packages/mcp-server/src/colr-tool.ts"
     ],
     [
+      "combination",
+      "combination MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/combination-tool.ts"
+    ],
+    [
       "commonsensepass",
       "commonsensepass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/commonsensepass-tool.ts"
+    ],
+    [
+      "complexnum",
+      "complexnum MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/complexnum-tool.ts"
     ],
     [
       "compliancepass",
@@ -10329,6 +10709,11 @@
       "crontab",
       "crontab MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/crontab-tool.ts"
+    ],
+    [
+      "crossproduct",
+      "crossproduct MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/crossproduct-tool.ts"
     ],
     [
       "crossref",
@@ -10476,6 +10861,11 @@
       "packages/mcp-server/src/domainsdb-tool.ts"
     ],
     [
+      "dotproduct",
+      "dotproduct MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dotproduct-tool.ts"
+    ],
+    [
       "dropbox",
       "dropbox MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/dropbox-tool.ts"
@@ -10574,6 +10964,11 @@
       "excuser",
       "excuser MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/excuser-tool.ts"
+    ],
+    [
+      "expgrowth",
+      "expgrowth MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/expgrowth-tool.ts"
     ],
     [
       "fakerapi",
@@ -10681,6 +11076,11 @@
       "packages/mcp-server/src/gbif-tool.ts"
     ],
     [
+      "gcd",
+      "gcd MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gcd-tool.ts"
+    ],
+    [
       "gcdlcm",
       "gcdlcm MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gcdlcm-tool.ts"
@@ -10704,6 +11104,11 @@
       "geojs",
       "geojs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/geojs-tool.ts"
+    ],
+    [
+      "geomseries",
+      "geomseries MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/geomseries-tool.ts"
     ],
     [
       "geopass",
@@ -10769,6 +11174,11 @@
       "hamming",
       "hamming MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hamming-tool.ts"
+    ],
+    [
+      "harmonicseries",
+      "harmonicseries MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/harmonicseries-tool.ts"
     ],
     [
       "harrypotter",
@@ -10874,6 +11284,11 @@
       "intercom",
       "intercom MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/intercom-tool.ts"
+    ],
+    [
+      "interpolate",
+      "interpolate MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/interpolate-tool.ts"
     ],
     [
       "ipaddrinfo",
@@ -11041,6 +11456,11 @@
       "packages/mcp-server/src/linear-tool.ts"
     ],
     [
+      "logbase",
+      "logbase MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/logbase-tool.ts"
+    ],
+    [
       "lorem",
       "lorem MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lorem-tool.ts"
@@ -11146,6 +11566,11 @@
       "packages/mcp-server/src/mhwdb-tool.ts"
     ],
     [
+      "midpoint",
+      "midpoint MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/midpoint-tool.ts"
+    ],
+    [
       "miro",
       "miro MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/miro-tool.ts"
@@ -11159,6 +11584,11 @@
       "mixpanel",
       "mixpanel MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mixpanel-tool.ts"
+    ],
+    [
+      "modpow",
+      "modpow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/modpow-tool.ts"
     ],
     [
       "monday",
@@ -11251,6 +11681,11 @@
       "packages/mcp-server/src/nominatim-tool.ts"
     ],
     [
+      "normaldistr",
+      "normaldistr MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/normaldistr-tool.ts"
+    ],
+    [
       "notion",
       "notion MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/notion-tool.ts"
@@ -11259,6 +11694,11 @@
       "npm registry",
       "npm registry MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/npm-registry-tool.ts"
+    ],
+    [
+      "nthroot",
+      "nthroot MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/nthroot-tool.ts"
     ],
     [
       "NudgeOnly",
@@ -11436,6 +11876,11 @@
       "packages/mcp-server/src/percentage-tool.ts"
     ],
     [
+      "permutation",
+      "permutation MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/permutation-tool.ts"
+    ],
+    [
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
@@ -11444,6 +11889,11 @@
       "phonetic",
       "phonetic MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/phonetic-tool.ts"
+    ],
+    [
+      "piapprox",
+      "piapprox MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/piapprox-tool.ts"
     ],
     [
       "picsum",
@@ -11506,6 +11956,11 @@
       "packages/mcp-server/src/poetrydb-tool.ts"
     ],
     [
+      "poisson",
+      "poisson MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/poisson-tool.ts"
+    ],
+    [
       "pokeapi",
       "pokeapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pokeapi-tool.ts"
@@ -11514,6 +11969,11 @@
       "pokemontcg",
       "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pokemontcg-tool.ts"
+    ],
+    [
+      "polygon",
+      "polygon MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/polygon-tool.ts"
     ],
     [
       "postcodes",
@@ -11539,6 +11999,16 @@
       "primecheck",
       "primecheck MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/primecheck-tool.ts"
+    ],
+    [
+      "primefactor",
+      "primefactor MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/primefactor-tool.ts"
+    ],
+    [
+      "proportion",
+      "proportion MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/proportion-tool.ts"
     ],
     [
       "ptv",
@@ -11586,6 +12056,11 @@
       "packages/mcp-server/src/qrserver-tool.ts"
     ],
     [
+      "quadratic",
+      "quadratic MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/quadratic-tool.ts"
+    ],
+    [
       "quickbooks",
       "quickbooks MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/quickbooks-tool.ts"
@@ -11629,6 +12104,11 @@
       "randomuser",
       "randomuser MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/randomuser-tool.ts"
+    ],
+    [
+      "ratiosimplify",
+      "ratiosimplify MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ratiosimplify-tool.ts"
     ],
     [
       "rawg",
@@ -11806,6 +12286,11 @@
       "packages/mcp-server/src/shortcut-tool.ts"
     ],
     [
+      "sigmoid",
+      "sigmoid MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sigmoid-tool.ts"
+    ],
+    [
       "slack",
       "slack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/slack-tool.ts"
@@ -11814,6 +12299,11 @@
       "sleeper",
       "sleeper MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sleeper-tool.ts"
+    ],
+    [
+      "slopeintercept",
+      "slopeintercept MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/slopeintercept-tool.ts"
     ],
     [
       "sloppass",
@@ -11881,6 +12371,11 @@
       "packages/mcp-server/src/stackexchange-tool.ts"
     ],
     [
+      "standardform",
+      "standardform MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/standardform-tool.ts"
+    ],
+    [
       "stapi",
       "stapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/stapi-tool.ts"
@@ -11939,6 +12434,11 @@
       "tarot",
       "tarot MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/tarot-tool.ts"
+    ],
+    [
+      "taylor",
+      "taylor MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/taylor-tool.ts"
     ],
     [
       "telegram",
@@ -12044,6 +12544,11 @@
       "trello",
       "trello MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/trello-tool.ts"
+    ],
+    [
+      "trianglesolve",
+      "trianglesolve MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/trianglesolve-tool.ts"
     ],
     [
       "trivia",
@@ -12166,6 +12671,11 @@
       "packages/mcp-server/src/uxpass-tool.ts"
     ],
     [
+      "variancecalc",
+      "variancecalc MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/variancecalc-tool.ts"
+    ],
+    [
       "vatcomply",
       "vatcomply MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/vatcomply-tool.ts"
@@ -12191,6 +12701,11 @@
       "packages/mcp-server/src/virustotal-tool.ts"
     ],
     [
+      "wavelength",
+      "wavelength MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wavelength-tool.ts"
+    ],
+    [
       "wayback",
       "wayback MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/wayback-tool.ts"
@@ -12199,6 +12714,11 @@
       "webflow",
       "webflow MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/webflow-tool.ts"
+    ],
+    [
+      "weightedmean",
+      "weightedmean MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/weightedmean-tool.ts"
     ],
     [
       "wger",
@@ -12309,6 +12829,11 @@
       "zippopotamus",
       "zippopotamus MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/zippopotamus-tool.ts"
+    ],
+    [
+      "zscore",
+      "zscore MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zscore-tool.ts"
     ]
   ],
   "roomRows": [
@@ -13170,8 +13695,8 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "147f832aa5b9",
-      "bytes": 19192
+      "hash": "e1c923ee0c61",
+      "bytes": 19193
     },
     {
       "source": "src/pages/NewToAI.tsx",
@@ -13429,6 +13954,11 @@
       "bytes": 2101
     },
     {
+      "source": "packages/mcp-server/src/angleconv-tool.ts",
+      "hash": "6e8ddaf9344f",
+      "bytes": 1663
+    },
+    {
       "source": "packages/mcp-server/src/animechan-tool.ts",
       "hash": "f77b9af84d81",
       "bytes": 1735
@@ -13452,6 +13982,11 @@
       "source": "packages/mcp-server/src/archiveorg-tool.ts",
       "hash": "31481deccc20",
       "bytes": 4106
+    },
+    {
+      "source": "packages/mcp-server/src/areacalc-tool.ts",
+      "hash": "550eb5992182",
+      "bytes": 3924
     },
     {
       "source": "packages/mcp-server/src/artic-tool.ts",
@@ -13509,6 +14044,11 @@
       "bytes": 1174
     },
     {
+      "source": "packages/mcp-server/src/baseconvert-tool.ts",
+      "hash": "bbfa716f0f7c",
+      "bytes": 1246
+    },
+    {
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
@@ -13534,29 +14074,14 @@
       "bytes": 1337
     },
     {
+      "source": "packages/mcp-server/src/binomprob-tool.ts",
+      "hash": "08174a2866e7",
+      "bytes": 1770
+    },
+    {
       "source": "packages/mcp-server/src/bitbucket-tool.ts",
       "hash": "a6a405951262",
       "bytes": 4388
-    },
-    {
-      "source": "packages/mcp-server/src/bitwise-tool.ts",
-      "hash": "5b0b0365aefe",
-      "bytes": 2091
-    },
-    {
-      "source": "packages/mcp-server/src/bluesky-tool.ts",
-      "hash": "9c63ad10f656",
-      "bytes": 16256
-    },
-    {
-      "source": "packages/mcp-server/src/bored-tool.ts",
-      "hash": "076a2a94303b",
-      "bytes": 3043
-    },
-    {
-      "source": "packages/mcp-server/src/braille-tool.ts",
-      "hash": "a2a71da4a678",
-      "bytes": 1894
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

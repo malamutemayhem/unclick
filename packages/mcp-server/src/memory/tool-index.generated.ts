@@ -254,6 +254,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "angleconv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "angle_convert",
+        "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
+      }
+    ]
+  },
+  {
     "app": "animechan",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -340,6 +350,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "archive_metadata",
         "description": "Get metadata for an Internet Archive item by identifier."
+      }
+    ]
+  },
+  {
+    "app": "areacalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "area_calculate",
+        "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
       }
     ]
   },
@@ -530,6 +550,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "baseconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "base_convert",
+        "description": "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36)."
+      }
+    ]
+  },
+  {
     "app": "bgg",
     "category": "Gaming",
     "tools": [
@@ -608,6 +638,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "number_base_convert",
         "description": "Convert numbers between binary, octal, decimal, hex, and any base 2-36."
+      }
+    ]
+  },
+  {
+    "app": "binomprob",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "binomial_probability",
+        "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
       }
     ]
   },
@@ -1280,6 +1320,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "collatz",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "collatz_sequence",
+        "description": "Compute the Collatz (3n+1) sequence for a positive integer."
+      }
+    ]
+  },
+  {
     "app": "color",
     "category": "Utilities",
     "tools": [
@@ -1364,6 +1414,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "combination",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "combination_calc",
+        "description": "Calculate the number of combinations C(n,r) - unordered selections."
+      }
+    ]
+  },
+  {
     "app": "commonsensepass",
     "category": "CommonSensePass (worker sanity-gate verdicts)",
     "tools": [
@@ -1374,6 +1434,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "commonsensepass_rules",
         "description": "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets."
+      }
+    ]
+  },
+  {
+    "app": "complexnum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "complex_calc",
+        "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
       }
     ]
   },
@@ -1582,6 +1652,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "crontab_explain",
         "description": "Explain a cron expression in human-readable terms."
+      }
+    ]
+  },
+  {
+    "app": "crossproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cross_product",
+        "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
       }
     ]
   },
@@ -2112,6 +2192,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dotproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dot_product",
+        "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+      }
+    ]
+  },
+  {
     "app": "dropbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2472,6 +2562,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "excuser_random",
         "description": "Get a random excuse, optionally by category."
+      }
+    ]
+  },
+  {
+    "app": "expgrowth",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "exponential_growth",
+        "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
       }
     ]
   },
@@ -2850,6 +2950,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gcd_calculate",
+        "description": "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers."
+      }
+    ]
+  },
+  {
     "app": "gcdlcm",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2920,6 +3030,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "geojs_lookup",
         "description": "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup."
+      }
+    ]
+  },
+  {
+    "app": "geomseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "geometric_series",
+        "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
       }
     ]
   },
@@ -3142,6 +3262,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "harmonicseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "harmonic_series",
+        "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
+      }
+    ]
+  },
+  {
     "app": "harrypotter",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3236,6 +3366,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "higgsfield_get_status",
         "description": "Check the status of a Higgsfield AI generation by ID. Returns status, video URL when complete."
+      }
+    ]
+  },
+  {
+    "app": "histogram",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "histogram_create",
+        "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
       }
     ]
   },
@@ -3476,6 +3616,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "intercom_search_contacts",
         "description": "Search Intercom contacts by email."
+      }
+    ]
+  },
+  {
+    "app": "interpolate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "interpolate_calc",
+        "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
       }
     ]
   },
@@ -4042,6 +4192,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "logbase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "log_base",
+        "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
+      }
+    ]
+  },
+  {
     "app": "lorem",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4344,6 +4504,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "midpoint",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "midpoint_calc",
+        "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
+      }
+    ]
+  },
+  {
     "app": "miro",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4402,6 +4572,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mixpanel_export_data",
         "description": "Export raw Mixpanel event data for a date range."
+      }
+    ]
+  },
+  {
+    "app": "modpow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "modular_arithmetic",
+        "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
       }
     ]
   },
@@ -4698,6 +4878,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "normaldistr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "normal_distribution",
+        "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+      }
+    ]
+  },
+  {
     "app": "notion",
     "category": "Productivity",
     "tools": [
@@ -4718,6 +4908,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "npm_get_package",
         "description": "Get metadata for an npm package (latest version)."
+      }
+    ]
+  },
+  {
+    "app": "nthroot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nth_root",
+        "description": "Calculate the nth root of a number. Default is square root (n=2)."
       }
     ]
   },
@@ -5256,6 +5456,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pascaltri",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pascaltri_generate",
+        "description": "Generate rows of Pascal's triangle, optionally return a specific row."
+      }
+    ]
+  },
+  {
     "app": "passwordgen",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5290,6 +5500,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "permutation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "permutation_calc",
+        "description": "Calculate the number of permutations P(n,r) - ordered arrangements."
+      }
+    ]
+  },
+  {
     "app": "perplexity",
     "category": "AI Models",
     "tools": [
@@ -5306,6 +5526,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "phonetic_spell",
         "description": "Spell out text using NATO or IPA phonetic alphabet."
+      }
+    ]
+  },
+  {
+    "app": "piapprox",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pi_approx",
+        "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
       }
     ]
   },
@@ -5542,6 +5772,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "poisson",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poisson_probability",
+        "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
+      }
+    ]
+  },
+  {
     "app": "pokeapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5578,6 +5818,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "pokemon_tcg_sets",
         "description": "List or search Pokemon TCG card sets."
+      }
+    ]
+  },
+  {
+    "app": "polygon",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "polygon_calculate",
+        "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
       }
     ]
   },
@@ -5664,6 +5914,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "prime_check",
         "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+      }
+    ]
+  },
+  {
+    "app": "primefactor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prime_factor",
+        "description": "Find the prime factorization of an integer."
+      }
+    ]
+  },
+  {
+    "app": "proportion",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "proportion_solve",
+        "description": "Solve a proportion a/b = c/d given any 3 values."
       }
     ]
   },
@@ -5826,6 +6096,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "qrserver_generate",
         "description": "Generate a QR code image URL for any text or URL."
+      }
+    ]
+  },
+  {
+    "app": "quadratic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quadratic_solve",
+        "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
       }
     ]
   },
@@ -6000,6 +6280,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ratiosimplify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ratio_simplify",
+        "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
+      }
+    ]
+  },
+  {
     "app": "rawg",
     "category": "Gaming",
     "tools": [
@@ -6108,6 +6398,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "regex_test",
         "description": "Test a regex pattern against text and return all matches with positions."
+      }
+    ]
+  },
+  {
+    "app": "regression",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "regression_fit",
+        "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
       }
     ]
   },
@@ -6672,6 +6972,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sigmoid",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sigmoid_calculate",
+        "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
+      }
+    ]
+  },
+  {
     "app": "slack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6708,6 +7018,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sleeper_league_matchups",
         "description": "Get matchups for a Sleeper fantasy league week."
+      }
+    ]
+  },
+  {
+    "app": "slopeintercept",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "slope_intercept",
+        "description": "Find the line equation (slope-intercept and standard form) from two points."
       }
     ]
   },
@@ -6926,6 +7246,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stackexchange_question",
         "description": "Get a Stack Exchange question by ID."
+      }
+    ]
+  },
+  {
+    "app": "standardform",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "standard_form",
+        "description": "Convert a number to scientific and engineering notation."
       }
     ]
   },
@@ -7158,6 +7488,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tarot_search",
         "description": "Search for a specific tarot card by name."
+      }
+    ]
+  },
+  {
+    "app": "taylor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "taylor_expand",
+        "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
       }
     ]
   },
@@ -7560,6 +7900,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "trello_action",
         "description": "Interact with the Trello REST API: list boards and lists, get and search cards, create cards, and update card properties."
+      }
+    ]
+  },
+  {
+    "app": "trianglesolve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "triangle_solve",
+        "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
       }
     ]
   },
@@ -8032,6 +8382,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "variancecalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "variance_calc",
+        "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+      }
+    ]
+  },
+  {
     "app": "vatcomply",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8126,6 +8486,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "wavelength",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wavelength_convert",
+        "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+      }
+    ]
+  },
+  {
     "app": "wayback",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8154,6 +8524,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "webflow_list_items",
         "description": "List items in a Webflow CMS collection."
+      }
+    ]
+  },
+  {
+    "app": "weightedmean",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "weighted_mean",
+        "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
       }
     ]
   },
@@ -8558,6 +8938,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zip_by_city",
         "description": "Look up zip/postal codes for a city and state."
+      }
+    ]
+  },
+  {
+    "app": "zscore",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zscore_calculate",
+        "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
       }
     ]
   }
