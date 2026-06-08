@@ -1,88 +1,70 @@
 export class DependencyGraph {
-  private edges = new Map<string, Set<string>>();
-  private reverseEdges = new Map<string, Set<string>>();
+  private deps = new Map<string, Set<string>>();
 
-  addNode(id: string): void {
-    if (!this.edges.has(id)) this.edges.set(id, new Set());
-    if (!this.reverseEdges.has(id)) this.reverseEdges.set(id, new Set());
+  addNode(name: string): void {
+    if (!this.deps.has(name)) this.deps.set(name, new Set());
   }
 
   addDependency(from: string, to: string): void {
     this.addNode(from);
     this.addNode(to);
-    this.edges.get(from)!.add(to);
-    this.reverseEdges.get(to)!.add(from);
+    this.deps.get(from)!.add(to);
   }
 
-  dependenciesOf(id: string): string[] {
-    return [...(this.edges.get(id) ?? [])];
+  directDeps(name: string): string[] {
+    return [...(this.deps.get(name) ?? [])];
   }
 
-  dependantsOf(id: string): string[] {
-    return [...(this.reverseEdges.get(id) ?? [])];
+  allDeps(name: string): string[] {
+    const visited = new Set<string>();
+    const stack = [...(this.deps.get(name) ?? [])];
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+      if (visited.has(node)) continue;
+      visited.add(node);
+      for (const dep of this.deps.get(node) ?? []) {
+        stack.push(dep);
+      }
+    }
+    return [...visited];
   }
 
-  nodes(): string[] {
-    return [...this.edges.keys()];
+  dependents(name: string): string[] {
+    const result: string[] = [];
+    for (const [node, deps] of this.deps) {
+      if (deps.has(name)) result.push(node);
+    }
+    return result;
   }
 
   hasCycle(): boolean {
     const visited = new Set<string>();
-    const stack = new Set<string>();
+    const inStack = new Set<string>();
     const dfs = (node: string): boolean => {
-      if (stack.has(node)) return true;
+      if (inStack.has(node)) return true;
       if (visited.has(node)) return false;
       visited.add(node);
-      stack.add(node);
-      for (const dep of this.edges.get(node) ?? []) {
+      inStack.add(node);
+      for (const dep of this.deps.get(node) ?? []) {
         if (dfs(dep)) return true;
       }
-      stack.delete(node);
+      inStack.delete(node);
       return false;
     };
-    for (const node of this.edges.keys()) {
+    for (const node of this.deps.keys()) {
       if (dfs(node)) return true;
     }
     return false;
   }
 
-  topologicalOrder(): string[] {
-    const inDegree = new Map<string, number>();
-    for (const node of this.edges.keys()) inDegree.set(node, 0);
-    for (const deps of this.edges.values()) {
-      for (const dep of deps) {
-        inDegree.set(dep, (inDegree.get(dep) ?? 0) + 1);
-      }
-    }
-    const queue: string[] = [];
-    for (const [node, deg] of inDegree) {
-      if (deg === 0) queue.push(node);
-    }
-    const result: string[] = [];
-    while (queue.length > 0) {
-      const node = queue.shift()!;
-      result.push(node);
-      for (const dep of this.edges.get(node) ?? []) {
-        const newDeg = inDegree.get(dep)! - 1;
-        inDegree.set(dep, newDeg);
-        if (newDeg === 0) queue.push(dep);
-      }
-    }
-    if (result.length !== this.edges.size) throw new Error("Cycle detected");
-    return result;
+  get nodes(): string[] {
+    return [...this.deps.keys()];
   }
 
-  transitiveDependencies(id: string): string[] {
-    const result = new Set<string>();
-    const visit = (node: string) => {
-      for (const dep of this.edges.get(node) ?? []) {
-        if (!result.has(dep)) {
-          result.add(dep);
-          visit(dep);
-        }
-      }
-    };
-    visit(id);
-    return [...result];
+  removeNode(name: string): boolean {
+    if (!this.deps.has(name)) return false;
+    this.deps.delete(name);
+    for (const deps of this.deps.values()) deps.delete(name);
+    return true;
   }
 }

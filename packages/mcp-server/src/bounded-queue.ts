@@ -1,30 +1,28 @@
-export type OverflowStrategy = "drop-oldest" | "drop-newest" | "reject";
-
 export class BoundedQueue<T> {
   private items: T[] = [];
-  private maxSize: number;
-  private strategy: OverflowStrategy;
+  private readonly capacity: number;
+  private droppedCount = 0;
 
-  constructor(maxSize: number, strategy: OverflowStrategy = "drop-oldest") {
-    if (maxSize < 1) throw new Error("maxSize must be at least 1");
-    this.maxSize = maxSize;
-    this.strategy = strategy;
+  constructor(capacity: number) {
+    this.capacity = capacity;
   }
 
   enqueue(item: T): boolean {
-    if (this.items.length >= this.maxSize) {
-      switch (this.strategy) {
-        case "drop-oldest":
-          this.items.shift();
-          break;
-        case "drop-newest":
-          return false;
-        case "reject":
-          throw new Error("Queue is full");
-      }
+    if (this.items.length >= this.capacity) {
+      this.droppedCount++;
+      return false;
     }
     this.items.push(item);
     return true;
+  }
+
+  enqueueForce(item: T): T | undefined {
+    let evicted: T | undefined;
+    if (this.items.length >= this.capacity) {
+      evicted = this.items.shift();
+    }
+    this.items.push(item);
+    return evicted;
   }
 
   dequeue(): T | undefined {
@@ -39,16 +37,16 @@ export class BoundedQueue<T> {
     return this.items.length;
   }
 
-  get capacity(): number {
-    return this.maxSize;
+  get full(): boolean {
+    return this.items.length >= this.capacity;
   }
 
-  get isFull(): boolean {
-    return this.items.length >= this.maxSize;
-  }
-
-  get isEmpty(): boolean {
+  get empty(): boolean {
     return this.items.length === 0;
+  }
+
+  get dropped(): number {
+    return this.droppedCount;
   }
 
   clear(): void {
@@ -60,8 +58,8 @@ export class BoundedQueue<T> {
   }
 
   drain(): T[] {
-    const result = this.items;
+    const all = this.items;
     this.items = [];
-    return result;
+    return all;
   }
 }
