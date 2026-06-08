@@ -1,103 +1,75 @@
 import { describe, it, expect } from "vitest";
-import { SlidingWindow } from "../sliding-window.js";
+import { SlidingWindowCounter, SlidingWindowLog } from "../sliding-window.js";
 
-describe("SlidingWindow", () => {
-  it("pushes values and retrieves them", () => {
-    const w = new SlidingWindow<number>(3);
-    w.push(1);
-    w.push(2);
-    expect(w.toArray()).toEqual([1, 2]);
+describe("SlidingWindowCounter", () => {
+  it("allows hits within limit", () => {
+    const sw = new SlidingWindowCounter(1000, 5);
+    for (let i = 0; i < 5; i++) {
+      expect(sw.hit(1000 + i)).toBe(true);
+    }
   });
 
-  it("evicts oldest when full", () => {
-    const w = new SlidingWindow<number>(3);
-    w.push(1);
-    w.push(2);
-    w.push(3);
-    const evicted = w.push(4);
-    expect(evicted).toBe(1);
-    expect(w.toArray()).toEqual([2, 3, 4]);
+  it("rejects over limit", () => {
+    const sw = new SlidingWindowCounter(1000, 2);
+    expect(sw.hit(1000)).toBe(true);
+    expect(sw.hit(1001)).toBe(true);
+    expect(sw.hit(1002)).toBe(false);
   });
 
-  it("returns undefined when not evicting", () => {
-    const w = new SlidingWindow<number>(5);
-    expect(w.push(1)).toBeUndefined();
+  it("remaining decreases", () => {
+    const sw = new SlidingWindowCounter(1000, 5);
+    sw.hit(1000);
+    sw.hit(1001);
+    expect(sw.remaining(1002)).toBe(3);
   });
 
-  it("tracks size and capacity", () => {
-    const w = new SlidingWindow<number>(3);
-    expect(w.capacity).toBe(3);
-    expect(w.size).toBe(0);
-    w.push(1);
-    w.push(2);
-    expect(w.size).toBe(2);
-    expect(w.isFull).toBe(false);
-    w.push(3);
-    expect(w.isFull).toBe(true);
+  it("reset clears all", () => {
+    const sw = new SlidingWindowCounter(1000, 5);
+    sw.hit(1000);
+    sw.reset();
+    expect(sw.count(1000)).toBe(0);
+  });
+});
+
+describe("SlidingWindowLog", () => {
+  it("allows hits within limit", () => {
+    const sw = new SlidingWindowLog(1000, 3);
+    expect(sw.hit(1000)).toBe(true);
+    expect(sw.hit(1200)).toBe(true);
+    expect(sw.hit(1500)).toBe(true);
   });
 
-  it("gets latest and oldest", () => {
-    const w = new SlidingWindow<string>(3);
-    w.push("a");
-    w.push("b");
-    w.push("c");
-    expect(w.oldest()).toBe("a");
-    expect(w.latest()).toBe("c");
+  it("rejects over limit", () => {
+    const sw = new SlidingWindowLog(1000, 2);
+    sw.hit(1000);
+    sw.hit(1200);
+    expect(sw.hit(1500)).toBe(false);
   });
 
-  it("accesses by index with at()", () => {
-    const w = new SlidingWindow<number>(5);
-    w.push(10);
-    w.push(20);
-    w.push(30);
-    expect(w.at(0)).toBe(10);
-    expect(w.at(2)).toBe(30);
-    expect(w.at(-1)).toBe(30);
+  it("allows after window expires", () => {
+    const sw = new SlidingWindowLog(1000, 2);
+    sw.hit(1000);
+    sw.hit(1200);
+    expect(sw.hit(2100)).toBe(true);
   });
 
-  it("clears the window", () => {
-    const w = new SlidingWindow<number>(3);
-    w.push(1);
-    w.push(2);
-    w.clear();
-    expect(w.size).toBe(0);
-    expect(w.toArray()).toEqual([]);
+  it("retryAfter returns wait time", () => {
+    const sw = new SlidingWindowLog(1000, 1);
+    sw.hit(1000);
+    expect(sw.retryAfter(1500)).toBe(500);
   });
 
-  it("reduces over values", () => {
-    const w = new SlidingWindow<number>(5);
-    w.push(1);
-    w.push(2);
-    w.push(3);
-    expect(w.reduce((sum, v) => sum + v, 0)).toBe(6);
+  it("oldest returns first timestamp", () => {
+    const sw = new SlidingWindowLog(10000, 10);
+    sw.hit(100);
+    sw.hit(200);
+    expect(sw.oldestTimestamp()).toBe(100);
   });
 
-  it("some and every predicates", () => {
-    const w = new SlidingWindow<number>(5);
-    w.push(2);
-    w.push(4);
-    w.push(6);
-    expect(w.every((v) => v % 2 === 0)).toBe(true);
-    expect(w.some((v) => v > 5)).toBe(true);
-    expect(w.some((v) => v > 10)).toBe(false);
-  });
-
-  it("is iterable", () => {
-    const w = new SlidingWindow<number>(3);
-    w.push(1);
-    w.push(2);
-    w.push(3);
-    expect([...w]).toEqual([1, 2, 3]);
-  });
-
-  it("throws on invalid capacity", () => {
-    expect(() => new SlidingWindow(0)).toThrow();
-    expect(() => new SlidingWindow(-1)).toThrow();
-  });
-
-  it("returns undefined for empty latest/oldest", () => {
-    const w = new SlidingWindow<number>(3);
-    expect(w.latest()).toBeUndefined();
-    expect(w.oldest()).toBeUndefined();
+  it("reset clears all", () => {
+    const sw = new SlidingWindowLog(1000, 5);
+    sw.hit(1000);
+    sw.reset();
+    expect(sw.count(1000)).toBe(0);
   });
 });

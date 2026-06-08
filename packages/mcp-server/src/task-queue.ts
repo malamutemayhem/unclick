@@ -1,68 +1,112 @@
-export interface TaskResult<T> {
-  id: string;
-  result?: T;
-  error?: string;
-  duration: number;
+type TaskFn<T> = () => Promise<T>;
+
+interface QueuedTask<T> {
+  fn: TaskFn<T>;
+  resolve: (value: T) => void;
+  reject: (reason: unknown) => void;
+  priority: number;
+  addedAt: number;
 }
 
 export class TaskQueue {
-  private queue: Array<{ id: string; fn: () => Promise<unknown>; resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
+  private queue: QueuedTask<unknown>[] = [];
   private running = 0;
-  private concurrency: number;
-  private results: TaskResult<unknown>[] = [];
-  private counter = 0;
+  private readonly concurrency: number;
+  private completed = 0;
+  private failed = 0;
+  private paused = false;
 
   constructor(concurrency = 1) {
     this.concurrency = concurrency;
   }
 
-  add<T>(fn: () => Promise<T>): Promise<T> {
-    const id = `task_${++this.counter}`;
+  add<T>(fn: TaskFn<T>, priority = 0): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.queue.push({ id, fn, resolve: resolve as (v: unknown) => void, reject });
-      this.drain();
+      this.queue.push({
+        fn: fn as TaskFn<unknown>,
+        resolve: resolve as (value: unknown) => void,
+        reject,
+        priority,
+        addedAt: Date.now(),
+      });
+      this.queue.sort((a, b) => b.priority - a.priority);
+      this.process();
     });
   }
 
-  private drain(): void {
-    while (this.running < this.concurrency && this.queue.length > 0) {
-      const task = this.queue.shift()!;
-      this.running++;
-      const start = Date.now();
-      task.fn()
-        .then((result) => {
-          this.results.push({ id: task.id, result, duration: Date.now() - start });
-          task.resolve(result);
-        })
-        .catch((err) => {
-          this.results.push({ id: task.id, error: String(err), duration: Date.now() - start });
-          task.reject(err);
-        })
-        .finally(() => {
-          this.running--;
-          this.drain();
-        });
-    }
+  pause(): void {
+    this.paused = true;
   }
 
-  get pending(): number {
-    return this.queue.length;
-  }
-
-  get active(): number {
-    return this.running;
-  }
-
-  get completed(): number {
-    return this.results.length;
-  }
-
-  getResults(): TaskResult<unknown>[] {
-    return [...this.results];
+  resume(): void {
+    this.paused = false;
+    this.process();
   }
 
   clear(): void {
+    for (const task of this.queue) {
+      task.reject(new Error("Queue cleared"));
+    }
     this.queue = [];
-    this.results = [];
+  }
+
+  get size(): number {
+    return this.queue.length;
+  }
+
+  get activeCount(): number {
+    return this.running;
+  }
+
+  get pendingCount(): number {
+    return this.queue.length;
+  }
+
+  get completedCount(): number {
+    return this.completed;
+  }
+
+  get failedCount(): number {
+    return this.failed;
+  }
+
+  get isPaused(): boolean {
+    return this.paused;
+  }
+
+  async drain(): Promise<void> {
+    if (this.queue.length === 0 && this.running === 0) return;
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.queue.length === 0 && this.running === 0) {
+          resolve();
+        } else {
+          setTimeout(check, 10);
+        }
+      };
+      check();
+    });
+  }
+
+  private process(): void {
+    if (this.paused) return;
+    while (this.running < this.concurrency && this.queue.length > 0) {
+      const task = this.queue.shift()!;
+      this.running++;
+      task.fn().then(
+        (result) => {
+          this.running--;
+          this.completed++;
+          task.resolve(result);
+          this.process();
+        },
+        (error) => {
+          this.running--;
+          this.failed++;
+          task.reject(error);
+          this.process();
+        },
+      );
+    }
   }
 }

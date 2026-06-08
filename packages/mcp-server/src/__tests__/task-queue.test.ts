@@ -2,55 +2,80 @@ import { describe, it, expect } from "vitest";
 import { TaskQueue } from "../task-queue.js";
 
 describe("TaskQueue", () => {
-  it("runs tasks sequentially with concurrency 1", async () => {
+  it("executes tasks", async () => {
+    const q = new TaskQueue(1);
+    const result = await q.add(async () => 42);
+    expect(result).toBe(42);
+  });
+
+  it("respects concurrency", async () => {
+    const q = new TaskQueue(2);
+    let maxConcurrent = 0;
+    let current = 0;
+
+    const tasks = Array.from({ length: 4 }, () =>
+      q.add(async () => {
+        current++;
+        maxConcurrent = Math.max(maxConcurrent, current);
+        await new Promise((r) => setTimeout(r, 50));
+        current--;
+      })
+    );
+    await Promise.all(tasks);
+    expect(maxConcurrent).toBeLessThanOrEqual(2);
+  });
+
+  it("processes in priority order", async () => {
     const q = new TaskQueue(1);
     const order: number[] = [];
-    await Promise.all([
-      q.add(async () => { order.push(1); return 1; }),
-      q.add(async () => { order.push(2); return 2; }),
-      q.add(async () => { order.push(3); return 3; }),
-    ]);
-    expect(order).toEqual([1, 2, 3]);
+
+    const blocker = q.add(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    const low = q.add(async () => { order.push(1); }, 1);
+    const high = q.add(async () => { order.push(3); }, 3);
+    const mid = q.add(async () => { order.push(2); }, 2);
+
+    await Promise.all([blocker, low, high, mid]);
+    expect(order).toEqual([3, 2, 1]);
   });
 
-  it("runs tasks with higher concurrency", async () => {
-    const q = new TaskQueue(3);
-    const results = await Promise.all([
-      q.add(async () => "a"),
-      q.add(async () => "b"),
-      q.add(async () => "c"),
-    ]);
-    expect(results.sort()).toEqual(["a", "b", "c"]);
-  });
-
-  it("tracks completed count", async () => {
-    const q = new TaskQueue(2);
-    await q.add(async () => 1);
-    await q.add(async () => 2);
-    expect(q.completed).toBe(2);
-  });
-
-  it("handles errors gracefully", async () => {
+  it("tracks completed and failed counts", async () => {
     const q = new TaskQueue(1);
-    await expect(q.add(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
-    expect(q.completed).toBe(1);
-    const results = q.getResults();
-    expect(results[0].error).toContain("fail");
+    await q.add(async () => "ok");
+    try { await q.add(async () => { throw new Error("fail"); }); } catch {}
+    expect(q.completedCount).toBe(1);
+    expect(q.failedCount).toBe(1);
   });
 
-  it("getResults includes durations", async () => {
+  it("pause and resume", async () => {
     const q = new TaskQueue(1);
-    await q.add(async () => 42);
-    const results = q.getResults();
-    expect(results[0].result).toBe(42);
-    expect(results[0].duration).toBeGreaterThanOrEqual(0);
+    q.pause();
+    expect(q.isPaused).toBe(true);
+    const results: number[] = [];
+    const p = q.add(async () => { results.push(1); return 1; });
+    expect(q.pendingCount).toBe(1);
+
+    q.resume();
+    await p;
+    expect(results).toEqual([1]);
   });
 
-  it("clear resets state", async () => {
+  it("clear rejects pending", async () => {
     const q = new TaskQueue(1);
-    await q.add(async () => 1);
+    q.pause();
+    const p = q.add(async () => 1);
     q.clear();
-    expect(q.completed).toBe(0);
-    expect(q.pending).toBe(0);
+    await expect(p).rejects.toThrow("Queue cleared");
+  });
+
+  it("size reflects pending", () => {
+    const q = new TaskQueue(1);
+    q.pause();
+    q.add(async () => {});
+    q.add(async () => {});
+    expect(q.size).toBe(2);
+    q.resume();
   });
 });

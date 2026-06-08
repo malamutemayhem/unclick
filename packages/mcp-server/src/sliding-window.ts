@@ -1,67 +1,96 @@
-export class SlidingWindow<T> {
-  private buffer: T[] = [];
-  private _capacity: number;
+export class SlidingWindowCounter {
+  private windows: Map<number, number> = new Map();
+  private readonly windowSize: number;
+  private readonly limit: number;
 
-  constructor(capacity: number) {
-    if (capacity < 1) throw new Error("Capacity must be at least 1");
-    this._capacity = capacity;
+  constructor(windowSize: number, limit: number) {
+    this.windowSize = windowSize;
+    this.limit = limit;
   }
 
-  get capacity(): number {
-    return this._capacity;
+  hit(timestamp?: number): boolean {
+    const now = timestamp ?? Date.now();
+    this.cleanup(now);
+    const windowKey = Math.floor(now / this.windowSize);
+    const current = this.count(now);
+    if (current >= this.limit) return false;
+    this.windows.set(windowKey, (this.windows.get(windowKey) ?? 0) + 1);
+    return true;
   }
 
-  get size(): number {
-    return this.buffer.length;
+  count(timestamp?: number): number {
+    const now = timestamp ?? Date.now();
+    const currentKey = Math.floor(now / this.windowSize);
+    const previousKey = currentKey - 1;
+    const elapsed = (now % this.windowSize) / this.windowSize;
+    const currentCount = this.windows.get(currentKey) ?? 0;
+    const previousCount = this.windows.get(previousKey) ?? 0;
+    return currentCount + Math.floor(previousCount * (1 - elapsed));
   }
 
-  get isFull(): boolean {
-    return this.buffer.length >= this._capacity;
+  remaining(timestamp?: number): number {
+    return Math.max(0, this.limit - this.count(timestamp));
   }
 
-  push(value: T): T | undefined {
-    let evicted: T | undefined;
-    if (this.buffer.length >= this._capacity) {
-      evicted = this.buffer.shift();
+  reset(): void {
+    this.windows.clear();
+  }
+
+  private cleanup(now: number): void {
+    const currentKey = Math.floor(now / this.windowSize);
+    for (const key of this.windows.keys()) {
+      if (key < currentKey - 1) this.windows.delete(key);
     }
-    this.buffer.push(value);
-    return evicted;
+  }
+}
+
+export class SlidingWindowLog {
+  private timestamps: number[] = [];
+  private readonly windowSize: number;
+  private readonly limit: number;
+
+  constructor(windowSize: number, limit: number) {
+    this.windowSize = windowSize;
+    this.limit = limit;
   }
 
-  toArray(): T[] {
-    return [...this.buffer];
+  hit(timestamp?: number): boolean {
+    const now = timestamp ?? Date.now();
+    this.cleanup(now);
+    if (this.timestamps.length >= this.limit) return false;
+    this.timestamps.push(now);
+    return true;
   }
 
-  at(index: number): T | undefined {
-    if (index < 0) index = this.buffer.length + index;
-    return this.buffer[index];
+  count(timestamp?: number): number {
+    const now = timestamp ?? Date.now();
+    this.cleanup(now);
+    return this.timestamps.length;
   }
 
-  latest(): T | undefined {
-    return this.buffer[this.buffer.length - 1];
+  remaining(timestamp?: number): number {
+    return Math.max(0, this.limit - this.count(timestamp));
   }
 
-  oldest(): T | undefined {
-    return this.buffer[0];
+  oldestTimestamp(): number | null {
+    return this.timestamps.length > 0 ? this.timestamps[0] : null;
   }
 
-  clear(): void {
-    this.buffer.length = 0;
+  retryAfter(timestamp?: number): number {
+    const now = timestamp ?? Date.now();
+    this.cleanup(now);
+    if (this.timestamps.length < this.limit) return 0;
+    return this.timestamps[0] + this.windowSize - now;
   }
 
-  reduce<U>(fn: (acc: U, val: T) => U, initial: U): U {
-    return this.buffer.reduce(fn, initial);
+  reset(): void {
+    this.timestamps = [];
   }
 
-  some(fn: (val: T) => boolean): boolean {
-    return this.buffer.some(fn);
-  }
-
-  every(fn: (val: T) => boolean): boolean {
-    return this.buffer.every(fn);
-  }
-
-  *[Symbol.iterator](): Iterator<T> {
-    for (const item of this.buffer) yield item;
+  private cleanup(now: number): void {
+    const cutoff = now - this.windowSize;
+    while (this.timestamps.length > 0 && this.timestamps[0] <= cutoff) {
+      this.timestamps.shift();
+    }
   }
 }
