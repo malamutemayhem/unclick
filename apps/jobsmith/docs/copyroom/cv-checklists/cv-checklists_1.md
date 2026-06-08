@@ -88,7 +88,7 @@ Working reference compiled from the two ApplyPass research files plus current (2
 - Date ranges match.
 - Skills section on LinkedIn mirrors the top of your CV's skills section.
 - Profile photo on LinkedIn, none on CV.
-- LinkedIn URL on CV uses your customised slug, not the default `/in/chris-byrne-1a2b3c4d5e/`.
+- LinkedIn URL on CV uses your customised slug, not the default `/in/jane-smith-1a2b3c4d5e/`.
 
 ### G. Modern hiring trends to know (2025 to 2026)
 
