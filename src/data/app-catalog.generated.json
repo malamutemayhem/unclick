@@ -3930,7 +3930,7 @@
           "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
         }
       ],
-      "level": 1,
+      "level": null,
       "hardened": false
     },
     {
@@ -4974,7 +4974,7 @@
           "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
         }
       ],
-      "level": 5,
+      "level": null,
       "hardened": false
     },
     {
@@ -9054,7 +9054,7 @@
           "description": "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired."
         }
       ],
-      "level": 1,
+      "level": null,
       "hardened": false
     },
     {
@@ -11938,7 +11938,7 @@
           "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
         }
       ],
-      "level": 1,
+      "level": null,
       "hardened": false
     },
     {
