@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { RunProfile, RunTarget } from "../../packages/testpass/src/types.js";
 
 export const TESTPASS_BACKGROUND_HANDOFF_LEASE_SECONDS = 600;
-export const DEFAULT_TESTPASS_BACKGROUND_HANDOFF_AGENT_ID = "chatgpt-55-plex-creativelead";
+export const DEFAULT_TESTPASS_BACKGROUND_HANDOFF_AGENT_ID = process.env.TESTPASS_HANDOFF_AGENT_ID ?? "default-handoff-agent";
 
 export interface TestPassBackgroundFailureHandoffInput {
   runId: string;

@@ -175,9 +175,9 @@ function boundedNumber(value: unknown, fallback: number, min: number, max: numbe
   return Math.max(min, Math.min(max, value));
 }
 
-const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|^chris$|^malamutemayhem$|\boperator\b|\bhuman\b)/i;
+const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|\boperator\b|\bhuman\b)/i;
 const HUMAN_TOUCH_RE =
-  /\b(human|operator|chris|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
+  /\b(human|operator|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
 const HUMAN_TOUCH_BOOLEAN_KEYS = new Set([
   "human_touch",
   "operator_touch",

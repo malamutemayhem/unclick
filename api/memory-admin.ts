@@ -5835,7 +5835,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           note:
             "Nightly extraction (LLM fact distillation from conversation_log) " +
             "is not yet implemented. See docs/sessions for the open question " +
-            "to Chris about model selection.",
+            "to the operator about model selection.",
         });
       }
 
