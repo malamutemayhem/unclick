@@ -1,56 +1,65 @@
 import { describe, it, expect } from "vitest";
-import { render, compile } from "../template-engine.js";
+import { render, renderFull, escape, unescape } from "../template-engine.js";
 
-describe("render", () => {
-  it("replaces variables", () => {
+describe("template-engine", () => {
+  it("simple variable substitution", () => {
     expect(render("Hello {{name}}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("resolves dot paths", () => {
+  it("nested dot paths", () => {
     expect(render("{{user.name}}", { user: { name: "Alice" } })).toBe("Alice");
   });
 
-  it("handles missing vars as empty", () => {
-    expect(render("Hi {{name}}", {})).toBe("Hi ");
+  it("missing vars become empty string", () => {
+    expect(render("{{missing}}", {})).toBe("");
   });
 
-  it("if/endif shows on truthy", () => {
-    expect(render("{{#if show}}yes{{/if}}", { show: true })).toBe("yes");
+  it("if block with truthy condition", () => {
+    const tpl = "{{#if show}}visible{{/if}}";
+    expect(renderFull(tpl, { show: true })).toBe("visible");
   });
 
-  it("if/endif hides on falsy", () => {
-    expect(render("{{#if show}}yes{{/if}}", { show: false })).toBe("");
+  it("if block with falsy condition", () => {
+    const tpl = "{{#if show}}visible{{/if}}";
+    expect(renderFull(tpl, { show: false })).toBe("");
   });
 
-  it("if/else branch", () => {
-    expect(render("{{#if admin}}admin{{else}}user{{/if}}", { admin: false })).toBe("user");
-    expect(render("{{#if admin}}admin{{else}}user{{/if}}", { admin: true })).toBe("admin");
+  it("if/else block", () => {
+    const tpl = "{{#if loggedIn}}Hi{{else}}Login{{/if}}";
+    expect(renderFull(tpl, { loggedIn: true })).toBe("Hi");
+    expect(renderFull(tpl, { loggedIn: false })).toBe("Login");
   });
 
-  it("each loop", () => {
-    expect(render("{{#each items as item}}{{item}} {{/each}}", { items: ["a", "b", "c"] })).toBe("a b c ");
+  it("each loop over array", () => {
+    const tpl = "{{#each items}}{{name}},{{/each}}";
+    const data = { items: [{ name: "a" }, { name: "b" }, { name: "c" }] };
+    expect(renderFull(tpl, data)).toBe("a,b,c,");
   });
 
-  it("each with objects", () => {
-    const data = { users: [{ name: "Alice" }, { name: "Bob" }] };
-    expect(render("{{#each users as u}}{{u.name}} {{/each}}", data)).toBe("Alice Bob ");
+  it("each loop with @index", () => {
+    const tpl = "{{#each items}}{{@index}}{{/each}}";
+    const data = { items: ["a", "b", "c"] };
+    expect(renderFull(tpl, data)).toBe("012");
   });
 
-  it("nested if inside each", () => {
-    const data = { items: [{ show: true, v: "a" }, { show: false, v: "b" }] };
-    expect(render("{{#each items as i}}{{#if i.show}}{{i.v}}{{/if}}{{/each}}", data)).toBe("a");
-  });
-});
-
-describe("compile", () => {
-  it("returns reusable function", () => {
-    const fn = compile("Hello {{name}}!");
-    expect(fn({ name: "A" })).toBe("Hello A!");
-    expect(fn({ name: "B" })).toBe("Hello B!");
+  it("empty array produces no output", () => {
+    const tpl = "{{#each items}}x{{/each}}";
+    expect(renderFull(tpl, { items: [] })).toBe("");
   });
 
-  it("custom delimiters", () => {
-    const fn = compile("Hello <% name %>!", { openTag: "<%", closeTag: "%>" });
-    expect(fn({ name: "World" })).toBe("Hello World!");
+  it("escape HTML entities", () => {
+    expect(escape('<script>alert("xss")</script>')).toBe(
+      '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+    );
+  });
+
+  it("unescape reverses escape", () => {
+    const original = '<a href="test">link</a>';
+    expect(unescape(escape(original))).toBe(original);
+  });
+
+  it("handles null and undefined gracefully", () => {
+    expect(render("{{a}}", { a: null })).toBe("");
+    expect(render("{{a}}", { a: undefined })).toBe("");
   });
 });
