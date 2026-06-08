@@ -1,42 +1,39 @@
 export function isValidIPv4(ip: string): boolean {
   const parts = ip.split(".");
   if (parts.length !== 4) return false;
-  return parts.every((p) => {
-    const n = parseInt(p, 10);
-    return String(n) === p && n >= 0 && n <= 255;
+  return parts.every((p: string) => {
+    const n = Number(p);
+    return /^\d{1,3}$/.test(p) && n >= 0 && n <= 255;
   });
 }
 
 export function isValidIPv6(ip: string): boolean {
+  const expanded = expandIPv6(ip);
+  if (!expanded) return false;
+  const groups = expanded.split(":");
+  return groups.length === 8 && groups.every((g: string) => /^[0-9a-f]{1,4}$/i.test(g));
+}
+
+export function expandIPv6(ip: string): string | null {
   if (ip.includes("::")) {
-    const halves = ip.split("::");
-    if (halves.length > 2) return false;
-    const left = halves[0] ? halves[0].split(":") : [];
-    const right = halves[1] ? halves[1].split(":") : [];
-    if (left.length + right.length > 7) return false;
-    return [...left, ...right].every(isValidHextet);
+    const parts = ip.split("::");
+    if (parts.length > 2) return null;
+    const left = parts[0] ? parts[0].split(":") : [];
+    const right = parts[1] ? parts[1].split(":") : [];
+    const missing = 8 - left.length - right.length;
+    if (missing < 0) return null;
+    const middle = Array(missing).fill("0");
+    return [...left, ...middle, ...right].join(":");
   }
-  const parts = ip.split(":");
-  if (parts.length !== 8) return false;
-  return parts.every(isValidHextet);
+  return ip;
 }
 
-export function isPrivateIPv4(ip: string): boolean {
-  if (!isValidIPv4(ip)) return false;
-  const parts = ip.split(".").map(Number);
-  if (parts[0] === 10) return true;
-  if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
-  if (parts[0] === 192 && parts[1] === 168) return true;
-  if (parts[0] === 127) return true;
-  return false;
+export function ipToNumber(ip: string): number {
+  const parts = ip.split(".");
+  return parts.reduce((acc: number, part: string) => (acc << 8) + Number(part), 0) >>> 0;
 }
 
-export function ipv4ToNumber(ip: string): number {
-  const parts = ip.split(".").map(Number);
-  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
-}
-
-export function numberToIPv4(num: number): string {
+export function numberToIp(num: number): string {
   return [
     (num >>> 24) & 255,
     (num >>> 16) & 255,
@@ -45,12 +42,18 @@ export function numberToIPv4(num: number): string {
   ].join(".");
 }
 
-export function isInSubnet(ip: string, cidr: string): boolean {
-  const [subnet, bits] = cidr.split("/");
-  const mask = ~((1 << (32 - parseInt(bits, 10))) - 1) >>> 0;
-  return (ipv4ToNumber(ip) & mask) === (ipv4ToNumber(subnet) & mask);
+export function isInCIDR(ip: string, cidr: string): boolean {
+  const [network, maskStr] = cidr.split("/");
+  const mask = parseInt(maskStr, 10);
+  const ipNum = ipToNumber(ip);
+  const netNum = ipToNumber(network);
+  const bitmask = mask === 0 ? 0 : (~0 << (32 - mask)) >>> 0;
+  return (ipNum & bitmask) === (netNum & bitmask);
 }
 
-function isValidHextet(h: string): boolean {
-  return /^[0-9a-fA-F]{1,4}$/.test(h);
+export function isPrivate(ip: string): boolean {
+  return isInCIDR(ip, "10.0.0.0/8") ||
+    isInCIDR(ip, "172.16.0.0/12") ||
+    isInCIDR(ip, "192.168.0.0/16") ||
+    isInCIDR(ip, "127.0.0.0/8");
 }

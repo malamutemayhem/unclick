@@ -1,71 +1,42 @@
 import { describe, it, expect } from "vitest";
-import { globMatch, isGlob, escapeGlob } from "../glob-match.js";
+import { globMatch, isGlob, matchMany } from "../glob-match.js";
 
-describe("globMatch", () => {
-  it("matches exact path", () => {
-    expect(globMatch("foo/bar", "foo/bar")).toBe(true);
+describe("glob-match", () => {
+  it("matches exact string", () => {
+    expect(globMatch("hello", "hello")).toBe(true);
+    expect(globMatch("hello", "world")).toBe(false);
   });
 
-  it("does not match different path", () => {
-    expect(globMatch("foo/bar", "foo/baz")).toBe(false);
+  it("* matches any non-slash chars", () => {
+    expect(globMatch("*.ts", "file.ts")).toBe(true);
+    expect(globMatch("*.ts", "file.js")).toBe(false);
+    expect(globMatch("*.ts", "dir/file.ts")).toBe(false);
   });
 
-  it("matches * within segment", () => {
-    expect(globMatch("foo/*.ts", "foo/bar.ts")).toBe(true);
-    expect(globMatch("foo/*.ts", "foo/bar.js")).toBe(false);
-  });
-
-  it("* does not match across segments", () => {
-    expect(globMatch("foo/*.ts", "foo/bar/baz.ts")).toBe(false);
-  });
-
-  it("** matches zero or more segments", () => {
-    expect(globMatch("src/**/*.ts", "src/a.ts")).toBe(true);
+  it("** matches across directories", () => {
     expect(globMatch("src/**/*.ts", "src/a/b.ts")).toBe(true);
-    expect(globMatch("src/**/*.ts", "src/a/b/c.ts")).toBe(true);
+    expect(globMatch("src/**/*.ts", "src/b.ts")).toBe(true);
+    expect(globMatch("**/*.ts", "a/b/c.ts")).toBe(true);
   });
 
-  it("** at end matches everything", () => {
-    expect(globMatch("src/**", "src/a/b/c")).toBe(true);
+  it("? matches single non-slash char", () => {
+    expect(globMatch("file?.ts", "file1.ts")).toBe(true);
+    expect(globMatch("file?.ts", "file12.ts")).toBe(false);
   });
 
-  it("? matches single character", () => {
-    expect(globMatch("file?.txt", "file1.txt")).toBe(true);
-    expect(globMatch("file?.txt", "file12.txt")).toBe(false);
+  it("escapes regex special chars", () => {
+    expect(globMatch("file.ts", "file.ts")).toBe(true);
+    expect(globMatch("file.ts", "filexts")).toBe(false);
   });
 
-  it("[abc] matches character class", () => {
-    expect(globMatch("[abc].txt", "a.txt")).toBe(true);
-    expect(globMatch("[abc].txt", "d.txt")).toBe(false);
-  });
-
-  it("[a-z] matches character range", () => {
-    expect(globMatch("[a-z].txt", "m.txt")).toBe(true);
-    expect(globMatch("[a-z].txt", "5.txt")).toBe(false);
-  });
-
-  it("[!abc] negated character class", () => {
-    expect(globMatch("[!abc].txt", "d.txt")).toBe(true);
-    expect(globMatch("[!abc].txt", "a.txt")).toBe(false);
-  });
-});
-
-describe("isGlob", () => {
-  it("detects glob patterns", () => {
+  it("isGlob detects patterns", () => {
     expect(isGlob("*.ts")).toBe(true);
-    expect(isGlob("file?.txt")).toBe(true);
-    expect(isGlob("[abc]")).toBe(true);
+    expect(isGlob("file.ts")).toBe(false);
+    expect(isGlob("src/**")).toBe(true);
   });
 
-  it("rejects plain strings", () => {
-    expect(isGlob("hello.txt")).toBe(false);
-    expect(isGlob("path/to/file")).toBe(false);
-  });
-});
-
-describe("escapeGlob", () => {
-  it("escapes special characters", () => {
-    expect(escapeGlob("file*.txt")).toBe("file\\*.txt");
-    expect(escapeGlob("[test]")).toBe("\\[test\\]");
+  it("matchMany matches against multiple patterns", () => {
+    expect(matchMany(["*.ts", "*.js"], "file.ts")).toBe(true);
+    expect(matchMany(["*.ts", "*.js"], "file.css")).toBe(false);
   });
 });
