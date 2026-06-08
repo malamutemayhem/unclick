@@ -1,49 +1,49 @@
-export interface Deferred<T> {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-  readonly settled: boolean;
+export class Deferred<T> {
+  readonly promise: Promise<T>;
+  private _resolve!: (value: T) => void;
+  private _reject!: (reason: unknown) => void;
+  private _settled = false;
+
+  constructor() {
+    this.promise = new Promise<T>((resolve, reject) => {
+      this._resolve = resolve;
+      this._reject = reject;
+    });
+  }
+
+  resolve(value: T): void {
+    if (!this._settled) {
+      this._settled = true;
+      this._resolve(value);
+    }
+  }
+
+  reject(reason: unknown): void {
+    if (!this._settled) {
+      this._settled = true;
+      this._reject(reason);
+    }
+  }
+
+  get isSettled(): boolean {
+    return this._settled;
+  }
 }
 
 export function deferred<T>(): Deferred<T> {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: any) => void;
-  let settled = false;
-
-  const promise = new Promise<T>((res, rej) => {
-    resolve = (value: T) => { settled = true; res(value); };
-    reject = (reason?: any) => { settled = true; rej(reason); };
-  });
-
-  return {
-    promise,
-    resolve,
-    reject,
-    get settled() { return settled; },
-  };
+  return new Deferred<T>();
 }
 
 export function timeout<T>(promise: Promise<T>, ms: number, message?: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(message ?? "Timeout")), ms);
+    const timer = setTimeout(() => reject(new Error(message ?? `Timed out after ${ms}ms`)), ms);
     promise.then(
       (v) => { clearTimeout(timer); resolve(v); },
-      (e) => { clearTimeout(timer); reject(e); }
+      (e) => { clearTimeout(timer); reject(e); },
     );
   });
 }
 
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function settled<T>(promises: Promise<T>[]): Promise<Array<{ status: "fulfilled"; value: T } | { status: "rejected"; reason: any }>> {
-  return Promise.all(
-    promises.map((p) =>
-      p.then(
-        (value) => ({ status: "fulfilled" as const, value }),
-        (reason) => ({ status: "rejected" as const, reason })
-      )
-    )
-  );
 }

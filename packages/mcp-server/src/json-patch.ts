@@ -1,93 +1,107 @@
-export interface PatchOp {
-  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
-  path: string;
-  value?: any;
-  from?: string;
+export type PatchOp =
+  | { op: "add"; path: string; value: unknown }
+  | { op: "remove"; path: string }
+  | { op: "replace"; path: string; value: unknown }
+  | { op: "move"; from: string; path: string }
+  | { op: "copy"; from: string; path: string }
+  | { op: "test"; path: string; value: unknown };
+
+function parsePath(path: string): string[] {
+  if (path === "") return [];
+  if (!path.startsWith("/")) throw new Error(`Invalid path: ${path}`);
+  return path.slice(1).split("/").map((s: string) => s.replace(/~1/g, "/").replace(/~0/g, "~"));
 }
 
-export function applyPatch(doc: any, ops: PatchOp[]): any {
-  let result = structuredClone(doc);
-  for (const op of ops) {
-    result = applyOp(result, op);
+function getParentAndKey(obj: unknown, tokens: string[]): { parent: Record<string, unknown> | unknown[]; key: string } {
+  let current = obj as Record<string, unknown>;
+  for (let i = 0; i < tokens.length - 1; i++) {
+    current = current[tokens[i]] as Record<string, unknown>;
+    if (current === undefined || current === null) throw new Error(`Path not found: ${tokens.slice(0, i + 1).join("/")}`);
   }
-  return result;
+  return { parent: current, key: tokens[tokens.length - 1] };
 }
 
-function applyOp(doc: any, op: PatchOp): any {
-  switch (op.op) {
+function getValue(obj: unknown, tokens: string[]): unknown {
+  let current = obj as Record<string, unknown>;
+  for (const token of tokens) {
+    if (current === undefined || current === null) throw new Error("Path not found");
+    current = current[token] as Record<string, unknown>;
+  }
+  return current;
+}
+
+function deepClone<T>(value: T): T {
+  if (value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((v: unknown) => deepClone(v)) as T;
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(value as Record<string, unknown>)) {
+    result[key] = deepClone((value as Record<string, unknown>)[key]);
+  }
+  return result as T;
+}
+
+export function applyPatch<T>(document: T, patches: PatchOp[]): T {
+  let doc = deepClone(document);
+  for (const patch of patches) {
+    doc = applyOp(doc, patch);
+  }
+  return doc;
+}
+
+function applyOp<T>(doc: T, patch: PatchOp): T {
+  const tokens = parsePath(patch.path);
+
+  switch (patch.op) {
     case "add": {
-      const { parent, key } = resolve(doc, op.path, true);
+      if (tokens.length === 0) return patch.value as T;
+      const { parent, key } = getParentAndKey(doc, tokens);
       if (Array.isArray(parent)) {
-        const idx = key === "-" ? parent.length : Number(key);
-        parent.splice(idx, 0, op.value);
+        const idx = key === "-" ? parent.length : parseInt(key, 10);
+        parent.splice(idx, 0, patch.value);
       } else {
-        parent[key] = op.value;
+        (parent as Record<string, unknown>)[key] = patch.value;
       }
       return doc;
     }
     case "remove": {
-      const { parent, key } = resolve(doc, op.path);
+      if (tokens.length === 0) throw new Error("Cannot remove root");
+      const { parent, key } = getParentAndKey(doc, tokens);
       if (Array.isArray(parent)) {
-        parent.splice(Number(key), 1);
+        parent.splice(parseInt(key, 10), 1);
       } else {
-        delete parent[key];
+        delete (parent as Record<string, unknown>)[key];
       }
       return doc;
     }
     case "replace": {
-      const { parent, key } = resolve(doc, op.path);
-      parent[key] = op.value;
+      if (tokens.length === 0) return patch.value as T;
+      const { parent, key } = getParentAndKey(doc, tokens);
+      if (Array.isArray(parent)) {
+        parent[parseInt(key, 10)] = patch.value;
+      } else {
+        (parent as Record<string, unknown>)[key] = patch.value;
+      }
       return doc;
     }
     case "move": {
-      const { parent: srcParent, key: srcKey } = resolve(doc, op.from!);
-      const val = Array.isArray(srcParent) ? srcParent.splice(Number(srcKey), 1)[0] : srcParent[srcKey];
-      if (!Array.isArray(srcParent)) delete srcParent[srcKey];
-      const { parent, key } = resolve(doc, op.path, true);
-      if (Array.isArray(parent)) {
-        parent.splice(key === "-" ? parent.length : Number(key), 0, val);
-      } else {
-        parent[key] = val;
-      }
+      const fromTokens = parsePath(patch.from);
+      const value = getValue(doc, fromTokens);
+      doc = applyOp(doc, { op: "remove", path: patch.from });
+      doc = applyOp(doc, { op: "add", path: patch.path, value });
       return doc;
     }
     case "copy": {
-      const { parent: srcParent, key: srcKey } = resolve(doc, op.from!);
-      const val = structuredClone(Array.isArray(srcParent) ? srcParent[Number(srcKey)] : srcParent[srcKey]);
-      const { parent, key } = resolve(doc, op.path, true);
-      if (Array.isArray(parent)) {
-        parent.splice(key === "-" ? parent.length : Number(key), 0, val);
-      } else {
-        parent[key] = val;
-      }
+      const fromTokens = parsePath(patch.from);
+      const value = deepClone(getValue(doc, fromTokens));
+      doc = applyOp(doc, { op: "add", path: patch.path, value });
       return doc;
     }
     case "test": {
-      const { parent, key } = resolve(doc, op.path);
-      const val = Array.isArray(parent) ? parent[Number(key)] : parent[key];
-      if (JSON.stringify(val) !== JSON.stringify(op.value)) {
-        throw new Error(`Test failed at "${op.path}"`);
+      const actual = getValue(doc, tokens);
+      if (JSON.stringify(actual) !== JSON.stringify(patch.value)) {
+        throw new Error(`Test failed: expected ${JSON.stringify(patch.value)}, got ${JSON.stringify(actual)}`);
       }
       return doc;
     }
-    default:
-      throw new Error(`Unknown op: ${(op as any).op}`);
   }
-}
-
-function resolve(doc: any, path: string, create = false): { parent: any; key: string } {
-  const parts = path.split("/").slice(1).map((p) => p.replace(/~1/g, "/").replace(/~0/g, "~"));
-  let current = doc;
-  for (let i = 0; i < parts.length - 1; i++) {
-    const part = parts[i];
-    if (Array.isArray(current)) {
-      current = current[Number(part)];
-    } else {
-      if (create && !(part in current)) {
-        current[part] = {};
-      }
-      current = current[part];
-    }
-  }
-  return { parent: current, key: parts[parts.length - 1] };
 }
