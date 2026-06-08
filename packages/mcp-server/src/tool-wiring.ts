@@ -508,6 +508,12 @@ import { fruityviceAll, fruityviceByName } from "./fruityvice-tool.js";
 import { opendotaHeroes, opendotaHeroStats, opendotaProMatches } from "./opendota-tool.js";
 import { imgflipGetMemes } from "./imgflip-tool.js";
 import { articSearchArtworks, articGetArtwork } from "./artic-tool.js";
+import { citybikesNetworks, citybikesNetwork } from "./citybikes-tool.js";
+import { issPosition, issPassTimes } from "./wheretheiss-tool.js";
+import { coinloreGlobal, coinloreTickers, coinloreCoin } from "./coinlore-tool.js";
+import { airQualityCurrent, airQualityForecast } from "./openmeteo-airquality-tool.js";
+import { officialJokeRandom, officialJokeByType, officialJokeTen } from "./officialjoke-tool.js";
+import { multiavatarGenerate } from "./multiavatar-tool.js";
 import { foodishRandom, foodishByCategory } from "./foodish-tool.js";
 import { acnhVillagers, acnhFish, acnhBugs } from "./acnhapi-tool.js";
 import { httpCatImage } from "./httpcat-tool.js";
@@ -7678,6 +7684,135 @@ export const ADDITIONAL_TOOLS = [
     description: "Get a random poem from PoetryDB.",
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── citybikes-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "citybikes_networks",
+    description: "List all bike-sharing networks worldwide from CityBikes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "citybikes_network",
+    description: "Get station details for a specific bike-sharing network.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Network ID (e.g. citi-bike-nyc, velib-metropole)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── wheretheiss-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "iss_position",
+    description: "Get the current position of the International Space Station.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "iss_pass_times",
+    description: "Get ISS position relative to an observer location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Observer latitude." },
+        longitude: { type: "number" as const, description: "Observer longitude." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── coinlore-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "coinlore_global",
+    description: "Get global cryptocurrency market overview from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "coinlore_tickers",
+    description: "List top cryptocurrency tickers with price and market cap from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        start: { type: "number" as const, description: "Offset for pagination (default 0)." },
+        limit: { type: "number" as const, description: "Max results (default 20, max 100)." },
+      },
+    },
+  },
+  {
+    name: "coinlore_coin",
+    description: "Get detailed info for a specific cryptocurrency from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Coin ID (e.g. 90 for Bitcoin, 80 for Ethereum)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── openmeteo-airquality-tool.ts ─────────────────────────────────────────────
+  {
+    name: "air_quality_current",
+    description: "Get current air quality index and pollutant levels from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+  {
+    name: "air_quality_forecast",
+    description: "Get hourly air quality forecast from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+        days: { type: "number" as const, description: "Forecast days (default 3, max 5)." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── officialjoke-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "official_joke_random",
+    description: "Get a random joke from Official Joke API (setup + punchline format).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "official_joke_by_type",
+    description: "Get a random joke by type from Official Joke API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        type: { type: "string" as const, description: "Joke type: general, programming, or knock-knock." },
+      },
+    },
+  },
+  {
+    name: "official_joke_ten",
+    description: "Get 10 random jokes from Official Joke API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── multiavatar-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "multiavatar_generate",
+    description: "Generate a unique avatar image URL from any string (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Any string to generate a deterministic avatar (default: 'default')." },
+      },
     },
   },
 
@@ -18840,6 +18975,25 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   poetry_search_by_author:   (args) => poetrySearchByAuthor(args),
   poetry_search_by_title:    (args) => poetrySearchByTitle(args),
   poetry_random:             (args) => poetryRandom(args),
+  // citybikes-tool.ts
+  citybikes_networks:        (args) => citybikesNetworks(args),
+  citybikes_network:         (args) => citybikesNetwork(args),
+  // wheretheiss-tool.ts
+  iss_position:              (args) => issPosition(args),
+  iss_pass_times:            (args) => issPassTimes(args),
+  // coinlore-tool.ts
+  coinlore_global:           (args) => coinloreGlobal(args),
+  coinlore_tickers:          (args) => coinloreTickers(args),
+  coinlore_coin:             (args) => coinloreCoin(args),
+  // openmeteo-airquality-tool.ts
+  air_quality_current:       (args) => airQualityCurrent(args),
+  air_quality_forecast:      (args) => airQualityForecast(args),
+  // officialjoke-tool.ts
+  official_joke_random:      (args) => officialJokeRandom(args),
+  official_joke_by_type:     (args) => officialJokeByType(args),
+  official_joke_ten:         (args) => officialJokeTen(args),
+  // multiavatar-tool.ts
+  multiavatar_generate:      (args) => multiavatarGenerate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T12:30:00.000Z",
+  "updatedAt": "2026-06-08T13:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -2879,6 +2879,61 @@
         "poetry_search_by_author",
         "poetry_search_by_title",
         "poetry_random"
+      ]
+    },
+    "citybikes": {
+      "status": "pass",
+      "note": "citybikes_networks and citybikes_network return bike-sharing data from citybik.es. Free, no key needed.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "citybikes_networks",
+        "citybikes_network"
+      ]
+    },
+    "wheretheiss": {
+      "status": "pass",
+      "note": "iss_position and iss_pass_times return ISS tracking data from wheretheiss.at. Free, no key needed.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "iss_position",
+        "iss_pass_times"
+      ]
+    },
+    "coinlore": {
+      "status": "pass",
+      "note": "coinlore_global, coinlore_tickers, coinlore_coin return crypto data from coinlore.net. Free, no key needed.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "coinlore_global",
+        "coinlore_tickers",
+        "coinlore_coin"
+      ]
+    },
+    "openmeteo-airquality": {
+      "status": "pass",
+      "note": "air_quality_current and air_quality_forecast return AQI data from open-meteo.com. Free, no key needed.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "air_quality_current",
+        "air_quality_forecast"
+      ]
+    },
+    "officialjoke": {
+      "status": "pass",
+      "note": "joke_random, joke_by_type, joke_ten return jokes from official-joke-api.appspot.com. Free, no key needed.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "official_joke_random",
+        "official_joke_by_type",
+        "official_joke_ten"
+      ]
+    },
+    "multiavatar": {
+      "status": "pass",
+      "note": "multiavatar_generate builds avatar URLs from multiavatar.com. Local URL builder, no network call.",
+      "testedAt": "2026-06-08T13:00:00.000Z",
+      "toolsTested": [
+        "multiavatar_generate"
       ]
     }
   },

@@ -874,6 +874,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "citybikes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "citybikes_networks",
+        "description": "List all bike-sharing networks worldwide from CityBikes."
+      },
+      {
+        "name": "citybikes_network",
+        "description": "Get station details for a specific bike-sharing network."
+      }
+    ]
+  },
+  {
     "app": "clickup",
     "category": "Developer / Productivity",
     "tools": [
@@ -1012,6 +1026,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "crypto_coin_history",
         "description": "Get historical price data for a cryptocurrency from CoinGecko."
+      }
+    ]
+  },
+  {
+    "app": "coinlore",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coinlore_global",
+        "description": "Get global cryptocurrency market overview from Coinlore."
+      },
+      {
+        "name": "coinlore_tickers",
+        "description": "List top cryptocurrency tickers with price and market cap from Coinlore."
+      },
+      {
+        "name": "coinlore_coin",
+        "description": "Get detailed info for a specific cryptocurrency from Coinlore."
       }
     ]
   },
@@ -3630,6 +3662,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "multiavatar",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "multiavatar_generate",
+        "description": "Generate a unique avatar image URL from any string (no network call)."
+      }
+    ]
+  },
+  {
     "app": "musicbrainz",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3832,6 +3874,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "get_recent_cves",
         "description": "Get recently published CVEs from NVD."
+      }
+    ]
+  },
+  {
+    "app": "officialjoke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "official_joke_random",
+        "description": "Get a random joke from Official Joke API (setup + punchline format)."
+      },
+      {
+        "name": "official_joke_by_type",
+        "description": "Get a random joke by type from Official Joke API."
+      },
+      {
+        "name": "official_joke_ten",
+        "description": "Get 10 random jokes from Official Joke API."
       }
     ]
   },
@@ -4070,6 +4130,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "weather_hourly",
         "description": "Get hourly weather forecast from Open-Meteo."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-airquality",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "air_quality_current",
+        "description": "Get current air quality index and pollutant levels from Open-Meteo."
+      },
+      {
+        "name": "air_quality_forecast",
+        "description": "Get hourly air quality forecast from Open-Meteo."
       }
     ]
   },
@@ -6632,6 +6706,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "whatsapp_upload_media",
         "description": "Upload a media file to WhatsApp and get a media ID for use in messages."
+      }
+    ]
+  },
+  {
+    "app": "wheretheiss",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_position",
+        "description": "Get the current position of the International Space Station."
+      },
+      {
+        "name": "iss_pass_times",
+        "description": "Get ISS position relative to an observer location."
       }
     ]
   },
