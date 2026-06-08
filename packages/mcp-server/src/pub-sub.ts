@@ -1,51 +1,42 @@
-type Handler<T = unknown> = (data: T) => void;
+type Handler<T> = (data: T) => void;
 
-export class PubSub {
-  private topics = new Map<string, Set<Handler>>();
+export class PubSub<Events extends Record<string, any>> {
+  private handlers = new Map<keyof Events, Set<Handler<any>>>();
 
-  subscribe<T = unknown>(topic: string, handler: Handler<T>): () => void {
-    if (!this.topics.has(topic)) this.topics.set(topic, new Set());
-    this.topics.get(topic)!.add(handler as Handler);
-    return () => this.unsubscribe(topic, handler);
-  }
-
-  unsubscribe<T = unknown>(topic: string, handler: Handler<T>): void {
-    this.topics.get(topic)?.delete(handler as Handler);
-  }
-
-  publish<T = unknown>(topic: string, data: T): number {
-    const handlers = this.topics.get(topic);
-    if (!handlers) return 0;
-    let count = 0;
-    for (const fn of handlers) {
-      try { fn(data); count++; } catch {}
+  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
+    let set = this.handlers.get(event);
+    if (!set) {
+      set = new Set();
+      this.handlers.set(event, set);
     }
-    return count;
+    set.add(handler);
+    return () => set!.delete(handler);
   }
 
-  publishToAll<T = unknown>(data: T): number {
-    let total = 0;
-    for (const handlers of this.topics.values()) {
-      for (const fn of handlers) {
-        try { fn(data); total++; } catch {}
-      }
-    }
-    return total;
+  once<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
+    const wrapper: Handler<Events[K]> = (data) => {
+      off();
+      handler(data);
+    };
+    const off = this.on(event, wrapper);
+    return off;
   }
 
-  listTopics(): string[] {
-    return [...this.topics.keys()];
+  emit<K extends keyof Events>(event: K, data: Events[K]): void {
+    const set = this.handlers.get(event);
+    if (!set) return;
+    for (const handler of set) handler(data);
   }
 
-  subscriberCount(topic: string): number {
-    return this.topics.get(topic)?.size ?? 0;
+  off<K extends keyof Events>(event: K): void {
+    this.handlers.delete(event);
   }
 
-  clear(topic?: string): void {
-    if (topic) {
-      this.topics.delete(topic);
-    } else {
-      this.topics.clear();
-    }
+  offAll(): void {
+    this.handlers.clear();
+  }
+
+  listenerCount<K extends keyof Events>(event: K): number {
+    return this.handlers.get(event)?.size ?? 0;
   }
 }

@@ -1,90 +1,80 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { PubSub } from "../pub-sub.js";
 
+interface Events {
+  message: string;
+  count: number;
+  done: void;
+}
+
 describe("PubSub", () => {
-  it("delivers messages to subscribers", () => {
-    const bus = new PubSub();
-    const received: string[] = [];
-    bus.subscribe<string>("chat", (msg) => received.push(msg));
-    bus.publish("chat", "hello");
-    expect(received).toEqual(["hello"]);
+  it("emits and receives events", () => {
+    const ps = new PubSub<Events>();
+    const fn = vi.fn();
+    ps.on("message", fn);
+    ps.emit("message", "hello");
+    expect(fn).toHaveBeenCalledWith("hello");
   });
 
-  it("returns handler count from publish", () => {
-    const bus = new PubSub();
-    bus.subscribe("t", () => {});
-    bus.subscribe("t", () => {});
-    expect(bus.publish("t", "x")).toBe(2);
+  it("different event types are independent", () => {
+    const ps = new PubSub<Events>();
+    const fn = vi.fn();
+    ps.on("message", fn);
+    ps.emit("count", 42);
+    expect(fn).not.toHaveBeenCalled();
   });
 
-  it("returns 0 when publishing to empty topic", () => {
-    const bus = new PubSub();
-    expect(bus.publish("nope", "x")).toBe(0);
+  it("once fires only once", () => {
+    const ps = new PubSub<Events>();
+    const fn = vi.fn();
+    ps.once("count", fn);
+    ps.emit("count", 1);
+    ps.emit("count", 2);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(1);
   });
 
-  it("unsubscribe stops delivery", () => {
-    const bus = new PubSub();
-    const received: number[] = [];
-    const unsub = bus.subscribe<number>("n", (v) => received.push(v));
-    bus.publish("n", 1);
-    unsub();
-    bus.publish("n", 2);
-    expect(received).toEqual([1]);
+  it("unsubscribe via returned function", () => {
+    const ps = new PubSub<Events>();
+    const fn = vi.fn();
+    const off = ps.on("message", fn);
+    off();
+    ps.emit("message", "hi");
+    expect(fn).not.toHaveBeenCalled();
   });
 
-  it("publishToAll sends to every topic", () => {
-    const bus = new PubSub();
-    const a: unknown[] = [];
-    const b: unknown[] = [];
-    bus.subscribe("x", (v) => a.push(v));
-    bus.subscribe("y", (v) => b.push(v));
-    const count = bus.publishToAll("broadcast");
-    expect(count).toBe(2);
-    expect(a).toEqual(["broadcast"]);
-    expect(b).toEqual(["broadcast"]);
+  it("off removes all handlers for event", () => {
+    const ps = new PubSub<Events>();
+    const fn1 = vi.fn();
+    const fn2 = vi.fn();
+    ps.on("message", fn1);
+    ps.on("message", fn2);
+    ps.off("message");
+    ps.emit("message", "hi");
+    expect(fn1).not.toHaveBeenCalled();
+    expect(fn2).not.toHaveBeenCalled();
   });
 
-  it("listTopics returns all topic names", () => {
-    const bus = new PubSub();
-    bus.subscribe("alpha", () => {});
-    bus.subscribe("beta", () => {});
-    expect(bus.listTopics().sort()).toEqual(["alpha", "beta"]);
+  it("offAll removes everything", () => {
+    const ps = new PubSub<Events>();
+    ps.on("message", vi.fn());
+    ps.on("count", vi.fn());
+    ps.offAll();
+    expect(ps.listenerCount("message")).toBe(0);
+    expect(ps.listenerCount("count")).toBe(0);
   });
 
-  it("subscriberCount tracks per topic", () => {
-    const bus = new PubSub();
-    bus.subscribe("t", () => {});
-    bus.subscribe("t", () => {});
-    bus.subscribe("other", () => {});
-    expect(bus.subscriberCount("t")).toBe(2);
-    expect(bus.subscriberCount("other")).toBe(1);
-    expect(bus.subscriberCount("missing")).toBe(0);
+  it("listenerCount tracks handlers", () => {
+    const ps = new PubSub<Events>();
+    expect(ps.listenerCount("message")).toBe(0);
+    const off = ps.on("message", () => {});
+    expect(ps.listenerCount("message")).toBe(1);
+    off();
+    expect(ps.listenerCount("message")).toBe(0);
   });
 
-  it("clear removes specific topic", () => {
-    const bus = new PubSub();
-    bus.subscribe("a", () => {});
-    bus.subscribe("b", () => {});
-    bus.clear("a");
-    expect(bus.subscriberCount("a")).toBe(0);
-    expect(bus.subscriberCount("b")).toBe(1);
-  });
-
-  it("clear with no args removes all topics", () => {
-    const bus = new PubSub();
-    bus.subscribe("a", () => {});
-    bus.subscribe("b", () => {});
-    bus.clear();
-    expect(bus.listTopics()).toEqual([]);
-  });
-
-  it("swallows handler errors without stopping delivery", () => {
-    const bus = new PubSub();
-    const received: string[] = [];
-    bus.subscribe("t", () => { throw new Error("boom"); });
-    bus.subscribe<string>("t", (v) => received.push(v));
-    const count = bus.publish("t", "ok");
-    expect(count).toBe(1);
-    expect(received).toEqual(["ok"]);
+  it("emit to non-existent event is safe", () => {
+    const ps = new PubSub<Events>();
+    expect(() => ps.emit("message", "x")).not.toThrow();
   });
 });

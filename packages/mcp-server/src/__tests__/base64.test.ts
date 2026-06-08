@@ -1,61 +1,53 @@
 import { describe, it, expect } from "vitest";
-import { encode, decode, encodeUrl, decodeUrl, isBase64, isBase64Url, safeDecode } from "../base64.js";
+import { encode, decode, decodeToString, encodeUrlSafe, decodeUrlSafe } from "../base64.js";
 
 describe("base64", () => {
-  it("encode/decode round-trips", () => {
-    expect(decode(encode("hello world"))).toBe("hello world");
+  it("encodes a string", () => {
+    expect(encode("Hello")).toBe("SGVsbG8=");
   });
 
-  it("encodes to standard base64", () => {
-    expect(encode("hello")).toBe("aGVsbG8=");
+  it("encodes empty string", () => {
+    expect(encode("")).toBe("");
   });
 
-  it("handles unicode", () => {
-    const input = "Hello \u{1F600}";
-    expect(decode(encode(input))).toBe(input);
-  });
-});
-
-describe("base64url", () => {
-  it("encodeUrl/decodeUrl round-trips", () => {
-    expect(decodeUrl(encodeUrl("hello world"))).toBe("hello world");
+  it("encodes Uint8Array", () => {
+    const bytes = new Uint8Array([72, 101, 108, 108, 111]);
+    expect(encode(bytes)).toBe("SGVsbG8=");
   });
 
-  it("produces url-safe output", () => {
-    const encoded = encodeUrl("subjects?_d=1&a=2");
-    expect(encoded).not.toMatch(/[+/=]/);
-  });
-});
-
-describe("isBase64", () => {
-  it("detects valid base64", () => {
-    expect(isBase64("aGVsbG8=")).toBe(true);
-    expect(isBase64("YQ==")).toBe(true);
+  it("decodes to Uint8Array", () => {
+    const bytes = decode("SGVsbG8=");
+    expect([...bytes]).toEqual([72, 101, 108, 108, 111]);
   });
 
-  it("rejects invalid base64", () => {
-    expect(isBase64("")).toBe(false);
-    expect(isBase64("not valid!!!")).toBe(false);
-  });
-});
-
-describe("isBase64Url", () => {
-  it("detects valid base64url", () => {
-    expect(isBase64Url("aGVsbG8")).toBe(true);
-    expect(isBase64Url("abc_def-ghi")).toBe(true);
+  it("decodeToString returns string", () => {
+    expect(decodeToString("SGVsbG8=")).toBe("Hello");
   });
 
-  it("rejects standard base64 padding", () => {
-    expect(isBase64Url("aGVsbG8=")).toBe(false);
-  });
-});
-
-describe("safeDecode", () => {
-  it("decodes valid input", () => {
-    expect(safeDecode("aGVsbG8=")).toBe("hello");
+  it("roundtrips various strings", () => {
+    const cases = ["", "a", "ab", "abc", "Hello, World!", "The quick brown fox"];
+    for (const s of cases) {
+      expect(decodeToString(encode(s))).toBe(s);
+    }
   });
 
-  it("returns undefined for garbage", () => {
-    expect(safeDecode("")).toBe("");
+  it("handles padding correctly", () => {
+    expect(encode("a")).toBe("YQ==");
+    expect(encode("ab")).toBe("YWI=");
+    expect(encode("abc")).toBe("YWJj");
+  });
+
+  it("url-safe encode removes padding and swaps chars", () => {
+    const encoded = encodeUrlSafe("Hello?World>");
+    expect(encoded).not.toContain("+");
+    expect(encoded).not.toContain("/");
+    expect(encoded).not.toContain("=");
+  });
+
+  it("url-safe roundtrips", () => {
+    const input = "Hello?World>foo+bar";
+    const encoded = encodeUrlSafe(input);
+    const decoded = new TextDecoder().decode(decodeUrlSafe(encoded));
+    expect(decoded).toBe(input);
   });
 });
