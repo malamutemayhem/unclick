@@ -1,77 +1,68 @@
 export class RingBuffer<T> {
-  private buffer: Array<T | undefined>;
+  private buffer: (T | undefined)[];
+  private capacity: number;
   private head = 0;
-  private tail = 0;
-  private _size = 0;
-  private _capacity: number;
+  private count = 0;
 
   constructor(capacity: number) {
-    this._capacity = capacity;
+    if (capacity < 1) throw new Error("Capacity must be at least 1");
+    this.capacity = capacity;
     this.buffer = new Array(capacity);
   }
 
   push(item: T): T | undefined {
-    let evicted: T | undefined;
-    if (this._size === this._capacity) {
-      evicted = this.buffer[this.head];
-      this.head = (this.head + 1) % this._capacity;
-      this._size--;
-    }
-    this.buffer[this.tail] = item;
-    this.tail = (this.tail + 1) % this._capacity;
-    this._size++;
-    return evicted;
-  }
-
-  shift(): T | undefined {
-    if (this._size === 0) return undefined;
-    const item = this.buffer[this.head];
-    this.buffer[this.head] = undefined;
-    this.head = (this.head + 1) % this._capacity;
-    this._size--;
-    return item;
+    const overwritten = this.isFull() ? this.buffer[this.head] : undefined;
+    this.buffer[this.head] = item;
+    this.head = (this.head + 1) % this.capacity;
+    if (this.count < this.capacity) this.count++;
+    return overwritten;
   }
 
   peek(): T | undefined {
-    if (this._size === 0) return undefined;
-    return this.buffer[this.head];
-  }
-
-  peekLast(): T | undefined {
-    if (this._size === 0) return undefined;
-    const idx = (this.tail - 1 + this._capacity) % this._capacity;
+    if (this.count === 0) return undefined;
+    const idx = (this.head - this.count + this.capacity) % this.capacity;
     return this.buffer[idx];
   }
 
-  at(index: number): T | undefined {
-    if (index < 0 || index >= this._size) return undefined;
-    return this.buffer[(this.head + index) % this._capacity];
-  }
-
-  get size(): number {
-    return this._size;
-  }
-
-  get capacity(): number {
-    return this._capacity;
-  }
-
-  get isFull(): boolean {
-    return this._size === this._capacity;
-  }
-
-  clear(): void {
-    this.buffer = new Array(this._capacity);
-    this.head = 0;
-    this.tail = 0;
-    this._size = 0;
+  peekLast(): T | undefined {
+    if (this.count === 0) return undefined;
+    return this.buffer[(this.head - 1 + this.capacity) % this.capacity];
   }
 
   toArray(): T[] {
     const result: T[] = [];
-    for (let i = 0; i < this._size; i++) {
-      result.push(this.buffer[(this.head + i) % this._capacity] as T);
+    const start = (this.head - this.count + this.capacity) % this.capacity;
+    for (let i = 0; i < this.count; i++) {
+      result.push(this.buffer[(start + i) % this.capacity] as T);
     }
     return result;
+  }
+
+  get size(): number {
+    return this.count;
+  }
+
+  get maxCapacity(): number {
+    return this.capacity;
+  }
+
+  isFull(): boolean {
+    return this.count === this.capacity;
+  }
+
+  isEmpty(): boolean {
+    return this.count === 0;
+  }
+
+  clear(): void {
+    this.buffer = new Array(this.capacity);
+    this.head = 0;
+    this.count = 0;
+  }
+
+  at(index: number): T | undefined {
+    if (index < 0 || index >= this.count) return undefined;
+    const start = (this.head - this.count + this.capacity) % this.capacity;
+    return this.buffer[(start + index) % this.capacity];
   }
 }

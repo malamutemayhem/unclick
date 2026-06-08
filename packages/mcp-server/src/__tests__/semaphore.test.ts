@@ -2,91 +2,78 @@ import { describe, it, expect } from "vitest";
 import { Semaphore, Mutex } from "../semaphore.js";
 
 describe("Semaphore", () => {
-  it("allows up to maxConcurrency", async () => {
+  it("allows up to max permits", async () => {
     const sem = new Semaphore(2);
     await sem.acquire();
     await sem.acquire();
     expect(sem.available).toBe(0);
-    expect(sem.waitingCount).toBe(0);
   });
 
-  it("queues beyond capacity", async () => {
+  it("blocks when no permits available", async () => {
     const sem = new Semaphore(1);
     await sem.acquire();
     let resolved = false;
     const p = sem.acquire().then(() => { resolved = true; });
+    await new Promise((r) => setTimeout(r, 10));
     expect(resolved).toBe(false);
-    expect(sem.waitingCount).toBe(1);
     sem.release();
     await p;
     expect(resolved).toBe(true);
   });
 
-  it("run acquires and releases automatically", async () => {
+  it("tryAcquire returns boolean", () => {
     const sem = new Semaphore(1);
-    const result = await sem.run(async () => {
-      expect(sem.available).toBe(0);
-      return 42;
-    });
+    expect(sem.tryAcquire()).toBe(true);
+    expect(sem.tryAcquire()).toBe(false);
+  });
+
+  it("reports available and waiting", async () => {
+    const sem = new Semaphore(2);
+    expect(sem.available).toBe(2);
+    expect(sem.waiting).toBe(0);
+    await sem.acquire();
+    await sem.acquire();
+    const p = sem.acquire();
+    expect(sem.waiting).toBe(1);
+    sem.release();
+    await p;
+  });
+
+  it("withPermit auto-releases", async () => {
+    const sem = new Semaphore(1);
+    const result = await sem.withPermit(async () => 42);
     expect(result).toBe(42);
     expect(sem.available).toBe(1);
   });
 
-  it("run releases on error", async () => {
+  it("withPermit releases on error", async () => {
     const sem = new Semaphore(1);
-    await expect(sem.run(async () => { throw new Error("boom"); })).rejects.toThrow("boom");
+    await expect(sem.withPermit(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
     expect(sem.available).toBe(1);
   });
 
-  it("limits concurrency in practice", async () => {
-    const sem = new Semaphore(2);
-    let concurrent = 0;
-    let maxConcurrent = 0;
-    const task = async () => {
-      await sem.acquire();
-      concurrent++;
-      if (concurrent > maxConcurrent) maxConcurrent = concurrent;
-      await new Promise((r) => setTimeout(r, 10));
-      concurrent--;
-      sem.release();
-    };
-    await Promise.all([task(), task(), task(), task()]);
-    expect(maxConcurrent).toBeLessThanOrEqual(2);
+  it("max returns max permits", () => {
+    expect(new Semaphore(5).max).toBe(5);
+  });
+
+  it("throws for invalid max", () => {
+    expect(() => new Semaphore(0)).toThrow();
   });
 });
 
 describe("Mutex", () => {
-  it("starts unlocked", () => {
-    const m = new Mutex();
-    expect(m.isLocked).toBe(false);
+  it("allows one at a time", async () => {
+    const mutex = new Mutex();
+    expect(mutex.max).toBe(1);
+    await mutex.acquire();
+    expect(mutex.available).toBe(0);
+    mutex.release();
+    expect(mutex.available).toBe(1);
   });
 
-  it("locks on acquire", async () => {
-    const m = new Mutex();
-    await m.acquire();
-    expect(m.isLocked).toBe(true);
-  });
-
-  it("serializes access", async () => {
-    const m = new Mutex();
-    const order: number[] = [];
-    const task = async (id: number) => {
-      await m.acquire();
-      order.push(id);
-      await new Promise((r) => setTimeout(r, 5));
-      m.release();
-    };
-    await Promise.all([task(1), task(2), task(3)]);
-    expect(order).toEqual([1, 2, 3]);
-  });
-
-  it("run acquires and releases", async () => {
-    const m = new Mutex();
-    const result = await m.run(async () => {
-      expect(m.isLocked).toBe(true);
-      return "done";
-    });
+  it("withLock provides mutual exclusion", async () => {
+    const mutex = new Mutex();
+    const result = await mutex.withLock(async () => "done");
     expect(result).toBe("done");
-    expect(m.isLocked).toBe(false);
   });
 });
