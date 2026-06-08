@@ -1,62 +1,92 @@
-export type Transform<I, O> = (input: I) => O;
+type Step<I, O> = (input: I) => O;
+type AsyncStep<I, O> = (input: I) => O | Promise<O>;
 
-export class DataPipeline<I, O> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private steps: Array<{ name: string; transform: Transform<any, any> }> = [];
+export class Pipeline<I, O> {
+  private steps: AsyncStep<unknown, unknown>[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pipe<N>(name: string, transform: Transform<O, N>): DataPipeline<I, N> {
-    this.steps.push({ name, transform });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this as any;
-  }
-
-  run(input: I): O {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value: any = input;
-    for (const step of this.steps) {
-      value = step.transform(value);
+  constructor(private initialStep?: AsyncStep<I, O>) {
+    if (initialStep) {
+      this.steps.push(initialStep as AsyncStep<unknown, unknown>);
     }
-    return value as O;
   }
 
-  runBatch(inputs: I[]): O[] {
-    return inputs.map((i) => this.run(i));
+  pipe<N>(step: AsyncStep<O, N>): Pipeline<I, N> {
+    const next = new Pipeline<I, N>();
+    next.steps = [...this.steps, step as AsyncStep<unknown, unknown>];
+    return next;
   }
 
-  get stepCount(): number {
+  async execute(input: I): Promise<O> {
+    let current: unknown = input;
+    for (const step of this.steps) {
+      current = await step(current);
+    }
+    return current as O;
+  }
+
+  async executeBatch(inputs: I[]): Promise<O[]> {
+    return Promise.all(inputs.map((input) => this.execute(input)));
+  }
+
+  get length(): number {
     return this.steps.length;
   }
-
-  stepNames(): string[] {
-    return this.steps.map((s) => s.name);
-  }
 }
 
-export function createPipeline<T>(): DataPipeline<T, T> {
-  return new DataPipeline();
+export function pipeline<I, O>(step: Step<I, O>): Pipeline<I, O> {
+  return new Pipeline(step);
 }
 
-export function mapTransform<T, U>(fn: (item: T) => U): Transform<T[], U[]> {
-  return (items) => items.map(fn);
+export function tap<T>(fn: (value: T) => void): Step<T, T> {
+  return (value: T) => { fn(value); return value; };
 }
 
-export function filterTransform<T>(predicate: (item: T) => boolean): Transform<T[], T[]> {
-  return (items) => items.filter(predicate);
+export function filter<T>(predicate: (value: T) => boolean): Step<T[], T[]> {
+  return (arr: T[]) => arr.filter(predicate);
 }
 
-export function groupByTransform<T>(keyFn: (item: T) => string): Transform<T[], Record<string, T[]>> {
-  return (items) => {
+export function mapStep<T, R>(fn: (item: T) => R): Step<T[], R[]> {
+  return (arr: T[]) => arr.map(fn);
+}
+
+export function sortBy<T>(key: keyof T, order: "asc" | "desc" = "asc"): Step<T[], T[]> {
+  return (arr: T[]) => [...arr].sort((a, b) => {
+    const av = a[key];
+    const bv = b[key];
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return order === "asc" ? cmp : -cmp;
+  });
+}
+
+export function groupBy<T>(key: keyof T): Step<T[], Record<string, T[]>> {
+  return (arr: T[]) => {
     const groups: Record<string, T[]> = {};
-    for (const item of items) {
-      const key = keyFn(item);
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(item);
+    for (const item of arr) {
+      const k = String(item[key]);
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(item);
     }
     return groups;
   };
 }
 
-export function sortTransform<T>(compareFn: (a: T, b: T) => number): Transform<T[], T[]> {
-  return (items) => [...items].sort(compareFn);
+export function unique<T>(key?: keyof T): Step<T[], T[]> {
+  return (arr: T[]) => {
+    if (!key) return [...new Set(arr)];
+    const seen = new Set<unknown>();
+    return arr.filter((item) => {
+      const k = item[key];
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+}
+
+export function take<T>(count: number): Step<T[], T[]> {
+  return (arr: T[]) => arr.slice(0, count);
+}
+
+export function skip<T>(count: number): Step<T[], T[]> {
+  return (arr: T[]) => arr.slice(count);
 }

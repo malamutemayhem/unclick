@@ -1,89 +1,100 @@
 import { describe, it, expect } from "vitest";
-import { ok, err, isOk, isErr, unwrap, unwrapOr, map, mapErr, flatMap, tryCatch, collect } from "../result-type.js";
+import { ok, err, tryCatch, fromNullable, collect, Ok, Err } from "../result-type.js";
 
-describe("ok / err", () => {
-  it("ok creates success", () => {
-    const r = ok(42);
+describe("Ok", () => {
+  it("unwrap returns value", () => {
+    expect(ok(42).unwrap()).toBe(42);
+  });
+
+  it("map transforms value", () => {
+    expect(ok(5).map((x) => x * 2).unwrap()).toBe(10);
+  });
+
+  it("flatMap chains", () => {
+    const result = ok(5).flatMap((x) => ok(x * 2));
+    expect(result.unwrap()).toBe(10);
+  });
+
+  it("unwrapOr returns value", () => {
+    expect(ok(5).unwrapOr(0)).toBe(5);
+  });
+
+  it("unwrapErr throws", () => {
+    expect(() => ok(5).unwrapErr()).toThrow();
+  });
+
+  it("match calls ok handler", () => {
+    const result = ok(5).match({ ok: (v) => v * 2, err: () => 0 });
+    expect(result).toBe(10);
+  });
+
+  it("ok is true, err is false", () => {
+    const r = ok(1);
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.value).toBe(42);
-  });
-  it("err creates failure", () => {
-    const r = err("bad");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toBe("bad");
+    expect(r.err).toBe(false);
   });
 });
 
-describe("isOk / isErr", () => {
-  it("type guards work", () => {
-    expect(isOk(ok(1))).toBe(true);
-    expect(isErr(err("x"))).toBe(true);
-    expect(isOk(err("x"))).toBe(false);
+describe("Err", () => {
+  it("unwrap throws", () => {
+    expect(() => err(new Error("fail")).unwrap()).toThrow("fail");
   });
-});
 
-describe("unwrap", () => {
-  it("returns value on ok", () => {
-    expect(unwrap(ok(42))).toBe(42);
-  });
-  it("throws on err", () => {
-    expect(() => unwrap(err(new Error("fail")))).toThrow("fail");
-  });
-});
-
-describe("unwrapOr", () => {
-  it("returns value on ok", () => {
-    expect(unwrapOr(ok(1), 0)).toBe(1);
-  });
-  it("returns fallback on err", () => {
-    expect(unwrapOr(err("x"), 99)).toBe(99);
-  });
-});
-
-describe("map / mapErr", () => {
-  it("map transforms ok value", () => {
-    const r = map(ok(2), (v) => v * 3);
-    expect(unwrap(r)).toBe(6);
-  });
-  it("map passes through err", () => {
-    const r = map(err("x"), (v: number) => v * 3);
-    expect(isErr(r)).toBe(true);
-  });
   it("mapErr transforms error", () => {
-    const r = mapErr(err("low"), (e) => e.toUpperCase());
-    if (!r.ok) expect(r.error).toBe("LOW");
+    const r = err("bad").mapErr((e) => `Error: ${e}`);
+    expect(r.unwrapErr()).toBe("Error: bad");
   });
-});
 
-describe("flatMap", () => {
-  it("chains results", () => {
-    const r = flatMap(ok(5), (v) => v > 0 ? ok(v * 2) : err("negative"));
-    expect(unwrap(r)).toBe(10);
+  it("unwrapOr returns fallback", () => {
+    expect(err("fail").unwrapOr(42)).toBe(42);
   });
-  it("short-circuits on err", () => {
-    const r = flatMap(err("x"), () => ok(1));
-    expect(isErr(r)).toBe(true);
+
+  it("map is no-op on Err", () => {
+    const r = err("fail").map(() => 42);
+    expect(r.err).toBe(true);
+  });
+
+  it("match calls err handler", () => {
+    const result = err("bad").match({ ok: () => "none", err: (e) => `got: ${e}` });
+    expect(result).toBe("got: bad");
   });
 });
 
 describe("tryCatch", () => {
-  it("captures success", () => {
+  it("catches to Ok", () => {
     const r = tryCatch(() => 42);
-    expect(unwrap(r)).toBe(42);
+    expect(r.ok).toBe(true);
+    expect(r.unwrap()).toBe(42);
   });
-  it("captures error", () => {
+
+  it("catches to Err", () => {
     const r = tryCatch(() => { throw new Error("boom"); });
-    expect(isErr(r)).toBe(true);
+    expect(r.err).toBe(true);
+  });
+});
+
+describe("fromNullable", () => {
+  it("wraps value", () => {
+    expect(fromNullable(42).unwrap()).toBe(42);
+  });
+
+  it("wraps null as err", () => {
+    expect(fromNullable(null).err).toBe(true);
+  });
+
+  it("wraps undefined as err", () => {
+    expect(fromNullable(undefined).err).toBe(true);
   });
 });
 
 describe("collect", () => {
-  it("collects all ok", () => {
+  it("collects all Ok", () => {
     const r = collect([ok(1), ok(2), ok(3)]);
-    expect(unwrap(r)).toEqual([1, 2, 3]);
+    expect(r.unwrap()).toEqual([1, 2, 3]);
   });
-  it("returns first err", () => {
-    const r = collect([ok(1), err("bad"), ok(3)]);
-    expect(isErr(r)).toBe(true);
+
+  it("returns first Err", () => {
+    const r = collect([ok(1), err("fail"), ok(3)]);
+    expect(r.err).toBe(true);
   });
 });

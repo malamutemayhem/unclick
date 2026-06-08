@@ -1,72 +1,165 @@
-export function render(template: string, data: Record<string, unknown>): string {
-  return template.replace(/\{\{(.*?)\}\}/g, (_: string, expr: string) => {
-    const trimmed = expr.trim();
-    if (trimmed.startsWith("#if ")) return "";
-    if (trimmed === "/if") return "";
-    if (trimmed.startsWith("#each ")) return "";
-    if (trimmed === "/each") return "";
-    const value = resolvePath(data, trimmed);
-    return value === undefined ? "" : String(value);
-  });
+export interface TemplateOptions {
+  openTag?: string;
+  closeTag?: string;
+  strip?: boolean;
 }
 
-export function renderWithBlocks(template: string, data: Record<string, unknown>): string {
-  let result = template;
-  result = processEach(result, data);
-  result = processIf(result, data);
-  result = render(result, data);
+interface CompiledPart {
+  type: "text" | "expr" | "if" | "endif" | "each" | "endeach" | "else";
+  content: string;
+}
+
+export function compile(template: string, options: TemplateOptions = {}): (data: Record<string, unknown>) => string {
+  const { openTag = "{{", closeTag = "}}", strip = true } = options;
+  const parts = parse(template, openTag, closeTag, strip);
+  return (data: Record<string, unknown>) => evaluate(parts, data);
+}
+
+export function render(template: string, data: Record<string, unknown>, options: TemplateOptions = {}): string {
+  return compile(template, options)(data);
+}
+
+function parse(template: string, open: string, close: string, strip: boolean): CompiledPart[] {
+  const parts: CompiledPart[] = [];
+  let pos = 0;
+
+  while (pos < template.length) {
+    const start = template.indexOf(open, pos);
+    if (start === -1) {
+      parts.push({ type: "text", content: template.slice(pos) });
+      break;
+    }
+
+    if (start > pos) {
+      parts.push({ type: "text", content: template.slice(pos, start) });
+    }
+
+    const end = template.indexOf(close, start + open.length);
+    if (end === -1) {
+      parts.push({ type: "text", content: template.slice(pos) });
+      break;
+    }
+
+    const raw = template.slice(start + open.length, end);
+    const expr = strip ? raw.trim() : raw;
+
+    if (expr.startsWith("#if ")) {
+      parts.push({ type: "if", content: expr.slice(4).trim() });
+    } else if (expr === "/if") {
+      parts.push({ type: "endif", content: "" });
+    } else if (expr.startsWith("#each ")) {
+      parts.push({ type: "each", content: expr.slice(6).trim() });
+    } else if (expr === "/each") {
+      parts.push({ type: "endeach", content: "" });
+    } else if (expr === "else") {
+      parts.push({ type: "else", content: "" });
+    } else {
+      parts.push({ type: "expr", content: expr });
+    }
+
+    pos = end + close.length;
+  }
+
+  return parts;
+}
+
+function evaluate(parts: CompiledPart[], data: Record<string, unknown>): string {
+  let result = "";
+  let i = 0;
+
+  while (i < parts.length) {
+    const part = parts[i];
+
+    if (part.type === "text") {
+      result += part.content;
+      i++;
+    } else if (part.type === "expr") {
+      result += String(resolve(data, part.content) ?? "");
+      i++;
+    } else if (part.type === "if") {
+      const condition = resolve(data, part.content);
+      const { trueBranch, falseBranch, endIdx } = collectBranches(parts, i);
+      if (isTruthy(condition)) {
+        result += evaluate(trueBranch, data);
+      } else {
+        result += evaluate(falseBranch, data);
+      }
+      i = endIdx + 1;
+    } else if (part.type === "each") {
+      const match = part.content.match(/^(\S+)\s+as\s+(\S+)$/);
+      if (match) {
+        const arr = resolve(data, match[1]);
+        const varName = match[2];
+        const { body, endIdx } = collectLoop(parts, i);
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            result += evaluate(body, { ...data, [varName]: item });
+          }
+        }
+        i = endIdx + 1;
+      } else {
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+
   return result;
 }
 
-function processIf(template: string, data: Record<string, unknown>): string {
-  const ifRegex = /\{\{#if\s+([\w.]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g;
-  return template.replace(ifRegex, (_: string, key: string, truthy: string, falsy: string) => {
-    const value = resolvePath(data, key);
-    return value ? truthy : (falsy || "");
-  });
+function resolve(data: Record<string, unknown>, path: string): unknown {
+  const parts = path.split(".");
+  let current: unknown = data;
+  for (const part of parts) {
+    if (current === null || current === undefined) return undefined;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
 }
 
-function processEach(template: string, data: Record<string, unknown>): string {
-  const eachRegex = /\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g;
-  return template.replace(eachRegex, (_: string, key: string, body: string) => {
-    const arr = resolvePath(data, key);
-    if (!Array.isArray(arr)) return "";
-    return arr.map((item: unknown, index: number) => {
-      let rendered = body;
-      if (typeof item === "object" && item !== null) {
-        const obj = item as Record<string, unknown>;
-        for (const [k, v] of Object.entries(obj)) {
-          rendered = rendered.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v ?? ""));
-        }
-      }
-      rendered = rendered.replace(/\{\{this\}\}/g, String(item));
-      rendered = rendered.replace(/\{\{@index\}\}/g, String(index));
-      return rendered;
-    }).join("");
-  });
+function isTruthy(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length > 0;
+  return Boolean(value);
 }
 
-function resolvePath(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce((acc: unknown, key: string) => {
-    if (acc === null || acc === undefined) return undefined;
-    return (acc as Record<string, unknown>)[key];
-  }, obj);
+function collectBranches(parts: CompiledPart[], startIdx: number): { trueBranch: CompiledPart[]; falseBranch: CompiledPart[]; endIdx: number } {
+  let depth = 0;
+  const trueBranch: CompiledPart[] = [];
+  const falseBranch: CompiledPart[] = [];
+  let inElse = false;
+  let endIdx = startIdx;
+
+  for (let i = startIdx + 1; i < parts.length; i++) {
+    if (parts[i].type === "if") depth++;
+    if (parts[i].type === "endif") {
+      if (depth === 0) { endIdx = i; break; }
+      depth--;
+    }
+    if (parts[i].type === "else" && depth === 0) {
+      inElse = true;
+      continue;
+    }
+    if (inElse) falseBranch.push(parts[i]);
+    else trueBranch.push(parts[i]);
+  }
+
+  return { trueBranch, falseBranch, endIdx };
 }
 
-export function escape(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+function collectLoop(parts: CompiledPart[], startIdx: number): { body: CompiledPart[]; endIdx: number } {
+  let depth = 0;
+  const body: CompiledPart[] = [];
+  let endIdx = startIdx;
 
-export function unescape(str: string): string {
-  return str
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&gt;/g, ">")
-    .replace(/&lt;/g, "<")
-    .replace(/&amp;/g, "&");
+  for (let i = startIdx + 1; i < parts.length; i++) {
+    if (parts[i].type === "each") depth++;
+    if (parts[i].type === "endeach") {
+      if (depth === 0) { endIdx = i; break; }
+      depth--;
+    }
+    body.push(parts[i]);
+  }
+
+  return { body, endIdx };
 }
