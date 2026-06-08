@@ -370,6 +370,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "avatarapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "avatar_url",
+        "description": "Generate a text-based avatar image URL with initials."
+      }
+    ]
+  },
+  {
     "app": "bandsintown",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -424,6 +434,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bible_random",
         "description": "Get a random Bible verse."
+      }
+    ]
+  },
+  {
+    "app": "bibleverse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quran_verse",
+        "description": "Get a specific verse (ayah) from the Quran with English translation."
+      },
+      {
+        "name": "quran_surah",
+        "description": "Get a full surah (chapter) from the Quran."
       }
     ]
   },
@@ -1078,6 +1102,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "corporate_bs_phrase",
         "description": "Generate a random corporate buzzword phrase."
+      }
+    ]
+  },
+  {
+    "app": "countryflag",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_flag_url",
+        "description": "Get a country flag image URL by ISO 2-letter code."
       }
     ]
   },
@@ -3030,6 +3064,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mediawiki",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wiktionary_lookup",
+        "description": "Look up a word definition in Wiktionary (multi-language)."
+      }
+    ]
+  },
+  {
     "app": "metmuseum",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3468,6 +3512,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "food_by_category",
         "description": "Get food products by category from Open Food Facts."
+      }
+    ]
+  },
+  {
+    "app": "openlib2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gutenberg_search",
+        "description": "Search Project Gutenberg free ebooks by title or author."
+      },
+      {
+        "name": "gutenberg_book",
+        "description": "Get details for a specific Project Gutenberg book by ID."
       }
     ]
   },
@@ -4384,6 +4442,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "riot_valorant_account",
         "description": "Get a Valorant account by game name and tag line."
+      }
+    ]
+  },
+  {
+    "app": "robohash",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "robohash_url",
+        "description": "Generate a unique robot/monster/cat avatar from any text."
       }
     ]
   },

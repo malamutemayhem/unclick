@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 287,
-  "toolCount": 1098,
+  "appCount": 293,
+  "toolCount": 1106,
   "categories": [
     "AI",
     "Books",
@@ -156,6 +156,26 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "bibleverse",
+      "name": "Al Quran Cloud",
+      "category": "Books",
+      "blurb": "Read Quran verses and surahs with English translation.",
+      "domain": "alquran.cloud",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "quran_verse",
+          "description": "Get a specific verse (ayah) from the Quran with English translation."
+        },
+        {
+          "name": "quran_surah",
+          "description": "Get a full surah (chapter) from the Quran."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "algolia",
@@ -1292,6 +1312,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "countryflag",
+      "name": "Country Flags",
+      "category": "Images",
+      "blurb": "Get country flag images by ISO code.",
+      "domain": "flagcdn.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "country_flag_url",
+          "description": "Get a country flag image URL by ISO 2-letter code."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "crews",
@@ -4878,6 +4914,26 @@
       "hardened": true
     },
     {
+      "slug": "openlib2",
+      "name": "Project Gutenberg",
+      "category": "Books",
+      "blurb": "Search and read free ebooks from Project Gutenberg.",
+      "domain": "gutendex.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "gutenberg_search",
+          "description": "Search Project Gutenberg free ebooks by title or author."
+        },
+        {
+          "name": "gutenberg_book",
+          "description": "Get details for a specific Project Gutenberg book by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ptv",
       "name": "PTV",
       "category": "Travel, maps & local",
@@ -5528,6 +5584,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "robohash",
+      "name": "RoboHash",
+      "category": "Images",
+      "blurb": "Generate unique robot, monster, or cat avatars from any text.",
+      "domain": "robohash.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "robohash_url",
+          "description": "Generate a unique robot/monster/cat avatar from any text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "runway",
@@ -7066,6 +7138,22 @@
       "hardened": true
     },
     {
+      "slug": "avatarapi",
+      "name": "UI Avatars",
+      "category": "Images",
+      "blurb": "Generate text-based avatar images from initials.",
+      "domain": "ui-avatars.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "avatar_url",
+          "description": "Generate a text-based avatar image URL with initials."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "unit-converter",
       "name": "Unit Converter",
       "category": "Utilities",
@@ -7496,6 +7584,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "mediawiki",
+      "name": "Wiktionary",
+      "category": "Books",
+      "blurb": "Look up word definitions in Wiktionary (multi-language).",
+      "domain": "wiktionary.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wiktionary_lookup",
+          "description": "Look up a word definition in Wiktionary (multi-language)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "willyweather",

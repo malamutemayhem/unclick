@@ -423,6 +423,18 @@ import { hpAllCharacters, hpStudents, hpStaff, hpByHouse } from "./harrypotter-t
 
 import { emojihubRandom, emojihubByCategory } from "./emojihub-tool.js";
 
+import { avatarUrl } from "./avatarapi-tool.js";
+
+import { robohashUrl } from "./robohash-tool.js";
+
+import { gutenbergSearch, gutenbergBook } from "./openlib2-tool.js";
+
+import { countryFlagUrl } from "./countryflag-tool.js";
+
+import { wiktionaryLookup } from "./mediawiki-tool.js";
+
+import { quranVerse, quranSurah } from "./bibleverse-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6348,6 +6360,113 @@ export const ADDITIONAL_TOOLS = [
         category: { type: "string", description: "Category slug (e.g. smileys-and-people, animals-and-nature)" },
       },
       required: ["category"],
+    },
+  },
+
+  // ── avatarapi-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "avatar_url",
+    description: "Generate a text-based avatar image URL with initials.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Name for the avatar initials (default User)" },
+        size: { type: "number", description: "Size in pixels (default 200)" },
+        background: { type: "string", description: "Background hex color or 'random'" },
+        color: { type: "string", description: "Text hex color (default fff)" },
+        format: { type: "string", description: "Format: svg or png (default svg)" },
+      },
+    },
+  },
+
+  // ── robohash-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "robohash_url",
+    description: "Generate a unique robot/monster/cat avatar from any text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "Text seed for the avatar (default robot)" },
+        size: { type: "number", description: "Size in pixels (default 300)" },
+        set: { type: "string", description: "Style: set1 (robots), set2 (monsters), set3 (heads), set4 (cats), set5 (humans)" },
+        bg: { type: "string", description: "Background: bg1 or bg2" },
+      },
+    },
+  },
+
+  // ── openlib2-tool.ts (gutendex/project gutenberg) ─────────────────────────
+  {
+    name: "gutenberg_search",
+    description: "Search Project Gutenberg free ebooks by title or author.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search term (title or author)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "gutenberg_book",
+    description: "Get details for a specific Project Gutenberg book by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Numeric book ID from Project Gutenberg" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── countryflag-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "country_flag_url",
+    description: "Get a country flag image URL by ISO 2-letter code.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO country code (e.g. US, GB, AU)" },
+        style: { type: "string", description: "flat (PNG) or svg (default flat)" },
+        size: { type: "number", description: "Size: 16, 32, 48, or 64 (default 64)" },
+      },
+      required: ["country_code"],
+    },
+  },
+
+  // ── mediawiki-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "wiktionary_lookup",
+    description: "Look up a word definition in Wiktionary (multi-language).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        word: { type: "string", description: "Word to look up" },
+        language: { type: "string", description: "Language code (default en)" },
+      },
+      required: ["word"],
+    },
+  },
+
+  // ── bibleverse-tool.ts (quran) ─────────────────────────────────────────────
+  {
+    name: "quran_verse",
+    description: "Get a specific verse (ayah) from the Quran with English translation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        surah: { type: "number", description: "Surah number (1-114, default 1)" },
+        ayah: { type: "number", description: "Ayah (verse) number within the surah" },
+      },
+    },
+  },
+  {
+    name: "quran_surah",
+    description: "Get a full surah (chapter) from the Quran.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "Surah number (1-114, default 1)" },
+      },
     },
   },
 
@@ -17307,6 +17426,26 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // emojihub-tool.ts
   emojihub_random:         (args) => emojihubRandom(args),
   emojihub_by_category:    (args) => emojihubByCategory(args),
+
+  // avatarapi-tool.ts
+  avatar_url:              (args) => avatarUrl(args),
+
+  // robohash-tool.ts
+  robohash_url:            (args) => robohashUrl(args),
+
+  // openlib2-tool.ts
+  gutenberg_search:        (args) => gutenbergSearch(args),
+  gutenberg_book:          (args) => gutenbergBook(args),
+
+  // countryflag-tool.ts
+  country_flag_url:        (args) => countryFlagUrl(args),
+
+  // mediawiki-tool.ts
+  wiktionary_lookup:       (args) => wiktionaryLookup(args),
+
+  // bibleverse-tool.ts
+  quran_verse:             (args) => quranVerse(args),
+  quran_surah:             (args) => quranSurah(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

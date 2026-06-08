@@ -42,8 +42,8 @@ bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq"
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
-bucket("Books", ["openlibrary", "bible"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage"]);
+bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
@@ -95,6 +95,8 @@ const NAME_OF = {
   amiibo: "AmiiboAPI", dummyimage: "Dummy Image", ipinfo: "IPinfo",
   ghibli: "Studio Ghibli", finalspace: "Final Space", mcsrvstat: "MC Server Status",
   disneyapi: "Disney API", harrypotter: "Harry Potter", emojihub: "EmojiHub",
+  avatarapi: "UI Avatars", robohash: "RoboHash", openlib2: "Project Gutenberg",
+  countryflag: "Country Flags", mediawiki: "Wiktionary", bibleverse: "Al Quran Cloud",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -229,6 +231,12 @@ const BLURB_OF = {
   disneyapi: "Search and browse Disney characters.",
   harrypotter: "Harry Potter characters, students, staff, and houses.",
   emojihub: "Browse emojis by category with HTML and Unicode codes.",
+  avatarapi: "Generate text-based avatar images from initials.",
+  robohash: "Generate unique robot, monster, or cat avatars from any text.",
+  openlib2: "Search and read free ebooks from Project Gutenberg.",
+  countryflag: "Get country flag images by ISO code.",
+  mediawiki: "Look up word definitions in Wiktionary (multi-language).",
+  bibleverse: "Read Quran verses and surahs with English translation.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -312,6 +320,9 @@ const DOMAIN_OF = {
   ghibli: "ghibliapi.vercel.app", finalspace: "finalspaceapi.com",
   mcsrvstat: "mcsrvstat.us", disneyapi: "disneyapi.dev",
   harrypotter: "hp-api.onrender.com", emojihub: "emojihub.yurace.pro",
+  avatarapi: "ui-avatars.com", robohash: "robohash.org",
+  openlib2: "gutendex.com", countryflag: "flagcdn.com",
+  mediawiki: "wiktionary.org", bibleverse: "alquran.cloud",
 };
 
 function titleCase(slug) {
