@@ -327,7 +327,20 @@ describe("keywordFallback tokenization", () => {
           startup_fact_kind: "durable",
         },
       ],
-      sessionsRows: [],
+      sessionsRows: [
+        {
+          id: "session-1",
+          summary: "Session results pass through.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "active",
+        },
+        {
+          id: "session-2",
+          summary: "Archived session should stay hidden.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "archived",
+        },
+      ],
       calls,
     });
     const backend = await loadBackendWithFake(client, { mode: "byod" });
@@ -338,6 +351,7 @@ describe("keywordFallback tokenization", () => {
         { id: "operational-memory-fact", source: "fact", content: "heartbeat self-report Memory note should stay hidden." },
         { id: "future-memory-fact", source: "fact", content: "Future Memory fact should wait for its valid window." },
         { id: "session-1", source: "session", content: "Session results pass through." },
+        { id: "session-2", source: "session", content: "Archived session should stay hidden." },
       ],
       "2026-05-28T00:00:00Z",
     ) as Array<{ id: string }>;

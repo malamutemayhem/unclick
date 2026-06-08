@@ -51,7 +51,7 @@ function PackTile({
   cta: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-[#111] p-5 flex flex-col gap-3">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5 flex flex-col gap-3">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold text-white">{name}</h3>
@@ -99,7 +99,7 @@ export default function CopyPassCatalog() {
       <div className="space-y-6">
         <DisclaimerBanner />
 
-        <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="flex items-start gap-3">
             <FileText className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-300" />
             <div>
@@ -137,7 +137,7 @@ export default function CopyPassCatalog() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="flex items-start gap-3">
             <MessagesSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div>

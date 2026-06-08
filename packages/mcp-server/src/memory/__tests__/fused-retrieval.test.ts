@@ -139,11 +139,13 @@ const KEYWORD_FACT = {
   source_type: "manual",
   startup_fact_kind: "durable",
 };
-// Semantic-only hit, session-sourced so the recall-visibility filter passes it through.
+// Semantic-only hit, session-sourced with a matching active session row so the
+// recall-visibility filter proves recycle-bin hidden sessions stay excluded
+// without dropping valid vector-only hits.
 const SEMANTIC_HIT = {
   id: "vec-1",
   source: "session",
-  content: "probe semantic only summary",
+  content: "zeta semantic only summary",
   category: "session",
   confidence: 1,
   created_at: "2026-05-02T00:00:00Z",
@@ -154,6 +156,12 @@ const SEMANTIC_HIT = {
   keyword_rank: null,
   vector_rank: 1,
 };
+const SEMANTIC_SESSION_ROW = {
+  id: "vec-1",
+  summary: "zeta semantic only summary",
+  created_at: "2026-05-02T00:00:00Z",
+  status: "active",
+};
 // A query long enough (>= 24 chars) that the local embedding provider produces a vector.
 const QUERY = "alpha probe coverage retrieval signal";
 
@@ -161,7 +169,7 @@ async function makeBackend(): Promise<FakeBackend> {
   const { SupabaseBackend } = await import("../supabase.js");
   const backend = Object.create(SupabaseBackend.prototype) as FakeBackend;
   backend.client = new FakeRpcClient(
-    { extracted_facts: [KEYWORD_FACT], session_summaries: [], business_context: [] },
+    { extracted_facts: [KEYWORD_FACT], session_summaries: [SEMANTIC_SESSION_ROW], business_context: [] },
     [SEMANTIC_HIT]
   );
   backend.tenancy = { mode: "byod" };

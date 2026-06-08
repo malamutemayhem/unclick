@@ -188,18 +188,19 @@ export async function getDeezerTrack(args: Record<string, unknown>): Promise<unk
 
 // ─── get_deezer_chart ─────────────────────────────────────────────────────────
 
-interface DeezerChartResponse {
-  tracks: { data: DeezerTrack[] };
+interface DeezerChartTracksResponse {
+  data: DeezerTrack[];
+  total: number;
 }
 
 export async function getDeezerChart(args: Record<string, unknown>): Promise<unknown> {
   const limit = Math.min(50, Math.max(1, Number(args.limit ?? 10)));
-  const data = await deezerFetch<DeezerChartResponse>(`/chart/0/tracks?limit=${limit}`);
+  const data = await deezerFetch<DeezerChartTracksResponse>(`/chart/0/tracks?limit=${limit}`);
 
   return {
     chart: "Global Top Tracks",
-    count: data.tracks.data.length,
-    tracks: data.tracks.data.map((t, i) => ({
+    count: data.data.length,
+    tracks: data.data.map((t, i) => ({
       ...normalizeTrack(t),
       rank: i + 1,
     })),

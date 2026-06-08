@@ -62,6 +62,51 @@ describe("evaluateVisualAuditSnapshot", () => {
     expect(summary.bySeverity.high).toBe(0);
   });
 
+  it("flags a heading that wraps to a lonely last word (widow)", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        {
+          selector: "h1",
+          tagName: "h1",
+          text: "Guardrails before your AI acts",
+          visible: true,
+          rect: rect(80, 80, 700, 120),
+          clientWidth: 700,
+          clientHeight: 120,
+          fontSize: 48,
+          fontWeight: 800,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(6, 32, 44)",
+        },
+      ],
+    });
+    expect(summary.byKind.text_widow).toBe(1);
+    expect(summary.issues[0].remediation).toMatch(/non-breaking space|text-wrap/i);
+  });
+
+  it("does not flag a heading that fits on one line", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        {
+          selector: "h1",
+          tagName: "h1",
+          text: "Guardrails before your AI acts",
+          visible: true,
+          rect: rect(80, 80, 1100, 56),
+          clientWidth: 1100,
+          clientHeight: 56,
+          fontSize: 48,
+          fontWeight: 800,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(6, 32, 44)",
+        },
+      ],
+    });
+    expect(summary.byKind.text_widow).toBe(0);
+  });
+
   it("flags clipped text without a full fallback label", () => {
     const summary = evaluateVisualAuditSnapshot({
       ...cleanSnapshot,

@@ -59,6 +59,8 @@ describe("memory recall sections", () => {
       excluded_ineligible_candidate_count: 0,
       background_heavy_count: 10,
       background_heavy_candidate_count: 10,
+      zero_access_count: 0,
+      zero_access_candidate_count: 0,
     });
   });
 
@@ -94,6 +96,25 @@ describe("memory recall sections", () => {
     expect(sections.recall_diagnostics).toMatchObject({
       inspected_top_of_mind_candidates: 1,
       excluded_ineligible_candidate_count: 4,
+    });
+  });
+
+  it("reports facts with no targeted recall count separately from broken recall", () => {
+    const neverDirectlyRecalled = fact("zero", {
+      fact: "Fresh fact saved from a conversation",
+      access_count: 0,
+    });
+    const directlyRecalled = fact("searched", {
+      fact: "Fact opened by a targeted search",
+      access_count: 3,
+    });
+
+    const sections = buildRecallFactSections([neverDirectlyRecalled, directlyRecalled]);
+
+    expect(sections.recall_diagnostics).toMatchObject({
+      inspected_top_facts: 2,
+      zero_access_count: 1,
+      zero_access_candidate_count: 1,
     });
   });
 });

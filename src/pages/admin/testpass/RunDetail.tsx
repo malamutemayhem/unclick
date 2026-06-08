@@ -419,7 +419,7 @@ export default function RunDetail() {
         </p>
       )}
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#101010] p-5">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -466,7 +466,7 @@ export default function RunDetail() {
       </section>
 
       {items.length === 0 ? (
-        <section className="rounded-lg border border-white/[0.08] bg-[#111] px-6 py-12 text-center">
+        <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-6 py-12 text-center">
           <p className="text-base font-semibold text-white">No checks yet</p>
           <p className="mt-2 text-sm text-[#888]">This run is still getting ready. Results will appear here as soon as TestPass has them.</p>
         </section>
@@ -485,7 +485,7 @@ export default function RunDetail() {
         </section>
       )}
 
-      <div className="rounded-lg border border-white/[0.08] bg-[#111] px-5 py-3">
+      <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-5 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {failItems.length > 0 && (
@@ -522,7 +522,7 @@ export default function RunDetail() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-white/[0.08] bg-[#111] p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-lg border border-white/[0.08] bg-white/[0.03] p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Ask your AI agent</h3>
               <button onClick={() => setShowModal(false)} className="text-[#666] hover:text-white">

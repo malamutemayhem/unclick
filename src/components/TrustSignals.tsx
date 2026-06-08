@@ -1,43 +1,45 @@
+import { Code2, GitBranch, MapPin, Gauge } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { GlassCard, IconChip } from "@/components/brand";
 
 const signals = [
   {
-    icon: "◎",
-    title: "API-first architecture",
-    desc: "Every feature is available via API before it ever gets a UI. If it's in the product, it's in the endpoints.",
+    icon: Code2,
+    title: "API-first",
+    desc: "Every feature is available as an API before it ever gets a screen. If it is in the product, it is in the endpoints.",
   },
   {
-    icon: "⊞",
+    icon: GitBranch,
     title: "Open-source friendly",
-    desc: "MIT-licensed SDKs. No lock-in. Inspect, fork, and contribute. We're building in public.",
+    desc: "MIT-licensed SDKs. No lock-in. Inspect, fork, and contribute. We build in public.",
   },
   {
-    icon: "⊕",
+    icon: MapPin,
     title: "Australian made",
     desc: "Built in Melbourne. Data sovereignty options available. No surprise US data transfers.",
   },
   {
-    icon: "◈",
+    icon: Gauge,
     title: "99.9% uptime target",
-    desc: "Deployed on Cloudflare Workers. Globally distributed, zero cold starts. Your agents don't wait.",
+    desc: "Deployed on Cloudflare Workers. Fast everywhere, with no cold starts. Your agents do not wait.",
   },
 ];
 
 const TrustSignals = () => (
   <section className="mx-auto max-w-4xl px-6 py-24">
-    <FadeIn>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {signals.map((s, i) => (
-          <FadeIn key={s.title} delay={i * 0.08}>
-            <div className="rounded-lg border border-border/40 bg-card/30 p-5">
-              <span className="font-mono text-lg text-primary">{s.icon}</span>
-              <h3 className="mt-3 text-sm font-medium text-heading">{s.title}</h3>
-              <p className="mt-2 text-xs text-body leading-relaxed">{s.desc}</p>
-            </div>
-          </FadeIn>
-        ))}
-      </div>
-    </FadeIn>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {signals.map((s, i) => (
+        <FadeIn key={s.title} delay={i * 0.08}>
+          <GlassCard className="h-full">
+            <IconChip>
+              <s.icon className="h-5 w-5" />
+            </IconChip>
+            <h3 className="mt-4 text-sm font-semibold text-heading">{s.title}</h3>
+            <p className="mt-2 text-xs leading-relaxed text-body">{s.desc}</p>
+          </GlassCard>
+        </FadeIn>
+      ))}
+    </div>
   </section>
 );
 

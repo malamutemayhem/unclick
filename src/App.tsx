@@ -39,6 +39,7 @@ import AppsPage from "./pages/Apps.tsx";
 import AppDetailPage from "./pages/AppDetail.tsx";
 import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
+import WhyPage from "./pages/Why.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
 import XPassPage from "./pages/XPass.tsx";
@@ -50,6 +51,8 @@ import VerifyMfaPage from "./pages/VerifyMfa.tsx";
 import RequireAuth from "./components/RequireAuth.tsx";
 import RequireAdmin from "./components/RequireAdmin.tsx";
 import BetaBanner from "./components/BetaBanner.tsx";
+import { SiteAurora } from "@/components/brand";
+import BrochurePage from "./components/BrochurePage.tsx";
 import AdminShell from "./pages/admin/AdminShell.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminYou from "./pages/admin/AdminYou.tsx";
@@ -84,6 +87,7 @@ import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminControlTower from "./pages/admin/AdminControlTower.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
+import AdminAppTesting from "./pages/admin/AdminAppTesting.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
 import AdminXGate from "./pages/admin/AdminXGate.tsx";
@@ -122,6 +126,7 @@ const App = () => (
       <Sonner />
       <Analytics />
       <BrowserRouter>
+        <SiteAurora />
         <AnalyticsPageviewTracker />
         <BetaBanner />
         <Routes>
@@ -153,7 +158,17 @@ const App = () => (
           <Route path="/apps" element={<AppsPage />} />
           <Route path="/apps/:slug" element={<AppDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
-          <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
+          {/* Product brochure pages (public marketing; interactive surfaces live under /admin) */}
+          <Route path="/skills" element={<BrochurePage slug="skills" />} />
+          <Route path="/orchestrator" element={<BrochurePage slug="orchestrator" />} />
+          <Route path="/passport" element={<BrochurePage slug="passport" />} />
+          <Route path="/seats" element={<BrochurePage slug="seats" />} />
+          <Route path="/autopilot" element={<BrochurePage slug="autopilot" />} />
+          <Route path="/xgate" element={<BrochurePage slug="xgate" />} />
+          <Route path="/jobs" element={<BrochurePage slug="jobs" />} />
+          <Route path="/control-tower" element={<BrochurePage slug="control-tower" />} />
+          <Route path="/ledger" element={<BrochurePage slug="ledger" />} />
+          <Route path="/workers" element={<BrochurePage slug="workers" />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           {/* /memory/admin redirects to the new admin shell */}
@@ -222,6 +237,7 @@ const App = () => (
             <Route path="moderation"     element={<RequireAdmin><AdminModeration /></RequireAdmin>} />
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
+            <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
@@ -245,6 +261,7 @@ const App = () => (
               chapter is ready. Page component retained; route redirected. */}
           <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
+          <Route path="/why" element={<WhyPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />
           {/* Install ticket recovery: fresh 24h code for returning users */}

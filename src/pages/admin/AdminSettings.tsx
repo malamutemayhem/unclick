@@ -466,7 +466,7 @@ export default function AdminSettings() {
 
       <div className="space-y-6">
         {/* CONNECTION */}
-        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
           <h2 className="text-sm font-semibold text-white">Connection</h2>
           <p className="mt-1 text-xs text-white/60">
             Pick which AI tool you use. Setup steps and config-file format follow your choice.
@@ -535,7 +535,7 @@ export default function AdminSettings() {
         </section>
 
         {/* AI CONFIG */}
-        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
           <h2 className="text-sm font-semibold text-white">Your AI Config</h2>
           <p className="mt-1 text-xs text-white/60">
             {platformHasConfigFile(platform)
@@ -611,7 +611,7 @@ export default function AdminSettings() {
         </section>
 
         {/* MEMORY LOADING */}
-        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
           <h2 className="text-sm font-semibold text-white">Memory Loading</h2>
 
           <div className="mt-4 flex items-start justify-between gap-4">
@@ -648,7 +648,7 @@ export default function AdminSettings() {
         </section>
 
         {/* ISOLATION */}
-        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
           <h2 className="text-sm font-semibold text-white">Isolation</h2>
           <p className="mt-1 text-sm font-medium text-white">
             UnClick works best as your only memory tool.
@@ -698,7 +698,7 @@ export default function AdminSettings() {
         </section>
 
         {/* TWO-STEP VERIFICATION */}
-        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
             <ShieldCheck className="h-4 w-4 text-[#61C1C4]" />
             Two-step verification
@@ -830,7 +830,7 @@ export default function AdminSettings() {
         </section>
 
         {/* SUPPORT */}
-        <section id="bugs" className="rounded-xl border border-[#E2B93B]/20 bg-[#111111] p-6">
+        <section id="bugs" className="rounded-xl border border-[#E2B93B]/20 bg-white/[0.03] p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -895,7 +895,7 @@ export default function AdminSettings() {
           onClick={() => { if (!deleting) setDeleteOpen(false); }}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-red-500/30 bg-[#0A0A0A] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-red-500/30 bg-white/[0.02] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2">
