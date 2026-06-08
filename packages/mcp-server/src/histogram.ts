@@ -1,52 +1,75 @@
 export class Histogram {
-  private buckets: Map<number, number> = new Map();
-  private boundaries: number[];
-  private total = 0;
+  private buckets: number[];
+  private readonly min: number;
+  private readonly max: number;
+  private readonly bucketCount: number;
+  private readonly bucketWidth: number;
+  private totalCount = 0;
 
-  constructor(boundaries: number[]) {
-    this.boundaries = [...boundaries].sort((a, b) => a - b);
-    for (const b of this.boundaries) {
-      this.buckets.set(b, 0);
-    }
-    this.buckets.set(Infinity, 0);
+  constructor(min: number, max: number, bucketCount: number) {
+    this.min = min;
+    this.max = max;
+    this.bucketCount = bucketCount;
+    this.bucketWidth = (max - min) / bucketCount;
+    this.buckets = new Array(bucketCount).fill(0) as number[];
   }
 
-  observe(value: number): void {
-    this.total++;
-    for (const boundary of this.boundaries) {
-      if (value <= boundary) {
-        this.buckets.set(boundary, (this.buckets.get(boundary) ?? 0) + 1);
-        return;
-      }
-    }
-    this.buckets.set(Infinity, (this.buckets.get(Infinity) ?? 0) + 1);
+  add(value: number): void {
+    const idx = Math.min(
+      this.bucketCount - 1,
+      Math.max(0, Math.floor((value - this.min) / this.bucketWidth)),
+    );
+    this.buckets[idx]++;
+    this.totalCount++;
   }
 
-  getBucket(boundary: number): number {
-    return this.buckets.get(boundary) ?? 0;
+  addMany(values: number[]): void {
+    for (const v of values) this.add(v);
   }
 
-  getOverflow(): number {
-    return this.buckets.get(Infinity) ?? 0;
+  getBucket(index: number): { start: number; end: number; count: number } {
+    return {
+      start: this.min + index * this.bucketWidth,
+      end: this.min + (index + 1) * this.bucketWidth,
+      count: this.buckets[index] ?? 0,
+    };
   }
 
   get count(): number {
-    return this.total;
+    return this.totalCount;
   }
 
-  snapshot(): Array<{ le: number | string; count: number }> {
-    const result: Array<{ le: number | string; count: number }> = [];
-    for (const b of this.boundaries) {
-      result.push({ le: b, count: this.buckets.get(b) ?? 0 });
+  get maxCount(): number {
+    return Math.max(0, ...this.buckets);
+  }
+
+  percentile(p: number): number {
+    const target = (p / 100) * this.totalCount;
+    let cumulative = 0;
+    for (let i = 0; i < this.bucketCount; i++) {
+      cumulative += this.buckets[i];
+      if (cumulative >= target) {
+        return this.min + (i + 0.5) * this.bucketWidth;
+      }
     }
-    result.push({ le: "+Inf", count: this.buckets.get(Infinity) ?? 0 });
-    return result;
+    return this.max;
+  }
+
+  toArray(): Array<{ start: number; end: number; count: number }> {
+    return this.buckets.map((_: number, i: number) => this.getBucket(i));
   }
 
   reset(): void {
-    for (const key of this.buckets.keys()) {
-      this.buckets.set(key, 0);
-    }
-    this.total = 0;
+    this.buckets.fill(0);
+    this.totalCount = 0;
+  }
+
+  toString(): string {
+    const maxWidth = 40;
+    const peak = this.maxCount || 1;
+    return this.toArray().map((b) => {
+      const bar = "#".repeat(Math.round((b.count / peak) * maxWidth));
+      return `[${b.start.toFixed(1)}-${b.end.toFixed(1)}) ${bar} ${b.count}`;
+    }).join("\n");
   }
 }
