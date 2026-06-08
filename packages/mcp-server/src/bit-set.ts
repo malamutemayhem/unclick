@@ -1,80 +1,73 @@
 export class BitSet {
-  private words: Uint32Array;
-  private _size: number;
+  private data: Uint32Array;
+  private readonly capacity: number;
 
   constructor(size: number) {
-    this._size = size;
-    this.words = new Uint32Array(Math.ceil(size / 32));
+    this.capacity = size;
+    this.data = new Uint32Array(Math.ceil(size / 32));
   }
 
-  get size(): number { return this._size; }
-
-  set(index: number): void {
-    this.checkBounds(index);
-    this.words[index >>> 5] |= 1 << (index & 31);
+  set(index: number): this {
+    if (index < 0 || index >= this.capacity) return this;
+    this.data[index >>> 5] |= 1 << (index & 31);
+    return this;
   }
 
-  clear(index: number): void {
-    this.checkBounds(index);
-    this.words[index >>> 5] &= ~(1 << (index & 31));
+  clear(index: number): this {
+    if (index < 0 || index >= this.capacity) return this;
+    this.data[index >>> 5] &= ~(1 << (index & 31));
+    return this;
   }
 
   get(index: number): boolean {
-    this.checkBounds(index);
-    return (this.words[index >>> 5] & (1 << (index & 31))) !== 0;
+    if (index < 0 || index >= this.capacity) return false;
+    return (this.data[index >>> 5] & (1 << (index & 31))) !== 0;
   }
 
-  toggle(index: number): void {
-    this.checkBounds(index);
-    this.words[index >>> 5] ^= 1 << (index & 31);
+  toggle(index: number): this {
+    if (index < 0 || index >= this.capacity) return this;
+    this.data[index >>> 5] ^= 1 << (index & 31);
+    return this;
   }
 
-  count(): number {
+  clearAll(): void {
+    this.data.fill(0);
+  }
+
+  get size(): number {
+    return this.capacity;
+  }
+
+  get count(): number {
     let total = 0;
-    for (const word of this.words) {
-      let w = word;
-      while (w) { w &= w - 1; total++; }
+    for (let i = 0; i < this.data.length; i++) {
+      let v = this.data[i];
+      v = v - ((v >>> 1) & 0x55555555);
+      v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
+      total += ((v + (v >>> 4)) & 0x0f0f0f0f) * 0x01010101 >>> 24;
     }
     return total;
   }
 
   and(other: BitSet): BitSet {
-    const result = new BitSet(Math.min(this._size, other._size));
-    for (let i = 0; i < result.words.length; i++) {
-      result.words[i] = (this.words[i] ?? 0) & (other.words[i] ?? 0);
-    }
+    const result = new BitSet(Math.min(this.capacity, other.capacity));
+    const len = Math.min(this.data.length, other.data.length);
+    for (let i = 0; i < len; i++) result.data[i] = this.data[i] & other.data[i];
     return result;
   }
 
   or(other: BitSet): BitSet {
-    const result = new BitSet(Math.max(this._size, other._size));
-    for (let i = 0; i < result.words.length; i++) {
-      result.words[i] = (this.words[i] ?? 0) | (other.words[i] ?? 0);
-    }
+    const result = new BitSet(Math.max(this.capacity, other.capacity));
+    for (let i = 0; i < this.data.length; i++) result.data[i] |= this.data[i];
+    for (let i = 0; i < other.data.length; i++) result.data[i] |= other.data[i];
     return result;
-  }
-
-  xor(other: BitSet): BitSet {
-    const result = new BitSet(Math.max(this._size, other._size));
-    for (let i = 0; i < result.words.length; i++) {
-      result.words[i] = (this.words[i] ?? 0) ^ (other.words[i] ?? 0);
-    }
-    return result;
-  }
-
-  clearAll(): void {
-    this.words.fill(0);
   }
 
   toArray(): number[] {
     const result: number[] = [];
-    for (let i = 0; i < this._size; i++) {
+    for (let i = 0; i < this.capacity; i++) {
       if (this.get(i)) result.push(i);
     }
     return result;
-  }
-
-  private checkBounds(index: number): void {
-    if (index < 0 || index >= this._size) throw new RangeError(`Index ${index} out of bounds [0, ${this._size})`);
   }
 }

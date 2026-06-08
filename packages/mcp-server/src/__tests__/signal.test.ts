@@ -1,86 +1,70 @@
-import { describe, it, expect, vi } from "vitest";
-import { Signal, Computed, signal, computed } from "../signal.js";
+import { describe, it, expect } from "vitest";
+import { SignalController, race } from "../signal.js";
 
 describe("Signal", () => {
-  it("has initial value", () => {
-    const s = signal(5);
-    expect(s.value).toBe(5);
+  it("starts unaborted", () => {
+    const ctrl = new SignalController();
+    expect(ctrl.signal.aborted).toBe(false);
   });
 
-  it("set updates value", () => {
-    const s = signal(1);
-    s.set(2);
-    expect(s.value).toBe(2);
+  it("abort sets aborted", () => {
+    const ctrl = new SignalController();
+    ctrl.abort();
+    expect(ctrl.signal.aborted).toBe(true);
   });
 
-  it("update with function", () => {
-    const s = signal(5);
-    s.update((n: number) => n + 1);
-    expect(s.value).toBe(6);
+  it("onAbort fires on abort", () => {
+    const ctrl = new SignalController();
+    let called = false;
+    ctrl.signal.onAbort(() => { called = true; });
+    ctrl.abort();
+    expect(called).toBe(true);
   });
 
-  it("notifies subscribers on change", () => {
-    const s = signal(0);
-    const fn = vi.fn();
-    s.subscribe(fn);
-    s.set(1);
-    expect(fn).toHaveBeenCalledWith(1);
+  it("onAbort fires immediately if already aborted", () => {
+    const ctrl = new SignalController();
+    ctrl.abort();
+    let called = false;
+    ctrl.signal.onAbort(() => { called = true; });
+    expect(called).toBe(true);
   });
 
-  it("does not notify if value unchanged", () => {
-    const s = signal(5);
-    const fn = vi.fn();
-    s.subscribe(fn);
-    s.set(5);
-    expect(fn).not.toHaveBeenCalled();
+  it("throwIfAborted throws when aborted", () => {
+    const ctrl = new SignalController();
+    ctrl.signal.throwIfAborted();
+    ctrl.abort("cancelled");
+    expect(() => ctrl.signal.throwIfAborted()).toThrow();
   });
 
-  it("unsubscribe stops notifications", () => {
-    const s = signal(0);
-    const fn = vi.fn();
-    const unsub = s.subscribe(fn);
-    unsub();
-    s.set(1);
-    expect(fn).not.toHaveBeenCalled();
+  it("reason is preserved", () => {
+    const ctrl = new SignalController();
+    ctrl.abort("my reason");
+    expect(ctrl.signal.reason).toBe("my reason");
   });
 
-  it("peek returns value without subscribing", () => {
-    const s = signal(42);
-    expect(s.peek()).toBe(42);
+  it("double abort is ignored", () => {
+    const ctrl = new SignalController();
+    ctrl.abort("first");
+    ctrl.abort("second");
+    expect(ctrl.signal.reason).toBe("first");
   });
 });
 
-describe("Computed", () => {
-  it("computes from dependencies", () => {
-    const a = signal(2);
-    const b = signal(3);
-    const sum = computed(() => a.value + b.value, [a, b]);
-    expect(sum.value).toBe(5);
+describe("race", () => {
+  it("aborts when first signal aborts", () => {
+    const a = new SignalController();
+    const b = new SignalController();
+    const raced = race(a.signal, b.signal);
+    a.abort("a won");
+    expect(raced.aborted).toBe(true);
+    expect(raced.reason).toBe("a won");
   });
 
-  it("updates when dependency changes", () => {
-    const a = signal(1);
-    const c = computed(() => a.value * 2, [a]);
-    a.set(5);
-    expect(c.value).toBe(10);
-  });
-
-  it("notifies subscribers", () => {
-    const a = signal(1);
-    const c = computed(() => a.value * 2, [a]);
-    const fn = vi.fn();
-    c.subscribe(fn);
-    a.set(3);
-    expect(fn).toHaveBeenCalledWith(6);
-  });
-
-  it("dispose stops updates", () => {
-    const a = signal(1);
-    const c = computed(() => a.value * 2, [a]);
-    const fn = vi.fn();
-    c.subscribe(fn);
-    c.dispose();
-    a.set(10);
-    expect(fn).not.toHaveBeenCalled();
+  it("already aborted signal wins immediately", () => {
+    const a = new SignalController();
+    a.abort("already");
+    const b = new SignalController();
+    const raced = race(a.signal, b.signal);
+    expect(raced.aborted).toBe(true);
   });
 });

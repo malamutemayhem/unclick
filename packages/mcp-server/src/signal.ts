@@ -1,73 +1,66 @@
-type Listener<T> = (value: T) => void;
+type Listener = () => void;
 
-export class Signal<T> {
-  private _value: T;
-  private listeners = new Set<Listener<T>>();
+export class Signal {
+  private _aborted = false;
+  private _reason: unknown;
+  private listeners = new Set<Listener>();
 
-  constructor(initial: T) {
-    this._value = initial;
+  get aborted(): boolean {
+    return this._aborted;
   }
 
-  get value(): T { return this._value; }
-
-  set(value: T): void {
-    if (this._value === value) return;
-    this._value = value;
-    this.notify();
+  get reason(): unknown {
+    return this._reason;
   }
 
-  update(fn: (current: T) => T): void {
-    this.set(fn(this._value));
-  }
-
-  subscribe(listener: Listener<T>): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  peek(): T { return this._value; }
-
-  private notify(): void {
-    for (const listener of [...this.listeners]) listener(this._value);
-  }
-}
-
-export class Computed<T> {
-  private _value: T;
-  private listeners = new Set<Listener<T>>();
-  private unsubscribers: Array<() => void> = [];
-
-  constructor(fn: () => T, deps: Array<Signal<any> | Computed<any>>) {
-    this._value = fn();
-    for (const dep of deps) {
-      this.unsubscribers.push(dep.subscribe(() => {
-        const next = fn();
-        if (next !== this._value) {
-          this._value = next;
-          for (const listener of [...this.listeners]) listener(this._value);
-        }
-      }));
-    }
-  }
-
-  get value(): T { return this._value; }
-
-  subscribe(listener: Listener<T>): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  dispose(): void {
-    for (const unsub of this.unsubscribers) unsub();
-    this.unsubscribers = [];
+  abort(reason?: unknown): void {
+    if (this._aborted) return;
+    this._aborted = true;
+    this._reason = reason ?? new Error("Aborted");
+    for (const listener of this.listeners) listener();
     this.listeners.clear();
   }
+
+  onAbort(listener: Listener): () => void {
+    if (this._aborted) {
+      listener();
+      return () => {};
+    }
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  }
+
+  throwIfAborted(): void {
+    if (this._aborted) throw this._reason;
+  }
 }
 
-export function signal<T>(initial: T): Signal<T> {
-  return new Signal(initial);
+export class SignalController {
+  readonly signal = new Signal();
+
+  abort(reason?: unknown): void {
+    this.signal.abort(reason);
+  }
 }
 
-export function computed<T>(fn: () => T, deps: Array<Signal<any> | Computed<any>>): Computed<T> {
-  return new Computed(fn, deps);
+export function timeout(ms: number): Signal {
+  const ctrl = new SignalController();
+  setTimeout(() => ctrl.abort(new Error(`Timed out after ${ms}ms`)), ms);
+  return ctrl.signal;
+}
+
+export function race(...signals: Signal[]): Signal {
+  const ctrl = new SignalController();
+  for (const s of signals) {
+    if (s.aborted) {
+      ctrl.abort(s.reason);
+      return ctrl.signal;
+    }
+    s.onAbort(() => ctrl.abort(s.reason));
+  }
+  return ctrl.signal;
+}
+
+export function any(...signals: Signal[]): Signal {
+  return race(...signals);
 }

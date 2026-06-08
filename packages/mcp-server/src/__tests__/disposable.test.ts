@@ -1,62 +1,80 @@
-import { describe, it, expect, vi } from "vitest";
-import { DisposableGroup } from "../disposable.js";
+import { describe, it, expect } from "vitest";
+import { DisposableStack, using, usingAsync } from "../disposable.js";
 
-describe("DisposableGroup", () => {
-  it("calls disposers in reverse order", async () => {
+describe("DisposableStack", () => {
+  it("disposes in reverse order", () => {
     const order: number[] = [];
-    const group = new DisposableGroup();
-    group.add(() => { order.push(1); });
-    group.add(() => { order.push(2); });
-    group.add(() => { order.push(3); });
-    await group.dispose();
+    const stack = new DisposableStack();
+    stack.use({ dispose: () => order.push(1) });
+    stack.use({ dispose: () => order.push(2) });
+    stack.use({ dispose: () => order.push(3) });
+    stack.dispose();
     expect(order).toEqual([3, 2, 1]);
   });
 
-  it("marks as disposed", async () => {
-    const group = new DisposableGroup();
-    expect(group.disposed).toBe(false);
-    await group.dispose();
-    expect(group.disposed).toBe(true);
+  it("use returns resource", () => {
+    const stack = new DisposableStack();
+    const resource = { dispose: () => {}, value: 42 };
+    const returned = stack.use(resource);
+    expect(returned.value).toBe(42);
+    stack.dispose();
   });
 
-  it("is idempotent", async () => {
-    const fn = vi.fn();
-    const group = new DisposableGroup();
-    group.add(fn);
-    await group.dispose();
-    await group.dispose();
-    expect(fn).toHaveBeenCalledTimes(1);
+  it("adopt calls onDispose with value", () => {
+    const stack = new DisposableStack();
+    let disposed: string | null = null;
+    stack.adopt("test", (v: string) => { disposed = v; });
+    stack.dispose();
+    expect(disposed).toBe("test");
   });
 
-  it("throws when adding after dispose", async () => {
-    const group = new DisposableGroup();
-    await group.dispose();
-    expect(() => group.add(() => {})).toThrow("Already disposed");
+  it("defer runs on dispose", () => {
+    const stack = new DisposableStack();
+    let called = false;
+    stack.defer(() => { called = true; });
+    stack.dispose();
+    expect(called).toBe(true);
   });
 
-  it("handles async disposers", async () => {
-    const group = new DisposableGroup();
-    let done = false;
-    group.add(async () => { done = true; });
-    await group.dispose();
-    expect(done).toBe(true);
+  it("double dispose is safe", () => {
+    const stack = new DisposableStack();
+    let count = 0;
+    stack.defer(() => count++);
+    stack.dispose();
+    stack.dispose();
+    expect(count).toBe(1);
   });
 
-  it("use registers resource", async () => {
-    const dispose = vi.fn();
-    const group = new DisposableGroup();
-    const resource = group.use({ dispose, value: 42 });
-    expect(resource.value).toBe(42);
-    await group.dispose();
-    expect(dispose).toHaveBeenCalled();
+  it("tracks isDisposed and size", () => {
+    const stack = new DisposableStack();
+    stack.defer(() => {});
+    expect(stack.isDisposed).toBe(false);
+    expect(stack.size).toBe(1);
+    stack.dispose();
+    expect(stack.isDisposed).toBe(true);
+  });
+});
+
+describe("using", () => {
+  it("disposes after callback", () => {
+    let disposed = false;
+    const result = using({ dispose: () => { disposed = true; } }, () => 42);
+    expect(result).toBe(42);
+    expect(disposed).toBe(true);
   });
 
-  it("throws first error but disposes all", async () => {
-    const fn1 = vi.fn();
-    const group = new DisposableGroup();
-    group.add(fn1);
-    group.add(() => { throw new Error("oops"); });
-    await expect(group.dispose()).rejects.toThrow("oops");
-    expect(fn1).toHaveBeenCalled();
+  it("disposes on error", () => {
+    let disposed = false;
+    expect(() => using({ dispose: () => { disposed = true; } }, () => { throw new Error("fail"); })).toThrow("fail");
+    expect(disposed).toBe(true);
+  });
+});
+
+describe("usingAsync", () => {
+  it("disposes after async callback", async () => {
+    let disposed = false;
+    const result = await usingAsync({ dispose: () => { disposed = true; } }, async () => 42);
+    expect(result).toBe(42);
+    expect(disposed).toBe(true);
   });
 });

@@ -1,61 +1,83 @@
-export class AsyncQueue<T> {
-  private items: T[] = [];
-  private waiters: Array<(value: T) => void> = [];
-  private closed = false;
+type Task<T> = () => Promise<T>;
 
-  get size(): number { return this.items.length; }
-  get isClosed(): boolean { return this.closed; }
-  get waiting(): number { return this.waiters.length; }
+export class AsyncQueue {
+  private queue: Array<{ task: Task<unknown>; resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
+  private running = 0;
+  private readonly concurrency: number;
+  private drainResolvers: Array<() => void> = [];
+  private paused = false;
 
-  push(item: T): void {
-    if (this.closed) throw new Error("Queue is closed");
-    if (this.waiters.length > 0) {
-      const resolve = this.waiters.shift()!;
-      resolve(item);
-    } else {
-      this.items.push(item);
+  constructor(concurrency: number = 1) {
+    this.concurrency = concurrency;
+  }
+
+  push<T>(task: Task<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      this.queue.push({ task: task as Task<unknown>, resolve: resolve as (v: unknown) => void, reject });
+      this.process();
+    });
+  }
+
+  pause(): void {
+    this.paused = true;
+  }
+
+  resume(): void {
+    this.paused = false;
+    this.process();
+  }
+
+  async drain(): Promise<void> {
+    if (this.running === 0 && this.queue.length === 0) return;
+    return new Promise<void>((resolve) => {
+      this.drainResolvers.push(resolve);
+    });
+  }
+
+  get pending(): number {
+    return this.queue.length;
+  }
+
+  get active(): number {
+    return this.running;
+  }
+
+  get isPaused(): boolean {
+    return this.paused;
+  }
+
+  clear(): void {
+    for (const item of this.queue) {
+      item.reject(new Error("Queue cleared"));
+    }
+    this.queue = [];
+  }
+
+  private process(): void {
+    while (!this.paused && this.running < this.concurrency && this.queue.length > 0) {
+      const item = this.queue.shift()!;
+      this.running++;
+      item.task().then(
+        (value) => {
+          this.running--;
+          item.resolve(value);
+          this.checkDrain();
+          this.process();
+        },
+        (error) => {
+          this.running--;
+          item.reject(error);
+          this.checkDrain();
+          this.process();
+        },
+      );
     }
   }
 
-  async pop(): Promise<T> {
-    if (this.items.length > 0) return this.items.shift()!;
-    if (this.closed) throw new Error("Queue is closed and empty");
-    return new Promise<T>((resolve) => this.waiters.push(resolve));
-  }
-
-  tryPop(): T | undefined {
-    return this.items.shift();
-  }
-
-  peek(): T | undefined {
-    return this.items[0];
-  }
-
-  close(): void {
-    this.closed = true;
-    for (const waiter of this.waiters) {
-      (waiter as any)(undefined);
-    }
-    this.waiters = [];
-  }
-
-  drain(): T[] {
-    const result = [...this.items];
-    this.items = [];
-    return result;
-  }
-
-  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
-    while (!this.closed || this.items.length > 0) {
-      if (this.items.length > 0) {
-        yield this.items.shift()!;
-      } else if (this.closed) {
-        break;
-      } else {
-        const item = await this.pop();
-        if (item !== undefined) yield item;
-        else break;
-      }
+  private checkDrain(): void {
+    if (this.running === 0 && this.queue.length === 0) {
+      for (const resolve of this.drainResolvers) resolve();
+      this.drainResolvers = [];
     }
   }
 }

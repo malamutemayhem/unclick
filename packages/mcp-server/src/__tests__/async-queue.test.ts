@@ -2,66 +2,72 @@ import { describe, it, expect } from "vitest";
 import { AsyncQueue } from "../async-queue.js";
 
 describe("AsyncQueue", () => {
-  it("push and pop in order", async () => {
-    const q = new AsyncQueue<number>();
-    q.push(1);
-    q.push(2);
-    expect(await q.pop()).toBe(1);
-    expect(await q.pop()).toBe(2);
+  it("processes tasks in order", async () => {
+    const q = new AsyncQueue(1);
+    const results: number[] = [];
+    q.push(async () => { results.push(1); });
+    q.push(async () => { results.push(2); });
+    q.push(async () => { results.push(3); });
+    await q.drain();
+    expect(results).toEqual([1, 2, 3]);
   });
 
-  it("pop waits for push", async () => {
-    const q = new AsyncQueue<string>();
-    const promise = q.pop();
-    q.push("hello");
-    expect(await promise).toBe("hello");
+  it("limits concurrency", async () => {
+    const q = new AsyncQueue(2);
+    let running = 0;
+    let maxRunning = 0;
+    const task = async () => {
+      running++;
+      if (running > maxRunning) maxRunning = running;
+      await new Promise((r) => setTimeout(r, 10));
+      running--;
+    };
+    q.push(task);
+    q.push(task);
+    q.push(task);
+    q.push(task);
+    await q.drain();
+    expect(maxRunning).toBeLessThanOrEqual(2);
   });
 
-  it("tryPop returns item or undefined", () => {
-    const q = new AsyncQueue<number>();
-    expect(q.tryPop()).toBeUndefined();
-    q.push(42);
-    expect(q.tryPop()).toBe(42);
+  it("returns task result", async () => {
+    const q = new AsyncQueue(1);
+    const result = await q.push(async () => 42);
+    expect(result).toBe(42);
   });
 
-  it("peek returns front without removing", () => {
-    const q = new AsyncQueue<number>();
-    q.push(1);
-    expect(q.peek()).toBe(1);
-    expect(q.size).toBe(1);
+  it("propagates errors", async () => {
+    const q = new AsyncQueue(1);
+    await expect(q.push(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
   });
 
-  it("tracks size", () => {
-    const q = new AsyncQueue<number>();
-    expect(q.size).toBe(0);
-    q.push(1);
-    q.push(2);
-    expect(q.size).toBe(2);
+  it("pause and resume", async () => {
+    const q = new AsyncQueue(1);
+    q.pause();
+    const results: number[] = [];
+    q.push(async () => { results.push(1); });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(results).toEqual([]);
+    expect(q.isPaused).toBe(true);
+    q.resume();
+    await q.drain();
+    expect(results).toEqual([1]);
   });
 
-  it("drain returns all items", () => {
-    const q = new AsyncQueue<number>();
-    q.push(1);
-    q.push(2);
-    q.push(3);
-    expect(q.drain()).toEqual([1, 2, 3]);
-    expect(q.size).toBe(0);
+  it("tracks pending and active", async () => {
+    const q = new AsyncQueue(1);
+    q.pause();
+    q.push(async () => {});
+    q.push(async () => {});
+    expect(q.pending).toBe(2);
+    q.resume();
+    await q.drain();
+    expect(q.pending).toBe(0);
+    expect(q.active).toBe(0);
   });
 
-  it("close prevents further pushes", () => {
-    const q = new AsyncQueue<number>();
-    q.close();
-    expect(q.isClosed).toBe(true);
-    expect(() => q.push(1)).toThrow("closed");
-  });
-
-  it("tracks waiting count", async () => {
-    const q = new AsyncQueue<number>();
-    expect(q.waiting).toBe(0);
-    const p = q.pop();
-    expect(q.waiting).toBe(1);
-    q.push(1);
-    await p;
-    expect(q.waiting).toBe(0);
+  it("drain resolves immediately when empty", async () => {
+    const q = new AsyncQueue(1);
+    await q.drain();
   });
 });
