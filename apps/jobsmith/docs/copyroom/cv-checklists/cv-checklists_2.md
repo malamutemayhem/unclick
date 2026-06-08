@@ -98,7 +98,7 @@ Companion to `cv-checklists.md`. Zero overlap with Round 1. Everything here is a
 - Use a signature with one phone, one email, one LinkedIn URL. No quotes, no slogans, no company logos.
 - BCC yourself for record-keeping.
 - If the portal allows additional documents: include a 1-page case study or work sample, not a 30-page portfolio.
-- Use a real email address with your real name. `chris.byrne@gmail.com` not `darklord1985@hotmail.com`.
+- Use a real email address with your real name. `jane.smith@gmail.com` not `darklord1985@hotmail.com`.
 
 ### G. Reference list management
 
