@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T03:51:41.572Z",
+  "updatedAt": "2026-06-08T03:57:15.086Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -390,6 +390,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "corporatebs": {
+      "status": "pass",
+      "note": "corporate_bs_phrase returned a buzzword phrase; free, no key needed.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "corporate_bs_phrase"
+      ]
+    },
     "crews": {
       "status": "pass",
       "note": "list_runs returned 1 crew run with id and status (failed); API working",
@@ -405,6 +413,14 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "dadjoke": {
+      "status": "pass",
+      "note": "dadjoke_random returned a dad joke from icanhazdadjoke.com; free, no key needed.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "dadjoke_random"
+      ]
     },
     "datadog": {
       "status": "attention",
@@ -760,6 +776,14 @@
         "holidays_countries"
       ],
       "comment": ""
+    },
+    "httpbin": {
+      "status": "pass",
+      "note": "httpbin_get returned request echo from httpbin.org; free HTTP testing service.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "httpbin_get"
+      ]
     },
     "hubspot": {
       "status": "attention",
@@ -1383,6 +1407,14 @@
       ],
       "comment": ""
     },
+    "randomfox": {
+      "status": "pass",
+      "note": "random_fox_image returned a fox image URL from randomfox.ca; free, no key needed.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "random_fox_image"
+      ]
+    },
     "rawg": {
       "status": "attention",
       "note": "Requires free API key from rawg.io/apidocs. Set RAWG_API_KEY.",
@@ -1426,6 +1458,14 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "reqres": {
+      "status": "pass",
+      "note": "reqres_list_users returned fake user data from reqres.in; free, no key needed.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "reqres_list_users"
+      ]
     },
     "resend": {
       "status": "attention",
@@ -1881,6 +1921,14 @@
         "urlscan_search"
       ],
       "comment": ""
+    },
+    "uselessfacts": {
+      "status": "pass",
+      "note": "useless_fact_random returned a random fact from uselessfacts.jsph.pl; free, no key needed.",
+      "testedAt": "2026-06-08T03:57:15.086Z",
+      "toolsTested": [
+        "useless_fact_random"
+      ]
     },
     "usgs": {
       "status": "pass",

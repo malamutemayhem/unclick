@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 671,
+    "inventory": 677,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 249,
+    "tools": 255,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 249
+      "count": 255
     },
     {
       "id": "rooms",
@@ -4642,6 +4642,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-corporatebs-packages-mcp-server-src-corporatebs-tool-ts-no-route",
+      "division": "Tools",
+      "name": "corporatebs",
+      "kind": "MCP tool",
+      "meaning": "corporatebs MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/corporatebs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-crews-packages-mcp-server-src-crews-tool-ts-no-route",
       "division": "Tools",
       "name": "crews",
@@ -4658,6 +4668,16 @@
       "kind": "MCP tool",
       "meaning": "csuite MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/csuite-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-dadjoke-packages-mcp-server-src-dadjoke-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dadjoke",
+      "kind": "MCP tool",
+      "meaning": "dadjoke MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dadjoke-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5108,6 +5128,16 @@
       "kind": "MCP tool",
       "meaning": "holidays MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/holidays-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-httpbin-packages-mcp-server-src-httpbin-tool-ts-no-route",
+      "division": "Tools",
+      "name": "httpbin",
+      "kind": "MCP tool",
+      "meaning": "httpbin MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/httpbin-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5862,6 +5892,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-randomfox-packages-mcp-server-src-randomfox-tool-ts-no-route",
+      "division": "Tools",
+      "name": "randomfox",
+      "kind": "MCP tool",
+      "meaning": "randomfox MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/randomfox-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-rawg-packages-mcp-server-src-rawg-tool-ts-no-route",
       "division": "Tools",
       "name": "rawg",
@@ -5908,6 +5948,16 @@
       "kind": "MCP tool",
       "meaning": "replicate MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/replicate-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-reqres-packages-mcp-server-src-reqres-tool-ts-no-route",
+      "division": "Tools",
+      "name": "reqres",
+      "kind": "MCP tool",
+      "meaning": "reqres MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/reqres-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6468,6 +6518,16 @@
       "kind": "MCP tool",
       "meaning": "urlscan MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/urlscan-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-uselessfacts-packages-mcp-server-src-uselessfacts-tool-ts-no-route",
+      "division": "Tools",
+      "name": "uselessfacts",
+      "kind": "MCP tool",
+      "meaning": "uselessfacts MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/uselessfacts-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7635,6 +7695,11 @@
       "packages/mcp-server/src/copypass-tool.ts"
     ],
     [
+      "corporatebs",
+      "corporatebs MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/corporatebs-tool.ts"
+    ],
+    [
       "crews",
       "crews MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/crews-tool.ts"
@@ -7643,6 +7708,11 @@
       "csuite",
       "csuite MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/csuite-tool.ts"
+    ],
+    [
+      "dadjoke",
+      "dadjoke MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dadjoke-tool.ts"
     ],
     [
       "datadog",
@@ -7868,6 +7938,11 @@
       "holidays",
       "holidays MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/holidays-tool.ts"
+    ],
+    [
+      "httpbin",
+      "httpbin MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/httpbin-tool.ts"
     ],
     [
       "hubspot",
@@ -8245,6 +8320,11 @@
       "packages/mcp-server/src/random-tool.ts"
     ],
     [
+      "randomfox",
+      "randomfox MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/randomfox-tool.ts"
+    ],
+    [
       "rawg",
       "rawg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/rawg-tool.ts"
@@ -8268,6 +8348,11 @@
       "replicate",
       "replicate MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/replicate-tool.ts"
+    ],
+    [
+      "reqres",
+      "reqres MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/reqres-tool.ts"
     ],
     [
       "resend",
@@ -8548,6 +8633,11 @@
       "urlscan",
       "urlscan MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/urlscan-tool.ts"
+    ],
+    [
+      "uselessfacts",
+      "uselessfacts MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/uselessfacts-tool.ts"
     ],
     [
       "usgs",

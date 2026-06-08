@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 248,
-  "toolCount": 1020,
+  "appCount": 254,
+  "toolCount": 1035,
   "categories": [
     "AI",
     "Books",
@@ -1198,6 +1198,22 @@
       "hardened": false
     },
     {
+      "slug": "corporatebs",
+      "name": "Corporate BS Generator",
+      "category": "Utilities",
+      "blurb": "Generate random corporate buzzword phrases.",
+      "domain": "corporatebs-generator.sameerkumar.website",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "corporate_bs_phrase",
+          "description": "Generate a random corporate buzzword phrase."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "crews",
       "name": "Crews",
       "category": "Productivity",
@@ -1252,6 +1268,30 @@
         {
           "name": "dnd_list_monsters",
           "description": "List D&D 5e monsters, optionally by challenge rating."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "dadjoke",
+      "name": "Dad Jokes",
+      "category": "Utilities",
+      "blurb": "Random dad jokes - search, browse, or get a random groaner.",
+      "domain": "icanhazdadjoke.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "dadjoke_random",
+          "description": "Get a random dad joke from icanhazdadjoke."
+        },
+        {
+          "name": "dadjoke_search",
+          "description": "Search for dad jokes by keyword."
+        },
+        {
+          "name": "dadjoke_by_id",
+          "description": "Get a specific dad joke by its ID."
         }
       ],
       "level": 5,
@@ -2480,6 +2520,38 @@
         {
           "name": "higgsfield_get_status",
           "description": "Check the status of a Higgsfield AI generation by ID. Returns status, video URL when complete."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "httpbin",
+      "name": "httpbin",
+      "category": "Developer & infra",
+      "blurb": "HTTP request and response testing service for developers.",
+      "domain": "httpbin.org",
+      "toolCount": 5,
+      "tools": [
+        {
+          "name": "httpbin_get",
+          "description": "Test an HTTP GET request - see your headers, IP, and args echoed back."
+        },
+        {
+          "name": "httpbin_headers",
+          "description": "Get your request headers as seen by httpbin."
+        },
+        {
+          "name": "httpbin_ip",
+          "description": "Get your public IP address via httpbin."
+        },
+        {
+          "name": "httpbin_user_agent",
+          "description": "Get your User-Agent string via httpbin."
+        },
+        {
+          "name": "httpbin_uuid",
+          "description": "Generate a random UUID via httpbin."
         }
       ],
       "level": 5,
@@ -4682,6 +4754,22 @@
       "hardened": false
     },
     {
+      "slug": "randomfox",
+      "name": "Random Fox",
+      "category": "Images",
+      "blurb": "Random fox images for fun or as placeholders.",
+      "domain": "randomfox.ca",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "random_fox_image",
+          "description": "Get a random fox image URL."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "rawg",
       "name": "Rawg",
       "category": "Games & esports",
@@ -4844,6 +4932,30 @@
         {
           "name": "replicate_cancel_prediction",
           "description": "Cancel a running Replicate prediction."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "reqres",
+      "name": "Reqres",
+      "category": "Developer & infra",
+      "blurb": "Realistic fake REST API for frontend testing with users and resources.",
+      "domain": "reqres.in",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "reqres_list_users",
+          "description": "List fake users from Reqres (test API)."
+        },
+        {
+          "name": "reqres_get_user",
+          "description": "Get a specific fake user by ID from Reqres."
+        },
+        {
+          "name": "reqres_list_resources",
+          "description": "List fake color resources from Reqres (test API)."
         }
       ],
       "level": 5,
@@ -6540,6 +6652,26 @@
         {
           "name": "urlscan_search",
           "description": "Search urlscan.io scan results."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "uselessfacts",
+      "name": "Useless Facts",
+      "category": "Utilities",
+      "blurb": "Random interesting but useless facts.",
+      "domain": "uselessfacts.jsph.pl",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "useless_fact_random",
+          "description": "Get a random useless fact."
+        },
+        {
+          "name": "useless_fact_today",
+          "description": "Get today's useless fact of the day."
         }
       ],
       "level": 5,

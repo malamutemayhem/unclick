@@ -345,6 +345,18 @@ import { zenQuoteRandom, zenQuoteToday, zenQuotes } from "./zenquotes-tool.js";
 
 import { kanyeQuote } from "./kanye-tool.js";
 
+import { dadJokeRandom, dadJokeSearch, dadJokeById } from "./dadjoke-tool.js";
+
+import { uselessFactRandom, uselessFactToday } from "./uselessfacts-tool.js";
+
+import { randomFoxImage } from "./randomfox-tool.js";
+
+import { httpbinGet, httpbinHeaders, httpbinIp, httpbinUserAgent, httpbinUuid } from "./httpbin-tool.js";
+
+import { reqresListUsers, reqresGetUser, reqresListResources } from "./reqres-tool.js";
+
+import { corporateBsPhrase } from "./corporatebs-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5503,6 +5515,128 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "kanye_quote",
     description: "Get a random Kanye West quote.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dadjoke-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "dadjoke_random",
+    description: "Get a random dad joke from icanhazdadjoke.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dadjoke_search",
+    description: "Search for dad jokes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        term: { type: "string", description: "Search keyword" },
+        page: { type: "number", description: "Page number (default 1)" },
+        limit: { type: "number", description: "Results per page (max 30, default 20)" },
+      },
+      required: ["term"],
+    },
+  },
+  {
+    name: "dadjoke_by_id",
+    description: "Get a specific dad joke by its ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Joke ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── uselessfacts-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "useless_fact_random",
+    description: "Get a random useless fact.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "useless_fact_today",
+    description: "Get today's useless fact of the day.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── randomfox-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "random_fox_image",
+    description: "Get a random fox image URL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── httpbin-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "httpbin_get",
+    description: "Test an HTTP GET request - see your headers, IP, and args echoed back.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_headers",
+    description: "Get your request headers as seen by httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_ip",
+    description: "Get your public IP address via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_user_agent",
+    description: "Get your User-Agent string via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_uuid",
+    description: "Generate a random UUID via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── reqres-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "reqres_list_users",
+    description: "List fake users from Reqres (test API).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+  {
+    name: "reqres_get_user",
+    description: "Get a specific fake user by ID from Reqres.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "User ID (1-12)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "reqres_list_resources",
+    description: "List fake color resources from Reqres (test API).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+
+  // ── corporatebs-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "corporate_bs_phrase",
+    description: "Generate a random corporate buzzword phrase.",
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
   },
 
@@ -16306,6 +16440,33 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // kanye-tool.ts
   kanye_quote:             (args) => kanyeQuote(args),
+
+  // dadjoke-tool.ts
+  dadjoke_random:          (args) => dadJokeRandom(args),
+  dadjoke_search:          (args) => dadJokeSearch(args),
+  dadjoke_by_id:           (args) => dadJokeById(args),
+
+  // uselessfacts-tool.ts
+  useless_fact_random:     (args) => uselessFactRandom(args),
+  useless_fact_today:      (args) => uselessFactToday(args),
+
+  // randomfox-tool.ts
+  random_fox_image:        (args) => randomFoxImage(args),
+
+  // httpbin-tool.ts
+  httpbin_get:             (args) => httpbinGet(args),
+  httpbin_headers:         (args) => httpbinHeaders(args),
+  httpbin_ip:              (args) => httpbinIp(args),
+  httpbin_user_agent:      (args) => httpbinUserAgent(args),
+  httpbin_uuid:            (args) => httpbinUuid(args),
+
+  // reqres-tool.ts
+  reqres_list_users:       (args) => reqresListUsers(args),
+  reqres_get_user:         (args) => reqresGetUser(args),
+  reqres_list_resources:   (args) => reqresListResources(args),
+
+  // corporatebs-tool.ts
+  corporate_bs_phrase:     (args) => corporateBsPhrase(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

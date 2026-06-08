@@ -976,6 +976,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "corporatebs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "corporate_bs_phrase",
+        "description": "Generate a random corporate buzzword phrase."
+      }
+    ]
+  },
+  {
     "app": "crews",
     "category": "Crews (Orchestrator Wizard)",
     "tools": [
@@ -1000,6 +1010,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "csuite_analyze",
         "description": "Run a C-Suite multi-perspective analysis on a business scenario."
+      }
+    ]
+  },
+  {
+    "app": "dadjoke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dadjoke_random",
+        "description": "Get a random dad joke from icanhazdadjoke."
+      },
+      {
+        "name": "dadjoke_search",
+        "description": "Search for dad jokes by keyword."
+      },
+      {
+        "name": "dadjoke_by_id",
+        "description": "Get a specific dad joke by its ID."
       }
     ]
   },
@@ -2028,6 +2056,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "holidays_long_weekends",
         "description": "Get long weekends for a country and year."
+      }
+    ]
+  },
+  {
+    "app": "httpbin",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "httpbin_get",
+        "description": "Test an HTTP GET request - see your headers, IP, and args echoed back."
+      },
+      {
+        "name": "httpbin_headers",
+        "description": "Get your request headers as seen by httpbin."
+      },
+      {
+        "name": "httpbin_ip",
+        "description": "Get your public IP address via httpbin."
+      },
+      {
+        "name": "httpbin_user_agent",
+        "description": "Get your User-Agent string via httpbin."
+      },
+      {
+        "name": "httpbin_uuid",
+        "description": "Generate a random UUID via httpbin."
       }
     ]
   },
@@ -3698,6 +3752,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "randomfox",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_fox_image",
+        "description": "Get a random fox image URL."
+      }
+    ]
+  },
+  {
     "app": "rawg",
     "category": "Gaming",
     "tools": [
@@ -3832,6 +3896,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "replicate_cancel_prediction",
         "description": "Cancel a running Replicate prediction."
+      }
+    ]
+  },
+  {
+    "app": "reqres",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "reqres_list_users",
+        "description": "List fake users from Reqres (test API)."
+      },
+      {
+        "name": "reqres_get_user",
+        "description": "Get a specific fake user by ID from Reqres."
+      },
+      {
+        "name": "reqres_list_resources",
+        "description": "List fake color resources from Reqres (test API)."
       }
     ]
   },
@@ -5156,6 +5238,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "urlscan_search",
         "description": "Search urlscan.io scan results."
+      }
+    ]
+  },
+  {
+    "app": "uselessfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "useless_fact_random",
+        "description": "Get a random useless fact."
+      },
+      {
+        "name": "useless_fact_today",
+        "description": "Get today's useless fact of the day."
       }
     ]
   },
