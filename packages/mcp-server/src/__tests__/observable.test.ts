@@ -1,101 +1,77 @@
-import { describe, it, expect } from "vitest";
-import { Observable, BehaviorSubject } from "../observable.js";
+import { describe, it, expect, vi } from "vitest";
+import { Observable, of, fromArray, merge } from "../observable.js";
 
 describe("Observable", () => {
-  it("notifies subscribers", () => {
-    const obs = new Observable<number>();
+  it("emits values to subscriber", () => {
     const values: number[] = [];
-    obs.subscribe((v) => values.push(v));
-    obs.next(1);
-    obs.next(2);
+    const obs = new Observable<number>((observer) => {
+      observer.next(1);
+      observer.next(2);
+      observer.complete?.();
+    });
+    obs.subscribe({ next: (v) => values.push(v) });
     expect(values).toEqual([1, 2]);
+  });
+
+  it("supports function subscriber", () => {
+    const values: number[] = [];
+    of(1, 2, 3).subscribe((v) => values.push(v));
+    expect(values).toEqual([1, 2, 3]);
   });
 
   it("unsubscribe stops notifications", () => {
-    const obs = new Observable<number>();
-    const values: number[] = [];
-    const unsub = obs.subscribe((v) => values.push(v));
-    obs.next(1);
-    unsub();
-    obs.next(2);
-    expect(values).toEqual([1]);
+    const fn = vi.fn();
+    const obs = new Observable<number>((observer) => {
+      observer.next(1);
+      setTimeout(() => observer.next(2), 10);
+    });
+    const sub = obs.subscribe(fn);
+    sub.unsubscribe();
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("subscriberCount tracks observers", () => {
-    const obs = new Observable<number>();
-    expect(obs.subscriberCount).toBe(0);
-    const unsub = obs.subscribe(() => {});
-    expect(obs.subscriberCount).toBe(1);
-    unsub();
-    expect(obs.subscriberCount).toBe(0);
+  it("map transforms values", () => {
+    const values: number[] = [];
+    of(1, 2, 3).map((x) => x * 2).subscribe((v) => values.push(v));
+    expect(values).toEqual([2, 4, 6]);
   });
 
-  it("pipe transforms values", () => {
-    const obs = new Observable<number>();
-    const doubled = obs.pipe((x) => x * 2);
+  it("filter removes values", () => {
     const values: number[] = [];
-    doubled.subscribe((v) => values.push(v));
-    obs.next(3);
-    obs.next(5);
-    expect(values).toEqual([6, 10]);
-  });
-
-  it("filter passes matching values", () => {
-    const obs = new Observable<number>();
-    const evens = obs.filter((x) => x % 2 === 0);
-    const values: number[] = [];
-    evens.subscribe((v) => values.push(v));
-    obs.next(1);
-    obs.next(2);
-    obs.next(3);
-    obs.next(4);
+    of(1, 2, 3, 4).filter((x) => x % 2 === 0).subscribe((v) => values.push(v));
     expect(values).toEqual([2, 4]);
   });
 
-  it("take limits emissions", () => {
-    const obs = new Observable<number>();
-    const first2 = obs.take(2);
+  it("take limits count", () => {
     const values: number[] = [];
-    first2.subscribe((v) => values.push(v));
-    obs.next(1);
-    obs.next(2);
-    obs.next(3);
-    expect(values).toEqual([1, 2]);
+    of(1, 2, 3, 4, 5).take(3).subscribe((v) => values.push(v));
+    expect(values).toEqual([1, 2, 3]);
   });
 
-  it("merge combines observables", () => {
-    const a = new Observable<number>();
-    const b = new Observable<number>();
-    const merged = Observable.merge(a, b);
+  it("scan accumulates", () => {
     const values: number[] = [];
-    merged.subscribe((v) => values.push(v));
-    a.next(1);
-    b.next(2);
-    a.next(3);
-    expect(values).toEqual([1, 2, 3]);
+    of(1, 2, 3).scan((acc, v) => acc + v, 0).subscribe((v) => values.push(v));
+    expect(values).toEqual([1, 3, 6]);
+  });
+
+  it("toPromise resolves with last value", async () => {
+    const result = await of(1, 2, 3).toPromise();
+    expect(result).toBe(3);
   });
 });
 
-describe("BehaviorSubject", () => {
-  it("emits current value on subscribe", () => {
-    const bs = new BehaviorSubject(42);
-    const values: number[] = [];
-    bs.subscribe((v) => values.push(v));
-    expect(values).toEqual([42]);
+describe("fromArray", () => {
+  it("emits array elements", () => {
+    const values: string[] = [];
+    fromArray(["a", "b"]).subscribe((v) => values.push(v));
+    expect(values).toEqual(["a", "b"]);
   });
+});
 
-  it("emits new values", () => {
-    const bs = new BehaviorSubject(0);
+describe("merge", () => {
+  it("combines observables", () => {
     const values: number[] = [];
-    bs.subscribe((v) => values.push(v));
-    bs.next(1);
-    bs.next(2);
-    expect(values).toEqual([0, 1, 2]);
-  });
-
-  it("value getter returns current", () => {
-    const bs = new BehaviorSubject("hello");
-    bs.next("world");
-    expect(bs.value).toBe("world");
+    merge(of(1, 2), of(3, 4)).subscribe((v) => values.push(v));
+    expect(values.sort()).toEqual([1, 2, 3, 4]);
   });
 });

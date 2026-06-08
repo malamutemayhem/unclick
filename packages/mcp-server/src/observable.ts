@@ -1,89 +1,134 @@
-type Observer<T> = (value: T) => void;
-type Unsubscribe = () => void;
+type Observer<T> = {
+  next: (value: T) => void;
+  error?: (err: unknown) => void;
+  complete?: () => void;
+};
+
+type TeardownFn = () => void;
+type SubscribeFn<T> = (observer: Observer<T>) => TeardownFn | void;
 
 export class Observable<T> {
-  private observers = new Set<Observer<T>>();
+  private subscribeFn: SubscribeFn<T>;
 
-  subscribe(observer: Observer<T>): Unsubscribe {
-    this.observers.add(observer);
-    return () => { this.observers.delete(observer); };
+  constructor(subscribeFn: SubscribeFn<T>) {
+    this.subscribeFn = subscribeFn;
   }
 
-  next(value: T): void {
-    for (const observer of this.observers) {
-      observer(value);
-    }
+  subscribe(observer: Observer<T> | ((value: T) => void)): { unsubscribe: () => void } {
+    const obs: Observer<T> = typeof observer === "function" ? { next: observer } : observer;
+    let active = true;
+    const teardown = this.subscribeFn({
+      next: (v) => { if (active) obs.next(v); },
+      error: (e) => { if (active) { active = false; obs.error?.(e); } },
+      complete: () => { if (active) { active = false; obs.complete?.(); } },
+    });
+    return {
+      unsubscribe: () => {
+        active = false;
+        teardown?.();
+      },
+    };
   }
 
-  get subscriberCount(): number {
-    return this.observers.size;
-  }
-
-  pipe<U>(transform: (value: T) => U): Observable<U> {
-    const derived = new Observable<U>();
-    this.subscribe((value) => derived.next(transform(value)));
-    return derived;
+  map<R>(fn: (value: T) => R): Observable<R> {
+    return new Observable<R>((observer) => {
+      const sub = this.subscribe({
+        next: (v) => observer.next(fn(v)),
+        error: (e) => observer.error?.(e),
+        complete: () => observer.complete?.(),
+      });
+      return () => sub.unsubscribe();
+    });
   }
 
   filter(predicate: (value: T) => boolean): Observable<T> {
-    const filtered = new Observable<T>();
-    this.subscribe((value) => { if (predicate(value)) filtered.next(value); });
-    return filtered;
+    return new Observable<T>((observer) => {
+      const sub = this.subscribe({
+        next: (v) => { if (predicate(v)) observer.next(v); },
+        error: (e) => observer.error?.(e),
+        complete: () => observer.complete?.(),
+      });
+      return () => sub.unsubscribe();
+    });
   }
 
   take(count: number): Observable<T> {
-    const taken = new Observable<T>();
-    let remaining = count;
-    this.subscribe((value) => {
-      if (remaining > 0) { remaining--; taken.next(value); }
+    return new Observable<T>((observer) => {
+      let taken = 0;
+      let subRef: { unsubscribe: () => void } | null = null;
+      const sub = this.subscribe({
+        next: (v) => {
+          if (taken < count) {
+            taken++;
+            observer.next(v);
+            if (taken >= count) {
+              observer.complete?.();
+              if (subRef) subRef.unsubscribe();
+            }
+          }
+        },
+        error: (e) => observer.error?.(e),
+        complete: () => observer.complete?.(),
+      });
+      subRef = sub;
+      if (taken >= count) sub.unsubscribe();
+      return () => sub.unsubscribe();
     });
-    return taken;
   }
 
-  debounce(ms: number): Observable<T> {
-    const debounced = new Observable<T>();
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    this.subscribe((value) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => debounced.next(value), ms);
+  scan<R>(fn: (acc: R, value: T) => R, seed: R): Observable<R> {
+    return new Observable<R>((observer) => {
+      let acc = seed;
+      const sub = this.subscribe({
+        next: (v) => { acc = fn(acc, v); observer.next(acc); },
+        error: (e) => observer.error?.(e),
+        complete: () => observer.complete?.(),
+      });
+      return () => sub.unsubscribe();
     });
-    return debounced;
   }
 
-  static merge<T>(...observables: Observable<T>[]): Observable<T> {
-    const merged = new Observable<T>();
-    for (const obs of observables) {
-      obs.subscribe((value) => merged.next(value));
-    }
-    return merged;
-  }
-
-  static fromArray<T>(items: T[]): Observable<T> {
-    const obs = new Observable<T>();
-    for (const item of items) obs.next(item);
-    return obs;
+  toPromise(): Promise<T | undefined> {
+    return new Promise((resolve, reject) => {
+      let last: T | undefined;
+      this.subscribe({
+        next: (v) => { last = v; },
+        error: reject,
+        complete: () => resolve(last),
+      });
+    });
   }
 }
 
-export class BehaviorSubject<T> extends Observable<T> {
-  private current: T;
+export function of<T>(...values: T[]): Observable<T> {
+  return new Observable<T>((observer) => {
+    for (const v of values) observer.next(v);
+    observer.complete?.();
+  });
+}
 
-  constructor(initial: T) {
-    super();
-    this.current = initial;
-  }
+export function fromArray<T>(arr: T[]): Observable<T> {
+  return of(...arr);
+}
 
-  subscribe(observer: Observer<T>): Unsubscribe {
-    observer(this.current);
-    return super.subscribe(observer);
-  }
+export function interval(ms: number): Observable<number> {
+  return new Observable<number>((observer) => {
+    let count = 0;
+    const id = setInterval(() => observer.next(count++), ms);
+    return () => clearInterval(id);
+  });
+}
 
-  next(value: T): void {
-    this.current = value;
-    super.next(value);
-  }
-
-  get value(): T {
-    return this.current;
-  }
+export function merge<T>(...observables: Observable<T>[]): Observable<T> {
+  return new Observable<T>((observer) => {
+    let completed = 0;
+    const subs = observables.map((obs) =>
+      obs.subscribe({
+        next: (v) => observer.next(v),
+        error: (e) => observer.error?.(e),
+        complete: () => { completed++; if (completed === observables.length) observer.complete?.(); },
+      })
+    );
+    return () => subs.forEach((s) => s.unsubscribe());
+  });
 }
