@@ -34,7 +34,8 @@ export class TokenBucket {
       return { allowed: true, retryAfterMs: 0 };
     }
     const deficit = count - this.tokens;
-    return { allowed: false, retryAfterMs: Math.ceil((deficit / this.refillRate) * 1000) };
+    const waitMs = (deficit / this.refillRate) * 1000;
+    return { allowed: false, retryAfterMs: Math.ceil(waitMs) };
   }
 
   get available(): number {
@@ -45,45 +46,5 @@ export class TokenBucket {
   reset(): void {
     this.tokens = this.capacity;
     this.lastRefill = Date.now();
-  }
-}
-
-export class LeakyBucket {
-  private queue: number[] = [];
-  private readonly capacity: number;
-  private readonly leakRate: number;
-  private lastLeak: number;
-
-  constructor(capacity: number, leakRate: number) {
-    this.capacity = capacity;
-    this.leakRate = leakRate;
-    this.lastLeak = Date.now();
-  }
-
-  private leak(): void {
-    const now = Date.now();
-    const elapsed = (now - this.lastLeak) / 1000;
-    const leaked = Math.floor(elapsed * this.leakRate);
-    if (leaked > 0) {
-      this.queue.splice(0, leaked);
-      this.lastLeak = now;
-    }
-  }
-
-  add(): boolean {
-    this.leak();
-    if (this.queue.length >= this.capacity) return false;
-    this.queue.push(Date.now());
-    return true;
-  }
-
-  get size(): number {
-    this.leak();
-    return this.queue.length;
-  }
-
-  get remaining(): number {
-    this.leak();
-    return this.capacity - this.queue.length;
   }
 }
