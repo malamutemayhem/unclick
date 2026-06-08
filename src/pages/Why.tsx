@@ -128,7 +128,7 @@ const Why = () => {
         <div className="mx-auto max-w-5xl">
           <FadeIn>
             <ExpandableImage
-              src="/whyunclick_web.jpg"
+              src="/whyunclick_web2.jpg"
               alt="The hard way: a tangled mess of MCP plugins, API keys, and a memory plugin you host and secure yourself, burning tokens, with context that does not travel. UnClick: one MCP install giving apps, memory, connections, and permissions with proof, on one subscription, with the same shared context across Claude, ChatGPT, Copilot, and Cursor."
             />
           </FadeIn>
