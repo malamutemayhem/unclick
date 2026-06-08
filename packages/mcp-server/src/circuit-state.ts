@@ -1,67 +1,73 @@
-export type CircuitStateType = "closed" | "open" | "half-open";
+type CircuitBreakerState = "closed" | "open" | "half-open";
 
 export class CircuitState {
-  private state: CircuitStateType = "closed";
-  private failCount = 0;
-  private successCount = 0;
-  private lastFailTime = 0;
-  private threshold: number;
-  private resetTimeoutMs: number;
-  private halfOpenMax: number;
+  private state: CircuitBreakerState = "closed";
+  private failures = 0;
+  private successes = 0;
+  private lastFailureTime = 0;
+  private readonly threshold: number;
+  private readonly resetTimeout: number;
+  private readonly halfOpenMax: number;
 
-  constructor(opts?: { threshold?: number; resetTimeoutMs?: number; halfOpenMax?: number }) {
-    this.threshold = opts?.threshold ?? 5;
-    this.resetTimeoutMs = opts?.resetTimeoutMs ?? 30000;
-    this.halfOpenMax = opts?.halfOpenMax ?? 1;
+  constructor(threshold = 5, resetTimeout = 30000, halfOpenMax = 1) {
+    this.threshold = threshold;
+    this.resetTimeout = resetTimeout;
+    this.halfOpenMax = halfOpenMax;
   }
 
-  get current(): CircuitStateType {
-    if (this.state === "open" && Date.now() - this.lastFailTime >= this.resetTimeoutMs) {
+  get currentState(): CircuitBreakerState {
+    if (this.state === "open" && Date.now() - this.lastFailureTime >= this.resetTimeout) {
       this.state = "half-open";
-      this.successCount = 0;
+      this.successes = 0;
     }
     return this.state;
   }
 
-  get failures(): number {
-    return this.failCount;
+  get isAllowed(): boolean {
+    const s = this.currentState;
+    return s === "closed" || s === "half-open";
   }
 
   recordSuccess(): void {
     if (this.state === "half-open") {
-      this.successCount++;
-      if (this.successCount >= this.halfOpenMax) {
+      this.successes++;
+      if (this.successes >= this.halfOpenMax) {
         this.state = "closed";
-        this.failCount = 0;
-        this.successCount = 0;
+        this.failures = 0;
       }
-    } else if (this.state === "closed") {
-      this.failCount = 0;
+    } else {
+      this.failures = 0;
     }
   }
 
   recordFailure(): void {
-    this.failCount++;
-    this.lastFailTime = Date.now();
-    if (this.state === "half-open" || this.failCount >= this.threshold) {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (this.failures >= this.threshold) {
       this.state = "open";
     }
   }
 
-  isAllowed(): boolean {
-    const s = this.current;
-    return s === "closed" || s === "half-open";
-  }
-
   reset(): void {
     this.state = "closed";
-    this.failCount = 0;
-    this.successCount = 0;
-    this.lastFailTime = 0;
+    this.failures = 0;
+    this.successes = 0;
+    this.lastFailureTime = 0;
   }
 
-  forceOpen(): void {
-    this.state = "open";
-    this.lastFailTime = Date.now();
+  get failureCount(): number {
+    return this.failures;
+  }
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (!this.isAllowed) throw new Error("Circuit is open");
+    try {
+      const result = await fn();
+      this.recordSuccess();
+      return result;
+    } catch (err) {
+      this.recordFailure();
+      throw err;
+    }
   }
 }

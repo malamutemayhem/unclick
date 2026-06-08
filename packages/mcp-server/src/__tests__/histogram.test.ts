@@ -2,59 +2,47 @@ import { describe, it, expect } from "vitest";
 import { Histogram } from "../histogram.js";
 
 describe("Histogram", () => {
-  it("adds values to correct buckets", () => {
-    const h = new Histogram(0, 100, 10);
-    h.add(5);
-    h.add(15);
-    h.add(15);
-    expect(h.getBucket(0).count).toBe(1);
-    expect(h.getBucket(1).count).toBe(2);
+  it("records values into buckets", () => {
+    const h = new Histogram([10, 50, 100, 500]);
+    h.record(5);
+    h.record(25);
+    h.record(75);
+    h.record(200);
+    h.record(1000);
+    const buckets = h.getBuckets();
+    expect(buckets.find((b) => b.le === 10)!.count).toBe(1);
+    expect(buckets.find((b) => b.le === 50)!.count).toBe(1);
+    expect(buckets.find((b) => b.le === 100)!.count).toBe(1);
+    expect(buckets.find((b) => b.le === 500)!.count).toBe(1);
+    expect(buckets.find((b) => b.le === "+Inf")!.count).toBe(1);
   });
 
-  it("addMany", () => {
-    const h = new Histogram(0, 10, 2);
-    h.addMany([1, 2, 3, 6, 7, 8]);
-    expect(h.getBucket(0).count).toBe(3);
-    expect(h.getBucket(1).count).toBe(3);
+  it("tracks count, sum, min, max, mean", () => {
+    const h = new Histogram([100]);
+    h.record(10);
+    h.record(20);
+    h.record(30);
+    expect(h.count).toBe(3);
+    expect(h.sum).toBe(60);
+    expect(h.min).toBe(10);
+    expect(h.max).toBe(30);
+    expect(h.mean).toBe(20);
   });
 
-  it("count tracks total", () => {
-    const h = new Histogram(0, 100, 10);
-    h.addMany([1, 2, 3, 4, 5]);
-    expect(h.count).toBe(5);
-  });
-
-  it("percentile", () => {
-    const h = new Histogram(0, 100, 10);
-    for (let i = 0; i < 100; i++) h.add(i);
+  it("percentile estimation", () => {
+    const h = new Histogram([10, 20, 30, 40, 50]);
+    for (let i = 1; i <= 50; i++) h.record(i);
     const p50 = h.percentile(50);
-    expect(p50).toBeGreaterThan(40);
-    expect(p50).toBeLessThan(60);
+    expect(p50).toBeGreaterThanOrEqual(20);
+    expect(p50).toBeLessThanOrEqual(30);
   });
 
-  it("toArray returns all buckets", () => {
-    const h = new Histogram(0, 10, 5);
-    expect(h.toArray()).toHaveLength(5);
-    expect(h.toArray()[0].start).toBe(0);
-  });
-
-  it("reset clears", () => {
-    const h = new Histogram(0, 10, 2);
-    h.add(1);
+  it("reset clears all data", () => {
+    const h = new Histogram([100]);
+    h.record(50);
+    h.record(150);
     h.reset();
     expect(h.count).toBe(0);
-  });
-
-  it("toString produces text", () => {
-    const h = new Histogram(0, 10, 2);
-    h.add(1);
-    expect(typeof h.toString()).toBe("string");
-  });
-
-  it("clamps out-of-range values", () => {
-    const h = new Histogram(0, 10, 2);
-    h.add(-5);
-    h.add(100);
-    expect(h.count).toBe(2);
+    expect(h.sum).toBe(0);
   });
 });

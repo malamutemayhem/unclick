@@ -1,46 +1,57 @@
-export type Option<T> = { some: true; value: T } | { some: false };
+export class Option<T> {
+  private readonly value: T | null;
 
-export function some<T>(value: T): Option<T> {
-  return { some: true, value };
-}
+  private constructor(value: T | null) {
+    this.value = value;
+  }
 
-export function none<T = never>(): Option<T> {
-  return { some: false };
-}
+  static some<T>(value: T): Option<T> {
+    return new Option(value);
+  }
 
-export function isSome<T>(opt: Option<T>): opt is { some: true; value: T } {
-  return opt.some;
-}
+  static none<T>(): Option<T> {
+    return new Option<T>(null);
+  }
 
-export function isNone<T>(opt: Option<T>): opt is { some: false } {
-  return !opt.some;
-}
+  static from<T>(value: T | null | undefined): Option<T> {
+    return value === null || value === undefined ? Option.none() : Option.some(value);
+  }
 
-export function unwrapOption<T>(opt: Option<T>): T {
-  if (opt.some) return opt.value;
-  throw new Error("Unwrap called on None");
-}
+  isSome(): boolean {
+    return this.value !== null;
+  }
 
-export function unwrapOptionOr<T>(opt: Option<T>, fallback: T): T {
-  return opt.some ? opt.value : fallback;
-}
+  isNone(): boolean {
+    return this.value === null;
+  }
 
-export function mapOption<T, U>(opt: Option<T>, fn: (value: T) => U): Option<U> {
-  return opt.some ? some(fn(opt.value)) : none();
-}
+  unwrap(): T {
+    if (this.value === null) throw new Error("Called unwrap on None");
+    return this.value;
+  }
 
-export function flatMapOption<T, U>(opt: Option<T>, fn: (value: T) => Option<U>): Option<U> {
-  return opt.some ? fn(opt.value) : none();
-}
+  unwrapOr(defaultValue: T): T {
+    return this.value !== null ? this.value : defaultValue;
+  }
 
-export function filterOption<T>(opt: Option<T>, pred: (value: T) => boolean): Option<T> {
-  return opt.some && pred(opt.value) ? opt : none();
-}
+  map<U>(fn: (value: T) => U): Option<U> {
+    return this.value !== null ? Option.some(fn(this.value)) : Option.none();
+  }
 
-export function fromNullable<T>(value: T | null | undefined): Option<T> {
-  return value != null ? some(value) : none();
-}
+  flatMap<U>(fn: (value: T) => Option<U>): Option<U> {
+    return this.value !== null ? fn(this.value) : Option.none();
+  }
 
-export function toNullable<T>(opt: Option<T>): T | null {
-  return opt.some ? opt.value : null;
+  filter(predicate: (value: T) => boolean): Option<T> {
+    if (this.value !== null && predicate(this.value)) return this;
+    return Option.none();
+  }
+
+  match<U>(handlers: { some: (value: T) => U; none: () => U }): U {
+    return this.value !== null ? handlers.some(this.value) : handlers.none();
+  }
+
+  toArray(): T[] {
+    return this.value !== null ? [this.value] : [];
+  }
 }
