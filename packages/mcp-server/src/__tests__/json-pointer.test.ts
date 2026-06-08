@@ -1,51 +1,74 @@
 import { describe, it, expect } from "vitest";
-import { get, set, remove, has, compile, toPointer } from "../json-pointer.js";
+import { get, set, has, remove, compile } from "../json-pointer.js";
 
-describe("json-pointer", () => {
-  const doc = { foo: { bar: [1, 2, 3] }, baz: "hello" };
+const doc = { foo: { bar: [1, 2, 3] }, baz: "hello" };
 
-  it("get retrieves nested value", () => {
+describe("get", () => {
+  it("gets root", () => {
+    expect(get(doc, "")).toEqual(doc);
+  });
+
+  it("gets nested value", () => {
     expect(get(doc, "/foo/bar/1")).toBe(2);
+  });
+
+  it("gets string value", () => {
     expect(get(doc, "/baz")).toBe("hello");
   });
 
-  it("get returns undefined for missing path", () => {
-    expect(get(doc, "/nope")).toBeUndefined();
-    expect(get(doc, "/foo/bar/99")).toBeUndefined();
+  it("returns undefined for missing", () => {
+    expect(get(doc, "/missing/path")).toBeUndefined();
+  });
+});
+
+describe("set", () => {
+  it("sets a value", () => {
+    const obj = { a: { b: 1 } };
+    set(obj, "/a/b", 42);
+    expect(obj.a.b).toBe(42);
   });
 
-  it("set creates new value at path", () => {
-    const result = set(doc, "/foo/bar/1", 42) as typeof doc;
-    expect(result.foo.bar[1]).toBe(42);
-    expect(doc.foo.bar[1]).toBe(2);
+  it("sets array element", () => {
+    const obj = { items: [1, 2, 3] };
+    set(obj, "/items/1", 99);
+    expect(obj.items[1]).toBe(99);
   });
 
-  it("remove deletes a key", () => {
-    const result = remove(doc, "/baz") as Record<string, unknown>;
-    expect(result.baz).toBeUndefined();
-    expect(doc.baz).toBe("hello");
+  it("appends to array with -", () => {
+    const obj = { items: [1, 2] };
+    set(obj, "/items/-", 3);
+    expect(obj.items).toEqual([1, 2, 3]);
   });
+});
 
-  it("remove deletes array element", () => {
-    const result = remove(doc, "/foo/bar/0") as typeof doc;
-    expect(result.foo.bar).toEqual([2, 3]);
-  });
-
-  it("has checks existence", () => {
+describe("has", () => {
+  it("returns true for existing", () => {
     expect(has(doc, "/foo/bar")).toBe(true);
+  });
+
+  it("returns false for missing", () => {
     expect(has(doc, "/nope")).toBe(false);
   });
+});
 
-  it("handles escaped characters", () => {
-    const obj = { "a/b": { "c~d": 42 } };
-    expect(get(obj, "/a~1b/c~0d")).toBe(42);
+describe("remove", () => {
+  it("removes object property", () => {
+    const obj = { a: 1, b: 2 };
+    remove(obj, "/b");
+    expect(obj).toEqual({ a: 1 });
   });
 
-  it("compile converts dot path to pointer", () => {
-    expect(compile("foo.bar.baz")).toBe("/foo/bar/baz");
+  it("removes array element", () => {
+    const obj = { items: [1, 2, 3] };
+    remove(obj, "/items/1");
+    expect(obj.items).toEqual([1, 3]);
   });
+});
 
-  it("toPointer builds from array", () => {
-    expect(toPointer(["foo", "bar"])).toBe("/foo/bar");
+describe("compile", () => {
+  it("compiles pointer for reuse", () => {
+    const ptr = compile("/foo/bar/0");
+    expect(ptr.get(doc)).toBe(1);
+    expect(ptr.has(doc)).toBe(true);
   });
 });

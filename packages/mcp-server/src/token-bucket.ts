@@ -1,8 +1,8 @@
 export class TokenBucket {
   private tokens: number;
   private lastRefill: number;
-  private capacity: number;
-  private refillRate: number;
+  readonly capacity: number;
+  readonly refillRate: number;
 
   constructor(capacity: number, refillRate: number) {
     this.capacity = capacity;
@@ -11,14 +11,7 @@ export class TokenBucket {
     this.lastRefill = Date.now();
   }
 
-  private refill(): void {
-    const now = Date.now();
-    const elapsed = (now - this.lastRefill) / 1000;
-    this.tokens = Math.min(this.capacity, this.tokens + elapsed * this.refillRate);
-    this.lastRefill = now;
-  }
-
-  tryConsume(count = 1): boolean {
+  consume(count = 1): boolean {
     this.refill();
     if (this.tokens >= count) {
       this.tokens -= count;
@@ -27,17 +20,18 @@ export class TokenBucket {
     return false;
   }
 
-  consume(count = 1): number {
+  tryConsume(count = 1): { allowed: boolean; retryAfterMs: number } {
     this.refill();
     if (this.tokens >= count) {
       this.tokens -= count;
-      return 0;
+      return { allowed: true, retryAfterMs: 0 };
     }
     const deficit = count - this.tokens;
-    return (deficit / this.refillRate) * 1000;
+    const retryAfterMs = Math.ceil(deficit / this.refillRate * 1000);
+    return { allowed: false, retryAfterMs };
   }
 
-  available(): number {
+  get available(): number {
     this.refill();
     return Math.floor(this.tokens);
   }
@@ -47,11 +41,10 @@ export class TokenBucket {
     this.lastRefill = Date.now();
   }
 
-  get maxCapacity(): number {
-    return this.capacity;
-  }
-
-  get rate(): number {
-    return this.refillRate;
+  private refill(): void {
+    const now = Date.now();
+    const elapsed = (now - this.lastRefill) / 1000;
+    this.tokens = Math.min(this.capacity, this.tokens + elapsed * this.refillRate);
+    this.lastRefill = now;
   }
 }
