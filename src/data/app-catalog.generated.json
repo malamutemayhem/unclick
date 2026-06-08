@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 254,
-  "toolCount": 1035,
+  "appCount": 260,
+  "toolCount": 1045,
   "categories": [
     "AI",
     "Books",
@@ -1884,6 +1884,22 @@
         {
           "name": "eventbrite_get_venue",
           "description": "Get details for an Eventbrite venue."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "evilinsult",
+      "name": "Evil Insult",
+      "category": "Utilities",
+      "blurb": "Random insults for entertainment (multi-language).",
+      "domain": "evilinsult.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "evil_insult_random",
+          "description": "Get a random insult (for entertainment only)."
         }
       ],
       "level": 5,
@@ -5758,6 +5774,22 @@
       "hardened": true
     },
     {
+      "slug": "sunrisesunset",
+      "name": "Sunrise Sunset",
+      "category": "Weather & science",
+      "blurb": "Sunrise and sunset times for any GPS coordinates.",
+      "domain": "sunrise-sunset.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sunrise_sunset_times",
+          "description": "Get sunrise and sunset times for GPS coordinates."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "supercell",
       "name": "Supercell",
       "category": "Games & esports",
@@ -5996,6 +6028,26 @@
       ],
       "level": null,
       "hardened": false
+    },
+    {
+      "slug": "dogapi",
+      "name": "The Dog API",
+      "category": "Images",
+      "blurb": "Random dog images and breed information from The Dog API.",
+      "domain": "thedogapi.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "dog_api_random_image",
+          "description": "Get a random dog image from The Dog API."
+        },
+        {
+          "name": "dog_api_breeds",
+          "description": "List dog breeds with details from The Dog API."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "thelott",
@@ -7010,6 +7062,30 @@
       "hardened": true
     },
     {
+      "slug": "worldtime",
+      "name": "World Time API",
+      "category": "Weather & science",
+      "blurb": "Current time by timezone or IP address with UTC offset.",
+      "domain": "worldtimeapi.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "worldtime_by_timezone",
+          "description": "Get current time for a specific timezone."
+        },
+        {
+          "name": "worldtime_by_ip",
+          "description": "Get current time based on IP address geolocation."
+        },
+        {
+          "name": "worldtime_list_timezones",
+          "description": "List all available IANA timezones."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "xero",
       "name": "Xero",
       "category": "Money & payments",
@@ -7126,6 +7202,22 @@
       "hardened": true
     },
     {
+      "slug": "yesno",
+      "name": "YesNo",
+      "category": "Utilities",
+      "blurb": "Random yes/no answers with animated GIFs for fun decisions.",
+      "domain": "yesno.wtf",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "yesno_random",
+          "description": "Get a random yes/no answer with an animated GIF."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "youtube",
       "name": "YouTube",
       "category": "Social",
@@ -7208,6 +7300,26 @@
         {
           "name": "zendesk_add_comment",
           "description": "Add a public or internal comment to a Zendesk ticket."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "zippopotamus",
+      "name": "Zippopotamus",
+      "category": "Developer & infra",
+      "blurb": "Look up zip and postal codes for city, state, and country.",
+      "domain": "zippopotam.us",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "zip_lookup",
+          "description": "Look up location info for a zip/postal code."
+        },
+        {
+          "name": "zip_by_city",
+          "description": "Look up zip/postal codes for a city and state."
         }
       ],
       "level": 5,

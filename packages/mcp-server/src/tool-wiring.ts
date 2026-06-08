@@ -357,6 +357,18 @@ import { reqresListUsers, reqresGetUser, reqresListResources } from "./reqres-to
 
 import { corporateBsPhrase } from "./corporatebs-tool.js";
 
+import { worldTimeByTimezone, worldTimeByIp, worldTimeListTimezones } from "./worldtime-tool.js";
+
+import { sunriseSunsetTimes } from "./sunrisesunset-tool.js";
+
+import { zipLookup, zipByCity } from "./zippopotamus-tool.js";
+
+import { yesNoRandom } from "./yesno-tool.js";
+
+import { evilInsultRandom } from "./evilinsult-tool.js";
+
+import { dogApiRandomImage, dogApiBreeds } from "./dogapi-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5638,6 +5650,126 @@ export const ADDITIONAL_TOOLS = [
     name: "corporate_bs_phrase",
     description: "Generate a random corporate buzzword phrase.",
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── worldtime-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "worldtime_by_timezone",
+    description: "Get current time for a specific timezone.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        timezone: { type: "string", description: "IANA timezone, e.g. 'America/New_York', 'Europe/London'" },
+      },
+      required: ["timezone"],
+    },
+  },
+  {
+    name: "worldtime_by_ip",
+    description: "Get current time based on IP address geolocation.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ip: { type: "string", description: "IP address (omit for your own IP)" },
+      },
+    },
+  },
+  {
+    name: "worldtime_list_timezones",
+    description: "List all available IANA timezones.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── sunrisesunset-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "sunrise_sunset_times",
+    description: "Get sunrise and sunset times for GPS coordinates.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        lat: { type: "number", description: "Latitude" },
+        lng: { type: "number", description: "Longitude" },
+        date: { type: "string", description: "Date (YYYY-MM-DD) or 'today' (default)" },
+      },
+      required: ["lat", "lng"],
+    },
+  },
+
+  // ── zippopotamus-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "zip_lookup",
+    description: "Look up location info for a zip/postal code.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        code: { type: "string", description: "Zip or postal code" },
+        country: { type: "string", description: "Country code (default: us). Supports us, gb, au, ca, de, fr, etc." },
+      },
+      required: ["code"],
+    },
+  },
+  {
+    name: "zip_by_city",
+    description: "Look up zip/postal codes for a city and state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        state: { type: "string", description: "State abbreviation (e.g. CA, NY)" },
+        city: { type: "string", description: "City name" },
+        country: { type: "string", description: "Country code (default: us)" },
+      },
+      required: ["state", "city"],
+    },
+  },
+
+  // ── yesno-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "yesno_random",
+    description: "Get a random yes/no answer with an animated GIF.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        force: { type: "string", enum: ["yes", "no", "maybe"], description: "Force a specific answer" },
+      },
+    },
+  },
+
+  // ── evilinsult-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "evil_insult_random",
+    description: "Get a random insult (for entertainment only).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        lang: { type: "string", description: "Language code (default: en). Supports en, es, de, etc." },
+      },
+    },
+  },
+
+  // ── dogapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dog_api_random_image",
+    description: "Get a random dog image from The Dog API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dog_api_breeds",
+    description: "List dog breeds with details from The Dog API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds to return (max 50, default 20)" },
+        page: { type: "number", description: "Page number (default 0)" },
+      },
+    },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -16467,6 +16599,28 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // corporatebs-tool.ts
   corporate_bs_phrase:     (args) => corporateBsPhrase(args),
+
+  // worldtime-tool.ts
+  worldtime_by_timezone:   (args) => worldTimeByTimezone(args),
+  worldtime_by_ip:         (args) => worldTimeByIp(args),
+  worldtime_list_timezones: (args) => worldTimeListTimezones(args),
+
+  // sunrisesunset-tool.ts
+  sunrise_sunset_times:    (args) => sunriseSunsetTimes(args),
+
+  // zippopotamus-tool.ts
+  zip_lookup:              (args) => zipLookup(args),
+  zip_by_city:             (args) => zipByCity(args),
+
+  // yesno-tool.ts
+  yesno_random:            (args) => yesNoRandom(args),
+
+  // evilinsult-tool.ts
+  evil_insult_random:      (args) => evilInsultRandom(args),
+
+  // dogapi-tool.ts
+  dog_api_random_image:    (args) => dogApiRandomImage(args),
+  dog_api_breeds:          (args) => dogApiBreeds(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 677,
+    "inventory": 683,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 255,
+    "tools": 261,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 255
+      "count": 261
     },
     {
       "id": "rooms",
@@ -4782,6 +4782,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dogapi-packages-mcp-server-src-dogapi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dogapi",
+      "kind": "MCP tool",
+      "meaning": "dogapi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dogapi-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-dogceo-packages-mcp-server-src-dogceo-tool-ts-no-route",
       "division": "Tools",
       "name": "dogceo",
@@ -4878,6 +4888,16 @@
       "kind": "MCP tool",
       "meaning": "eventbrite MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/eventbrite-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-evilinsult-packages-mcp-server-src-evilinsult-tool-ts-no-route",
+      "division": "Tools",
+      "name": "evilinsult",
+      "kind": "MCP tool",
+      "meaning": "evilinsult MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/evilinsult-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6222,6 +6242,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sunrisesunset-packages-mcp-server-src-sunrisesunset-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sunrisesunset",
+      "kind": "MCP tool",
+      "meaning": "sunrisesunset MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sunrisesunset-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-supercell-packages-mcp-server-src-supercell-tool-ts-no-route",
       "division": "Tools",
       "name": "supercell",
@@ -6652,6 +6682,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-worldtime-packages-mcp-server-src-worldtime-tool-ts-no-route",
+      "division": "Tools",
+      "name": "worldtime",
+      "kind": "MCP tool",
+      "meaning": "worldtime MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/worldtime-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-xero-packages-mcp-server-src-xero-tool-ts-no-route",
       "division": "Tools",
       "name": "xero",
@@ -6692,6 +6732,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-yesno-packages-mcp-server-src-yesno-tool-ts-no-route",
+      "division": "Tools",
+      "name": "yesno",
+      "kind": "MCP tool",
+      "meaning": "yesno MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/yesno-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-youtube-packages-mcp-server-src-youtube-tool-ts-no-route",
       "division": "Tools",
       "name": "youtube",
@@ -6718,6 +6768,16 @@
       "kind": "MCP tool",
       "meaning": "zenquotes MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/zenquotes-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-zippopotamus-packages-mcp-server-src-zippopotamus-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zippopotamus",
+      "kind": "MCP tool",
+      "meaning": "zippopotamus MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zippopotamus-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7765,6 +7825,11 @@
       "packages/mcp-server/src/dnd5e-tool.ts"
     ],
     [
+      "dogapi",
+      "dogapi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dogapi-tool.ts"
+    ],
+    [
       "dogceo",
       "dogceo MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/dogceo-tool.ts"
@@ -7813,6 +7878,11 @@
       "eventbrite",
       "eventbrite MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/eventbrite-tool.ts"
+    ],
+    [
+      "evilinsult",
+      "evilinsult MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/evilinsult-tool.ts"
     ],
     [
       "exchangerate",
@@ -8485,6 +8555,11 @@
       "packages/mcp-server/src/stripe-tool.ts"
     ],
     [
+      "sunrisesunset",
+      "sunrisesunset MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sunrisesunset-tool.ts"
+    ],
+    [
       "supercell",
       "supercell MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/supercell-tool.ts"
@@ -8700,6 +8775,11 @@
       "packages/mcp-server/src/wordpress-tool.ts"
     ],
     [
+      "worldtime",
+      "worldtime MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/worldtime-tool.ts"
+    ],
+    [
       "xero",
       "xero MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/xero-tool.ts"
@@ -8720,6 +8800,11 @@
       "packages/mcp-server/src/yelp-tool.ts"
     ],
     [
+      "yesno",
+      "yesno MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/yesno-tool.ts"
+    ],
+    [
       "youtube",
       "youtube MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/youtube-tool.ts"
@@ -8733,6 +8818,11 @@
       "zenquotes",
       "zenquotes MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/zenquotes-tool.ts"
+    ],
+    [
+      "zippopotamus",
+      "zippopotamus MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zippopotamus-tool.ts"
     ]
   ],
   "roomRows": [

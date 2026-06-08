@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T03:57:15.086Z",
+  "updatedAt": "2026-06-08T04:01:53.563Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -504,6 +504,14 @@
         "dnd_get_class"
       ]
     },
+    "dogapi": {
+      "status": "pass",
+      "note": "dog_api_random_image returned a dog image from thedogapi.com; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "dog_api_random_image"
+      ]
+    },
     "dogceo": {
       "status": "pass",
       "note": "New connector: Dog CEO API. Free public API, no key needed. Random dog images, browse breeds, filter by breed. 4 tools, all tests passing.",
@@ -584,6 +592,14 @@
         "eventbrite_list_categories"
       ],
       "comment": ""
+    },
+    "evilinsult": {
+      "status": "pass",
+      "note": "evil_insult_random returned a random insult from evilinsult.com; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "evil_insult_random"
+      ]
     },
     "exchangerate": {
       "status": "pass",
@@ -1674,6 +1690,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "sunrisesunset": {
+      "status": "pass",
+      "note": "sunrise_sunset_times returned sunrise/sunset for NYC from sunrise-sunset.org; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "sunrise_sunset_times"
+      ]
+    },
     "supercell": {
       "status": "attention",
       "note": "All Supercell game APIs (CoC, CR, BS) need API keys from developer portals.",
@@ -2026,6 +2050,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "worldtime": {
+      "status": "pass",
+      "note": "worldtime_by_ip returned current time data from worldtimeapi.org; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "worldtime_by_ip"
+      ]
+    },
     "xero": {
       "status": "attention",
       "note": "Accounting API; needs XERO credentials.",
@@ -2061,6 +2093,14 @@
       ],
       "comment": ""
     },
+    "yesno": {
+      "status": "pass",
+      "note": "yesno_random returned yes/no answer with GIF from yesno.wtf; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "yesno_random"
+      ]
+    },
     "youtube": {
       "status": "attention",
       "note": "Requires API key from Google Cloud Console. Set YOUTUBE_API_KEY.",
@@ -2081,6 +2121,14 @@
       "testedAt": "2026-06-08T03:51:41.572Z",
       "toolsTested": [
         "zen_quote_random"
+      ]
+    },
+    "zippopotamus": {
+      "status": "pass",
+      "note": "zip_lookup returned Beverly Hills for 90210 from zippopotam.us; free, no key needed.",
+      "testedAt": "2026-06-08T04:01:53.563Z",
+      "toolsTested": [
+        "zip_lookup"
       ]
     }
   },

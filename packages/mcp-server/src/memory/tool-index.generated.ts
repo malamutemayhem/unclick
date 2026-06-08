@@ -1296,6 +1296,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dogapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_api_random_image",
+        "description": "Get a random dog image from The Dog API."
+      },
+      {
+        "name": "dog_api_breeds",
+        "description": "List dog breeds with details from The Dog API."
+      }
+    ]
+  },
+  {
     "app": "dogceo",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1536,6 +1550,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "eventbrite_get_venue",
         "description": "Get details for an Eventbrite venue."
+      }
+    ]
+  },
+  {
+    "app": "evilinsult",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "evil_insult_random",
+        "description": "Get a random insult (for entertainment only)."
       }
     ]
   },
@@ -4522,6 +4546,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sunrisesunset",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sunrise_sunset_times",
+        "description": "Get sunrise and sunset times for GPS coordinates."
+      }
+    ]
+  },
+  {
     "app": "supercell",
     "category": "Gaming",
     "tools": [
@@ -5516,6 +5550,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "worldtime",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "worldtime_by_timezone",
+        "description": "Get current time for a specific timezone."
+      },
+      {
+        "name": "worldtime_by_ip",
+        "description": "Get current time based on IP address geolocation."
+      },
+      {
+        "name": "worldtime_list_timezones",
+        "description": "List all available IANA timezones."
+      }
+    ]
+  },
+  {
     "app": "xero",
     "category": "AI",
     "tools": [
@@ -5608,6 +5660,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "yesno",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "yesno_random",
+        "description": "Get a random yes/no answer with an animated GIF."
+      }
+    ]
+  },
+  {
     "app": "youtube",
     "category": "Media / Data",
     "tools": [
@@ -5674,6 +5736,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zen_quotes",
         "description": "Get a batch of inspirational quotes from Zen Quotes (returns up to 20)."
+      }
+    ]
+  },
+  {
+    "app": "zippopotamus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zip_lookup",
+        "description": "Look up location info for a zip/postal code."
+      },
+      {
+        "name": "zip_by_city",
+        "description": "Look up zip/postal codes for a city and state."
       }
     ]
   }
