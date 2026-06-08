@@ -1,4 +1,4 @@
-export function deepMerge<T extends Record<string, unknown>>(...sources: Partial<T>[]): T {
+export function deepMerge(...sources: Record<string, unknown>[]): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
   for (const source of sources) {
@@ -14,13 +14,13 @@ export function deepMerge<T extends Record<string, unknown>>(...sources: Partial
     }
   }
 
-  return result as T;
+  return result;
 }
 
-export function deepMergeWith<T extends Record<string, unknown>>(
+export function deepMergeWith(
   merger: (target: unknown, source: unknown, key: string) => unknown,
-  ...sources: Partial<T>[]
-): T {
+  ...sources: Record<string, unknown>[]
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
   for (const source of sources) {
@@ -34,7 +34,7 @@ export function deepMergeWith<T extends Record<string, unknown>>(
     }
   }
 
-  return result as T;
+  return result;
 }
 
 export function deepClone<T>(value: T): T {
@@ -48,7 +48,7 @@ export function deepClone<T>(value: T): T {
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
     result[k] = deepClone(v);
   }
-  return result as T;
+  return result;
 }
 
 export function deepFreeze<T extends Record<string, unknown>>(obj: T): Readonly<T> {

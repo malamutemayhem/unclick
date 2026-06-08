@@ -1,75 +1,75 @@
-type Listener<T = unknown> = (data: T) => void;
-
-interface ListenerEntry<T = unknown> {
-  fn: Listener<T>;
-  once: boolean;
-}
+type Handler<T = unknown> = (data: T) => void;
 
 export class EventEmitter<Events extends Record<string, unknown> = Record<string, unknown>> {
-  private listeners = new Map<string, ListenerEntry[]>();
-  private maxListeners = 10;
+  private handlers = new Map<string, Set<Handler<any>>>();
+  private onceHandlers = new Map<string, Set<Handler<any>>>();
 
-  on<K extends keyof Events & string>(event: K, fn: Listener<Events[K]>): this {
-    return this.addListener(event, fn as Listener, false);
+  on<K extends keyof Events & string>(event: K, handler: Handler<Events[K]>): () => void {
+    if (!this.handlers.has(event)) this.handlers.set(event, new Set());
+    this.handlers.get(event)!.add(handler);
+    return () => this.off(event, handler);
   }
 
-  once<K extends keyof Events & string>(event: K, fn: Listener<Events[K]>): this {
-    return this.addListener(event, fn as Listener, true);
+  once<K extends keyof Events & string>(event: K, handler: Handler<Events[K]>): () => void {
+    if (!this.onceHandlers.has(event)) this.onceHandlers.set(event, new Set());
+    this.onceHandlers.get(event)!.add(handler);
+    return () => this.onceHandlers.get(event)?.delete(handler);
   }
 
-  off<K extends keyof Events & string>(event: K, fn: Listener<Events[K]>): this {
-    const list = this.listeners.get(event);
-    if (list) {
-      this.listeners.set(event, list.filter((e) => e.fn !== fn));
+  off<K extends keyof Events & string>(event: K, handler: Handler<Events[K]>): void {
+    this.handlers.get(event)?.delete(handler);
+    this.onceHandlers.get(event)?.delete(handler);
+  }
+
+  emit<K extends keyof Events & string>(event: K, data: Events[K]): void {
+    const regular = this.handlers.get(event);
+    if (regular) {
+      for (const handler of regular) handler(data);
     }
-    return this;
+    const once = this.onceHandlers.get(event);
+    if (once) {
+      for (const handler of once) handler(data);
+      once.clear();
+    }
   }
 
-  emit<K extends keyof Events & string>(event: K, data: Events[K]): boolean {
-    const list = this.listeners.get(event);
-    if (!list || list.length === 0) return false;
-    const toRemove: Listener[] = [];
-    for (const entry of list) {
-      entry.fn(data);
-      if (entry.once) toRemove.push(entry.fn);
-    }
-    if (toRemove.length > 0) {
-      this.listeners.set(event, list.filter((e) => !toRemove.includes(e.fn)));
-    }
-    return true;
-  }
-
-  removeAllListeners(event?: string): this {
+  removeAllListeners(event?: keyof Events & string): void {
     if (event) {
-      this.listeners.delete(event);
+      this.handlers.delete(event);
+      this.onceHandlers.delete(event);
     } else {
-      this.listeners.clear();
+      this.handlers.clear();
+      this.onceHandlers.clear();
     }
-    return this;
   }
 
-  listenerCount(event: string): number {
-    return this.listeners.get(event)?.length ?? 0;
+  listenerCount(event: keyof Events & string): number {
+    const regular = this.handlers.get(event)?.size || 0;
+    const once = this.onceHandlers.get(event)?.size || 0;
+    return regular + once;
   }
 
   eventNames(): string[] {
-    return [...this.listeners.keys()].filter((k) => (this.listeners.get(k)?.length ?? 0) > 0);
+    const names = new Set<string>();
+    for (const key of this.handlers.keys()) names.add(key);
+    for (const key of this.onceHandlers.keys()) names.add(key);
+    return [...names];
   }
 
-  setMaxListeners(n: number): this {
-    this.maxListeners = n;
-    return this;
-  }
+  waitFor<K extends keyof Events & string>(event: K, timeout?: number): Promise<Events[K]> {
+    return new Promise((resolve, reject) => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const unsub = this.once(event, ((data: Events[K]) => {
+        if (timer) clearTimeout(timer);
+        resolve(data);
+      }) as Handler<Events[K]>);
 
-  private addListener(event: string, fn: Listener, once: boolean): this {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
-    }
-    const list = this.listeners.get(event)!;
-    if (list.length >= this.maxListeners) {
-      console.warn(`MaxListenersExceeded: ${event} has ${list.length + 1} listeners`);
-    }
-    list.push({ fn, once });
-    return this;
+      if (timeout !== undefined) {
+        timer = setTimeout(() => {
+          unsub();
+          reject(new Error(`Timeout waiting for event "${event}"`));
+        }, timeout);
+      }
+    });
   }
 }

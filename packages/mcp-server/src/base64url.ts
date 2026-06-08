@@ -14,10 +14,9 @@ export function encodeUrl(input: string): string {
 }
 
 export function decodeUrl(input: string): string {
-  return fromBase64(padBase64(input), CHARS.split("").reduce((map, c, i) => {
-    map[URL_CHARS[i]] = c;
-    return map;
-  }, {} as Record<string, string>));
+  let std = input.replace(/-/g, "+").replace(/_/g, "/");
+  std = padBase64(std);
+  return fromBase64(std, CHARS);
 }
 
 export function encodeBytes(bytes: Uint8Array): string {
