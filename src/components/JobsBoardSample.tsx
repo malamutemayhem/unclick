@@ -112,6 +112,14 @@ const STATS: { label: string; value: number; tone: string }[] = [
   { label: "Done", value: 2, tone: "text-emerald-300" },
 ];
 
+const rankedGroups = groups.map((group, groupIndex) => {
+  const offset = groups.slice(0, groupIndex).reduce((total, current) => total + current.jobs.length, 0);
+  return {
+    ...group,
+    jobs: group.jobs.map((job, jobIndex) => ({ job, rank: offset + jobIndex + 1 })),
+  };
+});
+
 function StageStrip({ job }: { job: Job }) {
   return (
     <div className="flex min-w-[164px] items-center gap-1" aria-label="Pipeline progress">
@@ -178,7 +186,6 @@ function Row({ rank, job }: { rank: number; job: Job }) {
 }
 
 export default function JobsBoardSample() {
-  let rank = 0;
   return (
     <GlassCard className="mx-auto max-w-5xl p-3 sm:p-5">
       {/* Header + stat cards, mirroring the real board */}
@@ -217,7 +224,7 @@ export default function JobsBoardSample() {
           <span>Notes</span>
         </div>
 
-        {groups.map((g) => (
+        {rankedGroups.map((g) => (
           <div key={g.label}>
             <div className="flex items-center justify-between border-b border-white/[0.05] bg-white/[0.02] px-3 py-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-white/45">{g.label}</span>
@@ -226,10 +233,9 @@ export default function JobsBoardSample() {
               </span>
             </div>
             <div className="divide-y divide-white/[0.04]">
-              {g.jobs.map((job) => {
-                rank += 1;
-                return <Row key={job.title} rank={rank} job={job} />;
-              })}
+              {g.jobs.map(({ job, rank }) => (
+                <Row key={job.title} rank={rank} job={job} />
+              ))}
             </div>
           </div>
         ))}

@@ -94,7 +94,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminJobs.tsx | e22f044a461e | 64194 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
 | src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
-| src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
+| src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
 | src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
 | src/pages/admin/AdminPinballWake.tsx | 1b09a0b4c1b4 | 21751 |
@@ -242,7 +242,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 131 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -798,6 +798,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
+| Modules and apps | component | Code Tab | Memory admin panel for Code Tab. | - | src/pages/admin/memory/CodeTab.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
@@ -809,6 +810,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
+| Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |
 | Modules and apps | component | Sessions Tab | Memory admin panel for Sessions Tab. | - | src/pages/admin/memory/SessionsTab.tsx |
 | Modules and apps | component | Settings | User-facing page for Settings. | - | src/pages/Settings.tsx |

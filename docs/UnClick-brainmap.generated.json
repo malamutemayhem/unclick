@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 641,
+    "inventory": 643,
     "source_manifest": 214,
     "pages": 87,
     "tools": 219,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 131
+      "count": 133
     },
     {
       "id": "launch-and-onboarding",
@@ -2152,6 +2152,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-code-tab-src-pages-admin-memory-codetab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Code Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Code Tab.",
+      "source": "src/pages/admin/memory/CodeTab.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
@@ -2258,6 +2268,16 @@
       "kind": "component",
       "meaning": "User-facing page for Not Found.",
       "source": "src/pages/NotFound.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-recycle-bin-tab-src-pages-admin-memory-recyclebintab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Recycle Bin Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Recycle Bin Tab.",
+      "source": "src/pages/admin/memory/RecycleBinTab.tsx",
       "route": "",
       "tags": []
     },
@@ -8869,8 +8889,8 @@
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
-      "hash": "f001b0a54b31",
-      "bytes": 9731
+      "hash": "25b2ecae9ca8",
+      "bytes": 10814
     },
     {
       "source": "src/pages/admin/AdminModeration.tsx",
