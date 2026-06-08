@@ -1,83 +1,64 @@
-import { describe, it, expect, vi } from "vitest";
-import { StateStore, createStore } from "../state-store.js";
+import { describe, it, expect } from "vitest";
+import { createStore, combineReducers } from "../state-store.js";
 
-type Action = { type: "increment" } | { type: "decrement" } | { type: "set"; payload: number };
-
-function reducer(state: number, action: Action): number {
-  switch (action.type) {
-    case "increment": return state + 1;
-    case "decrement": return state - 1;
-    case "set": return action.payload;
-    default: return state;
-  }
-}
-
-describe("StateStore", () => {
-  it("has initial state", () => {
-    const store = createStore(0, reducer);
+describe("Store", () => {
+  it("holds initial state", () => {
+    const store = createStore((s: number) => s, 0);
     expect(store.getState()).toBe(0);
   });
 
-  it("dispatch updates state", () => {
-    const store = createStore(0, reducer);
-    store.dispatch({ type: "increment" });
-    expect(store.getState()).toBe(1);
-  });
-
-  it("multiple dispatches", () => {
-    const store = createStore(0, reducer);
-    store.dispatch({ type: "increment" });
-    store.dispatch({ type: "increment" });
-    store.dispatch({ type: "decrement" });
+  it("dispatch updates state via reducer", () => {
+    const store = createStore((s: number, a: { type: string }) => {
+      if (a.type === "INC") return s + 1;
+      return s;
+    }, 0);
+    store.dispatch({ type: "INC" });
     expect(store.getState()).toBe(1);
   });
 
   it("subscribe notifies on dispatch", () => {
-    const store = createStore(0, reducer);
-    const fn = vi.fn();
-    store.subscribe(fn);
-    store.dispatch({ type: "increment" });
-    expect(fn).toHaveBeenCalledWith(1);
+    const store = createStore((s: number, a: { type: string }) => a.type === "INC" ? s + 1 : s, 0);
+    const states: number[] = [];
+    store.subscribe((s: number) => states.push(s));
+    store.dispatch({ type: "INC" });
+    store.dispatch({ type: "INC" });
+    expect(states).toEqual([1, 2]);
   });
 
   it("unsubscribe stops notifications", () => {
-    const store = createStore(0, reducer);
-    const fn = vi.fn();
-    const unsub = store.subscribe(fn);
+    const store = createStore((s: number, a: { type: string }) => a.type === "INC" ? s + 1 : s, 0);
+    const states: number[] = [];
+    const unsub = store.subscribe((s: number) => states.push(s));
+    store.dispatch({ type: "INC" });
     unsub();
-    store.dispatch({ type: "increment" });
-    expect(fn).not.toHaveBeenCalled();
+    store.dispatch({ type: "INC" });
+    expect(states).toEqual([1]);
   });
 
-  it("select extracts state", () => {
-    const store = createStore(42, reducer);
-    expect(store.select((s: number) => s * 2)).toBe(84);
+  it("select derives state", () => {
+    const store = createStore((s: { count: number }) => s, { count: 42 });
+    expect(store.select((s) => s.count)).toBe(42);
   });
 
-  it("undo reverts last dispatch", () => {
-    const store = createStore(0, reducer);
-    store.dispatch({ type: "increment" });
-    store.dispatch({ type: "increment" });
-    expect(store.getState()).toBe(2);
-    store.undo();
-    expect(store.getState()).toBe(1);
+  it("listenerCount", () => {
+    const store = createStore((s: number) => s, 0);
+    expect(store.listenerCount).toBe(0);
+    const unsub = store.subscribe(() => {});
+    expect(store.listenerCount).toBe(1);
+    unsub();
+    expect(store.listenerCount).toBe(0);
   });
+});
 
-  it("undo returns false when no history", () => {
-    const store = createStore(0, reducer);
-    expect(store.undo()).toBe(false);
-  });
-
-  it("middleware intercepts dispatch", () => {
-    const store = createStore(0, reducer);
-    const log: string[] = [];
-    store.use((_state: number, action: Action, next: () => number) => {
-      log.push(`before:${action.type}`);
-      const result = next();
-      log.push(`after:${action.type}`);
-      return result;
+describe("combineReducers", () => {
+  it("combines multiple reducers", () => {
+    type State = { count: number; name: string };
+    const reducer = combineReducers<State>({
+      count: (s: number = 0, a) => a.type === "INC" ? s + 1 : s,
+      name: (s: string = "", a) => a.type === "SET_NAME" ? "updated" : s,
     });
-    store.dispatch({ type: "increment" });
-    expect(log).toEqual(["before:increment", "after:increment"]);
+    const store = createStore(reducer, { count: 0, name: "" });
+    store.dispatch({ type: "INC" });
+    expect(store.getState()).toEqual({ count: 1, name: "" });
   });
 });

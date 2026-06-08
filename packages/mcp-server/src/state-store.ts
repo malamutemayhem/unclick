@@ -1,64 +1,56 @@
 type Listener<T> = (state: T) => void;
 type Reducer<T, A> = (state: T, action: A) => T;
-type Middleware<T, A> = (state: T, action: A, next: () => T) => T;
+type Selector<T, R> = (state: T) => R;
+type Unsubscribe = () => void;
 
-export class StateStore<T, A = { type: string; payload?: any }> {
+export class Store<T, A = { type: string }> {
   private state: T;
-  private reducer: Reducer<T, A>;
+  private readonly reducer: Reducer<T, A>;
   private listeners = new Set<Listener<T>>();
-  private middlewares: Array<Middleware<T, A>> = [];
-  private history: T[] = [];
-  private maxHistory: number;
 
-  constructor(initialState: T, reducer: Reducer<T, A>, maxHistory = 50) {
-    this.state = initialState;
+  constructor(reducer: Reducer<T, A>, initialState: T) {
     this.reducer = reducer;
-    this.maxHistory = maxHistory;
+    this.state = initialState;
   }
 
-  getState(): T { return this.state; }
+  getState(): T {
+    return this.state;
+  }
 
   dispatch(action: A): void {
-    this.history.push(this.state);
-    if (this.history.length > this.maxHistory) this.history.shift();
-
-    let idx = 0;
-    const applyMiddleware = (): T => {
-      if (idx < this.middlewares.length) {
-        const mw = this.middlewares[idx++];
-        return mw(this.state, action, applyMiddleware);
-      }
-      return this.reducer(this.state, action);
-    };
-
-    this.state = applyMiddleware();
-    for (const listener of [...this.listeners]) listener(this.state);
+    this.state = this.reducer(this.state, action);
+    for (const listener of this.listeners) listener(this.state);
   }
 
-  subscribe(listener: Listener<T>): () => void {
+  subscribe(listener: Listener<T>): Unsubscribe {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => { this.listeners.delete(listener); };
   }
 
-  use(middleware: Middleware<T, A>): void {
-    this.middlewares.push(middleware);
-  }
-
-  undo(): boolean {
-    if (this.history.length === 0) return false;
-    this.state = this.history.pop()!;
-    for (const listener of [...this.listeners]) listener(this.state);
-    return true;
-  }
-
-  select<R>(selector: (state: T) => R): R {
+  select<R>(selector: Selector<T, R>): R {
     return selector(this.state);
+  }
+
+  get listenerCount(): number {
+    return this.listeners.size;
   }
 }
 
-export function createStore<T, A = { type: string; payload?: any }>(
-  initialState: T,
-  reducer: Reducer<T, A>
-): StateStore<T, A> {
-  return new StateStore(initialState, reducer);
+export function createStore<T, A = { type: string }>(reducer: Reducer<T, A>, initialState: T): Store<T, A> {
+  return new Store(reducer, initialState);
+}
+
+export function combineReducers<T extends Record<string, unknown>>(
+  reducers: { [K in keyof T]: Reducer<T[K], { type: string }> },
+): Reducer<T, { type: string }> {
+  return (state: T, action: { type: string }): T => {
+    const next = {} as T;
+    let changed = false;
+    for (const key of Object.keys(reducers) as Array<keyof T>) {
+      const prev = state[key];
+      next[key] = reducers[key](prev, action);
+      if (next[key] !== prev) changed = true;
+    }
+    return changed ? next : state;
+  };
 }

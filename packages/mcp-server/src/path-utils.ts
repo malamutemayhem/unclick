@@ -1,29 +1,24 @@
 export function join(...parts: string[]): string {
-  const joined = parts
-    .filter((p) => p.length > 0)
-    .join("/")
-    .replace(/\/+/g, "/");
+  const joined = parts.filter(Boolean).join("/");
   return normalize(joined);
 }
 
 export function normalize(path: string): string {
   const isAbsolute = path.startsWith("/");
-  const segments = path.split("/").filter((s) => s.length > 0);
+  const segments = path.split("/").filter(Boolean);
   const result: string[] = [];
   for (const seg of segments) {
     if (seg === ".") continue;
     if (seg === "..") {
-      if (result.length > 0 && result[result.length - 1] !== "..") {
-        result.pop();
-      } else if (!isAbsolute) {
-        result.push("..");
-      }
+      if (result.length > 0 && result[result.length - 1] !== "..") result.pop();
+      else if (!isAbsolute) result.push("..");
     } else {
       result.push(seg);
     }
   }
   const normalized = result.join("/");
-  return isAbsolute ? "/" + normalized : normalized || ".";
+  if (isAbsolute) return "/" + normalized;
+  return normalized || ".";
 }
 
 export function dirname(path: string): string {
@@ -34,11 +29,9 @@ export function dirname(path: string): string {
 }
 
 export function basename(path: string, ext?: string): string {
-  let name = path.slice(path.lastIndexOf("/") + 1);
-  if (ext && name.endsWith(ext)) {
-    name = name.slice(0, -ext.length);
-  }
-  return name;
+  const base = path.slice(path.lastIndexOf("/") + 1);
+  if (ext && base.endsWith(ext)) return base.slice(0, -ext.length);
+  return base;
 }
 
 export function extname(path: string): string {
@@ -53,14 +46,14 @@ export function isAbsolute(path: string): boolean {
 }
 
 export function relative(from: string, to: string): string {
-  const fromParts = normalize(from).split("/").filter((s) => s.length > 0);
-  const toParts = normalize(to).split("/").filter((s) => s.length > 0);
+  const fromParts = normalize(from).split("/").filter(Boolean);
+  const toParts = normalize(to).split("/").filter(Boolean);
   let common = 0;
   while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) {
     common++;
   }
   const ups = fromParts.length - common;
-  const remainder = toParts.slice(common);
-  const parts = [...Array(ups).fill(".."), ...remainder];
+  const downs = toParts.slice(common);
+  const parts = [...Array(ups).fill(".."), ...downs];
   return parts.join("/") || ".";
 }
