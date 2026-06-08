@@ -22,18 +22,33 @@ export class MiddlewareChain {
     return ctx;
   }
 
-  get length(): number { return this.stack.length; }
+  get length(): number {
+    return this.stack.length;
+  }
 }
 
-export function compose(...fns: MiddlewareFn[]): MiddlewareFn {
+export function compose(...middlewares: MiddlewareFn[]): MiddlewareFn {
   return async (ctx: Context, next: Next) => {
     let index = -1;
     const dispatch = async (i: number): Promise<void> => {
       if (i <= index) throw new Error("next() called multiple times");
       index = i;
-      if (i >= fns.length) { await next(); return; }
-      await fns[i](ctx, () => dispatch(i + 1));
+      if (i >= middlewares.length) {
+        await next();
+        return;
+      }
+      await middlewares[i](ctx, () => dispatch(i + 1));
     };
     await dispatch(0);
+  };
+}
+
+export function errorHandler(handler: (err: unknown, ctx: Context) => void): MiddlewareFn {
+  return async (ctx: Context, next: Next) => {
+    try {
+      await next();
+    } catch (err) {
+      handler(err, ctx);
+    }
   };
 }

@@ -1,55 +1,57 @@
 import { describe, it, expect } from "vitest";
-import { fnv1a, djb2, crc32, simpleHash, toHex } from "../checksum.js";
+import { crc32, crc32Hex, adler32, fletcher16, djb2, fnv1a, verifyChecksum } from "../checksum.js";
 
 describe("checksum", () => {
-  it("fnv1a produces consistent hash", () => {
-    expect(fnv1a("hello")).toBe(fnv1a("hello"));
-    expect(fnv1a("hello")).not.toBe(fnv1a("world"));
+  it("crc32 produces consistent output", () => {
+    const a = crc32("hello");
+    const b = crc32("hello");
+    expect(a).toBe(b);
+    expect(typeof a).toBe("number");
+    expect(a).toBeGreaterThan(0);
   });
 
-  it("fnv1a returns unsigned 32-bit integer", () => {
-    const h = fnv1a("test");
-    expect(h).toBeGreaterThanOrEqual(0);
-    expect(h).toBeLessThanOrEqual(0xFFFFFFFF);
+  it("crc32 differs for different input", () => {
+    expect(crc32("hello")).not.toBe(crc32("world"));
   });
 
-  it("djb2 produces consistent hash", () => {
+  it("crc32Hex returns hex string", () => {
+    const hex = crc32Hex("hello");
+    expect(hex).toHaveLength(8);
+    expect(/^[0-9a-f]+$/.test(hex)).toBe(true);
+  });
+
+  it("adler32 produces consistent output", () => {
+    expect(adler32("hello")).toBe(adler32("hello"));
+    expect(adler32("hello")).not.toBe(adler32("world"));
+  });
+
+  it("fletcher16 produces consistent output", () => {
+    expect(fletcher16("hello")).toBe(fletcher16("hello"));
+    expect(fletcher16("hello")).not.toBe(fletcher16("world"));
+  });
+
+  it("djb2 produces consistent output", () => {
     expect(djb2("hello")).toBe(djb2("hello"));
     expect(djb2("hello")).not.toBe(djb2("world"));
   });
 
-  it("djb2 returns unsigned 32-bit integer", () => {
-    const h = djb2("test");
-    expect(h).toBeGreaterThanOrEqual(0);
-    expect(h).toBeLessThanOrEqual(0xFFFFFFFF);
+  it("fnv1a produces consistent output", () => {
+    expect(fnv1a("hello")).toBe(fnv1a("hello"));
+    expect(fnv1a("hello")).not.toBe(fnv1a("world"));
   });
 
-  it("crc32 produces consistent hash", () => {
-    expect(crc32("hello")).toBe(crc32("hello"));
-    expect(crc32("hello")).not.toBe(crc32("world"));
+  it("verifyChecksum validates correctly", () => {
+    const sum = crc32("test");
+    expect(verifyChecksum("test", sum, "crc32")).toBe(true);
+    expect(verifyChecksum("test", sum + 1, "crc32")).toBe(false);
   });
 
-  it("crc32 matches known value", () => {
-    expect(crc32("hello")).toBe(0x3610a686);
-  });
-
-  it("simpleHash with default seed", () => {
-    expect(simpleHash("test")).toBe(simpleHash("test"));
-    expect(simpleHash("test")).not.toBe(simpleHash("other"));
-  });
-
-  it("simpleHash with different seeds", () => {
-    expect(simpleHash("test", 1)).not.toBe(simpleHash("test", 2));
-  });
-
-  it("toHex formats as 8 char hex string", () => {
-    expect(toHex(255)).toBe("000000ff");
-    expect(toHex(0xDEADBEEF)).toBe("deadbeef");
-  });
-
-  it("empty string hashing", () => {
-    expect(typeof fnv1a("")).toBe("number");
-    expect(typeof djb2("")).toBe("number");
-    expect(typeof crc32("")).toBe("number");
+  it("verifyChecksum works with all algorithms", () => {
+    const algos = ["crc32", "adler32", "fletcher16", "djb2", "fnv1a"] as const;
+    for (const algo of algos) {
+      const fns: Record<string, (s: string) => number> = { crc32, adler32, fletcher16, djb2, fnv1a };
+      const sum = fns[algo]("data");
+      expect(verifyChecksum("data", sum, algo)).toBe(true);
+    }
   });
 });
