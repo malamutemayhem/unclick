@@ -536,6 +536,12 @@ import { nominatimSearch, nominatimReverse } from "./nominatim-tool.js";
 import { coincapAssets, coincapAssetDetail, coincapRates } from "./coincap-tool.js";
 import { openElevationLookup } from "./open-elevation-tool.js";
 import { itisSearchByName, itisGetFullRecord } from "./itis-tool.js";
+import { arxivSearch } from "./arxiv-tool.js";
+import { openalexSearchWorks, openalexGetWork, openalexSearchAuthors } from "./openalex-tool.js";
+import { dblpSearchPublications, dblpSearchAuthors } from "./dblp-tool.js";
+import { wikidataSearch, wikidataGetEntity } from "./wikidata-tool.js";
+import { randomDuckImage, randomDuckList } from "./randomduck-tool.js";
+import { httpDogImage } from "./httpdog-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8153,6 +8159,117 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         tsn: { type: "string" as const, description: "Taxonomic Serial Number." },
       }, required: ["tsn"],
+    },
+  },
+
+  // ── arxiv-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "arxiv_search",
+    description: "Search arXiv for scientific preprints by keyword, title, or author.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term or arXiv query." },
+        max_results: { type: "number" as const, description: "Max papers to return (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── openalex-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "openalex_search_works",
+    description: "Search OpenAlex for scholarly works by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term." },
+        per_page: { type: "number" as const, description: "Results per page (default 5, max 25)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "openalex_get_work",
+    description: "Get full metadata for a scholarly work by OpenAlex ID or DOI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "OpenAlex ID (e.g. W2741809807) or DOI URL." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "openalex_search_authors",
+    description: "Search OpenAlex for academic authors by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Author name to search." },
+        per_page: { type: "number" as const, description: "Results per page (default 5, max 25)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── dblp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "dblp_search_publications",
+    description: "Search DBLP for computer science publications.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Title, author, or keyword." },
+        max_results: { type: "number" as const, description: "Max results (default 10, max 30)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "dblp_search_authors",
+    description: "Search DBLP for computer science researchers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Author name." },
+        max_results: { type: "number" as const, description: "Max results (default 10, max 30)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── wikidata-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "wikidata_search",
+    description: "Search Wikidata for entities (people, places, concepts) by label.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term." },
+        limit: { type: "number" as const, description: "Max results (default 5, max 20)." },
+        language: { type: "string" as const, description: "Language code (default: en)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "wikidata_get_entity",
+    description: "Get structured data for a Wikidata entity by Q-id (e.g. Q42).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Wikidata entity ID (e.g. Q42)." },
+        language: { type: "string" as const, description: "Language code (default: en)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── randomduck-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "random_duck_image",
+    description: "Get a random duck image URL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "random_duck_list",
+    description: "List all available duck image filenames.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── httpdog-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "http_dog_image",
+    description: "Get a dog image URL for an HTTP status code (like httpcat but with dogs).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        status_code: { type: "number" as const, description: "HTTP status code (100-599)." },
+      }, required: ["status_code"],
     },
   },
 
@@ -19384,6 +19501,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // itis-tool.ts
   itis_search_by_name:       (args) => itisSearchByName(args),
   itis_get_full_record:      (args) => itisGetFullRecord(args),
+  // arxiv-tool.ts
+  arxiv_search:              (args) => arxivSearch(args),
+  // openalex-tool.ts
+  openalex_search_works:     (args) => openalexSearchWorks(args),
+  openalex_get_work:         (args) => openalexGetWork(args),
+  openalex_search_authors:   (args) => openalexSearchAuthors(args),
+  // dblp-tool.ts
+  dblp_search_publications:  (args) => dblpSearchPublications(args),
+  dblp_search_authors:       (args) => dblpSearchAuthors(args),
+  // wikidata-tool.ts
+  wikidata_search:           (args) => wikidataSearch(args),
+  wikidata_get_entity:       (args) => wikidataGetEntity(args),
+  // randomduck-tool.ts
+  random_duck_image:         (args) => randomDuckImage(args),
+  random_duck_list:          (args) => randomDuckList(args),
+  // httpdog-tool.ts
+  http_dog_image:            (args) => httpDogImage(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

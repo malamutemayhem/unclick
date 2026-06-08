@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T14:30:00.000Z",
+  "updatedAt": "2026-06-08T15:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3058,6 +3058,42 @@
       "note": "itis_search_by_name returns USDA taxonomic species data. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
       "toolsTested": ["itis_search_by_name", "itis_get_full_record"]
+    },
+    "arxiv": {
+      "status": "pass",
+      "note": "arxiv_search returns scientific preprints with parsed XML metadata. Free, no key needed.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["arxiv_search"]
+    },
+    "openalex": {
+      "status": "pass",
+      "note": "openalex_search_works returns scholarly works from OpenAlex. Free, no key needed.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["openalex_search_works", "openalex_get_work", "openalex_search_authors"]
+    },
+    "dblp": {
+      "status": "pass",
+      "note": "dblp_search_publications returns CS publications from DBLP. Free, no key needed.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["dblp_search_publications", "dblp_search_authors"]
+    },
+    "wikidata": {
+      "status": "pass",
+      "note": "wikidata_search returns structured entity data from Wikidata. Free, no key needed.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["wikidata_search", "wikidata_get_entity"]
+    },
+    "randomduck": {
+      "status": "pass",
+      "note": "random_duck_image returns random duck image URL. Free, no key needed.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["random_duck_image", "random_duck_list"]
+    },
+    "httpdog": {
+      "status": "pass",
+      "note": "http_dog_image builds dog image URL for HTTP status codes locally. No network call.",
+      "testedAt": "2026-06-08T15:00:00.000Z",
+      "toolsTested": ["http_dog_image"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

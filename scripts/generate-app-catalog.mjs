@@ -32,7 +32,7 @@ bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
-bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic"]);
+bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic", "wikidata"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
@@ -42,8 +42,8 @@ bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq"
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
-bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen"]);
+bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
@@ -124,6 +124,8 @@ const NAME_OF = {
   "openmeteo-climate": "Open-Meteo Climate",
   gbif: "GBIF", crossref: "Crossref", nominatim: "Nominatim (OSM)",
   coincap: "CoinCap", "open-elevation": "Open Elevation", itis: "ITIS (USDA)",
+  arxiv: "arXiv", openalex: "OpenAlex", dblp: "DBLP",
+  wikidata: "Wikidata", randomduck: "Random Duck", httpdog: "HTTP Dog",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -342,6 +344,12 @@ const BLURB_OF = {
   coincap: "Real-time cryptocurrency market data, asset prices, and exchange rates.",
   "open-elevation": "Elevation lookup in meters for any coordinates on Earth.",
   itis: "USDA taxonomic species search and full classification records.",
+  arxiv: "Search scientific preprints on arXiv by keyword, title, or author.",
+  openalex: "Open scholarly metadata: works, authors, and citation data from OpenAlex.",
+  dblp: "Computer science publication and author search from DBLP.",
+  wikidata: "Structured knowledge base: search and retrieve entity data from Wikidata.",
+  randomduck: "Random duck images from random-d.uk.",
+  httpdog: "Dog images for HTTP status codes (like httpcat but with dogs).",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -457,6 +465,8 @@ const DOMAIN_OF = {
   "openmeteo-climate": "open-meteo.com",
   gbif: "gbif.org", crossref: "crossref.org", nominatim: "openstreetmap.org",
   coincap: "coincap.io", "open-elevation": "open-elevation.com", itis: "itis.gov",
+  arxiv: "arxiv.org", openalex: "openalex.org", dblp: "dblp.org",
+  wikidata: "wikidata.org", randomduck: "random-d.uk", httpdog: "http.dog",
 };
 
 function titleCase(slug) {

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 371,
-  "toolCount": 1258,
+  "appCount": 377,
+  "toolCount": 1269,
   "categories": [
     "AI",
     "Books",
@@ -396,6 +396,22 @@
         {
           "name": "artic_get_artwork",
           "description": "Get detailed info about a specific artwork at the Art Institute of Chicago."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "arxiv",
+      "name": "arXiv",
+      "category": "Books",
+      "blurb": "Search scientific preprints on arXiv by keyword, title, or author.",
+      "domain": "arxiv.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "arxiv_search",
+          "description": "Search arXiv for scientific preprints by keyword, title, or author."
         }
       ],
       "level": 5,
@@ -1839,6 +1855,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "dblp",
+      "name": "DBLP",
+      "category": "Books",
+      "blurb": "Computer science publication and author search from DBLP.",
+      "domain": "dblp.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "dblp_search_publications",
+          "description": "Search DBLP for computer science publications."
+        },
+        {
+          "name": "dblp_search_authors",
+          "description": "Search DBLP for computer science researchers."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -3476,6 +3512,22 @@
         {
           "name": "http_cat_image",
           "description": "Get a cat image for any HTTP status code from http.cat (no network call)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "httpdog",
+      "name": "HTTP Dog",
+      "category": "Images",
+      "blurb": "Dog images for HTTP status codes (like httpcat but with dogs).",
+      "domain": "http.dog",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "http_dog_image",
+          "description": "Get a dog image URL for an HTTP status code (like httpcat but with dogs)."
         }
       ],
       "level": 5,
@@ -5490,6 +5542,30 @@
       "hardened": true
     },
     {
+      "slug": "openalex",
+      "name": "OpenAlex",
+      "category": "Books",
+      "blurb": "Open scholarly metadata: works, authors, and citation data from OpenAlex.",
+      "domain": "openalex.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "openalex_search_works",
+          "description": "Search OpenAlex for scholarly works by keyword."
+        },
+        {
+          "name": "openalex_get_work",
+          "description": "Get full metadata for a scholarly work by OpenAlex ID or DOI."
+        },
+        {
+          "name": "openalex_search_authors",
+          "description": "Search OpenAlex for academic authors by name."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "openaq",
       "name": "OpenAQ",
       "category": "Weather & science",
@@ -6511,6 +6587,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "randomduck",
+      "name": "Random Duck",
+      "category": "Images",
+      "blurb": "Random duck images from random-d.uk.",
+      "domain": "random-d.uk",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "random_duck_image",
+          "description": "Get a random duck image URL."
+        },
+        {
+          "name": "random_duck_list",
+          "description": "List all available duck image filenames."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -9064,6 +9160,26 @@
         {
           "name": "iss_pass_times",
           "description": "Get ISS position relative to an observer location."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "wikidata",
+      "name": "Wikidata",
+      "category": "News & reading",
+      "blurb": "Structured knowledge base: search and retrieve entity data from Wikidata.",
+      "domain": "wikidata.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "wikidata_search",
+          "description": "Search Wikidata for entities (people, places, concepts) by label."
+        },
+        {
+          "name": "wikidata_get_entity",
+          "description": "Get structured data for a Wikidata entity by Q-id (e.g. Q42)."
         }
       ],
       "level": 5,

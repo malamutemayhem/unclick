@@ -334,6 +334,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "arxiv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "arxiv_search",
+        "description": "Search arXiv for scientific preprints by keyword, title, or author."
+      }
+    ]
+  },
+  {
     "app": "asana",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -1458,6 +1468,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "datetime_week_number",
         "description": "Get the ISO week number for a date."
+      }
+    ]
+  },
+  {
+    "app": "dblp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dblp_search_publications",
+        "description": "Search DBLP for computer science publications."
+      },
+      {
+        "name": "dblp_search_authors",
+        "description": "Search DBLP for computer science researchers."
       }
     ]
   },
@@ -2832,6 +2856,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "httpdog",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "http_dog_image",
+        "description": "Get a dog image URL for an HTTP status code (like httpcat but with dogs)."
+      }
+    ]
+  },
+  {
     "app": "hubspot",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4094,6 +4128,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openalex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openalex_search_works",
+        "description": "Search OpenAlex for scholarly works by keyword."
+      },
+      {
+        "name": "openalex_get_work",
+        "description": "Get full metadata for a scholarly work by OpenAlex ID or DOI."
+      },
+      {
+        "name": "openalex_search_authors",
+        "description": "Search OpenAlex for academic authors by name."
+      }
+    ]
+  },
+  {
     "app": "openaq",
     "category": "Environment / Science",
     "tools": [
@@ -5052,6 +5104,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "random_lorem_ipsum",
         "description": "Generate lorem ipsum placeholder text."
+      }
+    ]
+  },
+  {
+    "app": "randomduck",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_duck_image",
+        "description": "Get a random duck image URL."
+      },
+      {
+        "name": "random_duck_list",
+        "description": "List all available duck image filenames."
       }
     ]
   },
@@ -6956,6 +7022,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "iss_pass_times",
         "description": "Get ISS position relative to an observer location."
+      }
+    ]
+  },
+  {
+    "app": "wikidata",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wikidata_search",
+        "description": "Search Wikidata for entities (people, places, concepts) by label."
+      },
+      {
+        "name": "wikidata_get_entity",
+        "description": "Get structured data for a Wikidata entity by Q-id (e.g. Q42)."
       }
     ]
   },
