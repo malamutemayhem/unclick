@@ -29,7 +29,7 @@ Three base64 parts joined by `.`. The receiving side splits, decodes each part, 
 - PBKDF2: `SHA-256`, **210_000 iterations** (OWASP 2023), 16-byte salt, 32-byte derived key.
 - AES-GCM: 12-byte IV, 16-byte tag.
 
-If you need to *increase* iterations for new credentials, do so via the optional argument — never decrease. Existing stored records are decrypted using the iteration count stored alongside them (this is why `verifyPbkdf2Key` takes the stored iterations as an argument, not a global constant).
+If you need to *increase* iterations for new credentials, do so via the optional argument; never decrease. Existing stored records are decrypted using the iteration count stored alongside them (this is why `verifyPbkdf2Key` takes the stored iterations as an argument, not a global constant).
 
 ## Why a separate audit script
 
@@ -68,7 +68,7 @@ Crypto changes are protected-surface (rank-20). Mixing "ship the new helper" wit
 - PR 1 (this one): adds the helper + tests + audit script. No behaviour change to anything that exists today.
 - PR 2 (follow-up): swaps each call site, one or two files at a time, with the audit's output as the punch list.
 
-Each swap PR has a tight blast radius — at most one or two endpoints regress at a time, and reverting a single swap PR doesn't lose the helper.
+Each swap PR has a tight blast radius: at most one or two endpoints regress at a time, and reverting a single swap PR doesn't lose the helper.
 
 ## Acceptance (ScopePack 10%)
 
@@ -80,6 +80,6 @@ Each swap PR has a tight blast radius — at most one or two endpoints regress a
 
 ## Non-goals (deferred to PR 2)
 
-- No call-site swaps in this PR — surfaces named via the audit, handled separately.
-- No key-rotation flow (live keys vs new keys) — separate spec; the helper itself doesn't carry rotation state.
-- No HSM / KMS integration — out of scope for v1.
+- No call-site swaps in this PR. Surfaces named via the audit, handled separately.
+- No key-rotation flow (live keys vs new keys). Separate spec; the helper itself doesn't carry rotation state.
+- No HSM / KMS integration. Out of scope for v1.
