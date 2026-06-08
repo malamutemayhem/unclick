@@ -1296,6 +1296,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "countryis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_by_ip",
+        "description": "Detect country from an IP address using country.is."
+      }
+    ]
+  },
+  {
     "app": "crews",
     "category": "Crews (Orchestrator Wizard)",
     "tools": [
@@ -1614,6 +1624,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "discord_search",
         "description": "Search messages in a Discord guild."
+      }
+    ]
+  },
+  {
+    "app": "diseasesh",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "covid_global",
+        "description": "Get global COVID-19 statistics from disease.sh."
+      },
+      {
+        "name": "covid_country",
+        "description": "Get COVID-19 statistics for a specific country from disease.sh."
+      },
+      {
+        "name": "covid_vaccine",
+        "description": "Get COVID-19 vaccine candidate information from disease.sh."
       }
     ]
   },
@@ -2142,6 +2170,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "final_space_episodes",
         "description": "List all Final Space episodes."
+      }
+    ]
+  },
+  {
+    "app": "fishwatch",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fishwatch_species",
+        "description": "List all fish species with sustainability data from NOAA FishWatch."
+      },
+      {
+        "name": "fishwatch_species_detail",
+        "description": "Get detailed info about a specific fish species from NOAA FishWatch."
       }
     ]
   },
@@ -3804,6 +3846,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "newton",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "newton_math",
+        "description": "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API."
+      }
+    ]
+  },
+  {
     "app": "nobelprize",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4148,6 +4200,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openmeteo-flood",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "flood_forecast",
+        "description": "Get river discharge flood forecast from Open-Meteo."
+      }
+    ]
+  },
+  {
     "app": "openmeteo-marine",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4380,6 +4442,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "pipedrive_search_deals",
         "description": "Search Pipedrive deals by term."
+      }
+    ]
+  },
+  {
+    "app": "placebear",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placebear_image",
+        "description": "Get a bear placeholder image URL at custom dimensions (no network call)."
       }
     ]
   },

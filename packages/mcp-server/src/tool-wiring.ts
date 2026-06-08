@@ -518,6 +518,12 @@ import { foodishRandom, foodishByCategory } from "./foodish-tool.js";
 import { acnhVillagers, acnhFish, acnhBugs } from "./acnhapi-tool.js";
 import { httpCatImage } from "./httpcat-tool.js";
 import { poetrySearchByAuthor, poetrySearchByTitle, poetryRandom } from "./poetrydb-tool.js";
+import { floodForecast } from "./openmeteo-flood-tool.js";
+import { covidGlobal, covidCountry, covidVaccine } from "./diseasesh-tool.js";
+import { fishwatchSpecies, fishwatchSpeciesDetail } from "./fishwatch-tool.js";
+import { newtonMath } from "./newton-tool.js";
+import { placebearImage } from "./placebear-tool.js";
+import { countryByIp } from "./countryis-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7812,6 +7818,101 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {
         name: { type: "string" as const, description: "Any string to generate a deterministic avatar (default: 'default')." },
+      },
+    },
+  },
+
+  // ── openmeteo-flood-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "flood_forecast",
+    description: "Get river discharge flood forecast from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+        days: { type: "number" as const, description: "Forecast days (default 7, max 92)." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── diseasesh-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "covid_global",
+    description: "Get global COVID-19 statistics from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "covid_country",
+    description: "Get COVID-19 statistics for a specific country from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country: { type: "string" as const, description: "Country name (e.g. USA, UK, Australia)." },
+      },
+      required: ["country"],
+    },
+  },
+  {
+    name: "covid_vaccine",
+    description: "Get COVID-19 vaccine candidate information from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── fishwatch-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "fishwatch_species",
+    description: "List all fish species with sustainability data from NOAA FishWatch.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "fishwatch_species_detail",
+    description: "Get detailed info about a specific fish species from NOAA FishWatch.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Species name with hyphens (e.g. atlantic-salmon, pacific-cod)." },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── newton-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "newton_math",
+    description: "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Math operation: simplify, factor, derive, integrate, zeroes, tangent, area, cos, sin, tan, arccos, arcsin, arctan, abs, log." },
+        expression: { type: "string" as const, description: "Math expression (e.g. x^2+2x, 2^2+2(2))." },
+      },
+      required: ["expression"],
+    },
+  },
+
+  // ── placebear-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "placebear_image",
+    description: "Get a bear placeholder image URL at custom dimensions (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Image width in pixels (default 300, max 2000)." },
+        height: { type: "number" as const, description: "Image height in pixels (default 300, max 2000)." },
+      },
+    },
+  },
+
+  // ── countryis-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "country_by_ip",
+    description: "Detect country from an IP address using country.is.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up (omit for auto-detect)." },
       },
     },
   },
@@ -18994,6 +19095,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   official_joke_ten:         (args) => officialJokeTen(args),
   // multiavatar-tool.ts
   multiavatar_generate:      (args) => multiavatarGenerate(args),
+  // openmeteo-flood-tool.ts
+  flood_forecast:            (args) => floodForecast(args),
+  // diseasesh-tool.ts
+  covid_global:              (args) => covidGlobal(args),
+  covid_country:             (args) => covidCountry(args),
+  covid_vaccine:             (args) => covidVaccine(args),
+  // fishwatch-tool.ts
+  fishwatch_species:         (args) => fishwatchSpecies(args),
+  fishwatch_species_detail:  (args) => fishwatchSpeciesDetail(args),
+  // newton-tool.ts
+  newton_math:               (args) => newtonMath(args),
+  // placebear-tool.ts
+  placebear_image:           (args) => placebearImage(args),
+  // countryis-tool.ts
+  country_by_ip:             (args) => countryByIp(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

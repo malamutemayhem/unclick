@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T13:00:00.000Z",
+  "updatedAt": "2026-06-08T13:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -2934,6 +2934,57 @@
       "testedAt": "2026-06-08T13:00:00.000Z",
       "toolsTested": [
         "multiavatar_generate"
+      ]
+    },
+    "openmeteo-flood": {
+      "status": "pass",
+      "note": "flood_forecast returns river discharge data from flood-api.open-meteo.com. Free, no key needed.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "flood_forecast"
+      ]
+    },
+    "diseasesh": {
+      "status": "pass",
+      "note": "covid_global, covid_country, covid_vaccine return disease statistics from disease.sh. Free, no key needed.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "covid_global",
+        "covid_country",
+        "covid_vaccine"
+      ]
+    },
+    "fishwatch": {
+      "status": "pass",
+      "note": "fishwatch_species and fishwatch_species_detail return NOAA fish data from fishwatch.gov. Free, no key needed.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "fishwatch_species",
+        "fishwatch_species_detail"
+      ]
+    },
+    "newton": {
+      "status": "pass",
+      "note": "newton_math performs math operations (simplify, derive, integrate) via newton.now.sh. Free, no key needed.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "newton_math"
+      ]
+    },
+    "placebear": {
+      "status": "pass",
+      "note": "placebear_image generates bear placeholder image URLs from placebear.com. Local URL builder, no network call.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "placebear_image"
+      ]
+    },
+    "countryis": {
+      "status": "pass",
+      "note": "country_by_ip detects country from IP using country.is. Free, no key needed.",
+      "testedAt": "2026-06-08T13:30:00.000Z",
+      "toolsTested": [
+        "country_by_ip"
       ]
     }
   },

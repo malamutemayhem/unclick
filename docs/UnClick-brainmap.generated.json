@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 776,
+    "inventory": 782,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 354,
+    "tools": 360,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 354
+      "count": 360
     },
     {
       "id": "rooms",
@@ -4862,6 +4862,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-countryis-packages-mcp-server-src-countryis-tool-ts-no-route",
+      "division": "Tools",
+      "name": "countryis",
+      "kind": "MCP tool",
+      "meaning": "countryis MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/countryis-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-crews-packages-mcp-server-src-crews-tool-ts-no-route",
       "division": "Tools",
       "name": "crews",
@@ -5008,6 +5018,16 @@
       "kind": "MCP tool",
       "meaning": "discord MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/discord-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-diseasesh-packages-mcp-server-src-diseasesh-tool-ts-no-route",
+      "division": "Tools",
+      "name": "diseasesh",
+      "kind": "MCP tool",
+      "meaning": "diseasesh MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/diseasesh-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5288,6 +5308,16 @@
       "kind": "MCP tool",
       "meaning": "finalspace MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/finalspace-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-fishwatch-packages-mcp-server-src-fishwatch-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fishwatch",
+      "kind": "MCP tool",
+      "meaning": "fishwatch MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fishwatch-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6172,6 +6202,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-newton-packages-mcp-server-src-newton-tool-ts-no-route",
+      "division": "Tools",
+      "name": "newton",
+      "kind": "MCP tool",
+      "meaning": "newton MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/newton-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-nobelprize-packages-mcp-server-src-nobelprize-tool-ts-no-route",
       "division": "Tools",
       "name": "nobelprize",
@@ -6352,6 +6392,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-openmeteo-flood-packages-mcp-server-src-openmeteo-flood-tool-ts-no-route",
+      "division": "Tools",
+      "name": "openmeteo flood",
+      "kind": "MCP tool",
+      "meaning": "openmeteo flood MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/openmeteo-flood-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-openmeteo-marine-packages-mcp-server-src-openmeteo-marine-tool-ts-no-route",
       "division": "Tools",
       "name": "openmeteo marine",
@@ -6468,6 +6518,16 @@
       "kind": "MCP tool",
       "meaning": "pipedrive MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pipedrive-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-placebear-packages-mcp-server-src-placebear-tool-ts-no-route",
+      "division": "Tools",
+      "name": "placebear",
+      "kind": "MCP tool",
+      "meaning": "placebear MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/placebear-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8795,6 +8855,11 @@
       "packages/mcp-server/src/countryflag-tool.ts"
     ],
     [
+      "countryis",
+      "countryis MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/countryis-tool.ts"
+    ],
+    [
       "crews",
       "crews MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/crews-tool.ts"
@@ -8868,6 +8933,11 @@
       "discord",
       "discord MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discord-tool.ts"
+    ],
+    [
+      "diseasesh",
+      "diseasesh MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/diseasesh-tool.ts"
     ],
     [
       "disneyapi",
@@ -9008,6 +9078,11 @@
       "finalspace",
       "finalspace MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/finalspace-tool.ts"
+    ],
+    [
+      "fishwatch",
+      "fishwatch MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fishwatch-tool.ts"
     ],
     [
       "flowpass",
@@ -9450,6 +9525,11 @@
       "packages/mcp-server/src/newsapi-tool.ts"
     ],
     [
+      "newton",
+      "newton MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/newton-tool.ts"
+    ],
+    [
       "nobelprize",
       "nobelprize MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/nobelprize-tool.ts"
@@ -9535,6 +9615,11 @@
       "packages/mcp-server/src/openmeteo-airquality-tool.ts"
     ],
     [
+      "openmeteo flood",
+      "openmeteo flood MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/openmeteo-flood-tool.ts"
+    ],
+    [
       "openmeteo marine",
       "openmeteo marine MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/openmeteo-marine-tool.ts"
@@ -9598,6 +9683,11 @@
       "pipedrive",
       "pipedrive MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pipedrive-tool.ts"
+    ],
+    [
+      "placebear",
+      "placebear MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/placebear-tool.ts"
     ],
     [
       "placekitten",

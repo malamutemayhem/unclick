@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 353,
-  "toolCount": 1226,
+  "appCount": 359,
+  "toolCount": 1235,
   "categories": [
     "AI",
     "Books",
@@ -1582,6 +1582,22 @@
       "hardened": false
     },
     {
+      "slug": "countryis",
+      "name": "Country.is",
+      "category": "Travel, maps & local",
+      "blurb": "Detect country from an IP address using country.is.",
+      "domain": "country.is",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "country_by_ip",
+          "description": "Detect country from an IP address using country.is."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "crews",
       "name": "Crews",
       "category": "Productivity",
@@ -2032,6 +2048,30 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "diseasesh",
+      "name": "Disease.sh",
+      "category": "Weather & science",
+      "blurb": "Global and per-country COVID-19 statistics and vaccine data.",
+      "domain": "disease.sh",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "covid_global",
+          "description": "Get global COVID-19 statistics from disease.sh."
+        },
+        {
+          "name": "covid_country",
+          "description": "Get COVID-19 statistics for a specific country from disease.sh."
+        },
+        {
+          "name": "covid_vaccine",
+          "description": "Get COVID-19 vaccine candidate information from disease.sh."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "disneyapi",
@@ -2688,6 +2728,26 @@
         {
           "name": "final_space_episodes",
           "description": "List all Final Space episodes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fishwatch",
+      "name": "FishWatch (NOAA)",
+      "category": "Weather & science",
+      "blurb": "NOAA FishWatch species data with sustainability and nutrition info.",
+      "domain": "fishwatch.gov",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "fishwatch_species",
+          "description": "List all fish species with sustainability data from NOAA FishWatch."
+        },
+        {
+          "name": "fishwatch_species_detail",
+          "description": "Get detailed info about a specific fish species from NOAA FishWatch."
         }
       ],
       "level": 5,
@@ -4842,6 +4902,22 @@
       "hardened": true
     },
     {
+      "slug": "newton",
+      "name": "Newton Math",
+      "category": "Utilities",
+      "blurb": "Simplify, derive, integrate, and factor math expressions via Newton API.",
+      "domain": "newton.now.sh",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "newton_math",
+          "description": "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nobelprize",
       "name": "Nobel Prize API",
       "category": "News & reading",
@@ -5168,6 +5244,22 @@
         {
           "name": "air_quality_forecast",
           "description": "Get hourly air quality forecast from Open-Meteo."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "openmeteo-flood",
+      "name": "Open-Meteo Flood",
+      "category": "Weather & science",
+      "blurb": "River discharge flood forecast from Open-Meteo.",
+      "domain": "open-meteo.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "flood_forecast",
+          "description": "Get river discharge flood forecast from Open-Meteo."
         }
       ],
       "level": 5,
@@ -5564,6 +5656,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "placebear",
+      "name": "Placebear",
+      "category": "Images",
+      "blurb": "Bear placeholder image URLs at custom dimensions.",
+      "domain": "placebear.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "placebear_image",
+          "description": "Get a bear placeholder image URL at custom dimensions (no network call)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "placekitten",
