@@ -3200,6 +3200,26 @@
     }
   },
   {
+    "connector": "memegen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "metmuseum",
     "level": 5,
     "levelName": "Agentic",
@@ -3800,7 +3820,47 @@
     }
   },
   {
+    "connector": "openmeteo-climate",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openmeteo-flood",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo-historical",
     "level": 5,
     "levelName": "Agentic",
     "hardened": false,
@@ -4141,6 +4201,26 @@
   },
   {
     "connector": "pokemontcg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "postcodes",
     "level": 5,
     "levelName": "Agentic",
     "hardened": false,
@@ -5080,6 +5160,26 @@
     }
   },
   {
+    "connector": "timeapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "tmdb",
     "level": 5,
     "levelName": "Agentic",
@@ -5332,6 +5432,26 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ukpolice",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,

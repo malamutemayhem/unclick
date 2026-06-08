@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 359,
-  "toolCount": 1235,
+  "appCount": 365,
+  "toolCount": 1245,
   "categories": [
     "AI",
     "Books",
@@ -4518,6 +4518,26 @@
       "hardened": true
     },
     {
+      "slug": "memegen",
+      "name": "Memegen",
+      "category": "Images",
+      "blurb": "Generate meme images from templates via memegen.link.",
+      "domain": "memegen.link",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "memegen_templates",
+          "description": "List available meme templates from memegen.link."
+        },
+        {
+          "name": "memegen_create",
+          "description": "Generate a meme image URL from a template, top text, and bottom text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "metmuseum",
       "name": "Met Museum",
       "category": "News & reading",
@@ -5250,6 +5270,22 @@
       "hardened": false
     },
     {
+      "slug": "openmeteo-climate",
+      "name": "Open-Meteo Climate",
+      "category": "Weather & science",
+      "blurb": "Climate normal projections (temperature and precipitation) from Open-Meteo.",
+      "domain": "open-meteo.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "climate_normals",
+          "description": "Get climate normal projections (mean max/min temp, precipitation) for a location."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "openmeteo-flood",
       "name": "Open-Meteo Flood",
       "category": "Weather & science",
@@ -5260,6 +5296,22 @@
         {
           "name": "flood_forecast",
           "description": "Get river discharge flood forecast from Open-Meteo."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "openmeteo-historical",
+      "name": "Open-Meteo Historical",
+      "category": "Weather & science",
+      "blurb": "Historical daily weather data from 1940 to present via Open-Meteo archive.",
+      "domain": "open-meteo.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "historical_weather",
+          "description": "Get historical daily weather data for a location from Open-Meteo archive (1940 to 5 days ago)."
         }
       ],
       "level": 5,
@@ -5832,6 +5884,26 @@
         {
           "name": "pokemon_tcg_sets",
           "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "postcodes",
+      "name": "Postcodes.io",
+      "category": "Travel, maps & local",
+      "blurb": "UK postcode lookup with lat/lon, region, and constituency data.",
+      "domain": "postcodes.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "postcode_lookup",
+          "description": "Look up a UK postcode for lat/lon, region, district, ward, and constituency."
+        },
+        {
+          "name": "postcode_random",
+          "description": "Get a random UK postcode with full location details."
         }
       ],
       "level": 5,
@@ -7934,6 +8006,26 @@
       "hardened": true
     },
     {
+      "slug": "timeapi",
+      "name": "TimeAPI",
+      "category": "Utilities",
+      "blurb": "Current time and timezone lookup via timeapi.io.",
+      "domain": "timeapi.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "time_api_current_by_zone",
+          "description": "Get the current date and time for an IANA timezone via timeapi.io."
+        },
+        {
+          "name": "time_api_timezones",
+          "description": "List all available IANA timezone names from timeapi.io."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "tmdb",
       "name": "TMDB",
       "category": "Music & video",
@@ -8336,6 +8428,26 @@
         {
           "name": "avatar_url",
           "description": "Generate a text-based avatar image URL with initials."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ukpolice",
+      "name": "UK Police Data",
+      "category": "Security",
+      "blurb": "UK police forces and street-level crime data from data.police.uk.",
+      "domain": "data.police.uk",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "uk_police_forces",
+          "description": "List all UK police forces with id and name."
+        },
+        {
+          "name": "uk_police_crimes",
+          "description": "Get reported crimes at a UK location from data.police.uk."
         }
       ],
       "level": 5,

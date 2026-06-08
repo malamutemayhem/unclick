@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T13:30:00.000Z",
+  "updatedAt": "2026-06-08T14:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -2986,6 +2986,42 @@
       "toolsTested": [
         "country_by_ip"
       ]
+    },
+    "openmeteo-historical": {
+      "status": "pass",
+      "note": "historical_weather returns daily archive weather data via Open-Meteo. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["historical_weather"]
+    },
+    "ukpolice": {
+      "status": "pass",
+      "note": "uk_police_forces returns UK police force list from data.police.uk. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["uk_police_forces", "uk_police_crimes"]
+    },
+    "memegen": {
+      "status": "pass",
+      "note": "memegen_templates lists meme templates; memegen_create builds image URL locally. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["memegen_templates", "memegen_create"]
+    },
+    "timeapi": {
+      "status": "pass",
+      "note": "time_api_current_by_zone returns current time for a timezone via timeapi.io. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["time_api_current_by_zone", "time_api_timezones"]
+    },
+    "postcodes": {
+      "status": "pass",
+      "note": "postcode_lookup returns UK postcode details from postcodes.io. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["postcode_lookup", "postcode_random"]
+    },
+    "openmeteo-climate": {
+      "status": "pass",
+      "note": "climate_normals returns climate projection data via Open-Meteo. Free, no key needed.",
+      "testedAt": "2026-06-08T14:00:00.000Z",
+      "toolsTested": ["climate_normals"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

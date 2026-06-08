@@ -37,14 +37,14 @@ bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linea
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife", "acnhapi"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch"]);
-bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate"]);
+bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -119,6 +119,9 @@ const NAME_OF = {
   "openmeteo-airquality": "Open-Meteo Air Quality", officialjoke: "Official Joke API", multiavatar: "Multiavatar",
   "openmeteo-flood": "Open-Meteo Flood", diseasesh: "Disease.sh", fishwatch: "FishWatch (NOAA)",
   newton: "Newton Math", placebear: "Placebear", countryis: "Country.is",
+  "openmeteo-historical": "Open-Meteo Historical", ukpolice: "UK Police Data",
+  memegen: "Memegen", timeapi: "TimeAPI", postcodes: "Postcodes.io",
+  "openmeteo-climate": "Open-Meteo Climate",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -325,6 +328,12 @@ const BLURB_OF = {
   newton: "Simplify, derive, integrate, and factor math expressions via Newton API.",
   placebear: "Bear placeholder image URLs at custom dimensions.",
   countryis: "Detect country from an IP address using country.is.",
+  "openmeteo-historical": "Historical daily weather data from 1940 to present via Open-Meteo archive.",
+  ukpolice: "UK police forces and street-level crime data from data.police.uk.",
+  memegen: "Generate meme images from templates via memegen.link.",
+  timeapi: "Current time and timezone lookup via timeapi.io.",
+  postcodes: "UK postcode lookup with lat/lon, region, and constituency data.",
+  "openmeteo-climate": "Climate normal projections (temperature and precipitation) from Open-Meteo.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -435,6 +444,9 @@ const DOMAIN_OF = {
   "openmeteo-airquality": "open-meteo.com", officialjoke: "official-joke-api.appspot.com", multiavatar: "multiavatar.com",
   "openmeteo-flood": "open-meteo.com", diseasesh: "disease.sh", fishwatch: "fishwatch.gov",
   newton: "newton.now.sh", placebear: "placebear.com", countryis: "country.is",
+  "openmeteo-historical": "open-meteo.com", ukpolice: "data.police.uk",
+  memegen: "memegen.link", timeapi: "timeapi.io", postcodes: "postcodes.io",
+  "openmeteo-climate": "open-meteo.com",
 };
 
 function titleCase(slug) {

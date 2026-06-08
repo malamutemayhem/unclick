@@ -3552,6 +3552,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "memegen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "memegen_templates",
+        "description": "List available meme templates from memegen.link."
+      },
+      {
+        "name": "memegen_create",
+        "description": "Generate a meme image URL from a template, top text, and bottom text."
+      }
+    ]
+  },
+  {
     "app": "metmuseum",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4200,12 +4214,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openmeteo-climate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "climate_normals",
+        "description": "Get climate normal projections (mean max/min temp, precipitation) for a location."
+      }
+    ]
+  },
+  {
     "app": "openmeteo-flood",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "flood_forecast",
         "description": "Get river discharge flood forecast from Open-Meteo."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-historical",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "historical_weather",
+        "description": "Get historical daily weather data for a location from Open-Meteo archive (1940 to 5 days ago)."
       }
     ]
   },
@@ -4580,6 +4614,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "pokemon_tcg_sets",
         "description": "List or search Pokemon TCG card sets."
+      }
+    ]
+  },
+  {
+    "app": "postcodes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "postcode_lookup",
+        "description": "Look up a UK postcode for lat/lon, region, district, ward, and constituency."
+      },
+      {
+        "name": "postcode_random",
+        "description": "Get a random UK postcode with full location details."
       }
     ]
   },
@@ -6094,6 +6142,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "timeapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "time_api_current_by_zone",
+        "description": "Get the current date and time for an IANA timezone via timeapi.io."
+      },
+      {
+        "name": "time_api_timezones",
+        "description": "List all available IANA timezone names from timeapi.io."
+      }
+    ]
+  },
+  {
     "app": "tmdb",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6398,6 +6460,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "typeform_get_responses",
         "description": "Get submissions for a Typeform form."
+      }
+    ]
+  },
+  {
+    "app": "ukpolice",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "uk_police_forces",
+        "description": "List all UK police forces with id and name."
+      },
+      {
+        "name": "uk_police_crimes",
+        "description": "Get reported crimes at a UK location from data.police.uk."
       }
     ]
   },

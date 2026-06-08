@@ -524,6 +524,12 @@ import { fishwatchSpecies, fishwatchSpeciesDetail } from "./fishwatch-tool.js";
 import { newtonMath } from "./newton-tool.js";
 import { placebearImage } from "./placebear-tool.js";
 import { countryByIp } from "./countryis-tool.js";
+import { historicalWeather } from "./openmeteo-historical-tool.js";
+import { ukPoliceForces, ukPoliceCrimes } from "./ukpolice-tool.js";
+import { memegenTemplates, memegenCreate } from "./memegen-tool.js";
+import { timeApiCurrentByZone, timeApiTimezones } from "./timeapi-tool.js";
+import { postcodeLookup, postcodeRandom } from "./postcodes-tool.js";
+import { climateNormals } from "./openmeteo-climate-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7914,6 +7920,100 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         ip: { type: "string" as const, description: "IP address to look up (omit for auto-detect)." },
       },
+    },
+  },
+
+  // ── openmeteo-historical-tool.ts ─────────────────────────────────────────────
+  {
+    name: "historical_weather",
+    description: "Get historical daily weather data for a location from Open-Meteo archive (1940 to 5 days ago).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+        start_date: { type: "string" as const, description: "Start date in YYYY-MM-DD format." },
+        end_date: { type: "string" as const, description: "End date in YYYY-MM-DD format." },
+      }, required: ["latitude", "longitude", "start_date", "end_date"],
+    },
+  },
+
+  // ── ukpolice-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "uk_police_forces",
+    description: "List all UK police forces with id and name.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "uk_police_crimes",
+    description: "Get reported crimes at a UK location from data.police.uk.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+        date: { type: "string" as const, description: "Month in YYYY-MM format (default: latest)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── memegen-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "memegen_templates",
+    description: "List available meme templates from memegen.link.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "memegen_create",
+    description: "Generate a meme image URL from a template, top text, and bottom text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        template: { type: "string" as const, description: "Template id (default: fry). Use memegen_templates to list." },
+        top_text: { type: "string" as const, description: "Top line of the meme." },
+        bottom_text: { type: "string" as const, description: "Bottom line of the meme." },
+      },
+    },
+  },
+
+  // ── timeapi-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "time_api_current_by_zone",
+    description: "Get the current date and time for an IANA timezone via timeapi.io.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timezone: { type: "string" as const, description: "IANA timezone name (default: UTC). E.g. America/New_York." },
+      },
+    },
+  },
+  {
+    name: "time_api_timezones",
+    description: "List all available IANA timezone names from timeapi.io.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── postcodes-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "postcode_lookup",
+    description: "Look up a UK postcode for lat/lon, region, district, ward, and constituency.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        postcode: { type: "string" as const, description: "UK postcode (e.g. SW1A 1AA)." },
+      }, required: ["postcode"],
+    },
+  },
+  {
+    name: "postcode_random",
+    description: "Get a random UK postcode with full location details.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── openmeteo-climate-tool.ts ──────────────────────────────────────────────
+  {
+    name: "climate_normals",
+    description: "Get climate normal projections (mean max/min temp, precipitation) for a location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+      }, required: ["latitude", "longitude"],
     },
   },
 
@@ -19110,6 +19210,22 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   placebear_image:           (args) => placebearImage(args),
   // countryis-tool.ts
   country_by_ip:             (args) => countryByIp(args),
+  // openmeteo-historical-tool.ts
+  historical_weather:        (args) => historicalWeather(args),
+  // ukpolice-tool.ts
+  uk_police_forces:          (args) => ukPoliceForces(args),
+  uk_police_crimes:          (args) => ukPoliceCrimes(args),
+  // memegen-tool.ts
+  memegen_templates:         (args) => memegenTemplates(args),
+  memegen_create:            (args) => memegenCreate(args),
+  // timeapi-tool.ts
+  time_api_current_by_zone:  (args) => timeApiCurrentByZone(args),
+  time_api_timezones:        (args) => timeApiTimezones(args),
+  // postcodes-tool.ts
+  postcode_lookup:           (args) => postcodeLookup(args),
+  postcode_random:           (args) => postcodeRandom(args),
+  // openmeteo-climate-tool.ts
+  climate_normals:           (args) => climateNormals(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
