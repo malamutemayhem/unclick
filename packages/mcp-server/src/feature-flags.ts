@@ -1,45 +1,77 @@
-export interface Flag {
+export interface FeatureFlag {
+  name: string;
   enabled: boolean;
-  percentage?: number;
-  allowlist?: string[];
+  rolloutPercent?: number;
+  targetUsers?: string[];
+  metadata?: Record<string, unknown>;
 }
 
-export class FeatureFlags {
-  private flags = new Map<string, Flag>();
+export class FeatureFlagManager {
+  private flags = new Map<string, FeatureFlag>();
 
-  define(name: string, flag: Flag): void {
-    this.flags.set(name, flag);
+  define(flag: FeatureFlag): void {
+    this.flags.set(flag.name, flag);
   }
 
   isEnabled(name: string, userId?: string): boolean {
     const flag = this.flags.get(name);
     if (!flag) return false;
     if (!flag.enabled) return false;
-    if (userId && flag.allowlist && flag.allowlist.includes(userId)) return true;
-    if (flag.percentage !== undefined) {
-      return hashToPercent(name + (userId ?? "")) < flag.percentage;
+    if (flag.targetUsers && userId) {
+      return flag.targetUsers.includes(userId);
     }
+    if (flag.rolloutPercent !== undefined && userId) {
+      const hash = this.hashUser(userId, name);
+      return hash < flag.rolloutPercent;
+    }
+    if (flag.targetUsers && !userId) return false;
+    if (flag.rolloutPercent !== undefined && !userId) return false;
+    return flag.enabled;
+  }
+
+  toggle(name: string): boolean {
+    const flag = this.flags.get(name);
+    if (!flag) return false;
+    flag.enabled = !flag.enabled;
     return true;
   }
 
-  setEnabled(name: string, enabled: boolean): void {
+  enable(name: string): boolean {
     const flag = this.flags.get(name);
-    if (flag) flag.enabled = enabled;
+    if (!flag) return false;
+    flag.enabled = true;
+    return true;
   }
 
-  listFlags(): Array<{ name: string; flag: Flag }> {
-    return [...this.flags.entries()].map(([name, flag]) => ({ name, flag }));
+  disable(name: string): boolean {
+    const flag = this.flags.get(name);
+    if (!flag) return false;
+    flag.enabled = false;
+    return true;
   }
 
-  get size(): number {
-    return this.flags.size;
+  list(): FeatureFlag[] {
+    return [...this.flags.values()];
   }
-}
 
-function hashToPercent(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  get(name: string): FeatureFlag | undefined {
+    return this.flags.get(name);
   }
-  return Math.abs(hash) % 100;
+
+  remove(name: string): boolean {
+    return this.flags.delete(name);
+  }
+
+  enabledFlags(userId?: string): string[] {
+    return this.list().filter((f) => this.isEnabled(f.name, userId)).map((f) => f.name);
+  }
+
+  private hashUser(userId: string, flagName: string): number {
+    let hash = 0;
+    const str = `${userId}:${flagName}`;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash + str.charCodeAt(i)) & 0x7fffffff;
+    }
+    return hash % 100;
+  }
 }
