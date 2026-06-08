@@ -1,64 +1,59 @@
-export interface PromptVariable {
-  name: string;
-  description?: string;
-  default?: string;
-  required?: boolean;
+export interface TemplateOptions {
+  openDelimiter?: string;
+  closeDelimiter?: string;
+  strict?: boolean;
 }
 
-export class PromptTemplate {
-  private template: string;
-  private variables: PromptVariable[];
+const DEFAULT_OPEN = "{{";
+const DEFAULT_CLOSE = "}}";
 
-  constructor(template: string, variables: PromptVariable[] = []) {
-    this.template = template;
-    this.variables = variables;
-  }
+export function render(
+  template: string,
+  variables: Record<string, string | number | boolean>,
+  options: TemplateOptions = {},
+): string {
+  const open = escapeRegex(options.openDelimiter ?? DEFAULT_OPEN);
+  const close = escapeRegex(options.closeDelimiter ?? DEFAULT_CLOSE);
+  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
 
-  format(vars: Record<string, string>): string {
-    let result = this.template;
-    const missing: string[] = [];
-
-    for (const v of this.variables) {
-      const value = vars[v.name] ?? v.default;
-      if (value === undefined && v.required) {
-        missing.push(v.name);
-      }
-    }
-    if (missing.length > 0) {
-      throw new Error("Missing required variables: " + missing.join(", "));
-    }
-
-    result = result.replace(/\{\{(\w+)\}\}/g, (_, name) => {
-      const value = vars[name];
-      if (value !== undefined) return value;
-      const def = this.variables.find((v) => v.name === name);
-      return def?.default ?? "";
-    });
-
-    return result;
-  }
-
-  getVariables(): PromptVariable[] {
-    return [...this.variables];
-  }
-
-  extractVariableNames(): string[] {
-    const matches = this.template.match(/\{\{(\w+)\}\}/g) || [];
-    return [...new Set(matches.map((m) => m.slice(2, -2)))];
-  }
-
-  static compose(...templates: PromptTemplate[]): PromptTemplate {
-    const combined = templates.map((t) => t.template).join("\n\n");
-    const allVars = templates.flatMap((t) => t.variables);
-    const uniqueVars = [...new Map(allVars.map((v) => [v.name, v])).values()];
-    return new PromptTemplate(combined, uniqueVars);
-  }
+  return template.replace(pattern, (_match, key: string) => {
+    if (key in variables) return String(variables[key]);
+    if (options.strict) throw new Error(`Missing variable: ${key}`);
+    return _match;
+  });
 }
 
-export function buildSystemPrompt(parts: Array<{ role: string; content: string }>): string {
-  return parts.map((p) => `# ${p.role}\n${p.content}`).join("\n\n");
+export function extractVariables(template: string, options: TemplateOptions = {}): string[] {
+  const open = escapeRegex(options.openDelimiter ?? DEFAULT_OPEN);
+  const close = escapeRegex(options.closeDelimiter ?? DEFAULT_CLOSE);
+  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
+  const vars: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(template)) !== null) {
+    if (!vars.includes(match[1])) vars.push(match[1]);
+  }
+  return vars;
 }
 
-export function injectContext(template: string, context: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => context[key] ?? "");
+export function validate(
+  template: string,
+  variables: Record<string, string | number | boolean>,
+  options: TemplateOptions = {},
+): { valid: boolean; missing: string[] } {
+  const needed = extractVariables(template, options);
+  const missing = needed.filter((v) => !(v in variables));
+  return { valid: missing.length === 0, missing };
+}
+
+export function buildPrompt(
+  sections: Array<{ role: string; content: string }>,
+  variables: Record<string, string | number | boolean> = {},
+): string {
+  return sections
+    .map((s) => `[${s.role}]\n${render(s.content, variables)}`)
+    .join("\n\n");
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

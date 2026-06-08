@@ -1,52 +1,74 @@
 import { describe, it, expect } from "vitest";
-import { PromptTemplate, buildSystemPrompt, injectContext } from "../prompt-template.js";
+import { render, extractVariables, validate, buildPrompt } from "../prompt-template.js";
 
-describe("PromptTemplate", () => {
-  it("formats with variables", () => {
-    const pt = new PromptTemplate("Hello {{name}}, you are {{role}}.", [
-      { name: "name", required: true },
-      { name: "role", default: "user" },
-    ]);
-    expect(pt.format({ name: "Alice" })).toBe("Hello Alice, you are user.");
-    expect(pt.format({ name: "Bob", role: "admin" })).toBe("Hello Bob, you are admin.");
+describe("render", () => {
+  it("replaces variables", () => {
+    expect(render("Hello {{name}}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("throws on missing required", () => {
-    const pt = new PromptTemplate("{{name}}", [{ name: "name", required: true }]);
-    expect(() => pt.format({})).toThrow("Missing required");
+  it("handles multiple variables", () => {
+    expect(render("{{a}} + {{b}}", { a: 1, b: 2 })).toBe("1 + 2");
   });
 
-  it("extractVariableNames finds all placeholders", () => {
-    const pt = new PromptTemplate("{{a}} and {{b}} and {{a}}");
-    expect(pt.extractVariableNames().sort()).toEqual(["a", "b"]);
+  it("leaves unknown variables in non-strict mode", () => {
+    expect(render("Hello {{name}}", {})).toBe("Hello {{name}}");
   });
 
-  it("compose joins templates", () => {
-    const a = new PromptTemplate("Part A: {{x}}", [{ name: "x" }]);
-    const b = new PromptTemplate("Part B: {{y}}", [{ name: "y" }]);
-    const combined = PromptTemplate.compose(a, b);
-    expect(combined.format({ x: "1", y: "2" })).toContain("Part A: 1");
-    expect(combined.format({ x: "1", y: "2" })).toContain("Part B: 2");
+  it("throws in strict mode for missing variables", () => {
+    expect(() => render("Hello {{name}}", {}, { strict: true })).toThrow("Missing variable: name");
   });
-});
 
-describe("buildSystemPrompt", () => {
-  it("builds sectioned prompt", () => {
-    const result = buildSystemPrompt([
-      { role: "Identity", content: "You are a helpful assistant." },
-      { role: "Rules", content: "Be concise." },
-    ]);
-    expect(result).toContain("# Identity");
-    expect(result).toContain("# Rules");
+  it("handles spaces inside delimiters", () => {
+    expect(render("Hello {{ name }}", { name: "Bob" })).toBe("Hello Bob");
+  });
+
+  it("supports custom delimiters", () => {
+    expect(render("Hello <%name%>", { name: "World" }, { openDelimiter: "<%", closeDelimiter: "%>" })).toBe("Hello World");
+  });
+
+  it("handles boolean and number values", () => {
+    expect(render("{{flag}} {{count}}", { flag: true, count: 42 })).toBe("true 42");
   });
 });
 
-describe("injectContext", () => {
-  it("replaces placeholders", () => {
-    expect(injectContext("Hello {{name}}!", { name: "World" })).toBe("Hello World!");
+describe("extractVariables", () => {
+  it("extracts all unique variables", () => {
+    expect(extractVariables("{{a}} and {{b}} and {{a}}")).toEqual(["a", "b"]);
   });
 
-  it("replaces missing with empty", () => {
-    expect(injectContext("{{missing}}", {})).toBe("");
+  it("returns empty for no variables", () => {
+    expect(extractVariables("no vars here")).toEqual([]);
+  });
+});
+
+describe("validate", () => {
+  it("returns valid when all provided", () => {
+    const r = validate("{{x}} {{y}}", { x: "1", y: "2" });
+    expect(r.valid).toBe(true);
+    expect(r.missing).toEqual([]);
+  });
+
+  it("returns missing variables", () => {
+    const r = validate("{{x}} {{y}} {{z}}", { x: "1" });
+    expect(r.valid).toBe(false);
+    expect(r.missing).toEqual(["y", "z"]);
+  });
+});
+
+describe("buildPrompt", () => {
+  it("builds multi-section prompt", () => {
+    const result = buildPrompt([
+      { role: "system", content: "You are {{role}}" },
+      { role: "user", content: "Hello" },
+    ], { role: "helpful" });
+    expect(result).toContain("[system]");
+    expect(result).toContain("You are helpful");
+    expect(result).toContain("[user]");
+    expect(result).toContain("Hello");
+  });
+
+  it("works without variables", () => {
+    const result = buildPrompt([{ role: "user", content: "Hi" }]);
+    expect(result).toBe("[user]\nHi");
   });
 });

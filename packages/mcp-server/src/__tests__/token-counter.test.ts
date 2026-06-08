@@ -1,58 +1,82 @@
 import { describe, it, expect } from "vitest";
-import { estimateTokens, truncateToTokens, chunkByTokens, countMessages } from "../token-counter.js";
+import { countTokens, countTokensBatch, totalTokens, truncateToTokens, fitsInBudget, remainingBudget, splitByTokenLimit } from "../token-counter.js";
 
-describe("estimateTokens", () => {
-  it("estimates word-based tokens", () => {
-    const tokens = estimateTokens("hello world this is a test");
-    expect(tokens).toBeGreaterThan(0);
-    expect(tokens).toBeLessThan(20);
+describe("countTokens", () => {
+  it("counts words", () => {
+    expect(countTokens("hello world")).toBe(2);
   });
 
   it("handles empty string", () => {
-    expect(estimateTokens("")).toBe(0);
+    expect(countTokens("")).toBe(0);
   });
 
-  it("handles long text", () => {
-    const long = "word ".repeat(1000);
-    const tokens = estimateTokens(long);
-    expect(tokens).toBeGreaterThan(500);
+  it("handles extra whitespace", () => {
+    expect(countTokens("  hello   world  ")).toBe(2);
+  });
+
+  it("handles single word", () => {
+    expect(countTokens("hello")).toBe(1);
+  });
+});
+
+describe("countTokensBatch", () => {
+  it("counts tokens for multiple texts", () => {
+    expect(countTokensBatch(["a b", "c d e"])).toEqual([2, 3]);
+  });
+});
+
+describe("totalTokens", () => {
+  it("sums all tokens", () => {
+    expect(totalTokens(["hello world", "foo bar baz"])).toBe(5);
+  });
+
+  it("returns 0 for empty array", () => {
+    expect(totalTokens([])).toBe(0);
   });
 });
 
 describe("truncateToTokens", () => {
-  it("truncates to approximate token limit", () => {
-    const text = "The quick brown fox jumps over the lazy dog and keeps running forever";
-    const truncated = truncateToTokens(text, 5);
-    expect(truncated.split(" ").length).toBeLessThanOrEqual(6);
+  it("truncates long text", () => {
+    expect(truncateToTokens("a b c d e", 3)).toBe("a b c");
   });
 
-  it("returns full text if under limit", () => {
-    expect(truncateToTokens("hi", 100)).toBe("hi");
+  it("returns full text if within limit", () => {
+    expect(truncateToTokens("a b", 5)).toBe("a b");
   });
 });
 
-describe("chunkByTokens", () => {
+describe("fitsInBudget", () => {
+  it("returns true when fits", () => {
+    expect(fitsInBudget("hello world", 5)).toBe(true);
+  });
+
+  it("returns false when over", () => {
+    expect(fitsInBudget("a b c d e f", 3)).toBe(false);
+  });
+});
+
+describe("remainingBudget", () => {
+  it("calculates remaining", () => {
+    expect(remainingBudget(["hello world", "foo"], 10)).toBe(7);
+  });
+
+  it("returns 0 when over budget", () => {
+    expect(remainingBudget(["a b c d e f g h i j"], 5)).toBe(0);
+  });
+});
+
+describe("splitByTokenLimit", () => {
   it("splits text into chunks", () => {
-    const text = "First sentence. Second sentence. Third sentence. Fourth sentence. Fifth sentence.";
-    const chunks = chunkByTokens(text, 10);
-    expect(chunks.length).toBeGreaterThan(1);
-    for (const chunk of chunks) {
-      expect(estimateTokens(chunk)).toBeLessThanOrEqual(15);
-    }
+    const chunks = splitByTokenLimit("a b c d e f", 2);
+    expect(chunks).toEqual(["a b", "c d", "e f"]);
   });
 
-  it("handles short text as single chunk", () => {
-    expect(chunkByTokens("Short.", 100)).toEqual(["Short."]);
+  it("handles remainder", () => {
+    const chunks = splitByTokenLimit("a b c d e", 3);
+    expect(chunks).toEqual(["a b c", "d e"]);
   });
-});
 
-describe("countMessages", () => {
-  it("estimates message array tokens", () => {
-    const messages = [
-      { role: "user", content: "Hello" },
-      { role: "assistant", content: "Hi there!" },
-    ];
-    const count = countMessages(messages);
-    expect(count).toBeGreaterThan(0);
+  it("single chunk when under limit", () => {
+    expect(splitByTokenLimit("hello", 10)).toEqual(["hello"]);
   });
 });
