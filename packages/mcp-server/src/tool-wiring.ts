@@ -2459,6 +2459,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         email_id: { type: "string" },
+        id: { type: "string", description: "Alias for email_id." },
         api_key: { type: "string" },
       },
       required: ["email_id"],
@@ -6378,6 +6379,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         profile_id: { type: "number" },
+        profileId: { type: "number", description: "Alias for profile_id." },
         api_key: { type: "string" },
       },
       required: ["profile_id"],
@@ -6577,6 +6579,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         user_login: { type: "string" },
+        channel: { type: "string", description: "Alias for user_login." },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
@@ -11858,6 +11861,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         api_key: { type: "string", description: "Segment Public API token" },
+        api_token: { type: "string", description: "Alias for api_key (Segment management token)." },
         workspace_id: { type: "string", description: "Segment workspace ID" },
       },
       required: ["api_key", "workspace_id"],
@@ -11871,6 +11875,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         api_key: { type: "string", description: "Segment Public API token" },
+        api_token: { type: "string", description: "Alias for api_key." },
         source_id: { type: "string", description: "Segment source ID" },
       },
       required: ["api_key", "source_id"],
@@ -11884,6 +11889,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         api_key: { type: "string", description: "Segment Public API token" },
+        api_token: { type: "string", description: "Alias for api_key." },
         source_id: { type: "string", description: "Segment source ID" },
       },
       required: ["api_key", "source_id"],
