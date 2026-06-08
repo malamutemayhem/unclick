@@ -40,7 +40,7 @@ export interface RawCommentRow {
 const PROOF_POSITIVE =
   /\b(pr\s*#?\d+|pull request\s*#?\d+|commit\s+[a-f0-9]{7,40}|sha\s+[a-f0-9]{7,40}|tests?\s+passed|build\s+passed|checks?\s+(?:passed|green)|ci\s+(?:passed|green)|playwright|screenshot|deployed|deployment|no[_\s-]?code[_\s-]?needed|proof:\s*\S+|receipt\s+[0-9a-f-]{8,})\b/i;
 
-const PROOF_NEGATIVE = /\b(blocker|blocked|missing\s+proof|false\s+green|reopened)\b/i;
+const PROOF_NEGATIVE = /\b(blocker|blocked|missing\s+proof|false\s+green|reopened|failed|failing|broken|reverted|rolled\s*back|errored|crashed|red)\b/i;
 
 function inferPassProof(row: RawCommentRow): boolean {
   if (typeof row.is_pass_proof === "boolean") return row.is_pass_proof;

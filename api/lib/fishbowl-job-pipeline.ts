@@ -52,7 +52,7 @@ const stageProgress: Record<number, number> = {
   5: 100,
 };
 
-const PROOF_RESET_RE = /\b(reopened|re-opened|proof\s+reset|false\s+completion|partial\s+completion)\b/i;
+const PROOF_RESET_RE = /\b(reopened|re-opened|proof\s+reset|false\s+completion|partial\s+completion|reverted|rolled\s*back)\b/i;
 const PROOF_MISSING_RE =
   /\b(missing|needs?|needed|waiting for|incomplete|stale)\b[^\n.]{0,140}\bproof\b|\b(?:no|without)\s+(?:live\s+)?proof\b|\bproof\s+(?:is\s+)?(?:still\s+)?(?:missing|needed|incomplete|stale|not available)\b/i;
 const PROOF_UI_MISSING_RE =

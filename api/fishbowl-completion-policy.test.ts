@@ -245,4 +245,23 @@ describe("evaluateFishbowlCompletionPolicy", () => {
 
     expect(result).toMatchObject({ allowed: true, code: "allowed" });
   });
+
+  it("rejects proof comments that describe failures despite containing positive keywords", () => {
+    const failureCases = [
+      "deployment failed after PR #100 merged",
+      "deployed but then reverted due to errors",
+      "screenshot shows the build is broken",
+      "CI checks passed initially but then errored on staging",
+      "tests passed locally but crashed in production",
+    ];
+    for (const text of failureCases) {
+      const result = evaluateFishbowlCompletionPolicy({
+        todo: baseTodo,
+        comments: [{ author_agent_id: "reviewer-seat", text }],
+        closerAgentId: "builder-seat",
+      });
+      expect(result.allowed, `should reject: "${text}"`).toBe(false);
+      expect(result.code).toBe("missing_proof");
+    }
+  });
 });
