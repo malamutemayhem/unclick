@@ -530,6 +530,12 @@ import { memegenTemplates, memegenCreate } from "./memegen-tool.js";
 import { timeApiCurrentByZone, timeApiTimezones } from "./timeapi-tool.js";
 import { postcodeLookup, postcodeRandom } from "./postcodes-tool.js";
 import { climateNormals } from "./openmeteo-climate-tool.js";
+import { gbifSearchSpecies, gbifSpeciesDetail, gbifOccurrences } from "./gbif-tool.js";
+import { crossrefSearchWorks, crossrefGetWork } from "./crossref-tool.js";
+import { nominatimSearch, nominatimReverse } from "./nominatim-tool.js";
+import { coincapAssets, coincapAssetDetail, coincapRates } from "./coincap-tool.js";
+import { openElevationLookup } from "./open-elevation-tool.js";
+import { itisSearchByName, itisGetFullRecord } from "./itis-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8014,6 +8020,139 @@ export const ADDITIONAL_TOOLS = [
         latitude: { type: "number" as const, description: "Latitude of the location." },
         longitude: { type: "number" as const, description: "Longitude of the location." },
       }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── gbif-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "gbif_search_species",
+    description: "Search GBIF for biodiversity species by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Species name to search for." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "gbif_species_detail",
+    description: "Get full taxonomy details for a GBIF species by key.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        species_key: { type: "string" as const, description: "GBIF taxon key (numeric)." },
+      }, required: ["species_key"],
+    },
+  },
+  {
+    name: "gbif_occurrences",
+    description: "Search GBIF biodiversity occurrence records by species and/or country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        species_key: { type: "string" as const, description: "GBIF taxon key to filter by." },
+        country: { type: "string" as const, description: "ISO 2-letter country code." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      },
+    },
+  },
+
+  // ── crossref-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "crossref_search_works",
+    description: "Search academic papers on Crossref by title, author, or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query (title, author, or keyword)." },
+        rows: { type: "number" as const, description: "Max results (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "crossref_get_work",
+    description: "Get full metadata for an academic paper by DOI from Crossref.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        doi: { type: "string" as const, description: "DOI of the paper (e.g. 10.1038/nature12373)." },
+      }, required: ["doi"],
+    },
+  },
+
+  // ── nominatim-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "nominatim_search",
+    description: "Geocode a place name or address to coordinates using OpenStreetMap Nominatim.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Place name or address to search." },
+        limit: { type: "number" as const, description: "Max results (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "nominatim_reverse",
+    description: "Reverse geocode coordinates to an address using OpenStreetMap Nominatim.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── coincap-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "coincap_assets",
+    description: "List top crypto assets by market cap from CoinCap.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+        search: { type: "string" as const, description: "Filter by asset name or symbol." },
+      },
+    },
+  },
+  {
+    name: "coincap_asset_detail",
+    description: "Get detailed crypto asset info (price, volume, market cap) from CoinCap.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Asset id (e.g. bitcoin, ethereum)." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "coincap_rates",
+    description: "List crypto and fiat exchange rates from CoinCap.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── open-elevation-tool.ts ────────────────────────────────────────────────
+  {
+    name: "open_elevation_lookup",
+    description: "Get elevation in meters for given coordinates from Open Elevation API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── itis-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "itis_search_by_name",
+    description: "Search USDA ITIS for species by common name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Common name to search (e.g. lion, oak, salmon)." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "itis_get_full_record",
+    description: "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        tsn: { type: "string" as const, description: "Taxonomic Serial Number." },
+      }, required: ["tsn"],
     },
   },
 
@@ -19226,6 +19365,25 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   postcode_random:           (args) => postcodeRandom(args),
   // openmeteo-climate-tool.ts
   climate_normals:           (args) => climateNormals(args),
+  // gbif-tool.ts
+  gbif_search_species:       (args) => gbifSearchSpecies(args),
+  gbif_species_detail:       (args) => gbifSpeciesDetail(args),
+  gbif_occurrences:          (args) => gbifOccurrences(args),
+  // crossref-tool.ts
+  crossref_search_works:     (args) => crossrefSearchWorks(args),
+  crossref_get_work:         (args) => crossrefGetWork(args),
+  // nominatim-tool.ts
+  nominatim_search:          (args) => nominatimSearch(args),
+  nominatim_reverse:         (args) => nominatimReverse(args),
+  // coincap-tool.ts
+  coincap_assets:            (args) => coincapAssets(args),
+  coincap_asset_detail:      (args) => coincapAssetDetail(args),
+  coincap_rates:             (args) => coincapRates(args),
+  // open-elevation-tool.ts
+  open_elevation_lookup:     (args) => openElevationLookup(args),
+  // itis-tool.ts
+  itis_search_by_name:       (args) => itisSearchByName(args),
+  itis_get_full_record:      (args) => itisGetFullRecord(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

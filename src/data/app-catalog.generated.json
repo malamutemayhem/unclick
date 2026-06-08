@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 365,
-  "toolCount": 1245,
+  "appCount": 371,
+  "toolCount": 1258,
   "categories": [
     "AI",
     "Books",
@@ -1190,6 +1190,30 @@
       "hardened": true
     },
     {
+      "slug": "coincap",
+      "name": "CoinCap",
+      "category": "Markets & crypto",
+      "blurb": "Real-time cryptocurrency market data, asset prices, and exchange rates.",
+      "domain": "coincap.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "coincap_assets",
+          "description": "List top crypto assets by market cap from CoinCap."
+        },
+        {
+          "name": "coincap_asset_detail",
+          "description": "Get detailed crypto asset info (price, volume, market cap) from CoinCap."
+        },
+        {
+          "name": "coincap_rates",
+          "description": "List crypto and fiat exchange rates from CoinCap."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "coingecko",
       "name": "CoinGecko",
       "category": "Markets & crypto",
@@ -1619,6 +1643,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "crossref",
+      "name": "Crossref",
+      "category": "Books",
+      "blurb": "Academic paper metadata and DOI lookup from Crossref.",
+      "domain": "crossref.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "crossref_search_works",
+          "description": "Search academic papers on Crossref by title, author, or keyword."
+        },
+        {
+          "name": "crossref_get_work",
+          "description": "Get full metadata for an academic paper by DOI from Crossref."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -2978,6 +3022,30 @@
       "hardened": false
     },
     {
+      "slug": "gbif",
+      "name": "GBIF",
+      "category": "Weather & science",
+      "blurb": "Global biodiversity species search and occurrence records from GBIF.",
+      "domain": "gbif.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "gbif_search_species",
+          "description": "Search GBIF for biodiversity species by name."
+        },
+        {
+          "name": "gbif_species_detail",
+          "description": "Get full taxonomy details for a GBIF species by key."
+        },
+        {
+          "name": "gbif_occurrences",
+          "description": "Search GBIF biodiversity occurrence records by species and/or country."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gdelt",
       "name": "GDELT",
       "category": "News & reading",
@@ -3792,6 +3860,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "itis",
+      "name": "ITIS (USDA)",
+      "category": "Weather & science",
+      "blurb": "USDA taxonomic species search and full classification records.",
+      "domain": "itis.gov",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "itis_search_by_name",
+          "description": "Search USDA ITIS for species by common name."
+        },
+        {
+          "name": "itis_get_full_record",
+          "description": "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "jikan",
@@ -4958,6 +5046,26 @@
       "hardened": false
     },
     {
+      "slug": "nominatim",
+      "name": "Nominatim (OSM)",
+      "category": "Travel, maps & local",
+      "blurb": "OpenStreetMap geocoding: convert addresses to coordinates and back.",
+      "domain": "openstreetmap.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "nominatim_search",
+          "description": "Geocode a place name or address to coordinates using OpenStreetMap Nominatim."
+        },
+        {
+          "name": "nominatim_reverse",
+          "description": "Reverse geocode coordinates to an address using OpenStreetMap Nominatim."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "notion",
       "name": "Notion",
       "category": "Productivity",
@@ -5116,6 +5224,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "open-elevation",
+      "name": "Open Elevation",
+      "category": "Travel, maps & local",
+      "blurb": "Elevation lookup in meters for any coordinates on Earth.",
+      "domain": "open-elevation.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "open_elevation_lookup",
+          "description": "Get elevation in meters for given coordinates from Open Elevation API."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "openexchangerates",

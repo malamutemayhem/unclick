@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T14:00:00.000Z",
+  "updatedAt": "2026-06-08T14:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3022,6 +3022,42 @@
       "note": "climate_normals returns climate projection data via Open-Meteo. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
       "toolsTested": ["climate_normals"]
+    },
+    "gbif": {
+      "status": "pass",
+      "note": "gbif_search_species returns biodiversity species data from GBIF. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["gbif_search_species", "gbif_species_detail", "gbif_occurrences"]
+    },
+    "crossref": {
+      "status": "pass",
+      "note": "crossref_search_works returns academic paper metadata from Crossref. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["crossref_search_works", "crossref_get_work"]
+    },
+    "nominatim": {
+      "status": "pass",
+      "note": "nominatim_search geocodes place names via OpenStreetMap. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["nominatim_search", "nominatim_reverse"]
+    },
+    "coincap": {
+      "status": "pass",
+      "note": "coincap_assets returns crypto market data from CoinCap. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["coincap_assets", "coincap_asset_detail", "coincap_rates"]
+    },
+    "open-elevation": {
+      "status": "pass",
+      "note": "open_elevation_lookup returns elevation data for coordinates. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["open_elevation_lookup"]
+    },
+    "itis": {
+      "status": "pass",
+      "note": "itis_search_by_name returns USDA taxonomic species data. Free, no key needed.",
+      "testedAt": "2026-06-08T14:30:00.000Z",
+      "toolsTested": ["itis_search_by_name", "itis_get_full_record"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

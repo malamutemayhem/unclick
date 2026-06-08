@@ -1000,6 +1000,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "coincap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coincap_assets",
+        "description": "List top crypto assets by market cap from CoinCap."
+      },
+      {
+        "name": "coincap_asset_detail",
+        "description": "Get detailed crypto asset info (price, volume, market cap) from CoinCap."
+      },
+      {
+        "name": "coincap_rates",
+        "description": "List crypto and fiat exchange rates from CoinCap."
+      }
+    ]
+  },
+  {
     "app": "coingecko",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1320,6 +1338,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "list_runs",
         "description": "Call this tool when the user wants a recent history of Crews runs. Returns a ConversationalCard with a run count and the newest few run ids."
+      }
+    ]
+  },
+  {
+    "app": "crossref",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crossref_search_works",
+        "description": "Search academic papers on Crossref by title, author, or keyword."
+      },
+      {
+        "name": "crossref_get_work",
+        "description": "Get full metadata for an academic paper by DOI from Crossref."
       }
     ]
   },
@@ -2392,6 +2424,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gbif",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gbif_search_species",
+        "description": "Search GBIF for biodiversity species by name."
+      },
+      {
+        "name": "gbif_species_detail",
+        "description": "Get full taxonomy details for a GBIF species by key."
+      },
+      {
+        "name": "gbif_occurrences",
+        "description": "Search GBIF biodiversity occurrence records by species and/or country."
+      }
+    ]
+  },
+  {
     "app": "gdelt",
     "category": "Gaming",
     "tools": [
@@ -3002,6 +3052,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "is_even",
         "description": "Check whether a number is even, via the isEven API."
+      }
+    ]
+  },
+  {
+    "app": "itis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "itis_search_by_name",
+        "description": "Search USDA ITIS for species by common name."
+      },
+      {
+        "name": "itis_get_full_record",
+        "description": "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number)."
       }
     ]
   },
@@ -3884,6 +3948,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "nominatim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nominatim_search",
+        "description": "Geocode a place name or address to coordinates using OpenStreetMap Nominatim."
+      },
+      {
+        "name": "nominatim_reverse",
+        "description": "Reverse geocode coordinates to an address using OpenStreetMap Nominatim."
+      }
+    ]
+  },
+  {
     "app": "notion",
     "category": "Productivity",
     "tools": [
@@ -3976,6 +4054,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "omdb_by_id",
         "description": "Get an OMDB movie/show by IMDb ID."
+      }
+    ]
+  },
+  {
+    "app": "open-elevation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "open_elevation_lookup",
+        "description": "Get elevation in meters for given coordinates from Open Elevation API."
       }
     ]
   },
