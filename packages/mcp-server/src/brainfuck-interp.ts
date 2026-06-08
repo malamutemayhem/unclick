@@ -47,7 +47,11 @@ export class BrainfuckInterpreter {
       steps++;
     }
 
-    const usedMemory = memory.slice(0, Math.max(1, memory.findLastIndex((v: number) => v !== 0) + 1));
+    let lastNonZero = 0;
+    for (let j = memory.length - 1; j >= 0; j--) {
+      if (memory[j] !== 0) { lastNonZero = j; break; }
+    }
+    const usedMemory = memory.slice(0, lastNonZero + 1);
     return {
       output: String.fromCharCode(...output),
       steps,
