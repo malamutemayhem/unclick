@@ -1,72 +1,73 @@
 import { describe, it, expect } from "vitest";
-import {
-  toMilliseconds, fromMilliseconds, addDurations, subtractDurations,
-  multiplyDuration, formatDuration, formatDurationLong, parseDuration, compareDurations
-} from "../duration.js";
+import { parseDuration, toMs, formatDuration, parseTimeString, humanize } from "../duration.js";
 
 describe("duration", () => {
-  it("toMilliseconds converts all fields", () => {
-    expect(toMilliseconds({ days: 1, hours: 2, minutes: 3, seconds: 4, milliseconds: 5 }))
-      .toBe(86400000 + 7200000 + 180000 + 4000 + 5);
+  describe("parseDuration", () => {
+    it("parses milliseconds", () => {
+      const d = parseDuration(90061001);
+      expect(d.days).toBe(1);
+      expect(d.hours).toBe(1);
+      expect(d.minutes).toBe(1);
+      expect(d.seconds).toBe(1);
+      expect(d.milliseconds).toBe(1);
+    });
+    it("handles zero", () => {
+      const d = parseDuration(0);
+      expect(d.days).toBe(0);
+      expect(d.hours).toBe(0);
+    });
   });
 
-  it("fromMilliseconds decomposes correctly", () => {
-    const d = fromMilliseconds(90061001);
-    expect(d.days).toBe(1);
-    expect(d.hours).toBe(1);
-    expect(d.minutes).toBe(1);
-    expect(d.seconds).toBe(1);
-    expect(d.milliseconds).toBe(1);
+  describe("toMs", () => {
+    it("converts full duration", () => {
+      expect(toMs({ days: 1, hours: 1, minutes: 1, seconds: 1, milliseconds: 1 })).toBe(90061001);
+    });
+    it("handles partial", () => {
+      expect(toMs({ hours: 2 })).toBe(7200000);
+    });
+    it("handles empty", () => {
+      expect(toMs({})).toBe(0);
+    });
   });
 
-  it("round-trips through milliseconds", () => {
-    const original = { days: 2, hours: 5, minutes: 30, seconds: 15, milliseconds: 500 };
-    const ms = toMilliseconds(original);
-    const back = fromMilliseconds(ms);
-    expect(toMilliseconds(back)).toBe(ms);
+  describe("formatDuration", () => {
+    it("formats long", () => {
+      expect(formatDuration(3661000)).toBe("1 hour, 1 minute, 1 second");
+    });
+    it("formats short", () => {
+      expect(formatDuration(3661000, { short: true })).toBe("1h 1m 1s");
+    });
+    it("formats zero", () => {
+      expect(formatDuration(0)).toBe("0 seconds");
+    });
+    it("pluralizes correctly", () => {
+      expect(formatDuration(7200000)).toBe("2 hours");
+    });
   });
 
-  it("addDurations works", () => {
-    const sum = addDurations({ hours: 1 }, { minutes: 30 });
-    expect(toMilliseconds(sum)).toBe(toMilliseconds({ hours: 1, minutes: 30 }));
+  describe("parseTimeString", () => {
+    it("parses hours and minutes", () => {
+      expect(parseTimeString("2h 30m")).toBe(9000000);
+    });
+    it("parses days", () => {
+      expect(parseTimeString("1d")).toBe(86400000);
+    });
+    it("parses seconds", () => {
+      expect(parseTimeString("45s")).toBe(45000);
+    });
+    it("parses ms", () => {
+      expect(parseTimeString("100ms")).toBe(100);
+    });
+    it("parses long form", () => {
+      expect(parseTimeString("1 hour 30 minutes")).toBe(5400000);
+    });
   });
 
-  it("subtractDurations works", () => {
-    const diff = subtractDurations({ hours: 2 }, { hours: 1 });
-    expect(toMilliseconds(diff)).toBe(3600000);
-  });
-
-  it("multiplyDuration doubles", () => {
-    const doubled = multiplyDuration({ hours: 1 }, 2);
-    expect(toMilliseconds(doubled)).toBe(7200000);
-  });
-
-  it("formatDuration short form", () => {
-    expect(formatDuration({ hours: 1, minutes: 30 })).toBe("1h 30m");
-    expect(formatDuration({})).toBe("0ms");
-  });
-
-  it("formatDurationLong", () => {
-    expect(formatDurationLong({ hours: 2, seconds: 5 })).toBe("2 hours, 5 seconds");
-    expect(formatDurationLong({ days: 1 })).toBe("1 day");
-  });
-
-  it("parseDuration from string", () => {
-    const d = parseDuration("2h 30m 15s");
-    expect(d.hours).toBe(2);
-    expect(d.minutes).toBe(30);
-    expect(d.seconds).toBe(15);
-  });
-
-  it("parseDuration handles days and ms", () => {
-    const d = parseDuration("1d 500ms");
-    expect(d.days).toBe(1);
-    expect(d.milliseconds).toBe(500);
-  });
-
-  it("compareDurations orders correctly", () => {
-    expect(compareDurations({ hours: 1 }, { hours: 2 })).toBeLessThan(0);
-    expect(compareDurations({ hours: 2 }, { hours: 1 })).toBeGreaterThan(0);
-    expect(compareDurations({ minutes: 60 }, { hours: 1 })).toBe(0);
+  describe("humanize", () => {
+    it("shows ms for small values", () => { expect(humanize(500)).toBe("500ms"); });
+    it("shows seconds", () => { expect(humanize(5000)).toBe("5.0s"); });
+    it("shows minutes", () => { expect(humanize(120000)).toBe("2.0m"); });
+    it("shows hours", () => { expect(humanize(7200000)).toBe("2.0h"); });
+    it("shows days", () => { expect(humanize(172800000)).toBe("2.0d"); });
   });
 });

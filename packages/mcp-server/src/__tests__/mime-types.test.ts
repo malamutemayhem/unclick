@@ -1,59 +1,30 @@
 import { describe, it, expect } from "vitest";
-import { lookup, extension, contentType, isText, isBinary, isImage, isAudio, isVideo } from "../mime-types.js";
+import { getMimeType, getExtension, isText, isImage, isAudio, isVideo, isFont } from "../mime-types.js";
 
 describe("mime-types", () => {
-  it("lookup by file path", () => {
-    expect(lookup("file.html")).toBe("text/html");
-    expect(lookup("script.js")).toBe("application/javascript");
-    expect(lookup("data.json")).toBe("application/json");
-    expect(lookup("photo.png")).toBe("image/png");
+  describe("getMimeType", () => {
+    it("resolves .html", () => { expect(getMimeType("index.html")).toBe("text/html"); });
+    it("resolves .json", () => { expect(getMimeType("data.json")).toBe("application/json"); });
+    it("resolves .png", () => { expect(getMimeType("image.png")).toBe("image/png"); });
+    it("resolves .mp4", () => { expect(getMimeType("video.mp4")).toBe("video/mp4"); });
+    it("resolves bare extension", () => { expect(getMimeType("css")).toBe("text/css"); });
+    it("returns octet-stream for unknown", () => { expect(getMimeType("file.xyz")).toBe("application/octet-stream"); });
+    it("resolves .ts", () => { expect(getMimeType("app.ts")).toBe("application/typescript"); });
+    it("resolves .yaml", () => { expect(getMimeType("config.yaml")).toBe("application/yaml"); });
   });
 
-  it("lookup is case insensitive via extension", () => {
-    expect(lookup("FILE.JSON")).toBe("application/json");
+  describe("getExtension", () => {
+    it("returns ext for known mime", () => { expect(getExtension("text/html")).toBe("html"); });
+    it("returns undefined for unknown", () => { expect(getExtension("application/x-unknown")).toBeUndefined(); });
   });
 
-  it("lookup returns undefined for unknown", () => {
-    expect(lookup("file.xyz")).toBeUndefined();
-    expect(lookup("noext")).toBeUndefined();
-  });
-
-  it("extension from mime type", () => {
-    expect(extension("text/html")).toBe("html");
-    expect(extension("application/json")).toBe("json");
-    expect(extension("image/png")).toBe("png");
-  });
-
-  it("contentType includes charset for text", () => {
-    expect(contentType("file.html")).toBe("text/html; charset=utf-8");
-    expect(contentType("file.json")).toBe("application/json; charset=utf-8");
-  });
-
-  it("contentType without charset for binary", () => {
-    expect(contentType("file.png")).toBe("image/png");
-    expect(contentType("file.pdf")).toBe("application/pdf");
-  });
-
-  it("contentType by extension directly", () => {
-    expect(contentType("json")).toBe("application/json; charset=utf-8");
-    expect(contentType(".json")).toBe("application/json; charset=utf-8");
-  });
-
-  it("isText for text types", () => {
-    expect(isText("text/html")).toBe(true);
-    expect(isText("application/json")).toBe(true);
-    expect(isText("image/svg+xml")).toBe(true);
-  });
-
-  it("isBinary for binary types", () => {
-    expect(isBinary("image/png")).toBe(true);
-    expect(isBinary("application/pdf")).toBe(true);
-  });
-
-  it("isImage/isAudio/isVideo", () => {
-    expect(isImage("image/png")).toBe(true);
-    expect(isImage("text/plain")).toBe(false);
-    expect(isAudio("audio/mpeg")).toBe(true);
-    expect(isVideo("video/mp4")).toBe(true);
+  describe("type checks", () => {
+    it("isText detects text/*", () => { expect(isText("text/plain")).toBe(true); });
+    it("isText detects json", () => { expect(isText("application/json")).toBe(true); });
+    it("isText rejects image", () => { expect(isText("image/png")).toBe(false); });
+    it("isImage detects image/*", () => { expect(isImage("image/jpeg")).toBe(true); });
+    it("isAudio detects audio/*", () => { expect(isAudio("audio/mpeg")).toBe(true); });
+    it("isVideo detects video/*", () => { expect(isVideo("video/mp4")).toBe(true); });
+    it("isFont detects font/*", () => { expect(isFont("font/woff2")).toBe(true); });
   });
 });

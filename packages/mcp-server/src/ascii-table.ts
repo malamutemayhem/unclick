@@ -5,96 +5,77 @@ export interface TableOptions {
 }
 
 export function table(rows: string[][], options?: TableOptions): string {
-  if (rows.length === 0 && !options?.headers) return "";
-  const allRows = options?.headers ? [options.headers, ...rows] : rows;
+  const headers = options?.headers;
+  const border = options?.border ?? true;
+  const allRows = headers ? [headers, ...rows] : rows;
+  if (allRows.length === 0) return "";
+
   const colCount = Math.max(...allRows.map((r) => r.length));
-  const widths: number[] = new Array(colCount).fill(0);
+  const colWidths: number[] = Array(colCount).fill(0);
+
   for (const row of allRows) {
     for (let i = 0; i < colCount; i++) {
-      const cell = row[i] ?? "";
-      widths[i] = Math.max(widths[i], cell.length);
+      colWidths[i] = Math.max(colWidths[i], (row[i] || "").length);
     }
   }
-  const border = options?.border !== false;
-  const aligns = options?.align ?? new Array(colCount).fill("left");
-  const lines: string[] = [];
-  const sep = border ? "+-" + widths.map((w) => "-".repeat(w)).join("-+-") + "-+" : "";
 
-  if (border) lines.push(sep);
-  for (let r = 0; r < allRows.length; r++) {
-    const row = allRows[r];
-    const cells = widths.map((w, i) => {
-      const cell = row[i] ?? "";
-      const align = aligns[i] ?? "left";
-      return padCell(cell, w, align);
-    });
-    lines.push(border ? "| " + cells.join(" | ") + " |" : cells.join("  "));
-    if (options?.headers && r === 0 && border) {
-      lines.push(sep);
+  const alignArr = options?.align || Array(colCount).fill("left");
+
+  function pad(val: string, width: number, align: string): string {
+    const diff = width - val.length;
+    if (align === "right") return " ".repeat(diff) + val;
+    if (align === "center") {
+      const left = Math.floor(diff / 2);
+      return " ".repeat(left) + val + " ".repeat(diff - left);
     }
+    return val + " ".repeat(diff);
   }
-  if (border) lines.push(sep);
+
+  function formatRow(row: string[]): string {
+    const cells = colWidths.map((w, i) => pad(row[i] || "", w, alignArr[i] || "left"));
+    return border ? `| ${cells.join(" | ")} |` : cells.join("  ");
+  }
+
+  function separator(): string {
+    return border ? `+-${colWidths.map((w) => "-".repeat(w)).join("-+-")}-+` : "";
+  }
+
+  const lines: string[] = [];
+  if (border) lines.push(separator());
+  if (headers) {
+    lines.push(formatRow(headers));
+    if (border) lines.push(separator());
+  }
+  for (const row of rows) {
+    lines.push(formatRow(row));
+  }
+  if (border) lines.push(separator());
+
   return lines.join("\n");
 }
 
-function padCell(text: string, width: number, align: string): string {
-  const diff = width - text.length;
-  if (diff <= 0) return text;
-  switch (align) {
-    case "right": return " ".repeat(diff) + text;
-    case "center": {
-      const left = Math.floor(diff / 2);
-      return " ".repeat(left) + text + " ".repeat(diff - left);
-    }
-    default: return text + " ".repeat(diff);
-  }
-}
+export function markdownTable(rows: string[][], headers: string[], align?: ("left" | "right" | "center")[]): string {
+  const colCount = headers.length;
+  const colWidths: number[] = headers.map((h) => h.length);
 
-export function toCSV(rows: string[][], headers?: string[]): string {
-  const allRows = headers ? [headers, ...rows] : rows;
-  return allRows.map((row) => row.map(escapeCSV).join(",")).join("\n");
-}
-
-function escapeCSV(cell: string): string {
-  if (cell.includes(",") || cell.includes('"') || cell.includes("\n")) {
-    return '"' + cell.replace(/"/g, '""') + '"';
-  }
-  return cell;
-}
-
-export function fromCSV(csv: string): string[][] {
-  const rows: string[][] = [];
-  let current: string[] = [];
-  let cell = "";
-  let inQuotes = false;
-  for (let i = 0; i < csv.length; i++) {
-    const ch = csv[i];
-    if (inQuotes) {
-      if (ch === '"' && csv[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        cell += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        current.push(cell);
-        cell = "";
-      } else if (ch === "\n") {
-        current.push(cell);
-        rows.push(current);
-        current = [];
-        cell = "";
-      } else {
-        cell += ch;
-      }
+  for (const row of rows) {
+    for (let i = 0; i < colCount; i++) {
+      colWidths[i] = Math.max(colWidths[i], (row[i] || "").length);
     }
   }
-  current.push(cell);
-  rows.push(current);
-  return rows;
+
+  function pad(val: string, width: number): string {
+    return val + " ".repeat(width - val.length);
+  }
+
+  const headerLine = `| ${headers.map((h, i) => pad(h, colWidths[i])).join(" | ")} |`;
+  const sepLine = `| ${colWidths.map((w, i) => {
+    const a = align?.[i] || "left";
+    if (a === "center") return `:${"-".repeat(Math.max(1, w - 2))}:`;
+    if (a === "right") return `${"-".repeat(Math.max(1, w - 1))}:`;
+    return "-".repeat(w);
+  }).join(" | ")} |`;
+  const dataLines = rows.map((row) => `| ${colWidths.map((w, i) => pad(row[i] || "", w)).join(" | ")} |`);
+
+  return [headerLine, sepLine, ...dataLines].join("\n");
 }

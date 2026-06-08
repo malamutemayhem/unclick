@@ -1,61 +1,75 @@
-const IRREGULAR: Record<string, string> = {
-  child: "children", person: "people", man: "men", woman: "women",
-  mouse: "mice", goose: "geese", tooth: "teeth", foot: "feet",
-  ox: "oxen", leaf: "leaves", life: "lives", knife: "knives",
-  wife: "wives", half: "halves", shelf: "shelves", self: "selves",
-  calf: "calves", wolf: "wolves", loaf: "loaves",
-};
+const IRREGULARS: [string, string][] = [
+  ["child", "children"], ["person", "people"], ["man", "men"], ["woman", "women"],
+  ["mouse", "mice"], ["goose", "geese"], ["tooth", "teeth"], ["foot", "feet"],
+  ["ox", "oxen"], ["leaf", "leaves"], ["life", "lives"], ["knife", "knives"],
+  ["wife", "wives"], ["self", "selves"], ["shelf", "shelves"],
+];
 
 const UNCOUNTABLE = new Set([
-  "sheep", "fish", "deer", "species", "series", "money",
-  "rice", "information", "equipment", "news", "homework",
-  "advice", "furniture", "luggage", "traffic", "music",
+  "sheep", "fish", "deer", "series", "species", "money", "rice",
+  "information", "equipment", "news", "software", "hardware",
 ]);
 
-export function pluralize(word: string, count?: number): string {
-  if (count === 1) return word;
+const PLURAL_RULES: [RegExp, string][] = [
+  [/s$/i, "ses"],
+  [/([^aeiou])y$/i, "$1ies"],
+  [/(x|ch|ss|sh)$/i, "$1es"],
+  [/([^aeiou]o)$/i, "$1es"],
+  [/(f|fe)$/i, "ves"],
+  [/is$/i, "es"],
+  [/us$/i, "i"],
+  [/on$/i, "a"],
+  [/$/, "s"],
+];
+
+const SINGULAR_RULES: [RegExp, string][] = [
+  [/ses$/i, "s"],
+  [/ies$/i, "y"],
+  [/(x|ch|ss|sh)es$/i, "$1"],
+  [/ves$/i, "f"],
+  [/i$/i, "us"],
+  [/a$/i, "on"],
+  [/s$/i, ""],
+];
+
+export function pluralize(word: string): string {
+  if (UNCOUNTABLE.has(word.toLowerCase())) return word;
   const lower = word.toLowerCase();
-  if (UNCOUNTABLE.has(lower)) return word;
-  if (IRREGULAR[lower]) {
-    const plural = IRREGULAR[lower];
-    return word[0] === word[0].toUpperCase()
-      ? plural[0].toUpperCase() + plural.slice(1)
-      : plural;
+  for (const [sing, plur] of IRREGULARS) {
+    if (lower === sing) return matchCase(word, plur);
   }
-  if (lower.endsWith("s") || lower.endsWith("sh") || lower.endsWith("ch") || lower.endsWith("x") || lower.endsWith("z")) {
-    return word + "es";
-  }
-  if (lower.endsWith("y") && !/[aeiou]y$/i.test(word)) {
-    return word.slice(0, -1) + "ies";
-  }
-  if (lower.endsWith("f")) {
-    return word.slice(0, -1) + "ves";
-  }
-  if (lower.endsWith("fe")) {
-    return word.slice(0, -2) + "ves";
+  for (const [rule, replacement] of PLURAL_RULES) {
+    if (rule.test(word)) return word.replace(rule, replacement);
   }
   return word + "s";
 }
 
 export function singularize(word: string): string {
+  if (UNCOUNTABLE.has(word.toLowerCase())) return word;
   const lower = word.toLowerCase();
-  if (UNCOUNTABLE.has(lower)) return word;
-  for (const [sing, plur] of Object.entries(IRREGULAR)) {
-    if (lower === plur) {
-      return word[0] === word[0].toUpperCase()
-        ? sing[0].toUpperCase() + sing.slice(1)
-        : sing;
-    }
+  for (const [sing, plur] of IRREGULARS) {
+    if (lower === plur) return matchCase(word, sing);
   }
-  if (lower.endsWith("ies") && lower.length > 3) return word.slice(0, -3) + "y";
-  if (lower.endsWith("ves")) return word.slice(0, -3) + "f";
-  if (lower.endsWith("ses") || lower.endsWith("shes") || lower.endsWith("ches") || lower.endsWith("xes") || lower.endsWith("zes")) {
-    return word.slice(0, -2);
+  for (const [rule, replacement] of SINGULAR_RULES) {
+    if (rule.test(word)) return word.replace(rule, replacement);
   }
-  if (lower.endsWith("s") && !lower.endsWith("ss")) return word.slice(0, -1);
   return word;
 }
 
-export function withCount(word: string, count: number): string {
-  return `${count} ${pluralize(word, count)}`;
+export function isPlural(word: string): boolean {
+  return pluralize(singularize(word)).toLowerCase() === word.toLowerCase();
+}
+
+export function isSingular(word: string): boolean {
+  return singularize(pluralize(word)).toLowerCase() === word.toLowerCase();
+}
+
+export function inflect(word: string, count: number): string {
+  return count === 1 ? singularize(word) : pluralize(word);
+}
+
+function matchCase(source: string, target: string): string {
+  if (source === source.toUpperCase()) return target.toUpperCase();
+  if (source[0] === source[0].toUpperCase()) return target[0].toUpperCase() + target.slice(1);
+  return target;
 }

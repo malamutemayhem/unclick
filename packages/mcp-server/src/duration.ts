@@ -1,77 +1,67 @@
 export interface Duration {
-  days?: number;
-  hours?: number;
-  minutes?: number;
-  seconds?: number;
-  milliseconds?: number;
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
 }
 
-export function toMilliseconds(d: Duration): number {
-  return (d.days || 0) * 86400000
-    + (d.hours || 0) * 3600000
-    + (d.minutes || 0) * 60000
-    + (d.seconds || 0) * 1000
-    + (d.milliseconds || 0);
-}
-
-export function fromMilliseconds(ms: number): Duration {
+export function parseDuration(ms: number): Duration {
   const abs = Math.abs(ms);
-  const days = Math.floor(abs / 86400000);
-  const hours = Math.floor((abs % 86400000) / 3600000);
-  const minutes = Math.floor((abs % 3600000) / 60000);
-  const seconds = Math.floor((abs % 60000) / 1000);
-  const milliseconds = abs % 1000;
-  return { days, hours, minutes, seconds, milliseconds };
+  return {
+    days: Math.floor(abs / 86400000),
+    hours: Math.floor((abs % 86400000) / 3600000),
+    minutes: Math.floor((abs % 3600000) / 60000),
+    seconds: Math.floor((abs % 60000) / 1000),
+    milliseconds: abs % 1000,
+  };
 }
 
-export function addDurations(a: Duration, b: Duration): Duration {
-  return fromMilliseconds(toMilliseconds(a) + toMilliseconds(b));
+export function toMs(duration: Partial<Duration>): number {
+  return (duration.days || 0) * 86400000 +
+    (duration.hours || 0) * 3600000 +
+    (duration.minutes || 0) * 60000 +
+    (duration.seconds || 0) * 1000 +
+    (duration.milliseconds || 0);
 }
 
-export function subtractDurations(a: Duration, b: Duration): Duration {
-  return fromMilliseconds(toMilliseconds(a) - toMilliseconds(b));
-}
-
-export function multiplyDuration(d: Duration, factor: number): Duration {
-  return fromMilliseconds(toMilliseconds(d) * factor);
-}
-
-export function formatDuration(d: Duration): string {
+export function formatDuration(ms: number, options?: { short?: boolean }): string {
+  const d = parseDuration(ms);
+  const short = options?.short ?? false;
   const parts: string[] = [];
-  if (d.days) parts.push(`${d.days}d`);
-  if (d.hours) parts.push(`${d.hours}h`);
-  if (d.minutes) parts.push(`${d.minutes}m`);
-  if (d.seconds) parts.push(`${d.seconds}s`);
-  if (d.milliseconds) parts.push(`${d.milliseconds}ms`);
-  return parts.length > 0 ? parts.join(" ") : "0ms";
+
+  if (d.days > 0) parts.push(short ? `${d.days}d` : `${d.days} day${d.days !== 1 ? "s" : ""}`);
+  if (d.hours > 0) parts.push(short ? `${d.hours}h` : `${d.hours} hour${d.hours !== 1 ? "s" : ""}`);
+  if (d.minutes > 0) parts.push(short ? `${d.minutes}m` : `${d.minutes} minute${d.minutes !== 1 ? "s" : ""}`);
+  if (d.seconds > 0) parts.push(short ? `${d.seconds}s` : `${d.seconds} second${d.seconds !== 1 ? "s" : ""}`);
+  if (parts.length === 0) parts.push(short ? "0s" : "0 seconds");
+
+  return parts.join(short ? " " : ", ");
 }
 
-export function formatDurationLong(d: Duration): string {
-  const parts: string[] = [];
-  if (d.days) parts.push(`${d.days} day${d.days > 1 ? "s" : ""}`);
-  if (d.hours) parts.push(`${d.hours} hour${d.hours > 1 ? "s" : ""}`);
-  if (d.minutes) parts.push(`${d.minutes} minute${d.minutes > 1 ? "s" : ""}`);
-  if (d.seconds) parts.push(`${d.seconds} second${d.seconds > 1 ? "s" : ""}`);
-  if (d.milliseconds) parts.push(`${d.milliseconds}ms`);
-  return parts.length > 0 ? parts.join(", ") : "0ms";
-}
-
-export function parseDuration(str: string): Duration {
-  const result: Duration = {};
-  const pattern = /(\d+(?:\.\d+)?)\s*(ms|milliseconds?|d|days?|h|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)/gi;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(str)) !== null) {
+export function parseTimeString(input: string): number {
+  let total = 0;
+  const regex = /(\d+(?:\.\d+)?)\s*(ms|milliseconds?|d|h|m|s|days?|hours?|minutes?|seconds?)/gi;
+  let match;
+  while ((match = regex.exec(input)) !== null) {
     const value = parseFloat(match[1]);
-    const unit = match[2].toLowerCase();
-    if (unit.startsWith("ms") || unit.startsWith("millis")) result.milliseconds = (result.milliseconds || 0) + value;
-    else if (unit.startsWith("s")) result.seconds = (result.seconds || 0) + value;
-    else if (unit.startsWith("m") && !unit.startsWith("ms") && !unit.startsWith("millis")) result.minutes = (result.minutes || 0) + value;
-    else if (unit.startsWith("h")) result.hours = (result.hours || 0) + value;
-    else if (unit.startsWith("d")) result.days = (result.days || 0) + value;
+    const raw = match[2].toLowerCase();
+    const unit = raw === "s" || raw === "ms" ? raw : raw.replace(/s$/, "");
+    switch (unit) {
+      case "d": case "day": total += value * 86400000; break;
+      case "h": case "hour": total += value * 3600000; break;
+      case "m": case "minute": total += value * 60000; break;
+      case "s": case "second": total += value * 1000; break;
+      case "ms": case "millisecond": total += value; break;
+    }
   }
-  return result;
+  return total;
 }
 
-export function compareDurations(a: Duration, b: Duration): number {
-  return toMilliseconds(a) - toMilliseconds(b);
+export function humanize(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 86400000) return `${(ms / 3600000).toFixed(1)}h`;
+  return `${(ms / 86400000).toFixed(1)}d`;
 }
