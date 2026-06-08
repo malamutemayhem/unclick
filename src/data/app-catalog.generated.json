@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 401,
-  "toolCount": 1309,
+  "appCount": 406,
+  "toolCount": 1320,
   "categories": [
     "AI",
     "Books",
@@ -2622,6 +2622,26 @@
       "hardened": true
     },
     {
+      "slug": "europeana",
+      "name": "Europeana",
+      "category": "News & reading",
+      "blurb": "Search millions of European cultural heritage objects from museums and archives.",
+      "domain": "europeana.eu",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "europeana_search",
+          "description": "Search Europeana for European cultural heritage objects (art, books, music, film)."
+        },
+        {
+          "name": "europeana_record",
+          "description": "Get details of a Europeana cultural heritage record by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "eventbrite",
       "name": "Eventbrite",
       "category": "Events & tickets",
@@ -2752,6 +2772,30 @@
         {
           "name": "fakestore_categories",
           "description": "List all fake store product categories."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fakerapi",
+      "name": "FakerAPI",
+      "category": "Developer & infra",
+      "blurb": "Generate fake persons, companies, and text data for testing and prototyping.",
+      "domain": "fakerapi.it",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "faker_persons",
+          "description": "Generate fake person data (name, email, phone, address) for testing."
+        },
+        {
+          "name": "faker_companies",
+          "description": "Generate fake company data for testing."
+        },
+        {
+          "name": "faker_texts",
+          "description": "Generate fake text/article data for testing."
         }
       ],
       "level": 5,
@@ -4026,6 +4070,22 @@
       "hardened": false
     },
     {
+      "slug": "flyover",
+      "name": "ISS Flyover",
+      "category": "Weather & science",
+      "blurb": "Get upcoming ISS flyover times for any location on Earth.",
+      "domain": "open-notify.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "iss_flyover",
+          "description": "Get upcoming ISS flyover times for a location (lat/lon)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "opennotify",
       "name": "ISS Tracker",
       "category": "Weather & science",
@@ -4476,6 +4536,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "libretranslate",
+      "name": "LibreTranslate",
+      "category": "Utilities",
+      "blurb": "Open-source text translation, language detection, and supported language listing.",
+      "domain": "libretranslate.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "libretranslate_translate",
+          "description": "Translate text between languages using LibreTranslate (open source)."
+        },
+        {
+          "name": "libretranslate_languages",
+          "description": "List supported languages in LibreTranslate."
+        },
+        {
+          "name": "libretranslate_detect",
+          "description": "Detect the language of a text using LibreTranslate."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "lichess",
@@ -5916,6 +6000,26 @@
         {
           "name": "openfda_adverse_events",
           "description": "Search FDA drug adverse event reports."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "openfigi",
+      "name": "OpenFIGI",
+      "category": "Markets & crypto",
+      "blurb": "Map financial instrument identifiers (ticker, ISIN, CUSIP) to FIGI codes.",
+      "domain": "openfigi.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "openfigi_mapping",
+          "description": "Map a financial instrument identifier (ticker, ISIN, CUSIP) to FIGI."
+        },
+        {
+          "name": "openfigi_search",
+          "description": "Search OpenFIGI for financial instruments by name."
         }
       ],
       "level": 5,

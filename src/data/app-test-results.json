@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T17:30:00.000Z",
+  "updatedAt": "2026-06-08T18:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3238,6 +3238,36 @@
       "note": "upc_lookup finds products by barcode number. Free trial tier, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
       "toolsTested": ["upc_lookup", "upc_search"]
+    },
+    "fakerapi": {
+      "status": "pass",
+      "note": "faker_persons generates realistic fake data for testing. Free, no key needed.",
+      "testedAt": "2026-06-08T18:00:00.000Z",
+      "toolsTested": ["faker_persons", "faker_companies", "faker_texts"]
+    },
+    "openfigi": {
+      "status": "pass",
+      "note": "openfigi_mapping maps tickers to FIGI financial instrument IDs. Free, no key needed.",
+      "testedAt": "2026-06-08T18:00:00.000Z",
+      "toolsTested": ["openfigi_mapping", "openfigi_search"]
+    },
+    "libretranslate": {
+      "status": "pass",
+      "note": "libretranslate_translate provides open-source text translation. Free public instance.",
+      "testedAt": "2026-06-08T18:00:00.000Z",
+      "toolsTested": ["libretranslate_translate", "libretranslate_languages", "libretranslate_detect"]
+    },
+    "europeana": {
+      "status": "pass",
+      "note": "europeana_search finds European cultural heritage objects. Free, no key for basic search.",
+      "testedAt": "2026-06-08T18:00:00.000Z",
+      "toolsTested": ["europeana_search", "europeana_record"]
+    },
+    "flyover": {
+      "status": "pass",
+      "note": "iss_flyover returns upcoming ISS pass times for a location. Free, no key needed.",
+      "testedAt": "2026-06-08T18:00:00.000Z",
+      "toolsTested": ["iss_flyover"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

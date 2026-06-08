@@ -2100,6 +2100,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "europeana",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "europeana_search",
+        "description": "Search Europeana for European cultural heritage objects (art, books, music, film)."
+      },
+      {
+        "name": "europeana_record",
+        "description": "Get details of a Europeana cultural heritage record by ID."
+      }
+    ]
+  },
+  {
     "app": "eventbrite",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2192,6 +2206,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "excuser_random",
         "description": "Get a random excuse, optionally by category."
+      }
+    ]
+  },
+  {
+    "app": "fakerapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "faker_persons",
+        "description": "Generate fake person data (name, email, phone, address) for testing."
+      },
+      {
+        "name": "faker_companies",
+        "description": "Generate fake company data for testing."
+      },
+      {
+        "name": "faker_texts",
+        "description": "Generate fake text/article data for testing."
       }
     ]
   },
@@ -2356,6 +2388,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "fly_list_volumes",
         "description": "List all volumes attached to a Fly.io app."
+      }
+    ]
+  },
+  {
+    "app": "flyover",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_flyover",
+        "description": "Get upcoming ISS flyover times for a location (lat/lon)."
       }
     ]
   },
@@ -3526,6 +3568,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "libretranslate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "libretranslate_translate",
+        "description": "Translate text between languages using LibreTranslate (open source)."
+      },
+      {
+        "name": "libretranslate_languages",
+        "description": "List supported languages in LibreTranslate."
+      },
+      {
+        "name": "libretranslate_detect",
+        "description": "Detect the language of a text using LibreTranslate."
+      }
+    ]
+  },
+  {
     "app": "lichess",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4428,6 +4488,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "openfda_adverse_events",
         "description": "Search FDA drug adverse event reports."
+      }
+    ]
+  },
+  {
+    "app": "openfigi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openfigi_mapping",
+        "description": "Map a financial instrument identifier (ticker, ISIN, CUSIP) to FIGI."
+      },
+      {
+        "name": "openfigi_search",
+        "description": "Search OpenFIGI for financial instruments by name."
       }
     ]
   },

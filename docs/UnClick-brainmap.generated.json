@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 824,
+    "inventory": 829,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 402,
+    "tools": 407,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 402
+      "count": 407
     },
     {
       "id": "rooms",
@@ -5282,6 +5282,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-europeana-packages-mcp-server-src-europeana-tool-ts-no-route",
+      "division": "Tools",
+      "name": "europeana",
+      "kind": "MCP tool",
+      "meaning": "europeana MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/europeana-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-eventbrite-packages-mcp-server-src-eventbrite-tool-ts-no-route",
       "division": "Tools",
       "name": "eventbrite",
@@ -5338,6 +5348,16 @@
       "kind": "MCP tool",
       "meaning": "excuser MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/excuser-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-fakerapi-packages-mcp-server-src-fakerapi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fakerapi",
+      "kind": "MCP tool",
+      "meaning": "fakerapi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fakerapi-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5418,6 +5438,16 @@
       "kind": "MCP tool",
       "meaning": "flyio MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/flyio-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-flyover-packages-mcp-server-src-flyover-tool-ts-no-route",
+      "division": "Tools",
+      "name": "flyover",
+      "kind": "MCP tool",
+      "meaning": "flyover MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/flyover-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6082,6 +6112,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-libretranslate-packages-mcp-server-src-libretranslate-tool-ts-no-route",
+      "division": "Tools",
+      "name": "libretranslate",
+      "kind": "MCP tool",
+      "meaning": "libretranslate MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/libretranslate-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lichess-packages-mcp-server-src-lichess-tool-ts-no-route",
       "division": "Tools",
       "name": "lichess",
@@ -6588,6 +6628,16 @@
       "kind": "MCP tool",
       "meaning": "openfda MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/openfda-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-openfigi-packages-mcp-server-src-openfigi-tool-ts-no-route",
+      "division": "Tools",
+      "name": "openfigi",
+      "kind": "MCP tool",
+      "meaning": "openfigi MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/openfigi-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9485,6 +9535,11 @@
       "packages/mcp-server/src/etsy-tool.ts"
     ],
     [
+      "europeana",
+      "europeana MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/europeana-tool.ts"
+    ],
+    [
       "eventbrite",
       "eventbrite MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/eventbrite-tool.ts"
@@ -9513,6 +9568,11 @@
       "excuser",
       "excuser MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/excuser-tool.ts"
+    ],
+    [
+      "fakerapi",
+      "fakerapi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fakerapi-tool.ts"
     ],
     [
       "fakestoreapi",
@@ -9553,6 +9613,11 @@
       "flyio",
       "flyio MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/flyio-tool.ts"
+    ],
+    [
+      "flyover",
+      "flyover MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/flyover-tool.ts"
     ],
     [
       "foodish",
@@ -9885,6 +9950,11 @@
       "packages/mcp-server/src/lemonsqueezy-tool.ts"
     ],
     [
+      "libretranslate",
+      "libretranslate MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/libretranslate-tool.ts"
+    ],
+    [
       "lichess",
       "lichess MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lichess-tool.ts"
@@ -10138,6 +10208,11 @@
       "openfda",
       "openfda MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/openfda-tool.ts"
+    ],
+    [
+      "openfigi",
+      "openfigi MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/openfigi-tool.ts"
     ],
     [
       "openfoodfacts",

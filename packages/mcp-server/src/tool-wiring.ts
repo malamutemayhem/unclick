@@ -566,6 +566,11 @@ import { isupCheck } from "./isup-tool.js";
 import { waybackCheck } from "./wayback-tool.js";
 import { oeisSearch } from "./oeis-tool.js";
 import { upcLookup, upcSearch } from "./upcitemdb-tool.js";
+import { fakerPersons, fakerCompanies, fakerTexts } from "./fakerapi-tool.js";
+import { openfigiMapping, openfigiSearch } from "./openfigi-tool.js";
+import { libretranslateTranslate, libretranslateLanguages, libretranslateDetect } from "./libretranslate-tool.js";
+import { europeanaSearch, europeanaRecord } from "./europeana-tool.js";
+import { issFlyover } from "./flyover-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8721,6 +8726,121 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         query: { type: "string" as const, description: "Product search query." },
       }, required: ["query"],
+    },
+  },
+
+  // ── fakerapi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "faker_persons",
+    description: "Generate fake person data (name, email, phone, address) for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of persons (max 100, default 5)." },
+        locale: { type: "string" as const, description: "Locale code (default: en_US)." },
+      },
+    },
+  },
+  {
+    name: "faker_companies",
+    description: "Generate fake company data for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of companies (max 100, default 5)." },
+        locale: { type: "string" as const, description: "Locale code (default: en_US)." },
+      },
+    },
+  },
+  {
+    name: "faker_texts",
+    description: "Generate fake text/article data for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of texts (max 100, default 3)." },
+        characters: { type: "number" as const, description: "Approx characters per text (default 200)." },
+      },
+    },
+  },
+
+  // ── openfigi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "openfigi_mapping",
+    description: "Map a financial instrument identifier (ticker, ISIN, CUSIP) to FIGI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id_type: { type: "string" as const, description: "Identifier type: TICKER, ISIN, CUSIP, SEDOL (default: TICKER)." },
+        id_value: { type: "string" as const, description: "Identifier value (e.g. AAPL)." },
+      }, required: ["id_value"],
+    },
+  },
+  {
+    name: "openfigi_search",
+    description: "Search OpenFIGI for financial instruments by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query (company or instrument name)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── libretranslate-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "libretranslate_translate",
+    description: "Translate text between languages using LibreTranslate (open source).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to translate." },
+        source: { type: "string" as const, description: "Source language code (default: auto-detect)." },
+        target: { type: "string" as const, description: "Target language code (default: en)." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "libretranslate_languages",
+    description: "List supported languages in LibreTranslate.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "libretranslate_detect",
+    description: "Detect the language of a text using LibreTranslate.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to detect language of." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── europeana-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "europeana_search",
+    description: "Search Europeana for European cultural heritage objects (art, books, music, film).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        rows: { type: "number" as const, description: "Results per page (max 100, default 10)." },
+        start: { type: "number" as const, description: "Result offset (default 1)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "europeana_record",
+    description: "Get details of a Europeana cultural heritage record by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Europeana record ID (e.g. /123/abc)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── flyover-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "iss_flyover",
+    description: "Get upcoming ISS flyover times for a location (lat/lon).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        lat: { type: "number" as const, description: "Latitude." },
+        lon: { type: "number" as const, description: "Longitude." },
+        count: { type: "number" as const, description: "Number of flyovers (max 20, default 5)." },
+      }, required: ["lat", "lon"],
     },
   },
 
@@ -20045,6 +20165,27 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // upcitemdb-tool.ts
   upc_lookup:                (args) => upcLookup(args),
   upc_search:                (args) => upcSearch(args),
+
+  // fakerapi-tool.ts
+  faker_persons:             (args) => fakerPersons(args),
+  faker_companies:           (args) => fakerCompanies(args),
+  faker_texts:               (args) => fakerTexts(args),
+
+  // openfigi-tool.ts
+  openfigi_mapping:          (args) => openfigiMapping(args),
+  openfigi_search:           (args) => openfigiSearch(args),
+
+  // libretranslate-tool.ts
+  libretranslate_translate:  (args) => libretranslateTranslate(args),
+  libretranslate_languages:  (args) => libretranslateLanguages(args),
+  libretranslate_detect:     (args) => libretranslateDetect(args),
+
+  // europeana-tool.ts
+  europeana_search:          (args) => europeanaSearch(args),
+  europeana_record:          (args) => europeanaRecord(args),
+
+  // flyover-tool.ts
+  iss_flyover:               (args) => issFlyover(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
