@@ -31,7 +31,7 @@ Companion to `cv-checklists.md` (Round 1) and `cv-checklists-round-2.md` (Round 
 - **Recommendations**: aim for 5 to 10. Ask the day after a successful project, not years later. Provide a draft if the person asks for one.
 - **Activity**: post or comment thoughtfully once a week. Recruiters check the Activity tab to see if you're active.
 - **Open to Work** badge: visible to recruiters only (not your network) is the safer setting if you're employed.
-- **Custom URL**: change `/in/chris-byrne-1a2b3c4d5e/` to `/in/chrisbyrne/` or similar. Use it on the CV.
+- **Custom URL**: change `/in/jane-smith-1a2b3c4d5e/` to `/in/janesmith/` or similar. Use it on the CV.
 - **Profile photo**: head and shoulders, neutral background, smiling but not goofy. Recent (last 3 years).
 - **Banner image**: not the LinkedIn default blue. Something role-relevant, not a stock cityscape.
 - **Connections**: 500+ unlocks the "500+" label and signals network depth. Quality > quantity past that.
