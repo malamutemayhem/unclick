@@ -586,6 +586,11 @@ import { semverParse, semverCompare } from "./semver-tool.js";
 import { colorHexConvert } from "./colorconvert-tool.js";
 import { epochConvert, epochNow } from "./epoch-tool.js";
 import { diffText } from "./difftext-tool.js";
+import { passwordGenerate } from "./passwordgen-tool.js";
+import { slugify } from "./slug-tool.js";
+import { loremGenerate } from "./lorem2-tool.js";
+import { csvParse } from "./csvparse-tool.js";
+import { wordCount } from "./wordcount-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9097,6 +9102,68 @@ export const ADDITIONAL_TOOLS = [
         text_a: { type: "string" as const, description: "First text (original)." },
         text_b: { type: "string" as const, description: "Second text (modified)." },
       }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── passwordgen-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "password_generate",
+    description: "Generate a cryptographically secure random password.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        length: { type: "number" as const, description: "Password length (4-128, default 16)." },
+        uppercase: { type: "boolean" as const, description: "Include uppercase letters (default true)." },
+        lowercase: { type: "boolean" as const, description: "Include lowercase letters (default true)." },
+        digits: { type: "boolean" as const, description: "Include digits (default true)." },
+        symbols: { type: "boolean" as const, description: "Include symbols (default true)." },
+      },
+    },
+  },
+
+  // ── slug-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "text_slugify",
+    description: "Convert text into a URL-safe slug.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to slugify." },
+        separator: { type: "string" as const, description: "Separator character (default -)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── lorem2-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "lorem_generate",
+    description: "Generate lorem ipsum placeholder text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        paragraphs: { type: "number" as const, description: "Number of paragraphs (1-20, default 3)." },
+        sentences: { type: "number" as const, description: "Sentences per paragraph (1-15, default 5)." },
+      },
+    },
+  },
+
+  // ── csvparse-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "csv_parse",
+    description: "Parse CSV text into structured JSON rows.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        csv: { type: "string" as const, description: "Raw CSV text to parse." },
+        delimiter: { type: "string" as const, description: "Column delimiter (default comma)." },
+      }, required: ["csv"],
+    },
+  },
+
+  // ── wordcount-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "word_count",
+    description: "Count words, characters, sentences, and estimate reading time.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze." },
+      }, required: ["text"],
     },
   },
 
@@ -20495,6 +20562,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // difftext-tool.ts
   diff_text:                 (args) => diffText(args),
+
+  // passwordgen-tool.ts
+  password_generate:         (args) => passwordGenerate(args),
+
+  // slug-tool.ts
+  text_slugify:              (args) => slugify(args),
+
+  // lorem2-tool.ts
+  lorem_generate:            (args) => loremGenerate(args),
+
+  // csvparse-tool.ts
+  csv_parse:                 (args) => csvParse(args),
+
+  // wordcount-tool.ts
+  word_count:                (args) => wordCount(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

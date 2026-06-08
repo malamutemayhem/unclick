@@ -1480,6 +1480,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "csvparse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "csv_parse",
+        "description": "Parse CSV text into structured JSON rows."
+      }
+    ]
+  },
+  {
     "app": "cvecircl",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3792,6 +3802,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lorem2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lorem_generate",
+        "description": "Generate lorem ipsum placeholder text."
+      }
+    ]
+  },
+  {
     "app": "lotr",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4882,6 +4902,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "esports_get_match",
         "description": "Get details for a specific esports match by ID."
+      }
+    ]
+  },
+  {
+    "app": "passwordgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "password_generate",
+        "description": "Generate a cryptographically secure random password."
       }
     ]
   },
@@ -6228,6 +6258,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sloppass_run",
         "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
+      }
+    ]
+  },
+  {
+    "app": "slug",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_slugify",
+        "description": "Convert text into a URL-safe slug."
       }
     ]
   },
@@ -7672,6 +7712,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "woo_customers",
         "description": "List WooCommerce customers."
+      }
+    ]
+  },
+  {
+    "app": "wordcount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "word_count",
+        "description": "Count words, characters, sentences, and estimate reading time."
       }
     ]
   },

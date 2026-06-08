@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T19:30:00.000Z",
+  "updatedAt": "2026-06-08T20:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3358,6 +3358,36 @@
       "note": "diff_text compares two texts line by line locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
       "toolsTested": ["diff_text"]
+    },
+    "passwordgen": {
+      "status": "pass",
+      "note": "password_generate creates secure random passwords locally using crypto.randomBytes. No API needed.",
+      "testedAt": "2026-06-08T20:00:00.000Z",
+      "toolsTested": ["password_generate"]
+    },
+    "slug": {
+      "status": "pass",
+      "note": "text_slugify converts text to URL-safe slugs locally. No API needed.",
+      "testedAt": "2026-06-08T20:00:00.000Z",
+      "toolsTested": ["text_slugify"]
+    },
+    "lorem2": {
+      "status": "pass",
+      "note": "lorem_generate creates lorem ipsum placeholder text locally. No API needed.",
+      "testedAt": "2026-06-08T20:00:00.000Z",
+      "toolsTested": ["lorem_generate"]
+    },
+    "csvparse": {
+      "status": "pass",
+      "note": "csv_parse parses CSV text into structured JSON locally. No API needed.",
+      "testedAt": "2026-06-08T20:00:00.000Z",
+      "toolsTested": ["csv_parse"]
+    },
+    "wordcount": {
+      "status": "pass",
+      "note": "word_count counts words, characters, sentences locally. No API needed.",
+      "testedAt": "2026-06-08T20:00:00.000Z",
+      "toolsTested": ["word_count"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

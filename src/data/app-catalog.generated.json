@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 421,
-  "toolCount": 1343,
+  "appCount": 426,
+  "toolCount": 1348,
   "categories": [
     "AI",
     "Books",
@@ -1828,6 +1828,22 @@
         {
           "name": "crossref_get_work",
           "description": "Get full metadata for an academic paper by DOI from Crossref."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "csvparse",
+      "name": "CSV Parser",
+      "category": "Developer & infra",
+      "blurb": "Parse CSV text into structured JSON with headers and row objects.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "csv_parse",
+          "description": "Parse CSV text into structured JSON rows."
         }
       ],
       "level": 5,
@@ -4850,6 +4866,22 @@
       "hardened": false
     },
     {
+      "slug": "lorem2",
+      "name": "Lorem Ipsum Generator",
+      "category": "Utilities",
+      "blurb": "Generate lorem ipsum placeholder text by paragraph count.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lorem_generate",
+          "description": "Generate lorem ipsum placeholder text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "picsum",
       "name": "Lorem Picsum",
       "category": "Images",
@@ -6332,6 +6364,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "passwordgen",
+      "name": "Password Generator",
+      "category": "Developer & infra",
+      "blurb": "Generate cryptographically secure random passwords with configurable options.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "password_generate",
+          "description": "Generate a cryptographically secure random password."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "paypal",
@@ -8103,6 +8151,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "slug",
+      "name": "Slug Generator",
+      "category": "Developer & infra",
+      "blurb": "Convert text into URL-safe slugs with configurable separators.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "text_slugify",
+          "description": "Convert text into a URL-safe slug."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -10124,6 +10188,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "wordcount",
+      "name": "Word Counter",
+      "category": "Utilities",
+      "blurb": "Count words, characters, sentences, and estimate reading time.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "word_count",
+          "description": "Count words, characters, sentences, and estimate reading time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "wordpress",
