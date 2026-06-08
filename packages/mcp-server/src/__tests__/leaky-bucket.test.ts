@@ -2,48 +2,44 @@ import { describe, it, expect } from "vitest";
 import { LeakyBucket } from "../leaky-bucket.js";
 
 describe("LeakyBucket", () => {
-  it("accepts under capacity", () => {
-    const bucket = new LeakyBucket(5, 1);
-    expect(bucket.add(3)).toBe(true);
-    expect(bucket.add(2)).toBe(true);
+  it("accepts within capacity", () => {
+    const b = new LeakyBucket(10, 100);
+    expect(b.add(5)).toBe(true);
+    expect(b.add(5)).toBe(true);
   });
 
   it("rejects over capacity", () => {
-    const bucket = new LeakyBucket(3, 1);
-    expect(bucket.add(3)).toBe(true);
-    expect(bucket.add(1)).toBe(false);
+    const b = new LeakyBucket(5, 100);
+    expect(b.add(5)).toBe(true);
+    expect(b.add(1)).toBe(false);
   });
 
-  it("leaks over time", () => {
-    const bucket = new LeakyBucket(10, 10);
-    const now = 1000;
-    bucket.add(10, now);
-    expect(bucket.add(5, now + 1000)).toBe(true);
+  it("leaks over time", async () => {
+    const b = new LeakyBucket(10, 200);
+    b.add(10);
+    await new Promise((r) => setTimeout(r, 60));
+    expect(b.remaining).toBeGreaterThan(0);
   });
 
-  it("waitTime returns 0 when space available", () => {
-    const bucket = new LeakyBucket(5, 1);
-    expect(bucket.waitTime(1)).toBe(0);
+  it("tryAdd returns retry time", () => {
+    const b = new LeakyBucket(5, 10);
+    b.add(5);
+    const result = b.tryAdd(1);
+    expect(result.accepted).toBe(false);
+    expect(result.retryAfterMs).toBeGreaterThan(0);
   });
 
-  it("waitTime returns positive when full", () => {
-    const bucket = new LeakyBucket(3, 1);
-    const now = 1000;
-    bucket.add(3, now);
-    expect(bucket.waitTime(1, now)).toBeGreaterThan(0);
+  it("level tracks current water", () => {
+    const b = new LeakyBucket(10, 100);
+    b.add(3);
+    expect(b.level).toBeCloseTo(3, 0);
   });
 
-  it("reset empties bucket", () => {
-    const bucket = new LeakyBucket(5, 1);
-    bucket.add(5);
-    bucket.reset();
-    expect(bucket.isEmpty).toBe(true);
-  });
-
-  it("isFull and isEmpty", () => {
-    const bucket = new LeakyBucket(3, 1);
-    expect(bucket.isEmpty).toBe(true);
-    bucket.add(3);
-    expect(bucket.isFull).toBe(true);
+  it("reset empties the bucket", () => {
+    const b = new LeakyBucket(10, 100);
+    b.add(8);
+    b.reset();
+    expect(b.level).toBe(0);
+    expect(b.remaining).toBe(10);
   });
 });

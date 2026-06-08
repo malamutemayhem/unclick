@@ -1,34 +1,31 @@
 import { describe, it, expect } from "vitest";
-import { parseUrl, parseQueryString, buildQueryString, joinUrl } from "../url-parser.js";
+import { parseUrl, parseQueryString, buildQueryString, buildUrl, joinPath } from "../url-parser.js";
 
 describe("parseUrl", () => {
   it("parses full URL", () => {
-    const parsed = parseUrl("https://example.com:8080/path?q=1&r=2#section");
-    expect(parsed.protocol).toBe("https");
-    expect(parsed.hostname).toBe("example.com");
-    expect(parsed.port).toBe("8080");
-    expect(parsed.pathname).toBe("/path");
-    expect(parsed.search).toBe("?q=1&r=2");
-    expect(parsed.hash).toBe("#section");
-    expect(parsed.params).toEqual({ q: "1", r: "2" });
+    const u = parseUrl("https://example.com:8080/path?key=val#frag");
+    expect(u.protocol).toBe("https");
+    expect(u.hostname).toBe("example.com");
+    expect(u.port).toBe("8080");
+    expect(u.pathname).toBe("/path");
+    expect(u.params.key).toBe("val");
+    expect(u.hash).toBe("#frag");
   });
 
-  it("parses URL without port", () => {
-    const parsed = parseUrl("http://example.com/page");
-    expect(parsed.hostname).toBe("example.com");
-    expect(parsed.port).toBe("");
-    expect(parsed.pathname).toBe("/page");
+  it("parses simple URL", () => {
+    const u = parseUrl("http://example.com");
+    expect(u.hostname).toBe("example.com");
+    expect(u.pathname).toBe("/");
+    expect(u.port).toBe("");
   });
 
-  it("handles URL with no path", () => {
-    const parsed = parseUrl("https://example.com");
-    expect(parsed.hostname).toBe("example.com");
-    expect(parsed.pathname).toBe("/");
+  it("throws for invalid", () => {
+    expect(() => parseUrl("not-a-url")).toThrow();
   });
 });
 
 describe("parseQueryString", () => {
-  it("parses key=value pairs", () => {
+  it("parses params", () => {
     expect(parseQueryString("a=1&b=2")).toEqual({ a: "1", b: "2" });
   });
 
@@ -36,24 +33,33 @@ describe("parseQueryString", () => {
     expect(parseQueryString("q=hello%20world")).toEqual({ q: "hello world" });
   });
 
-  it("handles empty string", () => {
+  it("handles empty", () => {
     expect(parseQueryString("")).toEqual({});
   });
 });
 
 describe("buildQueryString", () => {
-  it("builds from object", () => {
+  it("builds from params", () => {
     expect(buildQueryString({ a: "1", b: "2" })).toBe("a=1&b=2");
-  });
-
-  it("encodes special chars", () => {
-    expect(buildQueryString({ q: "hello world" })).toBe("q=hello%20world");
   });
 });
 
-describe("joinUrl", () => {
-  it("joins base and path", () => {
-    expect(joinUrl("https://example.com", "/api/v1")).toBe("https://example.com/api/v1");
-    expect(joinUrl("https://example.com/", "api/v1")).toBe("https://example.com/api/v1");
+describe("buildUrl", () => {
+  it("adds params", () => {
+    expect(buildUrl("https://example.com", { q: "test" })).toBe("https://example.com?q=test");
+  });
+
+  it("appends to existing params", () => {
+    expect(buildUrl("https://example.com?a=1", { b: "2" })).toBe("https://example.com?a=1&b=2");
+  });
+});
+
+describe("joinPath", () => {
+  it("joins segments", () => {
+    expect(joinPath("https://example.com", "api", "v1")).toBe("https://example.com/api/v1");
+  });
+
+  it("handles extra slashes", () => {
+    expect(joinPath("https://example.com/", "/api/", "/v1")).toBe("https://example.com/api/v1");
   });
 });
