@@ -1,59 +1,61 @@
 export class Histogram {
-  private buckets: Map<number, number> = new Map();
-  private _count = 0;
-  private _sum = 0;
-  private _min = Infinity;
-  private _max = -Infinity;
-  private readonly boundaries: number[];
+  private bucketBounds: number[];
+  private counts: number[];
+  private totalCount = 0;
+  private sum = 0;
+  private min = Infinity;
+  private max = -Infinity;
 
-  constructor(boundaries: number[]) {
-    this.boundaries = [...boundaries].sort((a, b) => a - b);
-    for (const b of this.boundaries) this.buckets.set(b, 0);
-    this.buckets.set(Infinity, 0);
+  constructor(bucketBounds: number[]) {
+    this.bucketBounds = [...bucketBounds].sort((a, b) => a - b);
+    this.counts = new Array(this.bucketBounds.length + 1).fill(0);
   }
 
-  record(value: number): void {
-    this._count++;
-    this._sum += value;
-    if (value < this._min) this._min = value;
-    if (value > this._max) this._max = value;
-    for (const boundary of this.boundaries) {
-      if (value <= boundary) {
-        this.buckets.set(boundary, (this.buckets.get(boundary) || 0) + 1);
-        return;
+  observe(value: number): void {
+    this.totalCount++;
+    this.sum += value;
+    if (value < this.min) this.min = value;
+    if (value > this.max) this.max = value;
+    let idx = this.bucketBounds.length;
+    for (let i = 0; i < this.bucketBounds.length; i++) {
+      if (value <= this.bucketBounds[i]) {
+        idx = i;
+        break;
       }
     }
-    this.buckets.set(Infinity, (this.buckets.get(Infinity) || 0) + 1);
+    this.counts[idx]++;
   }
 
-  get count(): number { return this._count; }
-  get sum(): number { return this._sum; }
-  get min(): number { return this._min; }
-  get max(): number { return this._max; }
-  get mean(): number { return this._count > 0 ? this._sum / this._count : 0; }
-
-  getBuckets(): Array<{ le: number | string; count: number }> {
-    return [...this.buckets.entries()].map(([le, count]) => ({
-      le: le === Infinity ? "+Inf" : le,
-      count,
-    }));
-  }
-
-  percentile(p: number): number {
-    const target = Math.ceil(this._count * (p / 100));
-    let cumulative = 0;
-    for (const boundary of this.boundaries) {
-      cumulative += this.buckets.get(boundary) || 0;
-      if (cumulative >= target) return boundary;
+  getBuckets(): { bound: string; count: number }[] {
+    const result: { bound: string; count: number }[] = [];
+    for (let i = 0; i < this.bucketBounds.length; i++) {
+      result.push({ bound: `<=${this.bucketBounds[i]}`, count: this.counts[i] });
     }
-    return this._max;
+    result.push({ bound: `>${this.bucketBounds[this.bucketBounds.length - 1] ?? 0}`, count: this.counts[this.counts.length - 1] });
+    return result;
+  }
+
+  get count(): number {
+    return this.totalCount;
+  }
+
+  get average(): number {
+    return this.totalCount > 0 ? this.sum / this.totalCount : 0;
+  }
+
+  get minimum(): number {
+    return this.totalCount > 0 ? this.min : 0;
+  }
+
+  get maximum(): number {
+    return this.totalCount > 0 ? this.max : 0;
   }
 
   reset(): void {
-    for (const key of this.buckets.keys()) this.buckets.set(key, 0);
-    this._count = 0;
-    this._sum = 0;
-    this._min = Infinity;
-    this._max = -Infinity;
+    this.counts.fill(0);
+    this.totalCount = 0;
+    this.sum = 0;
+    this.min = Infinity;
+    this.max = -Infinity;
   }
 }
