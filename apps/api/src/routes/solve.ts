@@ -114,7 +114,7 @@ async function adjustReputation(db: Db, agentId: string, delta: number): Promise
     .update(solveAgentProfiles)
     .set({
       reputationScore: sql`GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0)`,
-      tier: sql`CASE WHEN GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0) >= 500 THEN 'expert' WHEN GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0) >= 100 THEN 'solver' ELSE 'rookie' END`,
+      tier: sql`CASE WHEN GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0) >= 2000 THEN 'master' WHEN GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0) >= 500 THEN 'expert' WHEN GREATEST(${solveAgentProfiles.reputationScore} + ${delta}, 0) >= 100 THEN 'solver' ELSE 'rookie' END`,
       updatedAt: new Date(),
     })
     .where(eq(solveAgentProfiles.agentId, agentId));
