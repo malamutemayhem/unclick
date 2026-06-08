@@ -1988,6 +1988,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dijkstra",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dijkstra_path",
+        "description": "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm)."
+      }
+    ]
+  },
+  {
     "app": "discogs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4222,6 +4232,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "linearsolve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "linear_solve",
+        "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
+      }
+    ]
+  },
+  {
     "app": "logbase",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4420,6 +4440,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "matrix_operate",
         "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+      }
+    ]
+  },
+  {
+    "app": "matrixdecomp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_decomp",
+        "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
       }
     ]
   },
@@ -4980,6 +5010,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "number_random",
         "description": "Get a random number fact."
+      }
+    ]
+  },
+  {
+    "app": "numdiff",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "numerical_diff",
+        "description": "Numerical differentiation of a math expression using five-point stencil (1st-4th order)."
+      }
+    ]
+  },
+  {
+    "app": "numintegrate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "numerical_integrate",
+        "description": "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method."
       }
     ]
   },

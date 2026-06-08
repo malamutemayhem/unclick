@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (505 external connectors)
+## Distribution (510 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 466 | 92% |
+| L5 | Agentic | 471 | 92% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 7% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 505 (48%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 510 (47%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 466 of 469 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 471 of 474 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -100,6 +100,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `diceware` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `difftext` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `digimon` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `dijkstra` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `diseasesh` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `disneyapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `dogfacts` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -165,6 +166,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `lcs` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `levenshtein` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `libretranslate` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `linearsolve` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `logbase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `lorem2` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `loremname` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -175,6 +177,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `markdowntable` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `markov` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `matrix` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `matrixdecomp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mcsrvstat` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `mediawiki` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `memegen` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -196,6 +199,8 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `normaldistr` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `npm-registry` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `nthroot` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `numdiff` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `numintegrate` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `oeis` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `officialjoke` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `open-elevation` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -415,6 +420,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `difftext` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `digimon` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `digitalocean` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `dijkstra` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `diseasesh` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `disneyapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
@@ -532,6 +538,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `levenshtein` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `libretranslate` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `lichess` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `linearsolve` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `logbase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `lorem` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lorem2` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -546,6 +553,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `markdowntable` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `markov` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `matrix` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `matrixdecomp` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `mcsrvstat` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `meal` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mediawiki` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
@@ -578,6 +586,8 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `normaldistr` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `npm-registry` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nthroot` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `numdiff` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `numintegrate` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `nvd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `oeis` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `officialjoke` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |

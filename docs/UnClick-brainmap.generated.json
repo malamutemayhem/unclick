@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 956,
+    "inventory": 961,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 531,
+    "tools": 536,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 531
+      "count": 536
     },
     {
       "id": "rooms",
@@ -5412,6 +5412,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dijkstra-packages-mcp-server-src-dijkstra-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dijkstra",
+      "kind": "MCP tool",
+      "meaning": "dijkstra MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dijkstra-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-discogs-packages-mcp-server-src-discogs-tool-ts-no-route",
       "division": "Tools",
       "name": "discogs",
@@ -6732,6 +6742,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-linearsolve-packages-mcp-server-src-linearsolve-tool-ts-no-route",
+      "division": "Tools",
+      "name": "linearsolve",
+      "kind": "MCP tool",
+      "meaning": "linearsolve MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/linearsolve-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-logbase-packages-mcp-server-src-logbase-tool-ts-no-route",
       "division": "Tools",
       "name": "logbase",
@@ -6878,6 +6898,16 @@
       "kind": "MCP tool",
       "meaning": "matrix MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/matrix-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-matrixdecomp-packages-mcp-server-src-matrixdecomp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matrixdecomp",
+      "kind": "MCP tool",
+      "meaning": "matrixdecomp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matrixdecomp-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7238,6 +7268,26 @@
       "kind": "MCP tool",
       "meaning": "numbers MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/numbers-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-numdiff-packages-mcp-server-src-numdiff-tool-ts-no-route",
+      "division": "Tools",
+      "name": "numdiff",
+      "kind": "MCP tool",
+      "meaning": "numdiff MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/numdiff-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-numintegrate-packages-mcp-server-src-numintegrate-tool-ts-no-route",
+      "division": "Tools",
+      "name": "numintegrate",
+      "kind": "MCP tool",
+      "meaning": "numintegrate MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/numintegrate-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10861,6 +10911,11 @@
       "packages/mcp-server/src/digitalocean-tool.ts"
     ],
     [
+      "dijkstra",
+      "dijkstra MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dijkstra-tool.ts"
+    ],
+    [
       "discogs",
       "discogs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discogs-tool.ts"
@@ -11521,6 +11576,11 @@
       "packages/mcp-server/src/linear-tool.ts"
     ],
     [
+      "linearsolve",
+      "linearsolve MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/linearsolve-tool.ts"
+    ],
+    [
       "logbase",
       "logbase MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/logbase-tool.ts"
@@ -11594,6 +11654,11 @@
       "matrix",
       "matrix MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/matrix-tool.ts"
+    ],
+    [
+      "matrixdecomp",
+      "matrixdecomp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matrixdecomp-tool.ts"
     ],
     [
       "mcsrvstat",
@@ -11774,6 +11839,16 @@
       "numbers",
       "numbers MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/numbers-tool.ts"
+    ],
+    [
+      "numdiff",
+      "numdiff MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/numdiff-tool.ts"
+    ],
+    [
+      "numintegrate",
+      "numintegrate MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/numintegrate-tool.ts"
     ],
     [
       "nvd",

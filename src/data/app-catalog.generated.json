@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 530,
-  "toolCount": 1452,
+  "appCount": 535,
+  "toolCount": 1457,
   "categories": [
     "AI",
     "Books",
@@ -2588,6 +2588,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "dijkstra",
+      "name": "Dijkstra Shortest Path",
+      "category": "Utilities",
+      "blurb": "Find the shortest path between two nodes in a weighted graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dijkstra_path",
+          "description": "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "discogs",
@@ -5542,6 +5558,22 @@
       "hardened": false
     },
     {
+      "slug": "linearsolve",
+      "name": "Linear Solver",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations Ax = b with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "linear_solve",
+          "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "logbase",
       "name": "Logarithm Calculator",
       "category": "Utilities",
@@ -5864,6 +5896,22 @@
         {
           "name": "matrix_operate",
           "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matrixdecomp",
+      "name": "Matrix Decomposition",
+      "category": "Utilities",
+      "blurb": "Matrix decomposition and analysis: LU, transpose, trace, rank.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_decomp",
+          "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
         }
       ],
       "level": 5,
@@ -6643,6 +6691,38 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "numdiff",
+      "name": "Numerical Differentiation",
+      "category": "Utilities",
+      "blurb": "Numerical differentiation using five-point stencil (1st through 4th order).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "numerical_diff",
+          "description": "Numerical differentiation of a math expression using five-point stencil (1st-4th order)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "numintegrate",
+      "name": "Numerical Integration",
+      "category": "Utilities",
+      "blurb": "Numerical integration using Simpson, trapezoid, or midpoint rule.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "numerical_integrate",
+          "description": "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
