@@ -3,67 +3,61 @@ import { SparseSet } from "../sparse-set.js";
 
 describe("SparseSet", () => {
   it("adds and checks membership", () => {
-    const s = new SparseSet(100);
-    expect(s.add(5)).toBe(true);
-    expect(s.has(5)).toBe(true);
-    expect(s.has(6)).toBe(false);
+    const ss = new SparseSet(100);
+    ss.add(5);
+    ss.add(10);
+    expect(ss.has(5)).toBe(true);
+    expect(ss.has(10)).toBe(true);
+    expect(ss.has(7)).toBe(false);
   });
 
-  it("prevents duplicate adds", () => {
-    const s = new SparseSet(100);
-    s.add(10);
-    expect(s.add(10)).toBe(false);
-    expect(s.size).toBe(1);
+  it("removes elements", () => {
+    const ss = new SparseSet(100);
+    ss.add(5);
+    ss.add(10);
+    ss.remove(5);
+    expect(ss.has(5)).toBe(false);
+    expect(ss.has(10)).toBe(true);
   });
 
-  it("deletes values", () => {
-    const s = new SparseSet(100);
-    s.add(1);
-    s.add(2);
-    s.add(3);
-    expect(s.delete(2)).toBe(true);
-    expect(s.has(2)).toBe(false);
-    expect(s.has(1)).toBe(true);
-    expect(s.has(3)).toBe(true);
-    expect(s.size).toBe(2);
+  it("tracks size", () => {
+    const ss = new SparseSet(100);
+    ss.add(1);
+    ss.add(2);
+    ss.add(3);
+    expect(ss.size).toBe(3);
+    ss.remove(2);
+    expect(ss.size).toBe(2);
   });
 
-  it("delete returns false for missing values", () => {
-    const s = new SparseSet(100);
-    expect(s.delete(5)).toBe(false);
+  it("ignores duplicate adds", () => {
+    const ss = new SparseSet(100);
+    ss.add(5);
+    ss.add(5);
+    expect(ss.size).toBe(1);
   });
 
-  it("rejects out-of-range values", () => {
-    const s = new SparseSet(10);
-    expect(s.add(-1)).toBe(false);
-    expect(s.add(10)).toBe(false);
-    expect(s.has(-1)).toBe(false);
-    expect(s.has(10)).toBe(false);
+  it("clear empties set", () => {
+    const ss = new SparseSet(100);
+    ss.add(1);
+    ss.add(2);
+    ss.clear();
+    expect(ss.size).toBe(0);
+    expect(ss.has(1)).toBe(false);
   });
 
-  it("clears all values", () => {
-    const s = new SparseSet(100);
-    s.add(1);
-    s.add(2);
-    s.clear();
-    expect(s.size).toBe(0);
-    expect(s.has(1)).toBe(false);
+  it("toArray returns elements", () => {
+    const ss = new SparseSet(100);
+    ss.add(3);
+    ss.add(1);
+    ss.add(2);
+    expect(ss.toArray().sort()).toEqual([1, 2, 3]);
   });
 
-  it("returns values array", () => {
-    const s = new SparseSet(100);
-    s.add(3);
-    s.add(1);
-    s.add(7);
-    expect(s.values().sort()).toEqual([1, 3, 7]);
-  });
-
-  it("forEach iterates all values", () => {
-    const s = new SparseSet(100);
-    s.add(10);
-    s.add(20);
-    const collected: number[] = [];
-    s.forEach((v) => collected.push(v));
-    expect(collected.sort()).toEqual([10, 20]);
+  it("iterates", () => {
+    const ss = new SparseSet(100);
+    ss.add(5);
+    ss.add(10);
+    expect([...ss].sort((a: number, b: number) => a - b)).toEqual([5, 10]);
   });
 });

@@ -1,52 +1,47 @@
 export class SparseSet {
   private dense: number[] = [];
   private sparse: number[] = [];
-  private n = 0;
+  private count = 0;
 
-  constructor(private capacity: number) {
-    this.sparse = new Array(capacity).fill(0);
+  constructor(maxValue: number) {
+    this.sparse = new Array(maxValue + 1).fill(-1);
   }
 
-  add(value: number): boolean {
-    if (value < 0 || value >= this.capacity) return false;
-    if (this.has(value)) return false;
-    this.sparse[value] = this.n;
-    this.dense[this.n] = value;
-    this.n++;
+  add(value: number): void {
+    if (this.has(value)) return;
+    this.sparse[value] = this.count;
+    this.dense[this.count] = value;
+    this.count++;
+  }
+
+  remove(value: number): boolean {
+    if (!this.has(value)) return false;
+    const idx = this.sparse[value];
+    const last = this.dense[this.count - 1];
+    this.dense[idx] = last;
+    this.sparse[last] = idx;
+    this.sparse[value] = -1;
+    this.count--;
     return true;
   }
 
   has(value: number): boolean {
-    if (value < 0 || value >= this.capacity) return false;
     const idx = this.sparse[value];
-    return idx < this.n && this.dense[idx] === value;
+    return idx !== undefined && idx >= 0 && idx < this.count && this.dense[idx] === value;
   }
 
-  delete(value: number): boolean {
-    if (!this.has(value)) return false;
-    const idx = this.sparse[value];
-    this.n--;
-    const last = this.dense[this.n];
-    this.dense[idx] = last;
-    this.sparse[last] = idx;
-    return true;
-  }
+  get size(): number { return this.count; }
 
   clear(): void {
-    this.n = 0;
+    this.sparse.fill(-1);
+    this.count = 0;
   }
 
-  get size(): number {
-    return this.n;
+  toArray(): number[] {
+    return this.dense.slice(0, this.count);
   }
 
-  values(): number[] {
-    return this.dense.slice(0, this.n);
-  }
-
-  forEach(fn: (value: number) => void): void {
-    for (let i = 0; i < this.n; i++) {
-      fn(this.dense[i]);
-    }
+  *[Symbol.iterator](): Iterator<number> {
+    for (let i = 0; i < this.count; i++) yield this.dense[i];
   }
 }

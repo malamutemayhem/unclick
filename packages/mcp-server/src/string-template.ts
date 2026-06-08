@@ -1,47 +1,42 @@
-export function render(
-  template: string,
-  vars: Record<string, unknown>,
-  options: { open?: string; close?: string } = {}
-): string {
-  const { open = "{{", close = "}}" } = options;
-  const escaped = open.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const escapedClose = close.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`${escaped}\\s*([\\w.]+)\\s*${escapedClose}`, "g");
-  return template.replace(re, (_, key) => {
-    const val = resolvePath(vars, key);
-    return val !== undefined ? String(val) : "";
+export function template(str: string, vars: Record<string, unknown>, opts: { open?: string; close?: string } = {}): string {
+  const open = opts.open ?? "{{";
+  const close = opts.close ?? "}}";
+  const escaped = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`${escaped(open)}\\s*(\\w+(?:\\.\\w+)*)\\s*${escaped(close)}`, "g");
+  return str.replace(pattern, (_: string, path: string) => {
+    const value = resolvePath(vars, path);
+    return value !== undefined ? String(value) : `${open}${path}${close}`;
   });
 }
 
-function resolvePath(obj: any, path: string): unknown {
+function resolvePath(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.split(".");
-  let current = obj;
+  let current: unknown = obj;
   for (const part of parts) {
-    if (current == null) return undefined;
-    current = current[part];
+    if (current === null || current === undefined || typeof current !== "object") return undefined;
+    current = (current as Record<string, unknown>)[part];
   }
   return current;
 }
 
-export function extractVars(
-  template: string,
-  options: { open?: string; close?: string } = {}
-): string[] {
-  const { open = "{{", close = "}}" } = options;
-  const escaped = open.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const escapedClose = close.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`${escaped}\\s*([\\w.]+)\\s*${escapedClose}`, "g");
-  const vars: string[] = [];
-  let match;
-  while ((match = re.exec(template))) {
-    if (!vars.includes(match[1])) vars.push(match[1]);
-  }
-  return vars;
+export function strip(str: string, opts: { open?: string; close?: string } = {}): string {
+  const open = opts.open ?? "{{";
+  const close = opts.close ?? "}}";
+  const escaped = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`${escaped(open)}\\s*\\w+(?:\\.\\w+)*\\s*${escaped(close)}`, "g");
+  return str.replace(pattern, "");
 }
 
-export function compile(
-  template: string,
-  options: { open?: string; close?: string } = {}
-): (vars: Record<string, unknown>) => string {
-  return (vars) => render(template, vars, options);
+export function extractVars(str: string, opts: { open?: string; close?: string } = {}): string[] {
+  const open = opts.open ?? "{{";
+  const close = opts.close ?? "}}";
+  const escaped = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`${escaped(open)}\\s*(\\w+(?:\\.\\w+)*)\\s*${escaped(close)}`, "g");
+  const vars: string[] = [];
+  let match = pattern.exec(str);
+  while (match) {
+    if (!vars.includes(match[1])) vars.push(match[1]);
+    match = pattern.exec(str);
+  }
+  return vars;
 }
