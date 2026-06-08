@@ -2,43 +2,32 @@ import { describe, it, expect } from "vitest";
 import { Trie } from "../trie.js";
 
 describe("Trie", () => {
-  it("inserts and finds keys", () => {
+  it("starts empty", () => {
     const t = new Trie();
-    t.insert("hello");
-    t.insert("world");
+    expect(t.size).toBe(0);
+  });
+
+  it("set and has", () => {
+    const t = new Trie();
+    t.set("hello");
     expect(t.has("hello")).toBe(true);
-    expect(t.has("world")).toBe(true);
-    expect(t.has("hel")).toBe(false);
+    expect(t.has("hell")).toBe(false);
   });
 
-  it("stores values", () => {
+  it("set with value and get", () => {
     const t = new Trie<number>();
-    t.insert("timeout", 5000);
-    expect(t.get("timeout")).toBe(5000);
-    expect(t.get("missing")).toBeUndefined();
+    t.set("key", 42);
+    expect(t.get("key")).toBe(42);
   });
 
-  it("finds by prefix", () => {
-    const t = new Trie();
-    t.insert("github_action");
-    t.insert("github_pr");
-    t.insert("gitlab_merge");
-    t.insert("slack_send");
-    const results = t.startsWith("github_");
-    expect(results).toContain("github_action");
-    expect(results).toContain("github_pr");
-    expect(results).not.toContain("gitlab_merge");
+  it("get returns undefined for missing key", () => {
+    const t = new Trie<number>();
+    expect(t.get("nope")).toBeUndefined();
   });
 
-  it("returns empty for no prefix match", () => {
+  it("delete removes a key", () => {
     const t = new Trie();
-    t.insert("hello");
-    expect(t.startsWith("xyz")).toEqual([]);
-  });
-
-  it("deletes keys", () => {
-    const t = new Trie();
-    t.insert("hello");
+    t.set("hello");
     expect(t.delete("hello")).toBe(true);
     expect(t.has("hello")).toBe(false);
     expect(t.size).toBe(0);
@@ -49,18 +38,51 @@ describe("Trie", () => {
     expect(t.delete("nope")).toBe(false);
   });
 
-  it("tracks size", () => {
+  it("startsWith finds matching keys", () => {
     const t = new Trie();
-    t.insert("a");
-    t.insert("b");
-    t.insert("a");
-    expect(t.size).toBe(2);
+    t.set("app");
+    t.set("apple");
+    t.set("application");
+    t.set("bat");
+    const results = t.startsWith("app");
+    expect(results).toContain("app");
+    expect(results).toContain("apple");
+    expect(results).toContain("application");
+    expect(results).not.toContain("bat");
   });
 
-  it("handles empty string", () => {
+  it("startsWith returns empty for no match", () => {
     const t = new Trie();
-    t.insert("");
-    expect(t.has("")).toBe(true);
+    t.set("hello");
+    expect(t.startsWith("xyz")).toEqual([]);
+  });
+
+  it("keys returns all keys", () => {
+    const t = new Trie();
+    t.set("a");
+    t.set("ab");
+    t.set("abc");
+    const keys = t.keys();
+    expect(keys).toHaveLength(3);
+    expect(keys).toContain("a");
+    expect(keys).toContain("ab");
+    expect(keys).toContain("abc");
+  });
+
+  it("clear empties the trie", () => {
+    const t = new Trie();
+    t.set("a");
+    t.set("b");
+    t.clear();
+    expect(t.size).toBe(0);
+    expect(t.has("a")).toBe(false);
+  });
+
+  it("overwriting a key does not change size", () => {
+    const t = new Trie<number>();
+    t.set("key", 1);
+    t.set("key", 2);
     expect(t.size).toBe(1);
+    expect(t.get("key")).toBe(2);
   });
 });

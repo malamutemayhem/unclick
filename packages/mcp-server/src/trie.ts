@@ -1,39 +1,43 @@
-interface TrieNode {
-  children: Map<string, TrieNode>;
-  isEnd: boolean;
-  value?: unknown;
+class TrieNode {
+  children = new Map<string, TrieNode>();
+  isEnd = false;
+  value: any = undefined;
 }
 
-function createNode(): TrieNode {
-  return { children: new Map(), isEnd: false };
-}
+export class Trie<T = boolean> {
+  private root = new TrieNode();
+  private _size = 0;
 
-export class Trie<V = boolean> {
-  private root = createNode();
-  private count = 0;
+  get size(): number { return this._size; }
 
-  insert(key: string, value?: V): void {
+  set(key: string, value?: T): void {
     let node = this.root;
     for (const ch of key) {
-      if (!node.children.has(ch)) {
-        node.children.set(ch, createNode());
-      }
+      if (!node.children.has(ch)) node.children.set(ch, new TrieNode());
       node = node.children.get(ch)!;
     }
-    if (!node.isEnd) this.count++;
+    if (!node.isEnd) this._size++;
     node.isEnd = true;
     node.value = value ?? true;
   }
 
-  has(key: string): boolean {
+  get(key: string): T | undefined {
     const node = this.findNode(key);
-    return node !== undefined && node.isEnd;
+    return node?.isEnd ? node.value : undefined;
   }
 
-  get(key: string): V | undefined {
+  has(key: string): boolean {
     const node = this.findNode(key);
-    if (!node || !node.isEnd) return undefined;
-    return node.value as V;
+    return node?.isEnd === true;
+  }
+
+  delete(key: string): boolean {
+    const node = this.findNode(key);
+    if (!node || !node.isEnd) return false;
+    node.isEnd = false;
+    node.value = undefined;
+    this._size--;
+    return true;
   }
 
   startsWith(prefix: string): string[] {
@@ -44,21 +48,22 @@ export class Trie<V = boolean> {
     return results;
   }
 
-  delete(key: string): boolean {
-    const deleted = this.deleteRecurse(this.root, key, 0);
-    if (deleted) this.count--;
-    return deleted;
+  keys(): string[] {
+    const results: string[] = [];
+    this.collect(this.root, "", results);
+    return results;
   }
 
-  get size(): number {
-    return this.count;
+  clear(): void {
+    this.root = new TrieNode();
+    this._size = 0;
   }
 
-  private findNode(prefix: string): TrieNode | undefined {
-    let node = this.root;
-    for (const ch of prefix) {
-      if (!node.children.has(ch)) return undefined;
-      node = node.children.get(ch)!;
+  private findNode(key: string): TrieNode | undefined {
+    let node: TrieNode | undefined = this.root;
+    for (const ch of key) {
+      node = node.children.get(ch);
+      if (!node) return undefined;
     }
     return node;
   }
@@ -68,22 +73,5 @@ export class Trie<V = boolean> {
     for (const [ch, child] of node.children) {
       this.collect(child, prefix + ch, results);
     }
-  }
-
-  private deleteRecurse(node: TrieNode, key: string, depth: number): boolean {
-    if (depth === key.length) {
-      if (!node.isEnd) return false;
-      node.isEnd = false;
-      node.value = undefined;
-      return true;
-    }
-    const ch = key[depth];
-    const child = node.children.get(ch);
-    if (!child) return false;
-    const deleted = this.deleteRecurse(child, key, depth + 1);
-    if (deleted && !child.isEnd && child.children.size === 0) {
-      node.children.delete(ch);
-    }
-    return deleted;
   }
 }
