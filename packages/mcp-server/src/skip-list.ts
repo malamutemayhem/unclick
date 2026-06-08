@@ -2,66 +2,69 @@ class SkipNode<K, V> {
   key: K;
   value: V;
   forward: Array<SkipNode<K, V> | null>;
+
   constructor(key: K, value: V, level: number) {
     this.key = key;
     this.value = value;
-    this.forward = new Array(level + 1).fill(null);
+    this.forward = new Array(level + 1).fill(null) as Array<SkipNode<K, V> | null>;
   }
 }
 
 export class SkipList<K, V> {
-  private maxLevel: number;
-  private probability: number;
-  private level = 0;
   private head: SkipNode<K, V>;
-  private compareFn: (a: K, b: K) => number;
-  private _size = 0;
+  private level = 0;
+  private count = 0;
+  private readonly maxLevel: number;
+  private readonly compare: (a: K, b: K) => number;
 
-  constructor(compareFn: (a: K, b: K) => number, maxLevel = 16, probability = 0.5) {
-    this.compareFn = compareFn;
+  constructor(maxLevel: number = 16, compare?: (a: K, b: K) => number) {
     this.maxLevel = maxLevel;
-    this.probability = probability;
-    this.head = new SkipNode<K, V>(undefined as any, undefined as any, maxLevel);
+    this.compare = compare || ((a: K, b: K) => (a < b ? -1 : a > b ? 1 : 0));
+    this.head = new SkipNode<K, V>(undefined as K, undefined as V, maxLevel);
   }
-
-  get size(): number { return this._size; }
 
   set(key: K, value: V): void {
     const update: Array<SkipNode<K, V>> = new Array(this.maxLevel + 1);
     let current = this.head;
+
     for (let i = this.level; i >= 0; i--) {
-      while (current.forward[i] && this.compareFn(current.forward[i]!.key, key) < 0) {
+      while (current.forward[i] && this.compare(current.forward[i]!.key, key) < 0) {
         current = current.forward[i]!;
       }
       update[i] = current;
     }
+
     const next = current.forward[0];
-    if (next && this.compareFn(next.key, key) === 0) {
+    if (next && this.compare(next.key, key) === 0) {
       next.value = value;
       return;
     }
+
     const newLevel = this.randomLevel();
     if (newLevel > this.level) {
-      for (let i = this.level + 1; i <= newLevel; i++) update[i] = this.head;
+      for (let i = this.level + 1; i <= newLevel; i++) {
+        update[i] = this.head;
+      }
       this.level = newLevel;
     }
+
     const node = new SkipNode(key, value, newLevel);
     for (let i = 0; i <= newLevel; i++) {
       node.forward[i] = update[i].forward[i];
       update[i].forward[i] = node;
     }
-    this._size++;
+    this.count++;
   }
 
   get(key: K): V | undefined {
     let current = this.head;
     for (let i = this.level; i >= 0; i--) {
-      while (current.forward[i] && this.compareFn(current.forward[i]!.key, key) < 0) {
+      while (current.forward[i] && this.compare(current.forward[i]!.key, key) < 0) {
         current = current.forward[i]!;
       }
     }
     const next = current.forward[0];
-    if (next && this.compareFn(next.key, key) === 0) return next.value;
+    if (next && this.compare(next.key, key) === 0) return next.value;
     return undefined;
   }
 
@@ -72,40 +75,46 @@ export class SkipList<K, V> {
   delete(key: K): boolean {
     const update: Array<SkipNode<K, V>> = new Array(this.maxLevel + 1);
     let current = this.head;
+
     for (let i = this.level; i >= 0; i--) {
-      while (current.forward[i] && this.compareFn(current.forward[i]!.key, key) < 0) {
+      while (current.forward[i] && this.compare(current.forward[i]!.key, key) < 0) {
         current = current.forward[i]!;
       }
       update[i] = current;
     }
+
     const target = current.forward[0];
-    if (!target || this.compareFn(target.key, key) !== 0) return false;
+    if (!target || this.compare(target.key, key) !== 0) return false;
+
     for (let i = 0; i <= this.level; i++) {
       if (update[i].forward[i] !== target) break;
       update[i].forward[i] = target.forward[i];
     }
-    while (this.level > 0 && !this.head.forward[this.level]) this.level--;
-    this._size--;
+
+    while (this.level > 0 && !this.head.forward[this.level]) {
+      this.level--;
+    }
+    this.count--;
     return true;
   }
 
-  keys(): K[] {
-    const result: K[] = [];
-    let node = this.head.forward[0];
-    while (node) { result.push(node.key); node = node.forward[0]; }
-    return result;
+  get size(): number {
+    return this.count;
   }
 
-  entries(): [K, V][] {
-    const result: [K, V][] = [];
-    let node = this.head.forward[0];
-    while (node) { result.push([node.key, node.value]); node = node.forward[0]; }
+  toArray(): Array<{ key: K; value: V }> {
+    const result: Array<{ key: K; value: V }> = [];
+    let current = this.head.forward[0];
+    while (current) {
+      result.push({ key: current.key, value: current.value });
+      current = current.forward[0];
+    }
     return result;
   }
 
   private randomLevel(): number {
     let lvl = 0;
-    while (Math.random() < this.probability && lvl < this.maxLevel) lvl++;
+    while (lvl < this.maxLevel && Math.random() < 0.5) lvl++;
     return lvl;
   }
 }

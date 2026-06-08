@@ -1,52 +1,54 @@
 import { describe, it, expect } from "vitest";
 import { SpatialHash } from "../spatial-hash.js";
 
-describe("spatial-hash", () => {
-  it("inserts and queries by radius", () => {
-    const sh = new SpatialHash(10);
-    sh.insert({ x: 5, y: 5 });
-    sh.insert({ x: 50, y: 50 });
-    const near = sh.query(0, 0, 10);
-    expect(near.length).toBe(1);
-    expect(near[0].x).toBe(5);
+describe("SpatialHash", () => {
+  it("inserts and queries point items", () => {
+    const sh = new SpatialHash<string>(10);
+    sh.insert("a", 5, 5);
+    sh.insert("b", 25, 25);
+    const near = sh.query(0, 0, 9, 9);
+    expect(near).toContain("a");
+    expect(near).not.toContain("b");
+  });
+
+  it("queries overlapping regions", () => {
+    const sh = new SpatialHash<string>(10);
+    sh.insert("wide", 5, 5, 20, 0);
+    expect(sh.query(15, 5)).toContain("wide");
+  });
+
+  it("removes items", () => {
+    const sh = new SpatialHash<string>(10);
+    sh.insert("x", 5, 5);
+    expect(sh.remove("x")).toBe(true);
+    expect(sh.query(0, 0, 10, 10)).not.toContain("x");
+    expect(sh.remove("x")).toBe(false);
   });
 
   it("tracks size", () => {
-    const sh = new SpatialHash(10);
-    sh.insert({ x: 0, y: 0 });
-    sh.insert({ x: 1, y: 1 });
+    const sh = new SpatialHash<string>(10);
+    sh.insert("a", 0, 0);
+    sh.insert("b", 10, 10);
     expect(sh.size).toBe(2);
-  });
-
-  it("queryRect returns items in rectangle", () => {
-    const sh = new SpatialHash(10);
-    sh.insert({ x: 5, y: 5 });
-    sh.insert({ x: 15, y: 15 });
-    sh.insert({ x: 50, y: 50 });
-    const found = sh.queryRect(0, 0, 20, 20);
-    expect(found.length).toBe(2);
-  });
-
-  it("query returns empty when nothing nearby", () => {
-    const sh = new SpatialHash(10);
-    sh.insert({ x: 100, y: 100 });
-    expect(sh.query(0, 0, 5).length).toBe(0);
+    sh.remove("a");
+    expect(sh.size).toBe(1);
   });
 
   it("clear empties everything", () => {
-    const sh = new SpatialHash(10);
-    sh.insert({ x: 1, y: 1 });
+    const sh = new SpatialHash<string>(10);
+    sh.insert("a", 0, 0);
+    sh.insert("b", 10, 10);
     sh.clear();
     expect(sh.size).toBe(0);
-    expect(sh.query(1, 1, 10).length).toBe(0);
+    expect(sh.query(0, 0, 100, 100)).toEqual([]);
   });
 
-  it("handles many items in same cell", () => {
-    const sh = new SpatialHash(100);
-    for (let i = 0; i < 20; i++) {
-      sh.insert({ x: i, y: i });
-    }
-    const near = sh.query(10, 10, 5);
-    expect(near.length).toBeGreaterThan(0);
+  it("updates position on re-insert", () => {
+    const sh = new SpatialHash<string>(10);
+    sh.insert("mover", 5, 5);
+    sh.insert("mover", 95, 95);
+    expect(sh.query(0, 0, 10, 10)).not.toContain("mover");
+    expect(sh.query(90, 90, 10, 10)).toContain("mover");
+    expect(sh.size).toBe(1);
   });
 });

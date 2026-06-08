@@ -1,74 +1,64 @@
 import { describe, it, expect } from "vitest";
 import { SkipList } from "../skip-list.js";
 
-const numCompare = (a: number, b: number) => a - b;
-
 describe("SkipList", () => {
-  it("starts empty", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    expect(sl.size).toBe(0);
+  it("sets and gets values", () => {
+    const sl = new SkipList<number, string>();
+    sl.set(1, "a");
+    sl.set(2, "b");
+    sl.set(3, "c");
+    expect(sl.get(1)).toBe("a");
+    expect(sl.get(2)).toBe("b");
+    expect(sl.get(3)).toBe("c");
   });
 
-  it("set and get", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    sl.set(5, "five");
-    expect(sl.get(5)).toBe("five");
+  it("overwrites existing keys", () => {
+    const sl = new SkipList<number, string>();
+    sl.set(1, "old");
+    sl.set(1, "new");
+    expect(sl.get(1)).toBe("new");
+    expect(sl.size).toBe(1);
   });
 
-  it("get returns undefined for missing key", () => {
-    const sl = new SkipList<number, string>(numCompare);
+  it("returns undefined for missing keys", () => {
+    const sl = new SkipList<number, string>();
     expect(sl.get(99)).toBeUndefined();
   });
 
   it("has checks existence", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    sl.set(1, "one");
-    expect(sl.has(1)).toBe(true);
-    expect(sl.has(2)).toBe(false);
+    const sl = new SkipList<string, number>();
+    sl.set("x", 1);
+    expect(sl.has("x")).toBe(true);
+    expect(sl.has("y")).toBe(false);
   });
 
-  it("set overwrites existing key", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    sl.set(1, "one");
-    sl.set(1, "ONE");
-    expect(sl.get(1)).toBe("ONE");
-    expect(sl.size).toBe(1);
-  });
-
-  it("delete removes key", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    sl.set(1, "one");
+  it("deletes keys", () => {
+    const sl = new SkipList<number, string>();
+    sl.set(1, "a");
+    sl.set(2, "b");
     expect(sl.delete(1)).toBe(true);
-    expect(sl.has(1)).toBe(false);
-    expect(sl.size).toBe(0);
-  });
-
-  it("delete returns false for missing key", () => {
-    const sl = new SkipList<number, string>(numCompare);
+    expect(sl.get(1)).toBeUndefined();
+    expect(sl.size).toBe(1);
     expect(sl.delete(99)).toBe(false);
   });
 
-  it("keys returns sorted keys", () => {
-    const sl = new SkipList<number, string>(numCompare);
+  it("toArray returns sorted entries", () => {
+    const sl = new SkipList<number, string>();
     sl.set(3, "c");
     sl.set(1, "a");
     sl.set(2, "b");
-    expect(sl.keys()).toEqual([1, 2, 3]);
+    const arr = sl.toArray();
+    expect(arr.map((e) => e.key)).toEqual([1, 2, 3]);
+    expect(arr.map((e) => e.value)).toEqual(["a", "b", "c"]);
   });
 
-  it("entries returns sorted entries", () => {
-    const sl = new SkipList<number, string>(numCompare);
-    sl.set(2, "b");
-    sl.set(1, "a");
-    expect(sl.entries()).toEqual([[1, "a"], [2, "b"]]);
-  });
-
-  it("handles many elements", () => {
-    const sl = new SkipList<number, number>(numCompare);
-    for (let i = 100; i > 0; i--) sl.set(i, i * 10);
-    expect(sl.size).toBe(100);
-    expect(sl.get(50)).toBe(500);
-    expect(sl.keys()[0]).toBe(1);
-    expect(sl.keys()[99]).toBe(100);
+  it("tracks size", () => {
+    const sl = new SkipList<number, number>();
+    expect(sl.size).toBe(0);
+    sl.set(1, 1);
+    sl.set(2, 2);
+    expect(sl.size).toBe(2);
+    sl.delete(1);
+    expect(sl.size).toBe(1);
   });
 });
