@@ -1,45 +1,41 @@
 import { describe, it, expect } from "vitest";
-import { table, fromObjects } from "../ascii-table.js";
+import { table, alignRight, alignCenter } from "../ascii-table.js";
 
-describe("ascii-table", () => {
-  it("formats a basic table", () => {
-    const result = table(["Name", "Age"], [["Alice", 30], ["Bob", 25]]);
+describe("table", () => {
+  it("renders a simple table", () => {
+    const result = table(["Name", "Age"], [["Alice", "30"], ["Bob", "25"]]);
     expect(result).toContain("Alice");
     expect(result).toContain("Bob");
+    expect(result).toContain("Name");
+  });
+
+  it("renders with border", () => {
+    const result = table(["A", "B"], [["1", "2"]], { border: true });
     expect(result).toContain("|");
-    expect(result).toContain("---");
+    expect(result).toContain("+");
   });
 
-  it("aligns columns right", () => {
-    const result = table(
-      ["Item", "Price"],
-      [["Widget", 9.99], ["Gadget", 42]],
-      { align: { Price: "right" } }
-    );
-    expect(result).toContain("Price");
-  });
-
-  it("no border mode", () => {
+  it("renders without border", () => {
     const result = table(["A", "B"], [["1", "2"]], { border: false });
     expect(result).not.toContain("|");
   });
 
-  it("fromObjects builds from array of objects", () => {
-    const result = fromObjects([
-      { name: "x", val: 1 },
-      { name: "y", val: 2 },
-    ]);
-    expect(result).toContain("name");
-    expect(result).toContain("val");
-    expect(result).toContain("x");
+  it("renders without header", () => {
+    const result = table(["A", "B"], [["1", "2"]], { header: false });
+    expect(result).not.toContain("A");
   });
+});
 
-  it("fromObjects returns empty for empty array", () => {
-    expect(fromObjects([])).toBe("");
+describe("alignRight", () => {
+  it("right-aligns text", () => {
+    expect(alignRight("42", 6)).toBe("    42");
   });
+});
 
-  it("handles missing values gracefully", () => {
-    const result = table(["A", "B"], [["only-a"]]);
-    expect(result).toContain("only-a");
+describe("alignCenter", () => {
+  it("centers text", () => {
+    const result = alignCenter("hi", 6);
+    expect(result.length).toBe(6);
+    expect(result.trim()).toBe("hi");
   });
 });

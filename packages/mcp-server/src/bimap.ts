@@ -1,66 +1,60 @@
-export class BiMap<K, V> {
-  private forward = new Map<K, V>();
-  private reverse = new Map<V, K>();
+export class BiMap<L, R> {
+  private leftToRight = new Map<L, R>();
+  private rightToLeft = new Map<R, L>();
 
-  get size(): number {
-    return this.forward.size;
-  }
-
-  set(key: K, value: V): void {
-    if (this.forward.has(key)) {
-      const oldVal = this.forward.get(key)!;
-      this.reverse.delete(oldVal);
+  set(left: L, right: R): void {
+    if (this.leftToRight.has(left)) {
+      this.rightToLeft.delete(this.leftToRight.get(left)!);
     }
-    if (this.reverse.has(value)) {
-      const oldKey = this.reverse.get(value)!;
-      this.forward.delete(oldKey);
+    if (this.rightToLeft.has(right)) {
+      this.leftToRight.delete(this.rightToLeft.get(right)!);
     }
-    this.forward.set(key, value);
-    this.reverse.set(value, key);
+    this.leftToRight.set(left, right);
+    this.rightToLeft.set(right, left);
   }
 
-  get(key: K): V | undefined {
-    return this.forward.get(key);
+  getByLeft(left: L): R | undefined {
+    return this.leftToRight.get(left);
   }
 
-  getKey(value: V): K | undefined {
-    return this.reverse.get(value);
+  getByRight(right: R): L | undefined {
+    return this.rightToLeft.get(right);
   }
 
-  hasKey(key: K): boolean {
-    return this.forward.has(key);
-  }
+  hasLeft(left: L): boolean { return this.leftToRight.has(left); }
+  hasRight(right: R): boolean { return this.rightToLeft.has(right); }
 
-  hasValue(value: V): boolean {
-    return this.reverse.has(value);
-  }
-
-  deleteKey(key: K): boolean {
-    const value = this.forward.get(key);
-    if (value === undefined && !this.forward.has(key)) return false;
-    this.forward.delete(key);
-    this.reverse.delete(value!);
+  deleteByLeft(left: L): boolean {
+    const right = this.leftToRight.get(left);
+    if (right === undefined) return false;
+    this.leftToRight.delete(left);
+    this.rightToLeft.delete(right);
     return true;
   }
 
-  deleteValue(value: V): boolean {
-    const key = this.reverse.get(value);
-    if (key === undefined && !this.reverse.has(value)) return false;
-    this.reverse.delete(value);
-    this.forward.delete(key!);
+  deleteByRight(right: R): boolean {
+    const left = this.rightToLeft.get(right);
+    if (left === undefined) return false;
+    this.rightToLeft.delete(right);
+    this.leftToRight.delete(left);
     return true;
   }
 
-  keys(): K[] {
-    return [...this.forward.keys()];
-  }
+  get size(): number { return this.leftToRight.size; }
 
-  values(): V[] {
-    return [...this.forward.values()];
-  }
+  leftKeys(): IterableIterator<L> { return this.leftToRight.keys(); }
+  rightKeys(): IterableIterator<R> { return this.rightToLeft.keys(); }
 
   clear(): void {
-    this.forward.clear();
-    this.reverse.clear();
+    this.leftToRight.clear();
+    this.rightToLeft.clear();
+  }
+
+  inverse(): BiMap<R, L> {
+    const inv = new BiMap<R, L>();
+    for (const [left, right] of this.leftToRight) {
+      inv.set(right, left);
+    }
+    return inv;
   }
 }

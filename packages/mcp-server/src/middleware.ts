@@ -1,40 +1,39 @@
+export type Context = Record<string, unknown>;
 export type Next = () => Promise<void>;
-export type Middleware<C> = (context: C, next: Next) => Promise<void>;
+export type MiddlewareFn = (ctx: Context, next: Next) => Promise<void>;
 
-export class Pipeline<C> {
-  private middlewares: Middleware<C>[] = [];
+export class MiddlewareChain {
+  private stack: MiddlewareFn[] = [];
 
-  use(middleware: Middleware<C>): this {
-    this.middlewares.push(middleware);
+  use(fn: MiddlewareFn): this {
+    this.stack.push(fn);
     return this;
   }
 
-  async execute(context: C): Promise<void> {
-    let index = 0;
-    const run = async (): Promise<void> => {
-      if (index >= this.middlewares.length) return;
-      const mw = this.middlewares[index++];
-      await mw(context, run);
+  async execute(ctx: Context = {}): Promise<Context> {
+    let index = -1;
+    const dispatch = async (i: number): Promise<void> => {
+      if (i <= index) throw new Error("next() called multiple times");
+      index = i;
+      if (i >= this.stack.length) return;
+      await this.stack[i](ctx, () => dispatch(i + 1));
     };
-    await run();
+    await dispatch(0);
+    return ctx;
   }
 
-  get length(): number {
-    return this.middlewares.length;
-  }
+  get length(): number { return this.stack.length; }
 }
 
-export function compose<C>(...middlewares: Middleware<C>[]): Middleware<C> {
-  return async (context: C, next: Next) => {
-    let index = 0;
-    const run = async (): Promise<void> => {
-      if (index < middlewares.length) {
-        const mw = middlewares[index++];
-        await mw(context, run);
-      } else {
-        await next();
-      }
+export function compose(...fns: MiddlewareFn[]): MiddlewareFn {
+  return async (ctx: Context, next: Next) => {
+    let index = -1;
+    const dispatch = async (i: number): Promise<void> => {
+      if (i <= index) throw new Error("next() called multiple times");
+      index = i;
+      if (i >= fns.length) { await next(); return; }
+      await fns[i](ctx, () => dispatch(i + 1));
     };
-    await run();
+    await dispatch(0);
   };
 }

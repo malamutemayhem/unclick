@@ -2,83 +2,63 @@ import { describe, it, expect } from "vitest";
 import { MultiMap } from "../multimap.js";
 
 describe("MultiMap", () => {
-  it("sets multiple values per key", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("a", 2);
-    expect(m.get("a")).toEqual([1, 2]);
+  it("stores multiple values per key", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.set("a", 2);
+    expect(mm.get("a")).toEqual([1, 2]);
   });
 
-  it("tracks total size", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("a", 2);
-    m.set("b", 3);
-    expect(m.size).toBe(3);
-    expect(m.keyCount).toBe(2);
+  it("returns empty for missing key", () => {
+    const mm = new MultiMap<string, number>();
+    expect(mm.get("nope")).toEqual([]);
   });
 
-  it("returns empty array for missing key", () => {
-    const m = new MultiMap<string, number>();
-    expect(m.get("x")).toEqual([]);
+  it("has and hasValue", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    expect(mm.has("a")).toBe(true);
+    expect(mm.hasValue("a", 1)).toBe(true);
+    expect(mm.hasValue("a", 2)).toBe(false);
   });
 
-  it("has checks key existence", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    expect(m.has("a")).toBe(true);
-    expect(m.has("b")).toBe(false);
+  it("delete removes all values", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.set("a", 2);
+    mm.delete("a");
+    expect(mm.has("a")).toBe(false);
   });
 
-  it("deletes all values for key", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("a", 2);
-    expect(m.delete("a")).toBe(true);
-    expect(m.get("a")).toEqual([]);
-    expect(m.size).toBe(0);
+  it("deleteValue removes single value", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.set("a", 2);
+    mm.deleteValue("a", 1);
+    expect(mm.get("a")).toEqual([2]);
   });
 
-  it("deletes specific value", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("a", 2);
-    m.set("a", 3);
-    expect(m.delete("a", 2)).toBe(true);
-    expect(m.get("a")).toEqual([1, 3]);
-    expect(m.size).toBe(2);
+  it("tracks size and totalValues", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.set("a", 2);
+    mm.set("b", 3);
+    expect(mm.size).toBe(2);
+    expect(mm.totalValues).toBe(3);
   });
 
-  it("returns false when deleting non-existent", () => {
-    const m = new MultiMap<string, number>();
-    expect(m.delete("x")).toBe(false);
-    m.set("a", 1);
-    expect(m.delete("a", 99)).toBe(false);
+  it("iterates all pairs", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.set("a", 2);
+    const pairs = [...mm];
+    expect(pairs).toEqual([["a", 1], ["a", 2]]);
   });
 
-  it("removes key when last value deleted", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.delete("a", 1);
-    expect(m.has("a")).toBe(false);
-  });
-
-  it("keys, values, entries", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("a", 2);
-    m.set("b", 3);
-    expect(m.keys()).toEqual(["a", "b"]);
-    expect(m.values()).toEqual([1, 2, 3]);
-    expect(m.entries()).toEqual([["a", [1, 2]], ["b", [3]]]);
-  });
-
-  it("clears everything", () => {
-    const m = new MultiMap<string, number>();
-    m.set("a", 1);
-    m.set("b", 2);
-    m.clear();
-    expect(m.size).toBe(0);
-    expect(m.keyCount).toBe(0);
+  it("clear empties the map", () => {
+    const mm = new MultiMap<string, number>();
+    mm.set("a", 1);
+    mm.clear();
+    expect(mm.size).toBe(0);
   });
 });

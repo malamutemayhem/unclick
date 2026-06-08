@@ -1,23 +1,9 @@
 export class MultiMap<K, V> {
   private map = new Map<K, V[]>();
-  private _size = 0;
-
-  get size(): number {
-    return this._size;
-  }
-
-  get keyCount(): number {
-    return this.map.size;
-  }
 
   set(key: K, value: V): void {
-    const arr = this.map.get(key);
-    if (arr) {
-      arr.push(value);
-    } else {
-      this.map.set(key, [value]);
-    }
-    this._size++;
+    if (!this.map.has(key)) this.map.set(key, []);
+    this.map.get(key)!.push(value);
   }
 
   get(key: K): V[] {
@@ -28,40 +14,43 @@ export class MultiMap<K, V> {
     return this.map.has(key);
   }
 
-  delete(key: K, value?: V): boolean {
-    if (value === undefined) {
-      const arr = this.map.get(key);
-      if (!arr) return false;
-      this._size -= arr.length;
-      this.map.delete(key);
-      return true;
-    }
-    const arr = this.map.get(key);
-    if (!arr) return false;
-    const idx = arr.indexOf(value);
+  hasValue(key: K, value: V): boolean {
+    return this.get(key).includes(value);
+  }
+
+  delete(key: K): boolean {
+    return this.map.delete(key);
+  }
+
+  deleteValue(key: K, value: V): boolean {
+    const values = this.map.get(key);
+    if (!values) return false;
+    const idx = values.indexOf(value);
     if (idx === -1) return false;
-    arr.splice(idx, 1);
-    this._size--;
-    if (arr.length === 0) this.map.delete(key);
+    values.splice(idx, 1);
+    if (values.length === 0) this.map.delete(key);
     return true;
   }
 
-  keys(): K[] {
-    return [...this.map.keys()];
+  get size(): number { return this.map.size; }
+
+  get totalValues(): number {
+    let count = 0;
+    for (const values of this.map.values()) count += values.length;
+    return count;
   }
 
-  values(): V[] {
-    const result: V[] = [];
-    for (const arr of this.map.values()) result.push(...arr);
-    return result;
-  }
+  keys(): IterableIterator<K> { return this.map.keys(); }
 
   entries(): [K, V[]][] {
     return [...this.map.entries()];
   }
 
-  clear(): void {
-    this.map.clear();
-    this._size = 0;
+  clear(): void { this.map.clear(); }
+
+  *[Symbol.iterator](): Iterator<[K, V]> {
+    for (const [key, values] of this.map) {
+      for (const value of values) yield [key, value];
+    }
   }
 }
