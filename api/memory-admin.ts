@@ -2561,6 +2561,12 @@ export const CONTEXT_TEMPLATES: Record<string, Array<{ category: string; key: st
     { category: "standing_rule", key: "tool_first", value: "Before web search or guessing for live or external data, check UnClick for a tool with unclick_search and run it with unclick_call." },
     { category: "workflow", key: "session_close", value: "Write a session summary before ending so the next session resumes without re-asking." },
     { category: "standing_rule", key: "save_fixes", value: "Record solved problems as troubleshooting facts: 'Issue: <symptom>. Solution: <fix>'." },
+    { category: "standing_rule", key: "proof_before_done", value: "Close work only on observable proof (a link, id, test or CI result, or a screenshot for UI), never on status text or green badges alone." },
+    { category: "standing_rule", key: "high_risk_stop", value: "Pause for explicit confirmation before irreversible or high-risk actions: merging, deploying, deleting, or touching secrets, billing, DNS, or production data." },
+    { category: "standing_rule", key: "secret_hygiene", value: "Never print, log, or save secrets, tokens, or API keys; keep them out of summaries and memory." },
+    { category: "workflow", key: "scoped_slices", value: "Claim one small scoped slice with an ETA before starting, and prefer the smallest safe change over broad edits." },
+    { category: "workflow", key: "specific_blockers", value: "When blocked, post a specific blocker naming what is missing, what you already checked, and the next step, not just a status." },
+    { category: "standing_rule", key: "copy_from_source", value: "When exact text, code, or data is provided, copy it from the source instead of retyping from memory, to avoid drift." },
   ],
 };
 

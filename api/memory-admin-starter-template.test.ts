@@ -12,13 +12,21 @@ describe("admin_context_apply_template starter templates", () => {
   it("adds an `unclick` operating-basics template so a new account is not blank", () => {
     const rows = CONTEXT_TEMPLATES.unclick;
     expect(Array.isArray(rows)).toBe(true);
-    expect(rows.length).toBeGreaterThanOrEqual(4);
+    expect(rows.length).toBeGreaterThanOrEqual(10);
 
     const keys = rows.map((r) => r.key);
+    // core operating basics
     expect(keys).toContain("memory_protocol");
     expect(keys).toContain("tool_first");
     expect(keys).toContain("session_close");
     expect(keys).toContain("save_fixes");
+    // operating-discipline guardrails distilled from the orchestrator
+    expect(keys).toContain("proof_before_done");
+    expect(keys).toContain("high_risk_stop");
+    expect(keys).toContain("secret_hygiene");
+    expect(keys).toContain("scoped_slices");
+    expect(keys).toContain("specific_blockers");
+    expect(keys).toContain("copy_from_source");
 
     // the tool-first rule must point agents at UnClick's own tools
     const toolFirst = rows.find((r) => r.key === "tool_first");
@@ -39,7 +47,7 @@ describe("admin_context_apply_template starter templates", () => {
         expect(validCategories.has(row.category)).toBe(true);
         expect(row.key).toMatch(/^[a-z_]+$/);
         expect(row.value.length).toBeGreaterThan(0);
-        expect(row.value.includes("—")).toBe(false); // em dash banned repo-wide
+        expect(row.value.includes(String.fromCharCode(0x2014))).toBe(false); // em dash banned repo-wide
       }
     }
   });

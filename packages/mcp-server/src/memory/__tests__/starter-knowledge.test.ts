@@ -24,8 +24,17 @@ describe("starter knowledge (platform defaults shipped to every account)", () =>
     assert.ok(/Issue: <symptom>\. Solution: <fix>/.test(AGENT_INSTRUCTIONS));
   });
 
+  test("includes the operating-discipline guardrails distilled from the orchestrator", () => {
+    // proof-before-done: status text and green badges are not proof
+    assert.ok(AGENT_INSTRUCTIONS.includes("green badges"));
+    // stop before irreversible / high-risk actions
+    assert.ok(AGENT_INSTRUCTIONS.includes("irreversible or high-risk"));
+    // secret hygiene applies even on a brand-new account
+    assert.ok(AGENT_INSTRUCTIONS.includes("never print, log, or save secrets"));
+  });
+
   test("carries no personal data and no em dashes (it ships to every account)", () => {
-    assert.equal(AGENT_INSTRUCTIONS.includes("—"), false); // em dash banned repo-wide
+    assert.equal(AGENT_INSTRUCTIONS.includes(String.fromCharCode(0x2014)), false); // em dash banned repo-wide
     for (const personal of ["Chris", "Malamute", "Sydney", "C:\\G", "Fishbowl", "Boardroom"]) {
       assert.equal(
         AGENT_INSTRUCTIONS.includes(personal),
