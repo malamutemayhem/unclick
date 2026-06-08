@@ -1,63 +1,54 @@
 export class DisjointSet<T> {
   private parent = new Map<T, T>();
   private rank = new Map<T, number>();
-  private _componentCount = 0;
+  private _size = 0;
 
   makeSet(x: T): void {
     if (this.parent.has(x)) return;
     this.parent.set(x, x);
     this.rank.set(x, 0);
-    this._componentCount++;
+    this._size++;
   }
 
   find(x: T): T {
     if (!this.parent.has(x)) throw new Error("Element not in set");
+    let root = x;
+    while (this.parent.get(root) !== root) root = this.parent.get(root)!;
     let current = x;
-    while (this.parent.get(current) !== current) {
-      const grandparent = this.parent.get(this.parent.get(current)!)!;
-      this.parent.set(current, grandparent);
-      current = grandparent;
+    while (current !== root) {
+      const next = this.parent.get(current)!;
+      this.parent.set(current, root);
+      current = next;
     }
-    return current;
+    return root;
   }
 
-  union(x: T, y: T): boolean {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-    const rankX = this.rank.get(rootX)!;
-    const rankY = this.rank.get(rootY)!;
-    if (rankX < rankY) {
-      this.parent.set(rootX, rootY);
-    } else if (rankX > rankY) {
-      this.parent.set(rootY, rootX);
-    } else {
-      this.parent.set(rootY, rootX);
-      this.rank.set(rootX, rankX + 1);
-    }
-    this._componentCount--;
+  union(a: T, b: T): boolean {
+    const rootA = this.find(a);
+    const rootB = this.find(b);
+    if (rootA === rootB) return false;
+    const rankA = this.rank.get(rootA)!;
+    const rankB = this.rank.get(rootB)!;
+    if (rankA < rankB) this.parent.set(rootA, rootB);
+    else if (rankA > rankB) this.parent.set(rootB, rootA);
+    else { this.parent.set(rootB, rootA); this.rank.set(rootA, rankA + 1); }
+    this._size--;
     return true;
   }
 
-  connected(x: T, y: T): boolean {
-    return this.find(x) === this.find(y);
+  connected(a: T, b: T): boolean {
+    return this.find(a) === this.find(b);
   }
 
-  get componentCount(): number {
-    return this._componentCount;
-  }
+  get setCount(): number { return this._size; }
 
-  get size(): number {
-    return this.parent.size;
-  }
-
-  components(): Map<T, T[]> {
+  sets(): T[][] {
     const groups = new Map<T, T[]>();
-    for (const item of this.parent.keys()) {
-      const root = this.find(item);
+    for (const el of this.parent.keys()) {
+      const root = this.find(el);
       if (!groups.has(root)) groups.set(root, []);
-      groups.get(root)!.push(item);
+      groups.get(root)!.push(el);
     }
-    return groups;
+    return [...groups.values()];
   }
 }

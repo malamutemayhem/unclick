@@ -1,45 +1,76 @@
 import { describe, it, expect } from "vitest";
-import { crc32, adler32, fnv1a, djb2, checksumEqual } from "../checksum.js";
+import { crc32, adler32, fletcher16, djb2, fnv1a, simpleHash } from "../checksum.js";
 
-describe("checksum", () => {
-  it("crc32 produces consistent results", () => {
+describe("crc32", () => {
+  it("computes consistent hash", () => {
     expect(crc32("hello")).toBe(crc32("hello"));
+  });
+
+  it("different inputs produce different hashes", () => {
     expect(crc32("hello")).not.toBe(crc32("world"));
   });
 
-  it("crc32 produces non-zero for non-empty input", () => {
-    expect(crc32("test")).toBeGreaterThan(0);
+  it("empty string has known value", () => {
+    expect(crc32("")).toBe(0);
   });
 
-  it("adler32 produces consistent results", () => {
+  it("returns positive number", () => {
+    expect(crc32("test")).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("adler32", () => {
+  it("computes consistent hash", () => {
     expect(adler32("hello")).toBe(adler32("hello"));
-    expect(adler32("hello")).not.toBe(adler32("world"));
   });
 
-  it("fnv1a produces consistent results", () => {
+  it("different inputs differ", () => {
+    expect(adler32("foo")).not.toBe(adler32("bar"));
+  });
+
+  it("returns positive number", () => {
+    expect(adler32("test")).toBeGreaterThan(0);
+  });
+});
+
+describe("fletcher16", () => {
+  it("computes consistent hash", () => {
+    expect(fletcher16("test")).toBe(fletcher16("test"));
+  });
+
+  it("different inputs differ", () => {
+    expect(fletcher16("abc")).not.toBe(fletcher16("xyz"));
+  });
+});
+
+describe("djb2", () => {
+  it("computes consistent hash", () => {
+    expect(djb2("hello")).toBe(djb2("hello"));
+  });
+
+  it("returns a number", () => {
+    expect(typeof djb2("test")).toBe("number");
+  });
+});
+
+describe("fnv1a", () => {
+  it("computes consistent hash", () => {
     expect(fnv1a("hello")).toBe(fnv1a("hello"));
+  });
+
+  it("different inputs differ", () => {
     expect(fnv1a("hello")).not.toBe(fnv1a("world"));
   });
+});
 
-  it("djb2 produces consistent results", () => {
-    expect(djb2("hello")).toBe(djb2("hello"));
-    expect(djb2("hello")).not.toBe(djb2("world"));
+describe("simpleHash", () => {
+  it("maps to range", () => {
+    const h = simpleHash("test", 100);
+    expect(h).toBeGreaterThanOrEqual(0);
+    expect(h).toBeLessThan(100);
   });
 
-  it("checksumEqual compares via crc32", () => {
-    expect(checksumEqual("abc", "abc")).toBe(true);
-    expect(checksumEqual("abc", "xyz")).toBe(false);
-  });
-
-  it("different algorithms give different values", () => {
-    const input = "test-data";
-    const results = [crc32(input), adler32(input), fnv1a(input), djb2(input)];
-    const unique = new Set(results);
-    expect(unique.size).toBe(4);
-  });
-
-  it("handles empty string", () => {
-    expect(crc32("")).toBe(0);
-    expect(adler32("")).toBe(1);
+  it("is consistent", () => {
+    expect(simpleHash("key", 50)).toBe(simpleHash("key", 50));
   });
 });

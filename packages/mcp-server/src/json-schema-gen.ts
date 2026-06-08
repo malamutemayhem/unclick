@@ -1,5 +1,5 @@
 export type SchemaType = {
-  type: string;
+  type?: string;
   properties?: Record<string, SchemaType>;
   items?: SchemaType;
   required?: string[];
