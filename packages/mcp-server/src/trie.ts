@@ -1,92 +1,91 @@
 interface TrieNode {
   children: Map<string, TrieNode>;
   isEnd: boolean;
+  value?: unknown;
 }
 
 function createNode(): TrieNode {
   return { children: new Map(), isEnd: false };
 }
 
-export class Trie {
-  private root = createNode();
-  private count = 0;
+export class Trie<T = boolean> {
+  private root: TrieNode = createNode();
+  private _size = 0;
 
-  insert(word: string): this {
+  insert(key: string, value?: T): void {
     let node = this.root;
-    for (const ch of word) {
+    for (const ch of key) {
       if (!node.children.has(ch)) node.children.set(ch, createNode());
       node = node.children.get(ch)!;
     }
-    if (!node.isEnd) {
-      node.isEnd = true;
-      this.count++;
-    }
-    return this;
+    if (!node.isEnd) this._size++;
+    node.isEnd = true;
+    node.value = value;
   }
 
-  has(word: string): boolean {
-    const node = this.findNode(word);
+  has(key: string): boolean {
+    const node = this.findNode(key);
     return node !== null && node.isEnd;
   }
 
-  hasPrefix(prefix: string): boolean {
-    return this.findNode(prefix) !== null;
+  get(key: string): T | undefined {
+    const node = this.findNode(key);
+    if (node === null || !node.isEnd) return undefined;
+    return node.value as T;
   }
 
-  remove(word: string): boolean {
-    const path: Array<{ node: TrieNode; char: string }> = [];
+  delete(key: string): boolean {
+    const path: [TrieNode, string][] = [];
     let node = this.root;
-    for (const ch of word) {
+    for (const ch of key) {
       if (!node.children.has(ch)) return false;
-      path.push({ node, char: ch });
+      path.push([node, ch]);
       node = node.children.get(ch)!;
     }
     if (!node.isEnd) return false;
     node.isEnd = false;
-    this.count--;
+    node.value = undefined;
+    this._size--;
     for (let i = path.length - 1; i >= 0; i--) {
-      const { node: parent, char } = path[i];
-      const child = parent.children.get(char)!;
-      if (child.children.size === 0 && !child.isEnd) {
-        parent.children.delete(char);
-      } else {
-        break;
-      }
+      const [parent, ch] = path[i];
+      const child = parent.children.get(ch)!;
+      if (child.isEnd || child.children.size > 0) break;
+      parent.children.delete(ch);
     }
     return true;
   }
 
-  autocomplete(prefix: string, limit: number = 10): string[] {
+  startsWith(prefix: string): string[] {
     const node = this.findNode(prefix);
-    if (!node) return [];
+    if (node === null) return [];
     const results: string[] = [];
-    const collect = (n: TrieNode, path: string): void => {
-      if (results.length >= limit) return;
-      if (n.isEnd) results.push(path);
-      for (const [ch, child] of n.children) {
-        if (results.length >= limit) return;
-        collect(child, path + ch);
-      }
-    };
-    collect(node, prefix);
+    this.collect(node, prefix, results);
     return results;
   }
 
   get size(): number {
-    return this.count;
+    return this._size;
   }
 
-  clear(): void {
-    this.root = createNode();
-    this.count = 0;
+  keys(): string[] {
+    const results: string[] = [];
+    this.collect(this.root, "", results);
+    return results;
   }
 
-  private findNode(prefix: string): TrieNode | null {
+  private findNode(key: string): TrieNode | null {
     let node = this.root;
-    for (const ch of prefix) {
+    for (const ch of key) {
       if (!node.children.has(ch)) return null;
       node = node.children.get(ch)!;
     }
     return node;
+  }
+
+  private collect(node: TrieNode, prefix: string, results: string[]): void {
+    if (node.isEnd) results.push(prefix);
+    for (const [ch, child] of node.children) {
+      this.collect(child, prefix + ch, results);
+    }
   }
 }

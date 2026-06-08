@@ -2,54 +2,63 @@ import { describe, it, expect } from "vitest";
 import { IntervalTree } from "../interval-tree.js";
 
 describe("IntervalTree", () => {
-  it("inserts and queries overlapping intervals", () => {
+  it("search finds intervals containing a point", () => {
     const tree = new IntervalTree();
-    tree.insert(1, 5);
-    tree.insert(3, 8);
-    tree.insert(10, 15);
-    const result = tree.query(4, 6);
+    tree.insert({ low: 1, high: 5 });
+    tree.insert({ low: 3, high: 8 });
+    tree.insert({ low: 10, high: 15 });
+    const at4 = tree.search(4);
+    expect(at4.length).toBe(2);
+    const at12 = tree.search(12);
+    expect(at12.length).toBe(1);
+    expect(at12[0].interval).toEqual({ low: 10, high: 15 });
+  });
+
+  it("search returns empty for no match", () => {
+    const tree = new IntervalTree();
+    tree.insert({ low: 1, high: 3 });
+    expect(tree.search(5)).toEqual([]);
+  });
+
+  it("overlap finds overlapping intervals", () => {
+    const tree = new IntervalTree();
+    tree.insert({ low: 1, high: 5 });
+    tree.insert({ low: 6, high: 10 });
+    tree.insert({ low: 8, high: 12 });
+    const result = tree.overlap({ low: 4, high: 7 });
     expect(result.length).toBe(2);
   });
 
-  it("returns empty for non-overlapping query", () => {
-    const tree = new IntervalTree();
-    tree.insert(1, 3);
-    tree.insert(5, 7);
-    expect(tree.query(8, 10)).toEqual([]);
+  it("stores data with intervals", () => {
+    const tree = new IntervalTree<string>();
+    tree.insert({ low: 0, high: 10 }, "first");
+    tree.insert({ low: 5, high: 15 }, "second");
+    const results = tree.search(7);
+    const dataValues = results.map((r) => r.data).sort();
+    expect(dataValues).toEqual(["first", "second"]);
   });
 
-  it("contains returns intervals at a point", () => {
+  it("size tracks insertions", () => {
     const tree = new IntervalTree();
-    tree.insert(1, 10);
-    tree.insert(5, 15);
-    tree.insert(20, 25);
-    const at7 = tree.contains(7);
-    expect(at7.length).toBe(2);
-    const at22 = tree.contains(22);
-    expect(at22.length).toBe(1);
-  });
-
-  it("tracks size", () => {
-    const tree = new IntervalTree();
-    tree.insert(1, 5);
-    tree.insert(3, 8);
+    expect(tree.size).toBe(0);
+    tree.insert({ low: 1, high: 2 });
+    tree.insert({ low: 3, high: 4 });
     expect(tree.size).toBe(2);
   });
 
-  it("toArray returns sorted intervals", () => {
+  it("all returns all intervals", () => {
     const tree = new IntervalTree();
-    tree.insert(5, 10);
-    tree.insert(1, 3);
-    tree.insert(7, 12);
-    const arr = tree.toArray();
-    expect(arr.length).toBe(3);
-    expect(arr[0].low).toBe(1);
+    tree.insert({ low: 5, high: 10 });
+    tree.insert({ low: 1, high: 3 });
+    expect(tree.all().length).toBe(2);
   });
 
-  it("handles single-point intervals", () => {
+  it("handles boundary points", () => {
     const tree = new IntervalTree();
-    tree.insert(5, 5);
-    expect(tree.contains(5).length).toBe(1);
-    expect(tree.contains(4)).toEqual([]);
+    tree.insert({ low: 5, high: 10 });
+    expect(tree.search(5).length).toBe(1);
+    expect(tree.search(10).length).toBe(1);
+    expect(tree.search(4).length).toBe(0);
+    expect(tree.search(11).length).toBe(0);
   });
 });

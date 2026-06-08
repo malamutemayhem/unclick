@@ -4,68 +4,65 @@ import { Trie } from "../trie.js";
 describe("Trie", () => {
   it("insert and has", () => {
     const t = new Trie();
-    t.insert("hello").insert("help");
+    t.insert("hello");
+    t.insert("help");
     expect(t.has("hello")).toBe(true);
     expect(t.has("help")).toBe(true);
     expect(t.has("hel")).toBe(false);
+    expect(t.has("world")).toBe(false);
   });
 
-  it("hasPrefix", () => {
+  it("insert with values", () => {
+    const t = new Trie<number>();
+    t.insert("a", 1);
+    t.insert("b", 2);
+    expect(t.get("a")).toBe(1);
+    expect(t.get("b")).toBe(2);
+    expect(t.get("c")).toBeUndefined();
+  });
+
+  it("delete removes keys", () => {
     const t = new Trie();
     t.insert("hello");
-    expect(t.hasPrefix("hel")).toBe(true);
-    expect(t.hasPrefix("xyz")).toBe(false);
-  });
-
-  it("remove", () => {
-    const t = new Trie();
-    t.insert("hello").insert("help");
-    expect(t.remove("hello")).toBe(true);
+    t.insert("help");
+    expect(t.delete("hello")).toBe(true);
     expect(t.has("hello")).toBe(false);
     expect(t.has("help")).toBe(true);
     expect(t.size).toBe(1);
   });
 
-  it("remove returns false for missing", () => {
+  it("delete returns false for missing", () => {
     const t = new Trie();
-    t.insert("hello");
-    expect(t.remove("world")).toBe(false);
-    expect(t.remove("hel")).toBe(false);
+    expect(t.delete("nope")).toBe(false);
   });
 
-  it("autocomplete", () => {
+  it("startsWith returns matching keys", () => {
     const t = new Trie();
-    t.insert("cat").insert("car").insert("card").insert("dog");
-    const results = t.autocomplete("ca");
-    expect(results).toContain("cat");
-    expect(results).toContain("car");
-    expect(results).toContain("card");
-    expect(results).not.toContain("dog");
+    t.insert("app");
+    t.insert("apple");
+    t.insert("apply");
+    t.insert("banana");
+    const matches = t.startsWith("app");
+    expect(matches.sort()).toEqual(["app", "apple", "apply"]);
   });
 
-  it("autocomplete with limit", () => {
+  it("keys returns all keys", () => {
     const t = new Trie();
-    t.insert("a1").insert("a2").insert("a3");
-    expect(t.autocomplete("a", 2)).toHaveLength(2);
+    t.insert("a");
+    t.insert("b");
+    t.insert("c");
+    expect(t.keys().sort()).toEqual(["a", "b", "c"]);
   });
 
-  it("autocomplete empty prefix returns all", () => {
+  it("size tracks correctly", () => {
     const t = new Trie();
-    t.insert("a").insert("b");
-    expect(t.autocomplete("")).toHaveLength(2);
-  });
-
-  it("tracks size", () => {
-    const t = new Trie();
-    t.insert("a").insert("b").insert("a");
-    expect(t.size).toBe(2);
-  });
-
-  it("clear", () => {
-    const t = new Trie();
-    t.insert("a").insert("b");
-    t.clear();
     expect(t.size).toBe(0);
-    expect(t.has("a")).toBe(false);
+    t.insert("a");
+    t.insert("b");
+    expect(t.size).toBe(2);
+    t.insert("a");
+    expect(t.size).toBe(2);
+    t.delete("a");
+    expect(t.size).toBe(1);
   });
 });

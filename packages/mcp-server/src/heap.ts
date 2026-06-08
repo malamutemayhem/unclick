@@ -1,82 +1,77 @@
-export class Heap<T> {
-  private data: T[] = [];
-  private compare: (a: T, b: T) => number;
+type Comparator<T> = (a: T, b: T) => number;
 
-  constructor(compare?: (a: T, b: T) => number) {
-    this.compare = compare ?? ((a: T, b: T) => (a as unknown as number) - (b as unknown as number));
+export class Heap<T> {
+  private items: T[] = [];
+  private compare: Comparator<T>;
+
+  constructor(compare: Comparator<T>) {
+    this.compare = compare;
+  }
+
+  get size(): number {
+    return this.items.length;
+  }
+
+  peek(): T | undefined {
+    return this.items[0];
   }
 
   push(value: T): void {
-    this.data.push(value);
-    this.bubbleUp(this.data.length - 1);
+    this.items.push(value);
+    this.bubbleUp(this.items.length - 1);
   }
 
   pop(): T | undefined {
-    if (this.data.length === 0) return undefined;
-    const top = this.data[0];
-    const last = this.data.pop()!;
-    if (this.data.length > 0) {
-      this.data[0] = last;
+    if (this.items.length === 0) return undefined;
+    const top = this.items[0];
+    const last = this.items.pop()!;
+    if (this.items.length > 0) {
+      this.items[0] = last;
       this.sinkDown(0);
     }
     return top;
   }
 
-  peek(): T | undefined {
-    return this.data[0];
-  }
-
-  get size(): number {
-    return this.data.length;
-  }
-
-  get isEmpty(): boolean {
-    return this.data.length === 0;
-  }
-
   toArray(): T[] {
-    return [...this.data];
-  }
-
-  clear(): void {
-    this.data = [];
-  }
-
-  static from<T>(values: T[], compare?: (a: T, b: T) => number): Heap<T> {
-    const heap = new Heap<T>(compare);
-    for (const v of values) heap.push(v);
-    return heap;
+    return [...this.items].sort(this.compare);
   }
 
   private bubbleUp(i: number): void {
     while (i > 0) {
-      const parent = Math.floor((i - 1) / 2);
-      if (this.compare(this.data[i], this.data[parent]) >= 0) break;
-      [this.data[i], this.data[parent]] = [this.data[parent], this.data[i]];
+      const parent = (i - 1) >>> 1;
+      if (this.compare(this.items[i], this.items[parent]) >= 0) break;
+      [this.items[i], this.items[parent]] = [this.items[parent], this.items[i]];
       i = parent;
     }
   }
 
   private sinkDown(i: number): void {
-    const n = this.data.length;
+    const n = this.items.length;
     while (true) {
       let smallest = i;
       const left = 2 * i + 1;
       const right = 2 * i + 2;
-      if (left < n && this.compare(this.data[left], this.data[smallest]) < 0) smallest = left;
-      if (right < n && this.compare(this.data[right], this.data[smallest]) < 0) smallest = right;
+      if (left < n && this.compare(this.items[left], this.items[smallest]) < 0) smallest = left;
+      if (right < n && this.compare(this.items[right], this.items[smallest]) < 0) smallest = right;
       if (smallest === i) break;
-      [this.data[i], this.data[smallest]] = [this.data[smallest], this.data[i]];
+      [this.items[i], this.items[smallest]] = [this.items[smallest], this.items[i]];
       i = smallest;
     }
   }
 }
 
-export function minHeap<T = number>(compare?: (a: T, b: T) => number): Heap<T> {
-  return new Heap<T>(compare);
+export function minHeap(): Heap<number> {
+  return new Heap<number>((a, b) => a - b);
 }
 
-export function maxHeap<T = number>(compare?: (a: T, b: T) => number): Heap<T> {
-  const cmp = compare ?? ((a: T, b: T) => (a as unknown as number) - (b as unknown as number));
-  return new Heap<T>((a, b) => cmp(b, a));
+export function maxHeap(): Heap<number> {
+  return new Heap<number>((a, b) => b - a);
+}
+
+export function heapSort<T>(items: T[], compare: Comparator<T>): T[] {
+  const h = new Heap<T>(compare);
+  for (const item of items) h.push(item);
+  const result: T[] = [];
+  while (h.size > 0) result.push(h.pop()!);
+  return result;
 }

@@ -2,70 +2,87 @@ import { describe, it, expect } from "vitest";
 import { BitSet } from "../bit-set.js";
 
 describe("BitSet", () => {
-  it("set and get", () => {
-    const bs = new BitSet(100);
-    bs.set(5).set(50).set(99);
-    expect(bs.get(5)).toBe(true);
-    expect(bs.get(50)).toBe(true);
-    expect(bs.get(99)).toBe(true);
-    expect(bs.get(6)).toBe(false);
+  it("set and get bits", () => {
+    const bs = new BitSet(64);
+    bs.set(0);
+    bs.set(63);
+    expect(bs.get(0)).toBe(true);
+    expect(bs.get(1)).toBe(false);
+    expect(bs.get(63)).toBe(true);
   });
 
-  it("clear bit", () => {
-    const bs = new BitSet(100);
+  it("clear bits", () => {
+    const bs = new BitSet(32);
     bs.set(5);
+    expect(bs.get(5)).toBe(true);
     bs.clear(5);
     expect(bs.get(5)).toBe(false);
   });
 
-  it("toggle", () => {
-    const bs = new BitSet(100);
-    bs.toggle(5);
-    expect(bs.get(5)).toBe(true);
-    bs.toggle(5);
-    expect(bs.get(5)).toBe(false);
+  it("toggle bits", () => {
+    const bs = new BitSet(32);
+    bs.toggle(10);
+    expect(bs.get(10)).toBe(true);
+    bs.toggle(10);
+    expect(bs.get(10)).toBe(false);
   });
 
-  it("count popcount", () => {
+  it("counts set bits", () => {
     const bs = new BitSet(100);
-    bs.set(1).set(2).set(3);
-    expect(bs.count).toBe(3);
+    bs.set(1);
+    bs.set(50);
+    bs.set(99);
+    expect(bs.count()).toBe(3);
   });
 
-  it("clearAll", () => {
-    const bs = new BitSet(100);
-    bs.set(1).set(50);
-    bs.clearAll();
-    expect(bs.count).toBe(0);
-  });
-
-  it("and operation", () => {
-    const a = new BitSet(64);
-    const b = new BitSet(64);
-    a.set(1).set(2).set(3);
-    b.set(2).set(3).set(4);
+  it("AND operation", () => {
+    const a = new BitSet(32);
+    const b = new BitSet(32);
+    a.set(1); a.set(2); a.set(3);
+    b.set(2); b.set(3); b.set(4);
     const result = a.and(b);
-    expect(result.toArray()).toEqual([2, 3]);
+    expect(result.get(1)).toBe(false);
+    expect(result.get(2)).toBe(true);
+    expect(result.get(3)).toBe(true);
+    expect(result.get(4)).toBe(false);
   });
 
-  it("or operation", () => {
-    const a = new BitSet(64);
-    const b = new BitSet(64);
-    a.set(1).set(2);
-    b.set(3).set(4);
+  it("OR operation", () => {
+    const a = new BitSet(32);
+    const b = new BitSet(32);
+    a.set(1);
+    b.set(2);
     const result = a.or(b);
-    expect(result.toArray()).toEqual([1, 2, 3, 4]);
+    expect(result.get(1)).toBe(true);
+    expect(result.get(2)).toBe(true);
   });
 
-  it("toArray", () => {
+  it("XOR operation", () => {
+    const a = new BitSet(32);
+    const b = new BitSet(32);
+    a.set(1); a.set(2);
+    b.set(2); b.set(3);
+    const result = a.xor(b);
+    expect(result.get(1)).toBe(true);
+    expect(result.get(2)).toBe(false);
+    expect(result.get(3)).toBe(true);
+  });
+
+  it("clearAll and toArray", () => {
     const bs = new BitSet(64);
-    bs.set(0).set(31).set(32).set(63);
-    expect(bs.toArray()).toEqual([0, 31, 32, 63]);
+    bs.set(5); bs.set(10); bs.set(60);
+    expect(bs.toArray()).toEqual([5, 10, 60]);
+    bs.clearAll();
+    expect(bs.count()).toBe(0);
+    expect(bs.toArray()).toEqual([]);
   });
 
-  it("out of bounds returns false", () => {
-    const bs = new BitSet(10);
-    expect(bs.get(100)).toBe(false);
+  it("ignores out-of-range", () => {
+    const bs = new BitSet(8);
+    bs.set(-1);
+    bs.set(100);
     expect(bs.get(-1)).toBe(false);
+    expect(bs.get(100)).toBe(false);
+    expect(bs.count()).toBe(0);
   });
 });
