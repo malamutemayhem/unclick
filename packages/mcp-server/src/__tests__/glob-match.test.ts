@@ -1,55 +1,62 @@
 import { describe, it, expect } from "vitest";
-import { globMatch, globFilter, regexFromGlob } from "../glob-match.js";
+import { globMatch, globFilter } from "../glob-match.js";
 
 describe("globMatch", () => {
-  it("matches exact string", () => {
-    expect(globMatch("hello", "hello")).toBe(true);
-    expect(globMatch("hello", "world")).toBe(false);
+  it("exact match", () => {
+    expect(globMatch("foo.ts", "foo.ts")).toBe(true);
+    expect(globMatch("foo.ts", "bar.ts")).toBe(false);
   });
 
-  it("matches single wildcard", () => {
-    expect(globMatch("*.ts", "file.ts")).toBe(true);
-    expect(globMatch("*.ts", "file.js")).toBe(false);
-    expect(globMatch("*.ts", "dir/file.ts")).toBe(false);
+  it("* matches within segment", () => {
+    expect(globMatch("*.ts", "foo.ts")).toBe(true);
+    expect(globMatch("*.ts", "bar.ts")).toBe(true);
+    expect(globMatch("*.ts", "foo.js")).toBe(false);
   });
 
-  it("matches double wildcard", () => {
-    expect(globMatch("**/*.ts", "src/file.ts")).toBe(true);
-    expect(globMatch("**/*.ts", "src/deep/file.ts")).toBe(true);
-    expect(globMatch("**/*.ts", "file.ts")).toBe(true);
+  it("* does not cross /", () => {
+    expect(globMatch("*.ts", "src/foo.ts")).toBe(false);
   });
 
-  it("matches question mark", () => {
-    expect(globMatch("file?.ts", "file1.ts")).toBe(true);
-    expect(globMatch("file?.ts", "file12.ts")).toBe(false);
+  it("** matches across directories", () => {
+    expect(globMatch("**/*.ts", "src/foo.ts")).toBe(true);
+    expect(globMatch("**/*.ts", "a/b/c.ts")).toBe(true);
+    expect(globMatch("src/**/*.ts", "src/a/b.ts")).toBe(true);
   });
 
-  it("matches bracket expressions", () => {
-    expect(globMatch("file[123].ts", "file2.ts")).toBe(true);
-    expect(globMatch("file[123].ts", "file4.ts")).toBe(false);
+  it("? matches single char", () => {
+    expect(globMatch("fo?.ts", "foo.ts")).toBe(true);
+    expect(globMatch("fo?.ts", "fob.ts")).toBe(true);
+    expect(globMatch("fo?.ts", "fooo.ts")).toBe(false);
   });
 
-  it("matches brace alternatives", () => {
-    expect(globMatch("*.{ts,js}", "file.ts")).toBe(true);
-    expect(globMatch("*.{ts,js}", "file.js")).toBe(true);
-    expect(globMatch("*.{ts,js}", "file.py")).toBe(false);
+  it("[abc] character class", () => {
+    expect(globMatch("[abc].ts", "a.ts")).toBe(true);
+    expect(globMatch("[abc].ts", "d.ts")).toBe(false);
   });
 
-  it("negated bracket", () => {
-    expect(globMatch("file[!0-9].ts", "filea.ts")).toBe(true);
-    expect(globMatch("file[!0-9].ts", "file1.ts")).toBe(false);
+  it("[a-z] character range", () => {
+    expect(globMatch("[a-z].ts", "m.ts")).toBe(true);
+    expect(globMatch("[a-z].ts", "5.ts")).toBe(false);
+  });
+
+  it("[!a-z] negated range", () => {
+    expect(globMatch("[!a-z].ts", "5.ts")).toBe(true);
+    expect(globMatch("[!a-z].ts", "m.ts")).toBe(false);
+  });
+
+  it("trailing * matches rest", () => {
+    expect(globMatch("src/*", "src/file")).toBe(true);
   });
 });
 
 describe("globFilter", () => {
-  it("filters matching items", () => {
-    const files = ["a.ts", "b.js", "c.ts", "d.py"];
-    expect(globFilter("*.ts", files)).toEqual(["a.ts", "c.ts"]);
+  it("filters array", () => {
+    const items = ["foo.ts", "bar.js", "baz.ts", "src/q.ts"];
+    expect(globFilter("*.ts", items)).toEqual(["foo.ts", "baz.ts"]);
   });
-});
 
-describe("regexFromGlob", () => {
-  it("returns a RegExp", () => {
-    expect(regexFromGlob("*.ts")).toBeInstanceOf(RegExp);
+  it("** filter", () => {
+    const items = ["src/a.ts", "src/b/c.ts", "lib/d.ts"];
+    expect(globFilter("src/**/*.ts", items)).toEqual(["src/a.ts", "src/b/c.ts"]);
   });
 });

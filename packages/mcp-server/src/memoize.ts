@@ -1,69 +1,96 @@
-export function memoize<A extends unknown[], R>(
-  fn: (...args: A) => R,
-  opts: { maxSize?: number; ttlMs?: number; keyFn?: (...args: A) => string } = {},
-): ((...args: A) => R) & { cache: Map<string, { value: R; expiresAt: number }> } {
-  const cache = new Map<string, { value: R; expiresAt: number }>();
-  const maxSize = opts.maxSize ?? 100;
-  const ttlMs = opts.ttlMs ?? 0;
-  const keyFn = opts.keyFn ?? ((...args: A) => JSON.stringify(args));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => any;
 
-  const memoized = (...args: A): R => {
-    const key = keyFn(...args);
-    const cached = cache.get(key);
-    const now = Date.now();
+interface MemoizeOptions {
+  maxSize?: number;
+  ttl?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  keyFn?: (...args: any[]) => string;
+}
 
-    if (cached && (ttlMs === 0 || cached.expiresAt > now)) {
-      cache.delete(key);
-      cache.set(key, cached);
-      return cached.value;
+interface MemoizedFn<F extends AnyFn> {
+  (...args: Parameters<F>): ReturnType<F>;
+  cache: Map<string, { value: ReturnType<F>; timestamp: number }>;
+  clear: () => void;
+  delete: (key: string) => boolean;
+  has: (...args: Parameters<F>) => boolean;
+}
+
+export function memoize<F extends AnyFn>(fn: F, options: MemoizeOptions = {}): MemoizedFn<F> {
+  const { maxSize, ttl, keyFn } = options;
+  const cache = new Map<string, { value: ReturnType<F>; timestamp: number }>();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getKey = keyFn ?? ((...args: any[]) => JSON.stringify(args));
+
+  const memoized = function (this: unknown, ...args: Parameters<F>): ReturnType<F> {
+    const key = getKey(...args);
+    const entry = cache.get(key);
+
+    if (entry !== undefined) {
+      if (ttl !== undefined && Date.now() - entry.timestamp > ttl) {
+        cache.delete(key);
+      } else {
+        return entry.value;
+      }
     }
 
-    const result = fn(...args);
-    cache.set(key, { value: result, expiresAt: now + ttlMs });
+    const result = fn.apply(this, args) as ReturnType<F>;
+    cache.set(key, { value: result, timestamp: Date.now() });
 
-    if (cache.size > maxSize) {
-      const oldest = cache.keys().next().value!;
-      cache.delete(oldest);
+    if (maxSize !== undefined && cache.size > maxSize) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== undefined) cache.delete(oldest);
     }
 
     return result;
-  };
+  } as MemoizedFn<F>;
 
   memoized.cache = cache;
+  memoized.clear = () => cache.clear();
+  memoized.delete = (key: string) => cache.delete(key);
+  memoized.has = (...args: Parameters<F>) => {
+    const key = getKey(...args);
+    const entry = cache.get(key);
+    if (entry === undefined) return false;
+    if (ttl !== undefined && Date.now() - entry.timestamp > ttl) {
+      cache.delete(key);
+      return false;
+    }
+    return true;
+  };
+
   return memoized;
 }
 
-export function memoizeAsync<A extends unknown[], R>(
-  fn: (...args: A) => Promise<R>,
-  opts: { maxSize?: number; ttlMs?: number; keyFn?: (...args: A) => string } = {},
-): ((...args: A) => Promise<R>) & { cache: Map<string, { value: Promise<R>; expiresAt: number }> } {
-  const cache = new Map<string, { value: Promise<R>; expiresAt: number }>();
-  const maxSize = opts.maxSize ?? 100;
-  const ttlMs = opts.ttlMs ?? 0;
-  const keyFn = opts.keyFn ?? ((...args: A) => JSON.stringify(args));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function memoizeAsync<F extends (...args: any[]) => Promise<any>>(
+  fn: F,
+  options: MemoizeOptions = {},
+): MemoizedFn<F> {
+  const pending = new Map<string, Promise<unknown>>();
+  const { keyFn } = options;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getKey = keyFn ?? ((...args: any[]) => JSON.stringify(args));
 
-  const memoized = (...args: A): Promise<R> => {
-    const key = keyFn(...args);
-    const cached = cache.get(key);
-    const now = Date.now();
+  const inner = memoize(function (this: unknown, ...args: Parameters<F>): ReturnType<F> {
+    const key = getKey(...args);
+    const existing = pending.get(key);
+    if (existing) return existing as ReturnType<F>;
 
-    if (cached && (ttlMs === 0 || cached.expiresAt > now)) {
-      return cached.value;
-    }
+    const promise = fn.apply(this, args) as Promise<unknown>;
+    pending.set(key, promise);
 
-    const promise = fn(...args);
-    cache.set(key, { value: promise, expiresAt: now + ttlMs });
+    promise.then(
+      () => pending.delete(key),
+      () => {
+        pending.delete(key);
+        inner.delete(key);
+      },
+    );
 
-    promise.catch(() => cache.delete(key));
+    return promise as ReturnType<F>;
+  }, options);
 
-    if (cache.size > maxSize) {
-      const oldest = cache.keys().next().value!;
-      cache.delete(oldest);
-    }
-
-    return promise;
-  };
-
-  memoized.cache = cache;
-  return memoized;
+  return inner;
 }
