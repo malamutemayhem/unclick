@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T22:10:00.000Z",
+  "updatedAt": "2026-06-08T22:15:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3724,6 +3724,30 @@
       "note": "atbash_process applies Atbash cipher locally. No API needed.",
       "testedAt": "2026-06-08T22:10:00.000Z",
       "toolsTested": ["atbash_process"]
+    },
+    "railfence": {
+      "status": "pass",
+      "note": "railfence_process encrypts/decrypts with rail fence cipher locally. No API needed.",
+      "testedAt": "2026-06-08T22:15:00.000Z",
+      "toolsTested": ["railfence_process"]
+    },
+    "phonetic": {
+      "status": "pass",
+      "note": "phonetic_spell spells text with NATO/IPA alphabet locally. No API needed.",
+      "testedAt": "2026-06-08T22:15:00.000Z",
+      "toolsTested": ["phonetic_spell"]
+    },
+    "matrix": {
+      "status": "pass",
+      "note": "matrix_operate performs matrix math locally. No API needed.",
+      "testedAt": "2026-06-08T22:15:00.000Z",
+      "toolsTested": ["matrix_operate"]
+    },
+    "setops": {
+      "status": "pass",
+      "note": "setops_calculate performs set union/intersection/difference locally. No API needed.",
+      "testedAt": "2026-06-08T22:15:00.000Z",
+      "toolsTested": ["setops_calculate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

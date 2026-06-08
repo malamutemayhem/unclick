@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 905,
+    "inventory": 909,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 483,
+    "tools": 487,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 483
+      "count": 487
     },
     {
       "id": "rooms",
@@ -6652,6 +6652,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-matrix-packages-mcp-server-src-matrix-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matrix",
+      "kind": "MCP tool",
+      "meaning": "matrix MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matrix-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-mcsrvstat-packages-mcp-server-src-mcsrvstat-tool-ts-no-route",
       "division": "Tools",
       "name": "mcsrvstat",
@@ -7302,6 +7312,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-phonetic-packages-mcp-server-src-phonetic-tool-ts-no-route",
+      "division": "Tools",
+      "name": "phonetic",
+      "kind": "MCP tool",
+      "meaning": "phonetic MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/phonetic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-picsum-packages-mcp-server-src-picsum-tool-ts-no-route",
       "division": "Tools",
       "name": "picsum",
@@ -7608,6 +7628,16 @@
       "kind": "MCP tool",
       "meaning": "radiobrowser MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/radiobrowser-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-railfence-packages-mcp-server-src-railfence-tool-ts-no-route",
+      "division": "Tools",
+      "name": "railfence",
+      "kind": "MCP tool",
+      "meaning": "railfence MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/railfence-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7948,6 +7978,16 @@
       "kind": "MCP tool",
       "meaning": "setlistfm MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/setlistfm-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-setops-packages-mcp-server-src-setops-tool-ts-no-route",
+      "division": "Tools",
+      "name": "setops",
+      "kind": "MCP tool",
+      "meaning": "setops MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/setops-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10980,6 +11020,11 @@
       "packages/mcp-server/src/mastodon-tool.ts"
     ],
     [
+      "matrix",
+      "matrix MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matrix-tool.ts"
+    ],
+    [
       "mcsrvstat",
       "mcsrvstat MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mcsrvstat-tool.ts"
@@ -11305,6 +11350,11 @@
       "packages/mcp-server/src/perplexity-tool.ts"
     ],
     [
+      "phonetic",
+      "phonetic MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/phonetic-tool.ts"
+    ],
+    [
       "picsum",
       "picsum MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/picsum-tool.ts"
@@ -11458,6 +11508,11 @@
       "radiobrowser",
       "radiobrowser MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/radiobrowser-tool.ts"
+    ],
+    [
+      "railfence",
+      "railfence MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/railfence-tool.ts"
     ],
     [
       "raindrop",
@@ -11628,6 +11683,11 @@
       "setlistfm",
       "setlistfm MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/setlistfm-tool.ts"
+    ],
+    [
+      "setops",
+      "setops MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/setops-tool.ts"
     ],
     [
       "shibe",

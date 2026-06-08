@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 482,
-  "toolCount": 1404,
+  "appCount": 486,
+  "toolCount": 1408,
   "categories": [
     "AI",
     "Books",
@@ -5502,6 +5502,22 @@
       "hardened": true
     },
     {
+      "slug": "matrix",
+      "name": "Matrix Calculator",
+      "category": "Utilities",
+      "blurb": "Perform matrix operations: add, multiply, transpose, determinant.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_operate",
+          "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mcsrvstat",
       "name": "MC Server Status",
       "category": "Games & esports",
@@ -6962,6 +6978,22 @@
       "hardened": true
     },
     {
+      "slug": "phonetic",
+      "name": "Phonetic Alphabet",
+      "category": "Utilities",
+      "blurb": "Spell out text using NATO or IPA phonetic alphabet.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "phonetic_spell",
+          "description": "Spell out text using NATO or IPA phonetic alphabet."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "piglatin",
       "name": "Pig Latin Translator",
       "category": "Utilities",
@@ -7784,6 +7816,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "railfence",
+      "name": "Rail Fence Cipher",
+      "category": "Utilities",
+      "blurb": "Encrypt or decrypt text using the rail fence zigzag cipher.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "railfence_process",
+          "description": "Encrypt or decrypt text using the rail fence (zigzag) cipher."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "raindrop",
@@ -8635,6 +8683,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "setops",
+      "name": "Set Operations",
+      "category": "Utilities",
+      "blurb": "Perform set operations: union, intersection, difference, subset checks.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "setops_calculate",
+          "description": "Perform set operations: union, intersection, difference, symmetric difference, subset/superset."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {

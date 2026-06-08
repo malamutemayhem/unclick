@@ -647,6 +647,10 @@ import { damerauDistance } from "./damerau-tool.js";
 import { markovGenerate } from "./markov-tool.js";
 import { vigenereProcess } from "./vigenere-tool.js";
 import { atbashProcess } from "./atbash-tool.js";
+import { railfenceProcess } from "./railfence-tool.js";
+import { phoneticSpell } from "./phonetic-tool.js";
+import { matrixOperate } from "./matrix-tool.js";
+import { setopsCalculate } from "./setops-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9896,6 +9900,56 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text to encode/decode." },
       }, required: ["text"],
+    },
+  },
+
+  // ── railfence-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "railfence_process",
+    description: "Encrypt or decrypt text using the rail fence (zigzag) cipher.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to process." },
+        rails: { type: "number" as const, description: "Number of rails (default 3)." },
+        decrypt: { type: "boolean" as const, description: "Decrypt instead of encrypt (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── phonetic-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "phonetic_spell",
+    description: "Spell out text using NATO or IPA phonetic alphabet.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to spell out." },
+        format: { type: "string" as const, description: "'nato' (default) or 'ipa'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matrix-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "matrix_operate",
+    description: "Perform matrix operations: add, multiply, transpose, or determinant.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix_a: { type: "array" as const, description: "First matrix (2D number array)." },
+        matrix_b: { type: "array" as const, description: "Second matrix (for add/multiply)." },
+        operation: { type: "string" as const, description: "Operation: add, multiply, transpose, determinant." },
+      }, required: ["matrix_a"],
+    },
+  },
+
+  // ── setops-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "setops_calculate",
+    description: "Perform set operations: union, intersection, difference, symmetric difference, subset/superset.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        set_a: { type: "array" as const, description: "First set (array of values)." },
+        set_b: { type: "array" as const, description: "Second set (array of values)." },
+      }, required: ["set_a", "set_b"],
     },
   },
 
@@ -21477,6 +21531,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // atbash-tool.ts
   atbash_process:            (args) => atbashProcess(args),
+
+  // railfence-tool.ts
+  railfence_process:         (args) => railfenceProcess(args),
+
+  // phonetic-tool.ts
+  phonetic_spell:            (args) => phoneticSpell(args),
+
+  // matrix-tool.ts
+  matrix_operate:            (args) => matrixOperate(args),
+
+  // setops-tool.ts
+  setops_calculate:          (args) => setopsCalculate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

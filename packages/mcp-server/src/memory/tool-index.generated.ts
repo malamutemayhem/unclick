@@ -4224,6 +4224,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "matrix",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_operate",
+        "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+      }
+    ]
+  },
+  {
     "app": "mcsrvstat",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5290,6 +5300,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "phonetic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "phonetic_spell",
+        "description": "Spell out text using NATO or IPA phonetic alphabet."
+      }
+    ]
+  },
+  {
     "app": "picsum",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5884,6 +5904,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "radio_countries",
         "description": "List all countries with radio stations."
+      }
+    ]
+  },
+  {
+    "app": "railfence",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "railfence_process",
+        "description": "Encrypt or decrypt text using the rail fence (zigzag) cipher."
       }
     ]
   },
@@ -6544,6 +6574,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "setlistfm_get_setlist",
         "description": "Get a specific setlist from Setlist.fm by ID."
+      }
+    ]
+  },
+  {
+    "app": "setops",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "setops_calculate",
+        "description": "Perform set operations: union, intersection, difference, symmetric difference, subset/superset."
       }
     ]
   },
