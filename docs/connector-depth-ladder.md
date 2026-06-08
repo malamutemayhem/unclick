@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (440 external connectors)
+## Distribution (445 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 401 | 91% |
+| L5 | Agentic | 406 | 91% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 8% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 440 (55%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 445 (54%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 401 of 404 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 406 of 409 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -57,6 +57,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `bitwise` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `braille` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `breakingbad` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `camelsnake` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `carbonintensity` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `cataas` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `charcodes` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -95,6 +96,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `dummyjson` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `emojihub` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `emojilookup` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `entropy` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `epoch` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `europeana` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `exchangerate3` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -107,6 +109,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `flyover` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `foodish` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `freetogame` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `frequency` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `fruityvice` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `funtranslations` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `gameoflife` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -156,6 +159,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `nationalize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `natoalphabet` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `newton` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ngram` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `nhtsa` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `nobelprize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `nominatim` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -207,6 +211,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `slug` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `solarsystem` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `sortlines` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `soundex` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `spacex` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `stackexchange` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `stapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -284,6 +289,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `bungie` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calcom` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calendly` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `camelsnake` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `carbonintensity` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `carboninterface` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `cataas` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
@@ -354,6 +360,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `elevenlabs` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `emojihub` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `emojilookup` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `entropy` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `epoch` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `espn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `etsy` | Yes | - | - | Yes | Yes | no-memory |
@@ -377,6 +384,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `fpl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `frankfurter` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `freetogame` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `frequency` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `fruityvice` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `funtranslations` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `gameoflife` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -473,6 +481,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `netlify` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `newsapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `newton` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `ngram` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `nhtsa` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `nobelprize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nominatim` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
@@ -565,6 +574,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `slug` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `solarsystem` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `sortlines` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `soundex` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `spaceflight` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `spacex` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `speedrun` | Yes | - | - | Yes | Yes | no-memory |

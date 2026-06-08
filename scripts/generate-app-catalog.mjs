@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -160,6 +160,8 @@ const NAME_OF = {
   reversetext: "Text Reverser", palindrome: "Palindrome Checker", acronymgen: "Acronym Generator",
   wordfreq: "Word Frequency", markdowntable: "Markdown Table", runlength: "Run-Length Encoding",
   luhn: "Luhn Validator", charcodes: "Character Codes",
+  soundex: "Soundex", frequency: "Frequency Analysis", entropy: "Entropy Calculator",
+  ngram: "N-gram Extractor", camelsnake: "Case Converter",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -472,6 +474,11 @@ const BLURB_OF = {
   runlength: "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
   luhn: "Validate or generate a Luhn check digit for credit cards and IMEI.",
   charcodes: "Convert characters to Unicode code points in decimal, hex, or binary.",
+  soundex: "Encode words with the Soundex phonetic algorithm and compare name similarity.",
+  frequency: "Analyse character or bigram frequencies in text.",
+  entropy: "Calculate Shannon entropy to measure text randomness and information density.",
+  ngram: "Extract and count n-grams (word or character level) from text.",
+  camelsnake: "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -623,6 +630,8 @@ const DOMAIN_OF = {
   reversetext: "local", palindrome: "local", acronymgen: "local",
   wordfreq: "local", markdowntable: "local", runlength: "local",
   luhn: "local", charcodes: "local",
+  soundex: "local", frequency: "local", entropy: "local",
+  ngram: "local", camelsnake: "local",
 };
 
 function titleCase(slug) {

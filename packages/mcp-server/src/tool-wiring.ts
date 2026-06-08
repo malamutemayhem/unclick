@@ -630,6 +630,11 @@ import { markdowntableConvert } from "./markdowntable-tool.js";
 import { runlengthProcess } from "./runlength-tool.js";
 import { luhnValidate } from "./luhn-tool.js";
 import { charcodesConvert } from "./charcodes-tool.js";
+import { soundexEncode } from "./soundex-tool.js";
+import { frequencyAnalyse } from "./frequency-tool.js";
+import { entropyCalculate } from "./entropy-tool.js";
+import { ngramExtract } from "./ngram-tool.js";
+import { camelsnakeConvert } from "./camelsnake-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9672,6 +9677,68 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text to convert." },
         format: { type: "string" as const, description: "'decimal' (default), 'hex', or 'binary'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── soundex-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "soundex_encode",
+    description: "Encode words using the Soundex phonetic algorithm, optionally comparing two names.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Word(s) to encode." },
+        compare: { type: "string" as const, description: "Second name to compare with the first." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── frequency-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "frequency_analyse",
+    description: "Analyse character or bigram frequencies in text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        mode: { type: "string" as const, description: "'character' (default) or 'bigram'." },
+        top: { type: "number" as const, description: "Number of top entries to return (default 10)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── entropy-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "entropy_calculate",
+    description: "Calculate Shannon entropy of text (measures randomness/information density).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to measure." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ngram-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "ngram_extract",
+    description: "Extract and count n-grams (word or character level) from text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        n: { type: "number" as const, description: "N-gram size (default 2)." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+        top: { type: "number" as const, description: "Number of top entries to return (default 20)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── camelsnake-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "camelsnake_convert",
+    description: "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Identifier or text to convert." },
+        target: { type: "string" as const, description: "Target case: camel, pascal, snake, kebab, constant. Omit for all." },
       }, required: ["text"],
     },
   },
@@ -21203,6 +21270,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // charcodes-tool.ts
   charcodes_convert:         (args) => charcodesConvert(args),
+
+  // soundex-tool.ts
+  soundex_encode:            (args) => soundexEncode(args),
+
+  // frequency-tool.ts
+  frequency_analyse:         (args) => frequencyAnalyse(args),
+
+  // entropy-tool.ts
+  entropy_calculate:         (args) => entropyCalculate(args),
+
+  // ngram-tool.ts
+  ngram_extract:             (args) => ngramExtract(args),
+
+  // camelsnake-tool.ts
+  camelsnake_convert:        (args) => camelsnakeConvert(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

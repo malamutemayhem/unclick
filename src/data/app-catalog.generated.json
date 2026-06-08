@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 465,
-  "toolCount": 1387,
+  "appCount": 470,
+  "toolCount": 1392,
   "categories": [
     "AI",
     "Books",
@@ -1024,6 +1024,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "camelsnake",
+      "name": "Case Converter",
+      "category": "Utilities",
+      "blurb": "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "camelsnake_convert",
+          "description": "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "cataas",
@@ -2798,6 +2814,22 @@
       "hardened": false
     },
     {
+      "slug": "entropy",
+      "name": "Entropy Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate Shannon entropy to measure text randomness and information density.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "entropy_calculate",
+          "description": "Calculate Shannon entropy of text (measures randomness/information density)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "epoch",
       "name": "Epoch Converter",
       "category": "Developer & infra",
@@ -3408,6 +3440,22 @@
         {
           "name": "freetogame_detail",
           "description": "Get full details for a specific free-to-play game."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "frequency",
+      "name": "Frequency Analysis",
+      "category": "Utilities",
+      "blurb": "Analyse character or bigram frequencies in text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "frequency_analyse",
+          "description": "Analyse character or bigram frequencies in text."
         }
       ],
       "level": 5,
@@ -5668,6 +5716,22 @@
         {
           "name": "mymemory_translate",
           "description": "Translate text between languages using MyMemory free translation API."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ngram",
+      "name": "N-gram Extractor",
+      "category": "Utilities",
+      "blurb": "Extract and count n-grams (word or character level) from text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ngram_extract",
+          "description": "Extract and count n-grams (word or character level) from text."
         }
       ],
       "level": 5,
@@ -8664,6 +8728,22 @@
         {
           "name": "solarsystem_body",
           "description": "Get detailed info about a specific solar system body."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "soundex",
+      "name": "Soundex",
+      "category": "Utilities",
+      "blurb": "Encode words with the Soundex phonetic algorithm and compare name similarity.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "soundex_encode",
+          "description": "Encode words using the Soundex phonetic algorithm, optionally comparing two names."
         }
       ],
       "level": 5,

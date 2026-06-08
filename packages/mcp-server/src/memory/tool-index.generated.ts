@@ -810,6 +810,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "camelsnake",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "camelsnake_convert",
+        "description": "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE."
+      }
+    ]
+  },
+  {
     "app": "carbonintensity",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2232,6 +2242,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "entropy",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "entropy_calculate",
+        "description": "Calculate Shannon entropy of text (measures randomness/information density)."
+      }
+    ]
+  },
+  {
     "app": "epoch",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2724,6 +2744,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "freetogame_detail",
         "description": "Get full details for a specific free-to-play game."
+      }
+    ]
+  },
+  {
+    "app": "frequency",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "frequency_analyse",
+        "description": "Analyse character or bigram frequencies in text."
       }
     ]
   },
@@ -4522,6 +4552,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "newton_math",
         "description": "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API."
+      }
+    ]
+  },
+  {
+    "app": "ngram",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ngram_extract",
+        "description": "Extract and count n-grams (word or character level) from text."
       }
     ]
   },
@@ -6582,6 +6622,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sort_lines",
         "description": "Sort, deduplicate, or reverse lines of text."
+      }
+    ]
+  },
+  {
+    "app": "soundex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "soundex_encode",
+        "description": "Encode words using the Soundex phonetic algorithm, optionally comparing two names."
       }
     ]
   },

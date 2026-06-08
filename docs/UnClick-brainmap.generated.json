@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 888,
+    "inventory": 893,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 466,
+    "tools": 471,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 466
+      "count": 471
     },
     {
       "id": "rooms",
@@ -4632,6 +4632,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-camelsnake-packages-mcp-server-src-camelsnake-tool-ts-no-route",
+      "division": "Tools",
+      "name": "camelsnake",
+      "kind": "MCP tool",
+      "meaning": "camelsnake MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/camelsnake-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-carbonintensity-packages-mcp-server-src-carbonintensity-tool-ts-no-route",
       "division": "Tools",
       "name": "carbonintensity",
@@ -5442,6 +5452,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-entropy-packages-mcp-server-src-entropy-tool-ts-no-route",
+      "division": "Tools",
+      "name": "entropy",
+      "kind": "MCP tool",
+      "meaning": "entropy MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/entropy-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-epoch-packages-mcp-server-src-epoch-tool-ts-no-route",
       "division": "Tools",
       "name": "epoch",
@@ -5698,6 +5718,16 @@
       "kind": "MCP tool",
       "meaning": "freetogame MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/freetogame-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-frequency-packages-mcp-server-src-frequency-tool-ts-no-route",
+      "division": "Tools",
+      "name": "frequency",
+      "kind": "MCP tool",
+      "meaning": "frequency MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/frequency-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6778,6 +6808,16 @@
       "kind": "MCP tool",
       "meaning": "newton MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/newton-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-ngram-packages-mcp-server-src-ngram-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ngram",
+      "kind": "MCP tool",
+      "meaning": "ngram MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ngram-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7918,6 +7958,16 @@
       "kind": "MCP tool",
       "meaning": "sortlines MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sortlines-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-soundex-packages-mcp-server-src-soundex-tool-ts-no-route",
+      "division": "Tools",
+      "name": "soundex",
+      "kind": "MCP tool",
+      "meaning": "soundex MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/soundex-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9800,6 +9850,11 @@
       "packages/mcp-server/src/calendly-tool.ts"
     ],
     [
+      "camelsnake",
+      "camelsnake MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/camelsnake-tool.ts"
+    ],
+    [
       "carbonintensity",
       "carbonintensity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/carbonintensity-tool.ts"
@@ -10205,6 +10260,11 @@
       "packages/mcp-server/src/emojilookup-tool.ts"
     ],
     [
+      "entropy",
+      "entropy MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/entropy-tool.ts"
+    ],
+    [
       "epoch",
       "epoch MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/epoch-tool.ts"
@@ -10333,6 +10393,11 @@
       "freetogame",
       "freetogame MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/freetogame-tool.ts"
+    ],
+    [
+      "frequency",
+      "frequency MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/frequency-tool.ts"
     ],
     [
       "fruityvice",
@@ -10873,6 +10938,11 @@
       "newton",
       "newton MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/newton-tool.ts"
+    ],
+    [
+      "ngram",
+      "ngram MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ngram-tool.ts"
     ],
     [
       "nhtsa",
@@ -11443,6 +11513,11 @@
       "sortlines",
       "sortlines MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sortlines-tool.ts"
+    ],
+    [
+      "soundex",
+      "soundex MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/soundex-tool.ts"
     ],
     [
       "spaceflight",

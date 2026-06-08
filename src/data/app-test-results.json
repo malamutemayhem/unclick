@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:50:00.000Z",
+  "updatedAt": "2026-06-08T21:55:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3622,6 +3622,36 @@
       "note": "charcodes_convert returns Unicode code points locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
       "toolsTested": ["charcodes_convert"]
+    },
+    "soundex": {
+      "status": "pass",
+      "note": "soundex_encode computes Soundex codes locally. No API needed.",
+      "testedAt": "2026-06-08T21:55:00.000Z",
+      "toolsTested": ["soundex_encode"]
+    },
+    "frequency": {
+      "status": "pass",
+      "note": "frequency_analyse counts char/bigram frequencies locally. No API needed.",
+      "testedAt": "2026-06-08T21:55:00.000Z",
+      "toolsTested": ["frequency_analyse"]
+    },
+    "entropy": {
+      "status": "pass",
+      "note": "entropy_calculate computes Shannon entropy locally. No API needed.",
+      "testedAt": "2026-06-08T21:55:00.000Z",
+      "toolsTested": ["entropy_calculate"]
+    },
+    "ngram": {
+      "status": "pass",
+      "note": "ngram_extract extracts n-grams locally. No API needed.",
+      "testedAt": "2026-06-08T21:55:00.000Z",
+      "toolsTested": ["ngram_extract"]
+    },
+    "camelsnake": {
+      "status": "pass",
+      "note": "camelsnake_convert converts between naming conventions locally. No API needed.",
+      "testedAt": "2026-06-08T21:55:00.000Z",
+      "toolsTested": ["camelsnake_convert"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
