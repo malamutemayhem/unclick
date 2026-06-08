@@ -1,86 +1,77 @@
 import { describe, it, expect } from "vitest";
-import { computeSignature, verifySignature, verifyGithubWebhook } from "../webhook-verify.js";
+import { constantTimeEqual, simpleHmac, verifyWebhook, verifyTimestamp, parseSignatureHeader } from "../webhook-verify.js";
 
-describe("computeSignature", () => {
-  it("computes hex HMAC-SHA256 by default", () => {
-    const sig = computeSignature("payload", "secret");
-    expect(sig).toMatch(/^[0-9a-f]{64}$/);
+describe("constantTimeEqual", () => {
+  it("returns true for equal strings", () => {
+    expect(constantTimeEqual("abc", "abc")).toBe(true);
   });
 
-  it("is deterministic", () => {
-    const a = computeSignature("test", "key");
-    const b = computeSignature("test", "key");
-    expect(a).toBe(b);
+  it("returns false for different strings", () => {
+    expect(constantTimeEqual("abc", "abd")).toBe(false);
   });
 
-  it("differs for different payloads", () => {
-    const a = computeSignature("a", "key");
-    const b = computeSignature("b", "key");
-    expect(a).not.toBe(b);
-  });
-
-  it("differs for different secrets", () => {
-    const a = computeSignature("payload", "key1");
-    const b = computeSignature("payload", "key2");
-    expect(a).not.toBe(b);
-  });
-
-  it("supports prefix", () => {
-    const sig = computeSignature("payload", "secret", { prefix: "sha256=" });
-    expect(sig).toMatch(/^sha256=[0-9a-f]{64}$/);
-  });
-
-  it("supports base64 encoding", () => {
-    const sig = computeSignature("payload", "secret", { encoding: "base64" });
-    expect(sig).toMatch(/^[A-Za-z0-9+/=]+$/);
-  });
-
-  it("supports SHA-1", () => {
-    const sig = computeSignature("payload", "secret", { algorithm: "sha1" });
-    expect(sig).toMatch(/^[0-9a-f]{40}$/);
+  it("returns false for different lengths", () => {
+    expect(constantTimeEqual("abc", "ab")).toBe(false);
   });
 });
 
-describe("verifySignature", () => {
-  it("returns true for valid signature", () => {
-    const sig = computeSignature("hello", "secret");
-    expect(verifySignature("hello", "secret", sig)).toBe(true);
+describe("simpleHmac", () => {
+  it("produces consistent output", () => {
+    const h1 = simpleHmac("hello", "secret");
+    const h2 = simpleHmac("hello", "secret");
+    expect(h1).toBe(h2);
   });
 
-  it("returns false for tampered payload", () => {
-    const sig = computeSignature("hello", "secret");
-    expect(verifySignature("tampered", "secret", sig)).toBe(false);
+  it("different messages produce different hmacs", () => {
+    expect(simpleHmac("hello", "secret")).not.toBe(simpleHmac("world", "secret"));
   });
 
-  it("returns false for wrong secret", () => {
-    const sig = computeSignature("hello", "secret");
-    expect(verifySignature("hello", "wrong", sig)).toBe(false);
-  });
-
-  it("returns false for garbage signature", () => {
-    expect(verifySignature("hello", "secret", "garbage")).toBe(false);
+  it("different secrets produce different hmacs", () => {
+    expect(simpleHmac("hello", "key1")).not.toBe(simpleHmac("hello", "key2"));
   });
 });
 
-describe("verifyGithubWebhook", () => {
-  it("verifies a valid GitHub webhook", () => {
-    const payload = '{"action":"opened"}';
-    const secret = "webhook-secret";
-    const sig = computeSignature(payload, secret, {
-      algorithm: "sha256",
-      encoding: "hex",
-      prefix: "sha256=",
-    });
-    expect(verifyGithubWebhook(payload, secret, sig)).toBe(true);
+describe("verifyWebhook", () => {
+  it("validates correct signature", () => {
+    const payload = '{"event":"test"}';
+    const sig = simpleHmac(payload, "mysecret");
+    const result = verifyWebhook(payload, sig, { secret: "mysecret" });
+    expect(result.valid).toBe(true);
   });
 
-  it("rejects tampered payload", () => {
-    const secret = "webhook-secret";
-    const sig = computeSignature("original", secret, {
-      algorithm: "sha256",
-      encoding: "hex",
-      prefix: "sha256=",
-    });
-    expect(verifyGithubWebhook("tampered", secret, sig)).toBe(false);
+  it("rejects invalid signature", () => {
+    const result = verifyWebhook("payload", "badsig", { secret: "mysecret" });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects missing signature", () => {
+    const result = verifyWebhook("payload", "", { secret: "mysecret" });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("verifyTimestamp", () => {
+  it("accepts recent timestamp", () => {
+    const ts = Math.floor(Date.now() / 1000);
+    expect(verifyTimestamp(String(ts)).valid).toBe(true);
+  });
+
+  it("rejects old timestamp", () => {
+    const ts = Math.floor((Date.now() - 600_000) / 1000);
+    expect(verifyTimestamp(String(ts)).valid).toBe(false);
+  });
+});
+
+describe("parseSignatureHeader", () => {
+  it("parses sha256=xxx", () => {
+    const result = parseSignatureHeader("sha256=abc123");
+    expect(result.algorithm).toBe("sha256");
+    expect(result.signature).toBe("abc123");
+  });
+
+  it("handles no algorithm prefix", () => {
+    const result = parseSignatureHeader("abc123");
+    expect(result.algorithm).toBe("unknown");
+    expect(result.signature).toBe("abc123");
   });
 });
