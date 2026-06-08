@@ -9,44 +9,54 @@ export function assert(condition: unknown, message = "Assertion failed"): assert
   if (!condition) throw new AssertionError(message);
 }
 
-export function assertDefined<T>(value: T | null | undefined, name = "value"): asserts value is T {
+export function assertEqual<T>(actual: T, expected: T, message?: string): void {
+  if (actual !== expected) {
+    throw new AssertionError(message || `Expected ${String(expected)}, got ${String(actual)}`);
+  }
+}
+
+export function assertNotEqual<T>(actual: T, notExpected: T, message?: string): void {
+  if (actual === notExpected) {
+    throw new AssertionError(message || `Expected value to not equal ${String(notExpected)}`);
+  }
+}
+
+export function assertDefined<T>(value: T | null | undefined, message?: string): asserts value is T {
   if (value === null || value === undefined) {
-    throw new AssertionError(`Expected ${name} to be defined, got ${value}`);
+    throw new AssertionError(message || "Expected value to be defined");
   }
 }
 
-export function assertString(value: unknown, name = "value"): asserts value is string {
-  if (typeof value !== "string") {
-    throw new AssertionError(`Expected ${name} to be string, got ${typeof value}`);
+export function assertType(value: unknown, type: string, message?: string): void {
+  if (typeof value !== type) {
+    throw new AssertionError(message || `Expected type ${type}, got ${typeof value}`);
   }
 }
 
-export function assertNumber(value: unknown, name = "value"): asserts value is number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    throw new AssertionError(`Expected ${name} to be number, got ${typeof value}`);
+export function assertInstanceOf<T>(value: unknown, constructor: new (...args: unknown[]) => T, message?: string): asserts value is T {
+  if (!(value instanceof constructor)) {
+    throw new AssertionError(message || `Expected instance of ${constructor.name}`);
   }
 }
 
-export function assertOneOf<T>(value: T, allowed: readonly T[], name = "value"): void {
-  if (!allowed.includes(value)) {
-    throw new AssertionError(`Expected ${name} to be one of [${allowed.join(", ")}], got ${value}`);
+export function assertNever(value: never, message?: string): never {
+  throw new AssertionError(message || `Unexpected value: ${String(value)}`);
+}
+
+export function assertArrayLength(arr: unknown[], length: number, message?: string): void {
+  if (arr.length !== length) {
+    throw new AssertionError(message || `Expected array length ${length}, got ${arr.length}`);
   }
 }
 
-export function assertRange(value: number, min: number, max: number, name = "value"): void {
+export function assertInRange(value: number, min: number, max: number, message?: string): void {
   if (value < min || value > max) {
-    throw new AssertionError(`Expected ${name} to be between ${min} and ${max}, got ${value}`);
+    throw new AssertionError(message || `Expected ${value} to be in range [${min}, ${max}]`);
   }
 }
 
-export function assertNonEmpty(value: string | unknown[], name = "value"): void {
-  if (value.length === 0) {
-    throw new AssertionError(`Expected ${name} to be non-empty`);
-  }
-}
-
-export function assertMatch(value: string, pattern: RegExp, name = "value"): void {
+export function assertMatch(value: string, pattern: RegExp, message?: string): void {
   if (!pattern.test(value)) {
-    throw new AssertionError(`Expected ${name} to match ${pattern}, got "${value}"`);
+    throw new AssertionError(message || `Expected "${value}" to match ${pattern}`);
   }
 }

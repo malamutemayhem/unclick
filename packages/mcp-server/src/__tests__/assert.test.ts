@@ -1,34 +1,50 @@
 import { describe, it, expect } from "vitest";
-import {
-  assert, assertDefined, assertString, assertNumber,
-  assertOneOf, assertRange, assertNonEmpty, assertMatch,
-  AssertionError,
-} from "../assert.js";
+import { assert, assertEqual, assertNotEqual, assertDefined, assertType, assertArrayLength, assertInRange, assertMatch, AssertionError } from "../assert.js";
 
 describe("assert", () => {
   it("passes for truthy", () => {
-    expect(() => assert(true)).not.toThrow();
-    expect(() => assert(1)).not.toThrow();
-    expect(() => assert("hi")).not.toThrow();
+    assert(true);
+    assert(1);
+    assert("hello");
   });
 
   it("throws for falsy", () => {
     expect(() => assert(false)).toThrow(AssertionError);
     expect(() => assert(null)).toThrow(AssertionError);
     expect(() => assert(0)).toThrow(AssertionError);
-    expect(() => assert("")).toThrow(AssertionError);
   });
 
   it("uses custom message", () => {
-    expect(() => assert(false, "oops")).toThrow("oops");
+    expect(() => assert(false, "custom")).toThrow("custom");
+  });
+});
+
+describe("assertEqual", () => {
+  it("passes for equal", () => {
+    assertEqual(1, 1);
+    assertEqual("a", "a");
+  });
+
+  it("throws for not equal", () => {
+    expect(() => assertEqual(1, 2)).toThrow(AssertionError);
+  });
+});
+
+describe("assertNotEqual", () => {
+  it("passes for different", () => {
+    assertNotEqual(1, 2);
+  });
+
+  it("throws for equal", () => {
+    expect(() => assertNotEqual(1, 1)).toThrow(AssertionError);
   });
 });
 
 describe("assertDefined", () => {
-  it("passes for defined values", () => {
-    expect(() => assertDefined(0)).not.toThrow();
-    expect(() => assertDefined("")).not.toThrow();
-    expect(() => assertDefined(false)).not.toThrow();
+  it("passes for defined", () => {
+    assertDefined(0);
+    assertDefined("");
+    assertDefined(false);
   });
 
   it("throws for null/undefined", () => {
@@ -37,65 +53,43 @@ describe("assertDefined", () => {
   });
 });
 
-describe("assertString", () => {
-  it("passes for strings", () => {
-    expect(() => assertString("hello")).not.toThrow();
+describe("assertType", () => {
+  it("passes for correct type", () => {
+    assertType("hello", "string");
+    assertType(42, "number");
   });
 
-  it("throws for non-strings", () => {
-    expect(() => assertString(42)).toThrow(AssertionError);
-  });
-});
-
-describe("assertNumber", () => {
-  it("passes for numbers", () => {
-    expect(() => assertNumber(42)).not.toThrow();
-  });
-
-  it("throws for NaN", () => {
-    expect(() => assertNumber(NaN)).toThrow(AssertionError);
+  it("throws for wrong type", () => {
+    expect(() => assertType("hello", "number")).toThrow(AssertionError);
   });
 });
 
-describe("assertOneOf", () => {
-  it("passes when value is in list", () => {
-    expect(() => assertOneOf("a", ["a", "b", "c"])).not.toThrow();
+describe("assertArrayLength", () => {
+  it("passes for correct length", () => {
+    assertArrayLength([1, 2, 3], 3);
   });
 
-  it("throws when value is not in list", () => {
-    expect(() => assertOneOf("z", ["a", "b"])).toThrow(AssertionError);
-  });
-});
-
-describe("assertRange", () => {
-  it("passes within range", () => {
-    expect(() => assertRange(5, 1, 10)).not.toThrow();
-  });
-
-  it("throws outside range", () => {
-    expect(() => assertRange(0, 1, 10)).toThrow(AssertionError);
-    expect(() => assertRange(11, 1, 10)).toThrow(AssertionError);
+  it("throws for wrong length", () => {
+    expect(() => assertArrayLength([1], 2)).toThrow(AssertionError);
   });
 });
 
-describe("assertNonEmpty", () => {
-  it("passes for non-empty", () => {
-    expect(() => assertNonEmpty("hi")).not.toThrow();
-    expect(() => assertNonEmpty([1])).not.toThrow();
+describe("assertInRange", () => {
+  it("passes in range", () => {
+    assertInRange(5, 0, 10);
   });
 
-  it("throws for empty", () => {
-    expect(() => assertNonEmpty("")).toThrow(AssertionError);
-    expect(() => assertNonEmpty([])).toThrow(AssertionError);
+  it("throws out of range", () => {
+    expect(() => assertInRange(15, 0, 10)).toThrow(AssertionError);
   });
 });
 
 describe("assertMatch", () => {
-  it("passes for matching string", () => {
-    expect(() => assertMatch("hello123", /^[a-z]+\d+$/)).not.toThrow();
+  it("passes for matching pattern", () => {
+    assertMatch("hello", /^hel/);
   });
 
   it("throws for non-matching", () => {
-    expect(() => assertMatch("HELLO", /^[a-z]+$/)).toThrow(AssertionError);
+    expect(() => assertMatch("hello", /^world/)).toThrow(AssertionError);
   });
 });

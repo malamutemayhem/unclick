@@ -1,7 +1,7 @@
 export function get(obj: unknown, pointer: string): unknown {
   if (pointer === "" || pointer === "/") return obj;
-  const tokens = parse(pointer);
-  let current: unknown = obj;
+  const tokens = parsePointer(pointer);
+  let current = obj;
   for (const token of tokens) {
     if (current === null || current === undefined) return undefined;
     if (Array.isArray(current)) {
@@ -16,27 +16,39 @@ export function get(obj: unknown, pointer: string): unknown {
   return current;
 }
 
-export function set(obj: unknown, pointer: string, value: unknown): void {
-  const tokens = parse(pointer);
-  if (tokens.length === 0) return;
-  let current: any = obj;
+export function set(obj: unknown, pointer: string, value: unknown): unknown {
+  if (pointer === "") return value;
+  const tokens = parsePointer(pointer);
+  const root = structuredClone(obj) as Record<string, unknown>;
+  let current: unknown = root;
+
   for (let i = 0; i < tokens.length - 1; i++) {
     const token = tokens[i];
-    if (Array.isArray(current)) current = current[parseInt(token, 10)];
-    else current = current[token];
+    if (Array.isArray(current)) {
+      current = current[parseInt(token, 10)];
+    } else if (typeof current === "object" && current !== null) {
+      current = (current as Record<string, unknown>)[token];
+    }
   }
+
   const lastToken = tokens[tokens.length - 1];
   if (Array.isArray(current)) {
-    if (lastToken === "-") current.push(value);
-    else current[parseInt(lastToken, 10)] = value;
-  } else {
-    current[lastToken] = value;
+    if (lastToken === "-") {
+      current.push(value);
+    } else {
+      current[parseInt(lastToken, 10)] = value;
+    }
+  } else if (typeof current === "object" && current !== null) {
+    (current as Record<string, unknown>)[lastToken] = value;
   }
+
+  return root;
 }
 
 export function has(obj: unknown, pointer: string): boolean {
-  const tokens = parse(pointer);
-  let current: unknown = obj;
+  if (pointer === "") return true;
+  const tokens = parsePointer(pointer);
+  let current = obj;
   for (const token of tokens) {
     if (current === null || current === undefined) return false;
     if (Array.isArray(current)) {
@@ -44,7 +56,7 @@ export function has(obj: unknown, pointer: string): boolean {
       if (idx < 0 || idx >= current.length) return false;
       current = current[idx];
     } else if (typeof current === "object") {
-      if (!Object.prototype.hasOwnProperty.call(current, token)) return false;
+      if (!(token in (current as Record<string, unknown>))) return false;
       current = (current as Record<string, unknown>)[token];
     } else {
       return false;
@@ -53,36 +65,61 @@ export function has(obj: unknown, pointer: string): boolean {
   return true;
 }
 
-export function remove(obj: unknown, pointer: string): void {
-  const tokens = parse(pointer);
-  if (tokens.length === 0) return;
-  let current: any = obj;
+export function remove(obj: unknown, pointer: string): unknown {
+  if (pointer === "") return undefined;
+  const tokens = parsePointer(pointer);
+  const root = structuredClone(obj) as Record<string, unknown>;
+  let current: unknown = root;
+
   for (let i = 0; i < tokens.length - 1; i++) {
     const token = tokens[i];
-    if (Array.isArray(current)) current = current[parseInt(token, 10)];
-    else current = current[token];
+    if (Array.isArray(current)) {
+      current = current[parseInt(token, 10)];
+    } else if (typeof current === "object" && current !== null) {
+      current = (current as Record<string, unknown>)[token];
+    }
   }
+
   const lastToken = tokens[tokens.length - 1];
   if (Array.isArray(current)) {
     current.splice(parseInt(lastToken, 10), 1);
-  } else {
-    delete current[lastToken];
+  } else if (typeof current === "object" && current !== null) {
+    delete (current as Record<string, unknown>)[lastToken];
   }
+
+  return root;
 }
 
-function parse(pointer: string): string[] {
-  if (!pointer.startsWith("/")) throw new Error("Pointer must start with /");
-  return pointer.slice(1).split("/").map((t: string) => t.replace(/~1/g, "/").replace(/~0/g, "~"));
+export function flatten(obj: unknown, prefix = ""): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  if (Array.isArray(obj)) {
+    obj.forEach((item, i) => {
+      const path = `${prefix}/${i}`;
+      if (typeof item === "object" && item !== null) {
+        Object.assign(result, flatten(item, path));
+      } else {
+        result[path] = item;
+      }
+    });
+  } else if (typeof obj === "object" && obj !== null) {
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      const escapedKey = key.replace(/~/g, "~0").replace(/\//g, "~1");
+      const path = `${prefix}/${escapedKey}`;
+      if (typeof value === "object" && value !== null) {
+        Object.assign(result, flatten(value, path));
+      } else {
+        result[path] = value;
+      }
+    }
+  } else {
+    result[prefix || "/"] = obj;
+  }
+
+  return result;
 }
 
-export function compile(pointer: string): {
-  get: (obj: unknown) => unknown;
-  set: (obj: unknown, value: unknown) => void;
-  has: (obj: unknown) => boolean;
-} {
-  return {
-    get: (obj: unknown) => get(obj, pointer),
-    set: (obj: unknown, value: unknown) => set(obj, pointer, value),
-    has: (obj: unknown) => has(obj, pointer),
-  };
+function parsePointer(pointer: string): string[] {
+  if (!pointer.startsWith("/")) throw new Error("Invalid JSON Pointer: must start with /");
+  return pointer.slice(1).split("/").map((t) => t.replace(/~1/g, "/").replace(/~0/g, "~"));
 }
