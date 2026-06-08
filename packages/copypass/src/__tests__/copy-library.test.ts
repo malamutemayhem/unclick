@@ -177,4 +177,39 @@ describe("CopyPass copy library", () => {
     expect(checkIds).toContain("risky-guarantee-language");
     expect(checkIds).toContain("ui-honesty-gap");
   });
+
+  it("flags a display heading that risks a one-word hanger, and clears it once bound", () => {
+    const risky: CopyPassCopyBlock[] = [
+      {
+        id: "hero",
+        kind: "hero",
+        text: "Guardrails check every risky action before your AI acts.",
+        public_only: true,
+      },
+    ];
+    expect(detectCopyPassFindings(risky).map((finding) => finding.check_id)).toContain(
+      "display-copy-widow",
+    );
+
+    // A non-breaking space binding the last two words clears the risk.
+    const bound: CopyPassCopyBlock[] = [
+      {
+        id: "hero",
+        kind: "hero",
+        text: "Guardrails check every risky action before your AI\u00A0acts.",
+        public_only: true,
+      },
+    ];
+    expect(detectCopyPassFindings(bound).map((finding) => finding.check_id)).not.toContain(
+      "display-copy-widow",
+    );
+
+    // Short headings are too small to wrap into a hanger.
+    const shortHeading: CopyPassCopyBlock[] = [
+      { id: "hero", kind: "hero", text: "Memory that lasts.", public_only: true },
+    ];
+    expect(detectCopyPassFindings(shortHeading).map((finding) => finding.check_id)).not.toContain(
+      "display-copy-widow",
+    );
+  });
 });
