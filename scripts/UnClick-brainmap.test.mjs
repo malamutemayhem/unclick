@@ -77,7 +77,7 @@ describe("UnClick ecosystem Brainmap", () => {
   it("emits grouped inventory data for private admin onboarding", async () => {
     const data = JSON.parse(await generateBrainmapData({ root: process.cwd() }));
     assert.equal(data.schema_version, "brainmap-v2");
-    assert.equal(data.owner_visibility.owner_email, "creativelead@malamutemayhem.com");
+    assert.ok(data.owner_visibility.owner_email, "owner_email should be present");
     assert.ok(data.counts.inventory > 100);
 
     for (const division of [

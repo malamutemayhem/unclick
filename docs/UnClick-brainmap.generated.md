@@ -82,7 +82,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
-| src/pages/admin/AdminBrainmap.tsx | eb0a0e70ad71 | 26584 |
+| src/pages/admin/AdminBrainmap.tsx | 7e3db4318397 | 26625 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
@@ -131,7 +131,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | fda4fcf632cb | 19192 |
+| src/pages/Memory.tsx | 147f832aa5b9 | 19192 |
 | src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
@@ -145,7 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
 | src/pages/Why.tsx | 0205ed9e7ae2 | 15946 |
-| src/pages/XPass.tsx | ab4f0fe214f6 | 11093 |
+| src/pages/XPass.tsx | 8a95e39abdd4 | 11982 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -1295,7 +1295,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Safety Rules
 
 - Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.
-- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.
+- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.
 - NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.
 - IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.
 - Heartbeats must never print keys or credentials.
