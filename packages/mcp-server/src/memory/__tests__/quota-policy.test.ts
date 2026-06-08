@@ -7,29 +7,32 @@ import {
   shouldEnforceManagedMemoryCaps,
 } from "../quota-policy.js";
 
+const EXEMPT = "vip@example.com";
+const ALLOWLIST = "vip@example.com,admin@example.com";
+
 describe("isMemoryQuotaExemptEmail", () => {
-  test("returns true for the default exempt email", () => {
-    assert.equal(isMemoryQuotaExemptEmail("creativelead@malamutemayhem.com", ""), true);
+  test("returns true for emails in the allowlist", () => {
+    assert.equal(isMemoryQuotaExemptEmail("vip@example.com", ALLOWLIST), true);
   });
 
   test("is case-insensitive", () => {
-    assert.equal(isMemoryQuotaExemptEmail("CreativeLead@MalamuteMayhem.com", ""), true);
+    assert.equal(isMemoryQuotaExemptEmail("VIP@Example.COM", ALLOWLIST), true);
   });
 
   test("trims whitespace", () => {
-    assert.equal(isMemoryQuotaExemptEmail("  creativelead@malamutemayhem.com  ", ""), true);
-  });
-
-  test("returns true for emails in the custom allowlist", () => {
-    assert.equal(isMemoryQuotaExemptEmail("vip@example.com", "vip@example.com"), true);
+    assert.equal(isMemoryQuotaExemptEmail("  vip@example.com  ", ALLOWLIST), true);
   });
 
   test("handles comma-separated allowlist", () => {
-    assert.equal(isMemoryQuotaExemptEmail("b@x.com", "a@x.com,b@x.com,c@x.com"), true);
+    assert.equal(isMemoryQuotaExemptEmail("admin@example.com", ALLOWLIST), true);
   });
 
   test("returns false for non-exempt emails", () => {
-    assert.equal(isMemoryQuotaExemptEmail("random@example.com", ""), false);
+    assert.equal(isMemoryQuotaExemptEmail("random@example.com", ALLOWLIST), false);
+  });
+
+  test("returns false with empty allowlist", () => {
+    assert.equal(isMemoryQuotaExemptEmail("vip@example.com", ""), false);
   });
 
   test("returns false for null email", () => {
@@ -46,8 +49,8 @@ describe("isMemoryQuotaExemptEmail", () => {
 });
 
 describe("effectiveMemoryTier", () => {
-  test("returns 'owner' for exempt emails regardless of tier", () => {
-    assert.equal(effectiveMemoryTier("free", "creativelead@malamutemayhem.com"), "owner");
+  test("returns 'owner' for exempt emails", () => {
+    assert.equal(effectiveMemoryTier("free", EXEMPT, EXEMPT), "owner");
   });
 
   test("returns the provided tier when not exempt", () => {
@@ -113,7 +116,8 @@ describe("shouldEnforceManagedMemoryCaps", () => {
       shouldEnforceManagedMemoryCaps({
         tenancyMode: "managed",
         tier: "free",
-        accountEmail: "creativelead@malamutemayhem.com",
+        accountEmail: EXEMPT,
+        quotaExemptAllowlist: EXEMPT,
       }),
       false,
     );
