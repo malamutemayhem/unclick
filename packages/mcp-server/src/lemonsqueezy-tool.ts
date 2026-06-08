@@ -179,8 +179,8 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
-      "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
-      "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
+      "page[number]": args.page ? String(args.page) : undefined,
+      "page[size]": args.per_page ? String(args.per_page) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsStore>>(apiKey, `/stores${qs}`);
@@ -213,9 +213,9 @@ export async function lsListProducts(args: Record<string, unknown>): Promise<unk
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
-      "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
-      "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
-      "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
+      "filter[store_id]": args.store_id ? String(args.store_id) : undefined,
+      "page[number]": args.page ? String(args.page) : undefined,
+      "page[size]": args.per_page ? String(args.per_page) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsProduct>>(apiKey, `/products${qs}`);
@@ -244,10 +244,10 @@ export async function lsListOrders(args: Record<string, unknown>): Promise<unkno
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
-      "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
-      "filter[user_email]": args["filter[user_email]"] ? String(args["filter[user_email]"]) : undefined,
-      "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
-      "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
+      "filter[store_id]": args.store_id ? String(args.store_id) : undefined,
+      "filter[user_email]": args.user_email ? String(args.user_email) : undefined,
+      "page[number]": args.page ? String(args.page) : undefined,
+      "page[size]": args.per_page ? String(args.per_page) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsOrder>>(apiKey, `/orders${qs}`);
@@ -278,11 +278,11 @@ export async function lsListSubscriptions(args: Record<string, unknown>): Promis
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
-      "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
-      "filter[order_id]": args["filter[order_id]"] ? String(args["filter[order_id]"]) : undefined,
-      "filter[status]": args["filter[status]"] ? String(args["filter[status]"]) : undefined,
-      "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
-      "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
+      "filter[store_id]": args.store_id ? String(args.store_id) : undefined,
+      "filter[order_id]": args.order_id ? String(args.order_id) : undefined,
+      "filter[status]": args.status ? String(args.status) : undefined,
+      "page[number]": args.page ? String(args.page) : undefined,
+      "page[size]": args.per_page ? String(args.per_page) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsSubscription>>(apiKey, `/subscriptions${qs}`);
@@ -348,10 +348,10 @@ export async function lsListCustomers(args: Record<string, unknown>): Promise<un
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
-      "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
-      "filter[email]": args["filter[email]"] ? String(args["filter[email]"]) : undefined,
-      "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
-      "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
+      "filter[store_id]": args.store_id ? String(args.store_id) : undefined,
+      "filter[email]": args.email ? String(args.email) : undefined,
+      "page[number]": args.page ? String(args.page) : undefined,
+      "page[size]": args.per_page ? String(args.per_page) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsCustomer>>(apiKey, `/customers${qs}`);
