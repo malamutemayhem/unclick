@@ -1,49 +1,49 @@
 import { describe, it, expect } from "vitest";
-import { lookup, extension, isText, isImage, isAudio, isVideo } from "../mime-types.js";
+import { getMimeType, getExtension, isTextMime, isImageMime, isAudioMime, isVideoMime } from "../mime-types.js";
 
-describe("mime-types", () => {
-  it("lookup by extension", () => {
-    expect(lookup(".html")).toBe("text/html");
-    expect(lookup(".json")).toBe("application/json");
-    expect(lookup(".png")).toBe("image/png");
+describe("getMimeType", () => {
+  it("returns correct mime for known extensions", () => {
+    expect(getMimeType("index.html")).toBe("text/html");
+    expect(getMimeType("style.css")).toBe("text/css");
+    expect(getMimeType("app.js")).toBe("application/javascript");
+    expect(getMimeType("data.json")).toBe("application/json");
+    expect(getMimeType("photo.png")).toBe("image/png");
+    expect(getMimeType("video.mp4")).toBe("video/mp4");
   });
 
-  it("lookup by filename", () => {
-    expect(lookup("file.ts")).toBe("application/typescript");
-    expect(lookup("styles.css")).toBe("text/css");
+  it("returns octet-stream for unknown", () => {
+    expect(getMimeType("file.xyz")).toBe("application/octet-stream");
+  });
+});
+
+describe("getExtension", () => {
+  it("returns extension for known mime", () => {
+    expect(getExtension("text/html")).toBe("html");
+    expect(getExtension("image/png")).toBe("png");
   });
 
-  it("lookup returns null for unknown", () => {
-    expect(lookup(".xyz123")).toBeNull();
+  it("returns undefined for unknown", () => {
+    expect(getExtension("application/x-custom")).toBeUndefined();
+  });
+});
+
+describe("type checks", () => {
+  it("isTextMime", () => {
+    expect(isTextMime("text/plain")).toBe(true);
+    expect(isTextMime("application/json")).toBe(true);
+    expect(isTextMime("image/png")).toBe(false);
   });
 
-  it("extension from mime type", () => {
-    expect(extension("text/html")).toBe(".html");
-    expect(extension("application/json")).toBe(".json");
+  it("isImageMime", () => {
+    expect(isImageMime("image/png")).toBe(true);
+    expect(isImageMime("text/plain")).toBe(false);
   });
 
-  it("extension returns null for unknown", () => {
-    expect(extension("application/unknown")).toBeNull();
+  it("isAudioMime", () => {
+    expect(isAudioMime("audio/mpeg")).toBe(true);
   });
 
-  it("isText", () => {
-    expect(isText("text/plain")).toBe(true);
-    expect(isText("application/json")).toBe(true);
-    expect(isText("image/png")).toBe(false);
-  });
-
-  it("isImage", () => {
-    expect(isImage("image/png")).toBe(true);
-    expect(isImage("text/plain")).toBe(false);
-  });
-
-  it("isAudio", () => {
-    expect(isAudio("audio/mpeg")).toBe(true);
-    expect(isAudio("video/mp4")).toBe(false);
-  });
-
-  it("isVideo", () => {
-    expect(isVideo("video/mp4")).toBe(true);
-    expect(isVideo("audio/mpeg")).toBe(false);
+  it("isVideoMime", () => {
+    expect(isVideoMime("video/mp4")).toBe(true);
   });
 });

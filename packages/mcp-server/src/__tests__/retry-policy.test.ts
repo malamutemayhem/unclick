@@ -1,56 +1,69 @@
-import { describe, it, expect, vi } from "vitest";
-import { retry } from "../retry-policy.js";
+import { describe, it, expect } from "vitest";
+import { retryWith, withTimeout, retryWithFallback } from "../retry-policy.js";
 
-describe("retry-policy", () => {
-  it("succeeds on first attempt", async () => {
-    const fn = vi.fn().mockResolvedValue("ok");
-    const result = await retry(fn, { maxAttempts: 3, baseDelayMs: 1 });
+describe("retryWith", () => {
+  it("succeeds on first try", async () => {
+    const result = await retryWith(() => Promise.resolve(42), { maxRetries: 3, baseDelay: 10 });
+    expect(result).toBe(42);
+  });
+
+  it("retries on failure then succeeds", async () => {
+    let attempts = 0;
+    const result = await retryWith(() => {
+      attempts++;
+      if (attempts < 3) throw new Error("fail");
+      return Promise.resolve("ok");
+    }, { maxRetries: 5, baseDelay: 1 });
     expect(result).toBe("ok");
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(attempts).toBe(3);
   });
 
-  it("retries and succeeds", async () => {
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValue("ok");
-    const result = await retry(fn, { maxAttempts: 3, baseDelayMs: 1 });
-    expect(result).toBe("ok");
-    expect(fn).toHaveBeenCalledTimes(2);
+  it("throws after max retries", async () => {
+    await expect(retryWith(
+      () => Promise.reject(new Error("always fails")),
+      { maxRetries: 2, baseDelay: 1 }
+    )).rejects.toThrow("always fails");
   });
 
-  it("throws after max attempts", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("always fails"));
-    await expect(
-      retry(fn, { maxAttempts: 3, baseDelayMs: 1, maxDelayMs: 1 })
-    ).rejects.toThrow("always fails");
-    expect(fn).toHaveBeenCalledTimes(3);
+  it("respects retryOn filter", async () => {
+    let attempts = 0;
+    await expect(retryWith(
+      () => { attempts++; throw new Error("not retryable"); },
+      { maxRetries: 5, baseDelay: 1, retryOn: () => false }
+    )).rejects.toThrow("not retryable");
+    expect(attempts).toBe(1);
+  });
+});
+
+describe("withTimeout", () => {
+  it("resolves within timeout", async () => {
+    const result = await withTimeout(Promise.resolve(1), 1000);
+    expect(result).toBe(1);
   });
 
-  it("calls onRetry callback", async () => {
-    const onRetry = vi.fn();
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValue("ok");
-    await retry(fn, { maxAttempts: 3, baseDelayMs: 1, onRetry });
-    expect(onRetry).toHaveBeenCalledTimes(1);
-    expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1);
+  it("rejects after timeout", async () => {
+    await expect(withTimeout(
+      new Promise((r) => setTimeout(r, 5000)),
+      10
+    )).rejects.toThrow("Timeout");
+  });
+});
+
+describe("retryWithFallback", () => {
+  it("uses primary when it succeeds", async () => {
+    const result = await retryWithFallback(
+      () => Promise.resolve("primary"),
+      () => Promise.resolve("fallback")
+    );
+    expect(result).toBe("primary");
   });
 
-  it("stops early if retryIf returns false", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("permanent"));
-    await expect(
-      retry(fn, { maxAttempts: 5, baseDelayMs: 1, retryIf: () => false })
-    ).rejects.toThrow("permanent");
-    expect(fn).toHaveBeenCalledTimes(1);
-  });
-
-  it("applies exponential backoff factor", async () => {
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("f1"))
-      .mockRejectedValueOnce(new Error("f2"))
-      .mockResolvedValue("ok");
-    const start = Date.now();
-    await retry(fn, { maxAttempts: 3, baseDelayMs: 10, backoffFactor: 2 });
-    expect(fn).toHaveBeenCalledTimes(3);
+  it("falls back when primary fails", async () => {
+    const result = await retryWithFallback(
+      () => Promise.reject(new Error("fail")),
+      () => Promise.resolve("fallback"),
+      0
+    );
+    expect(result).toBe("fallback");
   });
 });

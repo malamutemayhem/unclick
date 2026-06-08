@@ -1,6 +1,6 @@
-export function safeParse<T = unknown>(input: string, fallback?: T): T | undefined {
+export function safeParse<T = unknown>(json: string, fallback?: T): T | undefined {
   try {
-    return JSON.parse(input) as T;
+    return JSON.parse(json) as T;
   } catch {
     return fallback;
   }
@@ -8,42 +8,44 @@ export function safeParse<T = unknown>(input: string, fallback?: T): T | undefin
 
 export function safeStringify(value: unknown, space?: number): string | undefined {
   try {
-    return JSON.stringify(value, replacer, space);
+    return JSON.stringify(value, null, space);
   } catch {
     return undefined;
   }
 }
 
-export function parseWithDates(input: string): unknown {
-  const ISO_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-  return JSON.parse(input, (_key: string, value: unknown) => {
-    if (typeof value === "string" && ISO_DATE.test(value)) {
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) return d;
+export function stringifySafe(value: unknown, space?: number): string {
+  const seen = new WeakSet();
+  return JSON.stringify(value, (_key, val) => {
+    if (typeof val === "object" && val !== null) {
+      if (seen.has(val)) return "[Circular]";
+      seen.add(val);
     }
-    return value;
-  });
+    if (typeof val === "bigint") return val.toString() + "n";
+    if (val instanceof Error) return { name: val.name, message: val.message, stack: val.stack };
+    if (val instanceof Date) return val.toISOString();
+    if (val instanceof RegExp) return val.toString();
+    if (val instanceof Map) return Object.fromEntries(val);
+    if (val instanceof Set) return [...val];
+    return val;
+  }, space);
 }
 
-export function deepFreeze<T>(obj: T): T {
-  if (obj === null || typeof obj !== "object") return obj;
-  Object.freeze(obj);
-  for (const key of Object.keys(obj as Record<string, unknown>)) {
-    deepFreeze((obj as Record<string, unknown>)[key]);
+export function jsonLines(items: unknown[]): string {
+  return items.map((item) => JSON.stringify(item)).join("\n");
+}
+
+export function parseJsonLines(text: string): unknown[] {
+  return text.split("\n")
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+}
+
+export function isValidJson(str: string): boolean {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
   }
-  return obj;
-}
-
-export function stripUndefined<T>(obj: T): T {
-  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return obj;
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-    if (value !== undefined) result[key] = stripUndefined(value);
-  }
-  return result as T;
-}
-
-function replacer(_key: string, value: unknown): unknown {
-  if (typeof value === "bigint") return value.toString();
-  return value;
 }
