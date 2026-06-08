@@ -14,6 +14,7 @@ const docPaths = [
   "CLAUDE.md",
   "README.md",
   ".github/OPERATIONS.md",
+  "docs/adding-a-connector.md",
   "packages/mcp-server/README.md",
   "packages/testpass/packs/anti-stomp-v0.yaml",
   "packages/testpass/packs/testpass-core.yaml",
