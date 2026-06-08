@@ -1,57 +1,50 @@
-export function* permutations<T>(items: T[]): Generator<T[]> {
-  if (items.length <= 1) {
-    yield [...items];
-    return;
-  }
-  for (let i = 0; i < items.length; i++) {
-    const rest = [...items.slice(0, i), ...items.slice(i + 1)];
+export function permutations<T>(arr: T[]): T[][] {
+  if (arr.length <= 1) return [arr.slice()];
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i++) {
+    const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
     for (const perm of permutations(rest)) {
-      yield [items[i], ...perm];
+      result.push([arr[i], ...perm]);
     }
   }
-}
-
-export function* combinations<T>(items: T[], k: number): Generator<T[]> {
-  if (k === 0) {
-    yield [];
-    return;
-  }
-  if (k > items.length) return;
-  for (let i = 0; i <= items.length - k; i++) {
-    for (const combo of combinations(items.slice(i + 1), k - 1)) {
-      yield [items[i], ...combo];
-    }
-  }
-}
-
-export function* powerSet<T>(items: T[]): Generator<T[]> {
-  const n = items.length;
-  const total = 1 << n;
-  for (let mask = 0; mask < total; mask++) {
-    const subset: T[] = [];
-    for (let i = 0; i < n; i++) {
-      if (mask & (1 << i)) subset.push(items[i]);
-    }
-    yield subset;
-  }
-}
-
-export function factorial(n: number): number {
-  if (n <= 1) return 1;
-  let result = 1;
-  for (let i = 2; i <= n; i++) result *= i;
   return result;
 }
 
-export function countPermutations(n: number, r?: number): number {
-  const take = r ?? n;
-  return factorial(n) / factorial(n - take);
+export function combinations<T>(arr: T[], k: number): T[][] {
+  if (k > arr.length || k < 0) return [];
+  if (k === 0) return [[]];
+  if (k === arr.length) return [arr.slice()];
+  const result: T[][] = [];
+  const helper = (start: number, current: T[]) => {
+    if (current.length === k) {
+      result.push(current.slice());
+      return;
+    }
+    for (let i = start; i < arr.length; i++) {
+      current.push(arr[i]);
+      helper(i + 1, current);
+      current.pop();
+    }
+  };
+  helper(0, []);
+  return result;
 }
 
-export function countCombinations(n: number, k: number): number {
-  return factorial(n) / (factorial(k) * factorial(n - k));
+export function powerSet<T>(arr: T[]): T[][] {
+  const result: T[][] = [[]];
+  for (const item of arr) {
+    const len = result.length;
+    for (let i = 0; i < len; i++) {
+      result.push([...result[i], item]);
+    }
+  }
+  return result;
 }
 
-export function collect<T>(gen: Generator<T[]>): T[][] {
-  return [...gen];
+export function cartesianProduct<T>(...arrays: T[][]): T[][] {
+  if (arrays.length === 0) return [[]];
+  return arrays.reduce<T[][]>(
+    (acc, arr) => acc.flatMap((combo) => arr.map((item) => [...combo, item])),
+    [[]]
+  );
 }
