@@ -1,72 +1,78 @@
 import { describe, it, expect } from "vitest";
-import { PriorityQueue } from "../priority-queue.js";
+import { PriorityQueue, nSmallest, nLargest } from "../priority-queue.js";
 
 describe("PriorityQueue", () => {
-  it("dequeues lowest priority first", () => {
-    const q = new PriorityQueue<string>();
-    q.enqueue("low", 3);
-    q.enqueue("high", 1);
-    q.enqueue("mid", 2);
-    expect(q.dequeue()).toBe("high");
-    expect(q.dequeue()).toBe("mid");
-    expect(q.dequeue()).toBe("low");
+  it("dequeues in priority order (min-heap)", () => {
+    const pq = new PriorityQueue<number>();
+    pq.enqueue(5);
+    pq.enqueue(1);
+    pq.enqueue(3);
+    expect(pq.dequeue()).toBe(1);
+    expect(pq.dequeue()).toBe(3);
+    expect(pq.dequeue()).toBe(5);
   });
 
-  it("peek returns lowest without removing", () => {
-    const q = new PriorityQueue<string>();
-    q.enqueue("a", 5);
-    q.enqueue("b", 1);
-    expect(q.peek()).toBe("b");
-    expect(q.size).toBe(2);
+  it("custom comparator (max-heap)", () => {
+    const pq = new PriorityQueue<number>((a, b) => b - a);
+    pq.enqueue(1);
+    pq.enqueue(5);
+    pq.enqueue(3);
+    expect(pq.dequeue()).toBe(5);
   });
 
-  it("returns undefined when empty", () => {
-    const q = new PriorityQueue<string>();
-    expect(q.dequeue()).toBeUndefined();
-    expect(q.peek()).toBeUndefined();
+  it("peek returns top", () => {
+    const pq = new PriorityQueue<number>();
+    pq.enqueue(10);
+    pq.enqueue(5);
+    expect(pq.peek()).toBe(5);
   });
 
   it("tracks size", () => {
-    const q = new PriorityQueue<number>();
-    expect(q.size).toBe(0);
-    expect(q.isEmpty()).toBe(true);
-    q.enqueue(1, 1);
-    q.enqueue(2, 2);
-    expect(q.size).toBe(2);
-    expect(q.isEmpty()).toBe(false);
+    const pq = new PriorityQueue<number>();
+    expect(pq.isEmpty).toBe(true);
+    pq.enqueue(1);
+    expect(pq.size).toBe(1);
+    expect(pq.isEmpty).toBe(false);
   });
 
-  it("clear empties the queue", () => {
-    const q = new PriorityQueue<number>();
-    q.enqueue(1, 1);
-    q.enqueue(2, 2);
-    q.clear();
-    expect(q.size).toBe(0);
+  it("dequeue returns undefined when empty", () => {
+    expect(new PriorityQueue<number>().dequeue()).toBeUndefined();
   });
 
-  it("toArray returns sorted values", () => {
-    const q = new PriorityQueue<string>();
-    q.enqueue("c", 3);
-    q.enqueue("a", 1);
-    q.enqueue("b", 2);
-    expect(q.toArray()).toEqual(["a", "b", "c"]);
+  it("toArray returns sorted", () => {
+    const pq = new PriorityQueue<number>();
+    pq.enqueue(3);
+    pq.enqueue(1);
+    pq.enqueue(2);
+    expect(pq.toArray()).toEqual([1, 2, 3]);
+    expect(pq.size).toBe(3);
   });
 
-  it("handles many items correctly", () => {
-    const q = new PriorityQueue<number>();
-    const values = [5, 3, 8, 1, 9, 2, 7, 4, 6, 0];
-    for (const v of values) q.enqueue(v, v);
-    const result: number[] = [];
-    while (!q.isEmpty()) result.push(q.dequeue()!);
-    expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  it("clear empties queue", () => {
+    const pq = new PriorityQueue<number>();
+    pq.enqueue(1);
+    pq.enqueue(2);
+    pq.clear();
+    expect(pq.size).toBe(0);
   });
 
-  it("handles duplicate priorities", () => {
-    const q = new PriorityQueue<string>();
-    q.enqueue("a", 1);
-    q.enqueue("b", 1);
-    const results = [q.dequeue(), q.dequeue()];
-    expect(results).toContain("a");
-    expect(results).toContain("b");
+  it("works with objects", () => {
+    const pq = new PriorityQueue<{ p: number }>((a, b) => a.p - b.p);
+    pq.enqueue({ p: 3 });
+    pq.enqueue({ p: 1 });
+    pq.enqueue({ p: 2 });
+    expect(pq.dequeue()?.p).toBe(1);
+  });
+});
+
+describe("nSmallest", () => {
+  it("returns n smallest", () => {
+    expect(nSmallest([5, 3, 1, 4, 2], 3)).toEqual([1, 2, 3]);
+  });
+});
+
+describe("nLargest", () => {
+  it("returns n largest", () => {
+    expect(nLargest([5, 3, 1, 4, 2], 3)).toEqual([5, 4, 3]);
   });
 });

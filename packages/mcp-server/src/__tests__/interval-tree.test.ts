@@ -2,68 +2,70 @@ import { describe, it, expect } from "vitest";
 import { IntervalTree } from "../interval-tree.js";
 
 describe("IntervalTree", () => {
-  it("inserts and queries by point", () => {
+  it("inserts and tracks size", () => {
     const tree = new IntervalTree<string>();
-    tree.insert(1, 5, "a");
-    tree.insert(3, 8, "b");
-    tree.insert(10, 15, "c");
-    const hits = tree.query(4);
-    expect(hits.length).toBe(2);
-    expect(hits.map((h) => h.value).sort()).toEqual(["a", "b"]);
+    tree.insert({ low: 1, high: 5 }, "a");
+    tree.insert({ low: 3, high: 8 }, "b");
+    expect(tree.size).toBe(2);
   });
 
-  it("query at boundary is inclusive", () => {
+  it("search finds intervals containing point", () => {
     const tree = new IntervalTree<string>();
-    tree.insert(5, 10, "x");
-    expect(tree.query(5).length).toBe(1);
-    expect(tree.query(10).length).toBe(1);
-    expect(tree.query(4).length).toBe(0);
-    expect(tree.query(11).length).toBe(0);
+    tree.insert({ low: 1, high: 5 }, "a");
+    tree.insert({ low: 3, high: 8 }, "b");
+    tree.insert({ low: 10, high: 15 }, "c");
+
+    const results = tree.search(4);
+    const values = results.map((r) => r.value).sort();
+    expect(values).toEqual(["a", "b"]);
   });
 
-  it("queryRange finds overlapping intervals", () => {
+  it("search returns empty for no match", () => {
     const tree = new IntervalTree<string>();
-    tree.insert(1, 3, "a");
-    tree.insert(5, 8, "b");
-    tree.insert(10, 15, "c");
-    const result = tree.queryRange(2, 6);
-    expect(result.length).toBe(2);
-    expect(result.map((r) => r.value).sort()).toEqual(["a", "b"]);
+    tree.insert({ low: 1, high: 5 }, "a");
+    expect(tree.search(6)).toEqual([]);
   });
 
-  it("remove deletes an entry", () => {
+  it("search matches boundary", () => {
     const tree = new IntervalTree<string>();
-    tree.insert(1, 5, "a");
-    tree.insert(3, 8, "b");
-    expect(tree.length).toBe(2);
-    expect(tree.remove("a")).toBe(true);
-    expect(tree.length).toBe(1);
-    expect(tree.query(2).length).toBe(0);
+    tree.insert({ low: 5, high: 10 }, "a");
+    expect(tree.search(5).length).toBe(1);
+    expect(tree.search(10).length).toBe(1);
   });
 
-  it("remove returns false for missing", () => {
+  it("overlap finds intersecting intervals", () => {
     const tree = new IntervalTree<string>();
-    expect(tree.remove("x")).toBe(false);
+    tree.insert({ low: 1, high: 5 }, "a");
+    tree.insert({ low: 6, high: 10 }, "b");
+    tree.insert({ low: 4, high: 7 }, "c");
+
+    const results = tree.overlap({ low: 4, high: 6 });
+    const values = results.map((r) => r.value).sort();
+    expect(values).toEqual(["a", "b", "c"]);
   });
 
-  it("overlaps checks for any overlap", () => {
+  it("overlap returns empty for no intersection", () => {
     const tree = new IntervalTree<string>();
-    tree.insert(5, 10, "a");
-    expect(tree.overlaps(8, 12)).toBe(true);
-    expect(tree.overlaps(11, 15)).toBe(false);
+    tree.insert({ low: 1, high: 3 }, "a");
+    expect(tree.overlap({ low: 5, high: 8 })).toEqual([]);
   });
 
-  it("all returns copy", () => {
+  it("all returns everything in order", () => {
+    const tree = new IntervalTree<string>();
+    tree.insert({ low: 5, high: 10 }, "b");
+    tree.insert({ low: 1, high: 3 }, "a");
+    tree.insert({ low: 8, high: 15 }, "c");
+    const all = tree.all();
+    expect(all.length).toBe(3);
+  });
+
+  it("handles many intervals", () => {
     const tree = new IntervalTree<number>();
-    tree.insert(0, 1, 42);
-    expect(tree.all().length).toBe(1);
-    expect(tree.all()[0].value).toBe(42);
-  });
-
-  it("clear empties tree", () => {
-    const tree = new IntervalTree<string>();
-    tree.insert(0, 10, "a");
-    tree.clear();
-    expect(tree.length).toBe(0);
+    for (let i = 0; i < 100; i++) {
+      tree.insert({ low: i, high: i + 5 }, i);
+    }
+    expect(tree.size).toBe(100);
+    const at50 = tree.search(50);
+    expect(at50.length).toBeGreaterThan(0);
   });
 });

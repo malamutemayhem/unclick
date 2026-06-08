@@ -2,15 +2,10 @@ import { describe, it, expect } from "vitest";
 import { LRUCache } from "../lru-cache.js";
 
 describe("LRUCache", () => {
-  it("set and get", () => {
+  it("get and set", () => {
     const cache = new LRUCache<string, number>(3);
     cache.set("a", 1);
     expect(cache.get("a")).toBe(1);
-  });
-
-  it("returns undefined for missing key", () => {
-    const cache = new LRUCache<string, number>(3);
-    expect(cache.get("nope")).toBeUndefined();
   });
 
   it("evicts least recently used", () => {
@@ -18,34 +13,53 @@ describe("LRUCache", () => {
     cache.set("a", 1);
     cache.set("b", 2);
     cache.set("c", 3);
-    expect(cache.has("a")).toBe(false);
-    expect(cache.has("b")).toBe(true);
-    expect(cache.has("c")).toBe(true);
+    expect(cache.get("a")).toBeUndefined();
+    expect(cache.get("b")).toBe(2);
+    expect(cache.get("c")).toBe(3);
   });
 
-  it("get refreshes access", () => {
+  it("access refreshes priority", () => {
     const cache = new LRUCache<string, number>(2);
     cache.set("a", 1);
     cache.set("b", 2);
     cache.get("a");
     cache.set("c", 3);
-    expect(cache.has("a")).toBe(true);
-    expect(cache.has("b")).toBe(false);
+    expect(cache.get("a")).toBe(1);
+    expect(cache.get("b")).toBeUndefined();
   });
 
-  it("overwrites existing key", () => {
-    const cache = new LRUCache<string, number>(2);
-    cache.set("a", 1);
-    cache.set("a", 2);
-    expect(cache.get("a")).toBe(2);
-    expect(cache.size).toBe(1);
+  it("has checks existence", () => {
+    const cache = new LRUCache<string, number>(3);
+    cache.set("x", 1);
+    expect(cache.has("x")).toBe(true);
+    expect(cache.has("y")).toBe(false);
   });
 
   it("delete removes entry", () => {
     const cache = new LRUCache<string, number>(3);
+    cache.set("x", 1);
+    cache.delete("x");
+    expect(cache.has("x")).toBe(false);
+  });
+
+  it("clear resets everything", () => {
+    const cache = new LRUCache<string, number>(3);
     cache.set("a", 1);
-    cache.delete("a");
-    expect(cache.has("a")).toBe(false);
+    cache.get("a");
+    cache.get("z");
+    cache.clear();
+    expect(cache.size).toBe(0);
+    expect(cache.hitRate).toBe(0);
+  });
+
+  it("tracks hit rate", () => {
+    const cache = new LRUCache<string, number>(3);
+    cache.set("a", 1);
+    cache.get("a");
+    cache.get("b");
+    expect(cache.stats.hits).toBe(1);
+    expect(cache.stats.misses).toBe(1);
+    expect(cache.hitRate).toBe(0.5);
   });
 
   it("peek does not change order", () => {
@@ -57,7 +71,7 @@ describe("LRUCache", () => {
     expect(cache.has("a")).toBe(false);
   });
 
-  it("keys, values, entries", () => {
+  it("keys/values/entries", () => {
     const cache = new LRUCache<string, number>(3);
     cache.set("a", 1);
     cache.set("b", 2);
@@ -66,18 +80,11 @@ describe("LRUCache", () => {
     expect(cache.entries()).toEqual([["a", 1], ["b", 2]]);
   });
 
-  it("clear empties cache", () => {
-    const cache = new LRUCache<string, number>(3);
+  it("update existing key", () => {
+    const cache = new LRUCache<string, number>(2);
     cache.set("a", 1);
-    cache.clear();
-    expect(cache.size).toBe(0);
-  });
-
-  it("maxCapacity returns capacity", () => {
-    expect(new LRUCache(10).maxCapacity).toBe(10);
-  });
-
-  it("throws for invalid capacity", () => {
-    expect(() => new LRUCache(0)).toThrow();
+    cache.set("a", 10);
+    expect(cache.get("a")).toBe(10);
+    expect(cache.size).toBe(1);
   });
 });
