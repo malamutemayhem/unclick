@@ -1,74 +1,115 @@
-export class SlidingWindowRateLimiter {
-  private timestamps = new Map<string, number[]>();
-  private readonly maxRequests: number;
-  private readonly windowMs: number;
+export class TokenBucket {
+  private tokens: number;
+  private lastRefill: number;
 
-  constructor(maxRequests: number, windowMs: number) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
+  constructor(
+    private capacity: number,
+    private refillRate: number,
+    private refillIntervalMs: number = 1000
+  ) {
+    this.tokens = capacity;
+    this.lastRefill = Date.now();
   }
 
-  attempt(key: string, now: number = Date.now()): boolean {
-    const window = this.getWindow(key, now);
-    if (window.length >= this.maxRequests) return false;
-    window.push(now);
-    return true;
+  private refill(): void {
+    const now = Date.now();
+    const elapsed = now - this.lastRefill;
+    const tokensToAdd = Math.floor(elapsed / this.refillIntervalMs) * this.refillRate;
+    if (tokensToAdd > 0) {
+      this.tokens = Math.min(this.capacity, this.tokens + tokensToAdd);
+      this.lastRefill = now;
+    }
   }
 
-  remaining(key: string, now: number = Date.now()): number {
-    const window = this.getWindow(key, now);
-    return Math.max(0, this.maxRequests - window.length);
+  tryConsume(count = 1): boolean {
+    this.refill();
+    if (this.tokens >= count) {
+      this.tokens -= count;
+      return true;
+    }
+    return false;
   }
 
-  resetAt(key: string, now: number = Date.now()): number {
-    const window = this.getWindow(key, now);
-    if (window.length === 0) return now;
-    return window[0] + this.windowMs;
+  async consume(count = 1): Promise<void> {
+    while (!this.tryConsume(count)) {
+      await new Promise((r) => setTimeout(r, this.refillIntervalMs));
+    }
   }
 
-  reset(key: string): void {
-    this.timestamps.delete(key);
-  }
-
-  private getWindow(key: string, now: number): number[] {
-    if (!this.timestamps.has(key)) this.timestamps.set(key, []);
-    const times = this.timestamps.get(key)!;
-    const cutoff = now - this.windowMs;
-    while (times.length > 0 && times[0] <= cutoff) times.shift();
-    this.timestamps.set(key, times);
-    return times;
+  get available(): number {
+    this.refill();
+    return this.tokens;
   }
 }
 
-export class TokenBucketRateLimiter {
-  private buckets = new Map<string, { tokens: number; lastRefill: number }>();
-  private readonly maxTokens: number;
-  private readonly refillRate: number;
+export class SlidingWindowCounter {
+  private windows = new Map<number, number>();
+  private windowSizeMs: number;
+  private maxRequests: number;
 
-  constructor(maxTokens: number, refillRatePerSec: number) {
-    this.maxTokens = maxTokens;
-    this.refillRate = refillRatePerSec;
+  constructor(windowSizeMs: number, maxRequests: number) {
+    this.windowSizeMs = windowSizeMs;
+    this.maxRequests = maxRequests;
   }
 
-  attempt(key: string, tokens: number = 1, now: number = Date.now()): boolean {
-    const bucket = this.getBucket(key, now);
-    if (bucket.tokens < tokens) return false;
-    bucket.tokens -= tokens;
+  tryAcquire(): boolean {
+    const now = Date.now();
+    const currentWindow = Math.floor(now / this.windowSizeMs);
+    const previousWindow = currentWindow - 1;
+
+    this.cleanup(currentWindow);
+
+    const currentCount = this.windows.get(currentWindow) || 0;
+    const previousCount = this.windows.get(previousWindow) || 0;
+    const elapsed = (now % this.windowSizeMs) / this.windowSizeMs;
+    const estimatedCount = previousCount * (1 - elapsed) + currentCount;
+
+    if (estimatedCount >= this.maxRequests) return false;
+
+    this.windows.set(currentWindow, currentCount + 1);
     return true;
   }
 
-  remaining(key: string, now: number = Date.now()): number {
-    return Math.floor(this.getBucket(key, now).tokens);
+  private cleanup(currentWindow: number): void {
+    for (const key of this.windows.keys()) {
+      if (key < currentWindow - 1) this.windows.delete(key);
+    }
   }
 
-  private getBucket(key: string, now: number): { tokens: number; lastRefill: number } {
-    if (!this.buckets.has(key)) {
-      this.buckets.set(key, { tokens: this.maxTokens, lastRefill: now });
+  get remaining(): number {
+    const now = Date.now();
+    const currentWindow = Math.floor(now / this.windowSizeMs);
+    const previousWindow = currentWindow - 1;
+    const currentCount = this.windows.get(currentWindow) || 0;
+    const previousCount = this.windows.get(previousWindow) || 0;
+    const elapsed = (now % this.windowSizeMs) / this.windowSizeMs;
+    const estimated = previousCount * (1 - elapsed) + currentCount;
+    return Math.max(0, Math.floor(this.maxRequests - estimated));
+  }
+}
+
+export class FixedWindowCounter {
+  private count = 0;
+  private windowStart: number;
+
+  constructor(private windowSizeMs: number, private maxRequests: number) {
+    this.windowStart = Date.now();
+  }
+
+  tryAcquire(): boolean {
+    const now = Date.now();
+    if (now - this.windowStart >= this.windowSizeMs) {
+      this.count = 0;
+      this.windowStart = now;
     }
-    const bucket = this.buckets.get(key)!;
-    const elapsed = (now - bucket.lastRefill) / 1000;
-    bucket.tokens = Math.min(this.maxTokens, bucket.tokens + elapsed * this.refillRate);
-    bucket.lastRefill = now;
-    return bucket;
+    if (this.count >= this.maxRequests) return false;
+    this.count++;
+    return true;
+  }
+
+  get remaining(): number {
+    const now = Date.now();
+    if (now - this.windowStart >= this.windowSizeMs) return this.maxRequests;
+    return Math.max(0, this.maxRequests - this.count);
   }
 }

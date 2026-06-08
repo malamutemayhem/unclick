@@ -1,84 +1,97 @@
-export class DAG<T> {
-  private nodes = new Map<string, T>();
-  private edges = new Map<string, Set<string>>();
-  private reverseEdges = new Map<string, Set<string>>();
+export class DAG<T = string> {
+  private nodes = new Map<T, Set<T>>();
 
-  addNode(id: string, data: T): this {
-    this.nodes.set(id, data);
-    if (!this.edges.has(id)) this.edges.set(id, new Set());
-    if (!this.reverseEdges.has(id)) this.reverseEdges.set(id, new Set());
+  addNode(node: T): this {
+    if (!this.nodes.has(node)) this.nodes.set(node, new Set());
     return this;
   }
 
-  addEdge(from: string, to: string): this {
-    if (!this.edges.has(from)) this.edges.set(from, new Set());
-    if (!this.reverseEdges.has(to)) this.reverseEdges.set(to, new Set());
-    this.edges.get(from)!.add(to);
-    this.reverseEdges.get(to)!.add(from);
+  addEdge(from: T, to: T): this {
+    this.addNode(from);
+    this.addNode(to);
+    if (this.wouldCycle(from, to)) {
+      throw new Error("Adding edge would create a cycle");
+    }
+    this.nodes.get(from)!.add(to);
     return this;
   }
 
-  getNode(id: string): T | undefined {
-    return this.nodes.get(id);
+  removeNode(node: T): boolean {
+    if (!this.nodes.has(node)) return false;
+    this.nodes.delete(node);
+    for (const edges of this.nodes.values()) edges.delete(node);
+    return true;
   }
 
-  getDependencies(id: string): string[] {
-    return [...(this.edges.get(id) ?? [])];
+  removeEdge(from: T, to: T): boolean {
+    return this.nodes.get(from)?.delete(to) || false;
   }
 
-  getDependents(id: string): string[] {
-    return [...(this.reverseEdges.get(id) ?? [])];
+  hasNode(node: T): boolean { return this.nodes.has(node); }
+  hasEdge(from: T, to: T): boolean { return this.nodes.get(from)?.has(to) || false; }
+  get nodeCount(): number { return this.nodes.size; }
+
+  get edgeCount(): number {
+    let count = 0;
+    for (const edges of this.nodes.values()) count += edges.size;
+    return count;
   }
 
-  topologicalSort(): string[] {
-    const inDegree = new Map<string, number>();
-    for (const id of this.nodes.keys()) inDegree.set(id, 0);
-    for (const deps of this.edges.values()) {
-      for (const dep of deps) {
-        inDegree.set(dep, (inDegree.get(dep) ?? 0) + 1);
-      }
+  dependenciesOf(node: T): T[] {
+    const edges = this.nodes.get(node);
+    return edges ? [...edges] : [];
+  }
+
+  dependantsOf(node: T): T[] {
+    const result: T[] = [];
+    for (const [n, edges] of this.nodes) {
+      if (edges.has(node)) result.push(n);
     }
-    const queue: string[] = [];
-    for (const [id, deg] of inDegree) {
-      if (deg === 0) queue.push(id);
-    }
-    const result: string[] = [];
-    while (queue.length > 0) {
-      const node = queue.shift()!;
-      result.push(node);
-      for (const dep of this.edges.get(node) ?? []) {
-        const newDeg = (inDegree.get(dep) ?? 1) - 1;
-        inDegree.set(dep, newDeg);
-        if (newDeg === 0) queue.push(dep);
-      }
-    }
-    if (result.length !== this.nodes.size) throw new Error("Cycle detected");
     return result;
   }
 
-  hasCycle(): boolean {
-    try { this.topologicalSort(); return false; } catch { return true; }
+  topologicalSort(): T[] {
+    const visited = new Set<T>();
+    const result: T[] = [];
+
+    const visit = (node: T): void => {
+      if (visited.has(node)) return;
+      visited.add(node);
+      const edges = this.nodes.get(node);
+      if (edges) for (const dep of edges) visit(dep);
+      result.push(node);
+    };
+
+    for (const node of this.nodes.keys()) visit(node);
+    return result;
   }
 
-  roots(): string[] {
-    return [...this.nodes.keys()].filter((id) => {
-      const deps = this.reverseEdges.get(id);
-      return !deps || deps.size === 0;
-    });
+  roots(): T[] {
+    const hasIncoming = new Set<T>();
+    for (const edges of this.nodes.values()) {
+      for (const target of edges) hasIncoming.add(target);
+    }
+    return [...this.nodes.keys()].filter((n) => !hasIncoming.has(n));
   }
 
-  leaves(): string[] {
-    return [...this.nodes.keys()].filter((id) => {
-      const deps = this.edges.get(id);
-      return !deps || deps.size === 0;
-    });
+  leaves(): T[] {
+    return [...this.nodes.entries()]
+      .filter(([_, edges]) => edges.size === 0)
+      .map(([node]) => node);
   }
 
-  get size(): number {
-    return this.nodes.size;
-  }
-
-  nodeIds(): string[] {
-    return [...this.nodes.keys()];
+  private wouldCycle(from: T, to: T): boolean {
+    if (from === to) return true;
+    const visited = new Set<T>();
+    const stack = [to];
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (current === from) return true;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      const edges = this.nodes.get(current);
+      if (edges) for (const dep of edges) stack.push(dep);
+    }
+    return false;
   }
 }
