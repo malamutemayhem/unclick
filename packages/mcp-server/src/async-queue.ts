@@ -1,61 +1,51 @@
-type Task<T> = () => Promise<T>;
+export class AsyncQueue<T> {
+  private buffer: T[] = [];
+  private waiters: ((value: T) => void)[] = [];
+  private closed = false;
 
-export class AsyncQueue {
-  private queue: Array<{ task: Task<unknown>; resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
-  private running = 0;
-  private readonly concurrency: number;
-  private paused = false;
-
-  constructor(concurrency: number = 1) {
-    this.concurrency = concurrency;
-  }
-
-  add<T>(task: Task<T>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.queue.push({ task: task as Task<unknown>, resolve: resolve as (v: unknown) => void, reject });
-      this.run();
-    });
-  }
-
-  private async run(): Promise<void> {
-    if (this.paused) return;
-    while (this.running < this.concurrency && this.queue.length > 0) {
-      const item = this.queue.shift()!;
-      this.running++;
-      try {
-        const result = await item.task();
-        item.resolve(result);
-      } catch (err) {
-        item.reject(err);
-      } finally {
-        this.running--;
-        this.run();
-      }
+  push(item: T): void {
+    if (this.closed) throw new Error("Queue is closed");
+    if (this.waiters.length > 0) {
+      const resolve = this.waiters.shift()!;
+      resolve(item);
+    } else {
+      this.buffer.push(item);
     }
   }
 
-  pause(): void {
-    this.paused = true;
+  async pop(): Promise<T> {
+    if (this.buffer.length > 0) return this.buffer.shift()!;
+    if (this.closed) throw new Error("Queue is closed");
+    return new Promise<T>((resolve) => this.waiters.push(resolve));
   }
 
-  resume(): void {
-    this.paused = false;
-    this.run();
-  }
-
-  get pending(): number {
-    return this.queue.length;
-  }
-
-  get active(): number {
-    return this.running;
+  tryPop(): T | undefined {
+    return this.buffer.shift();
   }
 
   get size(): number {
-    return this.queue.length + this.running;
+    return this.buffer.length;
   }
 
-  get isPaused(): boolean {
-    return this.paused;
+  get waiting(): number {
+    return this.waiters.length;
+  }
+
+  get isClosed(): boolean {
+    return this.closed;
+  }
+
+  close(): void {
+    this.closed = true;
+    for (const waiter of this.waiters) {
+      (waiter as unknown as (reason?: unknown) => void)(undefined);
+    }
+    this.waiters = [];
+  }
+
+  drain(): T[] {
+    const items = this.buffer;
+    this.buffer = [];
+    return items;
   }
 }

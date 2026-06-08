@@ -1,80 +1,63 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { PubSub } from "../pub-sub.js";
 
-interface Events {
-  message: string;
-  count: number;
-  done: void;
-}
-
 describe("PubSub", () => {
-  it("emits and receives events", () => {
-    const ps = new PubSub<Events>();
-    const fn = vi.fn();
-    ps.on("message", fn);
-    ps.emit("message", "hello");
-    expect(fn).toHaveBeenCalledWith("hello");
+  it("subscribe and publish", () => {
+    const ps = new PubSub<string>();
+    const received: string[] = [];
+    ps.subscribe("news", (msg) => received.push(msg));
+    ps.publish("news", "hello");
+    expect(received).toEqual(["hello"]);
   });
 
-  it("different event types are independent", () => {
-    const ps = new PubSub<Events>();
-    const fn = vi.fn();
-    ps.on("message", fn);
-    ps.emit("count", 42);
-    expect(fn).not.toHaveBeenCalled();
+  it("publish returns subscriber count", () => {
+    const ps = new PubSub<string>();
+    ps.subscribe("t", () => {});
+    ps.subscribe("t", () => {});
+    expect(ps.publish("t", "x")).toBe(2);
   });
 
-  it("once fires only once", () => {
-    const ps = new PubSub<Events>();
-    const fn = vi.fn();
-    ps.once("count", fn);
-    ps.emit("count", 1);
-    ps.emit("count", 2);
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn).toHaveBeenCalledWith(1);
+  it("publish to empty topic returns 0", () => {
+    const ps = new PubSub<string>();
+    expect(ps.publish("empty", "x")).toBe(0);
   });
 
-  it("unsubscribe via returned function", () => {
-    const ps = new PubSub<Events>();
-    const fn = vi.fn();
-    const off = ps.on("message", fn);
-    off();
-    ps.emit("message", "hi");
-    expect(fn).not.toHaveBeenCalled();
+  it("unsubscribe removes listener", () => {
+    const ps = new PubSub<number>();
+    const fn = () => {};
+    ps.subscribe("t", fn);
+    expect(ps.unsubscribe("t", fn)).toBe(true);
+    expect(ps.subscriberCount("t")).toBe(0);
   });
 
-  it("off removes all handlers for event", () => {
-    const ps = new PubSub<Events>();
-    const fn1 = vi.fn();
-    const fn2 = vi.fn();
-    ps.on("message", fn1);
-    ps.on("message", fn2);
-    ps.off("message");
-    ps.emit("message", "hi");
-    expect(fn1).not.toHaveBeenCalled();
-    expect(fn2).not.toHaveBeenCalled();
+  it("subscribe returns unsubscribe function", () => {
+    const ps = new PubSub<number>();
+    const unsub = ps.subscribe("t", () => {});
+    unsub();
+    expect(ps.subscriberCount("t")).toBe(0);
   });
 
-  it("offAll removes everything", () => {
-    const ps = new PubSub<Events>();
-    ps.on("message", vi.fn());
-    ps.on("count", vi.fn());
-    ps.offAll();
-    expect(ps.listenerCount("message")).toBe(0);
-    expect(ps.listenerCount("count")).toBe(0);
+  it("retains history for new subscribers", () => {
+    const ps = new PubSub<number>(2);
+    ps.publish("t", 1);
+    ps.publish("t", 2);
+    ps.publish("t", 3);
+    const received: number[] = [];
+    ps.subscribe("t", (msg) => received.push(msg));
+    expect(received).toEqual([2, 3]);
   });
 
-  it("listenerCount tracks handlers", () => {
-    const ps = new PubSub<Events>();
-    expect(ps.listenerCount("message")).toBe(0);
-    const off = ps.on("message", () => {});
-    expect(ps.listenerCount("message")).toBe(1);
-    off();
-    expect(ps.listenerCount("message")).toBe(0);
+  it("topics lists active topics", () => {
+    const ps = new PubSub<string>();
+    ps.subscribe("a", () => {});
+    ps.subscribe("b", () => {});
+    expect(ps.topics.sort()).toEqual(["a", "b"]);
   });
 
-  it("emit to non-existent event is safe", () => {
-    const ps = new PubSub<Events>();
-    expect(() => ps.emit("message", "x")).not.toThrow();
+  it("clear removes everything", () => {
+    const ps = new PubSub<string>();
+    ps.subscribe("t", () => {});
+    ps.clear();
+    expect(ps.topics).toEqual([]);
   });
 });

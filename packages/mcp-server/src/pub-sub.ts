@@ -1,42 +1,51 @@
-type Handler<T> = (data: T) => void;
+export type Subscriber<T> = (message: T, topic: string) => void;
 
-export class PubSub<Events extends Record<string, any>> {
-  private handlers = new Map<keyof Events, Set<Handler<any>>>();
+export class PubSub<T = unknown> {
+  private subscribers = new Map<string, Set<Subscriber<T>>>();
+  private history = new Map<string, T[]>();
+  private retainCount: number;
 
-  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
-    let set = this.handlers.get(event);
-    if (!set) {
-      set = new Set();
-      this.handlers.set(event, set);
+  constructor(retainCount = 0) {
+    this.retainCount = retainCount;
+  }
+
+  subscribe(topic: string, subscriber: Subscriber<T>): () => void {
+    if (!this.subscribers.has(topic)) this.subscribers.set(topic, new Set());
+    this.subscribers.get(topic)!.add(subscriber);
+    if (this.retainCount > 0) {
+      const retained = this.history.get(topic) ?? [];
+      for (const msg of retained) subscriber(msg, topic);
     }
-    set.add(handler);
-    return () => set!.delete(handler);
+    return () => this.unsubscribe(topic, subscriber);
   }
 
-  once<K extends keyof Events>(event: K, handler: Handler<Events[K]>): () => void {
-    const wrapper: Handler<Events[K]> = (data) => {
-      off();
-      handler(data);
-    };
-    const off = this.on(event, wrapper);
-    return off;
+  unsubscribe(topic: string, subscriber: Subscriber<T>): boolean {
+    return this.subscribers.get(topic)?.delete(subscriber) ?? false;
   }
 
-  emit<K extends keyof Events>(event: K, data: Events[K]): void {
-    const set = this.handlers.get(event);
-    if (!set) return;
-    for (const handler of set) handler(data);
+  publish(topic: string, message: T): number {
+    if (this.retainCount > 0) {
+      if (!this.history.has(topic)) this.history.set(topic, []);
+      const hist = this.history.get(topic)!;
+      hist.push(message);
+      if (hist.length > this.retainCount) hist.shift();
+    }
+    const subs = this.subscribers.get(topic);
+    if (!subs) return 0;
+    for (const sub of subs) sub(message, topic);
+    return subs.size;
   }
 
-  off<K extends keyof Events>(event: K): void {
-    this.handlers.delete(event);
+  subscriberCount(topic: string): number {
+    return this.subscribers.get(topic)?.size ?? 0;
   }
 
-  offAll(): void {
-    this.handlers.clear();
+  get topics(): string[] {
+    return [...this.subscribers.keys()];
   }
 
-  listenerCount<K extends keyof Events>(event: K): number {
-    return this.handlers.get(event)?.size ?? 0;
+  clear(): void {
+    this.subscribers.clear();
+    this.history.clear();
   }
 }
