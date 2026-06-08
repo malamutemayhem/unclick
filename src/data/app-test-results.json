@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T14:30:00.000Z",
+  "updatedAt": "2026-06-09T15:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4042,6 +4042,30 @@
       "note": "numerical_integrate computes definite integrals (Simpson/trapezoid/midpoint). Local computation.",
       "testedAt": "2026-06-09T14:30:00.000Z",
       "toolsTested": ["numerical_integrate"]
+    },
+    "fft": {
+      "status": "pass",
+      "note": "fft_transform computes FFT via Cooley-Tukey radix-2 with inverse support. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": ["fft_transform"]
+    },
+    "bezier": {
+      "status": "pass",
+      "note": "bezier_curve computes Bezier curves with arc length and evaluation. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": ["bezier_curve"]
+    },
+    "rootfind": {
+      "status": "pass",
+      "note": "root_find solves f(x)=0 via Newton or bisection method. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": ["root_find"]
+    },
+    "matinverse": {
+      "status": "pass",
+      "note": "matrix_inverse computes inverse and determinant via Gauss-Jordan. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": ["matrix_inverse"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

@@ -705,6 +705,12 @@ import { linearSolve } from "./linearsolve-tool.js";
 import { numericalDiff } from "./numdiff-tool.js";
 import { numericalIntegrate } from "./numintegrate-tool.js";
 
+// ── batch 60: signal processing, curves, root finding, matrix inverse ──
+import { fftTransform } from "./fft-tool.js";
+import { bezierCurve } from "./bezier-tool.js";
+import { rootFind } from "./rootfind-tool.js";
+import { matrixInverse } from "./matinverse-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -10612,6 +10618,56 @@ export const ADDITIONAL_TOOLS = [
         method: { type: "string" as const, description: "Method: simpson (default), trapezoid, or midpoint." },
         intervals: { type: "number" as const, description: "Number of intervals (default 1000, max 1000000)." },
       }, required: ["expression", "a", "b"],
+    },
+  },
+
+  // ── fft-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "fft_transform",
+    description: "Fast Fourier Transform (Cooley-Tukey radix-2) with optional inverse.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        signal: { type: "array" as const, description: "Array of real-valued samples.", items: { type: "number" as const } },
+        inverse: { type: "boolean" as const, description: "Perform inverse FFT (default false)." },
+      }, required: ["signal"],
+    },
+  },
+  // ── bezier-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bezier_curve",
+    description: "Compute a Bezier curve from control points with arc length and optional evaluation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        control_points: { type: "array" as const, description: "Array of [x, y] control points (at least 2).", items: { type: "array" as const, items: { type: "number" as const } } },
+        steps: { type: "number" as const, description: "Number of curve samples (default 50, max 1000)." },
+        eval_at: { description: "t value(s) in [0,1] to evaluate at. Number or array of numbers." },
+      }, required: ["control_points"],
+    },
+  },
+  // ── rootfind-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "root_find",
+    description: "Find roots of a math expression using Newton's method or bisection.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 - 4')." },
+        method: { type: "string" as const, description: "Method: newton (default) or bisection." },
+        x0: { type: "number" as const, description: "Initial guess (Newton, default 1)." },
+        a: { type: "number" as const, description: "Left bound (bisection)." },
+        b: { type: "number" as const, description: "Right bound (bisection)." },
+        tolerance: { type: "number" as const, description: "Convergence tolerance (default 1e-10)." },
+        max_iterations: { type: "number" as const, description: "Max iterations (default 100)." },
+      }, required: ["expression"],
+    },
+  },
+  // ── matinverse-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "matrix_inverse",
+    description: "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "Square 2D array of numbers.", items: { type: "array" as const, items: { type: "number" as const } } },
+      }, required: ["matrix"],
     },
   },
 
@@ -22336,6 +22392,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   linear_solve:              (args) => linearSolve(args),
   numerical_diff:            (args) => numericalDiff(args),
   numerical_integrate:       (args) => numericalIntegrate(args),
+
+  // batch 60: signal processing, curves, root finding, matrix inverse
+  fft_transform:             (args) => fftTransform(args),
+  bezier_curve:              (args) => bezierCurve(args),
+  root_find:                 (args) => rootFind(args),
+  matrix_inverse:            (args) => matrixInverse(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

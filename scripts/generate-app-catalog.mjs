@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate", "fft", "bezier", "rootfind", "matinverse"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -194,6 +194,8 @@ const NAME_OF = {
   convexhull: "Convex Hull", knapsack: "Knapsack Solver", spline: "Spline Interpolation",
   dijkstra: "Dijkstra Shortest Path", matrixdecomp: "Matrix Decomposition",
   linearsolve: "Linear Solver", numdiff: "Numerical Differentiation", numintegrate: "Numerical Integration",
+  fft: "FFT (Fast Fourier Transform)", bezier: "Bezier Curve",
+  rootfind: "Root Finder", matinverse: "Matrix Inverse",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -576,6 +578,10 @@ const BLURB_OF = {
   linearsolve: "Solve systems of linear equations Ax = b with partial pivoting.",
   numdiff: "Numerical differentiation using five-point stencil (1st through 4th order).",
   numintegrate: "Numerical integration using Simpson, trapezoid, or midpoint rule.",
+  fft: "Fast Fourier Transform (Cooley-Tukey radix-2) for frequency analysis.",
+  bezier: "Compute Bezier curves from control points with arc length and evaluation.",
+  rootfind: "Find roots of expressions using Newton's method or bisection.",
+  matinverse: "Compute the inverse and determinant of a square matrix.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -747,6 +753,7 @@ const DOMAIN_OF = {
   expgrowth: "local", geomseries: "local", harmonicseries: "local", piapprox: "local", taylor: "local",
   lcs: "local", toposort: "local", convexhull: "local", knapsack: "local", spline: "local",
   dijkstra: "local", matrixdecomp: "local", linearsolve: "local", numdiff: "local", numintegrate: "local",
+  fft: "local", bezier: "local", rootfind: "local", matinverse: "local",
 };
 
 function titleCase(slug) {

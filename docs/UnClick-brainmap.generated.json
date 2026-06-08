@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 961,
+    "inventory": 965,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 536,
+    "tools": 540,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 536
+      "count": 540
     },
     {
       "id": "rooms",
@@ -4532,6 +4532,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bezier-packages-mcp-server-src-bezier-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bezier",
+      "kind": "MCP tool",
+      "meaning": "bezier MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bezier-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bgg-packages-mcp-server-src-bgg-tool-ts-no-route",
       "division": "Tools",
       "name": "bgg",
@@ -5782,6 +5792,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-fft-packages-mcp-server-src-fft-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fft",
+      "kind": "MCP tool",
+      "meaning": "fft MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fft-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-fibonacci-packages-mcp-server-src-fibonacci-tool-ts-no-route",
       "division": "Tools",
       "name": "fibonacci",
@@ -6888,6 +6908,16 @@
       "kind": "MCP tool",
       "meaning": "mastodon MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/mastodon-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-matinverse-packages-mcp-server-src-matinverse-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matinverse",
+      "kind": "MCP tool",
+      "meaning": "matinverse MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matinverse-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8268,6 +8298,16 @@
       "kind": "MCP tool",
       "meaning": "roman MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/roman-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-rootfind-packages-mcp-server-src-rootfind-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rootfind",
+      "kind": "MCP tool",
+      "meaning": "rootfind MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rootfind-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10471,6 +10511,11 @@
       "packages/mcp-server/src/baseconvert-tool.ts"
     ],
     [
+      "bezier",
+      "bezier MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bezier-tool.ts"
+    ],
+    [
       "bgg",
       "bgg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bgg-tool.ts"
@@ -11096,6 +11141,11 @@
       "packages/mcp-server/src/feedly-tool.ts"
     ],
     [
+      "fft",
+      "fft MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fft-tool.ts"
+    ],
+    [
       "fibonacci",
       "fibonacci MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/fibonacci-tool.ts"
@@ -11649,6 +11699,11 @@
       "mastodon",
       "mastodon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mastodon-tool.ts"
+    ],
+    [
+      "matinverse",
+      "matinverse MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matinverse-tool.ts"
     ],
     [
       "matrix",
@@ -12339,6 +12394,11 @@
       "roman",
       "roman MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/roman-tool.ts"
+    ],
+    [
+      "rootfind",
+      "rootfind MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rootfind-tool.ts"
     ],
     [
       "rot13",
@@ -14199,6 +14259,11 @@
       "bytes": 1246
     },
     {
+      "source": "packages/mcp-server/src/bezier-tool.ts",
+      "hash": "29ff88e26cbb",
+      "bytes": 2561
+    },
+    {
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
@@ -14227,11 +14292,6 @@
       "source": "packages/mcp-server/src/binomprob-tool.ts",
       "hash": "08174a2866e7",
       "bytes": 1770
-    },
-    {
-      "source": "packages/mcp-server/src/bitbucket-tool.ts",
-      "hash": "a6a405951262",
-      "bytes": 4388
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

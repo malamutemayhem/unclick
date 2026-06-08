@@ -560,6 +560,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bezier",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bezier_curve",
+        "description": "Compute a Bezier curve from control points with arc length and optional evaluation."
+      }
+    ]
+  },
+  {
     "app": "bgg",
     "category": "Gaming",
     "tools": [
@@ -2642,6 +2652,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "fft",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fft_transform",
+        "description": "Fast Fourier Transform (Cooley-Tukey radix-2) with optional inverse."
+      }
+    ]
+  },
+  {
     "app": "fibonacci",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4430,6 +4450,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mastodon_action",
         "description": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications."
+      }
+    ]
+  },
+  {
+    "app": "matinverse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_inverse",
+        "description": "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination."
       }
     ]
   },
@@ -6710,6 +6740,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "roman_convert",
         "description": "Convert between Roman numerals and decimal numbers."
+      }
+    ]
+  },
+  {
+    "app": "rootfind",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "root_find",
+        "description": "Find roots of a math expression using Newton's method or bisection."
       }
     ]
   },
