@@ -476,7 +476,8 @@ async function upsertPack(
     }
     return { status: 500, payload: { error: `Upsert failed: ${res.status} ${text}` } };
   }
-  const rows = text ? (JSON.parse(text) as Array<Record<string, unknown>>) : [];
+  let rows: Array<Record<string, unknown>> = [];
+  try { if (text) rows = JSON.parse(text) as Array<Record<string, unknown>>; } catch { /* non-JSON ok body */ }
   return { status: 200, payload: { pack: rows[0] ?? null } };
 }
 
