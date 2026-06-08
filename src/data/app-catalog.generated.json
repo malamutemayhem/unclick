@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 383,
-  "toolCount": 1280,
+  "appCount": 389,
+  "toolCount": 1291,
   "categories": [
     "AI",
     "Books",
@@ -580,6 +580,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bgpview",
+      "name": "BGPView",
+      "category": "Security",
+      "blurb": "BGP/ASN lookup: network details, IP prefixes, and routing data.",
+      "domain": "bgpview.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "bgpview_asn",
+          "description": "Look up an Autonomous System Number (ASN) on BGPView."
+        },
+        {
+          "name": "bgpview_asn_prefixes",
+          "description": "Get IP prefixes announced by an ASN from BGPView."
+        },
+        {
+          "name": "bgpview_ip",
+          "description": "Look up IP address details (PTR, prefix, ASN) on BGPView."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bible",
@@ -1652,6 +1676,26 @@
         {
           "name": "country_by_ip",
           "description": "Detect country from an IP address using country.is."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "crates",
+      "name": "Crates.io",
+      "category": "Developer & infra",
+      "blurb": "Search and look up Rust crates on crates.io.",
+      "domain": "crates.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "crates_search",
+          "description": "Search Rust crates on crates.io by name or keyword."
+        },
+        {
+          "name": "crates_get",
+          "description": "Get detailed info for a Rust crate by name from crates.io."
         }
       ],
       "level": 5,
@@ -4942,6 +4986,22 @@
       "hardened": true
     },
     {
+      "slug": "mymemory",
+      "name": "MyMemory Translate",
+      "category": "Utilities",
+      "blurb": "Free text translation between 100+ languages via MyMemory.",
+      "domain": "mymemory.translated.net",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "mymemory_translate",
+          "description": "Translate text between languages using MyMemory free translation API."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "agify",
       "name": "Name Analysis",
       "category": "Utilities",
@@ -5174,6 +5234,26 @@
       "hardened": true
     },
     {
+      "slug": "npm-registry",
+      "name": "npm Registry",
+      "category": "Developer & infra",
+      "blurb": "Search and look up npm packages on the npm registry.",
+      "domain": "npmjs.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "npm_search",
+          "description": "Search npm packages by name or keyword."
+        },
+        {
+          "name": "npm_get_package",
+          "description": "Get metadata for an npm package (latest version)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nudgeonly",
       "name": "NudgeOnly",
       "category": "Quality (XPass)",
@@ -5316,6 +5396,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "openchargemap",
+      "name": "Open Charge Map",
+      "category": "Travel, maps & local",
+      "blurb": "Find EV charging stations worldwide with connector and operator details.",
+      "domain": "openchargemap.io",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "openchargemap_search",
+          "description": "Find EV charging stations near a location from Open Charge Map."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "open-elevation",
@@ -6468,6 +6564,26 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "pypi",
+      "name": "PyPI",
+      "category": "Developer & infra",
+      "blurb": "Look up Python packages and version metadata from PyPI.",
+      "domain": "pypi.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "pypi_get_package",
+          "description": "Get metadata for a Python package from PyPI."
+        },
+        {
+          "name": "pypi_get_version",
+          "description": "Get metadata for a specific version of a Python package from PyPI."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "qc",

@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (358 external connectors)
+## Distribution (364 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 319 | 89% |
+| L5 | Agentic | 325 | 89% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 10% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 358 (67%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 364 (66%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 319 of 322 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 325 of 328 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -47,6 +47,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `arxiv` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `avatarapi` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `balldontlie` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `bgpview` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `bibleverse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `breakingbad` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `carbonintensity` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -61,6 +62,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `colr` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `countryflag` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `countryis` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `crates` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `crossref` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `cvecircl` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `datamuse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -107,13 +109,16 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `mhwdb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `mtg` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `multiavatar` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mymemory` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `nationalize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `newton` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `nobelprize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `nominatim` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `npm-registry` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `officialjoke` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `open-elevation` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `openalex` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openchargemap` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `opendota` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `openfda` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `openlib2` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -133,6 +138,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `pubchem` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `publicapis` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `punkapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `pypi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `qrserver` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `randomduck` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `randomuser` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -184,6 +190,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `balldontlie` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `bandsintown` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bgg` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bgpview` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `bible` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bibleverse` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `bitbucket` | Yes | - | - | Yes | Yes | no-memory |
@@ -222,6 +229,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `corporatebs` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `countryflag` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `countryis` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `crates` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `crossref` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `cvecircl` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `dadjoke` | Yes | - | - | Yes | Yes | no-memory |
@@ -338,6 +346,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mtg` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `multiavatar` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `musicbrainz` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `mymemory` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nasa` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `nationalize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `neon` | Yes | Yes | - | Yes | Yes |  |
@@ -346,6 +355,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `newton` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nobelprize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nominatim` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `npm-registry` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nvd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `officialjoke` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
@@ -353,6 +363,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `openai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openalex` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openaq` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openchargemap` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `opendota` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openexchangerates` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openf1` | Yes | - | - | Yes | Yes | no-memory |
@@ -390,6 +401,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pubchem` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `publicapis` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `punkapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `pypi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `qrserver` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `quotable` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |

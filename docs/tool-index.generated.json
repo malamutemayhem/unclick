@@ -484,6 +484,24 @@
     ]
   },
   {
+    "app": "bgpview",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bgpview_asn",
+        "description": "Look up an Autonomous System Number (ASN) on BGPView."
+      },
+      {
+        "name": "bgpview_asn_prefixes",
+        "description": "Get IP prefixes announced by an ASN from BGPView."
+      },
+      {
+        "name": "bgpview_ip",
+        "description": "Look up IP address details (PTR, prefix, ASN) on BGPView."
+      }
+    ]
+  },
+  {
     "app": "bible",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1316,6 +1334,20 @@
       {
         "name": "country_by_ip",
         "description": "Detect country from an IP address using country.is."
+      }
+    ]
+  },
+  {
+    "app": "crates",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crates_search",
+        "description": "Search Rust crates on crates.io by name or keyword."
+      },
+      {
+        "name": "crates_get",
+        "description": "Get detailed info for a Rust crate by name from crates.io."
       }
     ]
   },
@@ -3866,6 +3898,16 @@
     ]
   },
   {
+    "app": "mymemory",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mymemory_translate",
+        "description": "Translate text between languages using MyMemory free translation API."
+      }
+    ]
+  },
+  {
     "app": "nasa",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4016,6 +4058,20 @@
       {
         "name": "notion_action",
         "description": "Perform a Notion action: search_notion, get_notion_page, get_notion_database, query_notion_database, create_notion_page, update_notion_page."
+      }
+    ]
+  },
+  {
+    "app": "npm-registry",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "npm_search",
+        "description": "Search npm packages by name or keyword."
+      },
+      {
+        "name": "npm_get_package",
+        "description": "Get metadata for an npm package (latest version)."
       }
     ]
   },
@@ -4174,6 +4230,16 @@
       {
         "name": "openaq_countries",
         "description": "List countries with air quality data on OpenAQ."
+      }
+    ]
+  },
+  {
+    "app": "openchargemap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openchargemap_search",
+        "description": "Find EV charging stations near a location from Open Charge Map."
       }
     ]
   },
@@ -4988,6 +5054,20 @@
       {
         "name": "pushover_validate_user",
         "description": "Validate a Pushover user or group key and list their registered devices."
+      }
+    ]
+  },
+  {
+    "app": "pypi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pypi_get_package",
+        "description": "Get metadata for a Python package from PyPI."
+      },
+      {
+        "name": "pypi_get_version",
+        "description": "Get metadata for a specific version of a Python package from PyPI."
       }
     ]
   },

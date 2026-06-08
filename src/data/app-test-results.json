@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T15:30:00.000Z",
+  "updatedAt": "2026-06-08T16:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3130,6 +3130,42 @@
       "note": "languagetool_check returns grammar/spelling issues. Free public API, no key needed.",
       "testedAt": "2026-06-08T15:30:00.000Z",
       "toolsTested": ["languagetool_check", "languagetool_languages"]
+    },
+    "bgpview": {
+      "status": "pass",
+      "note": "bgpview_asn returns ASN/BGP network data from bgpview.io. Free, no key needed.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["bgpview_asn", "bgpview_asn_prefixes", "bgpview_ip"]
+    },
+    "mymemory": {
+      "status": "pass",
+      "note": "mymemory_translate returns text translations. Free, no key needed for small usage.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["mymemory_translate"]
+    },
+    "openchargemap": {
+      "status": "pass",
+      "note": "openchargemap_search returns EV charging stations near a location. Free, no key needed.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["openchargemap_search"]
+    },
+    "crates": {
+      "status": "pass",
+      "note": "crates_search returns Rust crate listings from crates.io. Free, no key needed.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["crates_search", "crates_get"]
+    },
+    "npm-registry": {
+      "status": "pass",
+      "note": "npm_search returns npm package listings. Free, no key needed.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["npm_search", "npm_get_package"]
+    },
+    "pypi": {
+      "status": "pass",
+      "note": "pypi_get_package returns Python package metadata from PyPI. Free, no key needed.",
+      "testedAt": "2026-06-08T16:00:00.000Z",
+      "toolsTested": ["pypi_get_package", "pypi_get_version"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

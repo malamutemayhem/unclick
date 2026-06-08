@@ -548,6 +548,12 @@ import { vatcomplyRates, vatcomplyCountries } from "./vatcomply-tool.js";
 import { theColorApiId, theColorApiScheme } from "./thecolorapi-tool.js";
 import { placeholdImage } from "./placehold-tool.js";
 import { languagetoolCheck, languagetoolLanguages } from "./languagetool-tool.js";
+import { bgpviewAsn, bgpviewAsnPrefixes, bgpviewIp } from "./bgpview-tool.js";
+import { mymemoryTranslate } from "./mymemory-tool.js";
+import { openchargemapSearch } from "./openchargemap-tool.js";
+import { cratesSearch, cratesGet } from "./crates-tool.js";
+import { npmSearch, npmGetPackage } from "./npm-registry-tool.js";
+import { pypiGetPackage, pypiGetVersion } from "./pypi-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8390,6 +8396,125 @@ export const ADDITIONAL_TOOLS = [
     name: "languagetool_languages",
     description: "List all languages supported by LanguageTool.",
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── bgpview-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bgpview_asn",
+    description: "Look up an Autonomous System Number (ASN) on BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN number (e.g. 13335 for Cloudflare)." },
+      }, required: ["asn"],
+    },
+  },
+  {
+    name: "bgpview_asn_prefixes",
+    description: "Get IP prefixes announced by an ASN from BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN number." },
+      }, required: ["asn"],
+    },
+  },
+  {
+    name: "bgpview_ip",
+    description: "Look up IP address details (PTR, prefix, ASN) on BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up." },
+      }, required: ["ip"],
+    },
+  },
+
+  // ── mymemory-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "mymemory_translate",
+    description: "Translate text between languages using MyMemory free translation API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to translate." },
+        source: { type: "string" as const, description: "Source language code (default: en)." },
+        target: { type: "string" as const, description: "Target language code (default: es)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── openchargemap-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "openchargemap_search",
+    description: "Find EV charging stations near a location from Open Charge Map.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+        distance: { type: "number" as const, description: "Search radius in km (default 10)." },
+        max_results: { type: "number" as const, description: "Max stations (default 10, max 50)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── crates-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "crates_search",
+    description: "Search Rust crates on crates.io by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Crate name or keyword." },
+        per_page: { type: "number" as const, description: "Results per page (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "crates_get",
+    description: "Get detailed info for a Rust crate by name from crates.io.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Crate name." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── npm-registry-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "npm_search",
+    description: "Search npm packages by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Package name or keyword." },
+        size: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "npm_get_package",
+    description: "Get metadata for an npm package (latest version).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── pypi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pypi_get_package",
+    description: "Get metadata for a Python package from PyPI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "pypi_get_version",
+    description: "Get metadata for a specific version of a Python package from PyPI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+        version: { type: "string" as const, description: "Version string." },
+      }, required: ["name", "version"],
+    },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -19654,6 +19779,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // languagetool-tool.ts
   languagetool_check:        (args) => languagetoolCheck(args),
   languagetool_languages:    (args) => languagetoolLanguages(args),
+  // bgpview-tool.ts
+  bgpview_asn:               (args) => bgpviewAsn(args),
+  bgpview_asn_prefixes:      (args) => bgpviewAsnPrefixes(args),
+  bgpview_ip:                (args) => bgpviewIp(args),
+  // mymemory-tool.ts
+  mymemory_translate:        (args) => mymemoryTranslate(args),
+  // openchargemap-tool.ts
+  openchargemap_search:      (args) => openchargemapSearch(args),
+  // crates-tool.ts
+  crates_search:             (args) => cratesSearch(args),
+  crates_get:                (args) => cratesGet(args),
+  // npm-registry-tool.ts
+  npm_search:                (args) => npmSearch(args),
+  npm_get_package:           (args) => npmGetPackage(args),
+  // pypi-tool.ts
+  pypi_get_package:          (args) => pypiGetPackage(args),
+  pypi_get_version:          (args) => pypiGetVersion(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
