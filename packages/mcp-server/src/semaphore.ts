@@ -1,64 +1,58 @@
 export class Semaphore {
   private permits: number;
-  private waiting: (() => void)[] = [];
+  private queue: (() => void)[] = [];
 
   constructor(permits: number) {
+    if (permits < 1) throw new Error("Semaphore permits must be at least 1");
     this.permits = permits;
   }
 
-  async acquire(): Promise<void> {
+  get available(): number { return this.permits; }
+  get waiting(): number { return this.queue.length; }
+
+  acquire(): Promise<void> {
     if (this.permits > 0) {
       this.permits--;
-      return;
+      return Promise.resolve();
     }
-    return new Promise<void>((resolve) => {
-      this.waiting.push(resolve);
-    });
+    return new Promise<void>((resolve) => { this.queue.push(resolve); });
   }
 
   release(): void {
-    if (this.waiting.length > 0) {
-      const next = this.waiting.shift()!;
+    const next = this.queue.shift();
+    if (next) {
       next();
     } else {
       this.permits++;
     }
   }
 
-  async withPermit<T>(fn: () => Promise<T>): Promise<T> {
+  async run<T>(fn: () => Promise<T>): Promise<T> {
     await this.acquire();
-    try {
-      return await fn();
-    } finally {
-      this.release();
-    }
+    try { return await fn(); }
+    finally { this.release(); }
   }
 
-  get available(): number {
-    return this.permits;
-  }
-
-  get waitingCount(): number {
-    return this.waiting.length;
+  tryAcquire(): boolean {
+    if (this.permits > 0) { this.permits--; return true; }
+    return false;
   }
 }
 
-export class Mutex extends Semaphore {
-  constructor() {
-    super(1);
+export class Mutex {
+  private semaphore = new Semaphore(1);
+
+  get locked(): boolean { return this.semaphore.available === 0; }
+  get waiting(): number { return this.semaphore.waiting; }
+
+  acquire(): Promise<void> { return this.semaphore.acquire(); }
+  release(): void { this.semaphore.release(); }
+
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    return this.semaphore.run(fn);
   }
 
-  async lock(): Promise<void> {
-    await this.acquire();
-  }
-
-  unlock(): void {
-    this.release();
-  }
-
-  async withLock<T>(fn: () => Promise<T>): Promise<T> {
-    return this.withPermit(fn);
-  }
+  tryAcquire(): boolean { return this.semaphore.tryAcquire(); }
 }
 
 export class ReadWriteLock {
@@ -67,48 +61,39 @@ export class ReadWriteLock {
   private readQueue: (() => void)[] = [];
   private writeQueue: (() => void)[] = [];
 
-  async readLock(): Promise<void> {
+  async acquireRead(): Promise<void> {
     if (!this.writer && this.writeQueue.length === 0) {
       this.readers++;
       return;
     }
-    return new Promise<void>((resolve) => {
-      this.readQueue.push(() => {
-        this.readers++;
-        resolve();
-      });
-    });
+    return new Promise<void>((resolve) => { this.readQueue.push(resolve); });
   }
 
-  readUnlock(): void {
+  releaseRead(): void {
     this.readers--;
     if (this.readers === 0 && this.writeQueue.length > 0) {
       this.writer = true;
-      const next = this.writeQueue.shift()!;
-      next();
+      this.writeQueue.shift()!();
     }
   }
 
-  async writeLock(): Promise<void> {
+  async acquireWrite(): Promise<void> {
     if (!this.writer && this.readers === 0) {
       this.writer = true;
       return;
     }
-    return new Promise<void>((resolve) => {
-      this.writeQueue.push(() => resolve());
-    });
+    return new Promise<void>((resolve) => { this.writeQueue.push(resolve); });
   }
 
-  writeUnlock(): void {
+  releaseWrite(): void {
     this.writer = false;
     if (this.writeQueue.length > 0) {
       this.writer = true;
-      const next = this.writeQueue.shift()!;
-      next();
+      this.writeQueue.shift()!();
     } else {
       while (this.readQueue.length > 0) {
-        const next = this.readQueue.shift()!;
-        next();
+        this.readers++;
+        this.readQueue.shift()!();
       }
     }
   }

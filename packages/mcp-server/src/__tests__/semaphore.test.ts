@@ -2,107 +2,129 @@ import { describe, it, expect } from "vitest";
 import { Semaphore, Mutex, ReadWriteLock } from "../semaphore.js";
 
 describe("Semaphore", () => {
-  it("allows up to N concurrent", async () => {
-    const sem = new Semaphore(2);
-    let running = 0;
-    let peak = 0;
-
-    const task = async () => {
-      await sem.acquire();
-      running++;
-      if (running > peak) peak = running;
-      await new Promise((r) => setTimeout(r, 10));
-      running--;
-      sem.release();
-    };
-
-    await Promise.all([task(), task(), task(), task()]);
-    expect(peak).toBeLessThanOrEqual(2);
+  it("rejects permits < 1", () => {
+    expect(() => new Semaphore(0)).toThrow();
   });
 
-  it("withPermit auto-releases", async () => {
-    const sem = new Semaphore(1);
-    const result = await sem.withPermit(async () => 42);
-    expect(result).toBe(42);
-    expect(sem.available).toBe(1);
+  it("acquire decrements permits", async () => {
+    const s = new Semaphore(2);
+    expect(s.available).toBe(2);
+    await s.acquire();
+    expect(s.available).toBe(1);
+    await s.acquire();
+    expect(s.available).toBe(0);
   });
 
-  it("withPermit releases on error", async () => {
-    const sem = new Semaphore(1);
-    await expect(sem.withPermit(async () => { throw new Error("boom"); })).rejects.toThrow("boom");
-    expect(sem.available).toBe(1);
+  it("release increments permits", async () => {
+    const s = new Semaphore(1);
+    await s.acquire();
+    s.release();
+    expect(s.available).toBe(1);
   });
 
-  it("tracks waiting count", async () => {
-    const sem = new Semaphore(1);
-    await sem.acquire();
-    const p = sem.acquire();
-    expect(sem.waitingCount).toBe(1);
-    sem.release();
+  it("queues when no permits available", async () => {
+    const s = new Semaphore(1);
+    await s.acquire();
+    let resolved = false;
+    const p = s.acquire().then(() => { resolved = true; });
+    expect(s.waiting).toBe(1);
+    s.release();
     await p;
-    expect(sem.waitingCount).toBe(0);
+    expect(resolved).toBe(true);
+  });
+
+  it("tryAcquire returns true when available", () => {
+    const s = new Semaphore(1);
+    expect(s.tryAcquire()).toBe(true);
+    expect(s.tryAcquire()).toBe(false);
+  });
+
+  it("run acquires and releases automatically", async () => {
+    const s = new Semaphore(1);
+    const result = await s.run(async () => {
+      expect(s.available).toBe(0);
+      return 42;
+    });
+    expect(result).toBe(42);
+    expect(s.available).toBe(1);
+  });
+
+  it("run releases on error", async () => {
+    const s = new Semaphore(1);
+    await expect(s.run(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
+    expect(s.available).toBe(1);
   });
 });
 
 describe("Mutex", () => {
-  it("serializes access", async () => {
-    const mutex = new Mutex();
-    const log: number[] = [];
-
-    const task = async (id: number) => {
-      await mutex.lock();
-      log.push(id);
-      await new Promise((r) => setTimeout(r, 5));
-      mutex.unlock();
-    };
-
-    await Promise.all([task(1), task(2), task(3)]);
-    expect(log.length).toBe(3);
+  it("starts unlocked", () => {
+    const m = new Mutex();
+    expect(m.locked).toBe(false);
   });
 
-  it("withLock works", async () => {
-    const mutex = new Mutex();
-    const result = await mutex.withLock(async () => "done");
-    expect(result).toBe("done");
+  it("acquire locks", async () => {
+    const m = new Mutex();
+    await m.acquire();
+    expect(m.locked).toBe(true);
+  });
+
+  it("release unlocks", async () => {
+    const m = new Mutex();
+    await m.acquire();
+    m.release();
+    expect(m.locked).toBe(false);
+  });
+
+  it("run provides mutual exclusion", async () => {
+    const m = new Mutex();
+    const order: number[] = [];
+    await Promise.all([
+      m.run(async () => { order.push(1); }),
+      m.run(async () => { order.push(2); }),
+    ]);
+    expect(order).toHaveLength(2);
+  });
+
+  it("tryAcquire", () => {
+    const m = new Mutex();
+    expect(m.tryAcquire()).toBe(true);
+    expect(m.locked).toBe(true);
+    expect(m.tryAcquire()).toBe(false);
   });
 });
 
 describe("ReadWriteLock", () => {
-  it("allows concurrent reads", async () => {
-    const rwl = new ReadWriteLock();
-    let readers = 0;
-    let peak = 0;
-
-    const read = async () => {
-      await rwl.readLock();
-      readers++;
-      if (readers > peak) peak = readers;
-      await new Promise((r) => setTimeout(r, 10));
-      readers--;
-      rwl.readUnlock();
-    };
-
-    await Promise.all([read(), read(), read()]);
-    expect(peak).toBe(3);
+  it("allows multiple concurrent reads", async () => {
+    const rw = new ReadWriteLock();
+    await rw.acquireRead();
+    await rw.acquireRead();
+    rw.releaseRead();
+    rw.releaseRead();
   });
 
-  it("write excludes reads", async () => {
-    const rwl = new ReadWriteLock();
-    const log: string[] = [];
-
-    await rwl.writeLock();
-    log.push("write-start");
-
-    const readPromise = rwl.readLock().then(() => {
-      log.push("read-start");
-      rwl.readUnlock();
-    });
-
+  it("write blocks reads", async () => {
+    const rw = new ReadWriteLock();
+    await rw.acquireWrite();
+    let readAcquired = false;
+    const readPromise = rw.acquireRead().then(() => { readAcquired = true; });
     await new Promise((r) => setTimeout(r, 10));
-    log.push("write-end");
-    rwl.writeUnlock();
-
+    expect(readAcquired).toBe(false);
+    rw.releaseWrite();
     await readPromise;
-    expect(log).toEqual(["write-start", "write-end", "read-start"]);
+    expect(readAcquired).toBe(true);
+    rw.releaseRead();
+  });
+
+  it("read blocks writes", async () => {
+    const rw = new ReadWriteLock();
+    await rw.acquireRead();
+    let writeAcquired = false;
+    const writePromise = rw.acquireWrite().then(() => { writeAcquired = true; });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(writeAcquired).toBe(false);
+    rw.releaseRead();
+    await writePromise;
+    expect(writeAcquired).toBe(true);
+    rw.releaseWrite();
   });
 });
