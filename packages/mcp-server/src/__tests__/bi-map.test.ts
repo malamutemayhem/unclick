@@ -14,53 +14,51 @@ describe("BiMap", () => {
     expect(bm.getKey(1)).toBe("a");
   });
 
-  it("overwrites old value when key is reused", () => {
+  it("has and hasValue", () => {
+    const bm = new BiMap<string, number>();
+    bm.set("a", 1);
+    expect(bm.has("a")).toBe(true);
+    expect(bm.has("b")).toBe(false);
+    expect(bm.hasValue(1)).toBe(true);
+    expect(bm.hasValue(2)).toBe(false);
+  });
+
+  it("overwrites key preserving bijection", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
     bm.set("a", 2);
     expect(bm.get("a")).toBe(2);
-    expect(bm.getKey(1)).toBeUndefined();
+    expect(bm.hasValue(1)).toBe(false);
     expect(bm.getKey(2)).toBe("a");
-    expect(bm.size).toBe(1);
   });
 
-  it("overwrites old key when value is reused", () => {
+  it("overwrites value preserving bijection", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
     bm.set("b", 1);
-    expect(bm.get("a")).toBeUndefined();
     expect(bm.get("b")).toBe(1);
+    expect(bm.has("a")).toBe(false);
     expect(bm.getKey(1)).toBe("b");
-    expect(bm.size).toBe(1);
   });
 
-  it("hasKey and hasValue", () => {
-    const bm = new BiMap<string, number>();
-    bm.set("x", 10);
-    expect(bm.hasKey("x")).toBe(true);
-    expect(bm.hasKey("y")).toBe(false);
-    expect(bm.hasValue(10)).toBe(true);
-    expect(bm.hasValue(20)).toBe(false);
-  });
-
-  it("deleteKey removes pair", () => {
+  it("delete by key", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
-    expect(bm.deleteKey("a")).toBe(true);
-    expect(bm.get("a")).toBeUndefined();
-    expect(bm.getKey(1)).toBeUndefined();
-    expect(bm.size).toBe(0);
+    expect(bm.delete("a")).toBe(true);
+    expect(bm.has("a")).toBe(false);
+    expect(bm.hasValue(1)).toBe(false);
+    expect(bm.delete("a")).toBe(false);
   });
 
-  it("deleteValue removes pair", () => {
+  it("deleteValue", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
     expect(bm.deleteValue(1)).toBe(true);
-    expect(bm.get("a")).toBeUndefined();
-    expect(bm.size).toBe(0);
+    expect(bm.has("a")).toBe(false);
+    expect(bm.deleteValue(1)).toBe(false);
   });
 
-  it("clear removes everything", () => {
+  it("clear", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
     bm.set("b", 2);
@@ -68,19 +66,43 @@ describe("BiMap", () => {
     expect(bm.size).toBe(0);
   });
 
-  it("forEach iterates all pairs", () => {
+  it("size", () => {
+    const bm = new BiMap<string, number>();
+    expect(bm.size).toBe(0);
+    bm.set("a", 1);
+    bm.set("b", 2);
+    expect(bm.size).toBe(2);
+  });
+
+  it("keys and values iterators", () => {
     const bm = new BiMap<string, number>();
     bm.set("a", 1);
     bm.set("b", 2);
-    const pairs: Array<[string, number]> = [];
-    bm.forEach((v, k) => pairs.push([k, v]));
-    expect(pairs.sort()).toEqual([["a", 1], ["b", 2]]);
+    expect([...bm.keys()].sort()).toEqual(["a", "b"]);
+    expect([...bm.values()].sort()).toEqual([1, 2]);
   });
 
-  it("entries returns iterator", () => {
+  it("entries iterator", () => {
     const bm = new BiMap<string, number>();
-    bm.set("x", 5);
+    bm.set("x", 10);
     const entries = [...bm.entries()];
-    expect(entries).toEqual([["x", 5]]);
+    expect(entries).toEqual([["x", 10]]);
+  });
+
+  it("inverse returns swapped BiMap", () => {
+    const bm = new BiMap<string, number>();
+    bm.set("a", 1);
+    bm.set("b", 2);
+    const inv = bm.inverse();
+    expect(inv.get(1)).toBe("a");
+    expect(inv.get(2)).toBe("b");
+    expect(inv.getKey("a")).toBe(1);
+  });
+
+  it("from creates from entries", () => {
+    const bm = BiMap.from([["a", 1], ["b", 2]] as [string, number][]);
+    expect(bm.get("a")).toBe(1);
+    expect(bm.getKey(2)).toBe("b");
+    expect(bm.size).toBe(2);
   });
 });

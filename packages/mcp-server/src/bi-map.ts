@@ -2,6 +2,10 @@ export class BiMap<K, V> {
   private forward = new Map<K, V>();
   private reverse = new Map<V, K>();
 
+  get size(): number {
+    return this.forward.size;
+  }
+
   set(key: K, value: V): this {
     if (this.forward.has(key)) {
       const oldValue = this.forward.get(key)!;
@@ -24,7 +28,7 @@ export class BiMap<K, V> {
     return this.reverse.get(value);
   }
 
-  hasKey(key: K): boolean {
+  has(key: K): boolean {
     return this.forward.has(key);
   }
 
@@ -32,29 +36,25 @@ export class BiMap<K, V> {
     return this.reverse.has(value);
   }
 
-  deleteKey(key: K): boolean {
-    const value = this.forward.get(key);
-    if (value === undefined && !this.forward.has(key)) return false;
+  delete(key: K): boolean {
+    if (!this.forward.has(key)) return false;
+    const value = this.forward.get(key)!;
     this.forward.delete(key);
-    this.reverse.delete(value!);
+    this.reverse.delete(value);
     return true;
   }
 
   deleteValue(value: V): boolean {
-    const key = this.reverse.get(value);
-    if (key === undefined && !this.reverse.has(value)) return false;
+    if (!this.reverse.has(value)) return false;
+    const key = this.reverse.get(value)!;
+    this.forward.delete(key);
     this.reverse.delete(value);
-    this.forward.delete(key!);
     return true;
   }
 
   clear(): void {
     this.forward.clear();
     this.reverse.clear();
-  }
-
-  get size(): number {
-    return this.forward.size;
   }
 
   keys(): IterableIterator<K> {
@@ -69,7 +69,18 @@ export class BiMap<K, V> {
     return this.forward.entries();
   }
 
-  forEach(fn: (value: V, key: K) => void): void {
-    this.forward.forEach(fn);
+  inverse(): BiMap<V, K> {
+    const inv = new BiMap<V, K>();
+    for (const [k, v] of this.forward) {
+      inv.forward.set(v, k);
+      inv.reverse.set(k, v);
+    }
+    return inv;
+  }
+
+  static from<K, V>(entries: Iterable<[K, V]>): BiMap<K, V> {
+    const bm = new BiMap<K, V>();
+    for (const [k, v] of entries) bm.set(k, v);
+    return bm;
   }
 }
