@@ -292,7 +292,7 @@ function laneFromJob(item: ControlTowerJobBoardItem, index: number, now: Date): 
 }
 
 function defaultLanes(intake: ControlTowerPasteIntake): ControlTowerLane[] {
-  const pasteLaneStatus: ControlTowerLaneStatus = intake.usefulItems > 0 ? "waiting" : "waiting";
+  const pasteLaneStatus: ControlTowerLaneStatus = intake.usefulItems > 0 ? "waiting" : "done";
 
   return [
     {

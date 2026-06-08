@@ -25,7 +25,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/App.tsx | ead5f39c080b | 16499 |
 | src/pages/admin/AdminShell.tsx | 2c6ec8581d6c | 25721 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
-| src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
+| src/lib/controltower.ts | 358d76e97c9d | 21700 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |

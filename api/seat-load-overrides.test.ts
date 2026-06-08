@@ -130,6 +130,23 @@ describe("seat load override routing policy", () => {
     );
   });
 
+  it("gives virtual fallback seats lower default weight than physical seats", () => {
+    const plan = buildSeatLoadRoutingPlan({
+      now,
+      allowVirtualFallback: true,
+      seats: [
+        seat({ id: "physical-a" }),
+        seat({ id: "physical-b" }),
+        seat({ id: "virtual-c", profileKind: "virtual" }),
+      ],
+    });
+
+    const physicalA = plan.weights.find((row) => row.id === "physical-a")!;
+    const virtualC = plan.weights.find((row) => row.id === "virtual-c")!;
+    expect(virtualC.weight).toBeLessThan(physicalA.weight);
+    expect(virtualC.reasons).toContain("virtual_fallback_enabled");
+  });
+
   it("can explicitly include virtual review capacity without mutating assignments", () => {
     const plan = buildSeatLoadRoutingPlan({
       now,

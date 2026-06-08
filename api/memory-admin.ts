@@ -2765,13 +2765,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "search": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+
         const query = req.query.query as string;
         if (!query) return res.status(400).json({ error: "query parameter required" });
 
         const maxResults = parseInt(req.query.max_results as string) || 20;
-        const { data, error } = await supabase.rpc("search_memory", {
-          search_query: query,
-          max_results: maxResults,
+        const { data, error } = await supabase.rpc("mc_search_memory", {
+          p_api_key_hash: apiKeyHash,
+          p_search_query: query,
+          p_max_results: maxResults,
         });
 
         if (error) throw error;

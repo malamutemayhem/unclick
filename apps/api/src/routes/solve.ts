@@ -694,10 +694,23 @@ export function createSolveRouter(db: Db, authMiddleware: MiddlewareHandler<any>
           .set({ score: sql`${solveSolutions.score} + ${diff}`, updatedAt: now })
           .where(eq(solveSolutions.id, solutionId));
 
-        // Reputation delta: for a flip (+1→-1 = -20, -1→+1 = +20)
+        // Reputation delta: for a flip (+1->-1 = -20, -1->+1 = +20)
         const oldEffect = existingVote.value === 1 ? 15 : -5;
         const newEffect = body.value === 1 ? 15 : -5;
         await adjustReputation(db, solution.agentId, newEffect - oldEffect);
+
+        const upvoteDelta = (body.value === 1 ? 1 : 0) - (existingVote.value === 1 ? 1 : 0);
+        if (upvoteDelta !== 0) {
+          await db
+            .update(solveAgentProfiles)
+            .set({
+              totalUpvotes: upvoteDelta > 0
+                ? sql`${solveAgentProfiles.totalUpvotes} + 1`
+                : sql`GREATEST(${solveAgentProfiles.totalUpvotes} - 1, 0)`,
+              updatedAt: now,
+            })
+            .where(and(eq(solveAgentProfiles.agentId, solution.agentId), eq(solveAgentProfiles.orgId, solution.orgId)));
+        }
       } else {
         // New vote
         await db.insert(solveVotes).values({

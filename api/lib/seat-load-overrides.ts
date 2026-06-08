@@ -128,7 +128,7 @@ function rawWeightForSeat(seat: SeatLoadPolicyInput, profileKind: SeatProfileKin
   }
 
   return {
-    raw_weight: profileKind === "virtual" ? 1 : 1,
+    raw_weight: profileKind === "virtual" ? 0.5 : 1,
     load_value: null,
     load_source: profileKind === "virtual" ? "virtual_fallback" : "default_even_split",
   };
