@@ -120,10 +120,16 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
                   ))}
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className={
+                    page.featuresCols === 2
+                      ? "mx-auto grid max-w-4xl gap-5 sm:grid-cols-2"
+                      : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                  }
+                >
                   {page.features?.map((f, i) => (
                     <FadeIn key={f.title} delay={0.04 * i}>
-                      <GlassCard className="h-full">
+                      <GlassCard className={page.featuresCols === 2 ? "h-full p-7" : "h-full"}>
                         <IconChip>
                           <f.icon className="h-5 w-5" />
                         </IconChip>
@@ -144,7 +150,7 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
             <div className="mx-auto max-w-5xl">
               <FadeIn>
                 <h2 className="mb-8 text-center text-2xl font-bold tracking-tight text-heading sm:text-3xl">
-                  Your work, on one board.
+                  {page.tailTitle ?? "Your work, on one board."}
                 </h2>
               </FadeIn>
               <FadeIn delay={0.05}>{page.tail}</FadeIn>

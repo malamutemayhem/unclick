@@ -131,7 +131,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
+| src/pages/Memory.tsx | fda4fcf632cb | 19192 |
 | src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/XPass.tsx | 5fbc740e27f1 | 11145 |
+| src/pages/XPass.tsx | ab4f0fe214f6 | 11093 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
