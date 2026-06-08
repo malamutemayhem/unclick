@@ -1,4 +1,4 @@
-# UNCLICK ADMIN SHELL + HOSTED MEMORY BUILD PLAN (v2)
+# UnClick Admin Shell + Hosted Memory Build Plan (v2)
 
 **For execution by Claude Code**
 **Author: UnClick Core Team (with Cowork strategy session, April 15, 2026)**
@@ -12,7 +12,7 @@
 
 1. Call `load_memory` to load the operator's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
 2. Read the project root `CLAUDE.md` for the session bridge protocol and current architecture notes. Do NOT read `packages/memory-mcp/CLAUDE.md`; that package is deprecated.
-3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `origin/main` named `claude/phase-N-<description>` for your phase. Do not push to `main`; it is stale.
+3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `origin/main` named `claude/phase-N-<description>` for your phase.
 4. At the end of the session, call `save_session` before leaving.
 
 ---

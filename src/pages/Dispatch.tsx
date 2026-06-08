@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
-import { GitBranch, Zap, Brain, Lock, ArrowRight, Network, CheckCircle2, Terminal, Cloud, Workflow, Shield, RefreshCw } from "lucide-react";
+import { Zap, Brain, Lock, ArrowRight, Network, CheckCircle2, Terminal, Cloud, Workflow, Shield, RefreshCw } from "lucide-react";
 
 const DISPATCH_FEATURES = [
   {

@@ -122,7 +122,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
-| src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
+| src/pages/Dispatch.tsx | cbe1263c226f | 15459 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
