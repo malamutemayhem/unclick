@@ -102,6 +102,31 @@ describe("UnClick Connect worker discovery", () => {
     ]);
   });
 
+  it("excludes profiles with paused, error, sleeping, inactive, or unavailable statuses", () => {
+    const unavailableStatuses = [
+      "paused for maintenance",
+      "error: connection timeout",
+      "sleeping until next wake",
+      "inactive since yesterday",
+      "unavailable (restarting)",
+    ];
+    for (const currentStatus of unavailableStatuses) {
+      const workers = fishbowlProfilesToVisibleWorkers(
+        [
+          {
+            agent_id: "builder-seat",
+            emoji: "\u{1F6E0}\u{FE0F}",
+            display_name: "Builder",
+            current_status: currentStatus,
+            last_seen_at: "2026-05-09T00:29:00.000Z",
+          },
+        ],
+        new Date("2026-05-09T00:30:00.000Z"),
+      );
+      expect(workers, `should exclude status: "${currentStatus}"`).toEqual([]);
+    }
+  });
+
   it("does not treat unknown, stale, or blocked profiles as production workers", () => {
     const workers = fishbowlProfilesToVisibleWorkers(
       [
