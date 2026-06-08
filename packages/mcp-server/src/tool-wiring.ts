@@ -560,6 +560,12 @@ import { stackexchangeSearch, stackexchangeQuestion } from "./stackexchange-tool
 import { ripeNetworkInfo, ripeAsnNeighbours } from "./ripe-tool.js";
 import { gutendexSearch, gutendexBook } from "./gutendex-tool.js";
 import { dohdnsResolve } from "./dohdns-tool.js";
+import { nhtsaDecodeVin, nhtsaRecalls } from "./nhtsa-tool.js";
+import { geojsLookup } from "./geojs-tool.js";
+import { isupCheck } from "./isup-tool.js";
+import { waybackCheck } from "./wayback-tool.js";
+import { oeisSearch } from "./oeis-tool.js";
+import { upcLookup, upcSearch } from "./upcitemdb-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8627,6 +8633,94 @@ export const ADDITIONAL_TOOLS = [
         name: { type: "string" as const, description: "Domain name to resolve." },
         type: { type: "string" as const, description: "Record type: A, AAAA, MX, TXT, CNAME, NS (default: A)." },
       }, required: ["name"],
+    },
+  },
+
+  // ── nhtsa-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "nhtsa_decode_vin",
+    description: "Decode a vehicle VIN to get make, model, year, and specifications from NHTSA.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        vin: { type: "string" as const, description: "17-character Vehicle Identification Number." },
+      }, required: ["vin"],
+    },
+  },
+  {
+    name: "nhtsa_recalls",
+    description: "Search NHTSA vehicle safety recalls by make, model, and year.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        make: { type: "string" as const, description: "Vehicle make (e.g. Toyota)." },
+        model: { type: "string" as const, description: "Vehicle model (e.g. Camry)." },
+        year: { type: "string" as const, description: "Model year (e.g. 2020)." },
+      }, required: ["make", "year"],
+    },
+  },
+
+  // ── geojs-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "geojs_lookup",
+    description: "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address (optional, defaults to caller IP)." },
+      },
+    },
+  },
+
+  // ── isup-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "isup_check",
+    description: "Check if a website/domain is up or down via isitup.org.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain to check (e.g. google.com)." },
+      }, required: ["domain"],
+    },
+  },
+
+  // ── wayback-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wayback_check",
+    description: "Check if a URL has been archived by the Wayback Machine and get the closest snapshot.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        url: { type: "string" as const, description: "URL to check for archived snapshots." },
+        timestamp: { type: "string" as const, description: "Target timestamp (YYYYMMDDhhmmss) for closest snapshot." },
+      }, required: ["url"],
+    },
+  },
+
+  // ── oeis-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "oeis_search",
+    description: "Search the Online Encyclopedia of Integer Sequences (OEIS) by sequence or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Sequence (e.g. '1,1,2,3,5,8') or keyword." },
+        start: { type: "number" as const, description: "Result offset for pagination." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── upcitemdb-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "upc_lookup",
+    description: "Look up a product by UPC/EAN barcode number.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        upc: { type: "string" as const, description: "UPC or EAN barcode number." },
+      }, required: ["upc"],
+    },
+  },
+  {
+    name: "upc_search",
+    description: "Search products by name in the UPC item database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Product search query." },
+      }, required: ["query"],
     },
   },
 
@@ -19931,6 +20025,26 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // dohdns-tool.ts
   dohdns_resolve:            (args) => dohdnsResolve(args),
+
+  // nhtsa-tool.ts
+  nhtsa_decode_vin:          (args) => nhtsaDecodeVin(args),
+  nhtsa_recalls:             (args) => nhtsaRecalls(args),
+
+  // geojs-tool.ts
+  geojs_lookup:              (args) => geojsLookup(args),
+
+  // isup-tool.ts
+  isup_check:                (args) => isupCheck(args),
+
+  // wayback-tool.ts
+  wayback_check:             (args) => waybackCheck(args),
+
+  // oeis-tool.ts
+  oeis_search:               (args) => oeisSearch(args),
+
+  // upcitemdb-tool.ts
+  upc_lookup:                (args) => upcLookup(args),
+  upc_search:                (args) => upcSearch(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

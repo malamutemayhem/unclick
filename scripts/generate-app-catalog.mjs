@@ -27,18 +27,18 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
-bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic", "wikidata"]);
+bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic", "wikidata", "wayback"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
-bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
+bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup", "upcitemdb"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife", "acnhapi"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation", "opensky", "openchargemap"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate", "gbif", "itis"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation", "opensky", "openchargemap", "geojs", "nhtsa"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate", "gbif", "itis", "oeis"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice", "cvecircl", "bgpview", "rdap", "ripe"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
@@ -132,6 +132,8 @@ const NAME_OF = {
   crates: "Crates.io", "npm-registry": "npm Registry", pypi: "PyPI",
   rdap: "RDAP", iban: "OpenIBAN", stackexchange: "Stack Exchange",
   ripe: "RIPE NCC", gutendex: "Gutendex (Project Gutenberg)", dohdns: "DNS over HTTPS",
+  nhtsa: "NHTSA", geojs: "GeoJS", isup: "Is It Up?",
+  wayback: "Wayback Machine", oeis: "OEIS", upcitemdb: "UPC Item DB",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -374,6 +376,12 @@ const BLURB_OF = {
   ripe: "Network information and ASN peering data from RIPE NCC.",
   gutendex: "Search and browse 70,000+ free ebooks from Project Gutenberg.",
   dohdns: "Resolve DNS records (A, AAAA, MX, TXT, CNAME) via Google DNS-over-HTTPS.",
+  nhtsa: "Decode vehicle VINs and search safety recalls from NHTSA.",
+  geojs: "IP geolocation with country, city, and coordinates from GeoJS.",
+  isup: "Check if a website or domain is currently up or down.",
+  wayback: "Check if a URL has been archived by the Wayback Machine.",
+  oeis: "Search the Online Encyclopedia of Integer Sequences by sequence or keyword.",
+  upcitemdb: "Look up products by UPC/EAN barcode or search by name.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -497,6 +505,8 @@ const DOMAIN_OF = {
   crates: "crates.io", "npm-registry": "npmjs.org", pypi: "pypi.org",
   rdap: "rdap.org", iban: "openiban.com", stackexchange: "stackoverflow.com",
   ripe: "stat.ripe.net", gutendex: "gutendex.com", dohdns: "dns.google",
+  nhtsa: "nhtsa.gov", geojs: "geojs.io", isup: "isitup.org",
+  wayback: "web.archive.org", oeis: "oeis.org", upcitemdb: "upcitemdb.com",
 };
 
 function titleCase(slug) {

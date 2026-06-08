@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 818,
+    "inventory": 824,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 396,
+    "tools": 402,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 396
+      "count": 402
     },
     {
       "id": "rooms",
@@ -5542,6 +5542,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-geojs-packages-mcp-server-src-geojs-tool-ts-no-route",
+      "division": "Tools",
+      "name": "geojs",
+      "kind": "MCP tool",
+      "meaning": "geojs MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/geojs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-geopass-packages-mcp-server-src-geopass-tool-ts-no-route",
       "division": "Tools",
       "name": "geopass",
@@ -5898,6 +5908,16 @@
       "kind": "MCP tool",
       "meaning": "iseven MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/iseven-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-isup-packages-mcp-server-src-isup-tool-ts-no-route",
+      "division": "Tools",
+      "name": "isup",
+      "kind": "MCP tool",
+      "meaning": "isup MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/isup-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6372,6 +6392,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-nhtsa-packages-mcp-server-src-nhtsa-tool-ts-no-route",
+      "division": "Tools",
+      "name": "nhtsa",
+      "kind": "MCP tool",
+      "meaning": "nhtsa MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/nhtsa-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-nobelprize-packages-mcp-server-src-nobelprize-tool-ts-no-route",
       "division": "Tools",
       "name": "nobelprize",
@@ -6438,6 +6468,16 @@
       "kind": "MCP tool",
       "meaning": "nvd MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/nvd-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-oeis-packages-mcp-server-src-oeis-tool-ts-no-route",
+      "division": "Tools",
+      "name": "oeis",
+      "kind": "MCP tool",
+      "meaning": "oeis MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/oeis-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7802,6 +7842,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-upcitemdb-packages-mcp-server-src-upcitemdb-tool-ts-no-route",
+      "division": "Tools",
+      "name": "upcitemdb",
+      "kind": "MCP tool",
+      "meaning": "upcitemdb MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/upcitemdb-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-upstash-packages-mcp-server-src-upstash-tool-ts-no-route",
       "division": "Tools",
       "name": "upstash",
@@ -7918,6 +7968,16 @@
       "kind": "MCP tool",
       "meaning": "virustotal MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/virustotal-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-wayback-packages-mcp-server-src-wayback-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wayback",
+      "kind": "MCP tool",
+      "meaning": "wayback MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wayback-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9555,6 +9615,11 @@
       "packages/mcp-server/src/genius-tool.ts"
     ],
     [
+      "geojs",
+      "geojs MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/geojs-tool.ts"
+    ],
+    [
       "geopass",
       "geopass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/geopass-tool.ts"
@@ -9733,6 +9798,11 @@
       "iseven",
       "iseven MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/iseven-tool.ts"
+    ],
+    [
+      "isup",
+      "isup MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/isup-tool.ts"
     ],
     [
       "itis",
@@ -9970,6 +10040,11 @@
       "packages/mcp-server/src/newton-tool.ts"
     ],
     [
+      "nhtsa",
+      "nhtsa MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/nhtsa-tool.ts"
+    ],
+    [
       "nobelprize",
       "nobelprize MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/nobelprize-tool.ts"
@@ -10003,6 +10078,11 @@
       "nvd",
       "nvd MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/nvd-tool.ts"
+    ],
+    [
+      "oeis",
+      "oeis MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/oeis-tool.ts"
     ],
     [
       "officialjoke",
@@ -10685,6 +10765,11 @@
       "packages/mcp-server/src/untappd-tool.ts"
     ],
     [
+      "upcitemdb",
+      "upcitemdb MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/upcitemdb-tool.ts"
+    ],
+    [
       "upstash",
       "upstash MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/upstash-tool.ts"
@@ -10743,6 +10828,11 @@
       "virustotal",
       "virustotal MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/virustotal-tool.ts"
+    ],
+    [
+      "wayback",
+      "wayback MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wayback-tool.ts"
     ],
     [
       "webflow",

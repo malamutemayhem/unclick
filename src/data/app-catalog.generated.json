@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 395,
-  "toolCount": 1301,
+  "appCount": 401,
+  "toolCount": 1309,
   "categories": [
     "AI",
     "Books",
@@ -3234,6 +3234,22 @@
       "hardened": true
     },
     {
+      "slug": "geojs",
+      "name": "GeoJS",
+      "category": "Travel, maps & local",
+      "blurb": "IP geolocation with country, city, and coordinates from GeoJS.",
+      "domain": "geojs.io",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "geojs_lookup",
+          "description": "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "geopass",
       "name": "GeoPass",
       "category": "Quality (XPass)",
@@ -3972,6 +3988,22 @@
         {
           "name": "ipinfo_lookup",
           "description": "Get geolocation and ISP info for an IP address (or your own)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "isup",
+      "name": "Is It Up?",
+      "category": "Developer & infra",
+      "blurb": "Check if a website or domain is currently up or down.",
+      "domain": "isitup.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "isup_check",
+          "description": "Check if a website/domain is up or down via isitup.org."
         }
       ],
       "level": 5,
@@ -5214,6 +5246,26 @@
       "hardened": false
     },
     {
+      "slug": "nhtsa",
+      "name": "NHTSA",
+      "category": "Travel, maps & local",
+      "blurb": "Decode vehicle VINs and search safety recalls from NHTSA.",
+      "domain": "nhtsa.gov",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "nhtsa_decode_vin",
+          "description": "Decode a vehicle VIN to get make, model, year, and specifications from NHTSA."
+        },
+        {
+          "name": "nhtsa_recalls",
+          "description": "Search NHTSA vehicle safety recalls by make, model, and year."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nobelprize",
       "name": "Nobel Prize API",
       "category": "News & reading",
@@ -5356,6 +5408,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "oeis",
+      "name": "OEIS",
+      "category": "Weather & science",
+      "blurb": "Search the Online Encyclopedia of Integer Sequences by sequence or keyword.",
+      "domain": "oeis.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "oeis_search",
+          "description": "Search the Online Encyclopedia of Integer Sequences (OEIS) by sequence or keyword."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "officialjoke",
@@ -9094,6 +9162,26 @@
       "hardened": true
     },
     {
+      "slug": "upcitemdb",
+      "name": "UPC Item DB",
+      "category": "Shopping",
+      "blurb": "Look up products by UPC/EAN barcode or search by name.",
+      "domain": "upcitemdb.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "upc_lookup",
+          "description": "Look up a product by UPC/EAN barcode number."
+        },
+        {
+          "name": "upc_search",
+          "description": "Search products by name in the UPC item database."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "upstash",
       "name": "Upstash",
       "category": "Developer & infra",
@@ -9404,6 +9492,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "wayback",
+      "name": "Wayback Machine",
+      "category": "News & reading",
+      "blurb": "Check if a URL has been archived by the Wayback Machine.",
+      "domain": "web.archive.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wayback_check",
+          "description": "Check if a URL has been archived by the Wayback Machine and get the closest snapshot."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "webflow",

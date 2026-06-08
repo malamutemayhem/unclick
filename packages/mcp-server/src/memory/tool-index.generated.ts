@@ -2576,6 +2576,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "geojs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "geojs_lookup",
+        "description": "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup."
+      }
+    ]
+  },
+  {
     "app": "geopass",
     "category": "GEOPass (AI answer-engine readiness QC, sister to SEOPass)",
     "tools": [
@@ -3166,6 +3176,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "is_even",
         "description": "Check whether a number is even, via the isEven API."
+      }
+    ]
+  },
+  {
+    "app": "isup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "isup_check",
+        "description": "Check if a website/domain is up or down via isitup.org."
       }
     ]
   },
@@ -4072,6 +4092,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "nhtsa",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nhtsa_decode_vin",
+        "description": "Decode a vehicle VIN to get make, model, year, and specifications from NHTSA."
+      },
+      {
+        "name": "nhtsa_recalls",
+        "description": "Search NHTSA vehicle safety recalls by make, model, and year."
+      }
+    ]
+  },
+  {
     "app": "nobelprize",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4170,6 +4204,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "get_recent_cves",
         "description": "Get recently published CVEs from NVD."
+      }
+    ]
+  },
+  {
+    "app": "oeis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "oeis_search",
+        "description": "Search the Online Encyclopedia of Integer Sequences (OEIS) by sequence or keyword."
       }
     ]
   },
@@ -6942,6 +6986,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "upcitemdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "upc_lookup",
+        "description": "Look up a product by UPC/EAN barcode number."
+      },
+      {
+        "name": "upc_search",
+        "description": "Search products by name in the UPC item database."
+      }
+    ]
+  },
+  {
     "app": "upstash",
     "category": "Dev / Cloud",
     "tools": [
@@ -7178,6 +7236,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "virustotal_scan_domain",
         "description": "Get a VirusTotal report for a domain."
+      }
+    ]
+  },
+  {
+    "app": "wayback",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wayback_check",
+        "description": "Check if a URL has been archived by the Wayback Machine and get the closest snapshot."
       }
     ]
   },

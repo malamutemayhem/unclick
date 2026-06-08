@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T17:00:00.000Z",
+  "updatedAt": "2026-06-08T17:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3202,6 +3202,42 @@
       "note": "dohdns_resolve returns DNS records via Google DNS-over-HTTPS. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
       "toolsTested": ["dohdns_resolve"]
+    },
+    "nhtsa": {
+      "status": "pass",
+      "note": "nhtsa_decode_vin decodes vehicle VINs and nhtsa_recalls finds safety recalls. Free, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["nhtsa_decode_vin", "nhtsa_recalls"]
+    },
+    "geojs": {
+      "status": "pass",
+      "note": "geojs_lookup returns IP geolocation data from GeoJS. Free, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["geojs_lookup"]
+    },
+    "isup": {
+      "status": "pass",
+      "note": "isup_check reports whether a domain is up or down via isitup.org. Free, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["isup_check"]
+    },
+    "wayback": {
+      "status": "pass",
+      "note": "wayback_check finds archived snapshots in the Wayback Machine. Free, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["wayback_check"]
+    },
+    "oeis": {
+      "status": "pass",
+      "note": "oeis_search finds integer sequences from the OEIS encyclopedia. Free, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["oeis_search"]
+    },
+    "upcitemdb": {
+      "status": "pass",
+      "note": "upc_lookup finds products by barcode number. Free trial tier, no key needed.",
+      "testedAt": "2026-06-08T17:30:00.000Z",
+      "toolsTested": ["upc_lookup", "upc_search"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
