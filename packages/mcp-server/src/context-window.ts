@@ -1,91 +1,87 @@
-export interface Message {
-  role: "system" | "user" | "assistant" | "tool";
+export interface ContextEntry {
+  id: string;
   content: string;
-  tokenEstimate?: number;
-}
-
-export interface ContextWindowConfig {
-  maxTokens: number;
-  reserveTokens: number;
-  systemPriority: boolean;
-}
-
-const DEFAULT_CONFIG: ContextWindowConfig = {
-  maxTokens: 4096,
-  reserveTokens: 512,
-  systemPriority: true,
-};
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
+  tokens: number;
+  priority: number;
+  timestamp: number;
 }
 
 export class ContextWindow {
-  private messages: Message[] = [];
-  private config: ContextWindowConfig;
+  private entries: ContextEntry[] = [];
+  private maxTokens: number;
+  private usedTokens = 0;
 
-  constructor(config: Partial<ContextWindowConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+  constructor(maxTokens: number) {
+    this.maxTokens = maxTokens;
   }
 
-  add(message: Message): void {
-    if (!message.tokenEstimate) {
-      message.tokenEstimate = estimateTokens(message.content);
+  add(entry: Omit<ContextEntry, "timestamp">): boolean {
+    const full: ContextEntry = { ...entry, timestamp: Date.now() };
+    if (full.tokens > this.maxTokens) return false;
+    while (this.usedTokens + full.tokens > this.maxTokens) {
+      if (!this.evictLowest()) return false;
     }
-    this.messages.push(message);
-    this.trim();
+    this.entries.push(full);
+    this.usedTokens += full.tokens;
+    return true;
   }
 
-  getMessages(): Message[] {
-    return [...this.messages];
+  private evictLowest(): boolean {
+    if (this.entries.length === 0) return false;
+    let lowestIdx = 0;
+    for (let i = 1; i < this.entries.length; i++) {
+      if (this.entries[i].priority < this.entries[lowestIdx].priority) {
+        lowestIdx = i;
+      } else if (
+        this.entries[i].priority === this.entries[lowestIdx].priority &&
+        this.entries[i].timestamp < this.entries[lowestIdx].timestamp
+      ) {
+        lowestIdx = i;
+      }
+    }
+    this.usedTokens -= this.entries[lowestIdx].tokens;
+    this.entries.splice(lowestIdx, 1);
+    return true;
   }
 
-  get totalTokens(): number {
-    return this.messages.reduce((sum, m) => sum + (m.tokenEstimate ?? estimateTokens(m.content)), 0);
+  remove(id: string): boolean {
+    const idx = this.entries.findIndex((e) => e.id === id);
+    if (idx === -1) return false;
+    this.usedTokens -= this.entries[idx].tokens;
+    this.entries.splice(idx, 1);
+    return true;
   }
 
-  get availableTokens(): number {
-    return Math.max(0, this.config.maxTokens - this.config.reserveTokens - this.totalTokens);
+  getContents(): ContextEntry[] {
+    return [...this.entries].sort((a, b) => b.priority - a.priority || a.timestamp - b.timestamp);
   }
 
-  get messageCount(): number {
-    return this.messages.length;
+  render(): string {
+    return this.getContents().map((e) => e.content).join("\n\n");
+  }
+
+  get used(): number {
+    return this.usedTokens;
+  }
+
+  get available(): number {
+    return this.maxTokens - this.usedTokens;
+  }
+
+  get utilization(): number {
+    return this.maxTokens > 0 ? this.usedTokens / this.maxTokens : 0;
+  }
+
+  get size(): number {
+    return this.entries.length;
   }
 
   clear(): void {
-    this.messages = [];
-  }
-
-  private trim(): void {
-    const budget = this.config.maxTokens - this.config.reserveTokens;
-    while (this.totalTokens > budget && this.messages.length > 1) {
-      if (this.config.systemPriority) {
-        const idx = this.messages.findIndex((m) => m.role !== "system");
-        if (idx === -1) break;
-        this.messages.splice(idx, 1);
-      } else {
-        this.messages.shift();
-      }
-    }
+    this.entries.length = 0;
+    this.usedTokens = 0;
   }
 }
 
-export function fitMessages(messages: Message[], maxTokens: number): Message[] {
-  const result: Message[] = [];
-  let tokens = 0;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const est = messages[i].tokenEstimate ?? estimateTokens(messages[i].content);
-    if (tokens + est > maxTokens) break;
-    result.unshift(messages[i]);
-    tokens += est;
-  }
-  return result;
-}
-
-export function summarizeMessages(messages: Message[]): string {
-  const parts: string[] = [];
-  for (const m of messages) {
-    parts.push(`[${m.role}]: ${m.content.slice(0, 100)}${m.content.length > 100 ? "..." : ""}`);
-  }
-  return parts.join("\n");
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
 }

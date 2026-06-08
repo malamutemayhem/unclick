@@ -1,74 +1,54 @@
 import { describe, it, expect } from "vitest";
-import { render, extractVariables, validate, buildPrompt } from "../prompt-template.js";
+import { prompt, PromptTemplate } from "../prompt-template.js";
 
-describe("render", () => {
-  it("replaces variables", () => {
-    expect(render("Hello {{name}}!", { name: "World" })).toBe("Hello World!");
+describe("PromptTemplate", () => {
+  it("builds messages with variables", () => {
+    const msgs = prompt()
+      .system("You are a {{role}}")
+      .user("Help me with {{task}}")
+      .set("role", "helpful assistant")
+      .set("task", "coding")
+      .build();
+    expect(msgs.length).toBe(2);
+    expect(msgs[0].content).toBe("You are a helpful assistant");
+    expect(msgs[1].content).toBe("Help me with coding");
   });
 
-  it("handles multiple variables", () => {
-    expect(render("{{a}} + {{b}}", { a: 1, b: 2 })).toBe("1 + 2");
+  it("skips optional sections with unresolved vars", () => {
+    const msgs = prompt()
+      .system("Always helpful")
+      .user("Context: {{extra}}", true)
+      .user("Main question")
+      .build();
+    expect(msgs.length).toBe(2);
   });
 
-  it("leaves unknown variables in non-strict mode", () => {
-    expect(render("Hello {{name}}", {})).toBe("Hello {{name}}");
+  it("setAll sets multiple vars", () => {
+    const msgs = prompt()
+      .user("{{a}} and {{b}}")
+      .setAll({ a: "hello", b: "world" })
+      .build();
+    expect(msgs[0].content).toBe("hello and world");
   });
 
-  it("throws in strict mode for missing variables", () => {
-    expect(() => render("Hello {{name}}", {}, { strict: true })).toThrow("Missing variable: name");
+  it("buildString outputs formatted", () => {
+    const str = prompt()
+      .system("sys")
+      .user("usr")
+      .buildString();
+    expect(str).toContain("[system]");
+    expect(str).toContain("[user]");
   });
 
-  it("handles spaces inside delimiters", () => {
-    expect(render("Hello {{ name }}", { name: "Bob" })).toBe("Hello Bob");
+  it("clone creates independent copy", () => {
+    const t1 = prompt().system("hello").set("x", "1");
+    const t2 = t1.clone().set("x", "2");
+    expect(t1.build()[0].content).toBe("hello");
+    expect(t2.build()[0].content).toBe("hello");
   });
 
-  it("supports custom delimiters", () => {
-    expect(render("Hello <%name%>", { name: "World" }, { openDelimiter: "<%", closeDelimiter: "%>" })).toBe("Hello World");
-  });
-
-  it("handles boolean and number values", () => {
-    expect(render("{{flag}} {{count}}", { flag: true, count: 42 })).toBe("true 42");
-  });
-});
-
-describe("extractVariables", () => {
-  it("extracts all unique variables", () => {
-    expect(extractVariables("{{a}} and {{b}} and {{a}}")).toEqual(["a", "b"]);
-  });
-
-  it("returns empty for no variables", () => {
-    expect(extractVariables("no vars here")).toEqual([]);
-  });
-});
-
-describe("validate", () => {
-  it("returns valid when all provided", () => {
-    const r = validate("{{x}} {{y}}", { x: "1", y: "2" });
-    expect(r.valid).toBe(true);
-    expect(r.missing).toEqual([]);
-  });
-
-  it("returns missing variables", () => {
-    const r = validate("{{x}} {{y}} {{z}}", { x: "1" });
-    expect(r.valid).toBe(false);
-    expect(r.missing).toEqual(["y", "z"]);
-  });
-});
-
-describe("buildPrompt", () => {
-  it("builds multi-section prompt", () => {
-    const result = buildPrompt([
-      { role: "system", content: "You are {{role}}" },
-      { role: "user", content: "Hello" },
-    ], { role: "helpful" });
-    expect(result).toContain("[system]");
-    expect(result).toContain("You are helpful");
-    expect(result).toContain("[user]");
-    expect(result).toContain("Hello");
-  });
-
-  it("works without variables", () => {
-    const result = buildPrompt([{ role: "user", content: "Hi" }]);
-    expect(result).toBe("[user]\nHi");
+  it("tracks section count", () => {
+    const t = prompt().system("a").user("b").assistant("c");
+    expect(t.sectionCount).toBe(3);
   });
 });

@@ -1,59 +1,68 @@
-export interface TemplateOptions {
-  openDelimiter?: string;
-  closeDelimiter?: string;
-  strict?: boolean;
+export interface PromptSection {
+  role: "system" | "user" | "assistant";
+  content: string;
+  optional?: boolean;
 }
 
-const DEFAULT_OPEN = "{{";
-const DEFAULT_CLOSE = "}}";
+export class PromptTemplate {
+  private sections: PromptSection[] = [];
+  private variables = new Map<string, string>();
 
-export function render(
-  template: string,
-  variables: Record<string, string | number | boolean>,
-  options: TemplateOptions = {},
-): string {
-  const open = escapeRegex(options.openDelimiter ?? DEFAULT_OPEN);
-  const close = escapeRegex(options.closeDelimiter ?? DEFAULT_CLOSE);
-  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
-
-  return template.replace(pattern, (_match, key: string) => {
-    if (key in variables) return String(variables[key]);
-    if (options.strict) throw new Error(`Missing variable: ${key}`);
-    return _match;
-  });
-}
-
-export function extractVariables(template: string, options: TemplateOptions = {}): string[] {
-  const open = escapeRegex(options.openDelimiter ?? DEFAULT_OPEN);
-  const close = escapeRegex(options.closeDelimiter ?? DEFAULT_CLOSE);
-  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
-  const vars: string[] = [];
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(template)) !== null) {
-    if (!vars.includes(match[1])) vars.push(match[1]);
+  system(content: string, optional = false): this {
+    this.sections.push({ role: "system", content, optional });
+    return this;
   }
-  return vars;
+
+  user(content: string, optional = false): this {
+    this.sections.push({ role: "user", content, optional });
+    return this;
+  }
+
+  assistant(content: string, optional = false): this {
+    this.sections.push({ role: "assistant", content, optional });
+    return this;
+  }
+
+  set(key: string, value: string): this {
+    this.variables.set(key, value);
+    return this;
+  }
+
+  setAll(vars: Record<string, string>): this {
+    for (const [k, v] of Object.entries(vars)) this.variables.set(k, v);
+    return this;
+  }
+
+  build(): { role: string; content: string }[] {
+    const messages: { role: string; content: string }[] = [];
+    for (const section of this.sections) {
+      let content = section.content;
+      for (const [key, value] of this.variables) {
+        content = content.split(`{{${key}}}`).join(value);
+      }
+      const hasUnresolved = /\{\{[^}]+\}\}/.test(content);
+      if (hasUnresolved && section.optional) continue;
+      messages.push({ role: section.role, content });
+    }
+    return messages;
+  }
+
+  buildString(separator = "\n\n"): string {
+    return this.build().map((m) => `[${m.role}]\n${m.content}`).join(separator);
+  }
+
+  clone(): PromptTemplate {
+    const t = new PromptTemplate();
+    t.sections = [...this.sections];
+    t.variables = new Map(this.variables);
+    return t;
+  }
+
+  get sectionCount(): number {
+    return this.sections.length;
+  }
 }
 
-export function validate(
-  template: string,
-  variables: Record<string, string | number | boolean>,
-  options: TemplateOptions = {},
-): { valid: boolean; missing: string[] } {
-  const needed = extractVariables(template, options);
-  const missing = needed.filter((v) => !(v in variables));
-  return { valid: missing.length === 0, missing };
-}
-
-export function buildPrompt(
-  sections: Array<{ role: string; content: string }>,
-  variables: Record<string, string | number | boolean> = {},
-): string {
-  return sections
-    .map((s) => `[${s.role}]\n${render(s.content, variables)}`)
-    .join("\n\n");
-}
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export function prompt(): PromptTemplate {
+  return new PromptTemplate();
 }

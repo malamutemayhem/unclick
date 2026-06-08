@@ -1,88 +1,59 @@
 import { describe, it, expect } from "vitest";
-import { ContextWindow, fitMessages, summarizeMessages, Message } from "../context-window.js";
+import { ContextWindow, estimateTokens } from "../context-window.js";
 
 describe("ContextWindow", () => {
-  it("adds and retrieves messages", () => {
-    const cw = new ContextWindow({ maxTokens: 1000 });
-    cw.add({ role: "user", content: "Hello" });
-    cw.add({ role: "assistant", content: "Hi there" });
-    expect(cw.messageCount).toBe(2);
-    expect(cw.getMessages()[0].role).toBe("user");
+  it("adds entries within budget", () => {
+    const cw = new ContextWindow(100);
+    expect(cw.add({ id: "a", content: "hello", tokens: 50, priority: 1 })).toBe(true);
+    expect(cw.used).toBe(50);
+    expect(cw.available).toBe(50);
   });
 
-  it("tracks token count", () => {
-    const cw = new ContextWindow({ maxTokens: 1000 });
-    cw.add({ role: "user", content: "Hello world" });
-    expect(cw.totalTokens).toBeGreaterThan(0);
+  it("evicts low priority to make room", () => {
+    const cw = new ContextWindow(100);
+    cw.add({ id: "low", content: "x", tokens: 60, priority: 1 });
+    cw.add({ id: "high", content: "y", tokens: 60, priority: 10 });
+    expect(cw.size).toBe(1);
+    expect(cw.getContents()[0].id).toBe("high");
   });
 
-  it("trims old messages when over budget", () => {
-    const cw = new ContextWindow({ maxTokens: 50, reserveTokens: 0 });
-    for (let i = 0; i < 20; i++) {
-      cw.add({ role: "user", content: `Message number ${i} with some content` });
-    }
-    expect(cw.totalTokens).toBeLessThanOrEqual(50);
+  it("rejects entry too large for window", () => {
+    const cw = new ContextWindow(10);
+    expect(cw.add({ id: "big", content: "x", tokens: 20, priority: 1 })).toBe(false);
   });
 
-  it("preserves system messages when systemPriority is true", () => {
-    const cw = new ContextWindow({ maxTokens: 60, reserveTokens: 0, systemPriority: true });
-    cw.add({ role: "system", content: "You are helpful" });
-    for (let i = 0; i < 10; i++) {
-      cw.add({ role: "user", content: `Message ${i} with extra padding text` });
-    }
-    const msgs = cw.getMessages();
-    expect(msgs.some((m) => m.role === "system")).toBe(true);
+  it("removes by id", () => {
+    const cw = new ContextWindow(100);
+    cw.add({ id: "a", content: "x", tokens: 30, priority: 1 });
+    expect(cw.remove("a")).toBe(true);
+    expect(cw.used).toBe(0);
   });
 
-  it("reports available tokens", () => {
-    const cw = new ContextWindow({ maxTokens: 1000, reserveTokens: 200 });
-    cw.add({ role: "user", content: "Hi" });
-    expect(cw.availableTokens).toBeLessThan(800);
-    expect(cw.availableTokens).toBeGreaterThan(0);
+  it("renders ordered by priority", () => {
+    const cw = new ContextWindow(100);
+    cw.add({ id: "b", content: "second", tokens: 10, priority: 1 });
+    cw.add({ id: "a", content: "first", tokens: 10, priority: 10 });
+    expect(cw.render()).toBe("first\n\nsecond");
   });
 
-  it("clear empties everything", () => {
-    const cw = new ContextWindow();
-    cw.add({ role: "user", content: "Hello" });
+  it("tracks utilization", () => {
+    const cw = new ContextWindow(100);
+    cw.add({ id: "a", content: "x", tokens: 50, priority: 1 });
+    expect(cw.utilization).toBe(0.5);
+  });
+
+  it("clear resets", () => {
+    const cw = new ContextWindow(100);
+    cw.add({ id: "a", content: "x", tokens: 50, priority: 1 });
     cw.clear();
-    expect(cw.messageCount).toBe(0);
-    expect(cw.totalTokens).toBe(0);
+    expect(cw.size).toBe(0);
+    expect(cw.used).toBe(0);
   });
 });
 
-describe("fitMessages", () => {
-  it("takes most recent messages that fit", () => {
-    const msgs: Message[] = [
-      { role: "user", content: "A".repeat(100) },
-      { role: "user", content: "B".repeat(100) },
-      { role: "user", content: "C".repeat(20) },
-    ];
-    const fit = fitMessages(msgs, 40);
-    expect(fit.length).toBe(2);
-    expect(fit[0].content.startsWith("B")).toBe(true);
-    expect(fit[1].content.startsWith("C")).toBe(true);
-  });
-
-  it("returns empty for zero budget", () => {
-    const msgs: Message[] = [{ role: "user", content: "hello" }];
-    expect(fitMessages(msgs, 0)).toEqual([]);
-  });
-});
-
-describe("summarizeMessages", () => {
-  it("creates text summary", () => {
-    const msgs: Message[] = [
-      { role: "user", content: "Hello" },
-      { role: "assistant", content: "Hi there" },
-    ];
-    const summary = summarizeMessages(msgs);
-    expect(summary).toContain("[user]");
-    expect(summary).toContain("[assistant]");
-  });
-
-  it("truncates long messages", () => {
-    const msgs: Message[] = [{ role: "user", content: "X".repeat(200) }];
-    const summary = summarizeMessages(msgs);
-    expect(summary).toContain("...");
+describe("estimateTokens", () => {
+  it("estimates roughly 4 chars per token", () => {
+    expect(estimateTokens("hello world")).toBe(3);
+    expect(estimateTokens("")).toBe(0);
   });
 });
