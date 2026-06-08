@@ -130,15 +130,16 @@ export function createSecretRouter(db: Db) {
   router.post('/view', requireScope('secret:read'), zv('json', ViewSchema), async (c) => {
     const { id, passphrase } = c.req.valid('json');
 
+    // Atomic claim: mark as viewed and return in one query to prevent
+    // two concurrent requests from both reading the secret.
     const [row] = await db
-      .select()
-      .from(secrets)
+      .update(secrets)
+      .set({ viewed: true })
       .where(and(eq(secrets.id, id), notViewedOrExpired()))
-      .limit(1);
+      .returning();
 
     if (!row) throw Errors.notFound('Secret not found, already viewed, or expired');
 
-    // If secret was created with a passphrase, verify it before decrypting.
     if (row.passphraseHash !== null) {
       if (!passphrase) {
         throw Errors.forbidden('This secret requires a passphrase');
@@ -148,7 +149,6 @@ export function createSecretRouter(db: Db) {
       }
     }
 
-    // Decrypt the secret.
     let text: string;
     try {
       text = decrypt(
@@ -161,12 +161,6 @@ export function createSecretRouter(db: Db) {
     } catch {
       throw Errors.forbidden('Decryption failed - passphrase may be incorrect');
     }
-
-    // Mark as viewed immediately (one-read guarantee).
-    await db
-      .update(secrets)
-      .set({ viewed: true })
-      .where(eq(secrets.id, id));
 
     return ok(c, {
       id,
