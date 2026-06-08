@@ -27,16 +27,16 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
-bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum"]);
+bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus"]);
@@ -105,6 +105,8 @@ const NAME_OF = {
   coinpaprika: "Coinpaprika", openfda: "OpenFDA", funtranslations: "Fun Translations",
   datamuse: "Datamuse", balldontlie: "balldontlie (NBA)", worldbank: "World Bank",
   carbonintensity: "Carbon Intensity UK", lyrics: "Lyrics.ovh", urbandictionary: "Urban Dictionary",
+  nobelprize: "Nobel Prize API", universities: "World Universities", fakestoreapi: "Fake Store API",
+  mtg: "Magic: The Gathering", domainsdb: "DomainsDB", pokemontcg: "Pokemon TCG",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -269,6 +271,12 @@ const BLURB_OF = {
   carbonintensity: "UK national grid carbon intensity - current, forecast, and generation mix.",
   lyrics: "Look up song lyrics by artist and title.",
   urbandictionary: "Look up slang definitions or browse trending words.",
+  nobelprize: "Search Nobel Prize winners, categories, and award history.",
+  universities: "Search universities worldwide by name or country.",
+  fakestoreapi: "Fake e-commerce products and categories for testing and prototyping.",
+  mtg: "Search Magic: The Gathering cards, sets, and types.",
+  domainsdb: "Search registered domain names and browse TLDs.",
+  pokemontcg: "Search Pokemon Trading Card Game cards and sets.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -365,6 +373,8 @@ const DOMAIN_OF = {
   coinpaprika: "coinpaprika.com", openfda: "api.fda.gov", funtranslations: "funtranslations.com",
   datamuse: "datamuse.com", balldontlie: "balldontlie.io", worldbank: "worldbank.org",
   carbonintensity: "carbonintensity.org.uk", lyrics: "lyrics.ovh", urbandictionary: "urbandictionary.com",
+  nobelprize: "nobelprize.org", universities: "universities.hipolabs.com", fakestoreapi: "fakestoreapi.com",
+  mtg: "magicthegathering.io", domainsdb: "domainsdb.info", pokemontcg: "pokemontcg.io",
 };
 
 function titleCase(slug) {

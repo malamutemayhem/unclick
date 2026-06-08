@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 317,
-  "toolCount": 1159,
+  "appCount": 323,
+  "toolCount": 1172,
   "categories": [
     "AI",
     "Books",
@@ -1962,6 +1962,26 @@
       "hardened": true
     },
     {
+      "slug": "domainsdb",
+      "name": "DomainsDB",
+      "category": "Developer & infra",
+      "blurb": "Search registered domain names and browse TLDs.",
+      "domain": "domainsdb.info",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "domainsdb_search",
+          "description": "Search registered domain names by keyword or pattern."
+        },
+        {
+          "name": "domainsdb_tlds",
+          "description": "List available top-level domains (TLDs) from DomainsDB."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dropbox",
       "name": "Dropbox",
       "category": "Productivity",
@@ -2348,6 +2368,30 @@
         {
           "name": "excuser_random",
           "description": "Get a random excuse, optionally by category."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fakestoreapi",
+      "name": "Fake Store API",
+      "category": "Developer & infra",
+      "blurb": "Fake e-commerce products and categories for testing and prototyping.",
+      "domain": "fakestoreapi.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "fakestore_products",
+          "description": "List fake e-commerce products (for testing and prototyping)."
+        },
+        {
+          "name": "fakestore_product",
+          "description": "Get a single fake product by ID."
+        },
+        {
+          "name": "fakestore_categories",
+          "description": "List all fake store product categories."
         }
       ],
       "level": 5,
@@ -3934,6 +3978,30 @@
       "hardened": false
     },
     {
+      "slug": "mtg",
+      "name": "Magic: The Gathering",
+      "category": "Games & esports",
+      "blurb": "Search Magic: The Gathering cards, sets, and types.",
+      "domain": "magicthegathering.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "mtg_search_cards",
+          "description": "Search Magic: The Gathering cards by name, color, type, set, or rarity."
+        },
+        {
+          "name": "mtg_get_card",
+          "description": "Get a specific MTG card by its multiverse ID."
+        },
+        {
+          "name": "mtg_sets",
+          "description": "List or search Magic: The Gathering sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mailchimp",
       "name": "Mailchimp",
       "category": "Messaging & email",
@@ -4424,6 +4492,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "nobelprize",
+      "name": "Nobel Prize API",
+      "category": "News & reading",
+      "blurb": "Search Nobel Prize winners, categories, and award history.",
+      "domain": "nobelprize.org",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "nobel_prizes",
+          "description": "Search Nobel Prize data by year and/or category."
+        },
+        {
+          "name": "nobel_laureates",
+          "description": "Search Nobel laureates by name, year, or category."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "notion",
@@ -5144,6 +5232,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "pokemontcg",
+      "name": "Pokemon TCG",
+      "category": "Games & esports",
+      "blurb": "Search Pokemon Trading Card Game cards and sets.",
+      "domain": "pokemontcg.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "pokemon_tcg_search_cards",
+          "description": "Search Pokemon Trading Card Game cards by name, type, set, or rarity."
+        },
+        {
+          "name": "pokemon_tcg_sets",
+          "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "posthog",
@@ -8224,6 +8332,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "universities",
+      "name": "World Universities",
+      "category": "News & reading",
+      "blurb": "Search universities worldwide by name or country.",
+      "domain": "universities.hipolabs.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "universities_search",
+          "description": "Search world universities by name and/or country."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "xero",

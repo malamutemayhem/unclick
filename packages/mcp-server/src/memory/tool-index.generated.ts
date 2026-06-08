@@ -1628,6 +1628,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "domainsdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "domainsdb_search",
+        "description": "Search registered domain names by keyword or pattern."
+      },
+      {
+        "name": "domainsdb_tlds",
+        "description": "List available top-level domains (TLDs) from DomainsDB."
+      }
+    ]
+  },
+  {
     "app": "dropbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1926,6 +1940,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "excuser_random",
         "description": "Get a random excuse, optionally by category."
+      }
+    ]
+  },
+  {
+    "app": "fakestoreapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fakestore_products",
+        "description": "List fake e-commerce products (for testing and prototyping)."
+      },
+      {
+        "name": "fakestore_product",
+        "description": "Get a single fake product by ID."
+      },
+      {
+        "name": "fakestore_categories",
+        "description": "List all fake store product categories."
       }
     ]
   },
@@ -3398,6 +3430,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mtg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mtg_search_cards",
+        "description": "Search Magic: The Gathering cards by name, color, type, set, or rarity."
+      },
+      {
+        "name": "mtg_get_card",
+        "description": "Get a specific MTG card by its multiverse ID."
+      },
+      {
+        "name": "mtg_sets",
+        "description": "List or search Magic: The Gathering sets."
+      }
+    ]
+  },
+  {
     "app": "musicbrainz",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3516,6 +3566,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "news_get_sources",
         "description": "Get available news sources from NewsAPI."
+      }
+    ]
+  },
+  {
+    "app": "nobelprize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nobel_prizes",
+        "description": "Search Nobel Prize data by year and/or category."
+      },
+      {
+        "name": "nobel_laureates",
+        "description": "Search Nobel laureates by name, year, or category."
       }
     ]
   },
@@ -4104,6 +4168,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "poke_get_generation",
         "description": "Get Pokemon generation info, region, and species list."
+      }
+    ]
+  },
+  {
+    "app": "pokemontcg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pokemon_tcg_search_cards",
+        "description": "Search Pokemon Trading Card Game cards by name, type, set, or rarity."
+      },
+      {
+        "name": "pokemon_tcg_sets",
+        "description": "List or search Pokemon TCG card sets."
       }
     ]
   },
@@ -5900,6 +5978,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "convert_data_storage",
         "description": "Convert between data storage units."
+      }
+    ]
+  },
+  {
+    "app": "universities",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "universities_search",
+        "description": "Search world universities by name and/or country."
       }
     ]
   },

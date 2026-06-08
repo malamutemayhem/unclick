@@ -693,6 +693,15 @@
       ],
       "comment": ""
     },
+    "domainsdb": {
+      "status": "pass",
+      "note": "domainsdb_search and domainsdb_tlds query domain registrations from domainsdb.info. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "domainsdb_search",
+        "domainsdb_tlds"
+      ]
+    },
     "dropbox": {
       "status": "attention",
       "note": "File storage; needs DROPBOX_ACCESS_TOKEN.",
@@ -810,6 +819,16 @@
       "testedAt": "2026-06-08T06:30:00.000Z",
       "toolsTested": [
         "excuser_random"
+      ]
+    },
+    "fakestoreapi": {
+      "status": "pass",
+      "note": "fakestore_products, fakestore_product, fakestore_categories return fake e-commerce data from fakestoreapi.com. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "fakestore_products",
+        "fakestore_product",
+        "fakestore_categories"
       ]
     },
     "feedly": {
@@ -1415,6 +1434,16 @@
       ],
       "comment": ""
     },
+    "mtg": {
+      "status": "pass",
+      "note": "mtg_search_cards, mtg_get_card, mtg_sets connect to api.magicthegathering.io. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "mtg_search_cards",
+        "mtg_get_card",
+        "mtg_sets"
+      ]
+    },
     "musicbrainz": {
       "status": "pass",
       "note": "mb_search_artists returned 29 results for 'Radiohead' with metadata - no auth needed",
@@ -1458,6 +1487,15 @@
         "news_top_headlines"
       ],
       "comment": ""
+    },
+    "nobelprize": {
+      "status": "pass",
+      "note": "nobel_prizes and nobel_laureates fetch Nobel Prize data from api.nobelprize.org. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "nobel_prizes",
+        "nobel_laureates"
+      ]
     },
     "notion": {
       "status": "attention",
@@ -1696,6 +1734,15 @@
         "poke_search_pokemon"
       ],
       "comment": ""
+    },
+    "pokemontcg": {
+      "status": "pass",
+      "note": "pokemon_tcg_search_cards and pokemon_tcg_sets search the Pokemon TCG API. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "pokemon_tcg_search_cards",
+        "pokemon_tcg_sets"
+      ]
     },
     "posthog": {
       "status": "attention",
@@ -2355,6 +2402,14 @@
         "convert_temperature"
       ],
       "comment": ""
+    },
+    "universities": {
+      "status": "pass",
+      "note": "universities_search queries world universities from universities.hipolabs.com by name/country. Free, no key needed.",
+      "testedAt": "2026-06-08T10:30:00.000Z",
+      "toolsTested": [
+        "universities_search"
+      ]
     },
     "unsplash": {
       "status": "attention",

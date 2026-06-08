@@ -482,6 +482,12 @@ import { carbonIntensityCurrent, carbonIntensityForecast, carbonIntensityGenerat
 import { lyricsGet } from "./lyrics-tool.js";
 
 import { urbanDefine, urbanRandom } from "./urbandictionary-tool.js";
+import { nobelPrizes, nobelLaureates } from "./nobelprize-tool.js";
+import { universitiesSearch } from "./universities-tool.js";
+import { fakestoreProducts, fakestoreProduct, fakestoreCategories } from "./fakestoreapi-tool.js";
+import { mtgSearchCards, mtgGetCard, mtgSets } from "./mtg-tool.js";
+import { domainsdbSearch, domainsdbTlds } from "./domainsdb-tool.js";
+import { pokemonTcgSearchCards, pokemonTcgSets } from "./pokemontcg-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7100,6 +7106,151 @@ export const ADDITIONAL_TOOLS = [
     description: "Get random Urban Dictionary definitions.",
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── nobelprize-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "nobel_prizes",
+    description: "Search Nobel Prize data by year and/or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        year: { type: "number" as const, description: "Award year (e.g. 2023)." },
+        category: { type: "string" as const, description: "Category code: che, eco, lit, pea, phy, med." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "nobel_laureates",
+    description: "Search Nobel laureates by name, year, or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Laureate name to search." },
+        year: { type: "number" as const, description: "Award year." },
+        category: { type: "string" as const, description: "Category code: che, eco, lit, pea, phy, med." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── universities-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "universities_search",
+    description: "Search world universities by name and/or country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "University name to search (partial match)." },
+        country: { type: "string" as const, description: "Country name (e.g. 'Australia', 'United States')." },
+        limit: { type: "number" as const, description: "Max results (default 25)." },
+      },
+    },
+  },
+
+  // ── fakestoreapi-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "fakestore_products",
+    description: "List fake e-commerce products (for testing and prototyping).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Max products (default 10)." },
+      },
+    },
+  },
+  {
+    name: "fakestore_product",
+    description: "Get a single fake product by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "number" as const, description: "Product ID (1-20)." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "fakestore_categories",
+    description: "List all fake store product categories.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── mtg-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "mtg_search_cards",
+    description: "Search Magic: The Gathering cards by name, color, type, set, or rarity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Card name to search." },
+        colors: { type: "string" as const, description: "Color filter (W, U, B, R, G or combinations)." },
+        type: { type: "string" as const, description: "Card type (e.g. Instant, Creature, Sorcery)." },
+        set: { type: "string" as const, description: "Set code (e.g. LEA, M21)." },
+        rarity: { type: "string" as const, description: "Rarity: common, uncommon, rare, mythic." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "mtg_get_card",
+    description: "Get a specific MTG card by its multiverse ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Multiverse ID of the card." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "mtg_sets",
+    description: "List or search Magic: The Gathering sets.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Set name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── domainsdb-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "domainsdb_search",
+    description: "Search registered domain names by keyword or pattern.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain keyword to search (e.g. 'google', 'shop')." },
+        zone: { type: "string" as const, description: "TLD zone filter (e.g. 'com', 'org', 'io')." },
+        limit: { type: "number" as const, description: "Max results (default 20)." },
+      }, required: ["domain"],
+    },
+  },
+  {
+    name: "domainsdb_tlds",
+    description: "List available top-level domains (TLDs) from DomainsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── pokemontcg-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "pokemon_tcg_search_cards",
+    description: "Search Pokemon Trading Card Game cards by name, type, set, or rarity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Card name to search." },
+        type: { type: "string" as const, description: "Pokemon type (e.g. Fire, Water, Grass)." },
+        set: { type: "string" as const, description: "Set name to search within." },
+        rarity: { type: "string" as const, description: "Card rarity (e.g. Rare, Common)." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "pokemon_tcg_sets",
+    description: "List or search Pokemon TCG card sets.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Set name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
     },
   },
 
@@ -18175,6 +18326,26 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // urbandictionary-tool.ts
   urban_define:              (args) => urbanDefine(args),
   urban_random:              (args) => urbanRandom(args),
+
+  // nobelprize-tool.ts
+  nobel_prizes:              (args) => nobelPrizes(args),
+  nobel_laureates:           (args) => nobelLaureates(args),
+  // universities-tool.ts
+  universities_search:       (args) => universitiesSearch(args),
+  // fakestoreapi-tool.ts
+  fakestore_products:        (args) => fakestoreProducts(args),
+  fakestore_product:         (args) => fakestoreProduct(args),
+  fakestore_categories:      (args) => fakestoreCategories(args),
+  // mtg-tool.ts
+  mtg_search_cards:          (args) => mtgSearchCards(args),
+  mtg_get_card:              (args) => mtgGetCard(args),
+  mtg_sets:                  (args) => mtgSets(args),
+  // domainsdb-tool.ts
+  domainsdb_search:          (args) => domainsdbSearch(args),
+  domainsdb_tlds:            (args) => domainsdbTlds(args),
+  // pokemontcg-tool.ts
+  pokemon_tcg_search_cards:  (args) => pokemonTcgSearchCards(args),
+  pokemon_tcg_sets:          (args) => pokemonTcgSets(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
