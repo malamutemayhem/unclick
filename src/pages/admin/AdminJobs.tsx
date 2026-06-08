@@ -157,7 +157,7 @@ const TITLE_MAX_CHARS = 90;
 // columns are wide enough for their real labels, and the Notes column fits the
 // header plus a two-digit count without clipping. Row height is unchanged.
 const JOB_ROW_GRID =
-  "md:grid md:grid-cols-[48px_minmax(260px,1.3fr)_92px_64px_minmax(116px,0.45fr)_44px_minmax(188px,0.5fr)_104px_46px_18px] md:items-center md:gap-1.5";
+  "md:grid md:grid-cols-[48px_minmax(244px,1.2fr)_78px_58px_minmax(132px,0.6fr)_44px_minmax(188px,0.5fr)_104px_46px_18px] md:items-center md:gap-1.5";
 
 interface JobDisplayCopy {
   title: string;
@@ -403,7 +403,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
       {signal.href && <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />}
     </>
   );
-  const className = `inline-flex max-w-[104px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
+  const className = `inline-flex max-w-[104px] shrink-0 items-center justify-self-start gap-1 whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
 
   if (signal.href) {
     return (
@@ -790,12 +790,12 @@ function JobRow({
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 md:contents">
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
+            className={`inline-flex min-w-0 items-center justify-self-start whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
           >
             {statusLabel(displayStatus)}
           </span>
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
+            className={`inline-flex min-w-0 items-center justify-self-start whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
           >
             {todo.priority}
           </span>

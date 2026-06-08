@@ -70,7 +70,7 @@ const liveDot: Record<Job["live"], string> = {
 // Grid mirrors the admin row: rank, job, state, priority, worker, live,
 // progress, proof, notes. Switches to a stacked card below lg so nothing squishes.
 const ROW_GRID =
-  "lg:grid lg:grid-cols-[34px_minmax(180px,1.4fr)_88px_64px_minmax(104px,0.5fr)_44px_minmax(176px,0.6fr)_98px_42px] lg:items-center lg:gap-1.5";
+  "lg:grid lg:grid-cols-[34px_minmax(180px,1.4fr)_74px_56px_minmax(118px,0.6fr)_44px_minmax(176px,0.6fr)_98px_42px] lg:items-center lg:gap-1.5";
 
 const groups: { label: string; jobs: Job[] }[] = [
   {
@@ -144,8 +144,10 @@ function StageStrip({ job }: { job: Job }) {
   );
 }
 
+// Hug content with a consistent 3px side padding (left-aligned in its grid cell)
+// instead of stretching to fill the column, so short labels do not look bloated.
 const badge =
-  "inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase";
+  "inline-flex min-w-0 items-center justify-self-start whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase";
 
 function Row({ rank, job }: { rank: number; job: Job }) {
   return (
@@ -172,7 +174,7 @@ function Row({ rank, job }: { rank: number; job: Job }) {
           {job.live}
         </span>
         <StageStrip job={job} />
-        <span className={`inline-flex max-w-[98px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${proofStyle[job.proofTone]}`}>
+        <span className={`inline-flex max-w-[98px] shrink-0 items-center justify-self-start gap-1 whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold ${proofStyle[job.proofTone]}`}>
           <GitPullRequest className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span className="min-w-0 truncate">{job.proof}</span>
         </span>
