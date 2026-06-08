@@ -1,78 +1,91 @@
 export class SortedArray<T> {
   private items: T[] = [];
-  private compare: (a: T, b: T) => number;
+  private cmp: (a: T, b: T) => number;
 
-  constructor(compare?: (a: T, b: T) => number) {
-    this.compare = compare ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  constructor(comparator?: (a: T, b: T) => number) {
+    this.cmp = comparator || ((a: T, b: T) => (a as unknown as number) - (b as unknown as number));
   }
 
-  insert(item: T): number {
-    const idx = this.findInsertIndex(item);
-    this.items.splice(idx, 0, item);
+  get length(): number {
+    return this.items.length;
+  }
+
+  insert(value: T): number {
+    const idx = this.findInsertIndex(value);
+    this.items.splice(idx, 0, value);
     return idx;
   }
 
-  remove(item: T): boolean {
-    const idx = this.indexOf(item);
-    if (idx < 0) return false;
+  remove(value: T): boolean {
+    const idx = this.indexOf(value);
+    if (idx === -1) return false;
     this.items.splice(idx, 1);
     return true;
   }
 
-  indexOf(item: T): number {
+  has(value: T): boolean {
+    return this.indexOf(value) !== -1;
+  }
+
+  indexOf(value: T): number {
     let lo = 0;
     let hi = this.items.length - 1;
     while (lo <= hi) {
       const mid = (lo + hi) >>> 1;
-      const cmp = this.compare(this.items[mid], item);
-      if (cmp === 0) return mid;
-      if (cmp < 0) lo = mid + 1;
+      const c = this.cmp(this.items[mid], value);
+      if (c === 0) return mid;
+      if (c < 0) lo = mid + 1;
       else hi = mid - 1;
     }
     return -1;
   }
 
-  has(item: T): boolean {
-    return this.indexOf(item) >= 0;
-  }
-
-  at(index: number): T | undefined {
+  get(index: number): T | undefined {
     return this.items[index];
   }
 
-  get first(): T | undefined {
+  first(): T | undefined {
     return this.items[0];
   }
 
-  get last(): T | undefined {
+  last(): T | undefined {
     return this.items[this.items.length - 1];
   }
 
-  get size(): number {
-    return this.items.length;
+  range(from: T, to: T): T[] {
+    const start = this.findInsertIndex(from);
+    const result: T[] = [];
+    for (let i = start; i < this.items.length; i++) {
+      if (this.cmp(this.items[i], to) > 0) break;
+      result.push(this.items[i]);
+    }
+    return result;
   }
 
   toArray(): T[] {
     return [...this.items];
   }
 
-  range(from: T, to: T): T[] {
-    const result: T[] = [];
-    for (const item of this.items) {
-      if (this.compare(item, from) >= 0 && this.compare(item, to) <= 0) {
-        result.push(item);
-      }
-      if (this.compare(item, to) > 0) break;
-    }
-    return result;
+  clear(): void {
+    this.items.length = 0;
   }
 
-  private findInsertIndex(item: T): number {
+  *[Symbol.iterator](): Iterator<T> {
+    for (const item of this.items) yield item;
+  }
+
+  static from<T>(items: T[], comparator?: (a: T, b: T) => number): SortedArray<T> {
+    const sa = new SortedArray<T>(comparator);
+    for (const item of items) sa.insert(item);
+    return sa;
+  }
+
+  private findInsertIndex(value: T): number {
     let lo = 0;
     let hi = this.items.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
-      if (this.compare(this.items[mid], item) < 0) lo = mid + 1;
+      if (this.cmp(this.items[mid], value) < 0) lo = mid + 1;
       else hi = mid;
     }
     return lo;

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { EventEmitter } from "../event-emitter.js";
 
 interface TestEvents {
+  [key: string]: unknown;
   data: string;
   count: number;
   empty: undefined;
