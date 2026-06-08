@@ -1,66 +1,67 @@
-type Listener = () => void;
+type Listener<T> = (value: T) => void;
+type Cleanup = () => void;
 
-export class Signal {
-  private _aborted = false;
-  private _reason: unknown;
-  private listeners = new Set<Listener>();
+export interface ReadableSignal<T> {
+  get(): T;
+  subscribe(listener: Listener<T>): Cleanup;
+}
 
-  get aborted(): boolean {
-    return this._aborted;
+export class Signal<T> implements ReadableSignal<T> {
+  private value: T;
+  private listeners = new Set<Listener<T>>();
+
+  constructor(initial: T) {
+    this.value = initial;
   }
 
-  get reason(): unknown {
-    return this._reason;
+  get(): T {
+    return this.value;
   }
 
-  abort(reason?: unknown): void {
-    if (this._aborted) return;
-    this._aborted = true;
-    this._reason = reason ?? new Error("Aborted");
-    for (const listener of this.listeners) listener();
-    this.listeners.clear();
+  set(newValue: T): void {
+    if (newValue === this.value) return;
+    this.value = newValue;
+    for (const listener of this.listeners) listener(this.value);
   }
 
-  onAbort(listener: Listener): () => void {
-    if (this._aborted) {
-      listener();
-      return () => {};
-    }
+  update(fn: (current: T) => T): void {
+    this.set(fn(this.value));
+  }
+
+  subscribe(listener: Listener<T>): Cleanup {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
   }
 
-  throwIfAborted(): void {
-    if (this._aborted) throw this._reason;
+  get subscriberCount(): number {
+    return this.listeners.size;
   }
 }
 
-export class SignalController {
-  readonly signal = new Signal();
-
-  abort(reason?: unknown): void {
-    this.signal.abort(reason);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function computed<T>(deps: ReadableSignal<any>[], compute: () => T): Signal<T> {
+  const derived = new Signal(compute());
+  for (const dep of deps) {
+    dep.subscribe(() => derived.set(compute()));
   }
+  return derived;
 }
 
-export function timeout(ms: number): Signal {
-  const ctrl = new SignalController();
-  setTimeout(() => ctrl.abort(new Error(`Timed out after ${ms}ms`)), ms);
-  return ctrl.signal;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function effect(deps: ReadableSignal<any>[], fn: () => void | Cleanup): Cleanup {
+  let cleanup: void | Cleanup;
+  const run = () => {
+    if (typeof cleanup === "function") cleanup();
+    cleanup = fn();
+  };
+  const unsubs = deps.map((dep) => dep.subscribe(run));
+  run();
+  return () => {
+    for (const unsub of unsubs) unsub();
+    if (typeof cleanup === "function") cleanup();
+  };
 }
 
-export function race(...signals: Signal[]): Signal {
-  const ctrl = new SignalController();
-  for (const s of signals) {
-    if (s.aborted) {
-      ctrl.abort(s.reason);
-      return ctrl.signal;
-    }
-    s.onAbort(() => ctrl.abort(s.reason));
-  }
-  return ctrl.signal;
-}
-
-export function any(...signals: Signal[]): Signal {
-  return race(...signals);
+export function batch(fn: () => void): void {
+  fn();
 }

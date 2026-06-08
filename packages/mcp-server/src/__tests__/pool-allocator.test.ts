@@ -3,53 +3,51 @@ import { PoolAllocator } from "../pool-allocator.js";
 
 describe("PoolAllocator", () => {
   it("alloc and free", () => {
-    const pool = new PoolAllocator(4, 3);
-    const s1 = pool.alloc();
-    const s2 = pool.alloc();
-    expect(pool.usedCount).toBe(2);
-    expect(pool.freeCount).toBe(1);
-    pool.free(s1);
-    expect(pool.usedCount).toBe(1);
-    expect(pool.freeCount).toBe(2);
+    const pool = new PoolAllocator(16, 4);
+    expect(pool.available).toBe(4);
+    const b1 = pool.alloc();
+    expect(b1).toBeGreaterThanOrEqual(0);
+    expect(pool.used).toBe(1);
+    expect(pool.available).toBe(3);
+    pool.free(b1);
+    expect(pool.used).toBe(0);
   });
 
-  it("throws when exhausted", () => {
-    const pool = new PoolAllocator(2, 1);
+  it("returns -1 when full", () => {
+    const pool = new PoolAllocator(8, 2);
     pool.alloc();
-    expect(() => pool.alloc()).toThrow("Pool exhausted");
+    pool.alloc();
+    expect(pool.alloc()).toBe(-1);
   });
 
-  it("set and get values", () => {
-    const pool = new PoolAllocator(3, 2);
-    const slot = pool.alloc();
-    pool.setValue(slot, 0, 10);
-    pool.setValue(slot, 1, 20);
-    pool.setValue(slot, 2, 30);
-    expect(pool.getValue(slot, 0)).toBe(10);
-    expect(pool.getValue(slot, 1)).toBe(20);
-    expect(pool.getValue(slot, 2)).toBe(30);
+  it("read and write bytes", () => {
+    const pool = new PoolAllocator(16, 2);
+    const b = pool.alloc();
+    pool.write(b, 0, 42);
+    pool.write(b, 1, 99);
+    expect(pool.read(b, 0)).toBe(42);
+    expect(pool.read(b, 1)).toBe(99);
   });
 
-  it("getView returns subarray", () => {
-    const pool = new PoolAllocator(2, 2);
-    const slot = pool.alloc();
-    pool.setValue(slot, 0, 42);
-    const view = pool.getView(slot);
-    expect(view[0]).toBe(42);
-    expect(view.length).toBe(2);
+  it("read and write floats", () => {
+    const pool = new PoolAllocator(16, 2);
+    const b = pool.alloc();
+    pool.writeFloat(b, 0, 3.14);
+    expect(pool.readFloat(b, 0)).toBeCloseTo(3.14);
   });
 
-  it("free clears slot data", () => {
-    const pool = new PoolAllocator(2, 1);
-    const slot = pool.alloc();
-    pool.setValue(slot, 0, 99);
-    pool.free(slot);
-    const slot2 = pool.alloc();
-    expect(pool.getValue(slot2, 0)).toBe(0);
+  it("capacity is fixed", () => {
+    const pool = new PoolAllocator(8, 10);
+    expect(pool.capacity).toBe(10);
   });
 
-  it("totalCapacity", () => {
-    const pool = new PoolAllocator(4, 10);
-    expect(pool.totalCapacity).toBe(10);
+  it("reset frees all blocks", () => {
+    const pool = new PoolAllocator(8, 4);
+    pool.alloc();
+    pool.alloc();
+    pool.alloc();
+    pool.reset();
+    expect(pool.available).toBe(4);
+    expect(pool.used).toBe(0);
   });
 });
