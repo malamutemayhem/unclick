@@ -1,108 +1,61 @@
-export function topologicalSort<T>(
-  nodes: T[],
-  edges: [T, T][],
-  key: (node: T) => string = String
-): T[] {
-  const inDegree = new Map<string, number>();
-  const adj = new Map<string, string[]>();
-  const keyToNode = new Map<string, T>();
-
-  for (const node of nodes) {
-    const k = key(node);
-    keyToNode.set(k, node);
-    inDegree.set(k, 0);
-    adj.set(k, []);
-  }
+export function topologicalSort<T>(edges: [T, T][]): T[] {
+  const graph = new Map<T, Set<T>>();
+  const inDegree = new Map<T, number>();
 
   for (const [from, to] of edges) {
-    const fk = key(from);
-    const tk = key(to);
-    adj.get(fk)!.push(tk);
-    inDegree.set(tk, (inDegree.get(tk) ?? 0) + 1);
+    if (!graph.has(from)) graph.set(from, new Set());
+    if (!graph.has(to)) graph.set(to, new Set());
+    if (!inDegree.has(from)) inDegree.set(from, 0);
+    if (!inDegree.has(to)) inDegree.set(to, 0);
+    graph.get(from)!.add(to);
+    inDegree.set(to, (inDegree.get(to) ?? 0) + 1);
   }
 
-  const queue: string[] = [];
-  for (const [k, deg] of inDegree) {
-    if (deg === 0) queue.push(k);
+  const queue: T[] = [];
+  for (const [node, degree] of inDegree) {
+    if (degree === 0) queue.push(node);
   }
 
   const result: T[] = [];
   while (queue.length > 0) {
-    const k = queue.shift()!;
-    result.push(keyToNode.get(k)!);
-    for (const neighbor of adj.get(k) ?? []) {
-      const newDeg = inDegree.get(neighbor)! - 1;
-      inDegree.set(neighbor, newDeg);
-      if (newDeg === 0) queue.push(neighbor);
+    const node = queue.shift()!;
+    result.push(node);
+    for (const neighbor of graph.get(node) ?? []) {
+      const newDegree = (inDegree.get(neighbor) ?? 0) - 1;
+      inDegree.set(neighbor, newDegree);
+      if (newDegree === 0) queue.push(neighbor);
     }
   }
 
-  if (result.length !== nodes.length) {
-    throw new Error("Cycle detected");
-  }
-
+  if (result.length !== graph.size) throw new Error("Cycle detected");
   return result;
 }
 
-export function hasCycle<T>(
-  nodes: T[],
-  edges: [T, T][],
-  key: (node: T) => string = String
-): boolean {
+export function hasCycle<T>(edges: [T, T][]): boolean {
   try {
-    topologicalSort(nodes, edges, key);
+    topologicalSort(edges);
     return false;
   } catch {
     return true;
   }
 }
 
-export function layers<T>(
-  nodes: T[],
-  edges: [T, T][],
-  key: (node: T) => string = String
-): T[][] {
-  const inDegree = new Map<string, number>();
-  const adj = new Map<string, string[]>();
-  const keyToNode = new Map<string, T>();
-
-  for (const node of nodes) {
-    const k = key(node);
-    keyToNode.set(k, node);
-    inDegree.set(k, 0);
-    adj.set(k, []);
-  }
-
-  for (const [from, to] of edges) {
-    adj.get(key(from))!.push(key(to));
-    inDegree.set(key(to), (inDegree.get(key(to)) ?? 0) + 1);
-  }
-
-  let current: string[] = [];
-  for (const [k, deg] of inDegree) {
-    if (deg === 0) current.push(k);
-  }
-
-  const result: T[][] = [];
-  let processed = 0;
-
-  while (current.length > 0) {
-    result.push(current.map((k) => keyToNode.get(k)!));
-    processed += current.length;
-    const next: string[] = [];
-    for (const k of current) {
-      for (const neighbor of adj.get(k) ?? []) {
-        const newDeg = inDegree.get(neighbor)! - 1;
-        inDegree.set(neighbor, newDeg);
-        if (newDeg === 0) next.push(neighbor);
-      }
+export function dependencyOrder<T>(deps: Map<T, T[]>): T[] {
+  const edges: [T, T][] = [];
+  for (const [node, dependencies] of deps) {
+    if (dependencies.length === 0) {
+      if (!deps.has(node)) continue;
+      edges.push([node, node]);
     }
-    current = next;
+    for (const dep of dependencies) {
+      edges.push([dep, node]);
+    }
   }
-
-  if (processed !== nodes.length) {
-    throw new Error("Cycle detected");
+  const nodesWithNoDeps = [...deps.keys()].filter((k: T) => (deps.get(k) ?? []).length === 0);
+  if (edges.length === 0) return nodesWithNoDeps;
+  const sorted = topologicalSort(edges.filter(([a, b]) => a !== b));
+  for (const node of nodesWithNoDeps) {
+    if (!sorted.includes(node)) sorted.unshift(node);
   }
-
-  return result;
+  return sorted;
 }
