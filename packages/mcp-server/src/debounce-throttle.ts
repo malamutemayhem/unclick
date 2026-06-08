@@ -1,26 +1,23 @@
-export function debounce<T extends (...args: unknown[]) => unknown>(
+export function debounce<T extends (...args: any[]) => void>(
   fn: T,
-  delay: number,
+  delayMs: number
 ): T & { cancel: () => void; flush: () => void } {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let lastArgs: unknown[] | null = null;
+  let lastArgs: Parameters<T> | null = null;
 
-  const debounced = ((...args: unknown[]) => {
+  const debounced = ((...args: Parameters<T>) => {
     lastArgs = args;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
       fn(...args);
       lastArgs = null;
-    }, delay);
+    }, delayMs);
   }) as T & { cancel: () => void; flush: () => void };
 
   debounced.cancel = () => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-      lastArgs = null;
-    }
+    if (timer) { clearTimeout(timer); timer = null; }
+    lastArgs = null;
   };
 
   debounced.flush = () => {
@@ -35,19 +32,17 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   return debounced;
 }
 
-export function throttle<T extends (...args: unknown[]) => unknown>(
+export function throttle<T extends (...args: any[]) => void>(
   fn: T,
-  interval: number,
+  intervalMs: number
 ): T & { cancel: () => void } {
   let lastCall = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const throttled = ((...args: unknown[]) => {
+  const throttled = ((...args: Parameters<T>) => {
     const now = Date.now();
-    const remaining = interval - (now - lastCall);
-
+    const remaining = intervalMs - (now - lastCall);
     if (remaining <= 0) {
-      if (timer) { clearTimeout(timer); timer = null; }
       lastCall = now;
       fn(...args);
     } else if (!timer) {
@@ -60,41 +55,25 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
   }) as T & { cancel: () => void };
 
   throttled.cancel = () => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
+    if (timer) { clearTimeout(timer); timer = null; }
   };
 
   return throttled;
 }
 
-export function rateLimit<T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  maxCalls: number,
-  windowMs: number,
-): T & { remaining: () => number } {
-  const calls: number[] = [];
+export function once<T extends (...args: any[]) => any>(fn: T): T {
+  let called = false;
+  let result: ReturnType<T>;
+  return ((...args: Parameters<T>) => {
+    if (!called) { called = true; result = fn(...args); }
+    return result;
+  }) as T;
+}
 
-  const limited = ((...args: unknown[]) => {
-    const now = Date.now();
-    while (calls.length > 0 && calls[0] <= now - windowMs) {
-      calls.shift();
-    }
-    if (calls.length < maxCalls) {
-      calls.push(now);
-      return fn(...args);
-    }
-    return undefined;
-  }) as T & { remaining: () => number };
-
-  limited.remaining = () => {
-    const now = Date.now();
-    while (calls.length > 0 && calls[0] <= now - windowMs) {
-      calls.shift();
-    }
-    return Math.max(0, maxCalls - calls.length);
-  };
-
-  return limited;
+export function after<T extends (...args: any[]) => any>(count: number, fn: T): T {
+  let calls = 0;
+  return ((...args: Parameters<T>) => {
+    calls++;
+    if (calls >= count) return fn(...args);
+  }) as T;
 }
