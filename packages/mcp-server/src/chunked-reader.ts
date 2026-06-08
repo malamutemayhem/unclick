@@ -1,43 +1,78 @@
-export function chunkString(input: string, size: number): string[] {
-  if (size < 1) throw new Error("Chunk size must be at least 1");
-  const chunks: string[] = [];
-  for (let i = 0; i < input.length; i += size) {
-    chunks.push(input.slice(i, i + size));
+export interface Chunk {
+  text: string;
+  index: number;
+  metadata?: Record<string, unknown>;
+}
+
+export function fixedChunk(text: string, size: number, overlap = 0): Chunk[] {
+  if (size <= 0) return [];
+  const chunks: Chunk[] = [];
+  let idx = 0;
+  let start = 0;
+  while (start < text.length) {
+    chunks.push({ text: text.slice(start, start + size), index: idx++ });
+    start += size - overlap;
   }
   return chunks;
 }
 
-export function chunkArray<T>(input: T[], size: number): T[][] {
-  if (size < 1) throw new Error("Chunk size must be at least 1");
-  const chunks: T[][] = [];
-  for (let i = 0; i < input.length; i += size) {
-    chunks.push(input.slice(i, i + size));
+export function sentenceChunk(text: string, maxSentences = 3): Chunk[] {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) ?? [text];
+  const chunks: Chunk[] = [];
+  let idx = 0;
+  for (let i = 0; i < sentences.length; i += maxSentences) {
+    chunks.push({ text: sentences.slice(i, i + maxSentences).join("").trim(), index: idx++ });
   }
   return chunks;
 }
 
-export function* chunkIterable<T>(iterable: Iterable<T>, size: number): Generator<T[]> {
-  if (size < 1) throw new Error("Chunk size must be at least 1");
-  let chunk: T[] = [];
-  for (const item of iterable) {
-    chunk.push(item);
-    if (chunk.length === size) {
-      yield chunk;
-      chunk = [];
+export function paragraphChunk(text: string): Chunk[] {
+  return text.split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+    .map((p, i) => ({ text: p, index: i }));
+}
+
+export function wordChunk(text: string, maxWords: number, overlap = 0): Chunk[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (maxWords <= 0) return [];
+  const chunks: Chunk[] = [];
+  let idx = 0;
+  let start = 0;
+  while (start < words.length) {
+    chunks.push({ text: words.slice(start, start + maxWords).join(" "), index: idx++ });
+    start += maxWords - overlap;
+  }
+  return chunks;
+}
+
+export function recursiveChunk(text: string, maxSize: number, separators = ["\n\n", "\n", ". ", " "]): Chunk[] {
+  if (text.length <= maxSize) return [{ text, index: 0 }];
+  const chunks: Chunk[] = [];
+  let idx = 0;
+
+  function split(t: string, sepIdx: number): void {
+    if (t.length <= maxSize || sepIdx >= separators.length) {
+      chunks.push({ text: t, index: idx++ });
+      return;
+    }
+    const parts = t.split(separators[sepIdx]);
+    let buffer = "";
+    for (const part of parts) {
+      const candidate = buffer ? buffer + separators[sepIdx] + part : part;
+      if (candidate.length > maxSize && buffer) {
+        chunks.push({ text: buffer, index: idx++ });
+        buffer = part;
+      } else {
+        buffer = candidate;
+      }
+    }
+    if (buffer) {
+      if (buffer.length > maxSize) split(buffer, sepIdx + 1);
+      else chunks.push({ text: buffer, index: idx++ });
     }
   }
-  if (chunk.length > 0) yield chunk;
-}
 
-export async function processChunked<T, R>(
-  items: T[],
-  chunkSize: number,
-  fn: (chunk: T[]) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] = [];
-  for (let i = 0; i < items.length; i += chunkSize) {
-    const chunk = items.slice(i, i + chunkSize);
-    results.push(await fn(chunk));
-  }
-  return results;
+  split(text, 0);
+  return chunks;
 }
