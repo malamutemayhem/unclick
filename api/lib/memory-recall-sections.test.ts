@@ -36,7 +36,7 @@ describe("memory recall sections", () => {
   it("uses a broader candidate pool for Top of Mind than raw Most Accessed", () => {
     const rawMostAccessed = Array.from({ length: 10 }, (_, index) =>
       fact(`static-${index + 1}`, {
-        fact: `Chris profile preference ${index + 1}`,
+        fact: `Owner profile preference ${index + 1}`,
         category: "preference",
         access_count: 2080 - index,
       }),

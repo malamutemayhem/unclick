@@ -20,7 +20,9 @@ import { useSession } from "@/lib/auth";
 import brainmapMarkdown from "../../../docs/UnClick-brainmap.generated.md?raw";
 import brainmapDataRaw from "../../../docs/UnClick-brainmap.generated.json?raw";
 
-const OWNER_EMAIL = "creativelead@malamutemayhem.com";
+function getOwnerEmail() {
+  return (import.meta.env.VITE_BRAINMAP_OWNER_EMAIL ?? "").trim().toLowerCase();
+}
 const MAX_VISUAL_ITEMS_PER_DIVISION = 24;
 const sectionCount = (brainmapMarkdown.match(/^## /gm) || []).length;
 const sourceCount = (brainmapMarkdown.match(/^\| .* \| [a-f0-9]{12} \| \d+ \|$/gm) || []).length;
@@ -103,7 +105,7 @@ function OwnerOnlyNotice({ denied = false }: { denied?: boolean }) {
             {denied ? "Creative lead access only" : "Checking private Brainmap access"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            This Brainmap view is reserved for the private Yellow Admin lane owned by {OWNER_EMAIL}.
+            This Brainmap view is reserved for authorized administrators only.
           </p>
         </div>
       </div>
@@ -232,7 +234,7 @@ const markdownComponents = {
 
 export default function AdminBrainmap() {
   const { session, user, loading } = useSession();
-  const directOwner = normalizeEmail(user?.email) === OWNER_EMAIL;
+  const directOwner = normalizeEmail(user?.email) === getOwnerEmail();
   const token = session?.access_token || "";
   const [profileAccess, setProfileAccess] = useState<{ token: string; status: "owner" | "denied" } | null>(null);
   const [query, setQuery] = useState("");
@@ -252,7 +254,7 @@ export default function AdminBrainmap() {
         if (cancelled) return;
         setProfileAccess({
           token,
-          status: normalizeEmail(body?.email) === OWNER_EMAIL ? "owner" : "denied",
+          status: normalizeEmail(body?.email) === getOwnerEmail() ? "owner" : "denied",
         });
       })
       .catch(() => {

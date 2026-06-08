@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminBrainmap from "./AdminBrainmap";
 
 const authState = {
-  email: "creativelead@malamutemayhem.com",
+  email: "admin@example.com",
   token: "test-session-token",
   loading: false,
 };
@@ -19,7 +19,8 @@ vi.mock("@/lib/auth", () => ({
 
 describe("AdminBrainmap", () => {
   beforeEach(() => {
-    authState.email = "creativelead@malamutemayhem.com";
+    import.meta.env.VITE_BRAINMAP_OWNER_EMAIL = "admin@example.com";
+    authState.email = "admin@example.com";
     authState.token = "test-session-token";
     authState.loading = false;
     vi.restoreAllMocks();
@@ -84,7 +85,7 @@ describe("AdminBrainmap", () => {
   });
 
   it("blocks the private view for non-owner admins", async () => {
-    authState.email = "admin@example.com";
+    authState.email = "other-admin@example.com";
 
     render(React.createElement(AdminBrainmap));
 

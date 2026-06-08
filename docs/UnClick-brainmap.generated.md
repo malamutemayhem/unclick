@@ -82,7 +82,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
-| src/pages/admin/AdminBrainmap.tsx | eb0a0e70ad71 | 26584 |
+| src/pages/admin/AdminBrainmap.tsx | 7e3db4318397 | 26625 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
@@ -1295,7 +1295,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Safety Rules
 
 - Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.
-- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.
+- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.
 - NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.
 - IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.
 - Heartbeats must never print keys or credentials.
