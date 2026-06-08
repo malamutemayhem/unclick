@@ -1,59 +1,73 @@
-type Subscriber<T> = (value: T) => void;
+type Listener<T> = (value: T) => void;
 
 export class Signal<T> {
   private _value: T;
-  private subscribers = new Set<Subscriber<T>>();
+  private listeners = new Set<Listener<T>>();
 
-  constructor(initialValue: T) {
-    this._value = initialValue;
+  constructor(initial: T) {
+    this._value = initial;
   }
 
-  get value(): T {
-    return this._value;
-  }
+  get value(): T { return this._value; }
 
-  set value(newValue: T) {
-    if (Object.is(this._value, newValue)) return;
-    this._value = newValue;
+  set(value: T): void {
+    if (this._value === value) return;
+    this._value = value;
     this.notify();
   }
 
-  peek(): T {
-    return this._value;
-  }
-
   update(fn: (current: T) => T): void {
-    this.value = fn(this._value);
+    this.set(fn(this._value));
   }
 
-  subscribe(fn: Subscriber<T>): () => void {
-    this.subscribers.add(fn);
-    return () => this.subscribers.delete(fn);
+  subscribe(listener: Listener<T>): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
+
+  peek(): T { return this._value; }
 
   private notify(): void {
-    for (const fn of this.subscribers) {
-      fn(this._value);
+    for (const listener of [...this.listeners]) listener(this._value);
+  }
+}
+
+export class Computed<T> {
+  private _value: T;
+  private listeners = new Set<Listener<T>>();
+  private unsubscribers: Array<() => void> = [];
+
+  constructor(fn: () => T, deps: Array<Signal<any> | Computed<any>>) {
+    this._value = fn();
+    for (const dep of deps) {
+      this.unsubscribers.push(dep.subscribe(() => {
+        const next = fn();
+        if (next !== this._value) {
+          this._value = next;
+          for (const listener of [...this.listeners]) listener(this._value);
+        }
+      }));
     }
   }
-}
 
-export function computed<T>(fn: () => T, deps: Signal<any>[]): Signal<T> {
-  const sig = new Signal<T>(fn());
-  for (const dep of deps) {
-    dep.subscribe(() => {
-      sig.value = fn();
-    });
+  get value(): T { return this._value; }
+
+  subscribe(listener: Listener<T>): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
-  return sig;
+
+  dispose(): void {
+    for (const unsub of this.unsubscribers) unsub();
+    this.unsubscribers = [];
+    this.listeners.clear();
+  }
 }
 
-export function effect(fn: () => void, deps: Signal<any>[]): () => void {
-  fn();
-  const unsubs = deps.map((dep) => dep.subscribe(fn));
-  return () => unsubs.forEach((u) => u());
+export function signal<T>(initial: T): Signal<T> {
+  return new Signal(initial);
 }
 
-export function batch(fn: () => void): void {
-  fn();
+export function computed<T>(fn: () => T, deps: Array<Signal<any> | Computed<any>>): Computed<T> {
+  return new Computed(fn, deps);
 }
