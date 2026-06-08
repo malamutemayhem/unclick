@@ -56,14 +56,14 @@ export class EventBus<Events extends Record<string, unknown> = Record<string, un
 }
 
 // Pre-defined event types for the MCP server lifecycle.
-export interface McpEvents {
+export type McpEvents = {
   "tool:start": { tool: string; args: Record<string, unknown> };
   "tool:end": { tool: string; durationMs: number; success: boolean };
   "auth:failure": { tool: string; reason: string };
   "rate:limited": { tool: string; retryAfterMs?: number };
   "circuit:open": { endpoint: string };
   "circuit:close": { endpoint: string };
-}
+};
 
 export function createMcpEventBus(): EventBus<McpEvents> {
   return new EventBus<McpEvents>();
