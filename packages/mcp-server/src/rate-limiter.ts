@@ -1,89 +1,81 @@
-export interface RateLimiterOptions {
-  maxRequests: number;
-  windowMs: number;
-}
+export class RateLimiter {
+  private timestamps: number[] = [];
+  private readonly windowMs: number;
+  private readonly maxRequests: number;
 
-export class SlidingWindowRateLimiter {
-  private maxRequests: number;
-  private windowMs: number;
-  private timestamps = new Map<string, number[]>();
-
-  constructor(options: RateLimiterOptions) {
-    this.maxRequests = options.maxRequests;
-    this.windowMs = options.windowMs;
+  constructor(maxRequests: number, windowMs: number) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMs;
   }
 
-  tryAcquire(key: string): boolean {
-    const now = Date.now();
-    this.cleanup(key, now);
-    const times = this.timestamps.get(key) ?? [];
-    if (times.length >= this.maxRequests) return false;
-    times.push(now);
-    this.timestamps.set(key, times);
+  tryAcquire(now: number = Date.now()): boolean {
+    this.cleanup(now);
+    if (this.timestamps.length >= this.maxRequests) return false;
+    this.timestamps.push(now);
     return true;
   }
 
-  remaining(key: string): number {
-    this.cleanup(key, Date.now());
-    const times = this.timestamps.get(key) ?? [];
-    return Math.max(0, this.maxRequests - times.length);
+  get remaining(): number {
+    this.cleanup(Date.now());
+    return Math.max(0, this.maxRequests - this.timestamps.length);
   }
 
-  reset(key: string): void {
-    this.timestamps.delete(key);
+  get isLimited(): boolean {
+    this.cleanup(Date.now());
+    return this.timestamps.length >= this.maxRequests;
   }
 
-  resetAll(): void {
-    this.timestamps.clear();
+  retryAfter(now: number = Date.now()): number {
+    this.cleanup(now);
+    if (this.timestamps.length < this.maxRequests) return 0;
+    return this.timestamps[0] + this.windowMs - now;
   }
 
-  nextAllowedAt(key: string): number | null {
-    this.cleanup(key, Date.now());
-    const times = this.timestamps.get(key) ?? [];
-    if (times.length < this.maxRequests) return null;
-    return times[0] + this.windowMs;
+  reset(): void {
+    this.timestamps = [];
   }
 
-  private cleanup(key: string, now: number): void {
-    const times = this.timestamps.get(key);
-    if (!times) return;
+  private cleanup(now: number): void {
     const cutoff = now - this.windowMs;
-    const filtered = times.filter((t) => t > cutoff);
-    if (filtered.length === 0) this.timestamps.delete(key);
-    else this.timestamps.set(key, filtered);
+    while (this.timestamps.length > 0 && this.timestamps[0] <= cutoff) {
+      this.timestamps.shift();
+    }
   }
 }
 
-export class FixedWindowRateLimiter {
-  private maxRequests: number;
-  private windowMs: number;
-  private windows = new Map<string, { count: number; start: number }>();
+export class TokenBucketLimiter {
+  private tokens: number;
+  private readonly maxTokens: number;
+  private readonly refillRate: number;
+  private lastRefill: number;
 
-  constructor(options: RateLimiterOptions) {
-    this.maxRequests = options.maxRequests;
-    this.windowMs = options.windowMs;
+  constructor(maxTokens: number, refillRate: number) {
+    this.maxTokens = maxTokens;
+    this.tokens = maxTokens;
+    this.refillRate = refillRate;
+    this.lastRefill = Date.now();
   }
 
-  tryAcquire(key: string): boolean {
-    const now = Date.now();
-    const win = this.windows.get(key);
-    if (!win || now - win.start >= this.windowMs) {
-      this.windows.set(key, { count: 1, start: now });
-      return true;
-    }
-    if (win.count >= this.maxRequests) return false;
-    win.count++;
+  tryAcquire(count: number = 1, now: number = Date.now()): boolean {
+    this.refill(now);
+    if (this.tokens < count) return false;
+    this.tokens -= count;
     return true;
   }
 
-  remaining(key: string): number {
-    const now = Date.now();
-    const win = this.windows.get(key);
-    if (!win || now - win.start >= this.windowMs) return this.maxRequests;
-    return Math.max(0, this.maxRequests - win.count);
+  get available(): number {
+    this.refill(Date.now());
+    return Math.floor(this.tokens);
   }
 
-  reset(key: string): void {
-    this.windows.delete(key);
+  reset(): void {
+    this.tokens = this.maxTokens;
+    this.lastRefill = Date.now();
+  }
+
+  private refill(now: number): void {
+    const elapsed = now - this.lastRefill;
+    this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate / 1000);
+    this.lastRefill = now;
   }
 }

@@ -2,87 +2,70 @@ import { describe, it, expect } from "vitest";
 import { Trie } from "../trie.js";
 
 describe("Trie", () => {
-  it("starts empty", () => {
+  it("insert and has", () => {
     const t = new Trie();
-    expect(t.size).toBe(0);
-  });
-
-  it("set and has", () => {
-    const t = new Trie();
-    t.set("hello");
+    t.insert("hello").insert("help");
     expect(t.has("hello")).toBe(true);
-    expect(t.has("hell")).toBe(false);
+    expect(t.has("help")).toBe(true);
+    expect(t.has("hel")).toBe(false);
   });
 
-  it("set with value and get", () => {
-    const t = new Trie<number>();
-    t.set("key", 42);
-    expect(t.get("key")).toBe(42);
-  });
-
-  it("get returns undefined for missing key", () => {
-    const t = new Trie<number>();
-    expect(t.get("nope")).toBeUndefined();
-  });
-
-  it("delete removes a key", () => {
+  it("hasPrefix", () => {
     const t = new Trie();
-    t.set("hello");
-    expect(t.delete("hello")).toBe(true);
+    t.insert("hello");
+    expect(t.hasPrefix("hel")).toBe(true);
+    expect(t.hasPrefix("xyz")).toBe(false);
+  });
+
+  it("remove", () => {
+    const t = new Trie();
+    t.insert("hello").insert("help");
+    expect(t.remove("hello")).toBe(true);
     expect(t.has("hello")).toBe(false);
-    expect(t.size).toBe(0);
+    expect(t.has("help")).toBe(true);
+    expect(t.size).toBe(1);
   });
 
-  it("delete returns false for missing key", () => {
+  it("remove returns false for missing", () => {
     const t = new Trie();
-    expect(t.delete("nope")).toBe(false);
+    t.insert("hello");
+    expect(t.remove("world")).toBe(false);
+    expect(t.remove("hel")).toBe(false);
   });
 
-  it("startsWith finds matching keys", () => {
+  it("autocomplete", () => {
     const t = new Trie();
-    t.set("app");
-    t.set("apple");
-    t.set("application");
-    t.set("bat");
-    const results = t.startsWith("app");
-    expect(results).toContain("app");
-    expect(results).toContain("apple");
-    expect(results).toContain("application");
-    expect(results).not.toContain("bat");
+    t.insert("cat").insert("car").insert("card").insert("dog");
+    const results = t.autocomplete("ca");
+    expect(results).toContain("cat");
+    expect(results).toContain("car");
+    expect(results).toContain("card");
+    expect(results).not.toContain("dog");
   });
 
-  it("startsWith returns empty for no match", () => {
+  it("autocomplete with limit", () => {
     const t = new Trie();
-    t.set("hello");
-    expect(t.startsWith("xyz")).toEqual([]);
+    t.insert("a1").insert("a2").insert("a3");
+    expect(t.autocomplete("a", 2)).toHaveLength(2);
   });
 
-  it("keys returns all keys", () => {
+  it("autocomplete empty prefix returns all", () => {
     const t = new Trie();
-    t.set("a");
-    t.set("ab");
-    t.set("abc");
-    const keys = t.keys();
-    expect(keys).toHaveLength(3);
-    expect(keys).toContain("a");
-    expect(keys).toContain("ab");
-    expect(keys).toContain("abc");
+    t.insert("a").insert("b");
+    expect(t.autocomplete("")).toHaveLength(2);
   });
 
-  it("clear empties the trie", () => {
+  it("tracks size", () => {
     const t = new Trie();
-    t.set("a");
-    t.set("b");
+    t.insert("a").insert("b").insert("a");
+    expect(t.size).toBe(2);
+  });
+
+  it("clear", () => {
+    const t = new Trie();
+    t.insert("a").insert("b");
     t.clear();
     expect(t.size).toBe(0);
     expect(t.has("a")).toBe(false);
-  });
-
-  it("overwriting a key does not change size", () => {
-    const t = new Trie<number>();
-    t.set("key", 1);
-    t.set("key", 2);
-    expect(t.size).toBe(1);
-    expect(t.get("key")).toBe(2);
   });
 });
