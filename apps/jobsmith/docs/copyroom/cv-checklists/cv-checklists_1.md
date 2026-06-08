@@ -1,4 +1,4 @@
-# CV Checklists — Modern Best Practice + Anti-AI-Slop
+# CV Checklists: Modern Best Practice + Anti-AI-Slop
 
 Working reference compiled from the two ApplyPass research files plus current (2025–2026) hiring research, ATS vendor docs, Reddit/forum sentiment, and AI-detection studies. No em dashes.
 
@@ -75,7 +75,7 @@ Working reference compiled from the two ApplyPass research files plus current (2
 
 - One page maximum, 3 to 4 short paragraphs.
 - Opening line names the role and the company, and signals genuine interest with one specific detail (a product, a recent announcement, a value).
-- Paragraph 2: the strongest evidence you can do the job — one specific story with an outcome.
+- Paragraph 2: the strongest evidence you can do the job: one specific story with an outcome.
 - Paragraph 3: why this company specifically (not "I love your mission"). Reference something concrete.
 - Closing: clear next step, e.g. "Happy to share more in a conversation."
 - No "Dear Sir/Madam" unless you literally cannot find a name. "Dear Hiring Team" is acceptable.
@@ -161,7 +161,7 @@ Themes from r/EngineeringResumes, r/resumes, r/cscareerquestions, r/recruitinghe
 
 ---
 
-## PART 2: ANTI-AI-SLOP — WHAT WILL TRIP DETECTORS AND HUMANS
+## PART 2: ANTI-AI-SLOP: WHAT WILL TRIP DETECTORS AND HUMANS
 
 > Note: AI detectors are unreliable. Stanford's Liang et al. found 61.3% false-positive rate against non-native English writers; independent retests of GPTZero report ~18% FPR vs. vendor claim of 0.5%. **The real risk is human recruiters spotting AI tone in 20 seconds, not software.** Write to defeat the human, not the detector. These tells will trip both.
 

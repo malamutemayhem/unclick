@@ -4,10 +4,10 @@ A local, template-driven cover-letter drafter that uses the operator's CV corpus
 
 ## What ships in v0
 
-- `ingestCvCorpus()` — reads a local CV folder, returns a `Corpus` of dated CVs, cover letters, jobs applied to, and a ChatGPT prompt template. Parses `.txt` and `.md`; lists `.pdf` and `.indd` paths without parsing their bytes.
-- `buildVoiceProfile(corpus)` — extracts a `VoiceProfile`: frequent phrases, opening/closing/sign-off formulas, role types, past brands, tonal adjectives, location & flexibility statements.
-- `renderCoverLetterDraft(job, profile, options)` — composes a 5-paragraph cover letter draft from a job description + voice profile.
-- `<JobsmithDraft />` — React page that ties it together.
+- `ingestCvCorpus()`: reads a local CV folder, returns a `Corpus` of dated CVs, cover letters, jobs applied to, and a ChatGPT prompt template. Parses `.txt` and `.md`; lists `.pdf` and `.indd` paths without parsing their bytes.
+- `buildVoiceProfile(corpus)`: extracts a `VoiceProfile`: frequent phrases, opening/closing/sign-off formulas, role types, past brands, tonal adjectives, location & flexibility statements.
+- `renderCoverLetterDraft(job, profile, options)`: composes a 5-paragraph cover letter draft from a job description + voice profile.
+- `<JobsmithDraft />`: React page that ties it together.
 
 ## Run locally
 
@@ -45,7 +45,7 @@ public page runs entirely browser-local: corpus PDFs are parsed in-browser with
   role and the second as the company. Unusual JD formats break this. The UI
   falls back to placeholders and surfaces a warning when detection fails.
 - **No LLM call.** Phrasing comes from statistical extraction + templating.
-  Drafts are starter copy, not finished letters — always edit before sending.
+  Drafts are starter copy, not finished letters. Always edit before sending.
 - **Brand seed list is hand-curated.** `voiceProfile.SEED_BRANDS` is a small
   list. Past employers not in the seed will be missed.
 - **CV facts are entered as JSON.** The master CV facts editor on the public
@@ -56,8 +56,8 @@ public page runs entirely browser-local: corpus PDFs are parsed in-browser with
 
 1. Per-role-type template variants (Senior Designer vs. Content Designer use
    different middle paragraphs).
-2. Recruitment-letter tone detection — different opener pattern.
-3. LLM polish pass (Claude API call to smooth the templated draft) — gated by an
+2. Recruitment-letter tone detection: different opener pattern.
+3. LLM polish pass (Claude API call to smooth the templated draft), gated by an
    opt-in setting; would require PII redaction before any external call.
 4. UnClick integration: file a draft as a comment against a UnClick todo.
 5. A form-based master CV facts editor instead of raw JSON.
