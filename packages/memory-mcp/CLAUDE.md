@@ -7,7 +7,7 @@ This memory survives between sessions and across platforms (Claude Code, Cowork,
 
 **At the START of every session**, before doing anything else:
 
-1. Call `get_startup_context` with `num_sessions: 5`
+1. Call `load_memory` with `num_sessions: 5`
 2. Read the returned business context, recent session summaries, and hot facts
 3. Use this context to understand the user's ongoing projects, preferences, and open loops
 4. Reference relevant context naturally. Don't dump it, just use it
@@ -19,12 +19,12 @@ Use memory tools as needed:
 - **`search_memory`**: when you need to recall something from a previous session
 - **`search_facts`**: when checking a specific preference, decision, or piece of knowledge
 - **`search_library`**: when looking for reference documents (vendor profiles, specs, etc.)
-- **`add_fact`**: when the user states a preference, makes a decision, or shares important info
+- **`save_fact`**: when the user states a preference, makes a decision, or shares important info
   - Facts should be atomic: one fact = one statement
   - Good: "Team prefers Tailwind CSS over CSS modules"
   - Bad: "We talked about styling and mentioned several frameworks"
 - **`supersede_fact`**: when information changes (old fact → new fact, never delete)
-- **`set_business_context`**: for standing rules that should ALWAYS be loaded
+- **`save_identity`**: for standing rules that should ALWAYS be loaded
 - **`upsert_library_doc`**: for longer reference material (briefs, specs, profiles)
 - **`store_code`**: for important code blocks you want searchable later
 - **`log_conversation`**: for critical exchanges worth preserving verbatim
@@ -33,14 +33,14 @@ Use memory tools as needed:
 
 **Before the session ends** (when the user says goodbye, or context is running low):
 
-1. Call `write_session_summary` with:
+1. Call `save_session` with:
    - `session_id`: Use a unique identifier (timestamp or UUID)
    - `summary`: Narrative of what happened: decisions made, work completed, problems solved
    - `topics`: Array of topic tags for searchability
    - `open_loops`: Unfinished tasks, questions, or next steps
    - `platform`: "claude-code" (or appropriate platform)
 
-2. Extract any new facts learned during the session using `add_fact`
+2. Extract any new facts learned during the session using `save_fact`
 
 ## Key Principles
 

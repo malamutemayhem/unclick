@@ -93,9 +93,9 @@ Your data lives in YOUR Supabase. UnClick never sees it.
 
 Copy `CLAUDE.md` to your project root or `~/.claude/CLAUDE.md`. This teaches the agent to:
 
-- Load memory at session start (`get_startup_context`)
-- Store important facts during the session (`add_fact`)
-- Write a summary before the session ends (`write_session_summary`)
+- Load memory at session start (`load_memory`)
+- Store important facts during the session (`save_fact`)
+- Write a summary before the session ends (`save_session`)
 
 This is what makes memory work across sessions. Without it, the agent has the tools but won't use them automatically.
 
@@ -114,19 +114,19 @@ This is what makes memory work across sessions. Without it, the agent has the to
 
 | Tool | Description |
 |------|-------------|
-| `get_startup_context` | Load business context + recent sessions + hot facts |
+| `load_memory` | Load business context + recent sessions + hot facts |
 | `search_memory` | Full-text search across conversation logs |
 | `search_facts` | Search extracted facts |
 | `search_library` | Search knowledge library docs |
 | `get_library_doc` | Get a specific library document by slug |
 | `list_library` | List all library documents |
-| `write_session_summary` | Save end-of-session summary |
-| `add_fact` | Add an atomic fact to memory |
+| `save_session` | Save end-of-session summary |
+| `save_fact` | Add an atomic fact to memory |
 | `supersede_fact` | Replace an outdated fact (never deletes) |
 | `log_conversation` | Log a message to conversation history |
 | `store_code` | Store a code block |
 | `get_business_context` | Get all business context entries |
-| `set_business_context` | Add/update a business context entry |
+| `save_identity` | Add/update a business context entry |
 | `upsert_library_doc` | Create/update a library document |
 | `manage_decay` | Run memory decay management |
 | `get_conversation_detail` | Get full conversation for a session |
@@ -134,11 +134,11 @@ This is what makes memory work across sessions. Without it, the agent has the to
 
 ## How It Works
 
-**Session Start:** Agent calls `get_startup_context` - loads standing rules, recent session summaries, and hot facts.
+**Session Start:** Agent calls `load_memory` - loads standing rules, recent session summaries, and hot facts.
 
-**During Session:** Agent uses `add_fact`, `search_memory`, `set_business_context` etc. as needed.
+**During Session:** Agent uses `save_fact`, `search_memory`, `save_identity` etc. as needed.
 
-**Session End:** Agent calls `write_session_summary` - next session picks up where this one left off.
+**Session End:** Agent calls `save_session` - next session picks up where this one left off.
 
 ## Storage Modes
 
