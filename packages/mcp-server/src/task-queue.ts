@@ -1,23 +1,29 @@
-export interface QueueOptions {
-  concurrency?: number;
-  timeout?: number;
-}
+type Task<T> = () => Promise<T>;
 
-interface QueueEntry<T> {
-  fn: () => Promise<T>;
+interface QueuedTask<T> {
+  task: Task<T>;
   resolve: (value: T) => void;
-  reject: (reason: any) => void;
+  reject: (reason: unknown) => void;
+  priority: number;
 }
 
 export class TaskQueue {
-  private queue: QueueEntry<any>[] = [];
+  private queue: QueuedTask<unknown>[] = [];
   private running = 0;
   private concurrency: number;
-  private timeout: number;
+  private _completed = 0;
+  private _failed = 0;
 
-  constructor(options: QueueOptions = {}) {
-    this.concurrency = options.concurrency ?? 1;
-    this.timeout = options.timeout ?? 0;
+  constructor(concurrency = 1) {
+    this.concurrency = concurrency;
+  }
+
+  add<T>(task: Task<T>, priority = 0): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      this.queue.push({ task: task as Task<unknown>, resolve: resolve as (v: unknown) => void, reject, priority });
+      this.queue.sort((a, b) => b.priority - a.priority);
+      this.run();
+    });
   }
 
   get pending(): number {
@@ -28,54 +34,31 @@ export class TaskQueue {
     return this.running;
   }
 
-  add<T>(fn: () => Promise<T>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.queue.push({ fn, resolve, reject });
-      this.drain();
-    });
+  get completed(): number {
+    return this._completed;
   }
 
-  async addAll<T>(fns: Array<() => Promise<T>>): Promise<T[]> {
-    return Promise.all(fns.map((fn) => this.add(fn)));
+  get failed(): number {
+    return this._failed;
   }
 
-  clear(): void {
-    for (const entry of this.queue) {
-      entry.reject(new Error("Queue cleared"));
-    }
-    this.queue.length = 0;
-  }
-
-  private drain(): void {
+  private run(): void {
     while (this.running < this.concurrency && this.queue.length > 0) {
-      const entry = this.queue.shift()!;
+      const item = this.queue.shift()!;
       this.running++;
-      this.run(entry);
+      item.task()
+        .then((result) => {
+          this._completed++;
+          item.resolve(result);
+        })
+        .catch((err) => {
+          this._failed++;
+          item.reject(err);
+        })
+        .finally(() => {
+          this.running--;
+          this.run();
+        });
     }
-  }
-
-  private run<T>(entry: QueueEntry<T>): void {
-    let settled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    const settle = (fn: () => void) => {
-      if (settled) return;
-      settled = true;
-      if (timer) clearTimeout(timer);
-      this.running--;
-      fn();
-      this.drain();
-    };
-
-    if (this.timeout > 0) {
-      timer = setTimeout(() => {
-        settle(() => entry.reject(new Error("Task timed out")));
-      }, this.timeout);
-    }
-
-    entry.fn().then(
-      (val) => settle(() => entry.resolve(val)),
-      (err) => settle(() => entry.reject(err))
-    );
   }
 }

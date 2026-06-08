@@ -1,9 +1,11 @@
+type Comparator<T> = (a: T, b: T) => number;
+
 export class SortedArray<T> {
   private items: T[] = [];
-  private readonly compare: (a: T, b: T) => number;
+  private compare: Comparator<T>;
 
-  constructor(compare?: (a: T, b: T) => number) {
-    this.compare = compare || ((a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0));
+  constructor(compare: Comparator<T>) {
+    this.compare = compare;
   }
 
   insert(value: T): number {
@@ -19,9 +21,12 @@ export class SortedArray<T> {
     return true;
   }
 
+  has(value: T): boolean {
+    return this.indexOf(value) !== -1;
+  }
+
   indexOf(value: T): number {
-    let lo = 0;
-    let hi = this.items.length - 1;
+    let lo = 0, hi = this.items.length - 1;
     while (lo <= hi) {
       const mid = (lo + hi) >>> 1;
       const cmp = this.compare(this.items[mid], value);
@@ -32,51 +37,38 @@ export class SortedArray<T> {
     return -1;
   }
 
-  has(value: T): boolean {
-    return this.indexOf(value) !== -1;
-  }
-
   at(index: number): T | undefined {
     return this.items[index];
-  }
-
-  get first(): T | undefined {
-    return this.items[0];
-  }
-
-  get last(): T | undefined {
-    return this.items[this.items.length - 1];
   }
 
   get size(): number {
     return this.items.length;
   }
 
-  range(from: T, to: T): T[] {
-    const result: T[] = [];
-    for (const item of this.items) {
-      if (this.compare(item, from) >= 0 && this.compare(item, to) <= 0) {
-        result.push(item);
-      }
-    }
-    return result;
-  }
-
-  clear(): void {
-    this.items = [];
-  }
-
   toArray(): T[] {
     return [...this.items];
   }
 
-  *[Symbol.iterator](): Iterator<T> {
-    yield* this.items;
+  first(): T | undefined {
+    return this.items[0];
+  }
+
+  last(): T | undefined {
+    return this.items[this.items.length - 1];
+  }
+
+  range(from: T, to: T): T[] {
+    const result: T[] = [];
+    const start = this.findInsertIndex(from);
+    for (let i = start; i < this.items.length; i++) {
+      if (this.compare(this.items[i], to) > 0) break;
+      result.push(this.items[i]);
+    }
+    return result;
   }
 
   private findInsertIndex(value: T): number {
-    let lo = 0;
-    let hi = this.items.length;
+    let lo = 0, hi = this.items.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
       if (this.compare(this.items[mid], value) < 0) lo = mid + 1;

@@ -2,60 +2,51 @@ import { describe, it, expect } from "vitest";
 import { Container } from "../dependency-injector.js";
 
 describe("Container", () => {
-  it("register and resolve transient", () => {
+  it("register and resolve", () => {
     const c = new Container();
-    let count = 0;
-    c.transient("counter", () => ++count);
-    expect(c.resolve("counter")).toBe(1);
-    expect(c.resolve("counter")).toBe(2);
+    c.register("greeting", () => "hello");
+    expect(c.resolve<string>("greeting")).toBe("hello");
   });
 
-  it("register and resolve singleton", () => {
+  it("transient creates new instance each time", () => {
     const c = new Container();
-    let count = 0;
-    c.singleton("counter", () => ++count);
-    expect(c.resolve("counter")).toBe(1);
-    expect(c.resolve("counter")).toBe(1);
+    c.register("obj", () => ({ id: Math.random() }));
+    const a = c.resolve<{ id: number }>("obj");
+    const b = c.resolve<{ id: number }>("obj");
+    expect(a.id).not.toBe(b.id);
   });
 
-  it("throws on unregistered", () => {
+  it("singleton returns same instance", () => {
     const c = new Container();
-    expect(() => c.resolve("missing")).toThrow('No registration for "missing"');
+    c.singleton("obj", () => ({ id: Math.random() }));
+    const a = c.resolve<{ id: number }>("obj");
+    const b = c.resolve<{ id: number }>("obj");
+    expect(a.id).toBe(b.id);
   });
 
-  it("has checks existence", () => {
+  it("has checks registration", () => {
     const c = new Container();
-    c.register("a", () => 1);
-    expect(c.has("a")).toBe(true);
-    expect(c.has("b")).toBe(false);
+    c.register("x", () => 1);
+    expect(c.has("x")).toBe(true);
+    expect(c.has("y")).toBe(false);
   });
 
-  it("remove deletes registration", () => {
+  it("throws for unknown name", () => {
     const c = new Container();
-    c.register("a", () => 1);
-    expect(c.remove("a")).toBe(true);
-    expect(c.has("a")).toBe(false);
+    expect(() => c.resolve("nope")).toThrow("No registration for");
   });
 
-  it("clear removes all", () => {
+  it("clear removes all registrations", () => {
     const c = new Container();
-    c.register("a", () => 1).register("b", () => 2);
+    c.register("x", () => 1);
     c.clear();
-    expect(c.size).toBe(0);
+    expect(c.has("x")).toBe(false);
   });
 
   it("names lists registered names", () => {
     const c = new Container();
-    c.register("a", () => 1).register("b", () => 2);
+    c.register("a", () => 1);
+    c.register("b", () => 2);
     expect(c.names().sort()).toEqual(["a", "b"]);
-  });
-
-  it("createChild inherits registrations", () => {
-    const parent = new Container();
-    parent.register("x", () => 42);
-    const child = parent.createChild();
-    expect(child.resolve("x")).toBe(42);
-    child.register("y", () => 99);
-    expect(parent.has("y")).toBe(false);
   });
 });

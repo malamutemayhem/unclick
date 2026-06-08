@@ -7,24 +7,20 @@ interface Registration<T> {
 }
 
 export class Container {
-  private registrations = new Map<string, Registration<unknown>>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private registrations = new Map<string, Registration<any>>();
 
-  register<T>(name: string, factory: Factory<T>, singleton: boolean = false): this {
+  register<T>(name: string, factory: Factory<T>, singleton = false): void {
     this.registrations.set(name, { factory, singleton });
-    return this;
   }
 
-  singleton<T>(name: string, factory: Factory<T>): this {
-    return this.register(name, factory, true);
-  }
-
-  transient<T>(name: string, factory: Factory<T>): this {
-    return this.register(name, factory, false);
+  singleton<T>(name: string, factory: Factory<T>): void {
+    this.register(name, factory, true);
   }
 
   resolve<T>(name: string): T {
     const reg = this.registrations.get(name);
-    if (!reg) throw new Error(`No registration for "${name}"`);
+    if (!reg) throw new Error("No registration for: " + name);
     if (reg.singleton) {
       if (reg.instance === undefined) reg.instance = reg.factory();
       return reg.instance as T;
@@ -36,27 +32,11 @@ export class Container {
     return this.registrations.has(name);
   }
 
-  remove(name: string): boolean {
-    return this.registrations.delete(name);
-  }
-
   clear(): void {
     this.registrations.clear();
   }
 
-  get size(): number {
-    return this.registrations.size;
-  }
-
   names(): string[] {
     return [...this.registrations.keys()];
-  }
-
-  createChild(): Container {
-    const child = new Container();
-    for (const [name, reg] of this.registrations) {
-      child.registrations.set(name, { ...reg });
-    }
-    return child;
   }
 }
