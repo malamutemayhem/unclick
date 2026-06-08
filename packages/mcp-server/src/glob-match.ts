@@ -2,14 +2,19 @@ export function globMatch(pattern: string, input: string): boolean {
   return regexFromGlob(pattern).test(input);
 }
 
+export function globFilter(pattern: string, inputs: string[]): string[] {
+  const re = regexFromGlob(pattern);
+  return inputs.filter((s) => re.test(s));
+}
+
 export function regexFromGlob(pattern: string): RegExp {
   let regex = "^";
   let i = 0;
   while (i < pattern.length) {
     const ch = pattern[i];
     if (ch === "*") {
-      if (i + 1 < pattern.length && pattern[i + 1] === "*") {
-        if (i + 2 < pattern.length && pattern[i + 2] === "/") {
+      if (pattern[i + 1] === "*") {
+        if (pattern[i + 2] === "/") {
           regex += "(?:.*/)?";
           i += 3;
         } else {
@@ -25,14 +30,33 @@ export function regexFromGlob(pattern: string): RegExp {
       i++;
     } else if (ch === "[") {
       let j = i + 1;
-      while (j < pattern.length && pattern[j] !== "]") j++;
-      regex += pattern.slice(i, j + 1);
+      let bracket = "[";
+      if (pattern[j] === "!") { bracket += "^"; j++; }
+      while (j < pattern.length && pattern[j] !== "]") {
+        bracket += pattern[j];
+        j++;
+      }
+      bracket += "]";
+      regex += bracket;
       i = j + 1;
-    } else if (".+^${}()|\\".includes(ch)) {
-      regex += "\\" + ch;
-      i++;
+    } else if (ch === "{") {
+      let j = i + 1;
+      const options: string[] = [];
+      let current = "";
+      while (j < pattern.length && pattern[j] !== "}") {
+        if (pattern[j] === ",") {
+          options.push(current);
+          current = "";
+        } else {
+          current += pattern[j];
+        }
+        j++;
+      }
+      options.push(current);
+      regex += "(?:" + options.map(escapeRegex).join("|") + ")";
+      i = j + 1;
     } else {
-      regex += ch;
+      regex += escapeRegex(ch);
       i++;
     }
   }
@@ -40,10 +64,6 @@ export function regexFromGlob(pattern: string): RegExp {
   return new RegExp(regex);
 }
 
-export function isGlob(str: string): boolean {
-  return /[*?[\]{}]/.test(str);
-}
-
-export function matchMany(patterns: string[], input: string): boolean {
-  return patterns.some((p: string) => globMatch(p, input));
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

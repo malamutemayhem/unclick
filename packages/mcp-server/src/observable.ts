@@ -9,8 +9,10 @@ export class Observable<T> {
     return () => { this.observers.delete(observer); };
   }
 
-  protected emit(value: T): void {
-    for (const observer of this.observers) observer(value);
+  next(value: T): void {
+    for (const observer of this.observers) {
+      observer(value);
+    }
   }
 
   get subscriberCount(): number {
@@ -18,77 +20,70 @@ export class Observable<T> {
   }
 
   pipe<U>(transform: (value: T) => U): Observable<U> {
-    const result = new Subject<U>();
-    this.subscribe((v: T) => result.next(transform(v)));
-    return result;
+    const derived = new Observable<U>();
+    this.subscribe((value) => derived.next(transform(value)));
+    return derived;
   }
 
   filter(predicate: (value: T) => boolean): Observable<T> {
-    const result = new Subject<T>();
-    this.subscribe((v: T) => { if (predicate(v)) result.next(v); });
-    return result;
-  }
-}
-
-export class Subject<T> extends Observable<T> {
-  private lastValue: T | undefined;
-  private hasValue = false;
-
-  next(value: T): void {
-    this.lastValue = value;
-    this.hasValue = true;
-    this.emit(value);
+    const filtered = new Observable<T>();
+    this.subscribe((value) => { if (predicate(value)) filtered.next(value); });
+    return filtered;
   }
 
-  get value(): T | undefined {
-    return this.lastValue;
+  take(count: number): Observable<T> {
+    const taken = new Observable<T>();
+    let remaining = count;
+    this.subscribe((value) => {
+      if (remaining > 0) { remaining--; taken.next(value); }
+    });
+    return taken;
   }
 
-  get hasEmitted(): boolean {
-    return this.hasValue;
+  debounce(ms: number): Observable<T> {
+    const debounced = new Observable<T>();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    this.subscribe((value) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => debounced.next(value), ms);
+    });
+    return debounced;
+  }
+
+  static merge<T>(...observables: Observable<T>[]): Observable<T> {
+    const merged = new Observable<T>();
+    for (const obs of observables) {
+      obs.subscribe((value) => merged.next(value));
+    }
+    return merged;
+  }
+
+  static fromArray<T>(items: T[]): Observable<T> {
+    const obs = new Observable<T>();
+    for (const item of items) obs.next(item);
+    return obs;
   }
 }
 
 export class BehaviorSubject<T> extends Observable<T> {
-  private currentValue: T;
+  private current: T;
 
   constructor(initial: T) {
     super();
-    this.currentValue = initial;
+    this.current = initial;
+  }
+
+  subscribe(observer: Observer<T>): Unsubscribe {
+    observer(this.current);
+    return super.subscribe(observer);
   }
 
   next(value: T): void {
-    this.currentValue = value;
-    this.emit(value);
+    this.current = value;
+    super.next(value);
   }
 
   get value(): T {
-    return this.currentValue;
-  }
-
-  subscribe(observer: Observer<T>): Unsubscribe {
-    observer(this.currentValue);
-    return super.subscribe(observer);
-  }
-}
-
-export class ReplaySubject<T> extends Observable<T> {
-  private buffer: T[] = [];
-  private readonly bufferSize: number;
-
-  constructor(bufferSize: number) {
-    super();
-    this.bufferSize = bufferSize;
-  }
-
-  next(value: T): void {
-    this.buffer.push(value);
-    if (this.buffer.length > this.bufferSize) this.buffer.shift();
-    this.emit(value);
-  }
-
-  subscribe(observer: Observer<T>): Unsubscribe {
-    for (const v of this.buffer) observer(v);
-    return super.subscribe(observer);
+    return this.current;
   }
 }

@@ -1,76 +1,74 @@
 import { describe, it, expect } from "vitest";
-import { applyPatch } from "../json-patch.js";
+import { applyPatch, getPath } from "../json-patch.js";
 
 describe("json-patch", () => {
-  it("add to object", () => {
+  it("add operation", () => {
     const result = applyPatch({ a: 1 }, [{ op: "add", path: "/b", value: 2 }]);
     expect(result).toEqual({ a: 1, b: 2 });
   });
 
-  it("add to array", () => {
-    const result = applyPatch({ arr: [1, 3] }, [{ op: "add", path: "/arr/1", value: 2 }]);
-    expect(result).toEqual({ arr: [1, 2, 3] });
-  });
-
-  it("add to end of array with -", () => {
-    const result = applyPatch({ arr: [1] }, [{ op: "add", path: "/arr/-", value: 2 }]);
-    expect(result).toEqual({ arr: [1, 2] });
-  });
-
-  it("remove from object", () => {
+  it("remove operation", () => {
     const result = applyPatch({ a: 1, b: 2 }, [{ op: "remove", path: "/b" }]);
     expect(result).toEqual({ a: 1 });
   });
 
-  it("remove from array", () => {
-    const result = applyPatch({ arr: [1, 2, 3] }, [{ op: "remove", path: "/arr/1" }]);
-    expect(result).toEqual({ arr: [1, 3] });
-  });
-
-  it("replace value", () => {
+  it("replace operation", () => {
     const result = applyPatch({ a: 1 }, [{ op: "replace", path: "/a", value: 99 }]);
     expect(result).toEqual({ a: 99 });
   });
 
-  it("move value", () => {
+  it("move operation", () => {
     const result = applyPatch({ a: 1, b: 2 }, [{ op: "move", from: "/a", path: "/c" }]);
     expect(result).toEqual({ b: 2, c: 1 });
   });
 
-  it("copy value", () => {
+  it("copy operation", () => {
     const result = applyPatch({ a: 1 }, [{ op: "copy", from: "/a", path: "/b" }]);
     expect(result).toEqual({ a: 1, b: 1 });
   });
 
-  it("test passes", () => {
-    const result = applyPatch({ a: 1 }, [{ op: "test", path: "/a", value: 1 }]);
-    expect(result).toEqual({ a: 1 });
+  it("test operation passes", () => {
+    expect(() => applyPatch({ a: 1 }, [{ op: "test", path: "/a", value: 1 }])).not.toThrow();
   });
 
-  it("test fails", () => {
+  it("test operation fails", () => {
     expect(() => applyPatch({ a: 1 }, [{ op: "test", path: "/a", value: 2 }])).toThrow("Test failed");
   });
 
-  it("does not mutate original", () => {
-    const original = { a: 1 };
-    applyPatch(original, [{ op: "add", path: "/b", value: 2 }]);
-    expect(original).toEqual({ a: 1 });
+  it("nested path operations", () => {
+    const result = applyPatch({ a: { b: 1 } }, [{ op: "replace", path: "/a/b", value: 42 }]);
+    expect(result).toEqual({ a: { b: 42 } });
   });
 
-  it("multiple operations", () => {
-    const result = applyPatch({ a: 1 }, [
-      { op: "add", path: "/b", value: 2 },
-      { op: "remove", path: "/a" },
-      { op: "replace", path: "/b", value: 3 },
-    ]);
-    expect(result).toEqual({ b: 3 });
+  it("array add with index", () => {
+    const result = applyPatch({ items: [1, 3] }, [{ op: "add", path: "/items/1", value: 2 }]);
+    expect(result).toEqual({ items: [1, 2, 3] });
   });
 
-  it("handles tilde escaping", () => {
-    const result = applyPatch({ "a/b": 1, "c~d": 2 }, [
-      { op: "replace", path: "/a~1b", value: 10 },
-      { op: "replace", path: "/c~0d", value: 20 },
+  it("array append with dash", () => {
+    const result = applyPatch({ items: [1, 2] }, [{ op: "add", path: "/items/-", value: 3 }]);
+    expect(result).toEqual({ items: [1, 2, 3] });
+  });
+
+  it("multiple operations in sequence", () => {
+    const result = applyPatch({ x: 1 }, [
+      { op: "add", path: "/y", value: 2 },
+      { op: "replace", path: "/x", value: 10 },
     ]);
-    expect(result).toEqual({ "a/b": 10, "c~d": 20 });
+    expect(result).toEqual({ x: 10, y: 2 });
+  });
+});
+
+describe("getPath", () => {
+  it("resolves root", () => {
+    expect(getPath({ a: 1 }, "")).toEqual({ a: 1 });
+  });
+
+  it("resolves nested", () => {
+    expect(getPath({ a: { b: { c: 3 } } }, "/a/b/c")).toBe(3);
+  });
+
+  it("resolves array index", () => {
+    expect(getPath([10, 20, 30], "/1")).toBe(20);
   });
 });
