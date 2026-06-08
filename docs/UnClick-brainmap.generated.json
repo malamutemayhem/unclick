@@ -5,7 +5,7 @@
   "owner_visibility": {
     "route": "/admin/brainmap",
     "audience": "private yellow admin",
-    "owner_email": "creativelead@malamutemayhem.com"
+    "owner_email": "(configured via env)"
   },
   "counts": {
     "divisions": 12,
@@ -8845,8 +8845,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "eb0a0e70ad71",
-      "bytes": 26584
+      "hash": "7e3db4318397",
+      "bytes": 26625
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
