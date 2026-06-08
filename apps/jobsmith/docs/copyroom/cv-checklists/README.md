@@ -8,7 +8,7 @@ CopyRoom rule: workers must copy these files from source and cite this receipt b
 
 | File | Original source | SHA256 | Bytes | Lines |
 |---|---|---:|---:|---:|
-| `cv-checklists_1.md` | `docs/copyroom/cv-checklists/cv-checklists_1.md` | `8abec6a418929b711b5841d7d5ac7a8ad61055abb8bbcf58af8f181f42710763` | 27173 | 329 |
+| `cv-checklists_1.md` | `docs/copyroom/cv-checklists/cv-checklists_1.md` | `791fb7e4b63e2133b1c15a96e85ccdb79581b1ca583310ddb150b05920605859` | 27177 | 329 |
 | `cv-checklists_1a.md` | `docs/copyroom/cv-checklists/cv-checklists_1a.md` | `5a8f0593e8052f075ae7280c566bab5eef3a7415d72504caa8c6bd1e2257bf9a` | 42467 | 951 |
 | `cv-checklists_1b.md` | `docs/copyroom/cv-checklists/cv-checklists_1b.md` | `2616ec5a4858f63b35ce8b0b0cab1ad86b72e4e88e51430bb046a245ebb8b22f` | 43176 | 916 |
 | `cv-checklists_2.md` | `docs/copyroom/cv-checklists/cv-checklists_2.md` | `941f71191bf2fb86028ed9291796ce24aedb36bd027d2ee845e6afc424baff50` | 24906 | 313 |

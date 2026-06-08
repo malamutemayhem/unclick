@@ -28,11 +28,11 @@ describe("corrections helpers", () => {
     const lines = buildCorrectionDoNotRepeatLines([
       { row: { category: "corrections", key: "target", value: { kind: "correction", correction: "My salary target is 200k" } } },
       { row: { category: "preference", key: "x", value: "not a correction" } },
-      { row: { category: "corrections", key: "name", value: "Call me Chris, not Christopher" } },
+      { row: { category: "corrections", key: "name", value: "Call me Alex, not Alexander" } },
     ]);
     assert.deepEqual(lines, [
       "Correction (always honor): My salary target is 200k",
-      "Correction (always honor): Call me Chris, not Christopher",
+      "Correction (always honor): Call me Alex, not Alexander",
     ]);
   });
 

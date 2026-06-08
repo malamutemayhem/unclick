@@ -1,7 +1,7 @@
 # RotatePass Chunk 2 PRD
 
 **Status:** Draft, ready for Bailey review  
-**Owner:** Chris Byrne / Malamute Mayhem  
+**Owner:** UnClick Core Team  
 **Implementer:** Unassigned  
 **Product posture:** Free and integrated. RotatePass is ecosystem glue, not a paid standalone Pass.  
 **Build order:** Queued behind UXPass for implementation. This PRD can land now to clear design backlog.
