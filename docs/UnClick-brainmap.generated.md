@@ -145,7 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
 | src/pages/Why.tsx | 0205ed9e7ae2 | 15946 |
-| src/pages/XPass.tsx | ab4f0fe214f6 | 11093 |
+| src/pages/XPass.tsx | 8a95e39abdd4 | 11982 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
