@@ -1,56 +1,64 @@
-export class Duration {
-  private ms: number;
-
-  private constructor(ms: number) {
-    this.ms = ms;
-  }
-
-  static milliseconds(n: number): Duration { return new Duration(n); }
-  static seconds(n: number): Duration { return new Duration(n * 1000); }
-  static minutes(n: number): Duration { return new Duration(n * 60_000); }
-  static hours(n: number): Duration { return new Duration(n * 3_600_000); }
-  static days(n: number): Duration { return new Duration(n * 86_400_000); }
-
-  static parse(s: string): Duration {
-    const match = s.match(/^(\d+(?:\.\d+)?)\s*(ms|s|m|h|d)$/);
-    if (!match) throw new Error(`Invalid duration: "${s}"`);
-    const val = parseFloat(match[1]);
-    const unit = match[2];
-    switch (unit) {
-      case "ms": return Duration.milliseconds(val);
-      case "s": return Duration.seconds(val);
-      case "m": return Duration.minutes(val);
-      case "h": return Duration.hours(val);
-      case "d": return Duration.days(val);
-      default: throw new Error(`Unknown unit: ${unit}`);
-    }
-  }
-
-  toMilliseconds(): number { return this.ms; }
-  toSeconds(): number { return this.ms / 1000; }
-  toMinutes(): number { return this.ms / 60_000; }
-  toHours(): number { return this.ms / 3_600_000; }
-  toDays(): number { return this.ms / 86_400_000; }
-
-  add(other: Duration): Duration { return new Duration(this.ms + other.ms); }
-  subtract(other: Duration): Duration { return new Duration(this.ms - other.ms); }
-  multiply(factor: number): Duration { return new Duration(this.ms * factor); }
-
-  isZero(): boolean { return this.ms === 0; }
-  isNegative(): boolean { return this.ms < 0; }
-
-  toString(): string {
-    if (this.ms === 0) return "0ms";
-    const abs = Math.abs(this.ms);
-    const sign = this.ms < 0 ? "-" : "";
-    if (abs >= 86_400_000 && abs % 86_400_000 === 0) return `${sign}${abs / 86_400_000}d`;
-    if (abs >= 3_600_000 && abs % 3_600_000 === 0) return `${sign}${abs / 3_600_000}h`;
-    if (abs >= 60_000 && abs % 60_000 === 0) return `${sign}${abs / 60_000}m`;
-    if (abs >= 1000 && abs % 1000 === 0) return `${sign}${abs / 1000}s`;
-    return `${sign}${abs}ms`;
-  }
-
-  equals(other: Duration): boolean { return this.ms === other.ms; }
-  greaterThan(other: Duration): boolean { return this.ms > other.ms; }
-  lessThan(other: Duration): boolean { return this.ms < other.ms; }
+export interface Duration {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
 }
+
+export function fromMs(ms: number): Duration {
+  const abs = Math.abs(ms);
+  return {
+    days: Math.floor(abs / 86400000),
+    hours: Math.floor((abs % 86400000) / 3600000),
+    minutes: Math.floor((abs % 3600000) / 60000),
+    seconds: Math.floor((abs % 60000) / 1000),
+    milliseconds: abs % 1000,
+  };
+}
+
+export function toMs(d: Partial<Duration>): number {
+  return (d.days ?? 0) * 86400000
+    + (d.hours ?? 0) * 3600000
+    + (d.minutes ?? 0) * 60000
+    + (d.seconds ?? 0) * 1000
+    + (d.milliseconds ?? 0);
+}
+
+export function format(ms: number): string {
+  const d = fromMs(ms);
+  const parts: string[] = [];
+  if (d.days > 0) parts.push(`${d.days}d`);
+  if (d.hours > 0) parts.push(`${d.hours}h`);
+  if (d.minutes > 0) parts.push(`${d.minutes}m`);
+  if (d.seconds > 0 || parts.length === 0) parts.push(`${d.seconds}s`);
+  return parts.join(" ");
+}
+
+export function formatCompact(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 86400000) return `${(ms / 3600000).toFixed(1)}h`;
+  return `${(ms / 86400000).toFixed(1)}d`;
+}
+
+export function parse(input: string): number {
+  let total = 0;
+  const pattern = /(\d+(?:\.\d+)?)\s*(ms|milliseconds?|s|seconds?|m|minutes?|h|hours?|d|days?)/gi;
+  let match = pattern.exec(input);
+  while (match) {
+    const value = parseFloat(match[1]);
+    const unit = match[2].toLowerCase();
+    if (unit.startsWith("ms") || unit.startsWith("millisecond")) total += value;
+    else if (unit.startsWith("s")) total += value * 1000;
+    else if (unit.startsWith("m") && !unit.startsWith("ms")) total += value * 60000;
+    else if (unit.startsWith("h")) total += value * 3600000;
+    else if (unit.startsWith("d")) total += value * 86400000;
+    match = pattern.exec(input);
+  }
+  return total;
+}
+
+export function add(a: number, b: number): number { return a + b; }
+export function subtract(a: number, b: number): number { return a - b; }

@@ -1,60 +1,97 @@
 import { describe, it, expect } from "vitest";
-import { Duration } from "../duration.js";
+import { fromMs, toMs, format, formatCompact, parse, add, subtract } from "../duration.js";
 
-describe("Duration", () => {
-  it("creates from various units", () => {
-    expect(Duration.milliseconds(500).toMilliseconds()).toBe(500);
-    expect(Duration.seconds(2).toMilliseconds()).toBe(2000);
-    expect(Duration.minutes(1).toSeconds()).toBe(60);
-    expect(Duration.hours(1).toMinutes()).toBe(60);
-    expect(Duration.days(1).toHours()).toBe(24);
+describe("fromMs", () => {
+  it("breaks down milliseconds", () => {
+    const d = fromMs(90061001);
+    expect(d.days).toBe(1);
+    expect(d.hours).toBe(1);
+    expect(d.minutes).toBe(1);
+    expect(d.seconds).toBe(1);
+    expect(d.milliseconds).toBe(1);
   });
 
-  it("parses strings", () => {
-    expect(Duration.parse("500ms").toMilliseconds()).toBe(500);
-    expect(Duration.parse("2s").toSeconds()).toBe(2);
-    expect(Duration.parse("5m").toMinutes()).toBe(5);
-    expect(Duration.parse("1h").toHours()).toBe(1);
-    expect(Duration.parse("1d").toDays()).toBe(1);
+  it("handles zero", () => {
+    const d = fromMs(0);
+    expect(d.days).toBe(0);
+    expect(d.hours).toBe(0);
+  });
+});
+
+describe("toMs", () => {
+  it("converts duration to ms", () => {
+    expect(toMs({ hours: 1, minutes: 30 })).toBe(5400000);
   });
 
-  it("throws on invalid parse", () => {
-    expect(() => Duration.parse("abc")).toThrow("Invalid duration");
+  it("handles partial input", () => {
+    expect(toMs({ seconds: 5 })).toBe(5000);
+  });
+});
+
+describe("format", () => {
+  it("formats hours and minutes", () => {
+    expect(format(3661000)).toBe("1h 1m 1s");
   });
 
+  it("shows only seconds for small values", () => {
+    expect(format(500)).toBe("0s");
+  });
+
+  it("shows days", () => {
+    expect(format(86400000)).toBe("1d");
+  });
+});
+
+describe("formatCompact", () => {
+  it("formats ms", () => {
+    expect(formatCompact(500)).toBe("500ms");
+  });
+
+  it("formats seconds", () => {
+    expect(formatCompact(2500)).toBe("2.5s");
+  });
+
+  it("formats minutes", () => {
+    expect(formatCompact(120000)).toBe("2.0m");
+  });
+
+  it("formats hours", () => {
+    expect(formatCompact(7200000)).toBe("2.0h");
+  });
+
+  it("formats days", () => {
+    expect(formatCompact(172800000)).toBe("2.0d");
+  });
+});
+
+describe("parse", () => {
+  it("parses single unit", () => {
+    expect(parse("5s")).toBe(5000);
+  });
+
+  it("parses multiple units", () => {
+    expect(parse("1h 30m")).toBe(5400000);
+  });
+
+  it("parses long form", () => {
+    expect(parse("2 hours 15 minutes")).toBe(8100000);
+  });
+
+  it("parses milliseconds", () => {
+    expect(parse("500ms")).toBe(500);
+  });
+
+  it("parses days", () => {
+    expect(parse("1d")).toBe(86400000);
+  });
+});
+
+describe("add and subtract", () => {
   it("adds durations", () => {
-    const d = Duration.seconds(10).add(Duration.seconds(5));
-    expect(d.toSeconds()).toBe(15);
+    expect(add(1000, 2000)).toBe(3000);
   });
 
   it("subtracts durations", () => {
-    const d = Duration.minutes(5).subtract(Duration.minutes(2));
-    expect(d.toMinutes()).toBe(3);
-  });
-
-  it("multiplies by factor", () => {
-    const d = Duration.seconds(10).multiply(3);
-    expect(d.toSeconds()).toBe(30);
-  });
-
-  it("checks zero and negative", () => {
-    expect(Duration.milliseconds(0).isZero()).toBe(true);
-    expect(Duration.seconds(-1).isNegative()).toBe(true);
-    expect(Duration.seconds(1).isNegative()).toBe(false);
-  });
-
-  it("toString formats correctly", () => {
-    expect(Duration.milliseconds(0).toString()).toBe("0ms");
-    expect(Duration.milliseconds(500).toString()).toBe("500ms");
-    expect(Duration.seconds(5).toString()).toBe("5s");
-    expect(Duration.minutes(10).toString()).toBe("10m");
-    expect(Duration.hours(2).toString()).toBe("2h");
-    expect(Duration.days(1).toString()).toBe("1d");
-  });
-
-  it("compares durations", () => {
-    expect(Duration.seconds(5).equals(Duration.milliseconds(5000))).toBe(true);
-    expect(Duration.seconds(10).greaterThan(Duration.seconds(5))).toBe(true);
-    expect(Duration.seconds(5).lessThan(Duration.seconds(10))).toBe(true);
+    expect(subtract(3000, 1000)).toBe(2000);
   });
 });
