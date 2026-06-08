@@ -1,85 +1,83 @@
-export class TreeNode<T> {
-  value: T;
-  children: TreeNode<T>[] = [];
+export interface TreeNode<T> {
+  data: T;
+  children: TreeNode<T>[];
+}
 
-  constructor(value: T) {
-    this.value = value;
-  }
+export function createNode<T>(data: T, children: TreeNode<T>[] = []): TreeNode<T> {
+  return { data, children };
+}
 
-  addChild(value: T): TreeNode<T> {
-    const child = new TreeNode(value);
-    this.children.push(child);
-    return child;
-  }
+export function addChild<T>(parent: TreeNode<T>, child: TreeNode<T>): void {
+  parent.children.push(child);
+}
 
-  addChildNode(node: TreeNode<T>): this {
-    this.children.push(node);
-    return this;
+export function findBFS<T>(root: TreeNode<T>, predicate: (data: T) => boolean): TreeNode<T> | null {
+  const queue: TreeNode<T>[] = [root];
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    if (predicate(node.data)) return node;
+    queue.push(...node.children);
   }
+  return null;
+}
 
-  removeChild(value: T): boolean {
-    const idx = this.children.findIndex((c: TreeNode<T>) => c.value === value);
-    if (idx === -1) return false;
-    this.children.splice(idx, 1);
-    return true;
+export function findDFS<T>(root: TreeNode<T>, predicate: (data: T) => boolean): TreeNode<T> | null {
+  if (predicate(root.data)) return root;
+  for (const child of root.children) {
+    const found = findDFS(child, predicate);
+    if (found) return found;
   }
+  return null;
+}
 
-  find(predicate: (value: T) => boolean): TreeNode<T> | null {
-    if (predicate(this.value)) return this;
-    for (const child of this.children) {
-      const found = child.find(predicate);
-      if (found) return found;
-    }
-    return null;
-  }
+export function mapTree<T, R>(root: TreeNode<T>, fn: (data: T) => R): TreeNode<R> {
+  return {
+    data: fn(root.data),
+    children: root.children.map((c) => mapTree(c, fn)),
+  };
+}
 
-  dfs(visitor: (value: T, depth: number) => void, depth: number = 0): void {
-    visitor(this.value, depth);
-    for (const child of this.children) child.dfs(visitor, depth + 1);
-  }
+export function filterTree<T>(root: TreeNode<T>, predicate: (data: T) => boolean): TreeNode<T> | null {
+  if (!predicate(root.data)) return null;
+  return {
+    data: root.data,
+    children: root.children
+      .map((c) => filterTree(c, predicate))
+      .filter((c): c is TreeNode<T> => c !== null),
+  };
+}
 
-  bfs(visitor: (value: T, depth: number) => void): void {
-    const queue: Array<{ node: TreeNode<T>; depth: number }> = [{ node: this, depth: 0 }];
-    while (queue.length > 0) {
-      const { node, depth } = queue.shift()!;
-      visitor(node.value, depth);
-      for (const child of node.children) queue.push({ node: child, depth: depth + 1 });
-    }
-  }
+export function depth<T>(root: TreeNode<T>): number {
+  if (root.children.length === 0) return 1;
+  return 1 + Math.max(...root.children.map(depth));
+}
 
-  map<U>(fn: (value: T) => U): TreeNode<U> {
-    const mapped = new TreeNode(fn(this.value));
-    for (const child of this.children) {
-      mapped.addChildNode(child.map(fn));
-    }
-    return mapped;
-  }
+export function size<T>(root: TreeNode<T>): number {
+  return 1 + root.children.reduce((acc, c) => acc + size(c), 0);
+}
 
-  get size(): number {
-    return 1 + this.children.reduce((sum: number, c: TreeNode<T>) => sum + c.size, 0);
-  }
+export function leaves<T>(root: TreeNode<T>): T[] {
+  if (root.children.length === 0) return [root.data];
+  return root.children.flatMap(leaves);
+}
 
-  get depth(): number {
-    if (this.children.length === 0) return 0;
-    return 1 + Math.max(...this.children.map((c: TreeNode<T>) => c.depth));
-  }
+export function flatten<T>(root: TreeNode<T>): T[] {
+  return [root.data, ...root.children.flatMap(flatten)];
+}
 
-  get isLeaf(): boolean {
-    return this.children.length === 0;
+export function path<T>(root: TreeNode<T>, predicate: (data: T) => boolean): T[] | null {
+  if (predicate(root.data)) return [root.data];
+  for (const child of root.children) {
+    const p = path(child, predicate);
+    if (p) return [root.data, ...p];
   }
+  return null;
+}
 
-  leaves(): T[] {
-    const result: T[] = [];
-    this.dfs((v: T, _: number) => {
-      const node = this.find((x: T) => x === v);
-      if (node && node.isLeaf) result.push(v);
-    });
-    return result;
+export function reduce<T, R>(root: TreeNode<T>, fn: (acc: R, data: T) => R, initial: R): R {
+  let acc = fn(initial, root.data);
+  for (const child of root.children) {
+    acc = reduce(child, fn, acc);
   }
-
-  toArray(): T[] {
-    const result: T[] = [];
-    this.dfs((v: T) => result.push(v));
-    return result;
-  }
+  return acc;
 }

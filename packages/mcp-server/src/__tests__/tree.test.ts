@@ -1,108 +1,104 @@
 import { describe, it, expect } from "vitest";
-import { TreeNode } from "../tree.js";
+import { createNode, addChild, findBFS, findDFS, mapTree, filterTree, depth, size, leaves, flatten, path, reduce } from "../tree.js";
 
-describe("TreeNode", () => {
-  it("creates a node with value", () => {
-    const root = new TreeNode("root");
-    expect(root.value).toBe("root");
-    expect(root.children).toEqual([]);
+describe("tree", () => {
+  function buildTree() {
+    const root = createNode(1);
+    const a = createNode(2);
+    const b = createNode(3);
+    const c = createNode(4);
+    addChild(root, a);
+    addChild(root, b);
+    addChild(a, c);
+    return root;
+  }
+
+  it("createNode builds leaf", () => {
+    const n = createNode("x");
+    expect(n.data).toBe("x");
+    expect(n.children).toEqual([]);
   });
 
-  it("adds children", () => {
-    const root = new TreeNode(1);
-    const child = root.addChild(2);
-    root.addChild(3);
-    expect(root.children.length).toBe(2);
-    expect(child.value).toBe(2);
+  it("addChild appends", () => {
+    const p = createNode(1);
+    addChild(p, createNode(2));
+    expect(p.children.length).toBe(1);
   });
 
-  it("removes children", () => {
-    const root = new TreeNode(1);
-    root.addChild(2);
-    root.addChild(3);
-    expect(root.removeChild(2)).toBe(true);
-    expect(root.children.length).toBe(1);
-    expect(root.removeChild(99)).toBe(false);
+  it("findBFS finds node", () => {
+    const r = buildTree();
+    const found = findBFS(r, (d) => d === 4);
+    expect(found?.data).toBe(4);
   });
 
-  it("finds nodes by predicate", () => {
-    const root = new TreeNode(1);
-    const a = root.addChild(2);
-    a.addChild(4);
-    root.addChild(3);
-    const found = root.find((v: number) => v === 4);
-    expect(found).not.toBeNull();
-    expect(found!.value).toBe(4);
-    expect(root.find((v: number) => v === 99)).toBeNull();
+  it("findBFS returns null when not found", () => {
+    expect(findBFS(createNode(1), (d) => d === 99)).toBeNull();
   });
 
-  it("dfs visits in pre-order", () => {
-    const root = new TreeNode("a");
-    const b = root.addChild("b");
-    b.addChild("d");
-    root.addChild("c");
-    const visited: string[] = [];
-    root.dfs((v: string) => visited.push(v));
-    expect(visited).toEqual(["a", "b", "d", "c"]);
+  it("findDFS finds node", () => {
+    const r = buildTree();
+    const found = findDFS(r, (d) => d === 3);
+    expect(found?.data).toBe(3);
   });
 
-  it("dfs provides depth", () => {
-    const root = new TreeNode(1);
-    const c = root.addChild(2);
-    c.addChild(3);
-    const depths: number[] = [];
-    root.dfs((_: number, d: number) => depths.push(d));
-    expect(depths).toEqual([0, 1, 2]);
+  it("findDFS returns null when not found", () => {
+    expect(findDFS(createNode(1), (d) => d === 99)).toBeNull();
   });
 
-  it("bfs visits level-order", () => {
-    const root = new TreeNode("a");
-    const b = root.addChild("b");
-    b.addChild("d");
-    root.addChild("c");
-    const visited: string[] = [];
-    root.bfs((v: string) => visited.push(v));
-    expect(visited).toEqual(["a", "b", "c", "d"]);
+  it("mapTree transforms data", () => {
+    const r = buildTree();
+    const mapped = mapTree(r, (d) => d * 10);
+    expect(mapped.data).toBe(10);
+    expect(mapped.children[0].data).toBe(20);
   });
 
-  it("maps tree", () => {
-    const root = new TreeNode(1);
-    root.addChild(2);
-    root.addChild(3);
-    const doubled = root.map((v: number) => v * 2);
-    expect(doubled.value).toBe(2);
-    expect(doubled.toArray()).toEqual([2, 4, 6]);
+  it("filterTree removes non-matching", () => {
+    const r = buildTree();
+    const filtered = filterTree(r, (d) => d < 4);
+    expect(filtered).not.toBeNull();
+    expect(size(filtered!)).toBe(3);
   });
 
-  it("computes size", () => {
-    const root = new TreeNode(1);
-    const a = root.addChild(2);
-    a.addChild(4);
-    a.addChild(5);
-    root.addChild(3);
-    expect(root.size).toBe(5);
+  it("filterTree returns null if root fails", () => {
+    const r = createNode(5);
+    expect(filterTree(r, (d) => d < 3)).toBeNull();
   });
 
-  it("computes depth", () => {
-    const root = new TreeNode(1);
-    expect(root.depth).toBe(0);
-    const a = root.addChild(2);
-    expect(root.depth).toBe(1);
-    a.addChild(3);
-    expect(root.depth).toBe(2);
+  it("depth computes correctly", () => {
+    const r = buildTree();
+    expect(depth(r)).toBe(3);
   });
 
-  it("identifies leaves", () => {
-    const root = new TreeNode(1);
-    expect(root.isLeaf).toBe(true);
-    root.addChild(2);
-    expect(root.isLeaf).toBe(false);
+  it("depth of leaf is 1", () => {
+    expect(depth(createNode(1))).toBe(1);
   });
 
-  it("toArray returns all values in DFS order", () => {
-    const root = new TreeNode(1);
-    root.addChild(2);
-    root.addChild(3);
-    expect(root.toArray()).toEqual([1, 2, 3]);
+  it("size counts all nodes", () => {
+    expect(size(buildTree())).toBe(4);
+  });
+
+  it("leaves returns leaf data", () => {
+    const r = buildTree();
+    expect(leaves(r).sort()).toEqual([3, 4]);
+  });
+
+  it("flatten returns all data pre-order", () => {
+    const r = buildTree();
+    expect(flatten(r)).toEqual([1, 2, 4, 3]);
+  });
+
+  it("path finds route to target", () => {
+    const r = buildTree();
+    expect(path(r, (d) => d === 4)).toEqual([1, 2, 4]);
+  });
+
+  it("path returns null if not found", () => {
+    expect(path(createNode(1), (d) => d === 99)).toBeNull();
+  });
+
+  it("reduce accumulates", () => {
+    const r = buildTree();
+    const sum = reduce(r, (acc, d) => acc + d, 0);
+    expect(sum).toBe(10);
   });
 });

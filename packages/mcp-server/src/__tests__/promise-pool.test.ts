@@ -1,64 +1,63 @@
 import { describe, it, expect } from "vitest";
-import { PromisePool, mapPool } from "../promise-pool.js";
+import { PromisePool, pMap, pFilter } from "../promise-pool.js";
 
 describe("PromisePool", () => {
-  it("runs all tasks", async () => {
+  it("respects concurrency limit", async () => {
     const pool = new PromisePool(2);
-    const results = await pool.run([
-      async () => 1,
-      async () => 2,
-      async () => 3,
-    ]);
-    expect(results).toEqual([1, 2, 3]);
-  });
-
-  it("limits concurrency", async () => {
-    const pool = new PromisePool(2);
+    let peak = 0;
     let running = 0;
-    let maxRunning = 0;
-    const task = async () => {
+
+    const task = () => new Promise<void>((resolve) => {
       running++;
-      if (running > maxRunning) maxRunning = running;
-      await new Promise((r) => setTimeout(r, 10));
-      running--;
-      return running;
-    };
-    await pool.run([task, task, task, task]);
-    expect(maxRunning).toBeLessThanOrEqual(2);
+      if (running > peak) peak = running;
+      setTimeout(() => { running--; resolve(); }, 10);
+    });
+
+    await Promise.all([pool.add(task), pool.add(task), pool.add(task), pool.add(task)]);
+    expect(peak).toBeLessThanOrEqual(2);
   });
 
-  it("preserves order", async () => {
-    const pool = new PromisePool(3);
-    const results = await pool.run([
-      async () => { await new Promise((r) => setTimeout(r, 30)); return "a"; },
-      async () => { await new Promise((r) => setTimeout(r, 10)); return "b"; },
-      async () => "c",
-    ]);
-    expect(results).toEqual(["a", "b", "c"]);
-  });
-
-  it("settled captures errors", async () => {
+  it("map returns results in order", async () => {
     const pool = new PromisePool(2);
-    const results = await pool.settled([
-      async () => 1,
-      async () => { throw new Error("fail"); },
-      async () => 3,
-    ]);
-    expect(results[0]).toEqual({ status: "fulfilled", value: 1 });
+    const results = await pool.map([1, 2, 3], async (x) => x * 2);
+    expect(results).toEqual([2, 4, 6]);
+  });
+
+  it("settle captures rejections", async () => {
+    const pool = new PromisePool(2);
+    const results = await pool.settle([1, 2, 3], async (x) => {
+      if (x === 2) throw new Error("fail");
+      return x;
+    });
+    expect(results[0].status).toBe("fulfilled");
     expect(results[1].status).toBe("rejected");
-    expect(results[2]).toEqual({ status: "fulfilled", value: 3 });
+    expect(results[2].status).toBe("fulfilled");
   });
 
-  it("handles empty task list", async () => {
-    const pool = new PromisePool(2);
-    const results = await pool.run([]);
-    expect(results).toEqual([]);
+  it("tracks counts", async () => {
+    const pool = new PromisePool(1);
+    await pool.map([1, 2], async (x) => x);
+    expect(pool.settledCount).toBe(2);
+    expect(pool.errorCount).toBe(0);
+  });
+
+  it("tracks error count", async () => {
+    const pool = new PromisePool(1);
+    await pool.settle([1], async () => { throw new Error("oops"); });
+    expect(pool.errorCount).toBe(1);
   });
 });
 
-describe("mapPool", () => {
-  it("maps items with concurrency limit", async () => {
-    const results = await mapPool([1, 2, 3], async (n: number) => n * 2, 2);
-    expect(results).toEqual([2, 4, 6]);
+describe("pMap", () => {
+  it("maps with concurrency", async () => {
+    const results = await pMap([10, 20, 30], async (x) => x + 1, 2);
+    expect(results).toEqual([11, 21, 31]);
+  });
+});
+
+describe("pFilter", () => {
+  it("filters async", async () => {
+    const results = await pFilter([1, 2, 3, 4], async (x) => x % 2 === 0, 2);
+    expect(results).toEqual([2, 4]);
   });
 });
