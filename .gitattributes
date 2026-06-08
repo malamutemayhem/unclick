@@ -1,2 +1,4 @@
 docs/UnClick-brainmap.generated.md text eol=lf
+docs/connector-depth-ladder.json text eol=lf
+docs/connector-depth-ladder.md text eol=lf
 apps/jobsmith/docs/copyroom/cv-checklists/*.md -text
