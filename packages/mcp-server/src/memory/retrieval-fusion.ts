@@ -236,6 +236,10 @@ export interface EffectiveScoreRow {
  * The computed composite is written back to effective_score so Worker 10's eval
  * harness can read exactly what we ordered on. Terminal step: call once.
  */
+function finiteOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
 export function orderByEffectiveScore<T extends EffectiveScoreRow>(
   rows: T[],
   maxResults: number,
@@ -243,13 +247,15 @@ export function orderByEffectiveScore<T extends EffectiveScoreRow>(
 ): T[] {
   return rows
     .map((row) => {
-      const base = typeof row.effective_score === "number" ? row.effective_score : row.final_score;
-      const weight = typeof row.scope_weight === "number" ? row.scope_weight : scopeWeightForSource(row.source);
+      const base = finiteOr(row.effective_score, finiteOr(row.final_score, 0));
+      const weight = finiteOr(row.scope_weight, scopeWeightForSource(row.source));
       const effective = base * weight * recencyWeight(row.created_at, asOf);
       return { ...row, effective_score: effective } as T;
     })
     .sort((a, b) => {
-      const diff = (b.effective_score ?? 0) - (a.effective_score ?? 0);
+      const sa = finiteOr(a.effective_score, 0);
+      const sb = finiteOr(b.effective_score, 0);
+      const diff = sb - sa;
       return diff !== 0 ? diff : (b.created_at ?? "").localeCompare(a.created_at ?? "");
     })
     .slice(0, maxResults);
