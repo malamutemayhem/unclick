@@ -31,7 +31,7 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
   {
     fileName: "cv-checklists_1.md",
     repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_1.md`,
-    copyRoomSourcePath: "C:/Temp/unclick temp/cv-checklists_1.md",
+    copyRoomSourcePath: "docs/copyroom/cv-checklists/cv-checklists_1.md",
     sha256: "8abec6a418929b711b5841d7d5ac7a8ad61055abb8bbcf58af8f181f42710763",
     bytes: 27173,
     lineCount: 329,
@@ -41,7 +41,7 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
   {
     fileName: "cv-checklists_1a.md",
     repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_1a.md`,
-    copyRoomSourcePath: "C:/Temp/unclick temp/cv-checklists_1a.md",
+    copyRoomSourcePath: "docs/copyroom/cv-checklists/cv-checklists_1a.md",
     sha256: "5a8f0593e8052f075ae7280c566bab5eef3a7415d72504caa8c6bd1e2257bf9a",
     bytes: 42467,
     lineCount: 951,
@@ -51,7 +51,7 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
   {
     fileName: "cv-checklists_1b.md",
     repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_1b.md`,
-    copyRoomSourcePath: "C:/Temp/unclick temp/cv-checklists_1b.md",
+    copyRoomSourcePath: "docs/copyroom/cv-checklists/cv-checklists_1b.md",
     sha256: "2616ec5a4858f63b35ce8b0b0cab1ad86b72e4e88e51430bb046a245ebb8b22f",
     bytes: 43176,
     lineCount: 916,
@@ -61,7 +61,7 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
   {
     fileName: "cv-checklists_2.md",
     repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_2.md`,
-    copyRoomSourcePath: "C:/Temp/unclick temp/cv-checklists_2.md",
+    copyRoomSourcePath: "docs/copyroom/cv-checklists/cv-checklists_2.md",
     sha256: "941f71191bf2fb86028ed9291796ce24aedb36bd027d2ee845e6afc424baff50",
     bytes: 24906,
     lineCount: 313,
@@ -71,7 +71,7 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
   {
     fileName: "cv-checklists_3.md",
     repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_3.md`,
-    copyRoomSourcePath: "C:/Temp/unclick temp/cv-checklists_3.md",
+    copyRoomSourcePath: "docs/copyroom/cv-checklists/cv-checklists_3.md",
     sha256: "efdeb0866eb95d8351ca241800dd7ce50fda0e310c38b1812e9ec77798171b4e",
     bytes: 24498,
     lineCount: 266,
