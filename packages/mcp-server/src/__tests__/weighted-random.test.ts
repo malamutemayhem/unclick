@@ -1,55 +1,57 @@
 import { describe, it, expect } from "vitest";
-import { weightedRandom, weightedSample, WeightedSelector } from "../weighted-random.js";
+import { weightedRandom, weightedSample, WeightedPool, normalizeWeights } from "../weighted-random.js";
 
 describe("weightedRandom", () => {
-  it("returns a value", () => {
-    const result = weightedRandom([{ value: "a", weight: 1 }, { value: "b", weight: 1 }]);
-    expect(["a", "b"]).toContain(result);
-  });
-
-  it("respects weights over many samples", () => {
-    const counts: Record<string, number> = { a: 0, b: 0 };
-    for (let i = 0; i < 1000; i++) {
-      const r = weightedRandom([{ value: "a", weight: 9 }, { value: "b", weight: 1 }]);
-      counts[r]++;
+  it("returns items from the list", () => {
+    const items = ["a", "b", "c"];
+    const weights = [1, 1, 1];
+    for (let i = 0; i < 20; i++) {
+      expect(items).toContain(weightedRandom(items, weights));
     }
-    expect(counts.a).toBeGreaterThan(counts.b);
   });
 
-  it("throws on empty", () => {
-    expect(() => weightedRandom([])).toThrow("Empty");
+  it("heavily weighted item appears most", () => {
+    const counts = { a: 0, b: 0 };
+    for (let i = 0; i < 1000; i++) {
+      const pick = weightedRandom(["a", "b"], [99, 1]);
+      counts[pick as "a" | "b"]++;
+    }
+    expect(counts.a).toBeGreaterThan(counts.b * 5);
   });
 });
 
 describe("weightedSample", () => {
-  it("returns requested count", () => {
-    const items = [{ value: "x", weight: 1 }];
-    expect(weightedSample(items, 5)).toHaveLength(5);
+  it("returns requested count without duplicates", () => {
+    const result = weightedSample(["a", "b", "c", "d"], [1, 1, 1, 1], 3);
+    expect(result.length).toBe(3);
+    expect(new Set(result).size).toBe(3);
   });
 });
 
-describe("WeightedSelector", () => {
-  it("selects from added items", () => {
-    const ws = new WeightedSelector<string>();
-    ws.add("a", 1).add("b", 1);
-    expect(["a", "b"]).toContain(ws.select());
+describe("WeightedPool", () => {
+  it("pick returns from pool", () => {
+    const pool = new WeightedPool<string>();
+    pool.add("x", 10);
+    pool.add("y", 1);
+    expect(pool.size).toBe(2);
+    expect(["x", "y"]).toContain(pool.pick());
   });
 
-  it("tracks size", () => {
-    const ws = new WeightedSelector<string>();
-    ws.add("a", 1).add("b", 2);
-    expect(ws.size).toBe(2);
+  it("throws on empty pool", () => {
+    const pool = new WeightedPool<string>();
+    expect(() => pool.pick()).toThrow("empty");
+  });
+});
+
+describe("normalizeWeights", () => {
+  it("normalizes to sum to 1", () => {
+    const result = normalizeWeights([2, 3, 5]);
+    expect(result[0]).toBeCloseTo(0.2);
+    expect(result[1]).toBeCloseTo(0.3);
+    expect(result[2]).toBeCloseTo(0.5);
   });
 
-  it("throws on empty select", () => {
-    const ws = new WeightedSelector<string>();
-    expect(() => ws.select()).toThrow("No items");
-  });
-
-  it("clear empties selector", () => {
-    const ws = new WeightedSelector<string>();
-    ws.add("a", 1);
-    ws.clear();
-    expect(ws.size).toBe(0);
+  it("handles all zeros", () => {
+    expect(normalizeWeights([0, 0])).toEqual([0, 0]);
   });
 });
