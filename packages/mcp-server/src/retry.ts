@@ -1,96 +1,115 @@
 export interface RetryOptions {
   maxAttempts?: number;
-  delayMs?: number;
-  backoff?: "fixed" | "linear" | "exponential";
-  maxDelayMs?: number;
-  shouldRetry?: (error: unknown, attempt: number) => boolean;
+  initialDelay?: number;
+  maxDelay?: number;
+  backoffFactor?: number;
+  jitter?: boolean;
+  retryIf?: (error: unknown) => boolean;
+  onRetry?: (error: unknown, attempt: number) => void;
 }
 
-export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T> {
-  const maxAttempts = options?.maxAttempts ?? 3;
-  const baseDelay = options?.delayMs ?? 1000;
-  const backoff = options?.backoff ?? "exponential";
-  const maxDelay = options?.maxDelayMs ?? 30000;
-  const shouldRetry = options?.shouldRetry ?? (() => true);
+const DEFAULTS: Required<Omit<RetryOptions, "retryIf" | "onRetry">> = {
+  maxAttempts: 3,
+  initialDelay: 1000,
+  maxDelay: 30000,
+  backoffFactor: 2,
+  jitter: true,
+};
 
+export async function retry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
+  const opts = { ...DEFAULTS, ...options };
   let lastError: unknown;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+
+  for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (err) {
-      lastError = err;
-      if (attempt === maxAttempts || !shouldRetry(err, attempt)) {
-        throw lastError;
+    } catch (error) {
+      lastError = error;
+      if (opts.retryIf && !opts.retryIf(error)) throw error;
+      if (attempt === opts.maxAttempts) throw error;
+
+      if (opts.onRetry) opts.onRetry(error, attempt);
+
+      let delay = opts.initialDelay * Math.pow(opts.backoffFactor, attempt - 1);
+      delay = Math.min(delay, opts.maxDelay);
+      if (opts.jitter) {
+        delay = delay * (0.5 + Math.random() * 0.5);
       }
-      const delay = Math.min(computeDelay(baseDelay, attempt, backoff), maxDelay);
       await sleep(delay);
     }
   }
+
   throw lastError;
 }
 
-function computeDelay(base: number, attempt: number, backoff: string): number {
-  switch (backoff) {
-    case "linear": return base * attempt;
-    case "exponential": return base * Math.pow(2, attempt - 1);
-    default: return base;
-  }
+export async function retryWithTimeout<T>(
+  fn: () => Promise<T>,
+  timeout: number,
+  options: RetryOptions = {}
+): Promise<T> {
+  return Promise.race([
+    retry(fn, options),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Retry timeout exceeded")), timeout)
+    ),
+  ]);
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): () => Promise<T> {
+  return () => retry(fn, options);
 }
 
 export class CircuitBreaker {
   private failures = 0;
   private lastFailure = 0;
-  private state: "closed" | "open" | "half-open" = "closed";
-  private readonly threshold: number;
-  private readonly resetMs: number;
+  private _state: "closed" | "open" | "half-open" = "closed";
 
-  constructor(options?: { threshold?: number; resetMs?: number }) {
-    this.threshold = options?.threshold ?? 5;
-    this.resetMs = options?.resetMs ?? 30000;
+  constructor(
+    private threshold: number = 5,
+    private resetTimeout: number = 60000,
+  ) {}
+
+  get state(): "closed" | "open" | "half-open" {
+    if (this._state === "open" && Date.now() - this.lastFailure >= this.resetTimeout) {
+      this._state = "half-open";
+    }
+    return this._state;
   }
 
-  async call<T>(fn: () => Promise<T>): Promise<T> {
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.state === "open") {
-      if (Date.now() - this.lastFailure >= this.resetMs) {
-        this.state = "half-open";
-      } else {
-        throw new Error("Circuit breaker is open");
-      }
+      throw new Error("Circuit breaker is open");
     }
+
     try {
       const result = await fn();
       this.onSuccess();
       return result;
-    } catch (err) {
+    } catch (error) {
       this.onFailure();
-      throw err;
+      throw error;
     }
   }
 
   private onSuccess(): void {
     this.failures = 0;
-    this.state = "closed";
+    this._state = "closed";
   }
 
   private onFailure(): void {
     this.failures++;
     this.lastFailure = Date.now();
     if (this.failures >= this.threshold) {
-      this.state = "open";
+      this._state = "open";
     }
-  }
-
-  get currentState(): "closed" | "open" | "half-open" {
-    return this.state;
   }
 
   reset(): void {
     this.failures = 0;
-    this.lastFailure = 0;
-    this.state = "closed";
+    this._state = "closed";
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
