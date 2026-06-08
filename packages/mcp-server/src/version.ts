@@ -2,72 +2,78 @@ export interface SemVer {
   major: number;
   minor: number;
   patch: number;
-  prerelease?: string;
-  build?: string;
+  prerelease: string[];
+  build: string[];
 }
 
 export function parse(version: string): SemVer | null {
-  const match = version.match(/^v?(\d+)\.(\d+)\.(\d+)(?:-([\w.]+))?(?:\+([\w.]+))?$/);
+  const match = version.match(/^v?(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9.]+))?(?:\+([a-zA-Z0-9.]+))?$/);
   if (!match) return null;
   return {
     major: parseInt(match[1], 10),
     minor: parseInt(match[2], 10),
     patch: parseInt(match[3], 10),
-    prerelease: match[4],
-    build: match[5],
+    prerelease: match[4] ? match[4].split(".") : [],
+    build: match[5] ? match[5].split(".") : [],
   };
 }
 
-export function format(v: SemVer): string {
-  let result = `${v.major}.${v.minor}.${v.patch}`;
-  if (v.prerelease) result += `-${v.prerelease}`;
-  if (v.build) result += `+${v.build}`;
+export function format(ver: SemVer): string {
+  let result = `${ver.major}.${ver.minor}.${ver.patch}`;
+  if (ver.prerelease.length > 0) result += `-${ver.prerelease.join(".")}`;
+  if (ver.build.length > 0) result += `+${ver.build.join(".")}`;
   return result;
 }
 
-export function compare(a: SemVer, b: SemVer): number {
-  if (a.major !== b.major) return a.major - b.major;
-  if (a.minor !== b.minor) return a.minor - b.minor;
-  if (a.patch !== b.patch) return a.patch - b.patch;
-  if (a.prerelease && !b.prerelease) return -1;
-  if (!a.prerelease && b.prerelease) return 1;
-  if (a.prerelease && b.prerelease) {
-    return a.prerelease < b.prerelease ? -1 : a.prerelease > b.prerelease ? 1 : 0;
+export function compare(a: string, b: string): number {
+  const va = parse(a);
+  const vb = parse(b);
+  if (!va || !vb) throw new Error("Invalid semver");
+
+  if (va.major !== vb.major) return va.major - vb.major;
+  if (va.minor !== vb.minor) return va.minor - vb.minor;
+  if (va.patch !== vb.patch) return va.patch - vb.patch;
+
+  if (va.prerelease.length === 0 && vb.prerelease.length > 0) return 1;
+  if (va.prerelease.length > 0 && vb.prerelease.length === 0) return -1;
+
+  for (let i = 0; i < Math.max(va.prerelease.length, vb.prerelease.length); i++) {
+    if (i >= va.prerelease.length) return -1;
+    if (i >= vb.prerelease.length) return 1;
+    const ai = va.prerelease[i];
+    const bi = vb.prerelease[i];
+    const aNum = /^\d+$/.test(ai);
+    const bNum = /^\d+$/.test(bi);
+    if (aNum && bNum) {
+      const diff = parseInt(ai, 10) - parseInt(bi, 10);
+      if (diff !== 0) return diff;
+    } else if (aNum) return -1;
+    else if (bNum) return 1;
+    else if (ai !== bi) return ai < bi ? -1 : 1;
   }
   return 0;
 }
 
-export function gt(a: SemVer, b: SemVer): boolean { return compare(a, b) > 0; }
-export function lt(a: SemVer, b: SemVer): boolean { return compare(a, b) < 0; }
-export function eq(a: SemVer, b: SemVer): boolean { return compare(a, b) === 0; }
-export function gte(a: SemVer, b: SemVer): boolean { return compare(a, b) >= 0; }
-export function lte(a: SemVer, b: SemVer): boolean { return compare(a, b) <= 0; }
+export function gt(a: string, b: string): boolean { return compare(a, b) > 0; }
+export function lt(a: string, b: string): boolean { return compare(a, b) < 0; }
+export function eq(a: string, b: string): boolean { return compare(a, b) === 0; }
+export function gte(a: string, b: string): boolean { return compare(a, b) >= 0; }
+export function lte(a: string, b: string): boolean { return compare(a, b) <= 0; }
 
-export function bump(v: SemVer, type: "major" | "minor" | "patch"): SemVer {
+export function increment(version: string, type: "major" | "minor" | "patch"): string {
+  const ver = parse(version);
+  if (!ver) throw new Error("Invalid semver");
   switch (type) {
-    case "major": return { major: v.major + 1, minor: 0, patch: 0 };
-    case "minor": return { major: v.major, minor: v.minor + 1, patch: 0 };
-    case "patch": return { major: v.major, minor: v.minor, patch: v.patch + 1 };
+    case "major": return `${ver.major + 1}.0.0`;
+    case "minor": return `${ver.major}.${ver.minor + 1}.0`;
+    case "patch": return `${ver.major}.${ver.minor}.${ver.patch + 1}`;
   }
 }
 
-export function satisfies(version: SemVer, range: string): boolean {
-  if (range === "*") return true;
-  if (range.startsWith("^")) {
-    const min = parse(range.slice(1));
-    if (!min) return false;
-    return version.major === min.major && gte(version, min);
-  }
-  if (range.startsWith("~")) {
-    const min = parse(range.slice(1));
-    if (!min) return false;
-    return version.major === min.major && version.minor === min.minor && gte(version, min);
-  }
-  const exact = parse(range);
-  if (!exact) return false;
-  return eq(version, exact);
+export function isValid(version: string): boolean {
+  return parse(version) !== null;
 }
 
-export function sort(versions: SemVer[]): SemVer[] {
+export function sort(versions: string[]): string[] {
   return [...versions].sort(compare);
 }

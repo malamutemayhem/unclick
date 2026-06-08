@@ -1,63 +1,51 @@
 import { describe, it, expect } from "vitest";
-import { parse, format, compare, gt, lt, eq, bump, satisfies, sort } from "../version.js";
+import { parse, format, compare, gt, lt, eq, gte, lte, increment, isValid, sort } from "../version.js";
 
-describe("version (semver)", () => {
-  it("parse valid versions", () => {
-    expect(parse("1.2.3")).toEqual({ major: 1, minor: 2, patch: 3, prerelease: undefined, build: undefined });
-    expect(parse("v1.0.0-alpha")).toEqual({ major: 1, minor: 0, patch: 0, prerelease: "alpha", build: undefined });
-    expect(parse("1.0.0+build.1")).toEqual({ major: 1, minor: 0, patch: 0, prerelease: undefined, build: "build.1" });
+describe("version", () => {
+  describe("parse", () => {
+    it("parses basic version", () => {
+      const v = parse("1.2.3");
+      expect(v).toEqual({ major: 1, minor: 2, patch: 3, prerelease: [], build: [] });
+    });
+    it("parses with v prefix", () => { expect(parse("v1.0.0")?.major).toBe(1); });
+    it("parses prerelease", () => {
+      expect(parse("1.0.0-beta.1")?.prerelease).toEqual(["beta", "1"]);
+    });
+    it("parses build", () => { expect(parse("1.0.0+build.1")?.build).toEqual(["build", "1"]); });
+    it("returns null for invalid", () => { expect(parse("invalid")).toBeNull(); });
   });
-
-  it("parse returns null for invalid", () => {
-    expect(parse("not.a.version")).toBeNull();
-    expect(parse("1.2")).toBeNull();
+  describe("format", () => {
+    it("formats basic", () => { expect(format({ major: 1, minor: 2, patch: 3, prerelease: [], build: [] })).toBe("1.2.3"); });
+    it("formats prerelease", () => {
+      expect(format({ major: 1, minor: 0, patch: 0, prerelease: ["beta"], build: [] })).toBe("1.0.0-beta");
+    });
   });
-
-  it("format roundtrips", () => {
-    expect(format(parse("1.2.3")!)).toBe("1.2.3");
-    expect(format(parse("1.0.0-beta")!)).toBe("1.0.0-beta");
+  describe("compare", () => {
+    it("major diff", () => { expect(compare("2.0.0", "1.0.0")).toBeGreaterThan(0); });
+    it("minor diff", () => { expect(compare("1.2.0", "1.1.0")).toBeGreaterThan(0); });
+    it("patch diff", () => { expect(compare("1.0.2", "1.0.1")).toBeGreaterThan(0); });
+    it("equal", () => { expect(compare("1.0.0", "1.0.0")).toBe(0); });
+    it("prerelease < release", () => { expect(compare("1.0.0-alpha", "1.0.0")).toBeLessThan(0); });
   });
-
-  it("compare orders correctly", () => {
-    expect(compare(parse("1.0.0")!, parse("2.0.0")!)).toBeLessThan(0);
-    expect(compare(parse("1.1.0")!, parse("1.0.0")!)).toBeGreaterThan(0);
-    expect(compare(parse("1.0.0")!, parse("1.0.0")!)).toBe(0);
+  describe("comparisons", () => {
+    it("gt", () => { expect(gt("2.0.0", "1.0.0")).toBe(true); });
+    it("lt", () => { expect(lt("1.0.0", "2.0.0")).toBe(true); });
+    it("eq", () => { expect(eq("1.0.0", "1.0.0")).toBe(true); });
+    it("gte", () => { expect(gte("1.0.0", "1.0.0")).toBe(true); });
+    it("lte", () => { expect(lte("1.0.0", "1.0.0")).toBe(true); });
   });
-
-  it("prerelease is less than release", () => {
-    expect(lt(parse("1.0.0-alpha")!, parse("1.0.0")!)).toBe(true);
+  describe("increment", () => {
+    it("bumps major", () => { expect(increment("1.2.3", "major")).toBe("2.0.0"); });
+    it("bumps minor", () => { expect(increment("1.2.3", "minor")).toBe("1.3.0"); });
+    it("bumps patch", () => { expect(increment("1.2.3", "patch")).toBe("1.2.4"); });
   });
-
-  it("gt, lt, eq helpers", () => {
-    expect(gt(parse("2.0.0")!, parse("1.0.0")!)).toBe(true);
-    expect(lt(parse("1.0.0")!, parse("2.0.0")!)).toBe(true);
-    expect(eq(parse("1.0.0")!, parse("1.0.0")!)).toBe(true);
+  describe("isValid", () => {
+    it("valid", () => { expect(isValid("1.0.0")).toBe(true); });
+    it("invalid", () => { expect(isValid("nope")).toBe(false); });
   });
-
-  it("bump increments correctly", () => {
-    expect(bump(parse("1.2.3")!, "major")).toEqual({ major: 2, minor: 0, patch: 0 });
-    expect(bump(parse("1.2.3")!, "minor")).toEqual({ major: 1, minor: 3, patch: 0 });
-    expect(bump(parse("1.2.3")!, "patch")).toEqual({ major: 1, minor: 2, patch: 4 });
-  });
-
-  it("satisfies caret range", () => {
-    expect(satisfies(parse("1.2.3")!, "^1.0.0")).toBe(true);
-    expect(satisfies(parse("2.0.0")!, "^1.0.0")).toBe(false);
-  });
-
-  it("satisfies tilde range", () => {
-    expect(satisfies(parse("1.2.5")!, "~1.2.0")).toBe(true);
-    expect(satisfies(parse("1.3.0")!, "~1.2.0")).toBe(false);
-  });
-
-  it("satisfies wildcard", () => {
-    expect(satisfies(parse("9.9.9")!, "*")).toBe(true);
-  });
-
-  it("sort orders versions", () => {
-    const versions = [parse("2.0.0")!, parse("1.0.0")!, parse("1.5.0")!];
-    const sorted = sort(versions);
-    expect(format(sorted[0])).toBe("1.0.0");
-    expect(format(sorted[2])).toBe("2.0.0");
+  describe("sort", () => {
+    it("sorts versions", () => {
+      expect(sort(["2.0.0", "1.0.0", "1.1.0"])).toEqual(["1.0.0", "1.1.0", "2.0.0"]);
+    });
   });
 });

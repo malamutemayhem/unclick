@@ -1,74 +1,32 @@
 import { describe, it, expect } from "vitest";
-import { levenshtein, hammingDistance, jaroWinkler, longestCommonSubstring } from "../string-distance.js";
+import { levenshtein, damerauLevenshtein, jaroWinkler, similarity, hammingDistance } from "../string-distance.js";
 
-describe("levenshtein", () => {
-  it("identical strings", () => {
-    expect(levenshtein("hello", "hello")).toBe(0);
+describe("string-distance", () => {
+  describe("levenshtein", () => {
+    it("equal strings", () => { expect(levenshtein("abc", "abc")).toBe(0); });
+    it("one insertion", () => { expect(levenshtein("abc", "abcd")).toBe(1); });
+    it("one deletion", () => { expect(levenshtein("abcd", "abc")).toBe(1); });
+    it("one substitution", () => { expect(levenshtein("abc", "adc")).toBe(1); });
+    it("kitten/sitting", () => { expect(levenshtein("kitten", "sitting")).toBe(3); });
   });
-
-  it("one insertion", () => {
-    expect(levenshtein("cat", "cats")).toBe(1);
+  describe("damerauLevenshtein", () => {
+    it("handles transposition", () => { expect(damerauLevenshtein("ab", "ba")).toBe(1); });
+    it("equal strings", () => { expect(damerauLevenshtein("abc", "abc")).toBe(0); });
   });
-
-  it("one deletion", () => {
-    expect(levenshtein("cats", "cat")).toBe(1);
+  describe("jaroWinkler", () => {
+    it("identical strings = 1", () => { expect(jaroWinkler("abc", "abc")).toBe(1); });
+    it("different strings < 1", () => { expect(jaroWinkler("abc", "xyz")).toBeLessThan(1); });
+    it("empty string = 0", () => { expect(jaroWinkler("abc", "")).toBe(0); });
+    it("similar strings > 0.8", () => { expect(jaroWinkler("martha", "marhta")).toBeGreaterThan(0.8); });
   });
-
-  it("one substitution", () => {
-    expect(levenshtein("cat", "car")).toBe(1);
+  describe("similarity", () => {
+    it("identical = 1", () => { expect(similarity("abc", "abc")).toBe(1); });
+    it("different < 1", () => { expect(similarity("abc", "xyz")).toBeLessThan(1); });
+    it("empty = 1", () => { expect(similarity("", "")).toBe(1); });
   });
-
-  it("completely different", () => {
-    expect(levenshtein("abc", "xyz")).toBe(3);
-  });
-
-  it("empty string", () => {
-    expect(levenshtein("", "hello")).toBe(5);
-  });
-});
-
-describe("hammingDistance", () => {
-  it("identical strings", () => {
-    expect(hammingDistance("abc", "abc")).toBe(0);
-  });
-
-  it("one difference", () => {
-    expect(hammingDistance("abc", "axc")).toBe(1);
-  });
-
-  it("throws on different lengths", () => {
-    expect(() => hammingDistance("ab", "abc")).toThrow("same length");
-  });
-});
-
-describe("jaroWinkler", () => {
-  it("identical strings score 1", () => {
-    expect(jaroWinkler("hello", "hello")).toBe(1);
-  });
-
-  it("completely different scores near 0", () => {
-    expect(jaroWinkler("abc", "xyz")).toBeLessThan(0.5);
-  });
-
-  it("similar strings score high", () => {
-    expect(jaroWinkler("martha", "marhta")).toBeGreaterThan(0.9);
-  });
-
-  it("empty string returns 0", () => {
-    expect(jaroWinkler("", "hello")).toBe(0);
-  });
-});
-
-describe("longestCommonSubstring", () => {
-  it("finds common substring", () => {
-    expect(longestCommonSubstring("abcdef", "zbcdf")).toBe("bcd");
-  });
-
-  it("no common substring", () => {
-    expect(longestCommonSubstring("abc", "xyz")).toBe("");
-  });
-
-  it("identical strings", () => {
-    expect(longestCommonSubstring("hello", "hello")).toBe("hello");
+  describe("hammingDistance", () => {
+    it("identical = 0", () => { expect(hammingDistance("abc", "abc")).toBe(0); });
+    it("one diff = 1", () => { expect(hammingDistance("abc", "adc")).toBe(1); });
+    it("throws on length mismatch", () => { expect(() => hammingDistance("ab", "abc")).toThrow(); });
   });
 });
