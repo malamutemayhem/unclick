@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { debounce, throttle, rateLimit } from "../debounce-throttle.js";
+import { debounce, throttle } from "../debounce-throttle.js";
 
 describe("debounce", () => {
   it("delays execution", async () => {
@@ -25,58 +25,31 @@ describe("debounce", () => {
   it("flush executes immediately", () => {
     const fn = vi.fn();
     const debounced = debounce(fn, 1000);
-    debounced();
+    debounced("arg");
     debounced.flush();
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("throttle", () => {
-  it("executes immediately on first call", () => {
+  it("executes immediately then throttles", async () => {
     const fn = vi.fn();
     const throttled = throttle(fn, 100);
     throttled();
-    expect(fn).toHaveBeenCalledTimes(1);
-    throttled.cancel();
-  });
-
-  it("throttles subsequent calls", async () => {
-    const fn = vi.fn();
-    const throttled = throttle(fn, 50);
-    throttled();
     throttled();
     throttled();
     expect(fn).toHaveBeenCalledTimes(1);
-    await new Promise((r) => setTimeout(r, 80));
+    await new Promise((r) => setTimeout(r, 150));
     expect(fn).toHaveBeenCalledTimes(2);
-    throttled.cancel();
   });
 
-  it("cancel prevents pending call", async () => {
+  it("cancel prevents trailing call", async () => {
     const fn = vi.fn();
-    const throttled = throttle(fn, 50);
+    const throttled = throttle(fn, 100);
     throttled();
     throttled();
     throttled.cancel();
-    await new Promise((r) => setTimeout(r, 80));
+    await new Promise((r) => setTimeout(r, 150));
     expect(fn).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("rateLimit", () => {
-  it("allows calls within limit", () => {
-    const check = rateLimit(3, 1000);
-    expect(check()).toBe(true);
-    expect(check()).toBe(true);
-    expect(check()).toBe(true);
-    expect(check()).toBe(false);
-  });
-
-  it("resets after window", async () => {
-    const check = rateLimit(1, 50);
-    expect(check()).toBe(true);
-    expect(check()).toBe(false);
-    await new Promise((r) => setTimeout(r, 80));
-    expect(check()).toBe(true);
   });
 });

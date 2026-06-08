@@ -1,79 +1,65 @@
-export function debounce<T extends (...args: unknown[]) => void>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delayMs: number,
-): T & { cancel: () => void; flush: () => void } {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let lastArgs: unknown[] | undefined;
+): { (...args: Parameters<T>): void; cancel: () => void; flush: () => void } {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastArgs: Parameters<T> | null = null;
 
-  const debounced = function (this: unknown, ...args: unknown[]) {
+  const debounced = (...args: Parameters<T>): void => {
     lastArgs = args;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      timer = undefined;
-      fn.apply(this, lastArgs!);
-      lastArgs = undefined;
+      timer = null;
+      fn(...args);
+      lastArgs = null;
     }, delayMs);
-  } as T & { cancel: () => void; flush: () => void };
-
-  debounced.cancel = () => {
-    if (timer) clearTimeout(timer);
-    timer = undefined;
-    lastArgs = undefined;
   };
 
-  debounced.flush = () => {
+  debounced.cancel = (): void => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    lastArgs = null;
+  };
+
+  debounced.flush = (): void => {
     if (timer && lastArgs) {
       clearTimeout(timer);
-      timer = undefined;
+      timer = null;
       fn(...lastArgs);
-      lastArgs = undefined;
+      lastArgs = null;
     }
   };
 
   return debounced;
 }
 
-export function throttle<T extends (...args: unknown[]) => void>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   fn: T,
   intervalMs: number,
-): T & { cancel: () => void } {
+): { (...args: Parameters<T>): void; cancel: () => void } {
   let lastCall = 0;
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const throttled = function (this: unknown, ...args: unknown[]) {
+  const throttled = (...args: Parameters<T>): void => {
     const now = Date.now();
     const remaining = intervalMs - (now - lastCall);
-
     if (remaining <= 0) {
-      if (timer) { clearTimeout(timer); timer = undefined; }
+      if (timer) { clearTimeout(timer); timer = null; }
       lastCall = now;
-      fn.apply(this, args);
+      fn(...args);
     } else if (!timer) {
       timer = setTimeout(() => {
         lastCall = Date.now();
-        timer = undefined;
-        fn.apply(this, args);
+        timer = null;
+        fn(...args);
       }, remaining);
     }
-  } as T & { cancel: () => void };
+  };
 
-  throttled.cancel = () => {
+  throttled.cancel = (): void => {
     if (timer) clearTimeout(timer);
-    timer = undefined;
+    timer = null;
   };
 
   return throttled;
-}
-
-export function rateLimit(maxCalls: number, windowMs: number): () => boolean {
-  const timestamps: number[] = [];
-  return () => {
-    const now = Date.now();
-    while (timestamps.length > 0 && timestamps[0] <= now - windowMs) {
-      timestamps.shift();
-    }
-    if (timestamps.length >= maxCalls) return false;
-    timestamps.push(now);
-    return true;
-  };
 }
