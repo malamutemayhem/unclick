@@ -15,7 +15,7 @@ import JobsBoardSample from "@/components/JobsBoardSample";
 import XGateGates from "@/components/XGateGates";
 import {
   Sparkles, Zap, Plug, RefreshCw,
-  Clock, Compass, Link2, MonitorSmartphone,
+  Clock, Compass, MonitorSmartphone,
   KeyRound, Puzzle, ShieldCheck, Lock,
   Users, HeartPulse, Brain, UserCog,
   Search, ShieldHalf,
@@ -84,18 +84,31 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   orchestrator: {
     path: "/orchestrator",
     eyebrow: "Orchestrator",
-    title: <>The running <GradientText>story</GradientText> of your work.</>,
+    title: (
+      <>
+        <span className="block">The running <GradientText>story</GradientText></span>
+        <span className="block">of your work.</span>
+      </>
+    ),
     lede: "Every job, receipt, and decision, written as one plain-English story you can follow. The same running story shows on each device and seat you connect.",
     primaryCta: GET_STARTED,
-    showcase: <OrchestratorStory />,
+    showcase: (
+      <ExpandableImage
+        src="/orchestrator_web.jpg"
+        alt="Conversations from many people, PCs, and phones merging into one continuous chained thread that flows into a glowing memory brain."
+      />
+    ),
     featuresTitle: "One story, everywhere you work.",
+    featuresCols: 2,
     features: [
-      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read, with the raw timeline underneath." },
-      { icon: MonitorSmartphone, title: "Every connected device", desc: "The same running story on each PC and seat you connect." },
-      { icon: Users, title: "Built for teams", desc: "Share an account and everyone follows the same story." },
-      { icon: Link2, title: "Any seat or account", desc: "Connect a seat or AI account and its work joins the story." },
+      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read of what happened, with the raw timeline underneath when you want the detail." },
+      { icon: Brain, title: "Context for your AI", desc: "The running story works together with your memory, so any seat picks up a job already knowing what has happened and what comes next." },
+      { icon: MonitorSmartphone, title: "Every device and seat", desc: "The same running story on each PC, phone, and AI seat you connect, so nothing is stuck on one machine." },
+      { icon: Users, title: "Built for teams", desc: "Share one account and everyone, people and AI alike, follows the exact same story." },
     ],
-    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team." },
+    tailTitle: "Follow along, as it happens.",
+    tail: <OrchestratorStory />,
+    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team, feeding your AI's memory so it always has the full context." },
   },
   passport: {
     path: "/passport",
