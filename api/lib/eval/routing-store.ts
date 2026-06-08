@@ -10,16 +10,23 @@ export interface RoutingArmRow {
   verified: number | null;
 }
 
+function safeNonNeg(value: number | null | undefined): number {
+  if (value == null || !Number.isFinite(value) || value < 0) return 0;
+  return value;
+}
+
 /** Build an ArmTable from persisted rows. */
 export function armTableFromRows(rows: RoutingArmRow[]): ArmTable {
   const arms: Record<string, ArmStats> = {};
   for (const r of rows) {
     if (!r.arm) continue;
+    const pulls = safeNonNeg(r.pulls);
+    const verified = Math.min(safeNonNeg(r.verified), pulls);
     arms[r.arm] = {
       arm: r.arm,
-      pulls: r.pulls ?? 0,
-      rewardSum: r.reward_sum ?? 0,
-      verified: r.verified ?? 0,
+      pulls,
+      rewardSum: pulls === 0 ? 0 : (Number.isFinite(r.reward_sum) ? r.reward_sum! : 0),
+      verified,
     };
   }
   return { arms };
