@@ -76,7 +76,7 @@
  *   - admin_fact_add: POST, inserts a new manually-authored fact.
  *   - admin_context_apply_template: POST, seeds business_context from a
  *                                   built-in starter template (freelancer,
- *                                   developer, founder, creator).
+ *                                   developer, founder, creator, unclick).
  *   - admin_session_preview: GET, returns a dry-run of get_startup_context
  *                            for the admin UI to show what will load.
  *   - admin_export_all: GET, returns the user's entire memory snapshot as JSON
@@ -2515,6 +2515,54 @@ function slugify(input: string): string {
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
+
+/**
+ * Built-in business_context starter templates for admin_context_apply_template.
+ *
+ * The four persona templates seed a role plus a few preferences. The `unclick`
+ * template is different in kind: it seeds the operating basics (memory
+ * protocol, tool-first reflex, session close, save-fixes) so a fresh account
+ * can adopt them as its own editable standing rules instead of starting blank.
+ * The always-on version of this knowledge ships to every account via
+ * AGENT_INSTRUCTIONS (packages/mcp-server starter-knowledge); this template is
+ * the opt-in, user-editable counterpart. Exported so it can be unit-tested.
+ */
+export const CONTEXT_TEMPLATES: Record<string, Array<{ category: string; key: string; value: string }>> = {
+  freelancer: [
+    { category: "identity", key: "role", value: "Independent freelancer" },
+    { category: "preference", key: "working_hours", value: "Weekdays, deep work 9am-1pm" },
+    { category: "preference", key: "communication", value: "Short, direct, no filler" },
+    { category: "workflow", key: "delivery_cadence", value: "Weekly demo, daily short updates" },
+    { category: "standing_rule", key: "estimates", value: "Always quote a range, never a single number" },
+  ],
+  developer: [
+    { category: "identity", key: "role", value: "Software engineer" },
+    { category: "preference", key: "preferred_stack", value: "TypeScript, React, Node, Postgres" },
+    { category: "preference", key: "code_style", value: "Prefer small pure functions, avoid unnecessary abstractions" },
+    { category: "standing_rule", key: "testing", value: "Write a failing test first for any non-trivial change" },
+    { category: "workflow", key: "pr_review", value: "Explain the why in PR descriptions, not the what" },
+  ],
+  founder: [
+    { category: "identity", key: "role", value: "Founder / CEO" },
+    { category: "preference", key: "communication", value: "High signal, decisions over discussion" },
+    { category: "workflow", key: "weekly_rhythm", value: "Mondays plan, Fridays review, ship often" },
+    { category: "standing_rule", key: "focus", value: "Default no to anything that is not the top priority this week" },
+    { category: "technical", key: "reporting", value: "Numbers first, narrative second" },
+  ],
+  creator: [
+    { category: "identity", key: "role", value: "Content creator" },
+    { category: "preference", key: "platforms", value: "Primary: YouTube. Secondary: X, LinkedIn." },
+    { category: "preference", key: "voice", value: "Friendly, concrete, no hype" },
+    { category: "workflow", key: "publishing", value: "Two long-form per week, daily short-form" },
+    { category: "standing_rule", key: "hooks", value: "Always lead with the payoff, not the setup" },
+  ],
+  unclick: [
+    { category: "standing_rule", key: "memory_protocol", value: "Load memory at the start of every session, search it before answering anything ambiguous, and save new preferences, decisions, and solved problems as you go." },
+    { category: "standing_rule", key: "tool_first", value: "Before web search or guessing for live or external data, check UnClick for a tool with unclick_search and run it with unclick_call." },
+    { category: "workflow", key: "session_close", value: "Write a session summary before ending so the next session resumes without re-asking." },
+    { category: "standing_rule", key: "save_fixes", value: "Record solved problems as troubleshooting facts: 'Issue: <symptom>. Solution: <fix>'." },
+  ],
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -5614,41 +5662,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
 
         const template = String(req.body?.template ?? "").trim().toLowerCase();
-        const templates: Record<string, Array<{ category: string; key: string; value: string }>> = {
-          freelancer: [
-            { category: "identity", key: "role", value: "Independent freelancer" },
-            { category: "preference", key: "working_hours", value: "Weekdays, deep work 9am-1pm" },
-            { category: "preference", key: "communication", value: "Short, direct, no filler" },
-            { category: "workflow", key: "delivery_cadence", value: "Weekly demo, daily short updates" },
-            { category: "standing_rule", key: "estimates", value: "Always quote a range, never a single number" },
-          ],
-          developer: [
-            { category: "identity", key: "role", value: "Software engineer" },
-            { category: "preference", key: "preferred_stack", value: "TypeScript, React, Node, Postgres" },
-            { category: "preference", key: "code_style", value: "Prefer small pure functions, avoid unnecessary abstractions" },
-            { category: "standing_rule", key: "testing", value: "Write a failing test first for any non-trivial change" },
-            { category: "workflow", key: "pr_review", value: "Explain the why in PR descriptions, not the what" },
-          ],
-          founder: [
-            { category: "identity", key: "role", value: "Founder / CEO" },
-            { category: "preference", key: "communication", value: "High signal, decisions over discussion" },
-            { category: "workflow", key: "weekly_rhythm", value: "Mondays plan, Fridays review, ship often" },
-            { category: "standing_rule", key: "focus", value: "Default no to anything that is not the top priority this week" },
-            { category: "technical", key: "reporting", value: "Numbers first, narrative second" },
-          ],
-          creator: [
-            { category: "identity", key: "role", value: "Content creator" },
-            { category: "preference", key: "platforms", value: "Primary: YouTube. Secondary: X, LinkedIn." },
-            { category: "preference", key: "voice", value: "Friendly, concrete, no hype" },
-            { category: "workflow", key: "publishing", value: "Two long-form per week, daily short-form" },
-            { category: "standing_rule", key: "hooks", value: "Always lead with the payoff, not the setup" },
-          ],
-        };
-
-        const entries = templates[template];
+        const entries = CONTEXT_TEMPLATES[template];
         if (!entries) {
           return res.status(400).json({
-            error: "Unknown template. Use one of: freelancer, developer, founder, creator.",
+            error: "Unknown template. Use one of: freelancer, developer, founder, creator, unclick.",
           });
         }
 
