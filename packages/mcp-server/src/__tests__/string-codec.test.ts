@@ -1,20 +1,53 @@
 import { describe, it, expect } from "vitest";
-import { rot13, caesarEncrypt, caesarDecrypt, runLengthEncode, runLengthDecode, reverseWords, isPalindrome, countWords } from "../string-codec.js";
+import { base64Encode, base64Decode, hexEncode, hexDecode, rot13, caesarCipher, runLengthEncode, runLengthDecode } from "../string-codec.js";
 
-describe("rot13", () => {
-  it("rotates letters", () => {
-    expect(rot13("Hello")).toBe("Uryyb");
-    expect(rot13(rot13("Hello"))).toBe("Hello");
+describe("base64", () => {
+  it("encode/decode roundtrip", () => {
+    expect(base64Decode(base64Encode("Hello, World!"))).toBe("Hello, World!");
+  });
+
+  it("encode known value", () => {
+    expect(base64Encode("Hello")).toBe("SGVsbG8=");
+  });
+
+  it("handles empty string", () => {
+    expect(base64Encode("")).toBe("");
+    expect(base64Decode("")).toBe("");
   });
 });
 
-describe("caesarEncrypt/Decrypt", () => {
-  it("roundtrips", () => {
-    expect(caesarDecrypt(caesarEncrypt("Hello World!", 3), 3)).toBe("Hello World!");
+describe("hex", () => {
+  it("encode/decode roundtrip", () => {
+    expect(hexDecode(hexEncode("test"))).toBe("test");
   });
 
-  it("handles negative shift", () => {
-    expect(caesarEncrypt("abc", -1)).toBe("zab");
+  it("encode known value", () => {
+    expect(hexEncode("AB")).toBe("4142");
+  });
+});
+
+describe("rot13", () => {
+  it("encodes and decodes", () => {
+    expect(rot13("Hello")).toBe("Uryyb");
+    expect(rot13(rot13("Hello"))).toBe("Hello");
+  });
+
+  it("preserves non-alpha", () => {
+    expect(rot13("123!")).toBe("123!");
+  });
+});
+
+describe("caesarCipher", () => {
+  it("shifts forward", () => {
+    expect(caesarCipher("abc", 3)).toBe("def");
+  });
+
+  it("wraps around", () => {
+    expect(caesarCipher("xyz", 3)).toBe("abc");
+  });
+
+  it("negative shift decodes", () => {
+    expect(caesarCipher("def", -3)).toBe("abc");
   });
 });
 
@@ -23,8 +56,9 @@ describe("runLengthEncode/Decode", () => {
     expect(runLengthEncode("aaabbc")).toBe("3a2bc");
   });
 
-  it("roundtrips", () => {
-    expect(runLengthDecode(runLengthEncode("aabbccdd"))).toBe("aabbccdd");
+  it("decode reverses encode", () => {
+    const encoded = runLengthEncode("aaabbcccc");
+    expect(runLengthDecode(encoded)).toBe("aaabbcccc");
   });
 
   it("handles single chars", () => {
@@ -33,27 +67,5 @@ describe("runLengthEncode/Decode", () => {
 
   it("handles empty", () => {
     expect(runLengthEncode("")).toBe("");
-  });
-});
-
-describe("reverseWords", () => {
-  it("reverses word order", () => {
-    expect(reverseWords("hello world")).toBe("world hello");
-  });
-});
-
-describe("isPalindrome", () => {
-  it("detects palindromes", () => {
-    expect(isPalindrome("racecar")).toBe(true);
-    expect(isPalindrome("A man a plan a canal Panama")).toBe(true);
-    expect(isPalindrome("hello")).toBe(false);
-  });
-});
-
-describe("countWords", () => {
-  it("counts words", () => {
-    expect(countWords("hello world")).toBe(2);
-    expect(countWords("  spaces  everywhere  ")).toBe(2);
-    expect(countWords("")).toBe(0);
   });
 });

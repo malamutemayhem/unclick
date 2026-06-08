@@ -1,64 +1,64 @@
 import { describe, it, expect } from "vitest";
-import { evaluate } from "../expression-eval.js";
+import { evaluate, compile } from "../expression-eval.js";
 
 describe("evaluate", () => {
-  it("evaluates simple addition", () => {
+  it("basic arithmetic", () => {
     expect(evaluate("2 + 3")).toBe(5);
-  });
-
-  it("evaluates subtraction", () => {
     expect(evaluate("10 - 4")).toBe(6);
-  });
-
-  it("evaluates multiplication", () => {
     expect(evaluate("3 * 4")).toBe(12);
+    expect(evaluate("15 / 3")).toBe(5);
   });
 
-  it("evaluates division", () => {
-    expect(evaluate("10 / 2")).toBe(5);
-  });
-
-  it("evaluates modulo", () => {
-    expect(evaluate("7 % 3")).toBe(1);
-  });
-
-  it("evaluates exponentiation", () => {
-    expect(evaluate("2 ** 3")).toBe(8);
-  });
-
-  it("respects operator precedence", () => {
+  it("operator precedence", () => {
     expect(evaluate("2 + 3 * 4")).toBe(14);
-  });
-
-  it("respects parentheses", () => {
     expect(evaluate("(2 + 3) * 4")).toBe(20);
   });
 
-  it("handles unary minus", () => {
+  it("exponentiation", () => {
+    expect(evaluate("2 ^ 3")).toBe(8);
+  });
+
+  it("modulo", () => {
+    expect(evaluate("10 % 3")).toBe(1);
+  });
+
+  it("unary negation", () => {
     expect(evaluate("-5 + 3")).toBe(-2);
   });
 
-  it("handles nested parentheses", () => {
-    expect(evaluate("((2 + 3) * (4 - 1))")).toBe(15);
-  });
-
-  it("handles decimal numbers", () => {
-    expect(evaluate("1.5 + 2.5")).toBe(4);
-  });
-
-  it("evaluates variables", () => {
+  it("variables", () => {
     expect(evaluate("x + y", { x: 10, y: 20 })).toBe(30);
   });
 
-  it("complex expression with variables", () => {
-    expect(evaluate("(x ** 2) + (y ** 2)", { x: 3, y: 4 })).toBe(25);
+  it("built-in constants", () => {
+    expect(evaluate("PI")).toBeCloseTo(Math.PI);
+    expect(evaluate("E")).toBeCloseTo(Math.E);
   });
 
-  it("throws on undefined variable", () => {
-    expect(() => evaluate("x + 1")).toThrow("Undefined variable");
+  it("function calls", () => {
+    expect(evaluate("sqrt(16)")).toBe(4);
+    expect(evaluate("abs(-5)")).toBe(5);
+    expect(evaluate("max(3, 7)")).toBe(7);
+    expect(evaluate("min(3, 7)")).toBe(3);
   });
 
-  it("throws on division by zero", () => {
-    expect(() => evaluate("1 / 0")).toThrow("Division by zero");
+  it("nested functions", () => {
+    expect(evaluate("sqrt(pow(3, 2) + pow(4, 2))")).toBe(5);
+  });
+
+  it("throws on unknown variable", () => {
+    expect(() => evaluate("z")).toThrow("Unknown variable");
+  });
+
+  it("throws on unknown function", () => {
+    expect(() => evaluate("foo(1)")).toThrow("Unknown function");
+  });
+});
+
+describe("compile", () => {
+  it("returns reusable function", () => {
+    const fn = compile("x * 2 + 1");
+    expect(fn({ x: 5 })).toBe(11);
+    expect(fn({ x: 10 })).toBe(21);
   });
 });
