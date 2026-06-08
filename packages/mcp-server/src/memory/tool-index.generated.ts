@@ -694,6 +694,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cheapshark",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cheapshark_deals",
+        "description": "Search for game deals across multiple stores (Steam, GOG, etc.)."
+      },
+      {
+        "name": "cheapshark_stores",
+        "description": "List all game stores tracked by CheapShark."
+      }
+    ]
+  },
+  {
     "app": "chessdotcom",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2020,6 +2034,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "freetogame",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "freetogame_list",
+        "description": "Browse free-to-play games, optionally filtered by platform or category."
+      },
+      {
+        "name": "freetogame_detail",
+        "description": "Get full details for a specific free-to-play game."
+      }
+    ]
+  },
+  {
     "app": "gdelt",
     "category": "Gaming",
     "tools": [
@@ -2438,6 +2466,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "iceandfire",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iceandfire_characters",
+        "description": "Search characters from A Song of Ice and Fire (Game of Thrones)."
+      },
+      {
+        "name": "iceandfire_books",
+        "description": "List or search books in the A Song of Ice and Fire series."
+      },
+      {
+        "name": "iceandfire_houses",
+        "description": "Search noble houses from A Song of Ice and Fire (Game of Thrones)."
+      }
+    ]
+  },
+  {
     "app": "igdb",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -2562,6 +2608,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ipinfo_lookup",
         "description": "Get geolocation and ISP info for an IP address (or your own)."
+      }
+    ]
+  },
+  {
+    "app": "iseven",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "is_even",
+        "description": "Check whether a number is even, via the isEven API."
       }
     ]
   },
@@ -5488,6 +5544,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "tvmaze",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tvmaze_search",
+        "description": "Search for TV shows by name."
+      },
+      {
+        "name": "tvmaze_show",
+        "description": "Get full details for a TV show by its TVmaze ID."
+      },
+      {
+        "name": "tvmaze_schedule",
+        "description": "Get the TV schedule for a country and date."
+      }
+    ]
+  },
+  {
     "app": "twilio",
     "category": "Messaging",
     "tools": [
@@ -5696,6 +5770,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "uptimerobot_get_account",
         "description": "Get UptimeRobot account details and limits."
+      }
+    ]
+  },
+  {
+    "app": "urlhaus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "urlhaus_lookup_url",
+        "description": "Check if a URL is listed as a malware distribution site in the URLhaus database."
+      },
+      {
+        "name": "urlhaus_recent",
+        "description": "Get recent malware URLs added to the URLhaus database."
       }
     ]
   },

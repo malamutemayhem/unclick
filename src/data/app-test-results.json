@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T07:30:00.000Z",
+  "updatedAt": "2026-06-08T08:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -299,6 +299,15 @@
         "cat_breeds"
       ],
       "comment": ""
+    },
+    "cheapshark": {
+      "status": "pass",
+      "note": "cheapshark_deals and cheapshark_stores return game deal data from CheapShark. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "cheapshark_deals",
+        "cheapshark_stores"
+      ]
     },
     "chessdotcom": {
       "status": "pass",
@@ -791,6 +800,15 @@
       ],
       "comment": ""
     },
+    "freetogame": {
+      "status": "pass",
+      "note": "freetogame_list and freetogame_detail return free-to-play game data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "freetogame_list",
+        "freetogame_detail"
+      ]
+    },
     "fpl": {
       "status": "pass",
       "note": "fpl_bootstrap returned 841 players, 20 teams, GW38 data, top players with points",
@@ -985,6 +1003,16 @@
       ],
       "comment": ""
     },
+    "iceandfire": {
+      "status": "pass",
+      "note": "iceandfire_characters, iceandfire_books, iceandfire_houses return ASOIAF data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "iceandfire_characters",
+        "iceandfire_books",
+        "iceandfire_houses"
+      ]
+    },
     "igniteonly": {
       "status": "pass",
       "note": "igniteonly_policy returned full guardrails and worker routes successfully",
@@ -1042,6 +1070,14 @@
       "testedAt": "2026-06-08T06:30:00.000Z",
       "toolsTested": [
         "ipinfo_lookup"
+      ]
+    },
+    "iseven": {
+      "status": "pass",
+      "note": "is_even checks if a number is even via isevenapi.xyz. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "is_even"
       ]
     },
     "jikan": {
@@ -2156,6 +2192,16 @@
       ],
       "comment": ""
     },
+    "tvmaze": {
+      "status": "pass",
+      "note": "tvmaze_search, tvmaze_show, tvmaze_schedule return TV show data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "tvmaze_search",
+        "tvmaze_show",
+        "tvmaze_schedule"
+      ]
+    },
     "typeform": {
       "status": "attention",
       "note": "Forms API; needs TYPEFORM_ACCESS_TOKEN.",
@@ -2210,6 +2256,15 @@
         "urlscan_search"
       ],
       "comment": ""
+    },
+    "urlhaus": {
+      "status": "pass",
+      "note": "urlhaus_lookup_url and urlhaus_recent check URLs against the abuse.ch malware DB. Free, no key needed.",
+      "testedAt": "2026-06-08T08:00:00.000Z",
+      "toolsTested": [
+        "urlhaus_lookup_url",
+        "urlhaus_recent"
+      ]
     },
     "uselessfacts": {
       "status": "pass",

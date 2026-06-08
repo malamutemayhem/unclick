@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 293,
-  "toolCount": 1106,
+  "appCount": 299,
+  "toolCount": 1119,
   "categories": [
     "AI",
     "Books",
@@ -816,6 +816,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "cheapshark",
+      "name": "CheapShark",
+      "category": "Games & esports",
+      "blurb": "Compare game deals across Steam, GOG, and other stores.",
+      "domain": "cheapshark.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "cheapshark_deals",
+          "description": "Search for game deals across multiple stores (Steam, GOG, etc.)."
+        },
+        {
+          "name": "cheapshark_stores",
+          "description": "List all game stores tracked by CheapShark."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "chessdotcom",
@@ -2450,6 +2470,26 @@
       "hardened": true
     },
     {
+      "slug": "freetogame",
+      "name": "FreeToGame",
+      "category": "Games & esports",
+      "blurb": "Browse and search free-to-play games across platforms.",
+      "domain": "freetogame.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "freetogame_list",
+          "description": "Browse free-to-play games, optionally filtered by platform or category."
+        },
+        {
+          "name": "freetogame_detail",
+          "description": "Get full details for a specific free-to-play game."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gdelt",
       "name": "GDELT",
       "category": "News & reading",
@@ -2946,6 +2986,30 @@
       "hardened": true
     },
     {
+      "slug": "iceandfire",
+      "name": "Ice and Fire (GoT)",
+      "category": "Social",
+      "blurb": "Browse characters, houses, and books from Game of Thrones.",
+      "domain": "anapioficeandfire.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "iceandfire_characters",
+          "description": "Search characters from A Song of Ice and Fire (Game of Thrones)."
+        },
+        {
+          "name": "iceandfire_books",
+          "description": "List or search books in the A Song of Ice and Fire series."
+        },
+        {
+          "name": "iceandfire_houses",
+          "description": "Search noble houses from A Song of Ice and Fire (Game of Thrones)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "igdb",
       "name": "IGDB",
       "category": "Games & esports",
@@ -3136,6 +3200,22 @@
         {
           "name": "ipinfo_lookup",
           "description": "Get geolocation and ISP info for an IP address (or your own)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "iseven",
+      "name": "isEven API",
+      "category": "Utilities",
+      "blurb": "Check whether a number is even (the novelty API).",
+      "domain": "isevenapi.xyz",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "is_even",
+          "description": "Check whether a number is even, via the isEven API."
         }
       ],
       "level": 5,
@@ -7034,6 +7114,30 @@
       "hardened": true
     },
     {
+      "slug": "tvmaze",
+      "name": "TVmaze",
+      "category": "Music & video",
+      "blurb": "Search TV shows, get details, and browse schedules.",
+      "domain": "tvmaze.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "tvmaze_search",
+          "description": "Search for TV shows by name."
+        },
+        {
+          "name": "tvmaze_show",
+          "description": "Get full details for a TV show by its TVmaze ID."
+        },
+        {
+          "name": "tvmaze_schedule",
+          "description": "Get the TV schedule for a country and date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "twilio",
       "name": "Twilio",
       "category": "Messaging & email",
@@ -7308,6 +7412,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "urlhaus",
+      "name": "URLhaus",
+      "category": "Security",
+      "blurb": "Check URLs against the URLhaus malware database.",
+      "domain": "urlhaus.abuse.ch",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "urlhaus_lookup_url",
+          "description": "Check if a URL is listed as a malware distribution site in the URLhaus database."
+        },
+        {
+          "name": "urlhaus_recent",
+          "description": "Get recent malware URLs added to the URLhaus database."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "urlscan",

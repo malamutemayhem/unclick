@@ -31,20 +31,20 @@ bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", 
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
-bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter"]);
+bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
-bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat"]);
+bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi"]);
-bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
+bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -97,6 +97,8 @@ const NAME_OF = {
   disneyapi: "Disney API", harrypotter: "Harry Potter", emojihub: "EmojiHub",
   avatarapi: "UI Avatars", robohash: "RoboHash", openlib2: "Project Gutenberg",
   countryflag: "Country Flags", mediawiki: "Wiktionary", bibleverse: "Al Quran Cloud",
+  urlhaus: "URLhaus", tvmaze: "TVmaze", freetogame: "FreeToGame",
+  cheapshark: "CheapShark", iseven: "isEven API", iceandfire: "Ice and Fire (GoT)",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -237,6 +239,12 @@ const BLURB_OF = {
   countryflag: "Get country flag images by ISO code.",
   mediawiki: "Look up word definitions in Wiktionary (multi-language).",
   bibleverse: "Read Quran verses and surahs with English translation.",
+  urlhaus: "Check URLs against the URLhaus malware database.",
+  tvmaze: "Search TV shows, get details, and browse schedules.",
+  freetogame: "Browse and search free-to-play games across platforms.",
+  cheapshark: "Compare game deals across Steam, GOG, and other stores.",
+  iseven: "Check whether a number is even (the novelty API).",
+  iceandfire: "Browse characters, houses, and books from Game of Thrones.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -323,6 +331,9 @@ const DOMAIN_OF = {
   avatarapi: "ui-avatars.com", robohash: "robohash.org",
   openlib2: "gutendex.com", countryflag: "flagcdn.com",
   mediawiki: "wiktionary.org", bibleverse: "alquran.cloud",
+  urlhaus: "urlhaus.abuse.ch", tvmaze: "tvmaze.com",
+  freetogame: "freetogame.com", cheapshark: "cheapshark.com",
+  iseven: "isevenapi.xyz", iceandfire: "anapioficeandfire.com",
 };
 
 function titleCase(slug) {

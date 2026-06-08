@@ -435,6 +435,18 @@ import { wiktionaryLookup } from "./mediawiki-tool.js";
 
 import { quranVerse, quranSurah } from "./bibleverse-tool.js";
 
+import { urlhausLookupUrl, urlhausRecent } from "./urlhaus-tool.js";
+
+import { tvmazeSearch, tvmazeShow, tvmazeSchedule } from "./tvmaze-tool.js";
+
+import { freetogameList, freetogameDetail } from "./freetogame-tool.js";
+
+import { cheapsharkDeals, cheapsharkStores } from "./cheapshark-tool.js";
+
+import { isEven } from "./iseven-tool.js";
+
+import { iceandfireCharacters, iceandfireBooks, iceandfireHouses } from "./iceandfire-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6466,6 +6478,157 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false,
       properties: {
         number: { type: "number", description: "Surah number (1-114, default 1)" },
+      },
+    },
+  },
+
+  // ── urlhaus-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "urlhaus_lookup_url",
+    description: "Check if a URL is listed as a malware distribution site in the URLhaus database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        url: { type: "string", description: "The URL to look up" },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "urlhaus_recent",
+    description: "Get recent malware URLs added to the URLhaus database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── tvmaze-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "tvmaze_search",
+    description: "Search for TV shows by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Show name to search for" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "tvmaze_show",
+    description: "Get full details for a TV show by its TVmaze ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "TVmaze show ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "tvmaze_schedule",
+    description: "Get the TV schedule for a country and date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country: { type: "string", description: "ISO 3166-1 country code (default US)" },
+        date: { type: "string", description: "Date in YYYY-MM-DD format (default today)" },
+      },
+    },
+  },
+
+  // ── freetogame-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "freetogame_list",
+    description: "Browse free-to-play games, optionally filtered by platform or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        platform: { type: "string", description: "Filter: pc, browser, or all (default all)" },
+        category: { type: "string", description: "Filter: mmorpg, shooter, moba, strategy, etc." },
+        sort_by: { type: "string", description: "Sort: relevance, popularity, release-date, alphabetical" },
+      },
+    },
+  },
+  {
+    name: "freetogame_detail",
+    description: "Get full details for a specific free-to-play game.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Game ID from freetogame" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── cheapshark-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cheapshark_deals",
+    description: "Search for game deals across multiple stores (Steam, GOG, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        title: { type: "string", description: "Game title to search for" },
+        upper_price: { type: "number", description: "Max price filter" },
+        lower_price: { type: "number", description: "Min price filter" },
+        store_id: { type: "string", description: "Store ID to filter (use cheapshark_stores to find IDs)" },
+        sort_by: { type: "string", description: "Sort: Deal Rating, Title, Savings, Price, Store, recent" },
+        limit: { type: "number", description: "Number of results (default 10)" },
+      },
+    },
+  },
+  {
+    name: "cheapshark_stores",
+    description: "List all game stores tracked by CheapShark.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── iseven-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "is_even",
+    description: "Check whether a number is even, via the isEven API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "The number to check" },
+      },
+      required: ["number"],
+    },
+  },
+
+  // ── iceandfire-tool.ts (Game of Thrones / ASOIAF) ──────────────────────────
+  {
+    name: "iceandfire_characters",
+    description: "Search characters from A Song of Ice and Fire (Game of Thrones).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+  {
+    name: "iceandfire_books",
+    description: "List or search books in the A Song of Ice and Fire series.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Book title to search for" },
+      },
+    },
+  },
+  {
+    name: "iceandfire_houses",
+    description: "Search noble houses from A Song of Ice and Fire (Game of Thrones).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "House name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
       },
     },
   },
@@ -17446,6 +17609,31 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // bibleverse-tool.ts
   quran_verse:             (args) => quranVerse(args),
   quran_surah:             (args) => quranSurah(args),
+
+  // urlhaus-tool.ts
+  urlhaus_lookup_url:      (args) => urlhausLookupUrl(args),
+  urlhaus_recent:          (args) => urlhausRecent(args),
+
+  // tvmaze-tool.ts
+  tvmaze_search:           (args) => tvmazeSearch(args),
+  tvmaze_show:             (args) => tvmazeShow(args),
+  tvmaze_schedule:         (args) => tvmazeSchedule(args),
+
+  // freetogame-tool.ts
+  freetogame_list:         (args) => freetogameList(args),
+  freetogame_detail:       (args) => freetogameDetail(args),
+
+  // cheapshark-tool.ts
+  cheapshark_deals:        (args) => cheapsharkDeals(args),
+  cheapshark_stores:       (args) => cheapsharkStores(args),
+
+  // iseven-tool.ts
+  is_even:                 (args) => isEven(args),
+
+  // iceandfire-tool.ts
+  iceandfire_characters:   (args) => iceandfireCharacters(args),
+  iceandfire_books:        (args) => iceandfireBooks(args),
+  iceandfire_houses:       (args) => iceandfireHouses(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
