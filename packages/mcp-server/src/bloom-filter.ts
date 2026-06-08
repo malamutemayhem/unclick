@@ -1,54 +1,65 @@
 export class BloomFilter {
   private bits: Uint8Array;
-  private numBits: number;
-  private numHashes: number;
-  private _count = 0;
+  private size: number;
+  private hashCount: number;
+  private count = 0;
 
-  constructor(expectedItems: number, falsePositiveRate = 0.01) {
-    this.numBits = Math.max(8, Math.ceil(-(expectedItems * Math.log(falsePositiveRate)) / (Math.log(2) ** 2)));
-    this.numHashes = Math.max(1, Math.round((this.numBits / expectedItems) * Math.log(2)));
-    this.bits = new Uint8Array(Math.ceil(this.numBits / 8));
-  }
-
-  get size(): number {
-    return this.numBits;
-  }
-
-  get count(): number {
-    return this._count;
-  }
-
-  get hashCount(): number {
-    return this.numHashes;
+  constructor(size: number, hashCount = 3) {
+    this.size = size;
+    this.hashCount = hashCount;
+    this.bits = new Uint8Array(Math.ceil(size / 8));
   }
 
   add(item: string): void {
-    for (let i = 0; i < this.numHashes; i++) {
-      const pos = this.hash(item, i) % this.numBits;
-      this.bits[pos >>> 3] |= 1 << (pos & 7);
+    const hashes = this.getHashes(item);
+    for (const h of hashes) {
+      const idx = h % this.size;
+      this.bits[Math.floor(idx / 8)] |= 1 << (idx % 8);
     }
-    this._count++;
+    this.count++;
   }
 
-  test(item: string): boolean {
-    for (let i = 0; i < this.numHashes; i++) {
-      const pos = this.hash(item, i) % this.numBits;
-      if ((this.bits[pos >>> 3] & (1 << (pos & 7))) === 0) return false;
+  has(item: string): boolean {
+    const hashes = this.getHashes(item);
+    for (const h of hashes) {
+      const idx = h % this.size;
+      if (!(this.bits[Math.floor(idx / 8)] & (1 << (idx % 8)))) return false;
     }
     return true;
   }
 
-  clear(): void {
-    this.bits.fill(0);
-    this._count = 0;
+  get itemCount(): number { return this.count; }
+
+  get falsePositiveRate(): number {
+    const m = this.size;
+    const k = this.hashCount;
+    const n = this.count;
+    return Math.pow(1 - Math.exp(-k * n / m), k);
   }
 
-  private hash(item: string, seed: number): number {
-    let h = seed * 0x811c9dc5;
+  clear(): void {
+    this.bits.fill(0);
+    this.count = 0;
+  }
+
+  private getHashes(item: string): number[] {
+    let h1 = 0;
+    let h2 = 0;
     for (let i = 0; i < item.length; i++) {
-      h ^= item.charCodeAt(i);
-      h = Math.imul(h, 0x01000193);
+      const c = item.charCodeAt(i);
+      h1 = (h1 * 31 + c) >>> 0;
+      h2 = (h2 * 37 + c) >>> 0;
     }
-    return h >>> 0;
+    const result: number[] = [];
+    for (let i = 0; i < this.hashCount; i++) {
+      result.push((h1 + i * h2) >>> 0);
+    }
+    return result;
+  }
+
+  static optimal(expectedItems: number, fpRate: number): BloomFilter {
+    const m = Math.ceil(-expectedItems * Math.log(fpRate) / (Math.log(2) ** 2));
+    const k = Math.round((m / expectedItems) * Math.log(2));
+    return new BloomFilter(m, k);
   }
 }

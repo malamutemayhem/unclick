@@ -1,79 +1,75 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { ObjectPool } from "../object-pool.js";
 
 describe("ObjectPool", () => {
-  it("creates new objects via factory", () => {
-    const pool = new ObjectPool(() => ({ x: 0 }));
+  it("acquires and releases objects", () => {
+    const pool = new ObjectPool({ factory: () => ({ value: 0 }) });
     const obj = pool.acquire();
-    expect(obj).toEqual({ x: 0 });
-    expect(pool.created).toBe(1);
+    expect(obj).toBeDefined();
+    expect(pool.inUseCount).toBe(1);
+    pool.release(obj);
+    expect(pool.inUseCount).toBe(0);
+    expect(pool.availableCount).toBe(1);
   });
 
   it("reuses released objects", () => {
-    const pool = new ObjectPool(() => ({ x: 0 }));
-    const obj = pool.acquire();
-    pool.release(obj);
+    const pool = new ObjectPool({ factory: () => ({ value: 0 }) });
+    const obj1 = pool.acquire();
+    pool.release(obj1);
     const obj2 = pool.acquire();
-    expect(obj2).toBe(obj);
-    expect(pool.reused).toBe(1);
+    expect(obj2).toBe(obj1);
   });
 
   it("calls reset on release", () => {
-    const reset = vi.fn();
-    const pool = new ObjectPool(() => ({ x: 0 }), reset);
+    let resetCalled = false;
+    const pool = new ObjectPool({
+      factory: () => ({ value: 0 }),
+      reset: () => { resetCalled = true; },
+    });
     const obj = pool.acquire();
     pool.release(obj);
-    expect(reset).toHaveBeenCalledWith(obj);
+    expect(resetCalled).toBe(true);
   });
 
-  it("respects maxSize limit", () => {
-    const pool = new ObjectPool(() => ({}), undefined, 2);
-    const a = pool.acquire();
-    const b = pool.acquire();
-    const c = pool.acquire();
-    pool.release(a);
-    pool.release(b);
-    pool.release(c);
-    expect(pool.available).toBe(2);
+  it("pre-allocates initial size", () => {
+    const pool = new ObjectPool({ factory: () => ({}), initialSize: 5 });
+    expect(pool.availableCount).toBe(5);
   });
 
-  it("tracks available count", () => {
-    const pool = new ObjectPool(() => ({}));
-    expect(pool.available).toBe(0);
+  it("respects maxSize for available pool", () => {
+    const pool = new ObjectPool({ factory: () => ({}), maxSize: 2 });
+    const objs = [pool.acquire(), pool.acquire(), pool.acquire()];
+    for (const o of objs) pool.release(o);
+    expect(pool.availableCount).toBe(2);
+  });
+
+  it("tracks total count", () => {
+    const pool = new ObjectPool({ factory: () => ({}), initialSize: 3 });
     const obj = pool.acquire();
+    expect(pool.totalCount).toBe(3);
     pool.release(obj);
-    expect(pool.available).toBe(1);
+    expect(pool.totalCount).toBe(3);
   });
 
-  it("drains the pool", () => {
-    const pool = new ObjectPool(() => ({}));
+  it("clear empties everything", () => {
+    const pool = new ObjectPool({ factory: () => ({}), initialSize: 3 });
+    pool.acquire();
+    pool.clear();
+    expect(pool.totalCount).toBe(0);
+  });
+
+  it("drain only empties available", () => {
+    const pool = new ObjectPool({ factory: () => ({}), initialSize: 3 });
     const obj = pool.acquire();
-    pool.release(obj);
     pool.drain();
-    expect(pool.available).toBe(0);
-  });
-
-  it("fills the pool with pre-created objects", () => {
-    const pool = new ObjectPool(() => ({ v: 1 }));
-    pool.fill(3);
-    expect(pool.available).toBe(3);
-    expect(pool.created).toBe(3);
-  });
-
-  it("fill respects maxSize", () => {
-    const pool = new ObjectPool(() => ({}), undefined, 2);
-    pool.fill(5);
-    expect(pool.available).toBe(2);
-  });
-
-  it("tracks created and reused counts", () => {
-    const pool = new ObjectPool(() => ({}));
-    pool.acquire();
-    pool.acquire();
-    const obj = pool.acquire();
+    expect(pool.availableCount).toBe(0);
+    expect(pool.inUseCount).toBe(1);
     pool.release(obj);
-    pool.acquire();
-    expect(pool.created).toBe(3);
-    expect(pool.reused).toBe(1);
+  });
+
+  it("ignores releasing unknown object", () => {
+    const pool = new ObjectPool({ factory: () => ({}) });
+    pool.release({});
+    expect(pool.availableCount).toBe(0);
   });
 });
