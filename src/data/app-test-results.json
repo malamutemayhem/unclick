@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:55:00.000Z",
+  "updatedAt": "2026-06-08T22:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3652,6 +3652,30 @@
       "note": "camelsnake_convert converts between naming conventions locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
       "toolsTested": ["camelsnake_convert"]
+    },
+    "metaphone": {
+      "status": "pass",
+      "note": "metaphone_encode computes Metaphone phonetic codes locally. No API needed.",
+      "testedAt": "2026-06-08T22:00:00.000Z",
+      "toolsTested": ["metaphone_encode"]
+    },
+    "tfidf": {
+      "status": "pass",
+      "note": "tfidf_calculate ranks documents by TF-IDF relevance locally. No API needed.",
+      "testedAt": "2026-06-08T22:00:00.000Z",
+      "toolsTested": ["tfidf_calculate"]
+    },
+    "readability": {
+      "status": "pass",
+      "note": "readability_score calculates Flesch-Kincaid scores locally. No API needed.",
+      "testedAt": "2026-06-08T22:00:00.000Z",
+      "toolsTested": ["readability_score"]
+    },
+    "tokencount": {
+      "status": "pass",
+      "note": "tokencount_estimate estimates LLM token counts locally. No API needed.",
+      "testedAt": "2026-06-08T22:00:00.000Z",
+      "toolsTested": ["tokencount_estimate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

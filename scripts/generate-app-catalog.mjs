@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -162,6 +162,8 @@ const NAME_OF = {
   luhn: "Luhn Validator", charcodes: "Character Codes",
   soundex: "Soundex", frequency: "Frequency Analysis", entropy: "Entropy Calculator",
   ngram: "N-gram Extractor", camelsnake: "Case Converter",
+  metaphone: "Metaphone", tfidf: "TF-IDF", readability: "Readability Score",
+  tokencount: "Token Counter",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -479,6 +481,10 @@ const BLURB_OF = {
   entropy: "Calculate Shannon entropy to measure text randomness and information density.",
   ngram: "Extract and count n-grams (word or character level) from text.",
   camelsnake: "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
+  metaphone: "Encode words with the Metaphone phonetic algorithm and compare word sounds.",
+  tfidf: "Calculate TF-IDF scores to rank documents by relevance to a query.",
+  readability: "Calculate Flesch-Kincaid readability scores and reading level for text.",
+  tokencount: "Estimate token counts for text across different LLM tokenizers.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -632,6 +638,8 @@ const DOMAIN_OF = {
   luhn: "local", charcodes: "local",
   soundex: "local", frequency: "local", entropy: "local",
   ngram: "local", camelsnake: "local",
+  metaphone: "local", tfidf: "local", readability: "local",
+  tokencount: "local",
 };
 
 function titleCase(slug) {

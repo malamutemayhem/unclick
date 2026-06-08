@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 893,
+    "inventory": 897,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 471,
+    "tools": 475,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 471
+      "count": 475
     },
     {
       "id": "rooms",
@@ -6622,6 +6622,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-metaphone-packages-mcp-server-src-metaphone-tool-ts-no-route",
+      "division": "Tools",
+      "name": "metaphone",
+      "kind": "MCP tool",
+      "meaning": "metaphone MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/metaphone-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-metmuseum-packages-mcp-server-src-metmuseum-tool-ts-no-route",
       "division": "Tools",
       "name": "metmuseum",
@@ -7602,6 +7612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-readability-packages-mcp-server-src-readability-tool-ts-no-route",
+      "division": "Tools",
+      "name": "readability",
+      "kind": "MCP tool",
+      "meaning": "readability MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/readability-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-readwise-packages-mcp-server-src-readwise-tool-ts-no-route",
       "division": "Tools",
       "name": "readwise",
@@ -8232,6 +8252,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-tfidf-packages-mcp-server-src-tfidf-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tfidf",
+      "kind": "MCP tool",
+      "meaning": "tfidf MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tfidf-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-thecolorapi-packages-mcp-server-src-thecolorapi-tool-ts-no-route",
       "division": "Tools",
       "name": "thecolorapi",
@@ -8338,6 +8368,16 @@
       "kind": "MCP tool",
       "meaning": "toilets MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/toilets-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-tokencount-packages-mcp-server-src-tokencount-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tokencount",
+      "kind": "MCP tool",
+      "meaning": "tokencount MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tokencount-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10845,6 +10885,11 @@
       "packages/mcp-server/src/memegen-tool.ts"
     ],
     [
+      "metaphone",
+      "metaphone MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/metaphone-tool.ts"
+    ],
+    [
       "metmuseum",
       "metmuseum MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/metmuseum-tool.ts"
@@ -11335,6 +11380,11 @@
       "packages/mcp-server/src/rdap-tool.ts"
     ],
     [
+      "readability",
+      "readability MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/readability-tool.ts"
+    ],
+    [
       "readwise",
       "readwise MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/readwise-tool.ts"
@@ -11650,6 +11700,11 @@
       "packages/mcp-server/src/textwrap-tool.ts"
     ],
     [
+      "tfidf",
+      "tfidf MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tfidf-tool.ts"
+    ],
+    [
       "thecolorapi",
       "thecolorapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/thecolorapi-tool.ts"
@@ -11703,6 +11758,11 @@
       "toilets",
       "toilets MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/toilets-tool.ts"
+    ],
+    [
+      "tokencount",
+      "tokencount MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tokencount-tool.ts"
     ],
     [
       "tomorrowio",

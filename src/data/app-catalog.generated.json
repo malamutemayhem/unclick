@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 470,
-  "toolCount": 1392,
+  "appCount": 474,
+  "toolCount": 1396,
   "categories": [
     "AI",
     "Books",
@@ -5490,6 +5490,22 @@
       "hardened": true
     },
     {
+      "slug": "metaphone",
+      "name": "Metaphone",
+      "category": "Utilities",
+      "blurb": "Encode words with the Metaphone phonetic algorithm and compare word sounds.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "metaphone_encode",
+          "description": "Encode words using the Metaphone phonetic algorithm, optionally comparing two words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "miro",
       "name": "Miro",
       "category": "Productivity",
@@ -7858,6 +7874,22 @@
       "hardened": false
     },
     {
+      "slug": "readability",
+      "name": "Readability Score",
+      "category": "Utilities",
+      "blurb": "Calculate Flesch-Kincaid readability scores and reading level for text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "readability_score",
+          "description": "Calculate Flesch-Kincaid readability scores and reading level for text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "readwise",
       "name": "Readwise",
       "category": "News & reading",
@@ -9494,6 +9526,22 @@
       "hardened": false
     },
     {
+      "slug": "tfidf",
+      "name": "TF-IDF",
+      "category": "Utilities",
+      "blurb": "Calculate TF-IDF scores to rank documents by relevance to a query.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tfidf_calculate",
+          "description": "Calculate TF-IDF scores to rank documents by relevance to a query."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "catapi",
       "name": "The Cat API",
       "category": "Images",
@@ -9876,6 +9924,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "tokencount",
+      "name": "Token Counter",
+      "category": "Utilities",
+      "blurb": "Estimate token counts for text across different LLM tokenizers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tokencount_estimate",
+          "description": "Estimate token counts for text across different LLM tokenizers (GPT-4, Claude, WordPiece)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "tomorrowio",

@@ -635,6 +635,10 @@ import { frequencyAnalyse } from "./frequency-tool.js";
 import { entropyCalculate } from "./entropy-tool.js";
 import { ngramExtract } from "./ngram-tool.js";
 import { camelsnakeConvert } from "./camelsnake-tool.js";
+import { metaphoneEncode } from "./metaphone-tool.js";
+import { tfidfCalculate } from "./tfidf-tool.js";
+import { readabilityScore } from "./readability-tool.js";
+import { tokencountEstimate } from "./tokencount-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9739,6 +9743,52 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Identifier or text to convert." },
         target: { type: "string" as const, description: "Target case: camel, pascal, snake, kebab, constant. Omit for all." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── metaphone-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "metaphone_encode",
+    description: "Encode words using the Metaphone phonetic algorithm, optionally comparing two words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Word(s) to encode." },
+        compare: { type: "string" as const, description: "Second word to compare phonetically." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── tfidf-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "tfidf_calculate",
+    description: "Calculate TF-IDF scores to rank documents by relevance to a query.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        documents: { type: "array" as const, items: { type: "string" as const }, description: "Array of document strings." },
+        query: { type: "string" as const, description: "Search query." },
+      }, required: ["documents", "query"],
+    },
+  },
+
+  // ── readability-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "readability_score",
+    description: "Calculate Flesch-Kincaid readability scores and reading level for text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to score." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── tokencount-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "tokencount_estimate",
+    description: "Estimate token counts for text across different LLM tokenizers (GPT-4, Claude, WordPiece).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to estimate tokens for." },
       }, required: ["text"],
     },
   },
@@ -21285,6 +21335,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // camelsnake-tool.ts
   camelsnake_convert:        (args) => camelsnakeConvert(args),
+
+  // metaphone-tool.ts
+  metaphone_encode:          (args) => metaphoneEncode(args),
+
+  // tfidf-tool.ts
+  tfidf_calculate:           (args) => tfidfCalculate(args),
+
+  // readability-tool.ts
+  readability_score:         (args) => readabilityScore(args),
+
+  // tokencount-tool.ts
+  tokencount_estimate:       (args) => tokencountEstimate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

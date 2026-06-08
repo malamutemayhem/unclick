@@ -4222,6 +4222,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "metaphone",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "metaphone_encode",
+        "description": "Encode words using the Metaphone phonetic algorithm, optionally comparing two words."
+      }
+    ]
+  },
+  {
     "app": "metmuseum",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5934,6 +5944,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "readability",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "readability_score",
+        "description": "Calculate Flesch-Kincaid readability scores and reading level for text."
+      }
+    ]
+  },
+  {
     "app": "readwise",
     "category": "Productivity",
     "tools": [
@@ -7172,6 +7192,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "tfidf",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tfidf_calculate",
+        "description": "Calculate TF-IDF scores to rank documents by relevance to a query."
+      }
+    ]
+  },
+  {
     "app": "thecolorapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7382,6 +7412,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "get_toilet_details",
         "description": "Get details for a specific public toilet by ID."
+      }
+    ]
+  },
+  {
+    "app": "tokencount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tokencount_estimate",
+        "description": "Estimate token counts for text across different LLM tokenizers (GPT-4, Claude, WordPiece)."
       }
     ]
   },

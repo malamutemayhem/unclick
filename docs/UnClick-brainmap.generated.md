@@ -234,7 +234,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
-| Tools | MCP and gateway capabilities available to seats. | 471 |
+| Tools | MCP and gateway capabilities available to seats. | 475 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -613,6 +613,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | meal | meal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/meal-tool.ts |
 | mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mediawiki-tool.ts |
 | memegen | memegen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/memegen-tool.ts |
+| metaphone | metaphone MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metaphone-tool.ts |
 | metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/metmuseum-tool.ts |
 | mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mhwdb-tool.ts |
 | miro | miro MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/miro-tool.ts |
@@ -711,6 +712,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | randomuser | randomuser MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/randomuser-tool.ts |
 | rawg | rawg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rawg-tool.ts |
 | rdap | rdap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rdap-tool.ts |
+| readability | readability MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/readability-tool.ts |
 | readwise | readwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/readwise-tool.ts |
 | reddit | reddit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reddit-tool.ts |
 | regexr | regexr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/regexr-tool.ts |
@@ -774,6 +776,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | text | text MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/text-tool.ts |
 | textstats | textstats MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/textstats-tool.ts |
 | textwrap | textwrap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/textwrap-tool.ts |
+| tfidf | tfidf MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tfidf-tool.ts |
 | thecolorapi | thecolorapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/thecolorapi-tool.ts |
 | thelott | thelott MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/thelott-tool.ts |
 | ticketmaster | ticketmaster MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ticketmaster-tool.ts |
@@ -785,6 +788,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | togetherai | togetherai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/togetherai-tool.ts |
 | toggl | toggl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toggl-tool.ts |
 | toilets | toilets MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toilets-tool.ts |
+| tokencount | tokencount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tokencount-tool.ts |
 | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tomorrowio-tool.ts |
 | trello | trello MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trello-tool.ts |
 | trivia | trivia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trivia-tool.ts |
@@ -1497,6 +1501,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | meal | meal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/meal-tool.ts |
 | Tools | MCP tool | mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mediawiki-tool.ts |
 | Tools | MCP tool | memegen | memegen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/memegen-tool.ts |
+| Tools | MCP tool | metaphone | metaphone MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metaphone-tool.ts |
 | Tools | MCP tool | metmuseum | metmuseum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/metmuseum-tool.ts |
 | Tools | MCP tool | mhwdb | mhwdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mhwdb-tool.ts |
 | Tools | MCP tool | miro | miro MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/miro-tool.ts |
@@ -1595,6 +1600,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | randomuser | randomuser MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/randomuser-tool.ts |
 | Tools | MCP tool | rawg | rawg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rawg-tool.ts |
 | Tools | MCP tool | rdap | rdap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rdap-tool.ts |
+| Tools | MCP tool | readability | readability MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/readability-tool.ts |
 | Tools | MCP tool | readwise | readwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/readwise-tool.ts |
 | Tools | MCP tool | reddit | reddit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reddit-tool.ts |
 | Tools | MCP tool | regexr | regexr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/regexr-tool.ts |
@@ -1658,6 +1664,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | text | text MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/text-tool.ts |
 | Tools | MCP tool | textstats | textstats MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/textstats-tool.ts |
 | Tools | MCP tool | textwrap | textwrap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/textwrap-tool.ts |
+| Tools | MCP tool | tfidf | tfidf MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tfidf-tool.ts |
 | Tools | MCP tool | thecolorapi | thecolorapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/thecolorapi-tool.ts |
 | Tools | MCP tool | thelott | thelott MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/thelott-tool.ts |
 | Tools | MCP tool | ticketmaster | ticketmaster MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ticketmaster-tool.ts |
@@ -1669,6 +1676,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | togetherai | togetherai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/togetherai-tool.ts |
 | Tools | MCP tool | toggl | toggl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toggl-tool.ts |
 | Tools | MCP tool | toilets | toilets MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toilets-tool.ts |
+| Tools | MCP tool | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tokencount-tool.ts |
 | Tools | MCP tool | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tomorrowio-tool.ts |
 | Tools | MCP tool | trello | trello MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trello-tool.ts |
 | Tools | MCP tool | trivia | trivia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trivia-tool.ts |
