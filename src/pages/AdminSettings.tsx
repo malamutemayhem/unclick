@@ -207,8 +207,9 @@ export default function AdminSettingsPage() {
         `/api/memory-admin?action=admin_generate_config&platform=${platform}`,
         { headers: { Authorization: `Bearer ${apiKey}` } }
       );
-      if (!res.ok) throw new Error((await res.json())?.error ?? "Generation failed");
-      setServerConfig((await res.json()) as GeneratedConfigResponse);
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error ?? "Generation failed");
+      setServerConfig(body as GeneratedConfigResponse);
     } catch (err) {
       toast({
         title: "Could not generate config",
