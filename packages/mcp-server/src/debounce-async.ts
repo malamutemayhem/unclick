@@ -1,11 +1,11 @@
-export interface DebouncedAsync<T extends (...args: unknown[]) => Promise<unknown>> {
+export interface DebouncedAsync<T extends (...args: any[]) => Promise<any>> {
   (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>>;
   cancel(): void;
   flush(): Promise<Awaited<ReturnType<T>> | undefined>;
   get pending(): boolean;
 }
 
-export function debounceAsync<T extends (...args: unknown[]) => Promise<unknown>>(
+export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   delayMs: number
 ): DebouncedAsync<T> {
