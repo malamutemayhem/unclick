@@ -421,7 +421,7 @@ async function readXGateSettings(db: ReturnType<typeof createClient>): Promise<X
   if (settingsCache && Date.now() - settingsCache.at < 15000) return settingsCache.settings;
   const envFallback = normalizeMode(process.env.UNCLICK_XGATE_MODE, "shadow");
   const fallback: XGateSettings = { mode: envFallback, gateModes: {} };
-  let settings = fallback;
+  let settings: XGateSettings;
   try {
     const { data } = await db
       .from("mc_xgate_settings")
