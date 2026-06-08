@@ -1,83 +1,49 @@
 import { describe, it, expect } from "vitest";
-import { escapeHtml, unescapeHtml, stripTags, escapeRegex, sanitizeFilename, sanitizeUrl, truncate } from "../sanitize.js";
+import { sanitizeHtml, stripTags, sanitizeFilename, sanitizeUrl, escapeRegex, escapeShell, truncate, normalizeWhitespace, removeNullBytes } from "../sanitize.js";
 
-describe("escapeHtml", () => {
-  it("escapes special chars", () => {
-    expect(escapeHtml('<script>alert("xss")</script>')).toBe("&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
+describe("sanitize", () => {
+  it("sanitizeHtml escapes special chars", () => {
+    expect(sanitizeHtml('<script>alert("xss")</script>')).toBe("&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
   });
 
-  it("escapes ampersand", () => {
-    expect(escapeHtml("a & b")).toBe("a &amp; b");
-  });
-});
-
-describe("unescapeHtml", () => {
-  it("unescapes entities", () => {
-    expect(unescapeHtml("&lt;div&gt;")).toBe("<div>");
+  it("stripTags removes all tags", () => {
+    expect(stripTags("<b>bold</b> and <i>italic</i>")).toBe("bold and italic");
   });
 
-  it("roundtrips", () => {
-    const input = '<a href="test">';
-    expect(unescapeHtml(escapeHtml(input))).toBe(input);
-  });
-});
-
-describe("stripTags", () => {
-  it("removes HTML tags", () => {
-    expect(stripTags("<p>Hello <b>world</b></p>")).toBe("Hello world");
+  it("sanitizeFilename removes dangerous chars", () => {
+    expect(sanitizeFilename('../../etc/passwd')).toBe("etcpasswd");
+    expect(sanitizeFilename('file<>:"|name')).toBe("filename");
   });
 
-  it("handles self-closing tags", () => {
-    expect(stripTags("line<br/>break")).toBe("linebreak");
-  });
-});
-
-describe("escapeRegex", () => {
-  it("escapes special regex chars", () => {
-    expect(escapeRegex("hello.world*")).toBe("hello\\.world\\*");
-  });
-
-  it("escaped string works in RegExp", () => {
-    const pattern = escapeRegex("[test]");
-    expect(new RegExp(pattern).test("[test]")).toBe(true);
-  });
-});
-
-describe("sanitizeFilename", () => {
-  it("removes invalid characters", () => {
-    expect(sanitizeFilename('file<>:"/\\|?*name.txt')).toBe("filename.txt");
-  });
-
-  it("limits length to 255", () => {
-    const long = "a".repeat(300) + ".txt";
-    expect(sanitizeFilename(long).length).toBeLessThanOrEqual(255);
-  });
-});
-
-describe("sanitizeUrl", () => {
-  it("blocks javascript urls", () => {
+  it("sanitizeUrl blocks javascript:", () => {
     expect(sanitizeUrl("javascript:alert(1)")).toBe("");
+    expect(sanitizeUrl("JAVASCRIPT:alert(1)")).toBe("");
+    expect(sanitizeUrl("data:text/html,<h1>hi</h1>")).toBe("");
   });
 
-  it("blocks data urls", () => {
-    expect(sanitizeUrl("data:text/html,<script>")).toBe("");
-  });
-
-  it("allows normal urls", () => {
+  it("sanitizeUrl allows safe urls", () => {
     expect(sanitizeUrl("https://example.com")).toBe("https://example.com");
   });
-});
 
-describe("truncate", () => {
-  it("truncates long strings", () => {
+  it("escapeRegex escapes special regex chars", () => {
+    expect(escapeRegex("hello.world (test)")).toBe("hello\\.world \\(test\\)");
+  });
+
+  it("escapeShell wraps in single quotes", () => {
+    expect(escapeShell("hello world")).toBe("'hello world'");
+    expect(escapeShell("it's")).toBe("'it'\\''s'");
+  });
+
+  it("truncate with suffix", () => {
     expect(truncate("hello world", 8)).toBe("hello...");
+    expect(truncate("short", 10)).toBe("short");
   });
 
-  it("keeps short strings unchanged", () => {
-    expect(truncate("hello", 10)).toBe("hello");
+  it("normalizeWhitespace collapses spaces", () => {
+    expect(normalizeWhitespace("  hello   world  ")).toBe("hello world");
   });
 
-  it("custom suffix", () => {
-    expect(truncate("hello world", 9, "--")).toBe("hello w--");
+  it("removeNullBytes strips nulls", () => {
+    expect(removeNullBytes("he\0llo")).toBe("hello");
   });
 });

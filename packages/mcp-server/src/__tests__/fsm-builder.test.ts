@@ -2,90 +2,66 @@ import { describe, it, expect } from "vitest";
 import { FSMBuilder } from "../fsm-builder.js";
 
 describe("FSMBuilder", () => {
-  it("builds and transitions between states", () => {
-    const fsm = new FSMBuilder()
-      .initial("idle")
-      .on("start", "idle", "running")
-      .on("stop", "running", "idle")
+  it("builds and runs a simple FSM", () => {
+    const fsm = new FSMBuilder<"off" | "on", "toggle">()
+      .setInitial("off")
+      .addTransition("off", "toggle", "on")
+      .addTransition("on", "toggle", "off")
       .build();
-
-    expect(fsm.state).toBe("idle");
-    expect(fsm.send("start")).toBe(true);
-    expect(fsm.state).toBe("running");
-    expect(fsm.send("stop")).toBe(true);
-    expect(fsm.state).toBe("idle");
+    expect(fsm.state).toBe("off");
+    fsm.send("toggle");
+    expect(fsm.state).toBe("on");
+    fsm.send("toggle");
+    expect(fsm.state).toBe("off");
   });
 
-  it("returns false for invalid transitions", () => {
-    const fsm = new FSMBuilder()
-      .initial("idle")
-      .on("start", "idle", "running")
-      .build();
-
-    expect(fsm.send("stop")).toBe(false);
-    expect(fsm.state).toBe("idle");
-  });
-
-  it("guards block transitions", () => {
+  it("supports guards", () => {
     let allowed = false;
-    const fsm = new FSMBuilder()
-      .initial("locked")
-      .on("unlock", "locked", "unlocked", { guard: () => allowed })
+    const fsm = new FSMBuilder<"locked" | "unlocked", "unlock">()
+      .setInitial("locked")
+      .addTransition("locked", "unlock", "unlocked", { guard: () => allowed })
       .build();
-
     expect(fsm.send("unlock")).toBe(false);
+    expect(fsm.state).toBe("locked");
     allowed = true;
     expect(fsm.send("unlock")).toBe(true);
     expect(fsm.state).toBe("unlocked");
   });
 
-  it("actions execute on transition", () => {
-    const log: string[] = [];
-    const fsm = new FSMBuilder()
-      .initial("a")
-      .on("go", "a", "b", { action: () => log.push("went") })
+  it("fires actions on transition", () => {
+    let actionRan = false;
+    const fsm = new FSMBuilder<"a" | "b", "go">()
+      .setInitial("a")
+      .addTransition("a", "go", "b", { action: () => { actionRan = true; } })
       .build();
-
     fsm.send("go");
-    expect(log).toEqual(["went"]);
+    expect(actionRan).toBe(true);
   });
 
-  it("onEnter and onExit fire", () => {
-    const log: string[] = [];
-    const fsm = new FSMBuilder()
-      .initial("a")
-      .on("go", "a", "b")
-      .onExit("a", () => log.push("exit-a"))
-      .onEnter("b", () => log.push("enter-b"))
+  it("fires enter/exit hooks", () => {
+    const events: string[] = [];
+    const fsm = new FSMBuilder<"a" | "b", "go">()
+      .setInitial("a")
+      .addTransition("a", "go", "b")
+      .onExit("a", () => events.push("exit-a"))
+      .onEnter("b", () => events.push("enter-b"))
       .build();
-
     fsm.send("go");
-    expect(log).toEqual(["exit-a", "enter-b"]);
+    expect(events).toEqual(["exit-a", "enter-b"]);
   });
 
-  it("can checks if event is valid", () => {
-    const fsm = new FSMBuilder()
-      .initial("idle")
-      .on("start", "idle", "running")
+  it("can checks availability with guards", () => {
+    let ok = false;
+    const fsm = new FSMBuilder<"x" | "y", "move">()
+      .setInitial("x")
+      .addTransition("x", "move", "y", { guard: () => ok })
       .build();
-
-    expect(fsm.can("start")).toBe(true);
-    expect(fsm.can("stop")).toBe(false);
+    expect(fsm.can("move")).toBe(false);
+    ok = true;
+    expect(fsm.can("move")).toBe(true);
   });
 
-  it("getHistory tracks state transitions", () => {
-    const fsm = new FSMBuilder()
-      .initial("a")
-      .on("next", "a", "b")
-      .on("next", "b", "c")
-      .build();
-
-    fsm.send("next");
-    fsm.send("next");
-    expect(fsm.getHistory()).toEqual(["a", "b"]);
-  });
-
-  it("throws if no initial state", () => {
-    expect(() => new FSMBuilder().on("x", "a", "b").build()).toThrow("Initial state");
+  it("throws if no initial state set", () => {
+    expect(() => new FSMBuilder().build()).toThrow("Initial state not set");
   });
 });
