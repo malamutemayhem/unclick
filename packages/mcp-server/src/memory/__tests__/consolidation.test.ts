@@ -152,6 +152,36 @@ describe("lane-08 consolidation", () => {
     assert.equal(Number.isFinite(canonical!.confidence), true, "confidence is finite");
   });
 
+  test("NaN/Infinity confidence in decay patches are clamped to finite values", async () => {
+    const { buildMemoryDecayPlan } = await import("../consolidation.js");
+    const rows = [
+      {
+        id: "nan-conf",
+        fact: "fact with NaN confidence",
+        confidence: NaN as unknown as number,
+        status: "active",
+        access_count: NaN as unknown as number,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        id: "inf-conf",
+        fact: "fact with Infinity confidence",
+        confidence: Infinity as unknown as number,
+        status: "active",
+        access_count: 3,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    ];
+    const plan = buildMemoryDecayPlan(rows as any, { now: "2026-06-04T00:00:00Z" });
+    for (const patch of plan.patches) {
+      assert.equal(Number.isFinite(patch.confidence), true, `${patch.id} confidence is finite`);
+      assert.equal(Number.isFinite(patch.effective_score), true, `${patch.id} effective_score is finite`);
+      assert.equal(Number.isFinite(patch.heat_score), true, `${patch.id} heat_score is finite`);
+      assert.equal(Number.isFinite(patch.decayed_confidence), true, `${patch.id} decayed_confidence is finite`);
+    }
+    assert.equal(Number.isFinite(plan.hot_set_staleness), true, "hot_set_staleness is finite");
+  });
+
   test("honors Worker 4 quarantine by excluding quarantined facts from consolidation", async () => {
     const { LocalBackend } = await import("../local.js");
     const backend = new LocalBackend();
