@@ -46,6 +46,76 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Intro", href: "/new-to-ai" },
 ];
 
+/**
+ * Desktop dropdown for a nav item with children. State-controlled so it closes
+ * reliably: on child click, on route change, on mouse-leave, on focus leaving
+ * the group, and on Escape. (A pure CSS group-hover/focus-within dropdown stays
+ * stuck open after a click because the clicked link keeps focus.)
+ */
+function NavDropdown({
+  item,
+  linkClass,
+  isActive,
+}: {
+  item: NavItem;
+  linkClass: (href: string) => string;
+  isActive: (href: string) => boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setOpen(false);
+      }}
+    >
+      <Link
+        to={item.href}
+        className={`${linkClass(item.href)} gap-1`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onFocus={() => setOpen(true)}
+      >
+        {item.label}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </Link>
+      <div
+        className={`absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 transition-all duration-150 ${
+          open ? "visible opacity-100" : "invisible opacity-0"
+        }`}
+      >
+        <div className="min-w-[190px] rounded-2xl border border-[#86dadd]/15 bg-[#0a2c3c]/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+          {item.children?.map((child) => (
+            <Link
+              key={child.label}
+              to={child.href}
+              onClick={() => setOpen(false)}
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                isActive(child.href)
+                  ? "bg-primary/10 text-primary"
+                  : "text-body hover:bg-white/[0.05] hover:text-heading"
+              }`}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [mobileAutopilotOpen, setMobileAutopilotOpen] = useState(false);
@@ -94,29 +164,7 @@ const Navbar = () => {
         <div className="hidden items-center gap-x-5 xl:flex">
           {NAV_ITEMS.map((item) =>
             item.children ? (
-              <div key={item.label} className="group relative">
-                <Link to={item.href} className={`${linkClass(item.href)} gap-1`}>
-                  {item.label}
-                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                </Link>
-                <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                  <div className="min-w-[190px] rounded-2xl border border-[#86dadd]/15 bg-[#0a2c3c]/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.label}
-                        to={child.href}
-                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                          isActive(child.href)
-                            ? "bg-primary/10 text-primary"
-                            : "text-body hover:bg-white/[0.05] hover:text-heading"
-                        }`}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <NavDropdown key={item.label} item={item} linkClass={linkClass} isActive={isActive} />
             ) : (
               <Link key={item.label} to={item.href} className={linkClass(item.href)}>
                 {item.label}
