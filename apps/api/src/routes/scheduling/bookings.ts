@@ -386,15 +386,15 @@ export function createPublicBookingRouter(db: Db) {
       overrideMap.set(o.date, o.slots ? JSON.parse(o.slots) : null);
     }
 
-    // Load existing confirmed bookings in range
+    // Load existing confirmed bookings overlapping the range
     const existingBookings = await db
       .select({ startTime: bookings.startTime, endTime: bookings.endTime })
       .from(bookings)
       .where(and(
         eq(bookings.eventTypeId, event_type_id),
         ne(bookings.status, 'cancelled'),
-        gte(bookings.startTime, fromDate),
-        lte(bookings.endTime, effectiveTo),
+        lte(bookings.startTime, effectiveTo),
+        gte(bookings.endTime, fromDate),
       ));
 
     const slots = await computeAvailableSlots(

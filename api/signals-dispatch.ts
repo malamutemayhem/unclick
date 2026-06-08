@@ -181,20 +181,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log("[signals-dispatch] telegram pending Phase 2");
     }
 
-    const newPayload = {
-      ...(signal.payload ?? {}),
-      dispatched_at: new Date().toISOString(),
-      dispatched_channels: [
-        sent ? "email" : null,
-      ].filter(Boolean),
-    };
-    await supabase
-      .from("mc_signals")
-      .update({ payload: newPayload })
-      .eq("id", signal.id);
-
-    if (sent) dispatched++;
-    else skipped++;
+    if (sent) {
+      const newPayload = {
+        ...(signal.payload ?? {}),
+        dispatched_at: new Date().toISOString(),
+        dispatched_channels: ["email"],
+      };
+      await supabase
+        .from("mc_signals")
+        .update({ payload: newPayload })
+        .eq("id", signal.id);
+      dispatched++;
+    } else {
+      skipped++;
+    }
   }
 
   return res.status(200).json({ dispatched, skipped });
