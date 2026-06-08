@@ -73,10 +73,10 @@ const AppDetail = () => {
               </ul>
             </div>
 
-            {/* Actions — what this app can do */}
+            {/* Actions - what this app can do */}
             <div className="mt-6">
               <h3 className="mb-3 text-sm font-semibold text-white">
-                Actions <span className="text-white/40">— what {app.name} can do</span>
+                Actions <span className="text-white/40">- what {app.name} can do</span>
               </h3>
               <div className="divide-y divide-white/[0.05] rounded-xl border border-white/[0.07]">
                 {app.tools.map((t) => (
