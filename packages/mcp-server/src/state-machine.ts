@@ -1,59 +1,65 @@
-export interface Transition<S extends string, E extends string> {
-  from: S;
-  event: E;
-  to: S;
-  guard?: () => boolean;
-  action?: () => void;
-}
+export type StateConfig<S extends string, E extends string> = {
+  [state in S]?: {
+    [event in E]?: { target: S; action?: () => void };
+  };
+};
 
 export class StateMachine<S extends string, E extends string> {
-  private current: S;
-  private transitions: Transition<S, E>[];
-  private listeners: Array<(from: S, event: E, to: S) => void> = [];
+  private currentState: S;
+  private config: StateConfig<S, E>;
+  private listeners: Array<(from: S, to: S, event: E) => void> = [];
+  private history: S[] = [];
+  private readonly maxHistory: number;
 
-  constructor(initial: S, transitions: Transition<S, E>[]) {
-    this.current = initial;
-    this.transitions = transitions;
-  }
-
-  get state(): S {
-    return this.current;
+  constructor(initial: S, config: StateConfig<S, E>, maxHistory: number = 50) {
+    this.currentState = initial;
+    this.config = config;
+    this.maxHistory = maxHistory;
+    this.history.push(initial);
   }
 
   send(event: E): boolean {
-    const match = this.transitions.find(
-      (t) => t.from === this.current && t.event === event && (t.guard ? t.guard() : true),
-    );
-    if (!match) return false;
-    const from = this.current;
-    this.current = match.to;
-    match.action?.();
-    for (const fn of this.listeners) {
-      try { fn(from, event, match.to); } catch {}
-    }
+    const stateConfig = this.config[this.currentState];
+    if (!stateConfig) return false;
+    const transition = stateConfig[event];
+    if (!transition) return false;
+    const from = this.currentState;
+    this.currentState = transition.target;
+    this.history.push(this.currentState);
+    if (this.history.length > this.maxHistory) this.history.shift();
+    if (transition.action) transition.action();
+    for (const listener of this.listeners) listener(from, this.currentState, event);
     return true;
   }
 
+  get state(): S {
+    return this.currentState;
+  }
+
   can(event: E): boolean {
-    return this.transitions.some(
-      (t) => t.from === this.current && t.event === event && (t.guard ? t.guard() : true),
-    );
+    const stateConfig = this.config[this.currentState];
+    return !!(stateConfig && stateConfig[event]);
   }
 
-  allowedEvents(): E[] {
-    return [
-      ...new Set(
-        this.transitions
-          .filter((t) => t.from === this.current && (t.guard ? t.guard() : true))
-          .map((t) => t.event),
-      ),
-    ];
+  availableEvents(): E[] {
+    const stateConfig = this.config[this.currentState];
+    if (!stateConfig) return [];
+    return Object.keys(stateConfig) as E[];
   }
 
-  onTransition(fn: (from: S, event: E, to: S) => void): () => void {
-    this.listeners.push(fn);
+  onTransition(listener: (from: S, to: S, event: E) => void): () => void {
+    this.listeners.push(listener);
     return () => {
-      this.listeners = this.listeners.filter((l) => l !== fn);
+      this.listeners = this.listeners.filter((l) => l !== listener);
     };
+  }
+
+  getHistory(): S[] {
+    return [...this.history];
+  }
+
+  reset(state: S): void {
+    this.currentState = state;
+    this.history = [state];
   }
 }

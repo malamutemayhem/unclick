@@ -1,79 +1,72 @@
-// Batch processor for grouping similar API calls.
-// Collects individual requests over a short window, then sends them
-// as one batch call. Useful for APIs that support bulk endpoints.
-
-export interface BatchConfig<TInput, TOutput> {
-  maxBatchSize: number;
-  maxWaitMs: number;
-  executor: (items: TInput[]) => Promise<TOutput[]>;
+export interface BatchOptions {
+  batchSize: number;
+  delayMs?: number;
+  onBatch?: (batch: unknown[], index: number) => void;
 }
 
-interface PendingItem<TInput, TOutput> {
-  input: TInput;
-  resolve: (value: TOutput) => void;
-  reject: (err: unknown) => void;
+export async function processBatch<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  options: BatchOptions
+): Promise<R[]> {
+  const results: R[] = [];
+  const batches = chunk(items, options.batchSize);
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    if (options.onBatch) options.onBatch(batch, i);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+    if (options.delayMs && i < batches.length - 1) {
+      await sleep(options.delayMs);
+    }
+  }
+  return results;
 }
 
-export class BatchProcessor<TInput, TOutput> {
-  private queue: PendingItem<TInput, TOutput>[] = [];
-  private timer?: ReturnType<typeof setTimeout>;
-  private readonly config: BatchConfig<TInput, TOutput>;
-
-  constructor(config: BatchConfig<TInput, TOutput>) {
-    this.config = config;
-  }
-
-  add(input: TInput): Promise<TOutput> {
-    return new Promise<TOutput>((resolve, reject) => {
-      this.queue.push({ input, resolve, reject });
-
-      if (this.queue.length >= this.config.maxBatchSize) {
-        this.flush();
-      } else if (!this.timer) {
-        this.timer = setTimeout(() => this.flush(), this.config.maxWaitMs);
-      }
-    });
-  }
-
-  async flush(): Promise<void> {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = undefined;
+export async function processBatchSequential<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  options: BatchOptions
+): Promise<R[]> {
+  const results: R[] = [];
+  const batches = chunk(items, options.batchSize);
+  for (let i = 0; i < batches.length; i++) {
+    if (options.onBatch) options.onBatch(batches[i], i);
+    for (const item of batches[i]) {
+      results.push(await processor(item));
     }
-
-    if (this.queue.length === 0) return;
-
-    const batch = this.queue.splice(0);
-    const inputs = batch.map((item) => item.input);
-
-    try {
-      const results = await this.config.executor(inputs);
-      for (let i = 0; i < batch.length; i++) {
-        if (i < results.length) {
-          batch[i].resolve(results[i]);
-        } else {
-          batch[i].reject(new Error("Batch result missing for index " + i));
-        }
-      }
-    } catch (err) {
-      for (const item of batch) {
-        item.reject(err);
-      }
+    if (options.delayMs && i < batches.length - 1) {
+      await sleep(options.delayMs);
     }
   }
+  return results;
+}
 
-  get pending(): number {
-    return this.queue.length;
+export function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
   }
+  return chunks;
+}
 
-  dispose(): void {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = undefined;
+export async function mapConcurrent<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let index = 0;
+  const worker = async () => {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await fn(items[i]);
     }
-    for (const item of this.queue) {
-      item.reject(new Error("BatchProcessor disposed"));
-    }
-    this.queue = [];
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

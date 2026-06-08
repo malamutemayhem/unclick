@@ -1,88 +1,69 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { BatchProcessor } from "../batch-processor.js";
+import { describe, it, expect } from "vitest";
+import { processBatch, processBatchSequential, chunk, mapConcurrent } from "../batch-processor.js";
 
-describe("BatchProcessor", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it("batches items and returns results", async () => {
-    const bp = new BatchProcessor<number, number>({
-      maxBatchSize: 3,
-      maxWaitMs: 100,
-      executor: async (items) => items.map((n) => n * 2),
-    });
-
-    const p1 = bp.add(1);
-    const p2 = bp.add(2);
-    const p3 = bp.add(3);
-
-    const results = await Promise.all([p1, p2, p3]);
-    expect(results).toEqual([2, 4, 6]);
+describe("chunk", () => {
+  it("splits array into chunks", () => {
+    expect(chunk([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
   });
 
-  it("flushes on timer when under batch size", async () => {
-    const bp = new BatchProcessor<string, string>({
-      maxBatchSize: 10,
-      maxWaitMs: 50,
-      executor: async (items) => items.map((s) => s.toUpperCase()),
-    });
-
-    const p = bp.add("hello");
-    vi.advanceTimersByTime(50);
-    expect(await p).toBe("HELLO");
+  it("handles empty array", () => {
+    expect(chunk([], 3)).toEqual([]);
   });
 
-  it("rejects all items on executor failure", async () => {
-    const bp = new BatchProcessor<number, number>({
-      maxBatchSize: 2,
-      maxWaitMs: 100,
-      executor: async () => { throw new Error("batch fail"); },
-    });
+  it("single chunk for small arrays", () => {
+    expect(chunk([1, 2], 5)).toEqual([[1, 2]]);
+  });
+});
 
-    const p1 = bp.add(1);
-    const p2 = bp.add(2);
-
-    await expect(p1).rejects.toThrow("batch fail");
-    await expect(p2).rejects.toThrow("batch fail");
+describe("processBatch", () => {
+  it("processes all items in batches", async () => {
+    const results = await processBatch(
+      [1, 2, 3, 4],
+      async (n) => n * 2,
+      { batchSize: 2 }
+    );
+    expect(results).toEqual([2, 4, 6, 8]);
   });
 
-  it("tracks pending count", () => {
-    const bp = new BatchProcessor<number, number>({
-      maxBatchSize: 10,
-      maxWaitMs: 1000,
-      executor: async (items) => items,
-    });
-
-    bp.add(1);
-    bp.add(2);
-    expect(bp.pending).toBe(2);
+  it("calls onBatch callback", async () => {
+    const batches: number[] = [];
+    await processBatch(
+      [1, 2, 3],
+      async (n) => n,
+      { batchSize: 2, onBatch: (_b, i) => batches.push(i) }
+    );
+    expect(batches).toEqual([0, 1]);
   });
+});
 
-  it("dispose rejects pending items", async () => {
-    const bp = new BatchProcessor<number, number>({
-      maxBatchSize: 10,
-      maxWaitMs: 1000,
-      executor: async (items) => items,
-    });
-
-    const p = bp.add(1);
-    bp.dispose();
-    await expect(p).rejects.toThrow("disposed");
+describe("processBatchSequential", () => {
+  it("processes items one at a time within batches", async () => {
+    const order: number[] = [];
+    await processBatchSequential(
+      [1, 2, 3],
+      async (n) => { order.push(n); return n; },
+      { batchSize: 2 }
+    );
+    expect(order).toEqual([1, 2, 3]);
   });
+});
 
-  it("handles partial results from executor", async () => {
-    const bp = new BatchProcessor<number, number>({
-      maxBatchSize: 3,
-      maxWaitMs: 100,
-      executor: async () => [10],
-    });
-
-    const p1 = bp.add(1);
-    const p2 = bp.add(2);
-    const p3 = bp.add(3);
-
-    expect(await p1).toBe(10);
-    await expect(p2).rejects.toThrow("missing");
-    await expect(p3).rejects.toThrow("missing");
+describe("mapConcurrent", () => {
+  it("limits concurrency", async () => {
+    let active = 0;
+    let maxActive = 0;
+    const results = await mapConcurrent(
+      [1, 2, 3, 4, 5],
+      async (n) => {
+        active++;
+        if (active > maxActive) maxActive = active;
+        await new Promise((r) => setTimeout(r, 10));
+        active--;
+        return n * 2;
+      },
+      2
+    );
+    expect(results).toEqual([2, 4, 6, 8, 10]);
+    expect(maxActive).toBeLessThanOrEqual(2);
   });
 });

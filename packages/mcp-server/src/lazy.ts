@@ -1,23 +1,22 @@
 export class Lazy<T> {
-  private factory: (() => T) | null;
   private value: T | undefined;
-  private initialized = false;
+  private computed = false;
+  private readonly factory: () => T;
 
   constructor(factory: () => T) {
     this.factory = factory;
   }
 
   get(): T {
-    if (!this.initialized) {
-      this.value = this.factory!();
-      this.factory = null;
-      this.initialized = true;
+    if (!this.computed) {
+      this.value = this.factory();
+      this.computed = true;
     }
     return this.value!;
   }
 
-  get isInitialized(): boolean {
-    return this.initialized;
+  get isComputed(): boolean {
+    return this.computed;
   }
 
   map<U>(fn: (value: T) => U): Lazy<U> {
@@ -27,61 +26,37 @@ export class Lazy<T> {
   flatMap<U>(fn: (value: T) => Lazy<U>): Lazy<U> {
     return new Lazy(() => fn(this.get()).get());
   }
+
+  reset(): void {
+    this.computed = false;
+    this.value = undefined;
+  }
 }
 
 export function lazy<T>(factory: () => T): Lazy<T> {
   return new Lazy(factory);
 }
 
-export function lazyRecord<T extends Record<string, unknown>>(
-  factories: { [K in keyof T]: () => T[K] },
-): { [K in keyof T]: Lazy<T[K]> } {
-  const result = {} as { [K in keyof T]: Lazy<T[K]> };
-  for (const key of Object.keys(factories) as Array<keyof T>) {
-    result[key] = new Lazy(factories[key]);
-  }
-  return result;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function memoize<T extends (...args: any[]) => any>(fn: T): T {
+  const cache = new Map<string, unknown>();
+  return ((...args: unknown[]) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
 }
 
-export class LazySequence<T> {
-  private generator: () => Generator<T>;
-
-  constructor(generator: () => Generator<T>) {
-    this.generator = generator;
-  }
-
-  map<U>(fn: (value: T) => U): LazySequence<U> {
-    const gen = this.generator;
-    return new LazySequence(function* () {
-      for (const v of gen()) yield fn(v);
-    });
-  }
-
-  filter(fn: (value: T) => boolean): LazySequence<T> {
-    const gen = this.generator;
-    return new LazySequence(function* () {
-      for (const v of gen()) if (fn(v)) yield v;
-    });
-  }
-
-  take(n: number): T[] {
-    const result: T[] = [];
-    for (const v of this.generator()) {
-      if (result.length >= n) break;
-      result.push(v);
+export function once<T>(fn: () => T): () => T {
+  let called = false;
+  let result: T;
+  return () => {
+    if (!called) {
+      result = fn();
+      called = true;
     }
     return result;
-  }
-
-  toArray(): T[] {
-    return [...this.generator()];
-  }
-
-  [Symbol.iterator](): Generator<T> {
-    return this.generator();
-  }
-}
-
-export function lazySeq<T>(generator: () => Generator<T>): LazySequence<T> {
-  return new LazySequence(generator);
+  };
 }
