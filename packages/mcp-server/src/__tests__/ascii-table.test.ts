@@ -1,41 +1,58 @@
 import { describe, it, expect } from "vitest";
-import { table, alignRight, alignCenter } from "../ascii-table.js";
+import { table, toCSV, fromCSV } from "../ascii-table.js";
 
 describe("table", () => {
-  it("renders a simple table", () => {
-    const result = table(["Name", "Age"], [["Alice", "30"], ["Bob", "25"]]);
-    expect(result).toContain("Alice");
-    expect(result).toContain("Bob");
-    expect(result).toContain("Name");
+  it("renders basic table with borders", () => {
+    const result = table([["a", "bb"], ["ccc", "d"]], { headers: ["Col1", "Col2"] });
+    expect(result).toContain("Col1");
+    expect(result).toContain("Col2");
+    expect(result).toContain("| a    | bb   |");
   });
 
-  it("renders with border", () => {
-    const result = table(["A", "B"], [["1", "2"]], { border: true });
-    expect(result).toContain("|");
-    expect(result).toContain("+");
-  });
-
-  it("renders without border", () => {
-    const result = table(["A", "B"], [["1", "2"]], { border: false });
+  it("renders without borders", () => {
+    const result = table([["a", "b"]], { border: false });
     expect(result).not.toContain("|");
   });
 
-  it("renders without header", () => {
-    const result = table(["A", "B"], [["1", "2"]], { header: false });
-    expect(result).not.toContain("A");
+  it("handles right alignment", () => {
+    const result = table([["1", "abc"]], { align: ["right", "left"] });
+    expect(result).toContain("1");
+  });
+
+  it("handles empty input", () => {
+    expect(table([])).toBe("");
   });
 });
 
-describe("alignRight", () => {
-  it("right-aligns text", () => {
-    expect(alignRight("42", 6)).toBe("    42");
+describe("toCSV", () => {
+  it("converts rows to CSV", () => {
+    expect(toCSV([["a", "b"], ["c", "d"]])).toBe("a,b\nc,d");
+  });
+
+  it("adds headers", () => {
+    expect(toCSV([["1", "2"]], ["x", "y"])).toBe("x,y\n1,2");
+  });
+
+  it("escapes commas and quotes", () => {
+    expect(toCSV([['hello, "world"', "ok"]])).toBe('"hello, ""world""",ok');
   });
 });
 
-describe("alignCenter", () => {
-  it("centers text", () => {
-    const result = alignCenter("hi", 6);
-    expect(result.length).toBe(6);
-    expect(result.trim()).toBe("hi");
+describe("fromCSV", () => {
+  it("parses simple CSV", () => {
+    expect(fromCSV("a,b\nc,d")).toEqual([["a", "b"], ["c", "d"]]);
+  });
+
+  it("handles quoted fields", () => {
+    expect(fromCSV('"hello, world",ok')).toEqual([["hello, world", "ok"]]);
+  });
+
+  it("handles escaped quotes", () => {
+    expect(fromCSV('"say ""hi""",ok')).toEqual([['say "hi"', "ok"]]);
+  });
+
+  it("roundtrips CSV", () => {
+    const data = [["a,b", "c"], ['"quote"', "d"]];
+    expect(fromCSV(toCSV(data))).toEqual(data);
   });
 });

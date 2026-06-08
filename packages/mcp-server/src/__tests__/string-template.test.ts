@@ -1,40 +1,70 @@
 import { describe, it, expect } from "vitest";
-import { template, strip, extractVars } from "../string-template.js";
+import { template, namedTemplate, printf, dedent, indent } from "../string-template.js";
 
 describe("template", () => {
-  it("replaces variables", () => {
-    expect(template("Hello {{name}}", { name: "World" })).toBe("Hello World");
+  it("replaces ${var} syntax", () => {
+    expect(template("Hello ${name}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("handles nested paths", () => {
-    expect(template("{{user.name}}", { user: { name: "Alice" } })).toBe("Alice");
+  it("resolves nested paths", () => {
+    expect(template("${user.name}", { user: { name: "Alice" } })).toBe("Alice");
   });
 
-  it("keeps unresolved variables", () => {
-    expect(template("Hello {{missing}}", {})).toBe("Hello {{missing}}");
-  });
-
-  it("custom delimiters", () => {
-    expect(template("Hello <%name%>", { name: "World" }, { open: "<%", close: "%>" })).toBe("Hello World");
-  });
-
-  it("handles spaces in tags", () => {
-    expect(template("{{ name }}", { name: "test" })).toBe("test");
+  it("returns empty for missing vars", () => {
+    expect(template("${missing}", {})).toBe("");
   });
 });
 
-describe("strip", () => {
-  it("removes all template variables", () => {
-    expect(strip("Hello {{name}}, you are {{age}}")).toBe("Hello , you are ");
+describe("namedTemplate", () => {
+  it("replaces :name params", () => {
+    expect(namedTemplate("/users/:id/posts/:postId", { id: "42", postId: "7" }))
+      .toBe("/users/42/posts/7");
+  });
+
+  it("keeps unmatched params", () => {
+    expect(namedTemplate("/users/:id", {})).toBe("/users/:id");
   });
 });
 
-describe("extractVars", () => {
-  it("extracts variable names", () => {
-    expect(extractVars("{{a}} and {{b}} and {{a}}")).toEqual(["a", "b"]);
+describe("printf", () => {
+  it("formats %s as string", () => {
+    expect(printf("Hello %s", "World")).toBe("Hello World");
   });
 
-  it("extracts nested paths", () => {
-    expect(extractVars("{{user.name}}")).toEqual(["user.name"]);
+  it("formats %d as number", () => {
+    expect(printf("Count: %d", 42)).toBe("Count: 42");
+  });
+
+  it("formats %o as JSON", () => {
+    expect(printf("Data: %o", { a: 1 })).toBe('Data: {"a":1}');
+  });
+
+  it("escapes %%", () => {
+    expect(printf("100%%")).toBe("100%");
+  });
+});
+
+describe("dedent", () => {
+  it("removes common indentation", () => {
+    const result = dedent(`
+      hello
+      world
+    `);
+    expect(result).toBe("hello\nworld");
+  });
+
+  it("preserves relative indentation", () => {
+    const result = dedent(`
+      a
+        b
+      c
+    `);
+    expect(result).toBe("a\n  b\nc");
+  });
+});
+
+describe("indent", () => {
+  it("adds spaces to each line", () => {
+    expect(indent("a\nb\nc", 4)).toBe("    a\n    b\n    c");
   });
 });

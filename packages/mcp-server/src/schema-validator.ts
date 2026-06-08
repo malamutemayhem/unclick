@@ -1,77 +1,96 @@
-export type Schema =
-  | { type: "string"; minLength?: number; maxLength?: number; pattern?: string }
-  | { type: "number"; min?: number; max?: number; integer?: boolean }
-  | { type: "boolean" }
-  | { type: "array"; items?: Schema; minItems?: number; maxItems?: number }
-  | { type: "object"; properties?: Record<string, Schema>; required?: string[] }
-  | { type: "null" }
-  | { type: "any" };
+type SchemaType = "string" | "number" | "boolean" | "object" | "array" | "null" | "any";
+
+export interface Schema {
+  type: SchemaType;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: string;
+  enum?: unknown[];
+  items?: Schema;
+  properties?: Record<string, Schema>;
+  requiredFields?: string[];
+}
 
 export interface ValidationError {
   path: string;
   message: string;
 }
 
-export function validate(value: unknown, schema: Schema, path = "$"): ValidationError[] {
+export function validate(value: unknown, schema: Schema, path: string = ""): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (schema.type === "any") return errors;
-
-  if (schema.type === "null") {
-    if (value !== null) errors.push({ path, message: "Expected null" });
-    return errors;
-  }
-
-  if (schema.type === "string") {
-    if (typeof value !== "string") { errors.push({ path, message: "Expected string" }); return errors; }
-    if (schema.minLength !== undefined && value.length < schema.minLength) errors.push({ path, message: `Minimum length ${schema.minLength}` });
-    if (schema.maxLength !== undefined && value.length > schema.maxLength) errors.push({ path, message: `Maximum length ${schema.maxLength}` });
-    if (schema.pattern && !new RegExp(schema.pattern).test(value)) errors.push({ path, message: `Must match pattern ${schema.pattern}` });
-    return errors;
-  }
-
-  if (schema.type === "number") {
-    if (typeof value !== "number") { errors.push({ path, message: "Expected number" }); return errors; }
-    if (schema.integer && !Number.isInteger(value)) errors.push({ path, message: "Expected integer" });
-    if (schema.min !== undefined && value < schema.min) errors.push({ path, message: `Minimum ${schema.min}` });
-    if (schema.max !== undefined && value > schema.max) errors.push({ path, message: `Maximum ${schema.max}` });
-    return errors;
-  }
-
-  if (schema.type === "boolean") {
-    if (typeof value !== "boolean") errors.push({ path, message: "Expected boolean" });
-    return errors;
-  }
-
-  if (schema.type === "array") {
-    if (!Array.isArray(value)) { errors.push({ path, message: "Expected array" }); return errors; }
-    if (schema.minItems !== undefined && value.length < schema.minItems) errors.push({ path, message: `Minimum ${schema.minItems} items` });
-    if (schema.maxItems !== undefined && value.length > schema.maxItems) errors.push({ path, message: `Maximum ${schema.maxItems} items` });
-    if (schema.items) {
-      value.forEach((item: unknown, i: number) => {
-        errors.push(...validate(item, schema.items!, `${path}[${i}]`));
-      });
+  if (value === null) {
+    if (schema.type !== "null" && schema.type !== "any") {
+      errors.push({ path, message: `Expected ${schema.type}, got null` });
     }
     return errors;
   }
 
-  if (schema.type === "object") {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
-      errors.push({ path, message: "Expected object" });
+  if (value === undefined) {
+    if (schema.required) {
+      errors.push({ path, message: "Required field is missing" });
+    }
+    return errors;
+  }
+
+  if (schema.type !== "any") {
+    const actualType = Array.isArray(value) ? "array" : typeof value;
+    if (actualType !== schema.type) {
+      errors.push({ path, message: `Expected ${schema.type}, got ${actualType}` });
       return errors;
     }
+  }
+
+  if (schema.enum && !schema.enum.includes(value)) {
+    errors.push({ path, message: `Value must be one of: ${schema.enum.join(", ")}` });
+  }
+
+  if (schema.type === "string" && typeof value === "string") {
+    if (schema.minLength !== undefined && value.length < schema.minLength) {
+      errors.push({ path, message: `String too short (min ${schema.minLength})` });
+    }
+    if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+      errors.push({ path, message: `String too long (max ${schema.maxLength})` });
+    }
+    if (schema.pattern && !new RegExp(schema.pattern).test(value)) {
+      errors.push({ path, message: `Does not match pattern: ${schema.pattern}` });
+    }
+  }
+
+  if (schema.type === "number" && typeof value === "number") {
+    if (schema.min !== undefined && value < schema.min) {
+      errors.push({ path, message: `Value below minimum (${schema.min})` });
+    }
+    if (schema.max !== undefined && value > schema.max) {
+      errors.push({ path, message: `Value above maximum (${schema.max})` });
+    }
+  }
+
+  if (schema.type === "array" && Array.isArray(value)) {
+    if (schema.items) {
+      for (let i = 0; i < value.length; i++) {
+        errors.push(...validate(value[i], schema.items, `${path}[${i}]`));
+      }
+    }
+  }
+
+  if (schema.type === "object" && typeof value === "object" && !Array.isArray(value)) {
     const obj = value as Record<string, unknown>;
-    if (schema.required) {
-      for (const key of schema.required) {
-        if (!(key in obj)) errors.push({ path: `${path}.${key}`, message: "Required" });
+    if (schema.requiredFields) {
+      for (const field of schema.requiredFields) {
+        if (!(field in obj)) {
+          errors.push({ path: `${path}.${field}`, message: "Required field is missing" });
+        }
       }
     }
     if (schema.properties) {
       for (const [key, propSchema] of Object.entries(schema.properties)) {
-        if (key in obj) errors.push(...validate(obj[key], propSchema, `${path}.${key}`));
+        errors.push(...validate(obj[key], propSchema, path ? `${path}.${key}` : key));
       }
     }
-    return errors;
   }
 
   return errors;

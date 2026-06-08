@@ -1,45 +1,100 @@
 export interface TableOptions {
-  padding?: number;
-  header?: boolean;
+  headers?: string[];
+  align?: ("left" | "right" | "center")[];
   border?: boolean;
 }
 
-export function table(headers: string[], rows: string[][], options: TableOptions = {}): string {
-  const { padding = 1, header = true, border = true } = options;
-  const allRows = header ? [headers, ...rows] : rows;
-  const colWidths = headers.map((_: string, i: number) => {
-    return Math.max(...allRows.map((row: string[]) => (row[i] ?? "").length));
-  });
-
-  const pad = " ".repeat(padding);
-  const formatRow = (row: string[]): string => {
-    const cells = row.map((cell: string, i: number) => `${pad}${cell.padEnd(colWidths[i])}${pad}`);
-    return border ? `|${cells.join("|")}|` : cells.join(" ");
-  };
-
-  const separator = border
-    ? `+${colWidths.map((w: number) => "-".repeat(w + padding * 2)).join("+")}+`
-    : colWidths.map((w: number) => "-".repeat(w + padding * 2)).join(" ");
-
+export function table(rows: string[][], options?: TableOptions): string {
+  if (rows.length === 0 && !options?.headers) return "";
+  const allRows = options?.headers ? [options.headers, ...rows] : rows;
+  const colCount = Math.max(...allRows.map((r) => r.length));
+  const widths: number[] = new Array(colCount).fill(0);
+  for (const row of allRows) {
+    for (let i = 0; i < colCount; i++) {
+      const cell = row[i] ?? "";
+      widths[i] = Math.max(widths[i], cell.length);
+    }
+  }
+  const border = options?.border !== false;
+  const aligns = options?.align ?? new Array(colCount).fill("left");
   const lines: string[] = [];
-  if (border) lines.push(separator);
-  if (header) {
-    lines.push(formatRow(headers));
-    lines.push(separator);
+  const sep = border ? "+-" + widths.map((w) => "-".repeat(w)).join("-+-") + "-+" : "";
+
+  if (border) lines.push(sep);
+  for (let r = 0; r < allRows.length; r++) {
+    const row = allRows[r];
+    const cells = widths.map((w, i) => {
+      const cell = row[i] ?? "";
+      const align = aligns[i] ?? "left";
+      return padCell(cell, w, align);
+    });
+    lines.push(border ? "| " + cells.join(" | ") + " |" : cells.join("  "));
+    if (options?.headers && r === 0 && border) {
+      lines.push(sep);
+    }
   }
-  for (const row of rows) {
-    lines.push(formatRow(row));
-  }
-  if (border) lines.push(separator);
+  if (border) lines.push(sep);
   return lines.join("\n");
 }
 
-export function alignRight(value: string, width: number): string {
-  return value.padStart(width);
+function padCell(text: string, width: number, align: string): string {
+  const diff = width - text.length;
+  if (diff <= 0) return text;
+  switch (align) {
+    case "right": return " ".repeat(diff) + text;
+    case "center": {
+      const left = Math.floor(diff / 2);
+      return " ".repeat(left) + text + " ".repeat(diff - left);
+    }
+    default: return text + " ".repeat(diff);
+  }
 }
 
-export function alignCenter(value: string, width: number): string {
-  const totalPad = width - value.length;
-  const left = Math.floor(totalPad / 2);
-  return " ".repeat(left) + value + " ".repeat(totalPad - left);
+export function toCSV(rows: string[][], headers?: string[]): string {
+  const allRows = headers ? [headers, ...rows] : rows;
+  return allRows.map((row) => row.map(escapeCSV).join(",")).join("\n");
+}
+
+function escapeCSV(cell: string): string {
+  if (cell.includes(",") || cell.includes('"') || cell.includes("\n")) {
+    return '"' + cell.replace(/"/g, '""') + '"';
+  }
+  return cell;
+}
+
+export function fromCSV(csv: string): string[][] {
+  const rows: string[][] = [];
+  let current: string[] = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+    if (inQuotes) {
+      if (ch === '"' && csv[i + 1] === '"') {
+        cell += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        cell += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ",") {
+        current.push(cell);
+        cell = "";
+      } else if (ch === "\n") {
+        current.push(cell);
+        rows.push(current);
+        current = [];
+        cell = "";
+      } else {
+        cell += ch;
+      }
+    }
+  }
+  current.push(cell);
+  rows.push(current);
+  return rows;
 }
