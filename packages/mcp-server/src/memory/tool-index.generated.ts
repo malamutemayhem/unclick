@@ -46,6 +46,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "acnhapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "acnh_villagers",
+        "description": "List all Animal Crossing: New Horizons villagers."
+      },
+      {
+        "name": "acnh_fish",
+        "description": "List all Animal Crossing: New Horizons fish with availability and prices."
+      },
+      {
+        "name": "acnh_bugs",
+        "description": "List all Animal Crossing: New Horizons bugs with availability and prices."
+      }
+    ]
+  },
+  {
     "app": "adviceslip",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -298,6 +316,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "archive_metadata",
         "description": "Get metadata for an Internet Archive item by identifier."
+      }
+    ]
+  },
+  {
+    "app": "artic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "artic_search_artworks",
+        "description": "Search artworks at the Art Institute of Chicago by keyword."
+      },
+      {
+        "name": "artic_get_artwork",
+        "description": "Get detailed info about a specific artwork at the Art Institute of Chicago."
       }
     ]
   },
@@ -2142,6 +2174,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "foodish",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "foodish_random",
+        "description": "Get a random food image from Foodish API."
+      },
+      {
+        "name": "foodish_by_category",
+        "description": "Get a random food image by category from Foodish API."
+      }
+    ]
+  },
+  {
     "app": "foursquare",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2652,6 +2698,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "httpcat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "http_cat_image",
+        "description": "Get a cat image for any HTTP status code from http.cat (no network call)."
+      }
+    ]
+  },
+  {
     "app": "hubspot",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2758,6 +2814,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "igniteonly_receipt_consumer",
         "description": "Consume a NudgeOnly receipt bridge result and emit a compact IgniteOnly worker wake packet when verified. It never edits code, merges, approves, closes, or marks done."
+      }
+    ]
+  },
+  {
+    "app": "imgflip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "imgflip_get_memes",
+        "description": "Get the top 100 popular meme templates from Imgflip."
       }
     ]
   },
@@ -4310,6 +4376,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "poetrydb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poetry_search_by_author",
+        "description": "Search poems by author name on PoetryDB."
+      },
+      {
+        "name": "poetry_search_by_title",
+        "description": "Search poems by title on PoetryDB."
+      },
+      {
+        "name": "poetry_random",
+        "description": "Get a random poem from PoetryDB."
       }
     ]
   },

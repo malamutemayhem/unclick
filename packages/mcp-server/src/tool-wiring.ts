@@ -506,6 +506,12 @@ import { colrRandomPalette } from "./colr-tool.js";
 import { gameOfLifeStep } from "./gameoflife-tool.js";
 import { fruityviceAll, fruityviceByName } from "./fruityvice-tool.js";
 import { opendotaHeroes, opendotaHeroStats, opendotaProMatches } from "./opendota-tool.js";
+import { imgflipGetMemes } from "./imgflip-tool.js";
+import { articSearchArtworks, articGetArtwork } from "./artic-tool.js";
+import { foodishRandom, foodishByCategory } from "./foodish-tool.js";
+import { acnhVillagers, acnhFish, acnhBugs } from "./acnhapi-tool.js";
+import { httpCatImage } from "./httpcat-tool.js";
+import { poetrySearchByAuthor, poetrySearchByTitle, poetryRandom } from "./poetrydb-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7556,6 +7562,120 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "opendota_pro_matches",
     description: "Get recent professional Dota 2 match results from OpenDota.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── artic-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "artic_search_artworks",
+    description: "Search artworks at the Art Institute of Chicago by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term (e.g. monet, sunflowers, impressionism)." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "artic_get_artwork",
+    description: "Get detailed info about a specific artwork at the Art Institute of Chicago.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "number" as const, description: "Artwork ID (from search results)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── imgflip-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "imgflip_get_memes",
+    description: "Get the top 100 popular meme templates from Imgflip.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── foodish-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "foodish_random",
+    description: "Get a random food image from Foodish API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "foodish_by_category",
+    description: "Get a random food image by category from Foodish API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        category: { type: "string" as const, description: "Food category (e.g. pizza, burger, biryani, pasta, rice)." },
+      },
+      required: ["category"],
+    },
+  },
+
+  // ── acnhapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "acnh_villagers",
+    description: "List all Animal Crossing: New Horizons villagers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "acnh_fish",
+    description: "List all Animal Crossing: New Horizons fish with availability and prices.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "acnh_bugs",
+    description: "List all Animal Crossing: New Horizons bugs with availability and prices.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── httpcat-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "http_cat_image",
+    description: "Get a cat image for any HTTP status code from http.cat (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        status_code: { type: "number" as const, description: "HTTP status code (e.g. 200, 404, 500)." },
+      },
+    },
+  },
+
+  // ── poetrydb-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "poetry_search_by_author",
+    description: "Search poems by author name on PoetryDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        author: { type: "string" as const, description: "Author name (e.g. Shakespeare, Emily Dickinson)." },
+      },
+      required: ["author"],
+    },
+  },
+  {
+    name: "poetry_search_by_title",
+    description: "Search poems by title on PoetryDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        title: { type: "string" as const, description: "Poem title or partial title." },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "poetry_random",
+    description: "Get a random poem from PoetryDB.",
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {},
     },
@@ -18702,6 +18822,24 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   opendota_heroes:           (args) => opendotaHeroes(args),
   opendota_hero_stats:       (args) => opendotaHeroStats(args),
   opendota_pro_matches:      (args) => opendotaProMatches(args),
+  // artic-tool.ts
+  artic_search_artworks:     (args) => articSearchArtworks(args),
+  artic_get_artwork:         (args) => articGetArtwork(args),
+  // imgflip-tool.ts
+  imgflip_get_memes:         (args) => imgflipGetMemes(args),
+  // foodish-tool.ts
+  foodish_random:            (args) => foodishRandom(args),
+  foodish_by_category:       (args) => foodishByCategory(args),
+  // acnhapi-tool.ts
+  acnh_villagers:            (args) => acnhVillagers(args),
+  acnh_fish:                 (args) => acnhFish(args),
+  acnh_bugs:                 (args) => acnhBugs(args),
+  // httpcat-tool.ts
+  http_cat_image:            (args) => httpCatImage(args),
+  // poetrydb-tool.ts
+  poetry_search_by_author:   (args) => poetrySearchByAuthor(args),
+  poetry_search_by_title:    (args) => poetrySearchByTitle(args),
+  poetry_random:             (args) => poetryRandom(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

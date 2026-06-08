@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 341,
-  "toolCount": 1201,
+  "appCount": 347,
+  "toolCount": 1213,
   "categories": [
     "AI",
     "Books",
@@ -318,6 +318,30 @@
       "hardened": false
     },
     {
+      "slug": "acnhapi",
+      "name": "Animal Crossing NH",
+      "category": "Games & esports",
+      "blurb": "Animal Crossing: New Horizons villagers, fish, and bugs data.",
+      "domain": "acnhapi.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "acnh_villagers",
+          "description": "List all Animal Crossing: New Horizons villagers."
+        },
+        {
+          "name": "acnh_fish",
+          "description": "List all Animal Crossing: New Horizons fish with availability and prices."
+        },
+        {
+          "name": "acnh_bugs",
+          "description": "List all Animal Crossing: New Horizons bugs with availability and prices."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "animechan",
       "name": "AnimeChan",
       "category": "Social",
@@ -356,6 +380,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "artic",
+      "name": "Art Institute of Chicago",
+      "category": "News & reading",
+      "blurb": "Search and explore artworks from the Art Institute of Chicago collection.",
+      "domain": "artic.edu",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "artic_search_artworks",
+          "description": "Search artworks at the Art Institute of Chicago by keyword."
+        },
+        {
+          "name": "artic_get_artwork",
+          "description": "Get detailed info about a specific artwork at the Art Institute of Chicago."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "asana",
@@ -2678,6 +2722,26 @@
       "hardened": true
     },
     {
+      "slug": "foodish",
+      "name": "Foodish",
+      "category": "Weather & science",
+      "blurb": "Random food images by category (pizza, burger, pasta, and more).",
+      "domain": "foodish-api.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "foodish_random",
+          "description": "Get a random food image from Foodish API."
+        },
+        {
+          "name": "foodish_by_category",
+          "description": "Get a random food image by category from Foodish API."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "foursquare",
       "name": "Foursquare",
       "category": "Travel, maps & local",
@@ -3230,6 +3294,22 @@
       "hardened": true
     },
     {
+      "slug": "httpcat",
+      "name": "HTTP Cat",
+      "category": "Images",
+      "blurb": "Get a cat image for any HTTP status code from http.cat.",
+      "domain": "http.cat",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "http_cat_image",
+          "description": "Get a cat image for any HTTP status code from http.cat (no network call)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "httpbin",
       "name": "httpbin",
       "category": "Developer & infra",
@@ -3399,6 +3479,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "imgflip",
+      "name": "Imgflip",
+      "category": "Images",
+      "blurb": "Browse the top 100 popular meme templates from Imgflip.",
+      "domain": "imgflip.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "imgflip_get_memes",
+          "description": "Get the top 100 popular meme templates from Imgflip."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -5452,6 +5548,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "poetrydb",
+      "name": "PoetryDB",
+      "category": "Books",
+      "blurb": "Search poems by author or title, or get random poems from PoetryDB.",
+      "domain": "poetrydb.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "poetry_search_by_author",
+          "description": "Search poems by author name on PoetryDB."
+        },
+        {
+          "name": "poetry_search_by_title",
+          "description": "Search poems by title on PoetryDB."
+        },
+        {
+          "name": "poetry_random",
+          "description": "Get a random poem from PoetryDB."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "pokeapi",

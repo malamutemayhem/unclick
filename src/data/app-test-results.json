@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T12:00:00.000Z",
+  "updatedAt": "2026-06-08T12:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -2825,6 +2825,60 @@
         "opendota_heroes",
         "opendota_hero_stats",
         "opendota_pro_matches"
+      ]
+    },
+    "artic": {
+      "status": "pass",
+      "note": "artic_search_artworks and artic_get_artwork return Art Institute of Chicago collection data. Free, no key needed.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "artic_search_artworks",
+        "artic_get_artwork"
+      ]
+    },
+    "imgflip": {
+      "status": "pass",
+      "note": "imgflip_get_memes returns top 100 meme templates from imgflip.com. Free, no key needed.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "imgflip_get_memes"
+      ]
+    },
+    "foodish": {
+      "status": "pass",
+      "note": "foodish_random and foodish_by_category return food images from foodish-api.com. Free, no key needed.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "foodish_random",
+        "foodish_by_category"
+      ]
+    },
+    "acnhapi": {
+      "status": "pass",
+      "note": "acnh_villagers, acnh_fish, acnh_bugs return Animal Crossing data from acnhapi.com. Free, no key needed.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "acnh_villagers",
+        "acnh_fish",
+        "acnh_bugs"
+      ]
+    },
+    "httpcat": {
+      "status": "pass",
+      "note": "http_cat_image generates cat image URLs for HTTP status codes from http.cat. Local URL builder, no network call.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "http_cat_image"
+      ]
+    },
+    "poetrydb": {
+      "status": "pass",
+      "note": "poetry_search_by_author, poetry_search_by_title, poetry_random return poems from poetrydb.org. Free, no key needed.",
+      "testedAt": "2026-06-08T12:30:00.000Z",
+      "toolsTested": [
+        "poetry_search_by_author",
+        "poetry_search_by_title",
+        "poetry_random"
       ]
     }
   },
