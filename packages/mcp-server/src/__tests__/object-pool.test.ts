@@ -2,66 +2,57 @@ import { describe, it, expect } from "vitest";
 import { ObjectPool } from "../object-pool.js";
 
 describe("ObjectPool", () => {
-  it("creates objects via factory", () => {
-    let id = 0;
-    const pool = new ObjectPool(() => ({ id: id++ }));
+  it("creates and acquires objects", () => {
+    const pool = new ObjectPool({ factory: () => ({ value: 0 }) });
     const obj = pool.acquire();
-    expect(obj.id).toBe(0);
-    expect(pool.inUse).toBe(1);
+    expect(obj).toEqual({ value: 0 });
+    expect(pool.inUseCount).toBe(1);
   });
 
   it("reuses released objects", () => {
-    const pool = new ObjectPool(() => ({ val: 0 }));
-    const a = pool.acquire();
-    a.val = 42;
-    pool.release(a);
-    const b = pool.acquire();
-    expect(b.val).toBe(42);
-    expect(pool.totalSize).toBe(1);
+    const pool = new ObjectPool({
+      factory: () => ({ value: 0 }),
+      reset: (obj) => { obj.value = 0; },
+    });
+    const obj1 = pool.acquire();
+    obj1.value = 42;
+    pool.release(obj1);
+    const obj2 = pool.acquire();
+    expect(obj2.value).toBe(0);
+    expect(pool.totalCreated).toBe(1);
   });
 
-  it("calls reset on release", () => {
-    const pool = new ObjectPool(() => ({ val: 0 }), { reset: (o) => { o.val = 0; } });
-    const obj = pool.acquire();
-    obj.val = 99;
-    pool.release(obj);
-    const reused = pool.acquire();
-    expect(reused.val).toBe(0);
-  });
-
-  it("prewarms the pool", () => {
-    const pool = new ObjectPool(() => ({}), { prewarm: 5 });
-    expect(pool.available).toBe(5);
-    expect(pool.inUse).toBe(0);
-  });
-
-  it("respects maxSize for pooled objects", () => {
-    const pool = new ObjectPool(() => ({}), { maxSize: 1 });
-    const a = pool.acquire();
-    const b = pool.acquire();
-    pool.release(a);
-    pool.release(b);
-    expect(pool.available).toBe(1);
-  });
-
-  it("release returns false for unknown objects", () => {
-    const pool = new ObjectPool(() => ({}));
-    expect(pool.release({})).toBe(false);
-  });
-
-  it("tracks totalSize", () => {
-    const pool = new ObjectPool(() => ({}));
-    const a = pool.acquire();
-    const b = pool.acquire();
-    pool.release(a);
-    expect(pool.totalSize).toBe(2);
-  });
-
-  it("clear empties everything", () => {
-    const pool = new ObjectPool(() => ({}), { prewarm: 3 });
+  it("respects maxSize", () => {
+    const pool = new ObjectPool({
+      factory: () => ({}),
+      maxSize: 2,
+    });
     pool.acquire();
-    pool.clear();
-    expect(pool.available).toBe(0);
-    expect(pool.inUse).toBe(0);
+    pool.acquire();
+    expect(() => pool.acquire()).toThrow("Pool exhausted");
+  });
+
+  it("initialSize pre-creates", () => {
+    const pool = new ObjectPool({
+      factory: () => ({}),
+      initialSize: 3,
+    });
+    expect(pool.availableCount).toBe(3);
+    expect(pool.totalCreated).toBe(3);
+  });
+
+  it("drain empties available", () => {
+    const pool = new ObjectPool({
+      factory: () => ({}),
+      initialSize: 5,
+    });
+    pool.drain();
+    expect(pool.availableCount).toBe(0);
+  });
+
+  it("release of non-pooled object is ignored", () => {
+    const pool = new ObjectPool({ factory: () => ({}) });
+    pool.release({});
+    expect(pool.availableCount).toBe(0);
   });
 });

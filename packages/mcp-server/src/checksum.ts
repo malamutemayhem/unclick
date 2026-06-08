@@ -1,56 +1,97 @@
 export function crc32(input: string): number {
-  let crc = 0xFFFFFFFF;
-  for (let i = 0; i < input.length; i++) {
-    crc ^= input.charCodeAt(i);
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
-    }
+  const table = makeCRC32Table();
+  const bytes = new TextEncoder().encode(input);
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc = (crc >>> 8) ^ table[(crc ^ byte) & 0xff];
   }
-  return (crc ^ 0xFFFFFFFF) >>> 0;
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
-export function crc32Hex(input: string): string {
-  return crc32(input).toString(16).padStart(8, "0");
+function makeCRC32Table(): Uint32Array {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
 }
 
 export function adler32(input: string): number {
+  const bytes = new TextEncoder().encode(input);
   let a = 1;
   let b = 0;
-  for (let i = 0; i < input.length; i++) {
-    a = (a + input.charCodeAt(i)) % 65521;
-    b = (b + a) % 65521;
+  const MOD = 65521;
+  for (const byte of bytes) {
+    a = (a + byte) % MOD;
+    b = (b + a) % MOD;
   }
   return ((b << 16) | a) >>> 0;
-}
-
-export function fletcher16(input: string): number {
-  let sum1 = 0;
-  let sum2 = 0;
-  for (let i = 0; i < input.length; i++) {
-    sum1 = (sum1 + input.charCodeAt(i)) % 255;
-    sum2 = (sum2 + sum1) % 255;
-  }
-  return (sum2 << 8) | sum1;
-}
-
-export function djb2(input: string): number {
-  let hash = 5381;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) + hash + input.charCodeAt(i)) >>> 0;
-  }
-  return hash;
 }
 
 export function fnv1a(input: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < input.length; i++) {
     hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
+    hash = Math.imul(hash, 0x01000193);
   }
-  return hash;
+  return hash >>> 0;
 }
 
-export function verifyChecksum(input: string, expected: number, algo: "crc32" | "adler32" | "fletcher16" | "djb2" | "fnv1a" = "crc32"): boolean {
-  const fns: Record<string, (s: string) => number> = { crc32, adler32, fletcher16, djb2, fnv1a };
-  return fns[algo](input) === expected;
+export function djb2(input: string): number {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+  }
+  return hash >>> 0;
+}
+
+export function murmurHash3(input: string, seed = 0): number {
+  const bytes = new TextEncoder().encode(input);
+  const len = bytes.length;
+  let h = seed;
+  const c1 = 0xcc9e2d51;
+  const c2 = 0x1b873593;
+  let i = 0;
+
+  while (i + 4 <= len) {
+    let k = bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24);
+    k = Math.imul(k, c1);
+    k = (k << 15) | (k >>> 17);
+    k = Math.imul(k, c2);
+    h ^= k;
+    h = (h << 13) | (h >>> 19);
+    h = Math.imul(h, 5) + 0xe6546b64;
+    i += 4;
+  }
+
+  let k = 0;
+  switch (len & 3) {
+    case 3: k ^= bytes[i + 2] << 16;
+    // falls through
+    case 2: k ^= bytes[i + 1] << 8;
+    // falls through
+    case 1:
+      k ^= bytes[i];
+      k = Math.imul(k, c1);
+      k = (k << 15) | (k >>> 17);
+      k = Math.imul(k, c2);
+      h ^= k;
+  }
+
+  h ^= len;
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+
+  return h >>> 0;
+}
+
+export function hexDigest(hash: number): string {
+  return hash.toString(16).padStart(8, "0");
 }

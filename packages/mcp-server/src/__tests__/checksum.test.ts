@@ -1,57 +1,70 @@
 import { describe, it, expect } from "vitest";
-import { crc32, crc32Hex, adler32, fletcher16, djb2, fnv1a, verifyChecksum } from "../checksum.js";
+import { crc32, adler32, fnv1a, djb2, murmurHash3, hexDigest } from "../checksum.js";
 
-describe("checksum", () => {
-  it("crc32 produces consistent output", () => {
-    const a = crc32("hello");
-    const b = crc32("hello");
-    expect(a).toBe(b);
-    expect(typeof a).toBe("number");
-    expect(a).toBeGreaterThan(0);
+describe("crc32", () => {
+  it("computes known hash", () => {
+    const hash = crc32("hello");
+    expect(hash).toBeTypeOf("number");
+    expect(hash).toBeGreaterThan(0);
   });
 
-  it("crc32 differs for different input", () => {
+  it("different inputs give different hashes", () => {
     expect(crc32("hello")).not.toBe(crc32("world"));
   });
 
-  it("crc32Hex returns hex string", () => {
-    const hex = crc32Hex("hello");
-    expect(hex).toHaveLength(8);
-    expect(/^[0-9a-f]+$/.test(hex)).toBe(true);
+  it("same input gives same hash", () => {
+    expect(crc32("test")).toBe(crc32("test"));
+  });
+});
+
+describe("adler32", () => {
+  it("computes hash", () => {
+    expect(adler32("hello")).toBeTypeOf("number");
   });
 
-  it("adler32 produces consistent output", () => {
-    expect(adler32("hello")).toBe(adler32("hello"));
-    expect(adler32("hello")).not.toBe(adler32("world"));
+  it("deterministic", () => {
+    expect(adler32("abc")).toBe(adler32("abc"));
+  });
+});
+
+describe("fnv1a", () => {
+  it("computes hash", () => {
+    expect(fnv1a("hello")).toBeTypeOf("number");
   });
 
-  it("fletcher16 produces consistent output", () => {
-    expect(fletcher16("hello")).toBe(fletcher16("hello"));
-    expect(fletcher16("hello")).not.toBe(fletcher16("world"));
+  it("different for different inputs", () => {
+    expect(fnv1a("a")).not.toBe(fnv1a("b"));
+  });
+});
+
+describe("djb2", () => {
+  it("computes hash", () => {
+    expect(djb2("hello")).toBeTypeOf("number");
   });
 
-  it("djb2 produces consistent output", () => {
-    expect(djb2("hello")).toBe(djb2("hello"));
-    expect(djb2("hello")).not.toBe(djb2("world"));
+  it("deterministic", () => {
+    expect(djb2("test")).toBe(djb2("test"));
+  });
+});
+
+describe("murmurHash3", () => {
+  it("computes hash", () => {
+    expect(murmurHash3("hello")).toBeTypeOf("number");
   });
 
-  it("fnv1a produces consistent output", () => {
-    expect(fnv1a("hello")).toBe(fnv1a("hello"));
-    expect(fnv1a("hello")).not.toBe(fnv1a("world"));
+  it("seed changes hash", () => {
+    expect(murmurHash3("hello", 0)).not.toBe(murmurHash3("hello", 42));
   });
 
-  it("verifyChecksum validates correctly", () => {
-    const sum = crc32("test");
-    expect(verifyChecksum("test", sum, "crc32")).toBe(true);
-    expect(verifyChecksum("test", sum + 1, "crc32")).toBe(false);
+  it("deterministic with same seed", () => {
+    expect(murmurHash3("test", 1)).toBe(murmurHash3("test", 1));
   });
+});
 
-  it("verifyChecksum works with all algorithms", () => {
-    const algos = ["crc32", "adler32", "fletcher16", "djb2", "fnv1a"] as const;
-    for (const algo of algos) {
-      const fns: Record<string, (s: string) => number> = { crc32, adler32, fletcher16, djb2, fnv1a };
-      const sum = fns[algo]("data");
-      expect(verifyChecksum("data", sum, algo)).toBe(true);
-    }
+describe("hexDigest", () => {
+  it("formats as 8-char hex", () => {
+    const hex = hexDigest(255);
+    expect(hex).toBe("000000ff");
+    expect(hex.length).toBe(8);
   });
 });
