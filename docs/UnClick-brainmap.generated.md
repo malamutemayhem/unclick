@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 0321c830b3bc | 15563 |
-| src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
+| src/App.tsx | ead5f39c080b | 16499 |
+| src/pages/admin/AdminShell.tsx | 2c6ec8581d6c | 25721 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -71,68 +71,68 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
-| src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
+| src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
+| src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
-| src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
-| src/pages/admin/AdminAppTesting.tsx | c61128ef7423 | 10936 |
+| src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
+| src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
-| src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
-| src/pages/admin/AdminExpressBuild.tsx | 426fed992766 | 22902 |
-| src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
-| src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
-| src/pages/admin/Fishbowl.tsx | ec3c5b4f4b4f | 37557 |
-| src/pages/admin/AdminBrainmap.tsx | e0edf4d7c409 | 26533 |
-| src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
-| src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
+| src/pages/admin/AdminAuditLog.tsx | 947f6c4d8c10 | 877 |
+| src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
+| src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
+| src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
+| src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
+| src/pages/admin/AdminBrainmap.tsx | 825a4928a569 | 26632 |
+| src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
+| src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
-| src/pages/admin/AdminDashboard.tsx | 7ee015247aa8 | 5257 |
-| src/pages/admin/AdminJobs.tsx | fb05696540e8 | 63548 |
-| src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
-| src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
-| src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
-| src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
-| src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
-| src/pages/admin/AdminPinballWake.tsx | 1b09a0b4c1b4 | 21751 |
-| src/pages/admin/AdminSettings.tsx | cce2a4ca6248 | 40580 |
+| src/pages/admin/AdminDashboard.tsx | c6c9093d733d | 5303 |
+| src/pages/admin/AdminJobs.tsx | 5417b324cff7 | 64232 |
+| src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
+| src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
+| src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
+| src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
+| src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
+| src/pages/admin/AdminPinballWake.tsx | 4dce3c986684 | 21769 |
+| src/pages/admin/AdminSettings.tsx | 48449b4ebd11 | 40601 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
-| src/pages/admin/signals/SignalsSettings.tsx | 791cd433a5b0 | 9837 |
-| src/pages/admin/signals/SignalsCatalog.tsx | 7baa82ac0d7f | 10835 |
-| src/pages/admin/AdminSystemHealth.tsx | 6e61ae4d3d34 | 867 |
-| src/pages/admin/testpass/NewRunWizard.tsx | fd912523ee14 | 10379 |
-| src/pages/admin/AdminTestPass.tsx | 0b3cc7b44107 | 27259 |
-| src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
-| src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
-| src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
-| src/pages/admin/AdminTruthRate.tsx | 115c5cce9b90 | 8868 |
-| src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
-| src/pages/admin/AdminXGate.tsx | db31f326ff07 | 26775 |
-| src/pages/admin/AdminYou.tsx | 89ed912e326b | 59397 |
+| src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
+| src/pages/admin/signals/SignalsCatalog.tsx | f5332dd8f38e | 10865 |
+| src/pages/admin/AdminSystemHealth.tsx | 4ddaaf1282db | 870 |
+| src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
+| src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
+| src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
+| src/pages/admin/testpass/RunDetail.tsx | 4412674f8382 | 22000 |
+| src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
+| src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
+| src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
+| src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
+| src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
-| src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
+| src/pages/DeveloperDocs.tsx | 9bfae679df42 | 23493 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
-| src/pages/Developers.tsx | 9657fd564797 | 19123 |
+| src/pages/Developers.tsx | c31a8a187fac | 19126 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | da0fc0d07f50 | 62558 |
+| src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
-| src/pages/NewToAI.tsx | a28cb1d9ece8 | 12559 |
+| src/pages/Memory.tsx | 147f832aa5b9 | 19192 |
+| src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
@@ -144,7 +144,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/XPass.tsx | 717c00a85c16 | 8699 |
+| src/pages/Why.tsx | a0c2574257c7 | 11100 |
+| src/pages/XPass.tsx | 8a95e39abdd4 | 11982 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -233,8 +234,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
-| Tools | MCP and gateway capabilities available to seats. | 487 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Tools | MCP and gateway capabilities available to seats. | 491 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -242,7 +243,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 131 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -362,6 +363,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /tools/solve | Solve | Tool page for Solve. | src/pages/tools/Solve.tsx |
 | /tools | Tools | Public tools marketplace entry point. | src/pages/Tools.tsx |
 | /uipass-home-sample | Homepage Sample | User-facing page for Homepage Sample. | src/pages/HomepageSample.tsx |
+| /why | Why | User-facing page for Why. | src/pages/Why.tsx |
 | /xpass | XPass | User-facing page for XPass. | src/pages/XPass.tsx |
 
 ## Tool Families and Meaning
@@ -441,6 +443,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | coinlore | coinlore MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinlore-tool.ts |
 | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinmarketcap-tool.ts |
 | coinpaprika | coinpaprika MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinpaprika-tool.ts |
+| collatz | collatz MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/collatz-tool.ts |
 | color | color MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/color-tool.ts |
 | colorblend | colorblend MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colorblend-tool.ts |
 | colorconvert | colorconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/colorconvert-tool.ts |
@@ -556,6 +559,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | packages/mcp-server/src/heartbeat-protocol.ts |
 | heygen | heygen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/heygen-tool.ts |
 | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/higgsfield-tool.ts |
+| histogram | histogram MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/histogram-tool.ts |
 | holidays | holidays MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/holidays-tool.ts |
 | htmlstrip | htmlstrip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/htmlstrip-tool.ts |
 | httpbin | httpbin MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/httpbin-tool.ts |
@@ -678,6 +682,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | pagerduty | pagerduty MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pagerduty-tool.ts |
 | palindrome | palindrome MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/palindrome-tool.ts |
 | pandascore | pandascore MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pandascore-tool.ts |
+| pascaltri | pascaltri MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pascaltri-tool.ts |
 | passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/passwordgen-tool.ts |
 | paypal | paypal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/paypal-tool.ts |
 | percentage | percentage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/percentage-tool.ts |
@@ -726,6 +731,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | readwise | readwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/readwise-tool.ts |
 | reddit | reddit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reddit-tool.ts |
 | regexr | regexr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/regexr-tool.ts |
+| regression | regression MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/regression-tool.ts |
 | render | render MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/render-tool.ts |
 | replicate | replicate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/replicate-tool.ts |
 | reqres | reqres MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reqres-tool.ts |
@@ -1066,6 +1072,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
+| Modules and apps | component | Code Tab | Memory admin panel for Code Tab. | - | src/pages/admin/memory/CodeTab.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
@@ -1077,6 +1084,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
+| Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |
 | Modules and apps | component | Sessions Tab | Memory admin panel for Sessions Tab. | - | src/pages/admin/memory/SessionsTab.tsx |
 | Modules and apps | component | Settings | User-facing page for Settings. | - | src/pages/Settings.tsx |
@@ -1231,6 +1239,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Tools | Public tools marketplace entry point. | /tools | src/pages/Tools.tsx |
 | Public surfaces | public page | Verify Mfa | User-facing page for Verify Mfa. | /auth/verify-mfa | src/pages/VerifyMfa.tsx |
 | Public surfaces | public page | Vibe Coding | User-facing page for Vibe Coding. | /developers/vibe-coding | src/pages/VibeCoding.tsx |
+| Public surfaces | public page | Why | User-facing page for Why. | /why | src/pages/Why.tsx |
 | Public surfaces | public page | XPass | User-facing page for XPass. | /xpass | src/pages/XPass.tsx |
 | Rooms | PinballWake room | ack ledger | PinballWake room logic generated from scripts/pinballwake-ack-ledger-room.mjs. | - | scripts/pinballwake-ack-ledger-room.mjs |
 | Rooms | PinballWake room | buildbait | PinballWake room logic generated from scripts/pinballwake-buildbait-room.mjs. | - | scripts/pinballwake-buildbait-room.mjs |
@@ -1341,6 +1350,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | coinlore | coinlore MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinlore-tool.ts |
 | Tools | MCP tool | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinmarketcap-tool.ts |
 | Tools | MCP tool | coinpaprika | coinpaprika MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinpaprika-tool.ts |
+| Tools | MCP tool | collatz | collatz MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/collatz-tool.ts |
 | Tools | MCP tool | color | color MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/color-tool.ts |
 | Tools | MCP tool | colorblend | colorblend MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colorblend-tool.ts |
 | Tools | MCP tool | colorconvert | colorconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/colorconvert-tool.ts |
@@ -1456,6 +1466,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | - | packages/mcp-server/src/heartbeat-protocol.ts |
 | Tools | MCP tool | heygen | heygen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/heygen-tool.ts |
 | Tools | MCP tool | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/higgsfield-tool.ts |
+| Tools | MCP tool | histogram | histogram MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/histogram-tool.ts |
 | Tools | MCP tool | holidays | holidays MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/holidays-tool.ts |
 | Tools | MCP tool | htmlstrip | htmlstrip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/htmlstrip-tool.ts |
 | Tools | MCP tool | httpbin | httpbin MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/httpbin-tool.ts |
@@ -1578,6 +1589,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | pagerduty | pagerduty MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pagerduty-tool.ts |
 | Tools | MCP tool | palindrome | palindrome MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/palindrome-tool.ts |
 | Tools | MCP tool | pandascore | pandascore MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pandascore-tool.ts |
+| Tools | MCP tool | pascaltri | pascaltri MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pascaltri-tool.ts |
 | Tools | MCP tool | passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/passwordgen-tool.ts |
 | Tools | MCP tool | paypal | paypal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/paypal-tool.ts |
 | Tools | MCP tool | percentage | percentage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/percentage-tool.ts |
@@ -1626,6 +1638,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | readwise | readwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/readwise-tool.ts |
 | Tools | MCP tool | reddit | reddit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reddit-tool.ts |
 | Tools | MCP tool | regexr | regexr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/regexr-tool.ts |
+| Tools | MCP tool | regression | regression MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/regression-tool.ts |
 | Tools | MCP tool | render | render MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/render-tool.ts |
 | Tools | MCP tool | replicate | replicate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/replicate-tool.ts |
 | Tools | MCP tool | reqres | reqres MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reqres-tool.ts |
@@ -1826,7 +1839,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Safety Rules
 
 - Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.
-- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.
+- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.
 - NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.
 - IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.
 - Heartbeats must never print keys or credentials.

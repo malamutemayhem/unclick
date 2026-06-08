@@ -5,14 +5,14 @@
   "owner_visibility": {
     "route": "/admin/brainmap",
     "audience": "private yellow admin",
-    "owner_email": "creativelead@malamutemayhem.com"
+    "owner_email": "(configured via env)"
   },
   "counts": {
     "divisions": 12,
-    "inventory": 909,
-    "source_manifest": 214,
-    "pages": 87,
-    "tools": 487,
+    "inventory": 916,
+    "source_manifest": 215,
+    "pages": 88,
+    "tools": 491,
     "rooms": 23,
     "workers": 8
   },
@@ -27,13 +27,13 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 35
+      "count": 36
     },
     {
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 487
+      "count": 491
     },
     {
       "id": "rooms",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 131
+      "count": 133
     },
     {
       "id": "launch-and-onboarding",
@@ -2152,6 +2152,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-code-tab-src-pages-admin-memory-codetab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Code Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Code Tab.",
+      "source": "src/pages/admin/memory/CodeTab.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
@@ -2258,6 +2268,16 @@
       "kind": "component",
       "meaning": "User-facing page for Not Found.",
       "source": "src/pages/NotFound.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-recycle-bin-tab-src-pages-admin-memory-recyclebintab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Recycle Bin Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Recycle Bin Tab.",
+      "source": "src/pages/admin/memory/RecycleBinTab.tsx",
       "route": "",
       "tags": []
     },
@@ -3802,6 +3822,16 @@
       "tags": []
     },
     {
+      "id": "public-surfaces-public-page-why-src-pages-why-tsx-why",
+      "division": "Public surfaces",
+      "name": "Why",
+      "kind": "public page",
+      "meaning": "User-facing page for Why.",
+      "source": "src/pages/Why.tsx",
+      "route": "/why",
+      "tags": []
+    },
+    {
       "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
       "division": "Public surfaces",
       "name": "XPass",
@@ -4898,6 +4928,16 @@
       "kind": "MCP tool",
       "meaning": "coinpaprika MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/coinpaprika-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-collatz-packages-mcp-server-src-collatz-tool-ts-no-route",
+      "division": "Tools",
+      "name": "collatz",
+      "kind": "MCP tool",
+      "meaning": "collatz MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/collatz-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6048,6 +6088,16 @@
       "kind": "MCP tool",
       "meaning": "higgsfield MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/higgsfield-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-histogram-packages-mcp-server-src-histogram-tool-ts-no-route",
+      "division": "Tools",
+      "name": "histogram",
+      "kind": "MCP tool",
+      "meaning": "histogram MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/histogram-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7272,6 +7322,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-pascaltri-packages-mcp-server-src-pascaltri-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pascaltri",
+      "kind": "MCP tool",
+      "meaning": "pascaltri MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pascaltri-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-passwordgen-packages-mcp-server-src-passwordgen-tool-ts-no-route",
       "division": "Tools",
       "name": "passwordgen",
@@ -7748,6 +7808,16 @@
       "kind": "MCP tool",
       "meaning": "regexr MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/regexr-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-regression-packages-mcp-server-src-regression-tool-ts-no-route",
+      "division": "Tools",
+      "name": "regression",
+      "kind": "MCP tool",
+      "meaning": "regression MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/regression-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9700,6 +9770,12 @@
       "src/pages/HomepageSample.tsx"
     ],
     [
+      "/why",
+      "Why",
+      "User-facing page for Why.",
+      "src/pages/Why.tsx"
+    ],
+    [
       "/xpass",
       "XPass",
       "User-facing page for XPass.",
@@ -10143,6 +10219,11 @@
       "coinpaprika",
       "coinpaprika MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/coinpaprika-tool.ts"
+    ],
+    [
+      "collatz",
+      "collatz MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/collatz-tool.ts"
     ],
     [
       "color",
@@ -10718,6 +10799,11 @@
       "higgsfield",
       "higgsfield MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/higgsfield-tool.ts"
+    ],
+    [
+      "histogram",
+      "histogram MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/histogram-tool.ts"
     ],
     [
       "holidays",
@@ -11330,6 +11416,11 @@
       "packages/mcp-server/src/pandascore-tool.ts"
     ],
     [
+      "pascaltri",
+      "pascaltri MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pascaltri-tool.ts"
+    ],
+    [
       "passwordgen",
       "passwordgen MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/passwordgen-tool.ts"
@@ -11568,6 +11659,11 @@
       "regexr",
       "regexr MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/regexr-tool.ts"
+    ],
+    [
+      "regression",
+      "regression MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/regression-tool.ts"
     ],
     [
       "render",
@@ -12529,13 +12625,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "0321c830b3bc",
-      "bytes": 15563
+      "hash": "ead5f39c080b",
+      "bytes": 16499
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "c8bab38bba5e",
-      "bytes": 24827
+      "hash": "2c6ec8581d6c",
+      "bytes": 25721
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -12774,13 +12870,13 @@
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
-      "hash": "9de4fed78407",
-      "bytes": 14774
+      "hash": "48f1919d4056",
+      "bytes": 14795
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "cbafa8394842",
-      "bytes": 11617
+      "hash": "f9548c19ddab",
+      "bytes": 11641
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -12789,13 +12885,13 @@
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
-      "hash": "8e3ab82ef00f",
-      "bytes": 10336
+      "hash": "dcc1351f518e",
+      "bytes": 10345
     },
     {
       "source": "src/pages/admin/AdminAppTesting.tsx",
-      "hash": "c61128ef7423",
-      "bytes": 10936
+      "hash": "90c9377b4bab",
+      "bytes": 10945
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
@@ -12804,48 +12900,48 @@
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
-      "hash": "028edd82cb11",
-      "bytes": 874
+      "hash": "947f6c4d8c10",
+      "bytes": 877
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "426fed992766",
-      "bytes": 22902
+      "hash": "883d77d7b764",
+      "bytes": 22924
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "0f2003fd8242",
-      "bytes": 12106
+      "hash": "765ac778242e",
+      "bytes": 12112
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
-      "hash": "69eb15aaf438",
-      "bytes": 25684
+      "hash": "d3f1d4d1e298",
+      "bytes": 25705
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "ec3c5b4f4b4f",
-      "bytes": 37557
+      "hash": "076fd12c1831",
+      "bytes": 37563
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "e0edf4d7c409",
-      "bytes": 26533
+      "hash": "825a4928a569",
+      "bytes": 26632
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
-      "hash": "ff33937fdf7b",
-      "bytes": 8044
+      "hash": "d51790b275a5",
+      "bytes": 8068
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "a7d741e75c78",
-      "bytes": 7306
+      "hash": "64459f24dc61",
+      "bytes": 7324
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
-      "hash": "f3afb17bb001",
-      "bytes": 13909
+      "hash": "cd0198794cbc",
+      "bytes": 13912
     },
     {
       "source": "src/pages/admin/crews/CrewRun.tsx",
@@ -12869,48 +12965,48 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "7ee015247aa8",
-      "bytes": 5257
+      "hash": "c6c9093d733d",
+      "bytes": 5303
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "fb05696540e8",
-      "bytes": 63548
+      "hash": "5417b324cff7",
+      "bytes": 64232
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
-      "hash": "34ba72c04cb2",
-      "bytes": 54660
+      "hash": "fd2aad657f06",
+      "bytes": 54734
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "0c355d737922",
-      "bytes": 77124
+      "hash": "982902265fb2",
+      "bytes": 77151
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
-      "hash": "f001b0a54b31",
-      "bytes": 9731
+      "hash": "25b2ecae9ca8",
+      "bytes": 10814
     },
     {
       "source": "src/pages/admin/AdminModeration.tsx",
-      "hash": "c81500ffb43d",
-      "bytes": 880
+      "hash": "27cae956bcfd",
+      "bytes": 883
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "4741f71afba9",
-      "bytes": 94705
+      "hash": "5eea2b54d8d6",
+      "bytes": 94742
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
-      "hash": "1b09a0b4c1b4",
-      "bytes": 21751
+      "hash": "4dce3c986684",
+      "bytes": 21769
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "cce2a4ca6248",
-      "bytes": 40580
+      "hash": "48449b4ebd11",
+      "bytes": 40601
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
@@ -12919,63 +13015,63 @@
     },
     {
       "source": "src/pages/admin/signals/SignalsSettings.tsx",
-      "hash": "791cd433a5b0",
-      "bytes": 9837
+      "hash": "7c1d807c5e8b",
+      "bytes": 9900
     },
     {
       "source": "src/pages/admin/signals/SignalsCatalog.tsx",
-      "hash": "7baa82ac0d7f",
-      "bytes": 10835
+      "hash": "f5332dd8f38e",
+      "bytes": 10865
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",
-      "hash": "6e61ae4d3d34",
-      "bytes": 867
+      "hash": "4ddaaf1282db",
+      "bytes": 870
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
-      "hash": "fd912523ee14",
-      "bytes": 10379
+      "hash": "ff6ef9aa1bfd",
+      "bytes": 10397
     },
     {
       "source": "src/pages/admin/AdminTestPass.tsx",
-      "hash": "0b3cc7b44107",
-      "bytes": 27259
+      "hash": "22a59a8de00f",
+      "bytes": 27268
     },
     {
       "source": "src/pages/admin/testpass/ReportDetail.tsx",
-      "hash": "b3db4032aa33",
-      "bytes": 12374
+      "hash": "027acece2860",
+      "bytes": 12392
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "52e43b795126",
-      "bytes": 21979
+      "hash": "4412674f8382",
+      "bytes": 22000
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
-      "hash": "8fc76ddd8d3f",
-      "bytes": 21847
+      "hash": "ee00d5d30b04",
+      "bytes": 21877
     },
     {
       "source": "src/pages/admin/AdminTruthRate.tsx",
-      "hash": "115c5cce9b90",
-      "bytes": 8868
+      "hash": "b99175b21cc1",
+      "bytes": 8880
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
-      "hash": "701e7da2f201",
-      "bytes": 863
+      "hash": "222654ee0f22",
+      "bytes": 866
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "db31f326ff07",
-      "bytes": 26775
+      "hash": "193295e6e4dc",
+      "bytes": 26811
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "89ed912e326b",
-      "bytes": 59397
+      "hash": "a0e051f56e86",
+      "bytes": 63243
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -13009,8 +13105,8 @@
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
-      "hash": "339b3a5c60ae",
-      "bytes": 23490
+      "hash": "9bfae679df42",
+      "bytes": 23493
     },
     {
       "source": "src/pages/DeveloperSubmit.tsx",
@@ -13024,8 +13120,8 @@
     },
     {
       "source": "src/pages/Developers.tsx",
-      "hash": "9657fd564797",
-      "bytes": 19123
+      "hash": "c31a8a187fac",
+      "bytes": 19126
     },
     {
       "source": "src/pages/Dispatch.tsx",
@@ -13054,8 +13150,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "da0fc0d07f50",
-      "bytes": 62558
+      "hash": "21a0ef6af00d",
+      "bytes": 62621
     },
     {
       "source": "src/pages/Login.tsx",
@@ -13074,13 +13170,13 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "cf7f06bacc89",
-      "bytes": 18641
+      "hash": "147f832aa5b9",
+      "bytes": 19192
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "a28cb1d9ece8",
-      "bytes": 12559
+      "hash": "e2d14ccf9af9",
+      "bytes": 13179
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -13138,9 +13234,14 @@
       "bytes": 21971
     },
     {
+      "source": "src/pages/Why.tsx",
+      "hash": "a0c2574257c7",
+      "bytes": 11100
+    },
+    {
       "source": "src/pages/XPass.tsx",
-      "hash": "717c00a85c16",
-      "bytes": 8699
+      "hash": "8a95e39abdd4",
+      "bytes": 11982
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
