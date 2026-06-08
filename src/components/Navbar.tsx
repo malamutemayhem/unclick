@@ -23,6 +23,7 @@ type NavItem = { label: string; href: string; children?: NavChild[] };
 // explains the product. The interactive surfaces live in the signed-in
 // dashboard at /admin/*, reached via "Get started" / "Dashboard".
 const NAV_ITEMS: NavItem[] = [
+  { label: "Why UnClick", href: "/why" },
   { label: "Apps", href: "/apps" },
   { label: "Skills", href: "/skills" },
   { label: "Orchestrator", href: "/orchestrator" },

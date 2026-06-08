@@ -39,6 +39,7 @@ import AppsPage from "./pages/Apps.tsx";
 import AppDetailPage from "./pages/AppDetail.tsx";
 import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
+import WhyPage from "./pages/Why.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
 import XPassPage from "./pages/XPass.tsx";
@@ -260,6 +261,7 @@ const App = () => (
               chapter is ready. Page component retained; route redirected. */}
           <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
+          <Route path="/why" element={<WhyPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />
           {/* Install ticket recovery: fresh 24h code for returning users */}
