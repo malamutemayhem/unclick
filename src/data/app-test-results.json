@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T22:00:00.000Z",
+  "updatedAt": "2026-06-08T22:05:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3676,6 +3676,30 @@
       "note": "tokencount_estimate estimates LLM token counts locally. No API needed.",
       "testedAt": "2026-06-08T22:00:00.000Z",
       "toolsTested": ["tokencount_estimate"]
+    },
+    "crc32": {
+      "status": "pass",
+      "note": "crc32_calculate computes CRC32 checksums locally. No API needed.",
+      "testedAt": "2026-06-08T22:05:00.000Z",
+      "toolsTested": ["crc32_calculate"]
+    },
+    "jaccard": {
+      "status": "pass",
+      "note": "jaccard_similarity computes set overlap locally. No API needed.",
+      "testedAt": "2026-06-08T22:05:00.000Z",
+      "toolsTested": ["jaccard_similarity"]
+    },
+    "hamming": {
+      "status": "pass",
+      "note": "hamming_distance computes positional differences locally. No API needed.",
+      "testedAt": "2026-06-08T22:05:00.000Z",
+      "toolsTested": ["hamming_distance"]
+    },
+    "cosinesim": {
+      "status": "pass",
+      "note": "cosinesim_compare computes cosine similarity locally. No API needed.",
+      "testedAt": "2026-06-08T22:05:00.000Z",
+      "toolsTested": ["cosinesim_compare"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

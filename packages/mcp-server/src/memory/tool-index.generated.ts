@@ -1484,6 +1484,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cosinesim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cosinesim_compare",
+        "description": "Calculate cosine similarity between two texts using word frequency vectors."
+      }
+    ]
+  },
+  {
     "app": "countdowncalc",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1524,6 +1534,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "crates_get",
         "description": "Get detailed info for a Rust crate by name from crates.io."
+      }
+    ]
+  },
+  {
+    "app": "crc32",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crc32_calculate",
+        "description": "Calculate CRC32 checksum for text input."
       }
     ]
   },
@@ -3092,6 +3112,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hamming",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hamming_distance",
+        "description": "Calculate Hamming distance between two equal-length strings."
+      }
+    ]
+  },
+  {
     "app": "harrypotter",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3532,6 +3562,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "itis_get_full_record",
         "description": "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number)."
+      }
+    ]
+  },
+  {
+    "app": "jaccard",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jaccard_similarity",
+        "description": "Calculate Jaccard similarity index between two texts (word or character level)."
       }
     ]
   },

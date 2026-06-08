@@ -639,6 +639,10 @@ import { metaphoneEncode } from "./metaphone-tool.js";
 import { tfidfCalculate } from "./tfidf-tool.js";
 import { readabilityScore } from "./readability-tool.js";
 import { tokencountEstimate } from "./tokencount-tool.js";
+import { crc32Calculate } from "./crc32-tool.js";
+import { jaccardSimilarity } from "./jaccard-tool.js";
+import { hammingDistance } from "./hamming-tool.js";
+import { cosinesimCompare } from "./cosinesim-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9790,6 +9794,54 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text to estimate tokens for." },
       }, required: ["text"],
+    },
+  },
+
+  // ── crc32-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "crc32_calculate",
+    description: "Calculate CRC32 checksum for text input.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to checksum." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── jaccard-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "jaccard_similarity",
+    description: "Calculate Jaccard similarity index between two texts (word or character level).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text." },
+        text_b: { type: "string" as const, description: "Second text." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── hamming-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hamming_distance",
+    description: "Calculate Hamming distance between two equal-length strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First string." },
+        text_b: { type: "string" as const, description: "Second string (must be same length)." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── cosinesim-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cosinesim_compare",
+    description: "Calculate cosine similarity between two texts using word frequency vectors.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text." },
+        text_b: { type: "string" as const, description: "Second text." },
+      }, required: ["text_a", "text_b"],
     },
   },
 
@@ -21347,6 +21399,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // tokencount-tool.ts
   tokencount_estimate:       (args) => tokencountEstimate(args),
+
+  // crc32-tool.ts
+  crc32_calculate:           (args) => crc32Calculate(args),
+
+  // jaccard-tool.ts
+  jaccard_similarity:        (args) => jaccardSimilarity(args),
+
+  // hamming-tool.ts
+  hamming_distance:          (args) => hammingDistance(args),
+
+  // cosinesim-tool.ts
+  cosinesim_compare:         (args) => cosinesimCompare(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

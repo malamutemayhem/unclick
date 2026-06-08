@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 897,
+    "inventory": 901,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 475,
+    "tools": 479,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 475
+      "count": 479
     },
     {
       "id": "rooms",
@@ -5022,6 +5022,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-cosinesim-packages-mcp-server-src-cosinesim-tool-ts-no-route",
+      "division": "Tools",
+      "name": "cosinesim",
+      "kind": "MCP tool",
+      "meaning": "cosinesim MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/cosinesim-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-countdowncalc-packages-mcp-server-src-countdowncalc-tool-ts-no-route",
       "division": "Tools",
       "name": "countdowncalc",
@@ -5058,6 +5068,16 @@
       "kind": "MCP tool",
       "meaning": "crates MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/crates-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-crc32-packages-mcp-server-src-crc32-tool-ts-no-route",
+      "division": "Tools",
+      "name": "crc32",
+      "kind": "MCP tool",
+      "meaning": "crc32 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/crc32-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5942,6 +5962,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hamming-packages-mcp-server-src-hamming-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hamming",
+      "kind": "MCP tool",
+      "meaning": "hamming MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hamming-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-harrypotter-packages-mcp-server-src-harrypotter-tool-ts-no-route",
       "division": "Tools",
       "name": "harrypotter",
@@ -6228,6 +6258,16 @@
       "kind": "MCP tool",
       "meaning": "itis MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/itis-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-jaccard-packages-mcp-server-src-jaccard-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jaccard",
+      "kind": "MCP tool",
+      "meaning": "jaccard MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jaccard-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10085,6 +10125,11 @@
       "packages/mcp-server/src/corporatebs-tool.ts"
     ],
     [
+      "cosinesim",
+      "cosinesim MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/cosinesim-tool.ts"
+    ],
+    [
       "countdowncalc",
       "countdowncalc MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/countdowncalc-tool.ts"
@@ -10103,6 +10148,11 @@
       "crates",
       "crates MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/crates-tool.ts"
+    ],
+    [
+      "crc32",
+      "crc32 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/crc32-tool.ts"
     ],
     [
       "crews",
@@ -10545,6 +10595,11 @@
       "packages/mcp-server/src/hackernews-tool.ts"
     ],
     [
+      "hamming",
+      "hamming MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hamming-tool.ts"
+    ],
+    [
       "harrypotter",
       "harrypotter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/harrypotter-tool.ts"
@@ -10688,6 +10743,11 @@
       "itis",
       "itis MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/itis-tool.ts"
+    ],
+    [
+      "jaccard",
+      "jaccard MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jaccard-tool.ts"
     ],
     [
       "jikan",

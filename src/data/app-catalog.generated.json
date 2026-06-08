@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 474,
-  "toolCount": 1396,
+  "appCount": 478,
+  "toolCount": 1400,
   "categories": [
     "AI",
     "Books",
@@ -1850,6 +1850,22 @@
       "hardened": true
     },
     {
+      "slug": "cosinesim",
+      "name": "Cosine Similarity",
+      "category": "Utilities",
+      "blurb": "Calculate cosine similarity between two texts using word frequency vectors.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cosinesim_compare",
+          "description": "Calculate cosine similarity between two texts using word frequency vectors."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "countdowncalc",
       "name": "Countdown Calculator",
       "category": "Utilities",
@@ -1912,6 +1928,22 @@
         {
           "name": "crates_get",
           "description": "Get detailed info for a Rust crate by name from crates.io."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "crc32",
+      "name": "CRC32 Checksum",
+      "category": "Utilities",
+      "blurb": "Calculate CRC32 checksums for data integrity verification.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "crc32_calculate",
+          "description": "Calculate CRC32 checksum for text input."
         }
       ],
       "level": 5,
@@ -3902,6 +3934,22 @@
       "hardened": true
     },
     {
+      "slug": "hamming",
+      "name": "Hamming Distance",
+      "category": "Utilities",
+      "blurb": "Calculate Hamming distance between equal-length strings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hamming_distance",
+          "description": "Calculate Hamming distance between two equal-length strings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "harrypotter",
       "name": "Harry Potter",
       "category": "Social",
@@ -4520,6 +4568,22 @@
         {
           "name": "itis_get_full_record",
           "description": "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "jaccard",
+      "name": "Jaccard Similarity",
+      "category": "Utilities",
+      "blurb": "Calculate Jaccard similarity index between two texts.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "jaccard_similarity",
+          "description": "Calculate Jaccard similarity index between two texts (word or character level)."
         }
       ],
       "level": 5,
