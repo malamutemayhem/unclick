@@ -1,79 +1,66 @@
 export function render(template: string, data: Record<string, unknown>): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (_match, expr: string) => {
-    const trimmed = expr.trim();
-    if (trimmed.startsWith("#if ")) return "";
-    if (trimmed === "/if") return "";
-    if (trimmed.startsWith("#each ")) return "";
-    if (trimmed === "/each") return "";
-    const value = resolve(data, trimmed);
-    return value === undefined || value === null ? "" : String(value);
+  return template.replace(/\{\{([\w.]+)(\|([^}]+))?\}\}/g, (_match, path: string, _pipe: string, filters: string) => {
+    const value = resolvePath(data, path);
+    if (value === undefined || value === null) return "";
+    let result = String(value);
+    if (filters) {
+      for (const f of filters.split("|").map((s) => s.trim())) {
+        result = applyFilter(result, f);
+      }
+    }
+    return result;
   });
 }
 
-export function renderFull(template: string, data: Record<string, unknown>): string {
-  let result = processEach(template, data);
-  result = processIf(result, data);
-  result = render(result, data);
-  return result;
+export function renderConditional(template: string, data: Record<string, unknown>): string {
+  let result = template.replace(/\{\{#if\s+([\w.]+)\}\}([\s\S]*?)(\{\{#else\}\}([\s\S]*?))?\{\{\/if\}\}/g,
+    (_match, path: string, ifBlock: string, _elseMatch: string, elseBlock: string) => {
+      const value = resolvePath(data, path);
+      return isTruthy(value) ? ifBlock : (elseBlock || "");
+    }
+  );
+  return render(result, data);
 }
 
-function processIf(template: string, data: Record<string, unknown>): string {
-  const ifRegex = /\{\{#if\s+([^}]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g;
-  return template.replace(ifRegex, (_match, condition: string, truthy: string, falsy: string) => {
-    const value = resolve(data, condition.trim());
-    if (isTruthy(value)) return truthy;
-    return falsy || "";
-  });
+export function renderLoop(template: string, data: Record<string, unknown>): string {
+  let result = template.replace(/\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g,
+    (_match, path: string, block: string) => {
+      const arr = resolvePath(data, path);
+      if (!Array.isArray(arr)) return "";
+      return arr.map((item, index) => {
+        const ctx = typeof item === "object" && item !== null
+          ? { ...data, ...item as Record<string, unknown>, _index: index }
+          : { ...data, _item: item, _index: index };
+        return render(block, ctx);
+      }).join("");
+    }
+  );
+  return render(result, data);
 }
 
-function processEach(template: string, data: Record<string, unknown>): string {
-  const eachRegex = /\{\{#each\s+([^}]+)\}\}([\s\S]*?)\{\{\/each\}\}/g;
-  return template.replace(eachRegex, (_match, key: string, body: string) => {
-    const arr = resolve(data, key.trim());
-    if (!Array.isArray(arr)) return "";
-    return arr.map((item, index) => {
-      const itemData: Record<string, unknown> = typeof item === "object" && item !== null
-        ? { ...data, ...item as Record<string, unknown>, "@index": index, "@first": index === 0, "@last": index === arr.length - 1 }
-        : { ...data, ".": item, "@index": index, "@first": index === 0, "@last": index === arr.length - 1 };
-      let rendered = processIf(body, itemData);
-      rendered = render(rendered, itemData);
-      return rendered;
-    }).join("");
-  });
-}
-
-function resolve(data: Record<string, unknown>, path: string): unknown {
-  if (path === ".") return data["."];
-  const parts = path.split(".");
-  let current: unknown = data;
-  for (const part of parts) {
+function resolvePath(obj: Record<string, unknown>, path: string): unknown {
+  const keys = path.split(".");
+  let current: unknown = obj;
+  for (const key of keys) {
     if (current === null || current === undefined) return undefined;
-    if (typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[part];
+    current = (current as Record<string, unknown>)[key];
   }
   return current;
 }
 
 function isTruthy(value: unknown): boolean {
   if (value === null || value === undefined || value === false || value === 0 || value === "") return false;
-  if (Array.isArray(value) && value.length === 0) return false;
+  if (Array.isArray(value)) return value.length > 0;
   return true;
 }
 
-export function escape(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-export function unescape(str: string): string {
-  return str
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&gt;/g, ">")
-    .replace(/&lt;/g, "<")
-    .replace(/&amp;/g, "&");
+function applyFilter(value: string, filter: string): string {
+  switch (filter) {
+    case "upper": return value.toUpperCase();
+    case "lower": return value.toLowerCase();
+    case "trim": return value.trim();
+    case "capitalize": return value.charAt(0).toUpperCase() + value.slice(1);
+    case "reverse": return value.split("").reverse().join("");
+    default: return value;
+  }
 }

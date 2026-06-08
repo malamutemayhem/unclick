@@ -1,4 +1,4 @@
-export function slugify(input: string, separator: string = "-"): string {
+export function slugify(input: string, separator = "-"): string {
   return input
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -8,44 +8,47 @@ export function slugify(input: string, separator: string = "-"): string {
     .replace(/[\s-]+/g, separator);
 }
 
-export function deslugify(slug: string, separator: string = "-"): string {
+export function deslugify(slug: string, separator = "-"): string {
   return slug
     .split(separator)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
-export function camelToSlug(input: string, separator: string = "-"): string {
-  return input
-    .replace(/([a-z0-9])([A-Z])/g, `$1${separator}$2`)
-    .replace(/([A-Z])([A-Z][a-z])/g, `$1${separator}$2`)
+export function camelToSlug(camel: string, separator = "-"): string {
+  return camel
+    .replace(/([a-z])([A-Z])/g, `$1${separator}$2`)
+    .replace(/([A-Z]+)([A-Z][a-z])/g, `$1${separator}$2`)
     .toLowerCase();
 }
 
-export function slugToCamel(slug: string, separator: string = "-"): string {
-  const parts = slug.split(separator);
-  return parts[0] + parts.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
-}
-
-export function slugToPascal(slug: string, separator: string = "-"): string {
+export function slugToCamel(slug: string, separator = "-"): string {
   return slug
     .split(separator)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((word, i) => i === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join("");
 }
 
-export function isValidSlug(input: string, separator: string = "-"): boolean {
-  const re = new RegExp(`^[a-z0-9]+(?:${escapeRegex(separator)}[a-z0-9]+)*$`);
-  return re.test(input);
+export function slugToPascal(slug: string, separator = "-"): string {
+  return slug
+    .split(separator)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join("");
 }
 
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export function toSnakeCase(input: string): string {
+  return slugify(input, "_");
 }
 
-export function truncateSlug(slug: string, maxLen: number, separator: string = "-"): string {
-  if (slug.length <= maxLen) return slug;
-  const trimmed = slug.slice(0, maxLen);
-  const lastSep = trimmed.lastIndexOf(separator);
-  return lastSep > 0 ? trimmed.slice(0, lastSep) : trimmed;
+export function toKebabCase(input: string): string {
+  return slugify(input, "-");
+}
+
+export function isSlug(input: string, separator = "-"): boolean {
+  const pattern = new RegExp(`^[a-z0-9]+(?:${escapeRegex(separator)}[a-z0-9]+)*$`);
+  return pattern.test(input);
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

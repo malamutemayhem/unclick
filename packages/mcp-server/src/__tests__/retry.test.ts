@@ -1,86 +1,89 @@
 import { describe, it, expect, vi } from "vitest";
-import { retry, withRetry, CircuitBreaker } from "../retry.js";
+import { retry, retryWithTimeout, withRetry, isRetryable } from "../retry.js";
 
 describe("retry", () => {
-  it("succeeds on first try", async () => {
-    const fn = vi.fn().mockResolvedValue("ok");
-    const result = await retry(fn, { maxAttempts: 3, jitter: false });
-    expect(result).toBe("ok");
+  it("returns on first success", async () => {
+    const fn = vi.fn().mockResolvedValue(42);
+    expect(await retry(fn)).toBe(42);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it("retries on failure then succeeds", async () => {
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("fail1"))
-      .mockResolvedValue("ok");
-    const result = await retry(fn, { maxAttempts: 3, initialDelay: 1, jitter: false });
+    let calls = 0;
+    const result = await retry(async () => {
+      calls++;
+      if (calls < 3) throw new Error("fail");
+      return "ok";
+    }, { maxAttempts: 3, initialDelayMs: 1 });
     expect(result).toBe("ok");
-    expect(fn).toHaveBeenCalledTimes(2);
+    expect(calls).toBe(3);
   });
 
   it("throws after max attempts", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("always fail"));
-    await expect(retry(fn, { maxAttempts: 2, initialDelay: 1, jitter: false })).rejects.toThrow("always fail");
-    expect(fn).toHaveBeenCalledTimes(2);
+    await expect(retry(async () => { throw new Error("nope"); }, { maxAttempts: 2, initialDelayMs: 1 }))
+      .rejects.toThrow("nope");
   });
 
-  it("respects retryIf", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("no retry"));
-    await expect(retry(fn, {
-      maxAttempts: 3,
-      initialDelay: 1,
-      retryIf: () => false,
-    })).rejects.toThrow("no retry");
-    expect(fn).toHaveBeenCalledTimes(1);
+  it("stops when shouldRetry returns false", async () => {
+    let calls = 0;
+    await expect(retry(async () => {
+      calls++;
+      throw new Error("stop");
+    }, { maxAttempts: 5, initialDelayMs: 1, shouldRetry: () => false }))
+      .rejects.toThrow("stop");
+    expect(calls).toBe(1);
   });
 
   it("calls onRetry callback", async () => {
     const onRetry = vi.fn();
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValue("ok");
-    await retry(fn, { maxAttempts: 3, initialDelay: 1, jitter: false, onRetry });
+    let calls = 0;
+    await retry(async () => {
+      calls++;
+      if (calls < 2) throw new Error("retry me");
+      return "done";
+    }, { maxAttempts: 3, initialDelayMs: 1, onRetry });
     expect(onRetry).toHaveBeenCalledTimes(1);
-    expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1);
+  });
+
+  it("respects backoff multiplier", async () => {
+    const onRetry = vi.fn();
+    let calls = 0;
+    await retry(async () => {
+      calls++;
+      if (calls < 3) throw new Error("fail");
+      return "ok";
+    }, { maxAttempts: 3, initialDelayMs: 10, backoffMultiplier: 2, onRetry });
+    expect(onRetry).toHaveBeenCalledTimes(2);
+    expect(onRetry.mock.calls[0][2]).toBe(10);
+    expect(onRetry.mock.calls[1][2]).toBe(20);
+  });
+});
+
+describe("retryWithTimeout", () => {
+  it("throws on timeout", async () => {
+    await expect(retryWithTimeout(
+      async () => { await new Promise((r) => setTimeout(r, 500)); return 1; },
+      50,
+      { maxAttempts: 1, initialDelayMs: 1 }
+    )).rejects.toThrow("Retry timed out");
   });
 });
 
 describe("withRetry", () => {
-  it("wraps a function with retry logic", async () => {
-    const fn = vi.fn().mockResolvedValue(42);
-    const wrapped = withRetry(fn, { maxAttempts: 2 });
-    expect(await wrapped()).toBe(42);
+  it("wraps a function with retry", async () => {
+    let calls = 0;
+    const fn = withRetry(async (x: number) => {
+      calls++;
+      if (calls < 2) throw new Error("once");
+      return x * 2;
+    }, { maxAttempts: 3, initialDelayMs: 1 });
+    expect(await fn(5)).toBe(10);
   });
 });
 
-describe("CircuitBreaker", () => {
-  it("starts closed", () => {
-    const cb = new CircuitBreaker(3, 1000);
-    expect(cb.state).toBe("closed");
-  });
-
-  it("opens after threshold failures", async () => {
-    const cb = new CircuitBreaker(2, 100000);
-    const fail = () => Promise.reject(new Error("fail"));
-    for (let i = 0; i < 2; i++) {
-      try { await cb.execute(fail); } catch {}
-    }
-    expect(cb.state).toBe("open");
-    await expect(cb.execute(fail)).rejects.toThrow("Circuit breaker is open");
-  });
-
-  it("resets on success", async () => {
-    const cb = new CircuitBreaker(3, 100000);
-    try { await cb.execute(() => Promise.reject(new Error("x"))); } catch {}
-    await cb.execute(() => Promise.resolve("ok"));
-    expect(cb.state).toBe("closed");
-  });
-
-  it("reset() manually closes", async () => {
-    const cb = new CircuitBreaker(1, 100000);
-    try { await cb.execute(() => Promise.reject(new Error("x"))); } catch {}
-    expect(cb.state).toBe("open");
-    cb.reset();
-    expect(cb.state).toBe("closed");
-  });
+describe("isRetryable", () => {
+  it("detects timeout", () => { expect(isRetryable(new Error("Connection timeout"))).toBe(true); });
+  it("detects 429", () => { expect(isRetryable(new Error("429 Too Many Requests"))).toBe(true); });
+  it("detects 503", () => { expect(isRetryable(new Error("503 Service Unavailable"))).toBe(true); });
+  it("rejects unknown errors", () => { expect(isRetryable(new Error("Syntax error"))).toBe(false); });
 });

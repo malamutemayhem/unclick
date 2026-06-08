@@ -1,96 +1,48 @@
 import { describe, it, expect } from "vitest";
-import { slugify, deslugify, camelToSlug, slugToCamel, slugToPascal, isValidSlug, truncateSlug } from "../slug.js";
+import { slugify, deslugify, camelToSlug, slugToCamel, slugToPascal, toSnakeCase, toKebabCase, isSlug } from "../slug.js";
 
-describe("slugify", () => {
-  it("converts basic text", () => {
-    expect(slugify("Hello World")).toBe("hello-world");
+describe("slug", () => {
+  describe("slugify", () => {
+    it("converts to lowercase slug", () => { expect(slugify("Hello World")).toBe("hello-world"); });
+    it("removes special chars", () => { expect(slugify("Hello! @World#")).toBe("hello-world"); });
+    it("collapses spaces", () => { expect(slugify("  a   b  ")).toBe("a-b"); });
+    it("custom separator", () => { expect(slugify("hello world", "_")).toBe("hello_world"); });
+    it("handles accented chars", () => { expect(slugify("cafe")).toBe("cafe"); });
   });
 
-  it("strips special characters", () => {
-    expect(slugify("Hello, World! #2024")).toBe("hello-world-2024");
+  describe("deslugify", () => {
+    it("capitalizes words", () => { expect(deslugify("hello-world")).toBe("Hello World"); });
+    it("custom separator", () => { expect(deslugify("hello_world", "_")).toBe("Hello World"); });
   });
 
-  it("normalizes accented characters", () => {
-    expect(slugify("cafe resume")).toBe("cafe-resume");
+  describe("camelToSlug", () => {
+    it("converts camelCase", () => { expect(camelToSlug("helloWorld")).toBe("hello-world"); });
+    it("converts PascalCase", () => { expect(camelToSlug("HelloWorld")).toBe("hello-world"); });
+    it("handles acronyms", () => { expect(camelToSlug("getHTMLParser")).toBe("get-html-parser"); });
   });
 
-  it("collapses multiple spaces and dashes", () => {
-    expect(slugify("a   b---c")).toBe("a-b-c");
+  describe("slugToCamel", () => {
+    it("converts to camelCase", () => { expect(slugToCamel("hello-world")).toBe("helloWorld"); });
+    it("custom separator", () => { expect(slugToCamel("hello_world", "_")).toBe("helloWorld"); });
   });
 
-  it("custom separator", () => {
-    expect(slugify("hello world", "_")).toBe("hello_world");
+  describe("slugToPascal", () => {
+    it("converts to PascalCase", () => { expect(slugToPascal("hello-world")).toBe("HelloWorld"); });
   });
 
-  it("trims whitespace", () => {
-    expect(slugify("  hello  ")).toBe("hello");
-  });
-});
-
-describe("deslugify", () => {
-  it("converts slug to title", () => {
-    expect(deslugify("hello-world")).toBe("Hello World");
+  describe("toSnakeCase", () => {
+    it("converts to snake_case", () => { expect(toSnakeCase("Hello World")).toBe("hello_world"); });
   });
 
-  it("handles custom separator", () => {
-    expect(deslugify("hello_world", "_")).toBe("Hello World");
-  });
-});
-
-describe("camelToSlug", () => {
-  it("converts camelCase", () => {
-    expect(camelToSlug("helloWorld")).toBe("hello-world");
+  describe("toKebabCase", () => {
+    it("converts to kebab-case", () => { expect(toKebabCase("Hello World")).toBe("hello-world"); });
   });
 
-  it("converts PascalCase", () => {
-    expect(camelToSlug("MyComponent")).toBe("my-component");
-  });
-
-  it("handles consecutive caps", () => {
-    expect(camelToSlug("parseHTML")).toBe("parse-html");
-  });
-});
-
-describe("slugToCamel", () => {
-  it("converts slug to camel", () => {
-    expect(slugToCamel("hello-world")).toBe("helloWorld");
-  });
-});
-
-describe("slugToPascal", () => {
-  it("converts slug to pascal", () => {
-    expect(slugToPascal("hello-world")).toBe("HelloWorld");
-  });
-});
-
-describe("isValidSlug", () => {
-  it("validates correct slug", () => {
-    expect(isValidSlug("hello-world")).toBe(true);
-  });
-
-  it("rejects uppercase", () => {
-    expect(isValidSlug("Hello-World")).toBe(false);
-  });
-
-  it("rejects leading dash", () => {
-    expect(isValidSlug("-hello")).toBe(false);
-  });
-
-  it("rejects trailing dash", () => {
-    expect(isValidSlug("hello-")).toBe(false);
-  });
-});
-
-describe("truncateSlug", () => {
-  it("returns short slugs as-is", () => {
-    expect(truncateSlug("hello", 20)).toBe("hello");
-  });
-
-  it("truncates at last separator within trimmed string", () => {
-    expect(truncateSlug("hello-beautiful-world", 14)).toBe("hello");
-  });
-
-  it("breaks at separator when trimmed string has one", () => {
-    expect(truncateSlug("hello-beautiful-world", 16)).toBe("hello-beautiful");
+  describe("isSlug", () => {
+    it("validates slug", () => { expect(isSlug("hello-world")).toBe(true); });
+    it("rejects spaces", () => { expect(isSlug("hello world")).toBe(false); });
+    it("rejects uppercase", () => { expect(isSlug("Hello-World")).toBe(false); });
+    it("validates with custom separator", () => { expect(isSlug("hello_world", "_")).toBe(true); });
+    it("rejects empty string", () => { expect(isSlug("")).toBe(false); });
   });
 });
