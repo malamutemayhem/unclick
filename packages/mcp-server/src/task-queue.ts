@@ -1,29 +1,48 @@
-type Task<T> = () => Promise<T>;
-
-interface QueuedTask<T> {
-  task: Task<T>;
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-  priority: number;
+export interface TaskResult<T> {
+  id: string;
+  result?: T;
+  error?: string;
+  duration: number;
 }
 
 export class TaskQueue {
-  private queue: QueuedTask<unknown>[] = [];
+  private queue: Array<{ id: string; fn: () => Promise<unknown>; resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
   private running = 0;
   private concurrency: number;
-  private _completed = 0;
-  private _failed = 0;
+  private results: TaskResult<unknown>[] = [];
+  private counter = 0;
 
   constructor(concurrency = 1) {
     this.concurrency = concurrency;
   }
 
-  add<T>(task: Task<T>, priority = 0): Promise<T> {
+  add<T>(fn: () => Promise<T>): Promise<T> {
+    const id = `task_${++this.counter}`;
     return new Promise<T>((resolve, reject) => {
-      this.queue.push({ task: task as Task<unknown>, resolve: resolve as (v: unknown) => void, reject, priority });
-      this.queue.sort((a, b) => b.priority - a.priority);
-      this.run();
+      this.queue.push({ id, fn, resolve: resolve as (v: unknown) => void, reject });
+      this.drain();
     });
+  }
+
+  private drain(): void {
+    while (this.running < this.concurrency && this.queue.length > 0) {
+      const task = this.queue.shift()!;
+      this.running++;
+      const start = Date.now();
+      task.fn()
+        .then((result) => {
+          this.results.push({ id: task.id, result, duration: Date.now() - start });
+          task.resolve(result);
+        })
+        .catch((err) => {
+          this.results.push({ id: task.id, error: String(err), duration: Date.now() - start });
+          task.reject(err);
+        })
+        .finally(() => {
+          this.running--;
+          this.drain();
+        });
+    }
   }
 
   get pending(): number {
@@ -35,30 +54,15 @@ export class TaskQueue {
   }
 
   get completed(): number {
-    return this._completed;
+    return this.results.length;
   }
 
-  get failed(): number {
-    return this._failed;
+  getResults(): TaskResult<unknown>[] {
+    return [...this.results];
   }
 
-  private run(): void {
-    while (this.running < this.concurrency && this.queue.length > 0) {
-      const item = this.queue.shift()!;
-      this.running++;
-      item.task()
-        .then((result) => {
-          this._completed++;
-          item.resolve(result);
-        })
-        .catch((err) => {
-          this._failed++;
-          item.reject(err);
-        })
-        .finally(() => {
-          this.running--;
-          this.run();
-        });
-    }
+  clear(): void {
+    this.queue = [];
+    this.results = [];
   }
 }

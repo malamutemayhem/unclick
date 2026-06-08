@@ -1,57 +1,83 @@
 import { describe, it, expect } from "vitest";
-import { weightedRandom, weightedSample, WeightedPool, normalizeWeights } from "../weighted-random.js";
+import { weightedRandom, weightedSample, normalizeWeights, reservoirSample, shuffle, WeightedItem } from "../weighted-random.js";
 
 describe("weightedRandom", () => {
-  it("returns items from the list", () => {
-    const items = ["a", "b", "c"];
-    const weights = [1, 1, 1];
-    for (let i = 0; i < 20; i++) {
-      expect(items).toContain(weightedRandom(items, weights));
-    }
+  it("returns an item", () => {
+    const items: WeightedItem<string>[] = [{ item: "a", weight: 1 }, { item: "b", weight: 1 }];
+    const result = weightedRandom(items);
+    expect(["a", "b"]).toContain(result);
   });
 
-  it("heavily weighted item appears most", () => {
-    const counts = { a: 0, b: 0 };
-    for (let i = 0; i < 1000; i++) {
-      const pick = weightedRandom(["a", "b"], [99, 1]);
-      counts[pick as "a" | "b"]++;
+  it("returns undefined for empty array", () => {
+    expect(weightedRandom([])).toBeUndefined();
+  });
+
+  it("respects weights over many trials", () => {
+    const items: WeightedItem<string>[] = [{ item: "heavy", weight: 100 }, { item: "light", weight: 1 }];
+    let heavyCount = 0;
+    for (let i = 0; i < 200; i++) {
+      if (weightedRandom(items) === "heavy") heavyCount++;
     }
-    expect(counts.a).toBeGreaterThan(counts.b * 5);
+    expect(heavyCount).toBeGreaterThan(150);
   });
 });
 
 describe("weightedSample", () => {
-  it("returns requested count without duplicates", () => {
-    const result = weightedSample(["a", "b", "c", "d"], [1, 1, 1, 1], 3);
-    expect(result.length).toBe(3);
-    expect(new Set(result).size).toBe(3);
-  });
-});
-
-describe("WeightedPool", () => {
-  it("pick returns from pool", () => {
-    const pool = new WeightedPool<string>();
-    pool.add("x", 10);
-    pool.add("y", 1);
-    expect(pool.size).toBe(2);
-    expect(["x", "y"]).toContain(pool.pick());
+  it("returns requested count", () => {
+    const items: WeightedItem<string>[] = [
+      { item: "a", weight: 1 }, { item: "b", weight: 1 }, { item: "c", weight: 1 },
+    ];
+    expect(weightedSample(items, 2).length).toBe(2);
   });
 
-  it("throws on empty pool", () => {
-    const pool = new WeightedPool<string>();
-    expect(() => pool.pick()).toThrow("empty");
+  it("returns unique items", () => {
+    const items: WeightedItem<number>[] = [
+      { item: 1, weight: 1 }, { item: 2, weight: 1 }, { item: 3, weight: 1 },
+    ];
+    const sample = weightedSample(items, 3);
+    expect(new Set(sample).size).toBe(3);
   });
 });
 
 describe("normalizeWeights", () => {
-  it("normalizes to sum to 1", () => {
-    const result = normalizeWeights([2, 3, 5]);
-    expect(result[0]).toBeCloseTo(0.2);
-    expect(result[1]).toBeCloseTo(0.3);
-    expect(result[2]).toBeCloseTo(0.5);
+  it("normalizes to sum 1", () => {
+    const items: WeightedItem<string>[] = [{ item: "a", weight: 3 }, { item: "b", weight: 7 }];
+    const norm = normalizeWeights(items);
+    const total = norm.reduce((s, i) => s + i.weight, 0);
+    expect(total).toBeCloseTo(1);
   });
 
-  it("handles all zeros", () => {
-    expect(normalizeWeights([0, 0])).toEqual([0, 0]);
+  it("handles all-zero weights", () => {
+    const items: WeightedItem<string>[] = [{ item: "a", weight: 0 }];
+    const norm = normalizeWeights(items);
+    expect(norm[0].weight).toBe(0);
+  });
+});
+
+describe("reservoirSample", () => {
+  it("returns k items", () => {
+    const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    expect(reservoirSample(items, 3).length).toBe(3);
+  });
+
+  it("returns all if k >= length", () => {
+    expect(reservoirSample([1, 2], 5).length).toBe(2);
+  });
+});
+
+describe("shuffle", () => {
+  it("returns same length", () => {
+    expect(shuffle([1, 2, 3]).length).toBe(3);
+  });
+
+  it("does not mutate original", () => {
+    const orig = [1, 2, 3];
+    shuffle(orig);
+    expect(orig).toEqual([1, 2, 3]);
+  });
+
+  it("contains same elements", () => {
+    const result = shuffle([1, 2, 3]);
+    expect(result.sort()).toEqual([1, 2, 3]);
   });
 });
