@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T08:00:00.000Z",
+  "updatedAt": "2026-06-08T08:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -230,6 +230,14 @@
         "brewery_random"
       ],
       "comment": ""
+    },
+    "breakingbad": {
+      "status": "pass",
+      "note": "breaking_bad_quote returns random Breaking Bad quotes. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "breaking_bad_quote"
+      ]
     },
     "bungie": {
       "status": "attention",
@@ -559,6 +567,16 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "digimon": {
+      "status": "pass",
+      "note": "digimon_all, digimon_by_name, digimon_by_level return Digimon data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "digimon_all",
+        "digimon_by_name",
+        "digimon_by_level"
+      ]
     },
     "discogs": {
       "status": "attention",
@@ -1634,6 +1652,16 @@
       ],
       "comment": ""
     },
+    "publicapis": {
+      "status": "pass",
+      "note": "publicapis_search, publicapis_categories, publicapis_random return public API directory data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "publicapis_search",
+        "publicapis_categories",
+        "publicapis_random"
+      ]
+    },
     "punkapi": {
       "status": "pass",
       "note": "punkapi_random_beer returned a BrewDog craft beer recipe. Free, no key needed.",
@@ -1706,6 +1734,14 @@
       "testedAt": "2026-06-08T03:57:15.086Z",
       "toolsTested": [
         "random_fox_image"
+      ]
+    },
+    "randomuser": {
+      "status": "pass",
+      "note": "random_user generates realistic user profiles from randomuser.me. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "random_user"
       ]
     },
     "rawg": {
@@ -1975,6 +2011,16 @@
       "toolsTested": [],
       "comment": ""
     },
+    "stapi": {
+      "status": "pass",
+      "note": "stapi_search_character, stapi_search_species, stapi_search_starship return Star Trek data. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "stapi_search_character",
+        "stapi_search_species",
+        "stapi_search_starship"
+      ]
+    },
     "steam": {
       "status": "pass",
       "note": "search_steam_store returned 10 Portal games with AUD pricing and metascores - no auth needed",
@@ -2032,6 +2078,14 @@
         "tab_sports_markets"
       ],
       "comment": ""
+    },
+    "tacofancy": {
+      "status": "pass",
+      "note": "random_taco generates random taco recipes from Taco Fancy API. Free, no key needed.",
+      "testedAt": "2026-06-08T08:30:00.000Z",
+      "toolsTested": [
+        "random_taco"
+      ]
     },
     "tarot": {
       "status": "pass",

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 299,
-  "toolCount": 1119,
+  "appCount": 305,
+  "toolCount": 1131,
   "categories": [
     "AI",
     "Books",
@@ -592,6 +592,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "breakingbad",
+      "name": "Breaking Bad Quotes",
+      "category": "Social",
+      "blurb": "Get random Breaking Bad quotes.",
+      "domain": "breakingbadquotes.xyz",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "breaking_bad_quote",
+          "description": "Get random Breaking Bad quotes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "brevo",
@@ -1616,6 +1632,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "digimon",
+      "name": "Digimon API",
+      "category": "Social",
+      "blurb": "Browse Digimon by name or evolution level.",
+      "domain": "digimon-api.vercel.app",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "digimon_all",
+          "description": "List all Digimon with names, images, and levels."
+        },
+        {
+          "name": "digimon_by_name",
+          "description": "Look up a specific Digimon by name."
+        },
+        {
+          "name": "digimon_by_level",
+          "description": "List Digimon filtered by evolution level."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "digitalocean",
@@ -5046,6 +5086,30 @@
       "hardened": true
     },
     {
+      "slug": "publicapis",
+      "name": "Public APIs Directory",
+      "category": "Developer & infra",
+      "blurb": "Search and browse the directory of free public APIs.",
+      "domain": "api.publicapis.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "publicapis_search",
+          "description": "Search the Public APIs directory for free APIs by name or category."
+        },
+        {
+          "name": "publicapis_categories",
+          "description": "List all categories in the Public APIs directory."
+        },
+        {
+          "name": "publicapis_random",
+          "description": "Get a random API from the Public APIs directory."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "holidays",
       "name": "Public Holidays",
       "category": "Travel, maps & local",
@@ -5348,6 +5412,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "randomuser",
+      "name": "Random User",
+      "category": "Developer & infra",
+      "blurb": "Generate realistic random user profiles with photos and addresses.",
+      "domain": "randomuser.me",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "random_user",
+          "description": "Generate random user profiles with names, emails, addresses, and photos."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "rawg",
@@ -6290,6 +6370,30 @@
       "hardened": true
     },
     {
+      "slug": "stapi",
+      "name": "Star Trek API (STAPI)",
+      "category": "Social",
+      "blurb": "Search Star Trek characters, species, and starships.",
+      "domain": "stapi.co",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "stapi_search_character",
+          "description": "Search Star Trek characters by name."
+        },
+        {
+          "name": "stapi_search_species",
+          "description": "Search Star Trek species by name."
+        },
+        {
+          "name": "stapi_search_starship",
+          "description": "Search Star Trek starships/spacecraft by name."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "swapi",
       "name": "Star Wars API",
       "category": "Games & esports",
@@ -6516,6 +6620,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "tacofancy",
+      "name": "Taco Fancy",
+      "category": "Utilities",
+      "blurb": "Generate random taco recipes with layers and seasonings.",
+      "domain": "taco-randomizer.herokuapp.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "random_taco",
+          "description": "Generate a random taco recipe with base, seasoning, condiment, and shell."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "tarot",

@@ -447,6 +447,18 @@ import { isEven } from "./iseven-tool.js";
 
 import { iceandfireCharacters, iceandfireBooks, iceandfireHouses } from "./iceandfire-tool.js";
 
+import { randomUser } from "./randomuser-tool.js";
+
+import { digimonAll, digimonByName, digimonByLevel } from "./digimon-tool.js";
+
+import { stapiSearchCharacter, stapiSearchSpecies, stapiSearchStarship } from "./stapi-tool.js";
+
+import { breakingBadQuote } from "./breakingbad-tool.js";
+
+import { randomTaco } from "./tacofancy-tool.js";
+
+import { publicapisSearch, publicapisCategories, publicapisRandom } from "./publicapis-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6630,6 +6642,136 @@ export const ADDITIONAL_TOOLS = [
         name: { type: "string", description: "House name to search for" },
         limit: { type: "number", description: "Results per page (default 10)" },
       },
+    },
+  },
+
+  // ── randomuser-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "random_user",
+    description: "Generate random user profiles with names, emails, addresses, and photos.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of users to generate (default 1)" },
+        gender: { type: "string", description: "Filter by gender: male or female" },
+        nationality: { type: "string", description: "ISO 3166-1 alpha-2 codes, comma-separated (e.g. US,GB,AU)" },
+      },
+    },
+  },
+
+  // ── digimon-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "digimon_all",
+    description: "List all Digimon with names, images, and levels.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "digimon_by_name",
+    description: "Look up a specific Digimon by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Digimon name (e.g. Agumon, Greymon)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "digimon_by_level",
+    description: "List Digimon filtered by evolution level.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        level: { type: "string", description: "Level: Fresh, In Training, Rookie, Champion, Ultimate, or Mega" },
+      },
+      required: ["level"],
+    },
+  },
+
+  // ── stapi-tool.ts (Star Trek) ───────────────────────────────────────────────
+  {
+    name: "stapi_search_character",
+    description: "Search Star Trek characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "stapi_search_species",
+    description: "Search Star Trek species by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Species name (e.g. Vulcan, Klingon)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "stapi_search_starship",
+    description: "Search Star Trek starships/spacecraft by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Starship name (e.g. Enterprise)" },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── breakingbad-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "breaking_bad_quote",
+    description: "Get random Breaking Bad quotes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of quotes (default 1)" },
+      },
+    },
+  },
+
+  // ── tacofancy-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "random_taco",
+    description: "Generate a random taco recipe with base, seasoning, condiment, and shell.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── publicapis-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "publicapis_search",
+    description: "Search the Public APIs directory for free APIs by name or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        title: { type: "string", description: "API name to search for" },
+        category: { type: "string", description: "Category filter (use publicapis_categories for list)" },
+        https: { type: "boolean", description: "Filter HTTPS-only APIs" },
+        auth: { type: "string", description: "Auth type filter: apiKey, OAuth, or empty for none" },
+      },
+    },
+  },
+  {
+    name: "publicapis_categories",
+    description: "List all categories in the Public APIs directory.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "publicapis_random",
+    description: "Get a random API from the Public APIs directory.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
     },
   },
 
@@ -17634,6 +17776,30 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   iceandfire_characters:   (args) => iceandfireCharacters(args),
   iceandfire_books:        (args) => iceandfireBooks(args),
   iceandfire_houses:       (args) => iceandfireHouses(args),
+
+  // randomuser-tool.ts
+  random_user:             (args) => randomUser(args),
+
+  // digimon-tool.ts
+  digimon_all:             (args) => digimonAll(args),
+  digimon_by_name:         (args) => digimonByName(args),
+  digimon_by_level:        (args) => digimonByLevel(args),
+
+  // stapi-tool.ts
+  stapi_search_character:  (args) => stapiSearchCharacter(args),
+  stapi_search_species:    (args) => stapiSearchSpecies(args),
+  stapi_search_starship:   (args) => stapiSearchStarship(args),
+
+  // breakingbad-tool.ts
+  breaking_bad_quote:      (args) => breakingBadQuote(args),
+
+  // tacofancy-tool.ts
+  random_taco:             (args) => randomTaco(args),
+
+  // publicapis-tool.ts
+  publicapis_search:       (args) => publicapisSearch(args),
+  publicapis_categories:   (args) => publicapisCategories(args),
+  publicapis_random:       (args) => publicapisRandom(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

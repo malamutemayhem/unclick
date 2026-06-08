@@ -498,6 +498,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "breakingbad",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "breaking_bad_quote",
+        "description": "Get random Breaking Bad quotes."
+      }
+    ]
+  },
+  {
     "app": "brevo",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1320,6 +1330,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "dictionary_lookup_language",
         "description": "Look up a word in a specific language (es, fr, de, it, ja, etc)."
+      }
+    ]
+  },
+  {
+    "app": "digimon",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "digimon_all",
+        "description": "List all Digimon with names, images, and levels."
+      },
+      {
+        "name": "digimon_by_name",
+        "description": "Look up a specific Digimon by name."
+      },
+      {
+        "name": "digimon_by_level",
+        "description": "List Digimon filtered by evolution level."
       }
     ]
   },
@@ -4030,6 +4058,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "publicapis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "publicapis_search",
+        "description": "Search the Public APIs directory for free APIs by name or category."
+      },
+      {
+        "name": "publicapis_categories",
+        "description": "List all categories in the Public APIs directory."
+      },
+      {
+        "name": "publicapis_random",
+        "description": "Get a random API from the Public APIs directory."
+      }
+    ]
+  },
+  {
     "app": "punkapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4242,6 +4288,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "random_fox_image",
         "description": "Get a random fox image URL."
+      }
+    ]
+  },
+  {
+    "app": "randomuser",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_user",
+        "description": "Generate random user profiles with names, emails, addresses, and photos."
       }
     ]
   },
@@ -4988,6 +5044,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "stapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stapi_search_character",
+        "description": "Search Star Trek characters by name."
+      },
+      {
+        "name": "stapi_search_species",
+        "description": "Search Star Trek species by name."
+      },
+      {
+        "name": "stapi_search_starship",
+        "description": "Search Star Trek starships/spacecraft by name."
+      }
+    ]
+  },
+  {
     "app": "steam",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -5150,6 +5224,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tab_sports_markets",
         "description": "Get TAB sports betting markets."
+      }
+    ]
+  },
+  {
+    "app": "tacofancy",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_taco",
+        "description": "Generate a random taco recipe with base, seasoning, condiment, and shell."
       }
     ]
   },
