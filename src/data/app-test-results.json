@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T22:15:00.000Z",
+  "updatedAt": "2026-06-09T12:28:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3748,6 +3748,60 @@
       "note": "setops_calculate performs set union/intersection/difference locally. No API needed.",
       "testedAt": "2026-06-08T22:15:00.000Z",
       "toolsTested": ["setops_calculate"]
+    },
+    "collatz": {
+      "status": "pass",
+      "note": "collatz_sequence computes 3n+1 sequences locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["collatz_sequence"]
+    },
+    "pascaltri": {
+      "status": "pass",
+      "note": "pascaltri_generate builds Pascal's triangle locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["pascaltri_generate"]
+    },
+    "histogram": {
+      "status": "pass",
+      "note": "histogram_create bins numeric data with ASCII chart locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["histogram_create"]
+    },
+    "regression": {
+      "status": "pass",
+      "note": "regression_fit performs linear regression locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["regression_fit"]
+    },
+    "baseconvert": {
+      "status": "pass",
+      "note": "base_convert converts between number bases locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["base_convert"]
+    },
+    "gcd": {
+      "status": "pass",
+      "note": "gcd_calculate computes GCD and LCM locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["gcd_calculate"]
+    },
+    "permutation": {
+      "status": "pass",
+      "note": "permutation_calc computes P(n,r) locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["permutation_calc"]
+    },
+    "combination": {
+      "status": "pass",
+      "note": "combination_calc computes C(n,r) locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["combination_calc"]
+    },
+    "proportion": {
+      "status": "pass",
+      "note": "proportion_solve solves a/b = c/d locally. No API needed.",
+      "testedAt": "2026-06-09T12:28:00.000Z",
+      "toolsTested": ["proportion_solve"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
