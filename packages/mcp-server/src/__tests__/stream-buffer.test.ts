@@ -1,65 +1,57 @@
 import { describe, it, expect } from "vitest";
 import { StreamBuffer } from "../stream-buffer.js";
 
-describe("stream-buffer", () => {
-  it("push and next work in order", async () => {
-    const sb = new StreamBuffer<number>();
-    sb.push(1);
-    sb.push(2);
-    expect((await sb.next()).value).toBe(1);
-    expect((await sb.next()).value).toBe(2);
+describe("StreamBuffer", () => {
+  it("buffers items until chunk size", () => {
+    const sb = new StreamBuffer<number>(3);
+    sb.write(1);
+    sb.write(2);
+    expect(sb.buffered).toBe(2);
+    expect(sb.chunkCount).toBe(0);
+    sb.write(3);
+    expect(sb.buffered).toBe(0);
+    expect(sb.chunkCount).toBe(1);
   });
 
-  it("next waits for push when buffer is empty", async () => {
-    const sb = new StreamBuffer<string>();
-    const p = sb.next();
-    sb.push("hello");
-    const result = await p;
-    expect(result.value).toBe("hello");
-    expect(result.done).toBe(false);
+  it("flush forces chunk creation", () => {
+    const sb = new StreamBuffer<number>(10);
+    sb.write(1);
+    const chunk = sb.flush();
+    expect(chunk).toEqual([1]);
+    expect(sb.buffered).toBe(0);
   });
 
-  it("end signals done to waiting consumers", async () => {
-    const sb = new StreamBuffer<number>();
-    const p = sb.next();
-    sb.end();
-    const result = await p;
-    expect(result.done).toBe(true);
+  it("flush returns empty for empty buffer", () => {
+    const sb = new StreamBuffer<number>(10);
+    expect(sb.flush()).toEqual([]);
   });
 
-  it("isFull reflects high water mark", () => {
+  it("writeBatch adds multiple items", () => {
     const sb = new StreamBuffer<number>(2);
-    sb.push(1);
-    expect(sb.isFull).toBe(false);
-    sb.push(2);
-    expect(sb.isFull).toBe(true);
+    sb.writeBatch([1, 2, 3, 4, 5]);
+    expect(sb.chunkCount).toBe(2);
+    expect(sb.buffered).toBe(1);
   });
 
-  it("collect gathers all items", async () => {
-    const sb = new StreamBuffer<number>();
-    sb.push(1);
-    sb.push(2);
-    sb.push(3);
-    sb.end();
-    const items = await sb.collect();
-    expect(items).toEqual([1, 2, 3]);
+  it("totalFlushed tracks count", () => {
+    const sb = new StreamBuffer<number>(2);
+    sb.write(1); sb.write(2);
+    sb.write(3); sb.write(4);
+    expect(sb.totalFlushed).toBe(4);
   });
 
-  it("push after end throws", () => {
-    const sb = new StreamBuffer<number>();
-    sb.end();
-    expect(() => sb.push(1)).toThrow("closed");
+  it("getChunk returns copy", () => {
+    const sb = new StreamBuffer<number>(2);
+    sb.write(1); sb.write(2);
+    expect(sb.getChunk(0)).toEqual([1, 2]);
   });
 
-  it("async iterator works", async () => {
-    const sb = new StreamBuffer<number>();
-    sb.push(10);
-    sb.push(20);
-    sb.end();
-    const items: number[] = [];
-    for await (const item of sb) {
-      items.push(item);
-    }
-    expect(items).toEqual([10, 20]);
+  it("drain returns all and resets", () => {
+    const sb = new StreamBuffer<number>(3);
+    sb.writeBatch([1, 2, 3, 4, 5]);
+    const all = sb.drain();
+    expect(all).toEqual([1, 2, 3, 4, 5]);
+    expect(sb.chunkCount).toBe(0);
+    expect(sb.totalFlushed).toBe(0);
   });
 });

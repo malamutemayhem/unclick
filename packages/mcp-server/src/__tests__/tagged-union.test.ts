@@ -49,7 +49,7 @@ describe("narrow", () => {
   });
 
   it("returns undefined for non-matching tag", () => {
-    const s: Shape = { tag: "circle", radius: 5 };
+    const s = { tag: "circle", radius: 5 } as Shape;
     expect(narrow(s, "rect")).toBeUndefined();
   });
 });

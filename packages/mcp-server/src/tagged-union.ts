@@ -16,7 +16,7 @@ export function matchTag<Tags extends { tag: string }, R>(
   value: Tags,
   matcher: Matcher<Tags, R>,
 ): R {
-  const handler = (matcher as Record<string, (v: Tags) => R>)[value.tag];
+  const handler = (matcher as unknown as Record<string, (v: Tags) => R>)[value.tag];
   if (!handler) throw new Error(`No handler for tag: ${value.tag}`);
   return handler(value);
 }
