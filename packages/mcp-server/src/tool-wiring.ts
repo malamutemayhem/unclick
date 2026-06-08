@@ -399,6 +399,18 @@ import { punkApiRandomBeer, punkApiSearchBeers, punkApiGetBeer } from "./punkapi
 
 import { colormindGeneratePalette, colormindListModels } from "./colormind-tool.js";
 
+import { dummyjsonProducts, dummyjsonSearchProducts, dummyjsonQuotes, dummyjsonRandomQuote } from "./dummyjson-tool.js";
+
+import { excuserRandom } from "./excuser-tool.js";
+
+import { dogFactRandom } from "./dogfacts-tool.js";
+
+import { amiiboSearch, amiiboBySeries, amiiboTypes } from "./amiibo-tool.js";
+
+import { dummyImageUrl } from "./dummyimage-tool.js";
+
+import { ipInfoLookup } from "./ipinfo-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6103,6 +6115,121 @@ export const ADDITIONAL_TOOLS = [
     name: "colormind_list_models",
     description: "List available Colormind color models.",
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dummyjson-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "dummyjson_products",
+    description: "Browse fake product data from DummyJSON.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 10, max 30)" },
+        skip: { type: "number", description: "Offset for pagination" },
+      },
+    },
+  },
+  {
+    name: "dummyjson_search_products",
+    description: "Search fake products by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "dummyjson_quotes",
+    description: "Browse a collection of quotes from DummyJSON.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 10, max 30)" },
+      },
+    },
+  },
+  {
+    name: "dummyjson_random_quote",
+    description: "Get a random quote from DummyJSON.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── excuser-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "excuser_random",
+    description: "Get a random excuse, optionally by category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Category: family, office, college, party, or unspecified" },
+      },
+    },
+  },
+
+  // ── dogfacts-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "dog_fact_random",
+    description: "Get a random dog fact.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── amiibo-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "amiibo_search",
+    description: "Search Nintendo Amiibo figures by character name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "amiibo_by_series",
+    description: "List Amiibo figures in a game series.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        series: { type: "string", description: "Amiibo series name (e.g. Super Mario, Zelda)" },
+      },
+      required: ["series"],
+    },
+  },
+  {
+    name: "amiibo_types",
+    description: "List all Amiibo product types (figure, card, yarn, etc.).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dummyimage-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "dummy_image_url",
+    description: "Generate a placeholder image URL with custom size, colors, and text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        bg_color: { type: "string", description: "Background hex color without # (default cccccc)" },
+        fg_color: { type: "string", description: "Text hex color without # (default 000000)" },
+        text: { type: "string", description: "Text to show on the image" },
+      },
+    },
+  },
+
+  // ── ipinfo-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "ipinfo_lookup",
+    description: "Get geolocation and ISP info for an IP address (or your own).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        ip: { type: "string", description: "IP address to look up (omit for your own)" },
+      },
+    },
   },
 
   // ── nasa-tool.ts ─────────────────────────────────────────────────────────────
@@ -17013,6 +17140,29 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // colormind-tool.ts
   colormind_generate_palette: (args) => colormindGeneratePalette(args),
   colormind_list_models:   (args) => colormindListModels(args),
+
+  // dummyjson-tool.ts
+  dummyjson_products:      (args) => dummyjsonProducts(args),
+  dummyjson_search_products: (args) => dummyjsonSearchProducts(args),
+  dummyjson_quotes:        (args) => dummyjsonQuotes(args),
+  dummyjson_random_quote:  (args) => dummyjsonRandomQuote(args),
+
+  // excuser-tool.ts
+  excuser_random:          (args) => excuserRandom(args),
+
+  // dogfacts-tool.ts
+  dog_fact_random:         (args) => dogFactRandom(args),
+
+  // amiibo-tool.ts
+  amiibo_search:           (args) => amiiboSearch(args),
+  amiibo_by_series:        (args) => amiiboBySeries(args),
+  amiibo_types:            (args) => amiiboTypes(args),
+
+  // dummyimage-tool.ts
+  dummy_image_url:         (args) => dummyImageUrl(args),
+
+  // ipinfo-tool.ts
+  ipinfo_lookup:           (args) => ipInfoLookup(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 275,
-  "toolCount": 1074,
+  "appCount": 281,
+  "toolCount": 1085,
   "categories": [
     "AI",
     "Books",
@@ -272,6 +272,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "amiibo",
+      "name": "AmiiboAPI",
+      "category": "Games & esports",
+      "blurb": "Search Nintendo Amiibo figures by name, series, or type.",
+      "domain": "amiiboapi.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "amiibo_search",
+          "description": "Search Nintendo Amiibo figures by character name."
+        },
+        {
+          "name": "amiibo_by_series",
+          "description": "List Amiibo figures in a game series."
+        },
+        {
+          "name": "amiibo_types",
+          "description": "List all Amiibo product types (figure, card, yarn, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "anthropic",
@@ -1670,6 +1694,22 @@
       "hardened": true
     },
     {
+      "slug": "dogfacts",
+      "name": "Dog Facts",
+      "category": "Utilities",
+      "blurb": "Random dog facts and trivia.",
+      "domain": "dogapi.dog",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dog_fact_random",
+          "description": "Get a random dog fact."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "domain",
       "name": "Domain",
       "category": "Travel, maps & local",
@@ -1716,6 +1756,50 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "dummyimage",
+      "name": "Dummy Image",
+      "category": "Images",
+      "blurb": "Generate placeholder image URLs with custom size, colors, and text.",
+      "domain": "dummyimage.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dummy_image_url",
+          "description": "Generate a placeholder image URL with custom size, colors, and text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "dummyjson",
+      "name": "DummyJSON",
+      "category": "Developer & infra",
+      "blurb": "Fake products, quotes, and users for testing and prototyping.",
+      "domain": "dummyjson.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "dummyjson_products",
+          "description": "Browse fake product data from DummyJSON."
+        },
+        {
+          "name": "dummyjson_search_products",
+          "description": "Search fake products by keyword."
+        },
+        {
+          "name": "dummyjson_quotes",
+          "description": "Browse a collection of quotes from DummyJSON."
+        },
+        {
+          "name": "dummyjson_random_quote",
+          "description": "Get a random quote from DummyJSON."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "ebay",
@@ -2004,6 +2088,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "excuser",
+      "name": "Excuser",
+      "category": "Utilities",
+      "blurb": "Get random excuses by category for fun or testing.",
+      "domain": "excuser-three.vercel.app",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "excuser_random",
+          "description": "Get a random excuse, optionally by category."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fpl",
@@ -2900,6 +3000,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ipinfo",
+      "name": "IPinfo",
+      "category": "Developer & infra",
+      "blurb": "IP geolocation, ISP, and organization info for any IP address.",
+      "domain": "ipinfo.io",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ipinfo_lookup",
+          "description": "Get geolocation and ISP info for an IP address (or your own)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "opennotify",

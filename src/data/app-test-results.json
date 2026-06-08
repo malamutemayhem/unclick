@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T06:15:00.000Z",
+  "updatedAt": "2026-06-08T06:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -83,6 +83,14 @@
         "amber_current_price"
       ],
       "comment": ""
+    },
+    "amiibo": {
+      "status": "pass",
+      "note": "amiibo_types returned Amiibo product types (Figure, Card, Yarn, Band). Free, no key needed.",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "amiibo_types"
+      ]
     },
     "anthropic": {
       "status": "attention",
@@ -552,6 +560,14 @@
         "dog_api_random_image"
       ]
     },
+    "dogfacts": {
+      "status": "pass",
+      "note": "dog_fact_random returned a random dog fact. Free, no key needed.",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "dog_fact_random"
+      ]
+    },
     "dogceo": {
       "status": "pass",
       "note": "New connector: Dog CEO API. Free public API, no key needed. Random dog images, browse breeds, filter by breed. 4 tools, all tests passing.",
@@ -577,6 +593,22 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "dummyimage": {
+      "status": "pass",
+      "note": "dummy_image_url generates placeholder image URLs with custom dimensions. No fetch needed.",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "dummy_image_url"
+      ]
+    },
+    "dummyjson": {
+      "status": "pass",
+      "note": "dummyjson_products returned fake product data. Free, no key needed.",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "dummyjson_products"
+      ]
     },
     "ebay": {
       "status": "attention",
@@ -656,6 +688,14 @@
       "testedAt": "2026-06-08T04:06:23.347Z",
       "toolsTested": [
         "er_latest_rates"
+      ]
+    },
+    "excuser": {
+      "status": "pass",
+      "note": "excuser_random returned a random excuse. Free, no key needed.",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "excuser_random"
       ]
     },
     "feedly": {
@@ -931,6 +971,14 @@
       "testedAt": "2026-06-08T04:06:23.347Z",
       "toolsTested": [
         "ipify_get_ip"
+      ]
+    },
+    "ipinfo": {
+      "status": "pass",
+      "note": "ipinfo_lookup returned geolocation and ISP data for an IP. Free tier (50k/month).",
+      "testedAt": "2026-06-08T06:30:00.000Z",
+      "toolsTested": [
+        "ipinfo_lookup"
       ]
     },
     "jikan": {

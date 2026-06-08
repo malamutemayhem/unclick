@@ -194,6 +194,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "amiibo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "amiibo_search",
+        "description": "Search Nintendo Amiibo figures by character name."
+      },
+      {
+        "name": "amiibo_by_series",
+        "description": "List Amiibo figures in a game series."
+      },
+      {
+        "name": "amiibo_types",
+        "description": "List all Amiibo product types (figure, card, yarn, etc.)."
+      }
+    ]
+  },
+  {
     "app": "anthropic",
     "category": "AI",
     "tools": [
@@ -1410,6 +1428,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dogfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_fact_random",
+        "description": "Get a random dog fact."
+      }
+    ]
+  },
+  {
     "app": "domain",
     "category": "Australian / Local",
     "tools": [
@@ -1442,6 +1470,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "dropbox_get_account",
         "description": "Get the current Dropbox account profile."
+      }
+    ]
+  },
+  {
+    "app": "dummyimage",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dummy_image_url",
+        "description": "Generate a placeholder image URL with custom size, colors, and text."
+      }
+    ]
+  },
+  {
+    "app": "dummyjson",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dummyjson_products",
+        "description": "Browse fake product data from DummyJSON."
+      },
+      {
+        "name": "dummyjson_search_products",
+        "description": "Search fake products by keyword."
+      },
+      {
+        "name": "dummyjson_quotes",
+        "description": "Browse a collection of quotes from DummyJSON."
+      },
+      {
+        "name": "dummyjson_random_quote",
+        "description": "Get a random quote from DummyJSON."
       }
     ]
   },
@@ -1670,6 +1730,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "er_latest_rates",
         "description": "Get latest exchange rates from ExchangeRate-API (open endpoint)."
+      }
+    ]
+  },
+  {
+    "app": "excuser",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "excuser_random",
+        "description": "Get a random excuse, optionally by category."
       }
     ]
   },
@@ -2370,6 +2440,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ipify_get_ip",
         "description": "Get your public IP address via ipify."
+      }
+    ]
+  },
+  {
+    "app": "ipinfo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ipinfo_lookup",
+        "description": "Get geolocation and ISP info for an IP address (or your own)."
       }
     ]
   },
