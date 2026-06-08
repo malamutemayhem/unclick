@@ -1,88 +1,71 @@
-type Task<T> = () => Promise<T>;
+export type Priority = "high" | "normal" | "low";
 
-interface QueuedTask<T> {
-  task: Task<T>;
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-  priority: number;
+export interface Task<T = unknown> {
+  id: string;
+  fn: () => Promise<T>;
+  priority: Priority;
+  addedAt: number;
 }
 
-export class TaskQueue {
-  private queue: QueuedTask<any>[] = [];
-  private running = 0;
-  private _concurrency: number;
-  private _paused = false;
-  private _completed = 0;
-  private _failed = 0;
+interface QueuedTask<T = unknown> extends Task<T> {
+  resolve: (value: T) => void;
+  reject: (error: Error) => void;
+}
 
-  constructor(concurrency = 1) {
-    this._concurrency = concurrency;
+const PRIORITY_ORDER: Record<Priority, number> = { high: 0, normal: 1, low: 2 };
+
+export class TaskQueue {
+  private queue: QueuedTask[] = [];
+  private running = 0;
+  private maxConcurrent: number;
+  private completed = 0;
+  private failed = 0;
+
+  constructor(maxConcurrent = 1) {
+    this.maxConcurrent = maxConcurrent;
   }
 
-  get concurrency(): number { return this._concurrency; }
-  get pending(): number { return this.queue.length; }
-  get active(): number { return this.running; }
-  get completed(): number { return this._completed; }
-  get failed(): number { return this._failed; }
-  get paused(): boolean { return this._paused; }
-
-  add<T>(task: Task<T>, priority = 0): Promise<T> {
+  add<T>(id: string, fn: () => Promise<T>, priority: Priority = "normal"): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.queue.push({ task, resolve, reject, priority });
-      this.queue.sort((a, b) => b.priority - a.priority);
-      this.drain();
+      const task: QueuedTask<T> = { id, fn, priority, addedAt: Date.now(), resolve, reject };
+      this.queue.push(task as QueuedTask);
+      this.queue.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+      this.process();
     });
   }
 
-  pause(): void {
-    this._paused = true;
+  get pending(): number { return this.queue.length; }
+  get active(): number { return this.running; }
+  get completedCount(): number { return this.completed; }
+  get failedCount(): number { return this.failed; }
+
+  has(id: string): boolean {
+    return this.queue.some((t) => t.id === id);
   }
 
-  resume(): void {
-    this._paused = false;
-    this.drain();
+  cancel(id: string): boolean {
+    const idx = this.queue.findIndex((t) => t.id === id);
+    if (idx === -1) return false;
+    const [task] = this.queue.splice(idx, 1);
+    task.reject(new Error("Task cancelled"));
+    return true;
   }
 
   clear(): void {
-    for (const item of this.queue) {
-      item.reject(new Error("Queue cleared"));
+    for (const task of this.queue) {
+      task.reject(new Error("Queue cleared"));
     }
     this.queue.length = 0;
   }
 
-  async onIdle(): Promise<void> {
-    if (this.running === 0 && this.queue.length === 0) return;
-    return new Promise((resolve) => {
-      const check = () => {
-        if (this.running === 0 && this.queue.length === 0) {
-          resolve();
-        } else {
-          setTimeout(check, 10);
-        }
-      };
-      check();
-    });
-  }
-
-  private drain(): void {
-    if (this._paused) return;
-    while (this.running < this._concurrency && this.queue.length > 0) {
-      const item = this.queue.shift()!;
+  private process(): void {
+    while (this.running < this.maxConcurrent && this.queue.length > 0) {
+      const task = this.queue.shift()!;
       this.running++;
-      item.task().then(
-        (value) => {
-          this.running--;
-          this._completed++;
-          item.resolve(value);
-          this.drain();
-        },
-        (err) => {
-          this.running--;
-          this._failed++;
-          item.reject(err);
-          this.drain();
-        }
-      );
+      task.fn()
+        .then((result) => { this.completed++; task.resolve(result); })
+        .catch((err) => { this.failed++; task.reject(err instanceof Error ? err : new Error(String(err))); })
+        .finally(() => { this.running--; this.process(); });
     }
   }
 }
