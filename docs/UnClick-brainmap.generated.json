@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 624,
-    "source_manifest": 197,
-    "pages": 86,
+    "inventory": 644,
+    "source_manifest": 215,
+    "pages": 88,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,13 +21,13 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 51
+      "count": 52
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 35
+      "count": 36
     },
     {
       "id": "tools",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 115
+      "count": 133
     },
     {
       "id": "launch-and-onboarding",
@@ -119,6 +119,16 @@
       "meaning": "Internal analytics view for platform signals and usage.",
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "route": "/admin/analytics",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-app-testing-src-pages-admin-adminapptesting-tsx-admin-app-testing",
+      "division": "Admin surfaces",
+      "name": "Admin App Testing",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin App Testing.",
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "route": "/admin/app-testing",
       "tags": []
     },
     {
@@ -2142,6 +2152,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-code-tab-src-pages-admin-memory-codetab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Code Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Code Tab.",
+      "source": "src/pages/admin/memory/CodeTab.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
@@ -2248,6 +2268,16 @@
       "kind": "component",
       "meaning": "User-facing page for Not Found.",
       "source": "src/pages/NotFound.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-recycle-bin-tab-src-pages-admin-memory-recyclebintab-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Recycle Bin Tab",
+      "kind": "component",
+      "meaning": "Memory admin panel for Recycle Bin Tab.",
+      "source": "src/pages/admin/memory/RecycleBinTab.tsx",
       "route": "",
       "tags": []
     },
@@ -2922,12 +2952,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-accessibility-audit-seed-skills-accessibility-audit-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "accessibility audit",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/accessibility-audit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-agent-handoff-packet-writer-seed-skills-agent-handoff-packet-writer-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "agent handoff packet writer",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-brand-voice-guidelines-seed-skills-brand-voice-guidelines-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "brand voice guidelines",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/brand-voice-guidelines.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -2972,6 +3022,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-data-analyst-seed-skills-data-analyst-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "data analyst",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/data-analyst.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-deep-research-analyst-seed-skills-deep-research-analyst-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "deep research analyst",
@@ -3012,6 +3072,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-frontend-design-review-seed-skills-frontend-design-review-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "frontend design review",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/frontend-design-review.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-github-pr-summariser-seed-skills-github-pr-summariser-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "github pr summariser",
@@ -3022,12 +3092,52 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-mcp-server-builder-seed-skills-mcp-server-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "mcp server builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/mcp-server-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-memory-distiller-seed-skills-memory-distiller-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "memory distiller",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/memory-distiller.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-pdf-toolkit-seed-skills-pdf-toolkit-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "pdf toolkit",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/pdf-toolkit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-presentation-builder-seed-skills-presentation-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "presentation builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/presentation-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-react-nextjs-best-practices-seed-skills-react-nextjs-best-practices-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "react nextjs best practices",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/react-nextjs-best-practices.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -3092,6 +3202,66 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-seo-content-optimizer-seed-skills-seo-content-optimizer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "seo content optimizer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/seo-content-optimizer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-skill-creator-seed-skills-skill-creator-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "skill creator",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/skill-creator.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-spreadsheet-builder-seed-skills-spreadsheet-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "spreadsheet builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/spreadsheet-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-sql-query-helper-seed-skills-sql-query-helper-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "sql query helper",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/sql-query-helper.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-tdd-workflow-seed-skills-tdd-workflow-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "tdd workflow",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/tdd-workflow.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-technical-docs-writer-seed-skills-technical-docs-writer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "technical docs writer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/technical-docs-writer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-tester-proof-plan-seed-skills-tester-proof-plan-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "tester proof plan",
@@ -3108,6 +3278,26 @@
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/watcher-heartbeat-tether.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-web-app-builder-seed-skills-web-app-builder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "web app builder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/web-app-builder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-word-document-author-seed-skills-word-document-author-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "word document author",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/word-document-author.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -3629,6 +3819,16 @@
       "meaning": "User-facing page for Vibe Coding.",
       "source": "src/pages/VibeCoding.tsx",
       "route": "/developers/vibe-coding",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-why-src-pages-why-tsx-why",
+      "division": "Public surfaces",
+      "name": "Why",
+      "kind": "public page",
+      "meaning": "User-facing page for Why.",
+      "source": "src/pages/Why.tsx",
+      "route": "/why",
       "tags": []
     },
     {
@@ -6364,6 +6564,12 @@
       "src/pages/admin/AdminAnalytics.tsx"
     ],
     [
+      "/admin/app-testing",
+      "Admin App Testing",
+      "Admin surface for Admin App Testing.",
+      "src/pages/admin/AdminAppTesting.tsx"
+    ],
+    [
       "/admin/apps",
       "Admin Tools",
       "Apps, tools, and connector capability surface.",
@@ -6842,6 +7048,12 @@
       "Homepage Sample",
       "User-facing page for Homepage Sample.",
       "src/pages/HomepageSample.tsx"
+    ],
+    [
+      "/why",
+      "Why",
+      "User-facing page for Why.",
+      "src/pages/Why.tsx"
     ],
     [
       "/xpass",
@@ -8333,13 +8545,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "1957fc5513d9",
-      "bytes": 15323
+      "hash": "e9b8edbb20e3",
+      "bytes": 16519
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "f1d9032ae6ed",
-      "bytes": 24781
+      "hash": "2c6ec8581d6c",
+      "bytes": 25721
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -8358,13 +8570,13 @@
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
-      "hash": "4b5e69217a39",
-      "bytes": 14848
+      "hash": "a3cf298f1eda",
+      "bytes": 4203
     },
     {
       "source": "src/lib/skillLibrary.ts",
-      "hash": "7d69323f9491",
-      "bytes": 10487
+      "hash": "3a15b942a827",
+      "bytes": 12515
     },
     {
       "source": "src/lib/skillLibrarySeeds.ts",
@@ -8392,9 +8604,19 @@
       "bytes": 7047
     },
     {
+      "source": "seed/skills/accessibility-audit.skill.md",
+      "hash": "99984b1dccb7",
+      "bytes": 1242
+    },
+    {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
       "hash": "f9c498e48796",
       "bytes": 938
+    },
+    {
+      "source": "seed/skills/brand-voice-guidelines.skill.md",
+      "hash": "9580d2788e27",
+      "bytes": 1248
     },
     {
       "source": "seed/skills/browser-qa-tester.skill.md",
@@ -8417,6 +8639,11 @@
       "bytes": 932
     },
     {
+      "source": "seed/skills/data-analyst.skill.md",
+      "hash": "ef28e22c114e",
+      "bytes": 1233
+    },
+    {
       "source": "seed/skills/deep-research-analyst.skill.md",
       "hash": "74d773d9e04d",
       "bytes": 1069
@@ -8437,14 +8664,39 @@
       "bytes": 1080
     },
     {
+      "source": "seed/skills/frontend-design-review.skill.md",
+      "hash": "149d13cb68d0",
+      "bytes": 1377
+    },
+    {
       "source": "seed/skills/github-pr-summariser.skill.md",
       "hash": "1fd84b27d797",
       "bytes": 987
     },
     {
+      "source": "seed/skills/mcp-server-builder.skill.md",
+      "hash": "a4493b9ae2d7",
+      "bytes": 1304
+    },
+    {
       "source": "seed/skills/memory-distiller.skill.md",
       "hash": "b951415aa2a7",
       "bytes": 983
+    },
+    {
+      "source": "seed/skills/pdf-toolkit.skill.md",
+      "hash": "918db2b218b2",
+      "bytes": 1248
+    },
+    {
+      "source": "seed/skills/presentation-builder.skill.md",
+      "hash": "fea5b75a0ec7",
+      "bytes": 1250
+    },
+    {
+      "source": "seed/skills/react-nextjs-best-practices.skill.md",
+      "hash": "3e095e354af9",
+      "bytes": 1369
     },
     {
       "source": "seed/skills/research-brief-generator.skill.md",
@@ -8477,6 +8729,36 @@
       "bytes": 1104
     },
     {
+      "source": "seed/skills/seo-content-optimizer.skill.md",
+      "hash": "86c6bf39cf42",
+      "bytes": 1301
+    },
+    {
+      "source": "seed/skills/skill-creator.skill.md",
+      "hash": "4b71df983606",
+      "bytes": 1305
+    },
+    {
+      "source": "seed/skills/spreadsheet-builder.skill.md",
+      "hash": "f5d04281a0a3",
+      "bytes": 1280
+    },
+    {
+      "source": "seed/skills/sql-query-helper.skill.md",
+      "hash": "0325e8dcd07a",
+      "bytes": 1231
+    },
+    {
+      "source": "seed/skills/tdd-workflow.skill.md",
+      "hash": "ad6b48e38109",
+      "bytes": 1217
+    },
+    {
+      "source": "seed/skills/technical-docs-writer.skill.md",
+      "hash": "1f9899011b4a",
+      "bytes": 1270
+    },
+    {
       "source": "seed/skills/tester-proof-plan.skill.md",
       "hash": "d8c55bf6329a",
       "bytes": 1153
@@ -8485,6 +8767,16 @@
       "source": "seed/skills/watcher-heartbeat-tether.skill.md",
       "hash": "28acf3324343",
       "bytes": 1057
+    },
+    {
+      "source": "seed/skills/web-app-builder.skill.md",
+      "hash": "5014115e321f",
+      "bytes": 1254
+    },
+    {
+      "source": "seed/skills/word-document-author.skill.md",
+      "hash": "f8bc79a33e6a",
+      "bytes": 1307
     },
     {
       "source": "seed/skills/write-tests-for-changed-code.skill.md",
@@ -8498,8 +8790,8 @@
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
-      "hash": "0f1418760391",
-      "bytes": 14773
+      "hash": "6a69546e7223",
+      "bytes": 14794
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
@@ -8513,8 +8805,13 @@
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
-      "hash": "8e3ab82ef00f",
-      "bytes": 10336
+      "hash": "dcc1351f518e",
+      "bytes": 10345
+    },
+    {
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "hash": "ffadb7c67d09",
+      "bytes": 10153
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
@@ -8523,48 +8820,48 @@
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
-      "hash": "028edd82cb11",
-      "bytes": 874
+      "hash": "947f6c4d8c10",
+      "bytes": 877
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "426fed992766",
-      "bytes": 22902
+      "hash": "a6563a5742fa",
+      "bytes": 22926
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "0f2003fd8242",
-      "bytes": 12106
+      "hash": "765ac778242e",
+      "bytes": 12112
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
-      "hash": "69eb15aaf438",
-      "bytes": 25684
+      "hash": "d3f1d4d1e298",
+      "bytes": 25705
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "ec3c5b4f4b4f",
-      "bytes": 37557
+      "hash": "076fd12c1831",
+      "bytes": 37563
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "e0edf4d7c409",
-      "bytes": 26533
+      "hash": "eb0a0e70ad71",
+      "bytes": 26584
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
-      "hash": "ff33937fdf7b",
-      "bytes": 8044
+      "hash": "d51790b275a5",
+      "bytes": 8068
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "a7d741e75c78",
-      "bytes": 7306
+      "hash": "64459f24dc61",
+      "bytes": 7324
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
-      "hash": "f3afb17bb001",
-      "bytes": 13909
+      "hash": "cd0198794cbc",
+      "bytes": 13912
     },
     {
       "source": "src/pages/admin/crews/CrewRun.tsx",
@@ -8588,48 +8885,48 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "7ee015247aa8",
-      "bytes": 5257
+      "hash": "c6c9093d733d",
+      "bytes": 5303
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "43971f309033",
-      "bytes": 61590
+      "hash": "5417b324cff7",
+      "bytes": 64232
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
-      "hash": "34ba72c04cb2",
-      "bytes": 54660
+      "hash": "fd2aad657f06",
+      "bytes": 54734
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "0c355d737922",
-      "bytes": 77124
+      "hash": "982902265fb2",
+      "bytes": 77151
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
-      "hash": "f001b0a54b31",
-      "bytes": 9731
+      "hash": "25b2ecae9ca8",
+      "bytes": 10814
     },
     {
       "source": "src/pages/admin/AdminModeration.tsx",
-      "hash": "c81500ffb43d",
-      "bytes": 880
+      "hash": "27cae956bcfd",
+      "bytes": 883
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "4741f71afba9",
-      "bytes": 94705
+      "hash": "a115fb4d4ad4",
+      "bytes": 94726
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
-      "hash": "1b09a0b4c1b4",
-      "bytes": 21751
+      "hash": "4dce3c986684",
+      "bytes": 21769
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "cce2a4ca6248",
-      "bytes": 40580
+      "hash": "48449b4ebd11",
+      "bytes": 40601
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
@@ -8638,63 +8935,63 @@
     },
     {
       "source": "src/pages/admin/signals/SignalsSettings.tsx",
-      "hash": "791cd433a5b0",
-      "bytes": 9837
+      "hash": "7c1d807c5e8b",
+      "bytes": 9900
     },
     {
       "source": "src/pages/admin/signals/SignalsCatalog.tsx",
-      "hash": "7baa82ac0d7f",
-      "bytes": 10835
+      "hash": "f5332dd8f38e",
+      "bytes": 10865
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",
-      "hash": "6e61ae4d3d34",
-      "bytes": 867
+      "hash": "4ddaaf1282db",
+      "bytes": 870
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
-      "hash": "fd912523ee14",
-      "bytes": 10379
+      "hash": "ff6ef9aa1bfd",
+      "bytes": 10397
     },
     {
       "source": "src/pages/admin/AdminTestPass.tsx",
-      "hash": "0b3cc7b44107",
-      "bytes": 27259
+      "hash": "22a59a8de00f",
+      "bytes": 27268
     },
     {
       "source": "src/pages/admin/testpass/ReportDetail.tsx",
-      "hash": "b3db4032aa33",
-      "bytes": 12374
+      "hash": "027acece2860",
+      "bytes": 12392
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "52e43b795126",
-      "bytes": 21979
+      "hash": "4412674f8382",
+      "bytes": 22000
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
-      "hash": "8fc76ddd8d3f",
-      "bytes": 21847
+      "hash": "ee00d5d30b04",
+      "bytes": 21877
     },
     {
       "source": "src/pages/admin/AdminTruthRate.tsx",
-      "hash": "115c5cce9b90",
-      "bytes": 8868
+      "hash": "b99175b21cc1",
+      "bytes": 8880
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
-      "hash": "701e7da2f201",
-      "bytes": 863
+      "hash": "222654ee0f22",
+      "bytes": 866
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "db31f326ff07",
-      "bytes": 26775
+      "hash": "193295e6e4dc",
+      "bytes": 26811
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "89ed912e326b",
-      "bytes": 59397
+      "hash": "a0e051f56e86",
+      "bytes": 63243
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -8728,8 +9025,8 @@
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
-      "hash": "339b3a5c60ae",
-      "bytes": 23490
+      "hash": "9bfae679df42",
+      "bytes": 23493
     },
     {
       "source": "src/pages/DeveloperSubmit.tsx",
@@ -8738,13 +9035,13 @@
     },
     {
       "source": "src/pages/VibeCoding.tsx",
-      "hash": "e09d777363c0",
-      "bytes": 8012
+      "hash": "ef96865a608b",
+      "bytes": 7998
     },
     {
       "source": "src/pages/Developers.tsx",
-      "hash": "9657fd564797",
-      "bytes": 19123
+      "hash": "c31a8a187fac",
+      "bytes": 19126
     },
     {
       "source": "src/pages/Dispatch.tsx",
@@ -8758,8 +9055,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "4103b5e68d6c",
-      "bytes": 16693
+      "hash": "8608d2a82e46",
+      "bytes": 16679
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -8773,8 +9070,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "da0fc0d07f50",
-      "bytes": 62558
+      "hash": "21a0ef6af00d",
+      "bytes": 62621
     },
     {
       "source": "src/pages/Login.tsx",
@@ -8793,13 +9090,13 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "cf7f06bacc89",
-      "bytes": 18641
+      "hash": "fda4fcf632cb",
+      "bytes": 19192
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "a28cb1d9ece8",
-      "bytes": 12559
+      "hash": "e2d14ccf9af9",
+      "bytes": 13179
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -8823,8 +9120,8 @@
     },
     {
       "source": "src/pages/SmartHome.tsx",
-      "hash": "3671f5d143b1",
-      "bytes": 20733
+      "hash": "1d7898e16b70",
+      "bytes": 20719
     },
     {
       "source": "src/pages/Terms.tsx",
@@ -8857,9 +9154,14 @@
       "bytes": 21971
     },
     {
+      "source": "src/pages/Why.tsx",
+      "hash": "0205ed9e7ae2",
+      "bytes": 15946
+    },
+    {
       "source": "src/pages/XPass.tsx",
-      "hash": "5f07b2f32036",
-      "bytes": 8713
+      "hash": "ab4f0fe214f6",
+      "bytes": 11093
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -9198,7 +9500,7 @@
     },
     {
       "source": ".github/workflows/dirty-branch-hygiene.yml",
-      "hash": "3df7d09eebc7",
+      "hash": "d5ca538bd8a9",
       "bytes": 2190
     },
     {
