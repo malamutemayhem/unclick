@@ -1,49 +1,56 @@
 export class ObjectPool<T> {
-  private available: T[] = [];
-  private inUse = new Set<T>();
-  private factory: () => T;
-  private reset?: (obj: T) => void;
-  private maxSize: number;
+  private pool: T[] = [];
+  private active = new Set<T>();
+  private readonly factory: () => T;
+  private readonly reset?: (obj: T) => void;
+  private readonly maxSize: number;
 
-  constructor(options: { factory: () => T; reset?: (obj: T) => void; initialSize?: number; maxSize?: number }) {
-    this.factory = options.factory;
-    this.reset = options.reset;
-    this.maxSize = options.maxSize ?? Infinity;
-    for (let i = 0; i < (options.initialSize ?? 0); i++) {
-      this.available.push(this.factory());
+  constructor(factory: () => T, options?: { reset?: (obj: T) => void; maxSize?: number; prewarm?: number }) {
+    this.factory = factory;
+    this.reset = options?.reset;
+    this.maxSize = options?.maxSize ?? Infinity;
+    if (options?.prewarm) {
+      for (let i = 0; i < options.prewarm; i++) {
+        this.pool.push(factory());
+      }
     }
   }
 
   acquire(): T {
     let obj: T;
-    if (this.available.length > 0) {
-      obj = this.available.pop()!;
+    if (this.pool.length > 0) {
+      obj = this.pool.pop()!;
     } else {
       obj = this.factory();
     }
-    this.inUse.add(obj);
+    this.active.add(obj);
     return obj;
   }
 
-  release(obj: T): void {
-    if (!this.inUse.has(obj)) return;
-    this.inUse.delete(obj);
-    this.reset?.(obj);
-    if (this.available.length < this.maxSize) {
-      this.available.push(obj);
+  release(obj: T): boolean {
+    if (!this.active.has(obj)) return false;
+    this.active.delete(obj);
+    if (this.reset) this.reset(obj);
+    if (this.pool.length < this.maxSize) {
+      this.pool.push(obj);
     }
+    return true;
   }
 
-  get availableCount(): number { return this.available.length; }
-  get inUseCount(): number { return this.inUse.size; }
-  get totalCount(): number { return this.available.length + this.inUse.size; }
+  get available(): number {
+    return this.pool.length;
+  }
+
+  get inUse(): number {
+    return this.active.size;
+  }
+
+  get totalSize(): number {
+    return this.pool.length + this.active.size;
+  }
 
   clear(): void {
-    this.available = [];
-    this.inUse.clear();
-  }
-
-  drain(): void {
-    this.available = [];
+    this.pool.length = 0;
+    this.active.clear();
   }
 }
