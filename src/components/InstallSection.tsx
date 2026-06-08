@@ -79,7 +79,7 @@ function CopyField({
   const [copied, setCopied] = useState(false);
   const copy = () => {
     if (!hasKey) return;
-    navigator.clipboard.writeText(value);
+    navigator.clipboard.writeText(value).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -118,7 +118,7 @@ function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
     if (!hasKey) return;
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(code).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

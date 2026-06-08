@@ -9,32 +9,23 @@ const NotFound = () => {
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
 
-    // Signal to crawlers that this is a 404
+    const prevTitle = document.title;
+    document.title = "404: Page Not Found | UnClick";
+
     let meta = document.querySelector('meta[name="robots"]');
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "robots");
       document.head.appendChild(meta);
     }
-    const prev = meta.getAttribute("content") ?? "";
+    const prevContent = meta.getAttribute("content") ?? "";
     meta.setAttribute("content", "noindex, nofollow");
 
     return () => {
-      meta!.setAttribute("content", prev || "index, follow");
+      document.title = prevTitle;
+      meta!.setAttribute("content", prevContent || "index, follow");
     };
   }, [location.pathname]);
-
-  useEffect(() => {
-    document.title = "404: Page Not Found | UnClick";
-    // Mark page as noindex so 404s don't get indexed
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
-    const prev = meta?.content ?? "index, follow";
-    if (meta) meta.content = "noindex, nofollow";
-    return () => {
-      document.title = "UnClick: The App Store for AI Agents";
-      if (meta) meta.content = prev;
-    };
-  }, []);
 
   return (
     <div className="min-h-screen">

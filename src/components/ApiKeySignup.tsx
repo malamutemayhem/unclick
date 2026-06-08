@@ -109,7 +109,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
 
   const handleCopyKey = () => {
     if (!apiKey) return;
-    navigator.clipboard.writeText(apiKey);
+    navigator.clipboard.writeText(apiKey).catch(() => {});
     setKeyCopied(true);
     setTimeout(() => setKeyCopied(false), 2000);
   };
