@@ -1,53 +1,67 @@
 import { describe, it, expect } from "vitest";
-import { invariant, precondition, postcondition, assertDefined, check, InvariantError } from "../invariant.js";
+import { invariant, precondition, postcondition, unreachable, assertNonNull, assertDefined, check } from "../invariant.js";
 
 describe("invariant", () => {
-  it("passes on truthy", () => {
-    expect(() => invariant(true, "ok")).not.toThrow();
-    expect(() => invariant(1, "ok")).not.toThrow();
-    expect(() => invariant("yes", "ok")).not.toThrow();
+  it("passes for truthy", () => {
+    expect(() => invariant(true)).not.toThrow();
+    expect(() => invariant(1)).not.toThrow();
   });
-
-  it("throws InvariantError on falsy", () => {
-    expect(() => invariant(false, "bad")).toThrow(InvariantError);
-    expect(() => invariant(null, "bad")).toThrow("bad");
-    expect(() => invariant(0, "bad")).toThrow(InvariantError);
+  it("throws for falsy", () => {
+    expect(() => invariant(false)).toThrow("Invariant");
+    expect(() => invariant(null, "custom")).toThrow("custom");
   });
 });
 
 describe("precondition", () => {
-  it("throws with prefix", () => {
-    expect(() => precondition(false, "x > 0")).toThrow("Precondition failed: x > 0");
+  it("passes for truthy", () => {
+    expect(() => precondition(true)).not.toThrow();
+  });
+  it("throws for falsy", () => {
+    expect(() => precondition(false)).toThrow("Precondition");
   });
 });
 
 describe("postcondition", () => {
-  it("throws with prefix", () => {
-    expect(() => postcondition(false, "result valid")).toThrow("Postcondition failed: result valid");
+  it("throws for falsy", () => {
+    expect(() => postcondition(false)).toThrow("Postcondition");
+  });
+});
+
+describe("unreachable", () => {
+  it("always throws", () => {
+    expect(() => unreachable()).toThrow("Unreachable");
+  });
+});
+
+describe("assertNonNull", () => {
+  it("returns value for non-null", () => {
+    expect(assertNonNull(42)).toBe(42);
+    expect(assertNonNull("")).toBe("");
+    expect(assertNonNull(0)).toBe(0);
+  });
+  it("throws for null", () => {
+    expect(() => assertNonNull(null)).toThrow("non-null");
+  });
+  it("throws for undefined", () => {
+    expect(() => assertNonNull(undefined)).toThrow("non-null");
   });
 });
 
 describe("assertDefined", () => {
-  it("passes on defined values", () => {
-    expect(() => assertDefined(42, "val")).not.toThrow();
-    expect(() => assertDefined("", "val")).not.toThrow();
-    expect(() => assertDefined(0, "val")).not.toThrow();
+  it("returns value for defined", () => {
+    expect(assertDefined(null)).toBeNull();
+    expect(assertDefined(0)).toBe(0);
   });
-
-  it("throws on null/undefined", () => {
-    expect(() => assertDefined(null, "val")).toThrow("Expected val to be defined");
-    expect(() => assertDefined(undefined, "val")).toThrow("Expected val to be defined");
+  it("throws for undefined", () => {
+    expect(() => assertDefined(undefined)).toThrow("defined");
   });
 });
 
 describe("check", () => {
-  it("returns value if defined", () => {
-    expect(check(42, "missing")).toBe(42);
-    expect(check("hello", "missing")).toBe("hello");
+  it("returns value for non-null", () => {
+    expect(check(42)).toBe(42);
   });
-
-  it("throws on null/undefined", () => {
-    expect(() => check(null, "missing")).toThrow("missing");
-    expect(() => check(undefined, "missing")).toThrow("missing");
+  it("throws for null", () => {
+    expect(() => check(null)).toThrow();
   });
 });

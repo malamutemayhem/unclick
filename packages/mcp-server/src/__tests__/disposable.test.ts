@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DisposableStack, using, usingAsync } from "../disposable.js";
+import { DisposableStack, using } from "../disposable.js";
 
 describe("DisposableStack", () => {
   it("disposes in reverse order", () => {
@@ -12,28 +12,12 @@ describe("DisposableStack", () => {
     expect(order).toEqual([3, 2, 1]);
   });
 
-  it("use returns resource", () => {
+  it("defer adds cleanup function", () => {
+    let cleaned = false;
     const stack = new DisposableStack();
-    const resource = { dispose: () => {}, value: 42 };
-    const returned = stack.use(resource);
-    expect(returned.value).toBe(42);
+    stack.defer(() => { cleaned = true; });
     stack.dispose();
-  });
-
-  it("adopt calls onDispose with value", () => {
-    const stack = new DisposableStack();
-    let disposed: string | null = null;
-    stack.adopt("test", (v: string) => { disposed = v; });
-    stack.dispose();
-    expect(disposed).toBe("test");
-  });
-
-  it("defer runs on dispose", () => {
-    const stack = new DisposableStack();
-    let called = false;
-    stack.defer(() => { called = true; });
-    stack.dispose();
-    expect(called).toBe(true);
+    expect(cleaned).toBe(true);
   });
 
   it("double dispose is safe", () => {
@@ -45,7 +29,13 @@ describe("DisposableStack", () => {
     expect(count).toBe(1);
   });
 
-  it("tracks isDisposed and size", () => {
+  it("use after dispose throws", () => {
+    const stack = new DisposableStack();
+    stack.dispose();
+    expect(() => stack.use({ dispose: () => {} })).toThrow("already disposed");
+  });
+
+  it("isDisposed and size", () => {
     const stack = new DisposableStack();
     stack.defer(() => {});
     expect(stack.isDisposed).toBe(false);
@@ -56,25 +46,16 @@ describe("DisposableStack", () => {
 });
 
 describe("using", () => {
-  it("disposes after callback", () => {
+  it("disposes after function", () => {
     let disposed = false;
     const result = using({ dispose: () => { disposed = true; } }, () => 42);
     expect(result).toBe(42);
     expect(disposed).toBe(true);
   });
 
-  it("disposes on error", () => {
+  it("disposes even on error", () => {
     let disposed = false;
-    expect(() => using({ dispose: () => { disposed = true; } }, () => { throw new Error("fail"); })).toThrow("fail");
-    expect(disposed).toBe(true);
-  });
-});
-
-describe("usingAsync", () => {
-  it("disposes after async callback", async () => {
-    let disposed = false;
-    const result = await usingAsync({ dispose: () => { disposed = true; } }, async () => 42);
-    expect(result).toBe(42);
+    expect(() => using({ dispose: () => { disposed = true; } }, () => { throw new Error("boom"); })).toThrow("boom");
     expect(disposed).toBe(true);
   });
 });

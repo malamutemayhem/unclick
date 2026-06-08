@@ -1,20 +1,15 @@
-export interface IDisposable {
+export interface Disposable {
   dispose(): void;
 }
 
 export class DisposableStack {
-  private stack: IDisposable[] = [];
+  private resources: Disposable[] = [];
   private disposed = false;
 
-  use<T extends IDisposable>(resource: T): T {
+  use<T extends Disposable>(resource: T): T {
     if (this.disposed) throw new Error("Stack already disposed");
-    this.stack.push(resource);
+    this.resources.push(resource);
     return resource;
-  }
-
-  adopt<T>(value: T, onDispose: (value: T) => void): T {
-    this.use({ dispose: () => onDispose(value) });
-    return value;
   }
 
   defer(fn: () => void): void {
@@ -24,10 +19,17 @@ export class DisposableStack {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    while (this.stack.length > 0) {
-      const resource = this.stack.pop()!;
-      try { resource.dispose(); } catch {}
+    const errors: Error[] = [];
+    while (this.resources.length > 0) {
+      const resource = this.resources.pop()!;
+      try {
+        resource.dispose();
+      } catch (e) {
+        errors.push(e instanceof Error ? e : new Error(String(e)));
+      }
     }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) throw new AggregateError(errors, "Multiple dispose errors");
   }
 
   get isDisposed(): boolean {
@@ -35,21 +37,13 @@ export class DisposableStack {
   }
 
   get size(): number {
-    return this.stack.length;
+    return this.resources.length;
   }
 }
 
-export function using<T extends IDisposable, R>(resource: T, fn: (r: T) => R): R {
+export function using<T extends Disposable, R>(resource: T, fn: (r: T) => R): R {
   try {
     return fn(resource);
-  } finally {
-    resource.dispose();
-  }
-}
-
-export async function usingAsync<T extends IDisposable, R>(resource: T, fn: (r: T) => Promise<R>): Promise<R> {
-  try {
-    return await fn(resource);
   } finally {
     resource.dispose();
   }

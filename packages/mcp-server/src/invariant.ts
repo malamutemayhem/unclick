@@ -1,33 +1,37 @@
-export class InvariantError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InvariantError";
-  }
+export function invariant(condition: unknown, message?: string): asserts condition {
+  if (!condition) throw new Error(message ?? "Invariant violation");
 }
 
-export function invariant(condition: unknown, message: string): asserts condition {
-  if (!condition) throw new InvariantError(message);
+export function precondition(condition: unknown, message?: string): asserts condition {
+  if (!condition) throw new Error(message ?? "Precondition failed");
 }
 
-export function precondition(condition: unknown, message: string): asserts condition {
-  if (!condition) throw new InvariantError(`Precondition failed: ${message}`);
+export function postcondition(condition: unknown, message?: string): asserts condition {
+  if (!condition) throw new Error(message ?? "Postcondition failed");
 }
 
-export function postcondition(condition: unknown, message: string): asserts condition {
-  if (!condition) throw new InvariantError(`Postcondition failed: ${message}`);
+export function unreachable(message?: string): never {
+  throw new Error(message ?? "Unreachable code reached");
 }
 
-export function assertDefined<T>(value: T | null | undefined, name: string): asserts value is T {
+export function exhaustiveCheck(value: never): never {
+  throw new Error(`Unexpected value: ${String(value)}`);
+}
+
+export function assertNonNull<T>(value: T | null | undefined, message?: string): T {
   if (value === null || value === undefined) {
-    throw new InvariantError(`Expected ${name} to be defined, got ${value}`);
+    throw new Error(message ?? "Expected non-null value");
   }
-}
-
-export function assertNever(value: never, message?: string): never {
-  throw new InvariantError(message ?? `Unexpected value: ${value}`);
-}
-
-export function check<T>(value: T | null | undefined, message: string): T {
-  if (value === null || value === undefined) throw new InvariantError(message);
   return value;
+}
+
+export function assertDefined<T>(value: T | undefined, message?: string): T {
+  if (value === undefined) {
+    throw new Error(message ?? "Expected defined value");
+  }
+  return value;
+}
+
+export function check<T>(value: T | null | undefined, message?: string): T {
+  return assertNonNull(value, message);
 }
