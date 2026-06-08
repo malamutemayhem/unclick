@@ -1,20 +1,20 @@
 export class BloomFilter {
   private bits: Uint8Array;
-  private bitCount: number;
+  private size: number;
   private hashCount: number;
-  private itemCount = 0;
+  private insertedCount = 0;
 
-  constructor(expectedItems: number, falsePositiveRate = 0.01) {
-    this.bitCount = Math.max(1, Math.ceil(-expectedItems * Math.log(falsePositiveRate) / (Math.log(2) ** 2)));
-    this.hashCount = Math.max(1, Math.round((this.bitCount / expectedItems) * Math.log(2)));
-    this.bits = new Uint8Array(Math.ceil(this.bitCount / 8));
+  constructor(size: number, hashCount = 3) {
+    this.size = size;
+    this.hashCount = hashCount;
+    this.bits = new Uint8Array(Math.ceil(size / 8));
   }
 
   add(item: string): void {
     for (const pos of this.getPositions(item)) {
       this.bits[Math.floor(pos / 8)] |= 1 << (pos % 8);
     }
-    this.itemCount++;
+    this.insertedCount++;
   }
 
   mightContain(item: string): boolean {
@@ -24,54 +24,42 @@ export class BloomFilter {
     return true;
   }
 
-  get size(): number {
-    return this.itemCount;
-  }
-
-  get capacity(): number {
-    return this.bitCount;
-  }
-
-  get hashFunctions(): number {
-    return this.hashCount;
-  }
-
-  fillRatio(): number {
-    let set = 0;
-    for (let i = 0; i < this.bitCount; i++) {
-      if (this.bits[Math.floor(i / 8)] & (1 << (i % 8))) set++;
-    }
-    return set / this.bitCount;
-  }
-
-  clear(): void {
-    this.bits.fill(0);
-    this.itemCount = 0;
-  }
-
   private getPositions(item: string): number[] {
-    const h1 = this.hash1(item);
-    const h2 = this.hash2(item);
     const positions: number[] = [];
     for (let i = 0; i < this.hashCount; i++) {
-      positions.push(Math.abs((h1 + i * h2) % this.bitCount));
+      positions.push(this.hash(item, i) % this.size);
     }
     return positions;
   }
 
-  private hash1(str: string): number {
-    let hash = 5381;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0x7fffffff;
+  private hash(item: string, seed: number): number {
+    let h = seed * 0x811c9dc5;
+    for (let i = 0; i < item.length; i++) {
+      h ^= item.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
     }
-    return hash;
+    return Math.abs(h);
   }
 
-  private hash2(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash * 31 + str.charCodeAt(i)) & 0x7fffffff;
-    }
-    return hash || 1;
+  get falsePositiveRate(): number {
+    const m = this.size;
+    const k = this.hashCount;
+    const n = this.insertedCount;
+    return Math.pow(1 - Math.exp(-k * n / m), k);
+  }
+
+  get count(): number {
+    return this.insertedCount;
+  }
+
+  clear(): void {
+    this.bits.fill(0);
+    this.insertedCount = 0;
+  }
+
+  static optimal(expectedItems: number, falsePositiveRate: number): BloomFilter {
+    const m = Math.ceil(-expectedItems * Math.log(falsePositiveRate) / (Math.log(2) ** 2));
+    const k = Math.ceil((m / expectedItems) * Math.log(2));
+    return new BloomFilter(m, k);
   }
 }
