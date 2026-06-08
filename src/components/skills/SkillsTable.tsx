@@ -298,7 +298,7 @@ function SkillRow({
           <div style={{ gridColumn: "2 / -1" }} className="min-w-0 space-y-3 pt-1">
             <NeedsLine skill={skill} />
 
-            <div className="rounded-md border border-white/[0.06] bg-[#0D0D0D]">
+            <div className="rounded-md border border-white/[0.06] bg-white/[0.03]">
               <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
                 <span className="flex items-center gap-1.5 text-[11px] font-semibold text-white/70">
                   <FileText className="h-3.5 w-3.5 text-white/45" />

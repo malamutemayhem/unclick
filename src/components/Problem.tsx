@@ -1,5 +1,6 @@
 import FadeIn from "./FadeIn";
 import { motion } from "framer-motion";
+import { Eyebrow } from "@/components/brand";
 
 const Problem = () => (
   <section className="relative overflow-hidden">
@@ -8,9 +9,7 @@ const Problem = () => (
 
     <div className="mx-auto max-w-2xl px-6 py-32">
       <FadeIn>
-        <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
-          Why This Exists
-        </span>
+        <Eyebrow>Why this exists</Eyebrow>
       </FadeIn>
       <FadeIn delay={0.1}>
         <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">

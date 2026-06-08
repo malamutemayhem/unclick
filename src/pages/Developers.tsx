@@ -203,7 +203,7 @@ export default function DevelopersPage() {
           </p>
         </FadeIn>
         <FadeIn delay={0.05}>
-          <div className="mt-6 overflow-hidden rounded-xl border border-border/40 bg-[#0d0d0d]">
+          <div className="mt-6 overflow-hidden rounded-xl border border-border/40 bg-white/[0.03]">
             <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
               <span className="font-mono text-xs text-muted-foreground">weather-tools.ts</span>
               <CopyButton code={STARTER_TEMPLATE} />

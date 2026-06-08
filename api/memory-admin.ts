@@ -14,7 +14,10 @@
  *   - code: Returns code dumps (session_id param optional)
  *   - search: Full-text search across conversation logs (query param)
  *   - delete_fact: Archive a fact by ID (fact_id, POST)
- *   - delete_session: DELETE a session summary by ID (session_id, POST)
+ *   - delete_session: Archive a session summary by ID (session_id, POST)
+ *   - admin_memory_recycle_bin: List archived facts/sessions hidden from recall
+ *   - restore_fact / restore_session: Move an archived memory back to active
+ *   - empty_memory_recycle_bin: Permanently delete archived facts/sessions
  *   - update_business_context: Upsert a business context entry (POST)
  *   - admin_get_setup_guide: Returns client-specific onboarding instructions
  *                            for maximising memory auto-load (client param)
@@ -2559,6 +2562,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_session_summaries")
           .select("*")
           .eq("api_key_hash", apiKeyHash)
+          .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(limit);
 
@@ -2702,7 +2706,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data, error } = await q;
         if (error) throw error;
-        return res.status(200).json({ data: data ?? [] });
+        return res.status(200).json({
+          data: data ?? [],
+          auto_capture: {
+            code: codeAutoCaptureEnabled(),
+            library: libraryAutoCaptureEnabled(),
+          },
+        });
       }
 
       case "search": {
@@ -2728,9 +2738,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { error } = await supabase
           .from("mc_extracted_facts")
-          .update({ status: "archived" })
+          .update({
+            status: "archived",
+            archived_at: new Date().toISOString(),
+            decay_reason: "user-deleted",
+          })
           .eq("id", factId)
           .eq("api_key_hash", apiKeyHash);
+
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      case "restore_fact": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const factId = req.body?.fact_id || req.query.fact_id;
+        if (!factId) return res.status(400).json({ error: "fact_id required" });
+
+        const { error } = await supabase
+          .from("mc_extracted_facts")
+          .update({
+            status: "active",
+            archived_at: null,
+            decay_reason: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", factId)
+          .eq("api_key_hash", apiKeyHash)
+          .eq("status", "archived");
 
         if (error) throw error;
         return res.status(200).json({ success: true });
@@ -2745,12 +2782,106 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { error } = await supabase
           .from("mc_session_summaries")
-          .delete()
+          .update({
+            status: "archived",
+            archived_at: new Date().toISOString(),
+            archive_reason: "user-deleted",
+          })
           .eq("id", sessionId)
           .eq("api_key_hash", apiKeyHash);
 
         if (error) throw error;
         return res.status(200).json({ success: true });
+      }
+
+      case "restore_session": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const sessionId = req.body?.session_id || req.query.session_id;
+        if (!sessionId) return res.status(400).json({ error: "session_id required" });
+
+        const { error } = await supabase
+          .from("mc_session_summaries")
+          .update({
+            status: "active",
+            archived_at: null,
+            archive_reason: null,
+          })
+          .eq("id", sessionId)
+          .eq("api_key_hash", apiKeyHash)
+          .eq("status", "archived");
+
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      case "admin_memory_recycle_bin": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const limit = getClampedLimit(req.query.limit, 50, 200);
+
+        const [factsResult, sessionsResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, status, decay_tier, confidence, access_count, created_at, updated_at, archived_at, decay_reason")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .order("archived_at", { ascending: false, nullsFirst: false })
+            .order("created_at", { ascending: false })
+            .limit(limit),
+          supabase
+            .from("mc_session_summaries")
+            .select("id, session_id, platform, summary, decisions, open_loops, topics, created_at, status, archived_at, archive_reason")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .order("archived_at", { ascending: false, nullsFirst: false })
+            .order("created_at", { ascending: false })
+            .limit(limit),
+        ]);
+
+        if (factsResult.error) throw factsResult.error;
+        if (sessionsResult.error) throw sessionsResult.error;
+        return res.status(200).json({
+          data: {
+            facts: factsResult.data ?? [],
+            sessions: sessionsResult.data ?? [],
+          },
+        });
+      }
+
+      case "empty_memory_recycle_bin": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        if (req.body?.confirm !== "EMPTY") {
+          return res.status(400).json({ error: "confirm must be EMPTY" });
+        }
+
+        const [factsResult, sessionsResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .delete()
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .select("id"),
+          supabase
+            .from("mc_session_summaries")
+            .delete()
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .select("id"),
+        ]);
+
+        if (factsResult.error) throw factsResult.error;
+        if (sessionsResult.error) throw sessionsResult.error;
+        return res.status(200).json({
+          success: true,
+          deleted: {
+            facts: factsResult.data?.length ?? 0,
+            sessions: sessionsResult.data?.length ?? 0,
+          },
+        });
       }
 
       case "update_business_context": {
@@ -10551,23 +10682,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (action === "fishbowl_list_todos") {
           const limit = Math.min(Math.max(Number(body.limit ?? 50) || 50, 1), 200);
+          const requestedOffset = Number(body.offset ?? 0);
+          const offset = Number.isFinite(requestedOffset) ? Math.max(Math.floor(requestedOffset), 0) : 0;
           const includeDescription = body.include_description === true || body.full_content === true;
           const includeArchivedDone =
             body.include_archived_done === true ||
             body.include_archived === true ||
             body.show_archived === true;
           const doneArchiveCutoff = new Date(Date.now() - DONE_TODO_ARCHIVE_WINDOW_MS).toISOString();
+          let statusFilter: "open" | "in_progress" | "done" | "dropped" | null = null;
           let q = supabase
             .from("mc_fishbowl_todos")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
             .order("created_at", { ascending: false })
-            .limit(limit);
+            .range(offset, offset + limit - 1);
           if (body.status != null) {
             const s = String(body.status);
             if (!["open", "in_progress", "done", "dropped"].includes(s)) {
               return res.status(400).json({ error: "status filter must be open|in_progress|done|dropped" });
             }
+            statusFilter = s as "open" | "in_progress" | "done" | "dropped";
             q = q.eq("status", s);
           }
           if (body.assigned_to_agent_id != null) {
@@ -10595,6 +10730,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             countTodosByStatus("done"),
             countTodosByStatus("dropped"),
           ]);
+          const matchingTotal =
+            statusFilter === "open" ? openBacklogCount :
+            statusFilter === "in_progress" ? activeCount :
+            statusFilter === "done" ? doneCount :
+            statusFilter === "dropped" ? droppedCount :
+            null;
 
           // Decorate with comment_count and stage evidence for the jobs board.
           const todos = data ?? [];
@@ -10678,6 +10819,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             response_bounds: {
               compact: !includeDescription,
               descriptions_included: includeDescription,
+              offset,
+              limit,
+              requested_status: statusFilter,
+              matching_total: matchingTotal,
+              has_more: matchingTotal == null ? decorated.length === limit : offset + decorated.length < matchingTotal,
               archived_done_hidden: !includeArchivedDone && body.status == null,
               done_archive_cutoff: !includeArchivedDone && body.status == null ? doneArchiveCutoff : null,
               todos_returned: decorated.length,

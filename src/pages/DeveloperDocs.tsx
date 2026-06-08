@@ -97,7 +97,7 @@ function CodeBlock({ code, filename }: { code: string; filename?: string }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/40 bg-[#0d0d0d]">
+    <div className="overflow-hidden rounded-xl border border-border/40 bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
         <span className="font-mono text-xs text-muted-foreground">{filename || "TypeScript"}</span>
         <button

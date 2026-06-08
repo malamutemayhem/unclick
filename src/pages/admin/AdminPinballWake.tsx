@@ -125,7 +125,7 @@ function MetricCard({
   value: string | number;
 }) {
   return (
-    <section className="rounded-lg border border-white/[0.06] bg-[#111111] p-4">
+    <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
       <div className="flex items-center gap-2 text-xs font-medium uppercase text-white/40">
         <Icon className="h-4 w-4 text-[#E2B93B]" />
         {label}
@@ -137,7 +137,7 @@ function MetricCard({
 
 function RouteRow({ route }: { route: PinballWakeClockRoute }) {
   return (
-    <article className="rounded-lg border border-white/[0.06] bg-[#111111] p-4">
+    <article className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +175,7 @@ function RouteRow({ route }: { route: PinballWakeClockRoute }) {
 
 function RunnerRow({ runner }: { runner: PinballWakeJobRunner }) {
   return (
-    <article className="rounded-lg border border-white/[0.06] bg-[#111111] p-4">
+    <article className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -217,7 +217,7 @@ function RunnerRow({ runner }: { runner: PinballWakeJobRunner }) {
 
 function SeatRow({ seat }: { seat: LaunchpadSeat }) {
   return (
-    <article className="rounded-lg border border-white/[0.06] bg-[#111111] p-4">
+    <article className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -350,7 +350,7 @@ export default function AdminPinballWake() {
         <MetricCard icon={Gauge} label="Need Probe" value={runnerSummary.needsProbe} />
       </div>
 
-      <section className="mb-6 border-y border-white/[0.08] bg-[#101213] py-4">
+      <section className="mb-6 border-y border-white/[0.08] bg-white/[0.03] py-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -379,7 +379,7 @@ export default function AdminPinballWake() {
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-lg border border-white/[0.06] bg-[#111111] p-4">
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-white/45">
               Identity
             </h3>
