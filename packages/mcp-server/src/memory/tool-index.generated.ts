@@ -2222,6 +2222,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "genderize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "genderize_predict",
+        "description": "Predict gender from a first name with probability score."
+      }
+    ]
+  },
+  {
     "app": "genius",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3500,6 +3510,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "nationalize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nationalize_predict",
+        "description": "Predict likely nationalities from a first name with probability scores."
+      }
+    ]
+  },
+  {
     "app": "neon",
     "category": "Dev / Cloud",
     "tools": [
@@ -4274,6 +4294,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pubchem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pubchem_search",
+        "description": "Search PubChem for a chemical compound by name."
+      },
+      {
+        "name": "pubchem_properties",
+        "description": "Get specific properties of a PubChem compound by CID."
+      }
+    ]
+  },
+  {
     "app": "publicapis",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4368,6 +4402,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "qc_copy_audit",
         "description": "Fetch a page and scan all visible text for em dashes (U+2014), en dashes (U+2013), and a configurable list of banned words. Returns every occurrence with surrounding context."
+      }
+    ]
+  },
+  {
+    "app": "qrserver",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "qrserver_generate",
+        "description": "Generate a QR code image URL for any text or URL."
       }
     ]
   },
@@ -5128,6 +5172,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "solarsystem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "solarsystem_bodies",
+        "description": "List solar system bodies (planets, moons, asteroids, comets)."
+      },
+      {
+        "name": "solarsystem_body",
+        "description": "Get detailed info about a specific solar system body."
+      }
+    ]
+  },
+  {
     "app": "spaceflight",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5142,6 +5200,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "spaceflight_reports",
         "description": "Get latest spaceflight technical reports."
+      }
+    ]
+  },
+  {
+    "app": "spacex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "spacex_latest_launch",
+        "description": "Get the most recent SpaceX launch details."
+      },
+      {
+        "name": "spacex_launches",
+        "description": "List recent SpaceX launches."
+      },
+      {
+        "name": "spacex_rockets",
+        "description": "List all SpaceX rockets with specifications."
       }
     ]
   },

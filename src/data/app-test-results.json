@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T10:00:00.000Z",
+  "updatedAt": "2026-06-08T11:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -930,6 +930,14 @@
       ],
       "comment": ""
     },
+    "genderize": {
+      "status": "pass",
+      "note": "genderize_predict predicts gender from first names via genderize.io. Free, no key needed.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "genderize_predict"
+      ]
+    },
     "genius": {
       "status": "attention",
       "note": "not_connected; needs access token from genius.com/api-clients. Set GENIUS_ACCESS_TOKEN.",
@@ -1465,6 +1473,14 @@
       ],
       "comment": ""
     },
+    "nationalize": {
+      "status": "pass",
+      "note": "nationalize_predict predicts nationality from first names via nationalize.io. Free, no key needed.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "nationalize_predict"
+      ]
+    },
     "neon": {
       "status": "attention",
       "note": "Serverless Postgres; needs NEON_API_KEY.",
@@ -1783,6 +1799,15 @@
       ],
       "comment": ""
     },
+    "pubchem": {
+      "status": "pass",
+      "note": "pubchem_search and pubchem_properties look up chemical compounds via pubchem.ncbi.nlm.nih.gov. Free, no key needed.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "pubchem_search",
+        "pubchem_properties"
+      ]
+    },
     "publicapis": {
       "status": "pass",
       "note": "publicapis_search, publicapis_categories, publicapis_random return public API directory data. Free, no key needed.",
@@ -1816,6 +1841,14 @@
         "qc_run_checklist"
       ],
       "comment": ""
+    },
+    "qrserver": {
+      "status": "pass",
+      "note": "qrserver_generate builds QR code image URLs via api.qrserver.com. Free, no key needed, no-fetch URL builder.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "qrserver_generate"
+      ]
     },
     "quickbooks": {
       "status": "attention",
@@ -2095,12 +2128,31 @@
       "toolsTested": [],
       "comment": ""
     },
+    "solarsystem": {
+      "status": "pass",
+      "note": "solarsystem_bodies and solarsystem_body browse planets, moons, asteroids from le-systeme-solaire.net. Free, no key needed.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "solarsystem_bodies",
+        "solarsystem_body"
+      ]
+    },
     "spaceflight": {
       "status": "pass",
       "note": "spaceflight_articles returned space news from spaceflightnewsapi.net; free, no key needed.",
       "testedAt": "2026-06-08T04:06:23.347Z",
       "toolsTested": [
         "spaceflight_articles"
+      ]
+    },
+    "spacex": {
+      "status": "pass",
+      "note": "spacex_latest_launch, spacex_launches, spacex_rockets fetch SpaceX data from api.spacexdata.com. Free, no key needed.",
+      "testedAt": "2026-06-08T11:00:00.000Z",
+      "toolsTested": [
+        "spacex_latest_launch",
+        "spacex_launches",
+        "spacex_rockets"
       ]
     },
     "speedrun": {

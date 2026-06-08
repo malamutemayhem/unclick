@@ -488,6 +488,12 @@ import { fakestoreProducts, fakestoreProduct, fakestoreCategories } from "./fake
 import { mtgSearchCards, mtgGetCard, mtgSets } from "./mtg-tool.js";
 import { domainsdbSearch, domainsdbTlds } from "./domainsdb-tool.js";
 import { pokemonTcgSearchCards, pokemonTcgSets } from "./pokemontcg-tool.js";
+import { spacexLatestLaunch, spacexLaunches, spacexRockets } from "./spacex-tool.js";
+import { genderizePredict } from "./genderize-tool.js";
+import { nationalizePredict } from "./nationalize-tool.js";
+import { qrserverGenerate } from "./qrserver-tool.js";
+import { solarsystemBodies, solarsystemBody } from "./solarsystem-tool.js";
+import { pubchemSearch, pubchemProperties } from "./pubchem-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7251,6 +7257,107 @@ export const ADDITIONAL_TOOLS = [
         name: { type: "string" as const, description: "Set name to search." },
         limit: { type: "number" as const, description: "Max results (default 10)." },
       },
+    },
+  },
+
+  // ── spacex-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "spacex_latest_launch",
+    description: "Get the most recent SpaceX launch details.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "spacex_launches",
+    description: "List recent SpaceX launches.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Number of most recent launches to return (default 10)." },
+      },
+    },
+  },
+  {
+    name: "spacex_rockets",
+    description: "List all SpaceX rockets with specifications.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── genderize-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "genderize_predict",
+    description: "Predict gender from a first name with probability score.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "First name to predict gender for." },
+        country_id: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code for localized prediction." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── nationalize-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "nationalize_predict",
+    description: "Predict likely nationalities from a first name with probability scores.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "First name to predict nationality for." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── qrserver-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "qrserver_generate",
+    description: "Generate a QR code image URL for any text or URL.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        data: { type: "string" as const, description: "Text or URL to encode in the QR code." },
+        size: { type: "string" as const, description: "Image dimensions as WxH (default '200x200')." },
+        format: { type: "string" as const, description: "Image format: png, svg, jpg (default 'png')." },
+        color: { type: "string" as const, description: "QR code color as hex without # (e.g. '000000')." },
+        bgcolor: { type: "string" as const, description: "Background color as hex without # (e.g. 'ffffff')." },
+      }, required: ["data"],
+    },
+  },
+
+  // ── solarsystem-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "solarsystem_bodies",
+    description: "List solar system bodies (planets, moons, asteroids, comets).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        filter: { type: "string" as const, description: "Body type filter: Star, Planet, Dwarf Planet, Asteroid, Comet, Moon." },
+        limit: { type: "number" as const, description: "Max results to return." },
+      },
+    },
+  },
+  {
+    name: "solarsystem_body",
+    description: "Get detailed info about a specific solar system body.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Body ID (e.g. 'terre' for Earth, 'mars', 'jupiter', 'lune' for Moon)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── pubchem-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pubchem_search",
+    description: "Search PubChem for a chemical compound by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Compound name (e.g. 'aspirin', 'caffeine', 'water')." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "pubchem_properties",
+    description: "Get specific properties of a PubChem compound by CID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cid: { type: "string" as const, description: "PubChem Compound ID." },
+        properties: { type: "string" as const, description: "Comma-separated property list (default: MolecularFormula,MolecularWeight,IUPACName,IsomericSMILES)." },
+      }, required: ["cid"],
     },
   },
 
@@ -18346,6 +18453,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // pokemontcg-tool.ts
   pokemon_tcg_search_cards:  (args) => pokemonTcgSearchCards(args),
   pokemon_tcg_sets:          (args) => pokemonTcgSets(args),
+
+  // spacex-tool.ts
+  spacex_latest_launch:      (args) => spacexLatestLaunch(args),
+  spacex_launches:           (args) => spacexLaunches(args),
+  spacex_rockets:            (args) => spacexRockets(args),
+  // genderize-tool.ts
+  genderize_predict:         (args) => genderizePredict(args),
+  // nationalize-tool.ts
+  nationalize_predict:       (args) => nationalizePredict(args),
+  // qrserver-tool.ts
+  qrserver_generate:         (args) => qrserverGenerate(args),
+  // solarsystem-tool.ts
+  solarsystem_bodies:        (args) => solarsystemBodies(args),
+  solarsystem_body:          (args) => solarsystemBody(args),
+  // pubchem-tool.ts
+  pubchem_search:            (args) => pubchemSearch(args),
+  pubchem_properties:        (args) => pubchemProperties(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

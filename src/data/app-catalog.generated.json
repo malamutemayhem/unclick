@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 323,
-  "toolCount": 1172,
+  "appCount": 329,
+  "toolCount": 1182,
   "categories": [
     "AI",
     "Books",
@@ -2730,6 +2730,22 @@
       "hardened": true
     },
     {
+      "slug": "genderize",
+      "name": "Genderize",
+      "category": "Utilities",
+      "blurb": "Predict gender from a first name with probability score.",
+      "domain": "genderize.io",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "genderize_predict",
+          "description": "Predict gender from a first name with probability score."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "genius",
       "name": "Genius",
       "category": "Music & video",
@@ -4406,6 +4422,22 @@
       "hardened": true
     },
     {
+      "slug": "nationalize",
+      "name": "Nationalize",
+      "category": "Utilities",
+      "blurb": "Predict likely nationalities from a first name.",
+      "domain": "nationalize.io",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "nationalize_predict",
+          "description": "Predict likely nationalities from a first name with probability scores."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "neon",
       "name": "Neon",
       "category": "Developer & infra",
@@ -5386,6 +5418,26 @@
       "hardened": true
     },
     {
+      "slug": "pubchem",
+      "name": "PubChem",
+      "category": "Weather & science",
+      "blurb": "Search chemical compounds and molecular properties from PubChem.",
+      "domain": "pubchem.ncbi.nlm.nih.gov",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "pubchem_search",
+          "description": "Search PubChem for a chemical compound by name."
+        },
+        {
+          "name": "pubchem_properties",
+          "description": "Get specific properties of a PubChem compound by CID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "publicapis",
       "name": "Public APIs Directory",
       "category": "Developer & infra",
@@ -5539,6 +5591,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "qrserver",
+      "name": "QR Server",
+      "category": "Developer & infra",
+      "blurb": "Generate QR code image URLs for any text or URL.",
+      "domain": "goqr.me",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "qrserver_generate",
+          "description": "Generate a QR code image URL for any text or URL."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -6502,6 +6570,26 @@
       "hardened": false
     },
     {
+      "slug": "solarsystem",
+      "name": "Solar System",
+      "category": "Weather & science",
+      "blurb": "Browse planets, moons, asteroids, and comets in the solar system.",
+      "domain": "le-systeme-solaire.net",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "solarsystem_bodies",
+          "description": "List solar system bodies (planets, moons, asteroids, comets)."
+        },
+        {
+          "name": "solarsystem_body",
+          "description": "Get detailed info about a specific solar system body."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "spaceflight",
       "name": "Spaceflight News",
       "category": "News & reading",
@@ -6524,6 +6612,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "spacex",
+      "name": "SpaceX",
+      "category": "Weather & science",
+      "blurb": "SpaceX launches, rockets, and mission data.",
+      "domain": "spacex.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "spacex_latest_launch",
+          "description": "Get the most recent SpaceX launch details."
+        },
+        {
+          "name": "spacex_launches",
+          "description": "List recent SpaceX launches."
+        },
+        {
+          "name": "spacex_rockets",
+          "description": "List all SpaceX rockets with specifications."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "speedrun",
