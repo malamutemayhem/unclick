@@ -1,48 +1,39 @@
 import { describe, it, expect } from "vitest";
-import { encode, decode, decodeToString, isValid, toUpperCase, toLowerCase } from "../hex.js";
+import { encode, decode, encodeBytes, decodeToBytes, isValid, dump } from "../hex.js";
 
 describe("hex", () => {
-  it("encodes string to hex", () => {
-    expect(encode("hello")).toBe("68656c6c6f");
+  it("encode/decode roundtrip", () => {
+    expect(decode(encode("hello"))).toBe("hello");
+    expect(decode(encode("abc 123"))).toBe("abc 123");
   });
 
-  it("decodes hex to bytes", () => {
-    const bytes = decode("68656c6c6f");
-    expect(new TextDecoder().decode(bytes)).toBe("hello");
+  it("encode produces lowercase hex", () => {
+    expect(encode("A")).toBe("41");
+    expect(encode("ab")).toBe("6162");
   });
 
-  it("decodeToString shortcut", () => {
-    expect(decodeToString("68656c6c6f")).toBe("hello");
+  it("encodeBytes/decodeToBytes roundtrip", () => {
+    const bytes = new Uint8Array([0, 127, 255]);
+    const hex = encodeBytes(bytes);
+    expect(hex).toBe("007fff");
+    const back = decodeToBytes(hex);
+    expect([...back]).toEqual([0, 127, 255]);
   });
 
-  it("roundtrip works", () => {
-    const original = "The quick brown fox";
-    expect(decodeToString(encode(original))).toBe(original);
-  });
-
-  it("encodes Uint8Array", () => {
-    const bytes = new Uint8Array([0, 1, 255]);
-    expect(encode(bytes)).toBe("0001ff");
-  });
-
-  it("isValid checks hex format", () => {
-    expect(isValid("abcdef")).toBe(true);
+  it("isValid", () => {
+    expect(isValid("48656c6c6f")).toBe(true);
     expect(isValid("ABCDEF")).toBe(true);
     expect(isValid("xyz")).toBe(false);
     expect(isValid("abc")).toBe(false);
   });
 
-  it("case conversion", () => {
-    expect(toUpperCase("abcdef")).toBe("ABCDEF");
-    expect(toLowerCase("ABCDEF")).toBe("abcdef");
+  it("dump produces hex dump", () => {
+    const d = dump("Hello");
+    expect(d).toContain("48 65 6c 6c 6f");
+    expect(d).toContain("|Hello");
   });
 
-  it("decode throws on odd length", () => {
-    expect(() => decode("abc")).toThrow("even length");
-  });
-
-  it("handles empty input", () => {
-    expect(encode("")).toBe("");
-    expect(decodeToString("")).toBe("");
+  it("decode handles spaces", () => {
+    expect(decode("48 65 6c 6c 6f")).toBe("Hello");
   });
 });

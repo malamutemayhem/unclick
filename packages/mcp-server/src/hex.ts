@@ -1,37 +1,60 @@
-export function encode(input: Uint8Array | string): string {
-  const bytes = typeof input === "string"
-    ? new TextEncoder().encode(input)
-    : input;
+export function encode(input: string): string {
   let result = "";
-  for (const byte of bytes) {
-    result += byte.toString(16).padStart(2, "0");
+  for (let i = 0; i < input.length; i++) {
+    result += input.charCodeAt(i).toString(16).padStart(2, "0");
   }
   return result;
 }
 
-export function decode(hex: string): Uint8Array {
-  if (hex.length % 2 !== 0) throw new Error("Hex string must have even length");
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    const byte = parseInt(hex.slice(i, i + 2), 16);
-    if (Number.isNaN(byte)) throw new Error(`Invalid hex at position ${i}`);
-    bytes[i / 2] = byte;
+export function decode(hex: string): string {
+  const clean = hex.replace(/\s+/g, "");
+  let result = "";
+  for (let i = 0; i < clean.length; i += 2) {
+    result += String.fromCharCode(parseInt(clean.slice(i, i + 2), 16));
+  }
+  return result;
+}
+
+export function encodeBytes(bytes: Uint8Array): string {
+  let result = "";
+  for (let i = 0; i < bytes.length; i++) {
+    result += bytes[i].toString(16).padStart(2, "0");
+  }
+  return result;
+}
+
+export function decodeToBytes(hex: string): Uint8Array {
+  const clean = hex.replace(/\s+/g, "");
+  const bytes = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes[i / 2] = parseInt(clean.slice(i, i + 2), 16);
   }
   return bytes;
 }
 
-export function decodeToString(hex: string): string {
-  return new TextDecoder().decode(decode(hex));
-}
-
 export function isValid(hex: string): boolean {
-  return hex.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(hex);
+  const clean = hex.replace(/\s+/g, "");
+  return /^[0-9a-fA-F]*$/.test(clean) && clean.length % 2 === 0;
 }
 
-export function toUpperCase(hex: string): string {
-  return hex.toUpperCase();
-}
-
-export function toLowerCase(hex: string): string {
-  return hex.toLowerCase();
+export function dump(input: string, bytesPerLine: number = 16): string {
+  const lines: string[] = [];
+  for (let i = 0; i < input.length; i += bytesPerLine) {
+    const chunk = input.slice(i, i + bytesPerLine);
+    const offset = i.toString(16).padStart(8, "0");
+    const hexParts: string[] = [];
+    const asciiParts: string[] = [];
+    for (let j = 0; j < bytesPerLine; j++) {
+      if (j < chunk.length) {
+        const code = chunk.charCodeAt(j);
+        hexParts.push(code.toString(16).padStart(2, "0"));
+        asciiParts.push(code >= 32 && code < 127 ? chunk[j] : ".");
+      } else {
+        hexParts.push("  ");
+        asciiParts.push(" ");
+      }
+    }
+    lines.push(`${offset}  ${hexParts.join(" ")}  |${asciiParts.join("")}|`);
+  }
+  return lines.join("\n");
 }
