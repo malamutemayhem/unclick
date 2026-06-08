@@ -60,18 +60,26 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   skills: {
     path: "/skills",
     eyebrow: "Skills",
-    title: <>Skills your agent can <GradientText>run</GradientText>.</>,
-    lede: "Ready-made recipes that teach your AI to do real tasks, end to end. Just ask, and it runs the right one.",
+    title: <>Skills your agent <span className="whitespace-nowrap">can <GradientText>run</GradientText>.</span></>,
+    lede: "Ready-made recipes that hand your AI a new skill in seconds. Just ask, and it runs the right one, start to finish.",
     primaryCta: GET_STARTED,
     secondaryCta: { label: "Browse apps", href: "/apps" },
+    showcase: (
+      <ExpandableImage
+        src="/skills_web.jpg"
+        alt="A robot instantly learning skills like combat, programming, stealth, and analysis, saying 'I know kung fu'."
+      />
+    ),
     featuresTitle: "Capability, on tap.",
     features: [
-      { icon: Sparkles, title: "Curated and trending", desc: "A growing library of the skills people actually use." },
-      { icon: Zap, title: "One-line trigger", desc: "No setup. Ask in plain English and your agent picks the skill." },
-      { icon: Plug, title: "Works everywhere", desc: "Any MCP client: Claude, ChatGPT, Cursor, and more." },
-      { icon: RefreshCw, title: "Kept fresh", desc: "New skills added often, refined from real use." },
+      { icon: Sparkles, title: "Curated and trending", desc: "A growing library of the skills people actually use, shaped by real work." },
+      { icon: Zap, title: "One-line trigger", desc: "No setup. Ask in plain English and your agent picks the right skill for the job." },
+      { icon: Hammer, title: "Runs the whole task", desc: "A skill does the job from start to finish, not just one small step along the way." },
+      { icon: ShieldCheck, title: "Reviewed, not wild west", desc: "Every skill is checked before it lands, so there are no hidden instructions or prompt-injection tricks." },
+      { icon: Plug, title: "Works everywhere", desc: "Any MCP client: Claude, ChatGPT, Cursor, and more, all share the same skills." },
+      { icon: RefreshCw, title: "Kept fresh", desc: "New skills are added often and updated as the tools behind them change." },
     ],
-    meta: { title: "Skills - UnClick", description: "Ready-made skills that teach your AI to do real tasks. Just ask." },
+    meta: { title: "Skills - UnClick", description: "Ready-made, reviewed skills that teach your AI to do real tasks end to end. Just ask." },
   },
   orchestrator: {
     path: "/orchestrator",
