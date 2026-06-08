@@ -1199,6 +1199,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         membershipType: { type: "number" },
         membershipId: { type: "string" },
+        components: { type: "string", description: "Comma-separated component numbers (default: 100,200,204)." },
         api_key: { type: "string" },
       },
       required: ["membershipType", "membershipId"],
@@ -2927,7 +2928,9 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
-      properties: {},
+      properties: {
+        limit: { type: "number", description: "Max countries to return (default 100)." },
+      },
     },
   },
 
@@ -7548,6 +7551,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         shop_domain: { type: "string" },
+        store: { type: "string", description: "Alias for shop_domain." },
         api_key: { type: "string" },
         access_token: { type: "string" },
       },
