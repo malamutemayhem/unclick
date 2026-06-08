@@ -2,83 +2,60 @@ import { describe, it, expect } from "vitest";
 import { HealthChecker } from "../health-checker.js";
 
 describe("HealthChecker", () => {
-  it("considers unknown endpoints healthy", () => {
+  it("reports healthy when all pass", async () => {
     const hc = new HealthChecker();
-    expect(hc.isHealthy("unknown")).toBe(true);
+    hc.register("db", async () => ({ name: "db", status: "healthy", timestamp: Date.now() }));
+    hc.register("cache", async () => ({ name: "cache", status: "healthy", timestamp: Date.now() }));
+    const report = await hc.runAll();
+    expect(report.status).toBe("healthy");
+    expect(report.checks.length).toBe(2);
   });
 
-  it("stays healthy with all successes", () => {
+  it("reports unhealthy when one fails", async () => {
     const hc = new HealthChecker();
-    hc.recordSuccess("api");
-    hc.recordSuccess("api");
-    hc.recordSuccess("api");
-    expect(hc.isHealthy("api")).toBe(true);
+    hc.register("db", async () => ({ name: "db", status: "healthy", timestamp: Date.now() }));
+    hc.register("cache", async () => ({ name: "cache", status: "unhealthy", timestamp: Date.now() }));
+    const report = await hc.runAll();
+    expect(report.status).toBe("unhealthy");
   });
 
-  it("becomes unhealthy when failures dominate", () => {
-    const hc = new HealthChecker({ windowSize: 4, healthyThreshold: 0.5 });
-    hc.recordSuccess("api");
-    hc.recordFailure("api");
-    hc.recordFailure("api");
-    hc.recordFailure("api");
-    expect(hc.isHealthy("api")).toBe(false);
-  });
-
-  it("recovers when successes return", () => {
-    const hc = new HealthChecker({ windowSize: 4, healthyThreshold: 0.5 });
-    hc.recordFailure("api");
-    hc.recordFailure("api");
-    hc.recordFailure("api");
-    hc.recordFailure("api");
-    expect(hc.isHealthy("api")).toBe(false);
-
-    hc.recordSuccess("api");
-    hc.recordSuccess("api");
-    hc.recordSuccess("api");
-    expect(hc.isHealthy("api")).toBe(true);
-  });
-
-  it("getSnapshot returns full stats", () => {
+  it("catches thrown errors as unhealthy", async () => {
     const hc = new HealthChecker();
-    hc.recordSuccess("api");
-    hc.recordFailure("api");
-    const snap = hc.getSnapshot("api");
-    expect(snap.endpoint).toBe("api");
-    expect(snap.totalCalls).toBe(2);
-    expect(snap.successRate).toBe(0.5);
-    expect(snap.lastSuccess).toBeGreaterThan(0);
-    expect(snap.lastFailure).toBeGreaterThan(0);
+    hc.register("bad", async () => { throw new Error("connection failed"); });
+    const report = await hc.runAll();
+    expect(report.status).toBe("unhealthy");
+    expect(report.checks[0].message).toBe("connection failed");
   });
 
-  it("getDegraded lists only unhealthy endpoints", () => {
-    const hc = new HealthChecker({ windowSize: 2, healthyThreshold: 0.5 });
-    hc.recordSuccess("good");
-    hc.recordFailure("bad");
-    hc.recordFailure("bad");
-    const degraded = hc.getDegraded();
-    expect(degraded).toHaveLength(1);
-    expect(degraded[0].endpoint).toBe("bad");
-  });
-
-  it("tracks multiple endpoints independently", () => {
+  it("reports degraded status", async () => {
     const hc = new HealthChecker();
-    hc.recordSuccess("a");
-    hc.recordFailure("b");
-    expect(hc.getAllSnapshots()).toHaveLength(2);
+    hc.register("a", async () => ({ name: "a", status: "healthy", timestamp: Date.now() }));
+    hc.register("b", async () => ({ name: "b", status: "degraded", timestamp: Date.now() }));
+    const report = await hc.runAll();
+    expect(report.status).toBe("degraded");
   });
 
-  it("reset clears specific endpoint", () => {
+  it("tracks uptime", async () => {
     const hc = new HealthChecker();
-    hc.recordFailure("api");
-    hc.reset("api");
-    expect(hc.getSnapshot("api").totalCalls).toBe(0);
+    hc.register("a", async () => ({ name: "a", status: "healthy", timestamp: Date.now() }));
+    const report = await hc.runAll();
+    expect(report.uptime).toBeGreaterThanOrEqual(0);
   });
 
-  it("reset with no arg clears everything", () => {
+  it("measures latency", async () => {
     const hc = new HealthChecker();
-    hc.recordSuccess("a");
-    hc.recordSuccess("b");
-    hc.reset();
-    expect(hc.getAllSnapshots()).toHaveLength(0);
+    hc.register("slow", async () => {
+      await new Promise((r) => setTimeout(r, 10));
+      return { name: "slow", status: "healthy", timestamp: Date.now() };
+    });
+    const report = await hc.runAll();
+    expect(report.checks[0].latencyMs).toBeGreaterThanOrEqual(5);
+  });
+
+  it("unregister removes check", async () => {
+    const hc = new HealthChecker();
+    hc.register("a", async () => ({ name: "a", status: "healthy", timestamp: Date.now() }));
+    hc.unregister("a");
+    expect(hc.registeredChecks).toEqual([]);
   });
 });

@@ -1,101 +1,76 @@
-// Upstream service health tracking.
-// Records success/failure per endpoint and computes a simple health
-// score. Connectors can check if an endpoint is healthy before
-// making a call, and dashboards can surface degraded services.
+export type HealthStatus = "healthy" | "degraded" | "unhealthy" | "unknown";
 
-export interface HealthSnapshot {
-  endpoint: string;
-  healthy: boolean;
-  successRate: number;
-  totalCalls: number;
-  lastSuccess?: number;
-  lastFailure?: number;
+export interface HealthCheck {
+  name: string;
+  status: HealthStatus;
+  latencyMs?: number;
+  message?: string;
+  timestamp: number;
 }
 
-interface EndpointStats {
-  successes: number;
-  failures: number;
-  lastSuccess: number;
-  lastFailure: number;
-  recentResults: boolean[];
+export interface HealthReport {
+  status: HealthStatus;
+  checks: HealthCheck[];
+  timestamp: number;
+  uptime: number;
 }
 
 export class HealthChecker {
-  private stats = new Map<string, EndpointStats>();
-  private readonly windowSize: number;
-  private readonly healthyThreshold: number;
+  private checks = new Map<string, () => Promise<HealthCheck>>();
+  private results = new Map<string, HealthCheck>();
+  private startTime = Date.now();
 
-  constructor(opts: { windowSize?: number; healthyThreshold?: number } = {}) {
-    this.windowSize = opts.windowSize ?? 20;
-    this.healthyThreshold = opts.healthyThreshold ?? 0.5;
+  register(name: string, check: () => Promise<HealthCheck>): void {
+    this.checks.set(name, check);
   }
 
-  recordSuccess(endpoint: string): void {
-    const s = this.getOrCreate(endpoint);
-    s.successes++;
-    s.lastSuccess = Date.now();
-    s.recentResults.push(true);
-    if (s.recentResults.length > this.windowSize) s.recentResults.shift();
+  unregister(name: string): void {
+    this.checks.delete(name);
+    this.results.delete(name);
   }
 
-  recordFailure(endpoint: string): void {
-    const s = this.getOrCreate(endpoint);
-    s.failures++;
-    s.lastFailure = Date.now();
-    s.recentResults.push(false);
-    if (s.recentResults.length > this.windowSize) s.recentResults.shift();
-  }
+  async runAll(): Promise<HealthReport> {
+    const promises = [...this.checks.entries()].map(async ([name, check]) => {
+      const start = Date.now();
+      try {
+        const result = await check();
+        result.latencyMs = Date.now() - start;
+        this.results.set(name, result);
+        return result;
+      } catch (err) {
+        const result: HealthCheck = {
+          name,
+          status: "unhealthy",
+          latencyMs: Date.now() - start,
+          message: err instanceof Error ? err.message : String(err),
+          timestamp: Date.now(),
+        };
+        this.results.set(name, result);
+        return result;
+      }
+    });
 
-  isHealthy(endpoint: string): boolean {
-    const s = this.stats.get(endpoint);
-    if (!s || s.recentResults.length === 0) return true;
-    return this.successRate(s) >= this.healthyThreshold;
-  }
-
-  getSnapshot(endpoint: string): HealthSnapshot {
-    const s = this.stats.get(endpoint);
-    if (!s) {
-      return { endpoint, healthy: true, successRate: 1, totalCalls: 0 };
-    }
-    const rate = this.successRate(s);
+    const checks = await Promise.all(promises);
     return {
-      endpoint,
-      healthy: rate >= this.healthyThreshold,
-      successRate: rate,
-      totalCalls: s.successes + s.failures,
-      lastSuccess: s.lastSuccess || undefined,
-      lastFailure: s.lastFailure || undefined,
+      status: aggregateStatus(checks),
+      checks,
+      timestamp: Date.now(),
+      uptime: Date.now() - this.startTime,
     };
   }
 
-  getAllSnapshots(): HealthSnapshot[] {
-    return [...this.stats.keys()].map((ep) => this.getSnapshot(ep));
+  getLastResult(name: string): HealthCheck | undefined {
+    return this.results.get(name);
   }
 
-  getDegraded(): HealthSnapshot[] {
-    return this.getAllSnapshots().filter((s) => !s.healthy);
+  get registeredChecks(): string[] {
+    return [...this.checks.keys()];
   }
+}
 
-  reset(endpoint?: string): void {
-    if (endpoint) {
-      this.stats.delete(endpoint);
-    } else {
-      this.stats.clear();
-    }
-  }
-
-  private getOrCreate(endpoint: string): EndpointStats {
-    let s = this.stats.get(endpoint);
-    if (!s) {
-      s = { successes: 0, failures: 0, lastSuccess: 0, lastFailure: 0, recentResults: [] };
-      this.stats.set(endpoint, s);
-    }
-    return s;
-  }
-
-  private successRate(s: EndpointStats): number {
-    if (s.recentResults.length === 0) return 1;
-    const wins = s.recentResults.filter(Boolean).length;
-    return wins / s.recentResults.length;
-  }
+function aggregateStatus(checks: HealthCheck[]): HealthStatus {
+  if (checks.length === 0) return "unknown";
+  if (checks.every((c) => c.status === "healthy")) return "healthy";
+  if (checks.some((c) => c.status === "unhealthy")) return "unhealthy";
+  return "degraded";
 }
