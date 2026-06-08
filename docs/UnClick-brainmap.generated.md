@@ -82,7 +82,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
-| src/pages/admin/AdminBrainmap.tsx | eb0a0e70ad71 | 26584 |
+| src/pages/admin/AdminBrainmap.tsx | 4425d8008b56 | 26560 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
@@ -128,7 +128,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
-| src/pages/Login.tsx | 86f887990094 | 8440 |
+| src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | fda4fcf632cb | 19192 |

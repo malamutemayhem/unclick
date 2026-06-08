@@ -8845,8 +8845,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "eb0a0e70ad71",
-      "bytes": 26584
+      "hash": "4425d8008b56",
+      "bytes": 26560
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -9075,8 +9075,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "86f887990094",
-      "bytes": 8440
+      "hash": "c3b16f3ec268",
+      "bytes": 8416
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
