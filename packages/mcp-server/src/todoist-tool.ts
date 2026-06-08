@@ -35,7 +35,8 @@ async function tdFetch<T>(token: string, method: string, path: string, opts?: { 
   }
   if (res.status === 429) throw new Error("Todoist rate limit reached (HTTP 429). Please wait and retry.");
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  let data: unknown = {};
+  try { if (text) data = JSON.parse(text); } catch { data = { raw: text }; }
   if (!res.ok) throw new Error(`Todoist error (${res.status}): ${(data as { error?: string }).error ?? text.slice(0, 200) ?? `status ${res.status}`}`);
   return data as T;
 }

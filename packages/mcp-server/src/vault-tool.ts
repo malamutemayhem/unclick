@@ -133,7 +133,11 @@ function atomicWrite(filePath: string, content: string): void {
 
 function readVaultFile(): VaultFile | null {
   if (!fs.existsSync(VAULT_FILE)) return null;
-  return JSON.parse(fs.readFileSync(VAULT_FILE, "utf8")) as VaultFile;
+  try {
+    return JSON.parse(fs.readFileSync(VAULT_FILE, "utf8")) as VaultFile;
+  } catch {
+    throw new Error("Vault file is corrupted and cannot be parsed.");
+  }
 }
 
 function writeVaultFile(vf: VaultFile): void {
@@ -163,7 +167,11 @@ function packVault(data: VaultData, key: Buffer, salt: Buffer): VaultFile {
 
 function readAuditFile(): AuditFile | null {
   if (!fs.existsSync(AUDIT_FILE)) return null;
-  return JSON.parse(fs.readFileSync(AUDIT_FILE, "utf8")) as AuditFile;
+  try {
+    return JSON.parse(fs.readFileSync(AUDIT_FILE, "utf8")) as AuditFile;
+  } catch {
+    return null;
+  }
 }
 
 function writeAuditFile(af: AuditFile): void {

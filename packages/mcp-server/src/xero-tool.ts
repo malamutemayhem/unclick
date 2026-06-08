@@ -154,7 +154,10 @@ export async function xeroInvoices(args: Record<string, unknown>): Promise<unkno
     });
   }
 
-  // list (default)
+  if (action !== "list") {
+    return { error: `Unknown action '${action}'. Valid actions: list, get, create.` };
+  }
+
   return xeroFetch({
     accessToken: token(args),
     tenantId: tenant(args),
@@ -205,7 +208,10 @@ export async function xeroContacts(args: Record<string, unknown>): Promise<unkno
     });
   }
 
-  // list
+  if (action !== "list") {
+    return { error: `Unknown action '${action}'. Valid actions: list, get, create.` };
+  }
+
   return xeroFetch({
     accessToken: token(args),
     tenantId: tenant(args),
@@ -264,7 +270,10 @@ export async function xeroPayments(args: Record<string, unknown>): Promise<unkno
     });
   }
 
-  // list
+  if (action !== "list") {
+    return { error: `Unknown action '${action}'. Valid actions: list, create.` };
+  }
+
   return xeroFetch({
     accessToken: token(args),
     tenantId: tenant(args),
@@ -365,7 +374,10 @@ export async function xeroQuotes(args: Record<string, unknown>): Promise<unknown
     });
   }
 
-  // list
+  if (action !== "list") {
+    return { error: `Unknown action '${action}'. Valid actions: list, get, create.` };
+  }
+
   return xeroFetch({
     accessToken: token(args),
     tenantId: tenant(args),
