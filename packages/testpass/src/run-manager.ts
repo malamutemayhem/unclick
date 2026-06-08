@@ -83,7 +83,7 @@ export async function createRun(
     return { id: rows[0].id, was_duplicate: false };
   }
   if (params.taskId && (res.status === 409 || res.status === 400) && /23505|duplicate key/.test(text)) {
-    // STALE_RUN check intentionally omitted — relies on synchronous handler invariant.
+    // STALE_RUN check intentionally omitted - relies on synchronous handler invariant.
     // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
     // before returning was_duplicate=true on a still-running task_id.
     const lookup = await fetch(

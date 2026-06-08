@@ -42,7 +42,7 @@ async function resolveSessionUser(
   serviceRoleKey: string,
 ): Promise<{ id: string; email: string | null } | null> {
   if (!token) return null;
-  // api_keys (uc_* / agt_*) are never valid session JWTs — reject early.
+  // api_keys (uc_* / agt_*) are never valid session JWTs - reject early.
   if (token.startsWith("uc_") || token.startsWith("agt_")) return null;
   try {
     const scoped = createClient(supabaseUrl, serviceRoleKey, {

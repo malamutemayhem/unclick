@@ -23,7 +23,7 @@
  */
 import { Hono, type MiddlewareHandler } from 'hono';
 import { z } from 'zod';
-import { eq, and, sql, desc, asc, isNull } from 'drizzle-orm';
+import { eq, and, sql, desc, asc, isNull, inArray } from 'drizzle-orm';
 import { ok, list, Errors, newId } from '@unclick/core';
 import type { Db } from '../db/index.js';
 import {
@@ -61,29 +61,9 @@ async function incrementMeter(
   const period = currentPeriod();
   const now = new Date();
 
-  const [existing] = await db
-    .select({ id: billingMeters.id })
-    .from(billingMeters)
-    .where(
-      and(
-        eq(billingMeters.orgId, orgId),
-        eq(billingMeters.toolSlug, toolSlug),
-        eq(billingMeters.period, period),
-      ),
-    )
-    .limit(1);
-
-  if (existing) {
-    await db
-      .update(billingMeters)
-      .set({
-        calls: sql`${billingMeters.calls} + ${calls}`,
-        totalMs: sql`${billingMeters.totalMs} + ${responseMs ?? 0}`,
-        updatedAt: now,
-      })
-      .where(eq(billingMeters.id, existing.id));
-  } else {
-    await db.insert(billingMeters).values({
+  await db
+    .insert(billingMeters)
+    .values({
       id: `bm_${newId()}`,
       orgId,
       toolSlug,
@@ -95,8 +75,15 @@ async function incrementMeter(
       billingStatus: 'pending',
       createdAt: now,
       updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [billingMeters.orgId, billingMeters.toolSlug, billingMeters.period],
+      set: {
+        calls: sql`${billingMeters.calls} + ${calls}`,
+        totalMs: sql`${billingMeters.totalMs} + ${responseMs ?? 0}`,
+        updatedAt: now,
+      },
     });
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -343,11 +330,10 @@ export function createBillingRouter(db: Db, authMiddleware: MiddlewareHandler<an
 
       const eventIds = evts.map((e) => e.id);
 
-      // Mark events as reported using raw SQL IN clause
       await db
         .update(billingEvents)
         .set({ reported: true, stripeMeterEventId: stripeEventId })
-        .where(sql`${billingEvents.id} IN ${sql.raw(`('${eventIds.join("','")}')`)}` as ReturnType<typeof sql>);
+        .where(inArray(billingEvents.id, eventIds));
 
       // Update the meter's billable_calls
       const period = currentPeriod();

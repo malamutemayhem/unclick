@@ -146,7 +146,6 @@ export function createReportBugRouter(db: Db) {
 
     const createdAt = (report.createdAt as Date).toISOString();
 
-    // Fire-and-forget email - don't block the response
     if (body.notify !== false) {
       sendBugEmail({
         tool_name: report.toolName,
@@ -155,7 +154,7 @@ export function createReportBugRouter(db: Db) {
         expected_behavior: report.expectedBehavior,
         agent_context: report.agentContext,
         created_at: createdAt,
-      });
+      }).catch(() => {});
     }
 
     return created(c, {

@@ -270,12 +270,16 @@ export function createKvRouter(db: Db) {
       throw Errors.validation(`Cannot increment: value for key "${userKey}" is not a number`);
     }
 
-    const newValue = current + amount;
-    await db
+    const [updated] = await db
       .update(kvStore)
-      .set({ value: JSON.stringify(newValue), updatedAt: now })
-      .where(orgKey(orgId, storedKey));
+      .set({
+        value: sql`CAST((CAST(${kvStore.value} AS numeric) + ${amount}) AS text)`,
+        updatedAt: now,
+      })
+      .where(orgKey(orgId, storedKey))
+      .returning({ value: kvStore.value });
 
+    const newValue = updated ? parseFloat(updated.value) : current + amount;
     return ok(c, { key: userKey, value: newValue });
   });
 

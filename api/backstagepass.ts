@@ -7,7 +7,7 @@
  * BackstagePass stores encrypted credentials in the `user_credentials`
  * table. The encryption scheme (AES-256-GCM, PBKDF2-derived key,
  * per-row salt) uses the user's plaintext UnClick API key as the only
- * input to PBKDF2 — there is no server-side master key. That means
+ * input to PBKDF2 - there is no server-side master key. That means
  * any reveal / rotate-values flow REQUIRES the caller to supply the
  * plaintext api_key. We accept it in the request body, then verify
  *   sha256(body.api_key) === api_keys.key_hash (for session.user.id)
@@ -27,7 +27,7 @@
  * reveals are especially worth logging because they are the primary
  * signal of a compromised session.
  *
- * CORS is strict — unclick.world only. Admin surface should never
+ * CORS is strict - unclick.world only. Admin surface should never
  * talk to this from a preview/3p origin.
  *
  * Action catalog
@@ -41,12 +41,12 @@
  *     Audited with success flag. Touches `last_used_at`.
  *
  *   POST   ?action=update        body: { id, label?, values?, api_key? }
- *     Label-only change (no api_key needed) — rename a credential.
- *     Values change  (api_key REQUIRED) — re-encrypt with new data.
+ *     Label-only change (no api_key needed) - rename a credential.
+ *     Values change  (api_key REQUIRED) - re-encrypt with new data.
  *     Returns the updated metadata row. Audited.
  *
  *   POST   ?action=delete        body: { id }
- *     Hard-delete the row. No soft-delete for now — the audit log
+ *     Hard-delete the row. No soft-delete for now - the audit log
  *     preserves the existence + platform/label forever. Audited.
  *
  *   GET    ?action=audit[&credential_id=UUID][&limit=N]
@@ -330,7 +330,7 @@ interface Tenant {
 /**
  * Verify the Bearer token is a valid Supabase Auth JWT and look up the
  * single api_keys row for the owning user. Returns null if either step
- * fails — the caller should respond with 401.
+ * fails - the caller should respond with 401.
  */
 async function resolveTenant(
   req:             VercelRequest,
@@ -340,7 +340,7 @@ async function resolveTenant(
   const authHeader = req.headers.authorization ?? "";
   const token      = authHeader.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
-  // Bearer tokens beginning with uc_/agt_ are UnClick api_keys — valid
+  // Bearer tokens beginning with uc_/agt_ are UnClick api_keys - valid
   // for /api/credentials but NOT for this endpoint. Reject up front so
   // we don't treat an api_key as a JWT.
   if (token.startsWith("uc_") || token.startsWith("agt_")) return null;
@@ -630,7 +630,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: "Failed to decrypt credential." });
     }
 
-    // Touch last_used_at. Fire-and-forget — a failed write shouldn't
+    // Touch last_used_at. Fire-and-forget - a failed write shouldn't
     // block the reveal.
     supaFetch(
       `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(id)}`,
@@ -662,7 +662,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!id)     return res.status(400).json({ error: "id is required." });
     if (!apiKey) return res.status(400).json({ error: "api_key is required." });
 
-    if (sha256hex(apiKey) !== tenant.apiKeyHash) {
+    if (!hashesEqual(sha256hex(apiKey), tenant.apiKeyHash)) {
       await writeAudit({
         supabaseUrl, serviceRoleKey, tenant, req,
         action: "test_connection", credentialId: id, success: false,
@@ -808,13 +808,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
     if (newLabel !== undefined) {
-      // Label-only change — no decrypt required. Empty string → NULL.
+      // Label-only change - no decrypt required. Empty string -> NULL.
       patch.label = newLabel.trim() === "" ? null : newLabel.trim();
     }
 
     let valuesRotated = false;
     if (newValues !== undefined) {
-      // Values change — require proof-of-possession api_key, derive a
+      // Values change - require proof-of-possession api_key, derive a
       // fresh salt/iv and re-encrypt. Verify the submitted key hashes
       // to the session's api_key_hash first.
       if (!apiKey) {
