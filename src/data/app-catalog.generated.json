@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 426,
-  "toolCount": 1348,
+  "appCount": 431,
+  "toolCount": 1353,
   "categories": [
     "AI",
     "Books",
@@ -1004,6 +1004,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "charcount",
+      "name": "Character Frequency",
+      "category": "Developer & infra",
+      "blurb": "Analyze character frequency and type breakdown for any text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "char_frequency",
+          "description": "Analyze character frequency and breakdown of a text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "cheapshark",
@@ -3806,6 +3822,22 @@
       "hardened": true
     },
     {
+      "slug": "htmlstrip",
+      "name": "HTML Stripper",
+      "category": "Developer & infra",
+      "blurb": "Strip HTML tags and decode entities to plain text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "html_strip",
+          "description": "Strip HTML tags and decode entities to plain text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "httpcat",
       "name": "HTTP Cat",
       "category": "Images",
@@ -4150,6 +4182,22 @@
       "hardened": true
     },
     {
+      "slug": "ipvalidate",
+      "name": "IP Validator",
+      "category": "Developer & infra",
+      "blurb": "Validate and classify IP addresses as public, private, or loopback.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ip_validate",
+          "description": "Validate and classify an IP address (IPv4/IPv6, public/private/loopback)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ipify",
       "name": "ipify",
       "category": "Developer & infra",
@@ -4400,6 +4448,22 @@
         {
           "name": "json_format",
           "description": "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "jsonformat",
+      "name": "JSON Formatter",
+      "category": "Developer & infra",
+      "blurb": "Prettify or minify JSON text with configurable indentation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "json_prettify",
+          "description": "Prettify or minify JSON text."
         }
       ],
       "level": 5,
@@ -9788,6 +9852,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "uuidgen",
+      "name": "UUID Generator",
+      "category": "Developer & infra",
+      "blurb": "Generate cryptographically random UUID v4 strings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "uuid_generate",
+          "description": "Generate one or more cryptographically random UUID v4 strings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "uxpass",

@@ -591,6 +591,11 @@ import { slugify } from "./slug-tool.js";
 import { loremGenerate } from "./lorem2-tool.js";
 import { csvParse } from "./csvparse-tool.js";
 import { wordCount } from "./wordcount-tool.js";
+import { jsonFormat } from "./jsonformat-tool.js";
+import { htmlStrip } from "./htmlstrip-tool.js";
+import { uuidGenerate } from "./uuidgen-tool.js";
+import { charFrequency } from "./charcount-tool.js";
+import { ipValidate } from "./ipvalidate-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9164,6 +9169,66 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text to analyze." },
       }, required: ["text"],
+    },
+  },
+
+  // ── jsonformat-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "json_prettify",
+    description: "Prettify or minify JSON text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        json: { type: "string" as const, description: "JSON text to format." },
+        indent: { type: "number" as const, description: "Indent spaces (default 2)." },
+        minify: { type: "boolean" as const, description: "Minify instead of prettify (default false)." },
+      }, required: ["json"],
+    },
+  },
+
+  // ── htmlstrip-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "html_strip",
+    description: "Strip HTML tags and decode entities to plain text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        html: { type: "string" as const, description: "HTML text to strip." },
+        preserve_line_breaks: { type: "boolean" as const, description: "Keep line breaks from block elements (default true)." },
+      }, required: ["html"],
+    },
+  },
+
+  // ── uuidgen-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "uuid_generate",
+    description: "Generate one or more cryptographically random UUID v4 strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        count: { type: "number" as const, description: "Number of UUIDs (1-100, default 1)." },
+        uppercase: { type: "boolean" as const, description: "Output in uppercase (default false)." },
+      },
+    },
+  },
+
+  // ── charcount-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "char_frequency",
+    description: "Analyze character frequency and breakdown of a text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze." },
+        case_sensitive: { type: "boolean" as const, description: "Distinguish upper/lower case (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ipvalidate-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ip_validate",
+    description: "Validate and classify an IP address (IPv4/IPv6, public/private/loopback).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to validate." },
+      }, required: ["ip"],
     },
   },
 
@@ -20577,6 +20642,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // wordcount-tool.ts
   word_count:                (args) => wordCount(args),
+
+  // jsonformat-tool.ts
+  json_prettify:             (args) => jsonFormat(args),
+
+  // htmlstrip-tool.ts
+  html_strip:                (args) => htmlStrip(args),
+
+  // uuidgen-tool.ts
+  uuid_generate:             (args) => uuidGenerate(args),
+
+  // charcount-tool.ts
+  char_frequency:            (args) => charFrequency(args),
+
+  // ipvalidate-tool.ts
+  ip_validate:               (args) => ipValidate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

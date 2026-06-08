@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 844,
+    "inventory": 854,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 422,
+    "tools": 432,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 422
+      "count": 432
     },
     {
       "id": "rooms",
@@ -4632,6 +4632,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-charcount-packages-mcp-server-src-charcount-tool-ts-no-route",
+      "division": "Tools",
+      "name": "charcount",
+      "kind": "MCP tool",
+      "meaning": "charcount MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/charcount-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-cheapshark-packages-mcp-server-src-cheapshark-tool-ts-no-route",
       "division": "Tools",
       "name": "cheapshark",
@@ -4998,6 +5008,16 @@
       "kind": "MCP tool",
       "meaning": "csuite MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/csuite-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-csvparse-packages-mcp-server-src-csvparse-tool-ts-no-route",
+      "division": "Tools",
+      "name": "csvparse",
+      "kind": "MCP tool",
+      "meaning": "csvparse MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/csvparse-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5852,6 +5872,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-htmlstrip-packages-mcp-server-src-htmlstrip-tool-ts-no-route",
+      "division": "Tools",
+      "name": "htmlstrip",
+      "kind": "MCP tool",
+      "meaning": "htmlstrip MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/htmlstrip-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-httpbin-packages-mcp-server-src-httpbin-tool-ts-no-route",
       "division": "Tools",
       "name": "httpbin",
@@ -6022,6 +6052,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ipvalidate-packages-mcp-server-src-ipvalidate-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ipvalidate",
+      "kind": "MCP tool",
+      "meaning": "ipvalidate MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ipvalidate-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-iseven-packages-mcp-server-src-iseven-tool-ts-no-route",
       "division": "Tools",
       "name": "iseven",
@@ -6108,6 +6148,16 @@
       "kind": "MCP tool",
       "meaning": "jsoncrack MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/jsoncrack-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-jsonformat-packages-mcp-server-src-jsonformat-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jsonformat",
+      "kind": "MCP tool",
+      "meaning": "jsonformat MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jsonformat-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6268,6 +6318,16 @@
       "kind": "MCP tool",
       "meaning": "lorem MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/lorem-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-lorem2-packages-mcp-server-src-lorem2-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lorem2",
+      "kind": "MCP tool",
+      "meaning": "lorem2 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lorem2-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6898,6 +6958,16 @@
       "kind": "MCP tool",
       "meaning": "pandascore MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pandascore-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-passwordgen-packages-mcp-server-src-passwordgen-tool-ts-no-route",
+      "division": "Tools",
+      "name": "passwordgen",
+      "kind": "MCP tool",
+      "meaning": "passwordgen MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/passwordgen-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7572,6 +7642,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-slug-packages-mcp-server-src-slug-tool-ts-no-route",
+      "division": "Tools",
+      "name": "slug",
+      "kind": "MCP tool",
+      "meaning": "slug MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/slug-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-solarsystem-packages-mcp-server-src-solarsystem-tool-ts-no-route",
       "division": "Tools",
       "name": "solarsystem",
@@ -8122,6 +8202,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-uuidgen-packages-mcp-server-src-uuidgen-tool-ts-no-route",
+      "division": "Tools",
+      "name": "uuidgen",
+      "kind": "MCP tool",
+      "meaning": "uuidgen MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/uuidgen-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-uxpass-packages-mcp-server-src-uxpass-tool-ts-no-route",
       "division": "Tools",
       "name": "uxpass",
@@ -8268,6 +8358,16 @@
       "kind": "MCP tool",
       "meaning": "woocommerce MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/woocommerce-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-wordcount-packages-mcp-server-src-wordcount-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wordcount",
+      "kind": "MCP tool",
+      "meaning": "wordcount MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wordcount-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9360,6 +9460,11 @@
       "packages/mcp-server/src/catfacts-tool.ts"
     ],
     [
+      "charcount",
+      "charcount MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/charcount-tool.ts"
+    ],
+    [
       "cheapshark",
       "cheapshark MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/cheapshark-tool.ts"
@@ -9543,6 +9648,11 @@
       "csuite",
       "csuite MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/csuite-tool.ts"
+    ],
+    [
+      "csvparse",
+      "csvparse MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/csvparse-tool.ts"
     ],
     [
       "cvecircl",
@@ -9970,6 +10080,11 @@
       "packages/mcp-server/src/holidays-tool.ts"
     ],
     [
+      "htmlstrip",
+      "htmlstrip MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/htmlstrip-tool.ts"
+    ],
+    [
       "httpbin",
       "httpbin MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/httpbin-tool.ts"
@@ -10055,6 +10170,11 @@
       "packages/mcp-server/src/ipinfo-tool.ts"
     ],
     [
+      "ipvalidate",
+      "ipvalidate MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ipvalidate-tool.ts"
+    ],
+    [
       "iseven",
       "iseven MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/iseven-tool.ts"
@@ -10098,6 +10218,11 @@
       "jsoncrack",
       "jsoncrack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/jsoncrack-tool.ts"
+    ],
+    [
+      "jsonformat",
+      "jsonformat MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jsonformat-tool.ts"
     ],
     [
       "jsonplaceholder",
@@ -10178,6 +10303,11 @@
       "lorem",
       "lorem MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lorem-tool.ts"
+    ],
+    [
+      "lorem2",
+      "lorem2 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lorem2-tool.ts"
     ],
     [
       "lotr",
@@ -10493,6 +10623,11 @@
       "pandascore",
       "pandascore MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pandascore-tool.ts"
+    ],
+    [
+      "passwordgen",
+      "passwordgen MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/passwordgen-tool.ts"
     ],
     [
       "paypal",
@@ -10830,6 +10965,11 @@
       "packages/mcp-server/src/sloppass-tool.ts"
     ],
     [
+      "slug",
+      "slug MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/slug-tool.ts"
+    ],
+    [
       "solarsystem",
       "solarsystem MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/solarsystem-tool.ts"
@@ -11105,6 +11245,11 @@
       "packages/mcp-server/src/usgs-tool.ts"
     ],
     [
+      "uuidgen",
+      "uuidgen MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/uuidgen-tool.ts"
+    ],
+    [
       "uxpass",
       "UXPass experience verification capability.",
       "packages/mcp-server/src/uxpass-tool.ts"
@@ -11178,6 +11323,11 @@
       "woocommerce",
       "woocommerce MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/woocommerce-tool.ts"
+    ],
+    [
+      "wordcount",
+      "wordcount MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wordcount-tool.ts"
     ],
     [
       "wordpress",

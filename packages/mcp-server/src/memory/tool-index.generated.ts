@@ -842,6 +842,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "charcount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "char_frequency",
+        "description": "Analyze character frequency and breakdown of a text."
+      }
+    ]
+  },
+  {
     "app": "cheapshark",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3062,6 +3072,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "htmlstrip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "html_strip",
+        "description": "Strip HTML tags and decode entities to plain text."
+      }
+    ]
+  },
+  {
     "app": "httpbin",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3332,6 +3352,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ipvalidate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ip_validate",
+        "description": "Validate and classify an IP address (IPv4/IPv6, public/private/loopback)."
+      }
+    ]
+  },
+  {
     "app": "iseven",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3462,6 +3492,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "json_format",
         "description": "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats."
+      }
+    ]
+  },
+  {
+    "app": "jsonformat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "json_prettify",
+        "description": "Prettify or minify JSON text."
       }
     ]
   },
@@ -7418,6 +7458,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "usgs_earthquakes_by_region",
         "description": "Get recent USGS earthquakes within a radius of a point (latitude/longitude)."
+      }
+    ]
+  },
+  {
+    "app": "uuidgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "uuid_generate",
+        "description": "Generate one or more cryptographically random UUID v4 strings."
       }
     ]
   },

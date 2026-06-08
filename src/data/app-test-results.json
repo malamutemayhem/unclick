@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T20:00:00.000Z",
+  "updatedAt": "2026-06-08T20:15:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3388,6 +3388,36 @@
       "note": "word_count counts words, characters, sentences locally. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
       "toolsTested": ["word_count"]
+    },
+    "jsonformat": {
+      "status": "pass",
+      "note": "json_prettify prettifies and minifies JSON locally. No API needed.",
+      "testedAt": "2026-06-08T20:15:00.000Z",
+      "toolsTested": ["json_prettify"]
+    },
+    "htmlstrip": {
+      "status": "pass",
+      "note": "html_strip removes HTML tags and decodes entities locally. No API needed.",
+      "testedAt": "2026-06-08T20:15:00.000Z",
+      "toolsTested": ["html_strip"]
+    },
+    "uuidgen": {
+      "status": "pass",
+      "note": "uuid_generate creates UUID v4 strings locally via crypto.randomBytes. No API needed.",
+      "testedAt": "2026-06-08T20:15:00.000Z",
+      "toolsTested": ["uuid_generate"]
+    },
+    "charcount": {
+      "status": "pass",
+      "note": "char_frequency analyzes character frequency locally. No API needed.",
+      "testedAt": "2026-06-08T20:15:00.000Z",
+      "toolsTested": ["char_frequency"]
+    },
+    "ipvalidate": {
+      "status": "pass",
+      "note": "ip_validate validates and classifies IP addresses locally. No API needed.",
+      "testedAt": "2026-06-08T20:15:00.000Z",
+      "toolsTested": ["ip_validate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

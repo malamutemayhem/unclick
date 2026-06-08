@@ -27,7 +27,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -144,6 +144,8 @@ const NAME_OF = {
   epoch: "Epoch Converter", difftext: "Text Diff",
   passwordgen: "Password Generator", slug: "Slug Generator", lorem2: "Lorem Ipsum Generator",
   csvparse: "CSV Parser", wordcount: "Word Counter",
+  jsonformat: "JSON Formatter", htmlstrip: "HTML Stripper", uuidgen: "UUID Generator",
+  charcount: "Character Frequency", ipvalidate: "IP Validator",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -417,6 +419,11 @@ const BLURB_OF = {
   lorem2: "Generate lorem ipsum placeholder text by paragraph count.",
   csvparse: "Parse CSV text into structured JSON with headers and row objects.",
   wordcount: "Count words, characters, sentences, and estimate reading time.",
+  jsonformat: "Prettify or minify JSON text with configurable indentation.",
+  htmlstrip: "Strip HTML tags and decode entities to plain text.",
+  uuidgen: "Generate cryptographically random UUID v4 strings.",
+  charcount: "Analyze character frequency and type breakdown for any text.",
+  ipvalidate: "Validate and classify IP addresses as public, private, or loopback.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -552,6 +559,8 @@ const DOMAIN_OF = {
   epoch: "local", difftext: "local",
   passwordgen: "local", slug: "local", lorem2: "local",
   csvparse: "local", wordcount: "local",
+  jsonformat: "local", htmlstrip: "local", uuidgen: "local",
+  charcount: "local", ipvalidate: "local",
 };
 
 function titleCase(slug) {
