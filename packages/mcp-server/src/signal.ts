@@ -38,7 +38,7 @@ export class Signal<T> {
   }
 }
 
-export function computed<T>(fn: () => T, deps: Signal<unknown>[]): Signal<T> {
+export function computed<T>(fn: () => T, deps: Signal<any>[]): Signal<T> {
   const sig = new Signal<T>(fn());
   for (const dep of deps) {
     dep.subscribe(() => {
@@ -48,7 +48,7 @@ export function computed<T>(fn: () => T, deps: Signal<unknown>[]): Signal<T> {
   return sig;
 }
 
-export function effect(fn: () => void, deps: Signal<unknown>[]): () => void {
+export function effect(fn: () => void, deps: Signal<any>[]): () => void {
   fn();
   const unsubs = deps.map((dep) => dep.subscribe(fn));
   return () => unsubs.forEach((u) => u());
