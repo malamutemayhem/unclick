@@ -3,76 +3,55 @@ import { CircuitBreaker } from "../circuit-breaker.js";
 
 describe("CircuitBreaker", () => {
   it("starts closed", () => {
-    const cb = new CircuitBreaker();
-    expect(cb.currentState).toBe("closed");
-    expect(cb.canExecute()).toBe(true);
+    const cb = new CircuitBreaker({ failureThreshold: 3, resetTimeoutMs: 1000 });
+    expect(cb.getState()).toBe("closed");
   });
 
-  it("opens after threshold failures", () => {
-    const cb = new CircuitBreaker({ failureThreshold: 3, resetTimeoutMs: 60000 });
-    cb.recordFailure();
-    cb.recordFailure();
-    expect(cb.currentState).toBe("closed");
-    cb.recordFailure();
-    expect(cb.currentState).toBe("open");
-    expect(cb.canExecute()).toBe(false);
+  it("opens after threshold failures", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 2, resetTimeoutMs: 1000 });
+    const fail = () => Promise.reject(new Error("fail"));
+    await expect(cb.execute(fail)).rejects.toThrow();
+    await expect(cb.execute(fail)).rejects.toThrow();
+    expect(cb.getState()).toBe("open");
+    await expect(cb.execute(fail)).rejects.toThrow("Circuit is open");
   });
 
-  it("transitions to half-open after reset timeout", () => {
-    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 0 });
-    cb.recordFailure();
-    expect(cb.currentState).toBe("half-open");
-  });
-
-  it("closes on success in half-open", () => {
-    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 0 });
-    cb.recordFailure();
-    expect(cb.currentState).toBe("half-open");
-    cb.recordSuccess();
-    expect(cb.currentState).toBe("closed");
-  });
-
-  it("reopens on failure in half-open", () => {
-    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 60000, halfOpenMax: 1 });
-    cb.recordFailure();
-    expect(cb.currentState).toBe("open");
-    expect(cb.canExecute()).toBe(false);
-  });
-
-  it("execute runs function when closed", async () => {
-    const cb = new CircuitBreaker();
-    const result = await cb.execute(async () => 42);
+  it("succeeds when closed", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 3, resetTimeoutMs: 1000 });
+    const result = await cb.execute(() => Promise.resolve(42));
     expect(result).toBe(42);
   });
 
-  it("execute throws when open", async () => {
-    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 60000 });
-    cb.recordFailure();
-    await expect(cb.execute(async () => 42)).rejects.toThrow("Circuit breaker is open");
+  it("resets failure count on success", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 3, resetTimeoutMs: 1000 });
+    const fail = () => Promise.reject(new Error("fail"));
+    await expect(cb.execute(fail)).rejects.toThrow();
+    await cb.execute(() => Promise.resolve("ok"));
+    expect(cb.getFailures()).toBe(0);
   });
 
-  it("execute records failure on thrown error", async () => {
-    const cb = new CircuitBreaker({ failureThreshold: 2 });
-    await expect(cb.execute(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
-    expect(cb.stats().failures).toBe(1);
+  it("transitions to half-open after timeout", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 50 });
+    await expect(cb.execute(() => Promise.reject(new Error("x")))).rejects.toThrow();
+    expect(cb.getState()).toBe("open");
+    await new Promise((r) => setTimeout(r, 60));
+    expect(cb.getState()).toBe("half-open");
   });
 
-  it("reset clears everything", () => {
-    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 60000 });
-    cb.recordFailure();
+  it("closes from half-open on success", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 50, halfOpenMax: 1 });
+    await expect(cb.execute(() => Promise.reject(new Error("x")))).rejects.toThrow();
+    await new Promise((r) => setTimeout(r, 60));
+    await cb.execute(() => Promise.resolve("ok"));
+    expect(cb.getState()).toBe("closed");
+  });
+
+  it("reset works", async () => {
+    const cb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 10000 });
+    await expect(cb.execute(() => Promise.reject(new Error("x")))).rejects.toThrow();
+    expect(cb.getState()).toBe("open");
     cb.reset();
-    expect(cb.currentState).toBe("closed");
-    expect(cb.stats().failures).toBe(0);
-  });
-
-  it("stats returns current counts", () => {
-    const cb = new CircuitBreaker();
-    cb.recordSuccess();
-    cb.recordSuccess();
-    cb.recordFailure();
-    const s = cb.stats();
-    expect(s.successes).toBe(2);
-    expect(s.failures).toBe(1);
-    expect(s.state).toBe("closed");
+    expect(cb.getState()).toBe("closed");
+    expect(cb.getFailures()).toBe(0);
   });
 });

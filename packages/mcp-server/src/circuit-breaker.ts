@@ -1,89 +1,89 @@
-export type BreakerState = "closed" | "open" | "half-open";
+export type CircuitState = "closed" | "open" | "half-open";
 
-export interface BreakerOptions {
+export interface CircuitBreakerOptions {
   failureThreshold: number;
   resetTimeoutMs: number;
-  halfOpenMax: number;
+  halfOpenMax?: number;
 }
 
-const DEFAULT_OPTIONS: BreakerOptions = {
-  failureThreshold: 5,
-  resetTimeoutMs: 30_000,
-  halfOpenMax: 1,
-};
-
 export class CircuitBreaker {
-  private state: BreakerState = "closed";
+  private state: CircuitState = "closed";
   private failures = 0;
   private successes = 0;
-  private lastFailureAt = 0;
-  private halfOpenAttempts = 0;
-  private options: BreakerOptions;
+  private lastFailureTime = 0;
+  private readonly failureThreshold: number;
+  private readonly resetTimeoutMs: number;
+  private readonly halfOpenMax: number;
 
-  constructor(options: Partial<BreakerOptions> = {}) {
-    this.options = { ...DEFAULT_OPTIONS, ...options };
-  }
-
-  get currentState(): BreakerState {
-    if (this.state === "open" && Date.now() - this.lastFailureAt >= this.options.resetTimeoutMs) {
-      this.state = "half-open";
-      this.halfOpenAttempts = 0;
-    }
-    return this.state;
-  }
-
-  canExecute(): boolean {
-    const s = this.currentState;
-    if (s === "closed") return true;
-    if (s === "half-open") return this.halfOpenAttempts < this.options.halfOpenMax;
-    return false;
-  }
-
-  recordSuccess(): void {
-    if (this.state === "half-open") {
-      this.state = "closed";
-      this.failures = 0;
-      this.halfOpenAttempts = 0;
-    }
-    this.successes++;
-  }
-
-  recordFailure(): void {
-    this.failures++;
-    this.lastFailureAt = Date.now();
-    if (this.state === "half-open") {
-      this.state = "open";
-      return;
-    }
-    if (this.failures >= this.options.failureThreshold) {
-      this.state = "open";
-    }
+  constructor(options: CircuitBreakerOptions) {
+    this.failureThreshold = options.failureThreshold;
+    this.resetTimeoutMs = options.resetTimeoutMs;
+    this.halfOpenMax = options.halfOpenMax ?? 1;
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (!this.canExecute()) {
-      throw new Error("Circuit breaker is open");
+      throw new Error("Circuit is open");
     }
-    if (this.state === "half-open") this.halfOpenAttempts++;
+
     try {
       const result = await fn();
-      this.recordSuccess();
+      this.onSuccess();
       return result;
     } catch (err) {
-      this.recordFailure();
+      this.onFailure();
       throw err;
     }
+  }
+
+  canExecute(): boolean {
+    if (this.state === "closed") return true;
+    if (this.state === "open") {
+      if (Date.now() - this.lastFailureTime >= this.resetTimeoutMs) {
+        this.state = "half-open";
+        this.successes = 0;
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  onSuccess(): void {
+    if (this.state === "half-open") {
+      this.successes++;
+      if (this.successes >= this.halfOpenMax) {
+        this.state = "closed";
+        this.failures = 0;
+      }
+    } else {
+      this.failures = 0;
+    }
+  }
+
+  onFailure(): void {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (this.failures >= this.failureThreshold) {
+      this.state = "open";
+    }
+  }
+
+  getState(): CircuitState {
+    if (this.state === "open" && Date.now() - this.lastFailureTime >= this.resetTimeoutMs) {
+      return "half-open";
+    }
+    return this.state;
   }
 
   reset(): void {
     this.state = "closed";
     this.failures = 0;
     this.successes = 0;
-    this.lastFailureAt = 0;
-    this.halfOpenAttempts = 0;
+    this.lastFailureTime = 0;
   }
 
-  stats(): { state: BreakerState; failures: number; successes: number } {
-    return { state: this.currentState, failures: this.failures, successes: this.successes };
+  getFailures(): number {
+    return this.failures;
   }
 }

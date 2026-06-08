@@ -1,160 +1,99 @@
-export type ValidationError = { path: string; message: string };
-export type ValidationResult = { valid: boolean; errors: ValidationError[] };
-export type Schema = StringSchema | NumberSchema | BooleanSchema | ArraySchema | ObjectSchema | EnumSchema | UnionSchema;
+export type SchemaType = "string" | "number" | "boolean" | "array" | "object" | "null" | "any";
 
-interface BaseSchema { optional?: boolean }
-
-export interface StringSchema extends BaseSchema {
-  type: "string";
+export interface SchemaRule {
+  type?: SchemaType | SchemaType[];
+  required?: boolean;
   minLength?: number;
   maxLength?: number;
-  pattern?: string;
-}
-
-export interface NumberSchema extends BaseSchema {
-  type: "number";
   min?: number;
   max?: number;
-  integer?: boolean;
+  pattern?: string;
+  items?: SchemaRule;
+  properties?: Record<string, SchemaRule>;
+  enum?: unknown[];
+  custom?: (value: unknown) => boolean;
 }
 
-export interface BooleanSchema extends BaseSchema {
-  type: "boolean";
+export interface ValidationError {
+  path: string;
+  message: string;
 }
 
-export interface ArraySchema extends BaseSchema {
-  type: "array";
-  items: Schema;
-  minItems?: number;
-  maxItems?: number;
-}
-
-export interface ObjectSchema extends BaseSchema {
-  type: "object";
-  properties: Record<string, Schema>;
-  additionalProperties?: boolean;
-}
-
-export interface EnumSchema extends BaseSchema {
-  type: "enum";
-  values: (string | number | boolean)[];
-}
-
-export interface UnionSchema extends BaseSchema {
-  type: "union";
-  schemas: Schema[];
-}
-
-export function validate(value: unknown, schema: Schema, path = ""): ValidationResult {
+export function validate(value: unknown, schema: SchemaRule, path = "$"): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (value === undefined || value === null) {
-    if (schema.optional) return { valid: true, errors: [] };
-    errors.push({ path: path || "(root)", message: "Required value is missing" });
-    return { valid: false, errors };
+    if (schema.required) {
+      errors.push({ path, message: "required" });
+    }
+    if (value === null && schema.type === "null") return errors;
+    if (value === undefined || value === null) return errors;
   }
 
-  switch (schema.type) {
-    case "string": {
-      if (typeof value !== "string") {
-        errors.push({ path: path || "(root)", message: `Expected string, got ${typeof value}` });
-        break;
-      }
-      const s = schema as StringSchema;
-      if (s.minLength !== undefined && value.length < s.minLength) {
-        errors.push({ path: path || "(root)", message: `String too short (min ${s.minLength})` });
-      }
-      if (s.maxLength !== undefined && value.length > s.maxLength) {
-        errors.push({ path: path || "(root)", message: `String too long (max ${s.maxLength})` });
-      }
-      if (s.pattern && !new RegExp(s.pattern).test(value)) {
-        errors.push({ path: path || "(root)", message: `Does not match pattern ${s.pattern}` });
-      }
-      break;
-    }
-    case "number": {
-      if (typeof value !== "number") {
-        errors.push({ path: path || "(root)", message: `Expected number, got ${typeof value}` });
-        break;
-      }
-      const n = schema as NumberSchema;
-      if (n.integer && !Number.isInteger(value)) {
-        errors.push({ path: path || "(root)", message: "Expected integer" });
-      }
-      if (n.min !== undefined && value < n.min) {
-        errors.push({ path: path || "(root)", message: `Value below minimum ${n.min}` });
-      }
-      if (n.max !== undefined && value > n.max) {
-        errors.push({ path: path || "(root)", message: `Value above maximum ${n.max}` });
-      }
-      break;
-    }
-    case "boolean": {
-      if (typeof value !== "boolean") {
-        errors.push({ path: path || "(root)", message: `Expected boolean, got ${typeof value}` });
-      }
-      break;
-    }
-    case "array": {
-      if (!Array.isArray(value)) {
-        errors.push({ path: path || "(root)", message: `Expected array, got ${typeof value}` });
-        break;
-      }
-      const a = schema as ArraySchema;
-      if (a.minItems !== undefined && value.length < a.minItems) {
-        errors.push({ path: path || "(root)", message: `Too few items (min ${a.minItems})` });
-      }
-      if (a.maxItems !== undefined && value.length > a.maxItems) {
-        errors.push({ path: path || "(root)", message: `Too many items (max ${a.maxItems})` });
-      }
-      for (let i = 0; i < value.length; i++) {
-        const itemResult = validate(value[i], a.items, `${path}[${i}]`);
-        errors.push(...itemResult.errors);
-      }
-      break;
-    }
-    case "object": {
-      if (typeof value !== "object" || Array.isArray(value)) {
-        errors.push({ path: path || "(root)", message: `Expected object, got ${Array.isArray(value) ? "array" : typeof value}` });
-        break;
-      }
-      const o = schema as ObjectSchema;
-      const obj = value as Record<string, unknown>;
-      for (const [key, propSchema] of Object.entries(o.properties)) {
-        const propPath = path ? `${path}.${key}` : key;
-        const propResult = validate(obj[key], propSchema, propPath);
-        errors.push(...propResult.errors);
-      }
-      if (o.additionalProperties === false) {
-        for (const key of Object.keys(obj)) {
-          if (!(key in o.properties)) {
-            const propPath = path ? `${path}.${key}` : key;
-            errors.push({ path: propPath, message: "Additional property not allowed" });
-          }
-        }
-      }
-      break;
-    }
-    case "enum": {
-      const e = schema as EnumSchema;
-      if (!e.values.includes(value as string | number | boolean)) {
-        errors.push({ path: path || "(root)", message: `Value not in enum: ${JSON.stringify(e.values)}` });
-      }
-      break;
-    }
-    case "union": {
-      const u = schema as UnionSchema;
-      const anyValid = u.schemas.some((s) => validate(value, s, path).valid);
-      if (!anyValid) {
-        errors.push({ path: path || "(root)", message: "Does not match any union variant" });
-      }
-      break;
+  if (schema.type && schema.type !== "any") {
+    const types = Array.isArray(schema.type) ? schema.type : [schema.type];
+    const actualType = getType(value);
+    if (!types.includes(actualType)) {
+      errors.push({ path, message: `expected ${types.join("|")}, got ${actualType}` });
+      return errors;
     }
   }
 
-  return { valid: errors.length === 0, errors };
+  if (typeof value === "string") {
+    if (schema.minLength !== undefined && value.length < schema.minLength) {
+      errors.push({ path, message: `minLength ${schema.minLength}` });
+    }
+    if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+      errors.push({ path, message: `maxLength ${schema.maxLength}` });
+    }
+    if (schema.pattern !== undefined && !new RegExp(schema.pattern).test(value)) {
+      errors.push({ path, message: `pattern ${schema.pattern}` });
+    }
+  }
+
+  if (typeof value === "number") {
+    if (schema.min !== undefined && value < schema.min) {
+      errors.push({ path, message: `min ${schema.min}` });
+    }
+    if (schema.max !== undefined && value > schema.max) {
+      errors.push({ path, message: `max ${schema.max}` });
+    }
+  }
+
+  if (Array.isArray(value) && schema.items) {
+    for (let i = 0; i < value.length; i++) {
+      errors.push(...validate(value[i], schema.items, `${path}[${i}]`));
+    }
+  }
+
+  if (schema.properties && typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    for (const [key, rule] of Object.entries(schema.properties)) {
+      errors.push(...validate(obj[key], rule, `${path}.${key}`));
+    }
+  }
+
+  if (schema.enum !== undefined) {
+    if (!schema.enum.includes(value)) {
+      errors.push({ path, message: `must be one of: ${schema.enum.join(", ")}` });
+    }
+  }
+
+  if (schema.custom && !schema.custom(value)) {
+    errors.push({ path, message: "custom validation failed" });
+  }
+
+  return errors;
 }
 
-export function isValid(value: unknown, schema: Schema): boolean {
-  return validate(value, schema).valid;
+export function isValid(value: unknown, schema: SchemaRule): boolean {
+  return validate(value, schema).length === 0;
+}
+
+function getType(value: unknown): SchemaType {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  const t = typeof value;
+  if (t === "string" || t === "number" || t === "boolean" || t === "object") return t;
+  return "any";
 }

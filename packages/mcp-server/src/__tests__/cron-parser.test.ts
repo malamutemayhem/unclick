@@ -1,70 +1,69 @@
 import { describe, it, expect } from "vitest";
-import { parseCron, nextRun, matches, describe as describeCron } from "../cron-parser.js";
+import { parseCron, matches, nextMatch, describe as describeCron } from "../cron-parser.js";
 
 describe("parseCron", () => {
-  it("parses wildcard expression", () => {
-    const fields = parseCron("* * * * *");
-    expect(fields.minute.length).toBe(60);
-    expect(fields.hour.length).toBe(24);
+  it("parses every minute", () => {
+    const f = parseCron("* * * * *");
+    expect(f.minute.length).toBe(60);
+    expect(f.hour.length).toBe(24);
   });
 
   it("parses specific values", () => {
-    const fields = parseCron("0 12 * * *");
-    expect(fields.minute).toEqual([0]);
-    expect(fields.hour).toEqual([12]);
+    const f = parseCron("30 9 * * 1");
+    expect(f.minute).toEqual([30]);
+    expect(f.hour).toEqual([9]);
+    expect(f.dayOfWeek).toEqual([1]);
   });
 
   it("parses ranges", () => {
-    const fields = parseCron("0-5 * * * *");
-    expect(fields.minute).toEqual([0, 1, 2, 3, 4, 5]);
+    const f = parseCron("0 9-17 * * *");
+    expect(f.hour).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17]);
   });
 
   it("parses steps", () => {
-    const fields = parseCron("*/15 * * * *");
-    expect(fields.minute).toEqual([0, 15, 30, 45]);
+    const f = parseCron("*/15 * * * *");
+    expect(f.minute).toEqual([0, 15, 30, 45]);
   });
 
   it("parses comma-separated", () => {
-    const fields = parseCron("0,30 * * * *");
-    expect(fields.minute).toEqual([0, 30]);
+    const f = parseCron("0 8,12,18 * * *");
+    expect(f.hour).toEqual([8, 12, 18]);
   });
 
-  it("throws for invalid expression", () => {
-    expect(() => parseCron("* *")).toThrow();
-  });
-});
-
-describe("nextRun", () => {
-  it("finds next matching time", () => {
-    const from = new Date(2024, 0, 1, 10, 0, 0);
-    const next = nextRun("0 12 * * *", from);
-    expect(next.getHours()).toBe(12);
-    expect(next.getMinutes()).toBe(0);
-  });
-
-  it("moves to next day if past today", () => {
-    const from = new Date(2024, 0, 1, 13, 0, 0);
-    const next = nextRun("0 12 * * *", from);
-    expect(next.getDate()).toBe(2);
+  it("throws for invalid", () => {
+    expect(() => parseCron("* * *")).toThrow("expected 5 fields");
   });
 });
 
 describe("matches", () => {
-  it("returns true for matching date", () => {
-    const date = new Date(2024, 0, 1, 12, 0, 0);
-    expect(matches("0 12 * * *", date)).toBe(true);
+  it("matches date", () => {
+    const f = parseCron("30 9 * * *");
+    const d = new Date(2024, 0, 15, 9, 30);
+    expect(matches(f, d)).toBe(true);
   });
 
-  it("returns false for non-matching date", () => {
-    const date = new Date(2024, 0, 1, 13, 0, 0);
-    expect(matches("0 12 * * *", date)).toBe(false);
+  it("rejects non-matching", () => {
+    const f = parseCron("30 9 * * *");
+    const d = new Date(2024, 0, 15, 10, 30);
+    expect(matches(f, d)).toBe(false);
+  });
+});
+
+describe("nextMatch", () => {
+  it("finds next occurrence", () => {
+    const f = parseCron("0 12 * * *");
+    const after = new Date(2024, 0, 15, 10, 0);
+    const next = nextMatch(f, after);
+    expect(next.getHours()).toBe(12);
+    expect(next.getMinutes()).toBe(0);
   });
 });
 
 describe("describe", () => {
-  it("describes a cron expression", () => {
-    const desc = describeCron("0 12 * * *");
-    expect(desc).toContain("minute 0");
-    expect(desc).toContain("hour 12");
+  it("produces human-readable text", () => {
+    const f = parseCron("0 9 * * 1-5");
+    const text = describeCron(f);
+    expect(text).toContain("start of the hour");
+    expect(text).toContain("hour 9");
   });
 });
