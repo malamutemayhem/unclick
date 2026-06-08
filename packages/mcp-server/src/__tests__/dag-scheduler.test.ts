@@ -1,61 +1,105 @@
 import { describe, it, expect } from "vitest";
-import { schedule } from "../dag-scheduler.js";
+import { topologicalSort, executeDAG, findRoots, findLeaves, criticalPath } from "../dag-scheduler.js";
 
-describe("dag-scheduler", () => {
-  it("runs independent tasks", async () => {
-    const result = await schedule([
-      { id: "a", deps: [], run: async () => 1 },
-      { id: "b", deps: [], run: async () => 2 },
-    ]);
-    expect(result.results.get("a")).toBe(1);
-    expect(result.results.get("b")).toBe(2);
-    expect(result.order.length).toBe(2);
+describe("topologicalSort", () => {
+  it("sorts simple chain", () => {
+    const nodes = [
+      { id: "a", data: null, deps: [] },
+      { id: "b", data: null, deps: ["a"] },
+      { id: "c", data: null, deps: ["b"] },
+    ];
+    const phases = topologicalSort(nodes);
+    expect(phases[0]).toEqual(["a"]);
+    expect(phases[1]).toEqual(["b"]);
+    expect(phases[2]).toEqual(["c"]);
   });
 
-  it("respects dependencies", async () => {
-    const order: string[] = [];
-    await schedule([
-      { id: "a", deps: [], run: async () => { order.push("a"); } },
-      { id: "b", deps: ["a"], run: async () => { order.push("b"); } },
-      { id: "c", deps: ["b"], run: async () => { order.push("c"); } },
-    ]);
-    expect(order).toEqual(["a", "b", "c"]);
+  it("groups parallel tasks", () => {
+    const nodes = [
+      { id: "a", data: null, deps: [] },
+      { id: "b", data: null, deps: [] },
+      { id: "c", data: null, deps: ["a", "b"] },
+    ];
+    const phases = topologicalSort(nodes);
+    expect(phases[0].sort()).toEqual(["a", "b"]);
+    expect(phases[1]).toEqual(["c"]);
   });
 
-  it("runs with concurrency limit", async () => {
-    let maxConcurrent = 0;
-    let current = 0;
-    await schedule(
-      [
-        { id: "a", deps: [], run: async () => { current++; maxConcurrent = Math.max(maxConcurrent, current); await delay(10); current--; } },
-        { id: "b", deps: [], run: async () => { current++; maxConcurrent = Math.max(maxConcurrent, current); await delay(10); current--; } },
-        { id: "c", deps: [], run: async () => { current++; maxConcurrent = Math.max(maxConcurrent, current); await delay(10); current--; } },
-      ],
-      1
-    );
-    expect(maxConcurrent).toBe(1);
+  it("detects cycles", () => {
+    const nodes = [
+      { id: "a", data: null, deps: ["b"] },
+      { id: "b", data: null, deps: ["a"] },
+    ];
+    expect(() => topologicalSort(nodes)).toThrow("Cycle");
   });
 
-  it("diamond dependency", async () => {
-    const order: string[] = [];
-    await schedule([
-      { id: "a", deps: [], run: async () => { order.push("a"); } },
-      { id: "b", deps: ["a"], run: async () => { order.push("b"); } },
-      { id: "c", deps: ["a"], run: async () => { order.push("c"); } },
-      { id: "d", deps: ["b", "c"], run: async () => { order.push("d"); } },
-    ]);
-    expect(order.indexOf("a")).toBe(0);
-    expect(order.indexOf("d")).toBe(3);
-  });
-
-  it("single task", async () => {
-    const result = await schedule([
-      { id: "x", deps: [], run: async () => 42 },
-    ]);
-    expect(result.results.get("x")).toBe(42);
+  it("detects missing deps", () => {
+    const nodes = [{ id: "a", data: null, deps: ["missing"] }];
+    expect(() => topologicalSort(nodes)).toThrow("Missing dependency");
   });
 });
 
-function delay(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
+describe("executeDAG", () => {
+  it("executes in order", async () => {
+    const order: string[] = [];
+    const nodes = [
+      { id: "a", data: 1, deps: [] },
+      { id: "b", data: 2, deps: ["a"] },
+    ];
+    const results = await executeDAG(nodes, async (node) => {
+      order.push(node.id);
+      return node.data;
+    });
+    expect(order).toEqual(["a", "b"]);
+    expect(results.length).toBe(2);
+    expect(results[0].result).toBe(1);
+    expect(results[1].result).toBe(2);
+  });
+
+  it("passes prior results to executor", async () => {
+    const nodes = [
+      { id: "a", data: 10, deps: [] },
+      { id: "b", data: 20, deps: ["a"] },
+    ];
+    const results = await executeDAG(nodes, async (node, prior) => {
+      if (node.deps.length > 0) {
+        return (prior.get("a") as number) + (node.data as number);
+      }
+      return node.data;
+    });
+    expect(results[1].result).toBe(30);
+  });
+});
+
+describe("findRoots", () => {
+  it("finds nodes with no deps", () => {
+    const nodes = [
+      { id: "a", data: null, deps: [] },
+      { id: "b", data: null, deps: ["a"] },
+    ];
+    expect(findRoots(nodes)).toEqual(["a"]);
+  });
+});
+
+describe("findLeaves", () => {
+  it("finds nodes not depended on", () => {
+    const nodes = [
+      { id: "a", data: null, deps: [] },
+      { id: "b", data: null, deps: ["a"] },
+    ];
+    expect(findLeaves(nodes)).toEqual(["b"]);
+  });
+});
+
+describe("criticalPath", () => {
+  it("finds longest chain", () => {
+    const nodes = [
+      { id: "a", data: null, deps: [] },
+      { id: "b", data: null, deps: ["a"] },
+      { id: "c", data: null, deps: ["b"] },
+      { id: "d", data: null, deps: ["a"] },
+    ];
+    const path = criticalPath(nodes);
+    expect(path).toEqual(["a", "b", "c"]);
+  });
+});

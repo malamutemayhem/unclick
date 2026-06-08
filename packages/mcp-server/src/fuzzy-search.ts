@@ -1,66 +1,99 @@
-export function fuzzyMatch(query: string, target: string): { match: boolean; score: number } {
+export interface FuzzyMatch<T = string> {
+  item: T;
+  score: number;
+  matches: [number, number][];
+}
+
+export function fuzzyScore(query: string, target: string): { score: number; matches: [number, number][] } {
   const q = query.toLowerCase();
   const t = target.toLowerCase();
 
-  if (q.length === 0) return { match: true, score: 0 };
-  if (q.length > t.length) return { match: false, score: 0 };
+  if (q.length === 0) return { score: 0, matches: [] };
+  if (q.length > t.length) return { score: 0, matches: [] };
 
   let qi = 0;
   let score = 0;
+  const matches: [number, number][] = [];
+  let currentStart = -1;
   let consecutive = 0;
-  let prevMatchIdx = -2;
 
   for (let ti = 0; ti < t.length && qi < q.length; ti++) {
     if (t[ti] === q[qi]) {
-      score += 1;
-      if (ti === prevMatchIdx + 1) {
-        consecutive++;
-        score += consecutive * 2;
-      } else {
-        consecutive = 0;
-      }
-      if (ti === 0 || t[ti - 1] === " " || t[ti - 1] === "_" || t[ti - 1] === "-" || t[ti - 1] === "/") {
+      if (currentStart === -1) currentStart = ti;
+      consecutive++;
+      score += 1 + consecutive;
+
+      if (ti === 0 || /[^a-zA-Z0-9]/.test(target[ti - 1])) {
         score += 5;
       }
-      prevMatchIdx = ti;
+      if (target[ti] === query[qi]) {
+        score += 1;
+      }
+
       qi++;
+    } else {
+      if (currentStart !== -1) {
+        matches.push([currentStart, ti - 1]);
+        currentStart = -1;
+        consecutive = 0;
+      }
     }
   }
 
-  const match = qi === q.length;
-  if (match) {
-    score += (q.length / t.length) * 10;
+  if (currentStart !== -1) {
+    matches.push([currentStart, matches.length > 0 ? currentStart + consecutive - 1 : currentStart + consecutive - 1]);
   }
 
-  return { match, score: match ? score : 0 };
+  if (qi < q.length) return { score: 0, matches: [] };
+
+  const lengthPenalty = (t.length - q.length) * 0.1;
+  score = Math.max(0, score - lengthPenalty);
+
+  return { score, matches };
 }
 
-export function fuzzySearch<T>(query: string, items: T[], accessor: (item: T) => string): Array<{ item: T; score: number }> {
-  const results: Array<{ item: T; score: number }> = [];
+export function fuzzySearch<T>(
+  query: string,
+  items: T[],
+  accessor: (item: T) => string = (item) => String(item),
+  minScore = 0,
+): FuzzyMatch<T>[] {
+  const results: FuzzyMatch<T>[] = [];
+
   for (const item of items) {
-    const { match, score } = fuzzyMatch(query, accessor(item));
-    if (match) results.push({ item, score });
-  }
-  return results.sort((a, b) => b.score - a.score);
-}
-
-export function bestMatch<T>(query: string, items: T[], accessor: (item: T) => string): T | undefined {
-  const results = fuzzySearch(query, items, accessor);
-  return results[0]?.item;
-}
-
-export function levenshtein(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
-    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
-  );
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1]
-        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    const target = accessor(item);
+    const { score, matches } = fuzzyScore(query, target);
+    if (score > minScore) {
+      results.push({ item, score, matches });
     }
   }
-  return dp[m][n];
+
+  results.sort((a, b) => b.score - a.score);
+  return results;
+}
+
+export function highlight(text: string, matches: [number, number][], open = "<b>", close = "</b>"): string {
+  if (matches.length === 0) return text;
+
+  const chars = text.split("");
+  const marked = new Set<number>();
+  for (const [start, end] of matches) {
+    for (let i = start; i <= end; i++) marked.add(i);
+  }
+
+  let result = "";
+  let inHighlight = false;
+  for (let i = 0; i < chars.length; i++) {
+    if (marked.has(i) && !inHighlight) {
+      result += open;
+      inHighlight = true;
+    } else if (!marked.has(i) && inHighlight) {
+      result += close;
+      inHighlight = false;
+    }
+    result += chars[i];
+  }
+  if (inHighlight) result += close;
+
+  return result;
 }
