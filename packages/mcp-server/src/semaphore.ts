@@ -1,11 +1,9 @@
 export class Semaphore {
   private permits: number;
-  private readonly maxPermits: number;
-  private waitQueue: Array<() => void> = [];
+  private waiting: Array<() => void> = [];
 
-  constructor(permits: number) {
-    this.permits = permits;
-    this.maxPermits = permits;
+  constructor(maxConcurrency: number) {
+    this.permits = maxConcurrency;
   }
 
   async acquire(): Promise<void> {
@@ -14,15 +12,15 @@ export class Semaphore {
       return;
     }
     return new Promise<void>((resolve) => {
-      this.waitQueue.push(resolve);
+      this.waiting.push(resolve);
     });
   }
 
   release(): void {
-    if (this.waitQueue.length > 0) {
-      const next = this.waitQueue.shift()!;
+    const next = this.waiting.shift();
+    if (next) {
       next();
-    } else if (this.permits < this.maxPermits) {
+    } else {
       this.permits++;
     }
   }
@@ -31,11 +29,11 @@ export class Semaphore {
     return this.permits;
   }
 
-  get waiting(): number {
-    return this.waitQueue.length;
+  get waitingCount(): number {
+    return this.waiting.length;
   }
 
-  async withPermit<T>(fn: () => Promise<T>): Promise<T> {
+  async run<T>(fn: () => Promise<T>): Promise<T> {
     await this.acquire();
     try {
       return await fn();
@@ -46,21 +44,38 @@ export class Semaphore {
 }
 
 export class Mutex {
-  private semaphore = new Semaphore(1);
+  private locked = false;
+  private waiting: Array<() => void> = [];
 
-  async lock(): Promise<void> {
-    await this.semaphore.acquire();
+  async acquire(): Promise<void> {
+    if (!this.locked) {
+      this.locked = true;
+      return;
+    }
+    return new Promise<void>((resolve) => {
+      this.waiting.push(resolve);
+    });
   }
 
-  unlock(): void {
-    this.semaphore.release();
+  release(): void {
+    const next = this.waiting.shift();
+    if (next) {
+      next();
+    } else {
+      this.locked = false;
+    }
   }
 
   get isLocked(): boolean {
-    return this.semaphore.available === 0;
+    return this.locked;
   }
 
-  async withLock<T>(fn: () => Promise<T>): Promise<T> {
-    return this.semaphore.withPermit(fn);
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    await this.acquire();
+    try {
+      return await fn();
+    } finally {
+      this.release();
+    }
   }
 }

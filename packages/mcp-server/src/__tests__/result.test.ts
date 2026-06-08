@@ -1,68 +1,95 @@
 import { describe, it, expect } from "vitest";
-import { ok, err, isOk, isErr, unwrap, unwrapOr, map, mapErr, flatMap, tryCatch, tryCatchAsync } from "../result.js";
+import { ok, err, Ok, Err, tryCatch, tryCatchAsync } from "../result.js";
 
 describe("Result", () => {
-  it("ok creates success result", () => {
+  it("ok wraps a value", () => {
     const r = ok(42);
-    expect(r.ok).toBe(true);
-    expect(isOk(r)).toBe(true);
-    expect(isErr(r)).toBe(false);
+    expect(r.isOk()).toBe(true);
+    expect(r.isErr()).toBe(false);
+    expect(r.unwrap()).toBe(42);
   });
 
-  it("err creates failure result", () => {
-    const r = err("fail");
-    expect(r.ok).toBe(false);
-    expect(isErr(r)).toBe(true);
+  it("err wraps an error", () => {
+    const r = err("bad");
+    expect(r.isOk()).toBe(false);
+    expect(r.isErr()).toBe(true);
+    expect(r.unwrapErr()).toBe("bad");
   });
 
-  it("unwrap returns value on ok", () => {
-    expect(unwrap(ok(42))).toBe(42);
+  it("unwrap on err throws", () => {
+    expect(() => err(new Error("oops")).unwrap()).toThrow("oops");
   });
 
-  it("unwrap throws on err", () => {
-    expect(() => unwrap(err(new Error("boom")))).toThrow("boom");
+  it("unwrapErr on ok throws", () => {
+    expect(() => ok(1).unwrapErr()).toThrow("Called unwrapErr on Ok");
+  });
+
+  it("unwrapOr returns value on ok", () => {
+    expect(ok(5).unwrapOr(10)).toBe(5);
   });
 
   it("unwrapOr returns fallback on err", () => {
-    expect(unwrapOr(err("fail"), 0)).toBe(0);
-    expect(unwrapOr(ok(42), 0)).toBe(42);
+    expect(err("fail").unwrapOr(10)).toBe(10);
   });
 
   it("map transforms ok value", () => {
-    const r = map(ok(2), (x: number) => x * 3);
-    expect(unwrap(r)).toBe(6);
+    const r = ok(2).map((x) => x * 3);
+    expect(r.unwrap()).toBe(6);
   });
 
-  it("map passes through err", () => {
-    const r = map(err("fail"), (x: number) => x * 3);
-    expect(isErr(r)).toBe(true);
+  it("map is no-op on err", () => {
+    const r = err("bad").map(() => 99);
+    expect(r.isErr()).toBe(true);
   });
 
-  it("mapErr transforms error", () => {
-    const r = mapErr(err("fail"), (e: string) => e.toUpperCase());
-    if (!r.ok) expect(r.error).toBe("FAIL");
+  it("mapErr transforms err value", () => {
+    const r = err("bad").mapErr((e) => e.toUpperCase());
+    expect(r.unwrapErr()).toBe("BAD");
   });
 
-  it("flatMap chains results", () => {
-    const divide = (a: number, b: number) => b === 0 ? err("div by zero") : ok(a / b);
-    const r = flatMap(ok(10), (x: number) => divide(x, 2));
-    expect(unwrap(r)).toBe(5);
+  it("mapErr is no-op on ok", () => {
+    const r = ok(1).mapErr(() => "never");
+    expect(r.unwrap()).toBe(1);
   });
 
-  it("tryCatch catches errors", () => {
-    const r = tryCatch(() => { throw new Error("oops"); });
-    expect(isErr(r)).toBe(true);
+  it("andThen chains ok results", () => {
+    const r = ok(5).andThen((x) => x > 3 ? ok(x * 2) : err("too small"));
+    expect(r.unwrap()).toBe(10);
   });
 
-  it("tryCatch wraps success", () => {
+  it("andThen short-circuits on err", () => {
+    const r = err("stop").andThen(() => ok(99));
+    expect(r.isErr()).toBe(true);
+  });
+
+  it("ok flag is true/false", () => {
+    expect(ok(1).ok).toBe(true);
+    expect(err("x").ok).toBe(false);
+  });
+});
+
+describe("tryCatch", () => {
+  it("catches sync success", () => {
     const r = tryCatch(() => 42);
-    expect(unwrap(r)).toBe(42);
+    expect(r.isOk()).toBe(true);
+    expect(r.unwrap()).toBe(42);
   });
 
-  it("tryCatchAsync works with promises", async () => {
-    const r = await tryCatchAsync(async () => 42);
-    expect(unwrap(r)).toBe(42);
-    const r2 = await tryCatchAsync(async () => { throw new Error("async oops"); });
-    expect(isErr(r2)).toBe(true);
+  it("catches sync error", () => {
+    const r = tryCatch(() => { throw new Error("fail"); });
+    expect(r.isErr()).toBe(true);
+    expect((r as Err<Error>).error.message).toBe("fail");
+  });
+});
+
+describe("tryCatchAsync", () => {
+  it("catches async success", async () => {
+    const r = await tryCatchAsync(async () => "ok");
+    expect(r.isOk()).toBe(true);
+  });
+
+  it("catches async error", async () => {
+    const r = await tryCatchAsync(async () => { throw new Error("async fail"); });
+    expect(r.isErr()).toBe(true);
   });
 });
