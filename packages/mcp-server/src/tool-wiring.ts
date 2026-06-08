@@ -1237,6 +1237,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         playerTag: { type: "string" },
+        tag: { type: "string", description: "Alias for playerTag" },
         api_key: { type: "string" },
       },
       required: ["playerTag"],
@@ -1250,6 +1251,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         clanTag: { type: "string" },
+        tag: { type: "string", description: "Alias for clanTag" },
         api_key: { type: "string" },
       },
       required: ["clanTag"],
@@ -1263,6 +1265,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         clanTag: { type: "string" },
+        tag: { type: "string", description: "Alias for clanTag" },
         api_key: { type: "string" },
       },
       required: ["clanTag"],
@@ -1276,6 +1279,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         playerTag: { type: "string" },
+        tag: { type: "string", description: "Alias for playerTag" },
         api_key: { type: "string" },
       },
       required: ["playerTag"],
@@ -1289,6 +1293,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         locationId: { type: "string" },
+        location: { type: "string", description: "Alias for locationId" },
         api_key: { type: "string" },
       },
     },
@@ -1301,6 +1306,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         playerTag: { type: "string" },
+        tag: { type: "string", description: "Alias for playerTag" },
         api_key: { type: "string" },
       },
       required: ["playerTag"],
@@ -1314,6 +1320,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         clubTag: { type: "string" },
+        tag: { type: "string", description: "Alias for clubTag" },
         api_key: { type: "string" },
       },
       required: ["clubTag"],
@@ -1426,7 +1433,10 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         query: { type: "string" },
+        q: { type: "string", description: "Alias for query." },
         limit: { type: "number" },
+        client_id: { type: "string", description: "Untappd client ID (or set UNTAPPD_CLIENT_ID env)." },
+        client_secret: { type: "string", description: "Untappd client secret (or set UNTAPPD_CLIENT_SECRET env)." },
         api_key: { type: "string" },
       },
       required: ["query"],
@@ -1440,6 +1450,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         bid: { type: "number", description: "Beer ID" },
+        client_id: { type: "string" },
+        client_secret: { type: "string" },
         api_key: { type: "string" },
       },
       required: ["bid"],
@@ -1453,6 +1465,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         brewery_id: { type: "number" },
+        client_id: { type: "string" },
+        client_secret: { type: "string" },
         api_key: { type: "string" },
       },
       required: ["brewery_id"],
@@ -1466,6 +1480,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         query: { type: "string" },
+        q: { type: "string", description: "Alias for query." },
+        client_id: { type: "string" },
+        client_secret: { type: "string" },
         api_key: { type: "string" },
       },
       required: ["query"],
@@ -1480,6 +1497,8 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         bid: { type: "number" },
         limit: { type: "number" },
+        client_id: { type: "string" },
+        client_secret: { type: "string" },
         api_key: { type: "string" },
       },
       required: ["bid"],
@@ -1587,6 +1606,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         site_id: { type: "string" },
+        next: { type: "number", description: "Number of upcoming intervals to return." },
         api_key: { type: "string" },
       },
       required: ["site_id"],
@@ -1602,6 +1622,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         location_id: { type: "number", description: "WillyWeather location ID" },
+        location: { type: "string", description: "Location name to search for (resolves to location_id)." },
+        suburb: { type: "string", description: "Suburb name to search for." },
+        postcode: { type: "string", description: "Postcode to search for." },
         days: { type: "number" },
         api_key: { type: "string" },
       },
@@ -1616,6 +1639,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         location_id: { type: "number" },
+        location: { type: "string", description: "Location name to search for." },
+        suburb: { type: "string", description: "Suburb name to search for." },
+        postcode: { type: "string", description: "Postcode to search for." },
         days: { type: "number" },
         api_key: { type: "string" },
       },
@@ -1630,6 +1656,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         location_id: { type: "number" },
+        location: { type: "string", description: "Location name to search for." },
+        suburb: { type: "string", description: "Suburb name to search for." },
+        postcode: { type: "string", description: "Postcode to search for." },
         days: { type: "number" },
         api_key: { type: "string" },
       },
@@ -1709,8 +1738,15 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         query: { type: "string" },
+        q: { type: "string", description: "Alias for query." },
         zone: { type: "string", description: "e.g. newspaper, book" },
         n: { type: "number", description: "Number of results" },
+        limit: { type: "number", description: "Alias for n." },
+        offset: { type: "number", description: "Result offset for pagination." },
+        date_from: { type: "string", description: "Filter results from this date." },
+        date_to: { type: "string", description: "Filter results up to this date." },
+        state: { type: "string", description: "Filter by Australian state." },
+        sort_by: { type: "string", description: "Sort order for results." },
         api_key: { type: "string" },
       },
       required: ["query"],
@@ -1935,6 +1971,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         sport: { type: "string" },
         competition: { type: "string" },
+        jurisdiction: { type: "string", description: "State jurisdiction, e.g. VIC, NSW." },
         api_key: { type: "string" },
       },
     },
@@ -1950,6 +1987,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         game: { type: "string", description: "e.g. TattsLotto, Powerball" },
         draw_number: { type: "number" },
+        date: { type: "string", description: "Draw date filter (YYYY-MM-DD)." },
       },
     },
   },
@@ -1959,7 +1997,9 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
-      properties: {},
+      properties: {
+        games: { type: "string", description: "Comma-separated game names to filter." },
+      },
     },
   },
 
@@ -1985,6 +2025,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         name: { type: "string" },
+        max_results: { type: "number", description: "Max results to return (1-50, default 20)." },
+        postcode: { type: "string", description: "Filter by postcode." },
         api_key: { type: "string" },
       },
       required: ["name"],
@@ -2031,6 +2073,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         route_types: { type: "string" },
+        route_type: { type: "number", description: "Single route type filter (0=train, 1=tram, 2=bus, 3=vline, 4=night)." },
+        disruption_status: { type: "string", description: "Filter by status e.g. 'current'." },
         api_key: { type: "string" },
       },
     },
@@ -2044,6 +2088,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         route_id: { type: "number" },
         route_type: { type: "number" },
+        direction_id: { type: "number", description: "Filter stops by direction." },
         api_key: { type: "string" },
       },
       required: ["route_id", "route_type"],
@@ -2653,8 +2698,14 @@ export const ADDITIONAL_TOOLS = [
         to: { type: "string" },
         subject: { type: "string" },
         body: { type: "string" },
+        from: { type: "string", description: "Sender address (defaults to smtp_user)." },
+        html: { type: "boolean", description: "Send as HTML email." },
         cc: { type: "string" },
         bcc: { type: "string" },
+        smtp_host: { type: "string", description: "SMTP host (or set SMTP_HOST env)." },
+        smtp_port: { type: "number", description: "SMTP port (default 587)." },
+        smtp_user: { type: "string", description: "SMTP username (or set SMTP_USER env)." },
+        smtp_pass: { type: "string", description: "SMTP password (or set SMTP_PASS env)." },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2670,6 +2721,12 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         folder: { type: "string" },
         limit: { type: "number" },
+        unread_only: { type: "boolean", description: "Only return unread emails." },
+        imap_host: { type: "string", description: "IMAP host (or set IMAP_HOST env)." },
+        imap_port: { type: "number", description: "IMAP port (default 993)." },
+        imap_user: { type: "string", description: "IMAP username (or set IMAP_USER env)." },
+        imap_pass: { type: "string", description: "IMAP password (or set IMAP_PASS env)." },
+        imap_tls: { type: "boolean", description: "Use TLS (default true)." },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2685,6 +2742,12 @@ export const ADDITIONAL_TOOLS = [
         query: { type: "string" },
         folder: { type: "string" },
         limit: { type: "number" },
+        since_date: { type: "string", description: "Only return emails since this date (ISO 8601)." },
+        imap_host: { type: "string" },
+        imap_port: { type: "number" },
+        imap_user: { type: "string" },
+        imap_pass: { type: "string" },
+        imap_tls: { type: "boolean" },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2700,6 +2763,11 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         uid: { type: "string" },
         folder: { type: "string" },
+        imap_host: { type: "string" },
+        imap_port: { type: "number" },
+        imap_user: { type: "string" },
+        imap_pass: { type: "string" },
+        imap_tls: { type: "boolean" },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2715,6 +2783,11 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         uid: { type: "string" },
         folder: { type: "string" },
+        imap_host: { type: "string" },
+        imap_port: { type: "number" },
+        imap_user: { type: "string" },
+        imap_pass: { type: "string" },
+        imap_tls: { type: "boolean" },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2730,6 +2803,12 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         uid: { type: "string" },
         folder: { type: "string" },
+        must_confirm: { type: "boolean", description: "Must be true to confirm deletion." },
+        imap_host: { type: "string" },
+        imap_port: { type: "number" },
+        imap_user: { type: "string" },
+        imap_pass: { type: "string" },
+        imap_tls: { type: "boolean" },
         email: { type: "string" },
         password: { type: "string" },
       },
@@ -2877,8 +2956,11 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         regionCode: { type: "string", description: "e.g. AU-VIC" },
+        region_code: { type: "string", description: "Alias for regionCode." },
         back: { type: "number", description: "Days back (max 30)" },
         maxResults: { type: "number" },
+        max_results: { type: "number", description: "Alias for maxResults." },
+        species_code: { type: "string", description: "Filter to a specific species." },
         api_key: { type: "string" },
       },
       required: ["regionCode"],
@@ -2892,7 +2974,10 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         regionCode: { type: "string" },
+        region_code: { type: "string", description: "Alias for regionCode." },
         back: { type: "number" },
+        max_results: { type: "number", description: "Limit number of results." },
+        detail: { type: "string", description: "Detail level: simple or full." },
         api_key: { type: "string" },
       },
       required: ["regionCode"],
@@ -2906,6 +2991,8 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         speciesCode: { type: "string" },
+        species_code: { type: "string", description: "Alias for speciesCode." },
+        locale: { type: "string", description: "Locale for species names, e.g. en." },
         api_key: { type: "string" },
       },
       required: ["speciesCode"],
@@ -4484,6 +4571,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         name: { type: "string" },
+        country: { type: "string", description: "Filter by country name." },
+        language: { type: "string", description: "Filter by language." },
+        tag: { type: "string", description: "Filter by tag/genre." },
         limit: { type: "number" },
       },
       required: ["name"],
@@ -5763,6 +5853,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         player_id: { type: "number" },
+        id: { type: "number", description: "Alias for player_id" },
       },
       required: ["player_id"],
     },
@@ -5775,6 +5866,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         gameweek: { type: "number" },
+        gw: { type: "number", description: "Alias for gameweek" },
       },
       required: ["gameweek"],
     },
@@ -5787,6 +5879,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         gameweek: { type: "number" },
+        gw: { type: "number", description: "Alias for gameweek" },
       },
     },
   },
@@ -5798,7 +5891,9 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         manager_id: { type: "number" },
+        team_id: { type: "number", description: "Alias for manager_id" },
         gameweek: { type: "number" },
+        gw: { type: "number", description: "Alias for gameweek" },
         api_key: { type: "string" },
       },
       required: ["manager_id", "gameweek"],
@@ -5812,6 +5907,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         manager_id: { type: "number" },
+        team_id: { type: "number", description: "Alias for manager_id." },
       },
       required: ["manager_id"],
     },
@@ -6327,6 +6423,7 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         ips: { type: "array", items: {}, description: "Array of IP address strings" },
+        addresses: { type: "array", items: {}, description: "Alias for ips." },
         api_key: { type: "string" },
       },
       required: ["ips"],
@@ -12691,6 +12788,7 @@ export const ADDITIONAL_TOOLS = [
         board_id: { type: "string", description: "Board ID" },
         page_size: { type: "number" },
         bookmark: { type: "string" },
+        creative_types: { type: "string", description: "Filter by creative type." },
         access_token: { type: "string" },
       },
       required: ["board_id"],
