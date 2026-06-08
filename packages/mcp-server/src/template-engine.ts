@@ -1,49 +1,66 @@
+export interface TemplateOptions {
+  openTag?: string;
+  closeTag?: string;
+  escape?: boolean;
+}
+
+const DEFAULTS: Required<TemplateOptions> = {
+  openTag: "{{",
+  closeTag: "}}",
+  escape: true,
+};
+
 export function render(
   template: string,
-  vars: Record<string, unknown>,
-  opts?: { open?: string; close?: string }
+  data: Record<string, any>,
+  options?: TemplateOptions
 ): string {
-  const open = escapeRegex(opts?.open ?? "{{");
-  const close = escapeRegex(opts?.close ?? "}}");
-  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
-  return template.replace(pattern, (_, key: string) => {
-    const val = resolve(vars, key);
-    return val === undefined ? "" : String(val);
+  const opts = { ...DEFAULTS, ...options };
+  const open = escapeRegex(opts.openTag);
+  const close = escapeRegex(opts.closeTag);
+  const re = new RegExp(`${open}\\s*(.+?)\\s*${close}`, "g");
+  return template.replace(re, (_match: string, key: string) => {
+    if (key.startsWith("#if ")) return "";
+    if (key === "/if") return "";
+    if (key.startsWith("#each ")) return "";
+    if (key === "/each") return "";
+    const val = resolve(data, key.trim());
+    if (val === undefined || val === null) return "";
+    const str = String(val);
+    return opts.escape ? escapeHtml(str) : str;
   });
 }
 
-export function extractVars(
+export function compile(
   template: string,
-  opts?: { open?: string; close?: string }
-): string[] {
-  const open = escapeRegex(opts?.open ?? "{{");
-  const close = escapeRegex(opts?.close ?? "}}");
-  const pattern = new RegExp(`${open}\\s*([\\w.]+)\\s*${close}`, "g");
-  const vars: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = pattern.exec(template)) !== null) {
-    if (!vars.includes(m[1])) vars.push(m[1]);
-  }
-  return vars;
+  options?: TemplateOptions
+): (data: Record<string, any>) => string {
+  return (data: Record<string, any>) => render(template, data, options);
 }
 
-export function hasUnresolved(
-  template: string,
-  vars: Record<string, unknown>,
-  opts?: { open?: string; close?: string }
-): boolean {
-  const keys = extractVars(template, opts);
-  return keys.some((k) => resolve(vars, k) === undefined);
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function resolve(obj: Record<string, unknown>, path: string): unknown {
-  const parts = path.split(".");
-  let current: unknown = obj;
-  for (const part of parts) {
-    if (current == null || typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[part];
-  }
-  return current;
+export function unescapeHtml(str: string): string {
+  return str
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, ">")
+    .replace(/&lt;/g, "<")
+    .replace(/&amp;/g, "&");
+}
+
+function resolve(obj: Record<string, any>, path: string): any {
+  return path.split(".").reduce((current: any, key: string) => {
+    if (current === null || current === undefined) return undefined;
+    return current[key];
+  }, obj);
 }
 
 function escapeRegex(str: string): string {

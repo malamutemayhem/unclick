@@ -1,62 +1,98 @@
 import { describe, it, expect } from "vitest";
-import { LinkedList } from "../linked-list.js";
+import { DoublyLinkedList } from "../linked-list.js";
 
-describe("linked-list", () => {
-  it("pushBack adds to the end", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.pushBack(3);
-    expect(list.toArray()).toEqual([1, 2, 3]);
-    expect(list.size).toBe(3);
+describe("DoublyLinkedList", () => {
+  it("starts empty", () => {
+    const list = new DoublyLinkedList<number>();
+    expect(list.size).toBe(0);
+    expect(list.peekFront()).toBeUndefined();
+    expect(list.peekBack()).toBeUndefined();
   });
 
-  it("pushFront adds to the start", () => {
-    const list = new LinkedList<number>();
+  it("pushFront adds to front", () => {
+    const list = new DoublyLinkedList<number>();
     list.pushFront(1);
     list.pushFront(2);
-    list.pushFront(3);
-    expect(list.toArray()).toEqual([3, 2, 1]);
+    expect(list.peekFront()).toBe(2);
+    expect(list.toArray()).toEqual([2, 1]);
   });
 
-  it("popBack removes from end", () => {
-    const list = new LinkedList<number>();
+  it("pushBack adds to back", () => {
+    const list = new DoublyLinkedList<number>();
     list.pushBack(1);
     list.pushBack(2);
-    expect(list.popBack()).toBe(2);
-    expect(list.toArray()).toEqual([1]);
+    expect(list.peekBack()).toBe(2);
+    expect(list.toArray()).toEqual([1, 2]);
   });
 
-  it("popFront removes from start", () => {
-    const list = new LinkedList<number>();
+  it("popFront removes from front", () => {
+    const list = new DoublyLinkedList<number>();
     list.pushBack(1);
     list.pushBack(2);
     expect(list.popFront()).toBe(1);
-    expect(list.toArray()).toEqual([2]);
+    expect(list.size).toBe(1);
   });
 
-  it("remove deletes a specific node", () => {
-    const list = new LinkedList<number>();
+  it("popBack removes from back", () => {
+    const list = new DoublyLinkedList<number>();
     list.pushBack(1);
-    const node = list.pushBack(2);
+    list.pushBack(2);
+    expect(list.popBack()).toBe(2);
+    expect(list.size).toBe(1);
+  });
+
+  it("popFront returns undefined on empty", () => {
+    const list = new DoublyLinkedList<number>();
+    expect(list.popFront()).toBeUndefined();
+  });
+
+  it("popBack returns undefined on empty", () => {
+    const list = new DoublyLinkedList<number>();
+    expect(list.popBack()).toBeUndefined();
+  });
+
+  it("contains checks membership", () => {
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    expect(list.contains(1)).toBe(true);
+    expect(list.contains(3)).toBe(false);
+  });
+
+  it("remove removes a value", () => {
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
     list.pushBack(3);
-    list.remove(node);
+    expect(list.remove(2)).toBe(true);
     expect(list.toArray()).toEqual([1, 3]);
     expect(list.size).toBe(2);
   });
 
-  it("find locates a node by predicate", () => {
-    const list = new LinkedList<string>();
-    list.pushBack("a");
-    list.pushBack("b");
-    list.pushBack("c");
-    const found = list.find((v) => v === "b");
-    expect(found?.value).toBe("b");
-    expect(list.find((v) => v === "z")).toBeNull();
+  it("remove returns false for missing value", () => {
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    expect(list.remove(5)).toBe(false);
   });
 
-  it("toArrayReverse walks backwards", () => {
-    const list = new LinkedList<number>();
+  it("remove handles head removal", () => {
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.remove(1);
+    expect(list.peekFront()).toBe(2);
+  });
+
+  it("remove handles tail removal", () => {
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.remove(2);
+    expect(list.peekBack()).toBe(1);
+  });
+
+  it("toArrayReverse returns reversed order", () => {
+    const list = new DoublyLinkedList<number>();
     list.pushBack(1);
     list.pushBack(2);
     list.pushBack(3);
@@ -64,7 +100,7 @@ describe("linked-list", () => {
   });
 
   it("clear empties the list", () => {
-    const list = new LinkedList<number>();
+    const list = new DoublyLinkedList<number>();
     list.pushBack(1);
     list.pushBack(2);
     list.clear();
@@ -73,15 +109,19 @@ describe("linked-list", () => {
   });
 
   it("is iterable", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(10);
-    list.pushBack(20);
-    expect([...list]).toEqual([10, 20]);
+    const list = new DoublyLinkedList<number>();
+    list.pushBack(1);
+    list.pushBack(2);
+    list.pushBack(3);
+    expect([...list]).toEqual([1, 2, 3]);
   });
 
-  it("popBack on empty returns undefined", () => {
-    const list = new LinkedList<number>();
-    expect(list.popBack()).toBeUndefined();
-    expect(list.popFront()).toBeUndefined();
+  it("handles single element lifecycle", () => {
+    const list = new DoublyLinkedList<string>();
+    list.pushBack("only");
+    expect(list.popFront()).toBe("only");
+    expect(list.size).toBe(0);
+    expect(list.peekFront()).toBeUndefined();
+    expect(list.peekBack()).toBeUndefined();
   });
 });

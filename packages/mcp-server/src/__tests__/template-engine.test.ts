@@ -1,55 +1,70 @@
 import { describe, it, expect } from "vitest";
-import { render, extractVars, hasUnresolved } from "../template-engine.js";
+import { render, compile, escapeHtml, unescapeHtml } from "../template-engine.js";
 
-describe("template-engine", () => {
-  it("renders simple variables", () => {
+describe("render", () => {
+  it("replaces simple variables", () => {
     expect(render("Hello {{ name }}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("renders multiple variables", () => {
-    const result = render("{{greeting}}, {{name}}!", { greeting: "Hi", name: "Alice" });
-    expect(result).toBe("Hi, Alice!");
+  it("handles nested paths", () => {
+    expect(render("{{ user.name }}", { user: { name: "Alice" } })).toBe("Alice");
   });
 
-  it("resolves nested paths", () => {
-    const result = render("{{user.name}} is {{user.age}}", {
-      user: { name: "Bob", age: 30 },
-    });
-    expect(result).toBe("Bob is 30");
+  it("returns empty string for missing values", () => {
+    expect(render("{{ missing }}", {})).toBe("");
   });
 
-  it("replaces missing vars with empty string", () => {
-    expect(render("Hello {{name}}!", {})).toBe("Hello !");
+  it("escapes HTML by default", () => {
+    expect(render("{{ content }}", { content: "<b>bold</b>" })).toBe("&lt;b&gt;bold&lt;/b&gt;");
   });
 
-  it("supports custom delimiters", () => {
-    const result = render("Hello <% name %>!", { name: "World" }, { open: "<%", close: "%>" });
-    expect(result).toBe("Hello World!");
+  it("can disable escaping", () => {
+    expect(render("{{ content }}", { content: "<b>bold</b>" }, { escape: false })).toBe("<b>bold</b>");
   });
 
-  it("extractVars returns unique variable names", () => {
-    const vars = extractVars("{{a}} and {{b}} and {{a}}");
-    expect(vars).toEqual(["a", "b"]);
+  it("handles multiple replacements", () => {
+    const result = render("{{ a }} and {{ b }}", { a: "foo", b: "bar" });
+    expect(result).toBe("foo and bar");
   });
 
-  it("extractVars handles nested paths", () => {
-    const vars = extractVars("{{user.name}} {{user.email}}");
-    expect(vars).toEqual(["user.name", "user.email"]);
+  it("handles custom delimiters", () => {
+    const result = render("<% name %>", { name: "test" }, { openTag: "<%", closeTag: "%>" });
+    expect(result).toBe("test");
   });
 
-  it("hasUnresolved detects missing vars", () => {
-    expect(hasUnresolved("{{a}} {{b}}", { a: 1 })).toBe(true);
-    expect(hasUnresolved("{{a}} {{b}}", { a: 1, b: 2 })).toBe(false);
+  it("converts non-string values to string", () => {
+    expect(render("{{ num }}", { num: 42 })).toBe("42");
+    expect(render("{{ bool }}", { bool: true })).toBe("true");
   });
+});
 
-  it("handles templates with no variables", () => {
-    expect(render("No vars here", {})).toBe("No vars here");
-    expect(extractVars("No vars here")).toEqual([]);
+describe("compile", () => {
+  it("returns a reusable template function", () => {
+    const tmpl = compile("Hello {{ name }}!");
+    expect(tmpl({ name: "Alice" })).toBe("Hello Alice!");
+    expect(tmpl({ name: "Bob" })).toBe("Hello Bob!");
   });
+});
 
-  it("handles numbers and booleans", () => {
-    expect(render("Count: {{n}}, Active: {{flag}}", { n: 42, flag: true })).toBe(
-      "Count: 42, Active: true"
+describe("escapeHtml", () => {
+  it("escapes all special characters", () => {
+    expect(escapeHtml('<script>"hello" & \'world\'</script>')).toBe(
+      "&lt;script&gt;&quot;hello&quot; &amp; &#39;world&#39;&lt;/script&gt;"
     );
+  });
+
+  it("leaves safe strings unchanged", () => {
+    expect(escapeHtml("hello world")).toBe("hello world");
+  });
+});
+
+describe("unescapeHtml", () => {
+  it("unescapes all entities", () => {
+    expect(unescapeHtml("&lt;b&gt;&amp;&quot;&#39;&lt;/b&gt;")).toBe('<b>&"\'</b>');
+  });
+
+  it("roundtrips with escapeHtml", () => {
+    const original = '<div class="test">&</div>';
+    expect(unescapeHtml(escapeHtml(original))).toBe(original);
   });
 });

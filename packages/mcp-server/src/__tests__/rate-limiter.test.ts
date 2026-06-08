@@ -1,84 +1,102 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { SlidingWindowLimiter, rateLimitKey } from "../rate-limiter.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { SlidingWindowRateLimiter, FixedWindowRateLimiter } from "../rate-limiter.js";
 
-describe("SlidingWindowLimiter", () => {
-  afterEach(() => {
-    vi.useRealTimers();
+describe("SlidingWindowRateLimiter", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("allows requests within limit", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 3, windowMs: 1000 });
+    expect(rl.tryAcquire("a")).toBe(true);
+    expect(rl.tryAcquire("a")).toBe(true);
+    expect(rl.tryAcquire("a")).toBe(true);
   });
 
-  it("allows requests within the limit", () => {
-    const limiter = new SlidingWindowLimiter({ maxRequests: 3, windowMs: 60_000 });
-    expect(limiter.consume("key1").allowed).toBe(true);
-    expect(limiter.consume("key1").allowed).toBe(true);
-    expect(limiter.consume("key1").allowed).toBe(true);
+  it("blocks requests over limit", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 2, windowMs: 1000 });
+    rl.tryAcquire("a");
+    rl.tryAcquire("a");
+    expect(rl.tryAcquire("a")).toBe(false);
   });
 
-  it("denies requests over the limit", () => {
-    const limiter = new SlidingWindowLimiter({ maxRequests: 2, windowMs: 60_000 });
-    limiter.consume("key1");
-    limiter.consume("key1");
-    const result = limiter.consume("key1");
-    expect(result.allowed).toBe(false);
-    expect(result.remaining).toBe(0);
-    expect(result.retryAfterMs).toBeGreaterThan(0);
-  });
-
-  it("tracks remaining count correctly", () => {
-    const limiter = new SlidingWindowLimiter({ maxRequests: 5, windowMs: 60_000 });
-    expect(limiter.consume("key1").remaining).toBe(4);
-    expect(limiter.consume("key1").remaining).toBe(3);
-    expect(limiter.consume("key1").remaining).toBe(2);
-  });
-
-  it("resets after window expires", () => {
-    vi.useFakeTimers();
-    const limiter = new SlidingWindowLimiter({ maxRequests: 1, windowMs: 1000 });
-    limiter.consume("key1");
-    expect(limiter.consume("key1").allowed).toBe(false);
-
+  it("allows requests after window expires", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("a");
+    expect(rl.tryAcquire("a")).toBe(false);
     vi.advanceTimersByTime(1001);
-    expect(limiter.consume("key1").allowed).toBe(true);
+    expect(rl.tryAcquire("a")).toBe(true);
   });
 
-  it("isolates keys from each other", () => {
-    const limiter = new SlidingWindowLimiter({ maxRequests: 1, windowMs: 60_000 });
-    limiter.consume("key1");
-    expect(limiter.consume("key1").allowed).toBe(false);
-    expect(limiter.consume("key2").allowed).toBe(true);
+  it("tracks remaining count", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 3, windowMs: 1000 });
+    expect(rl.remaining("a")).toBe(3);
+    rl.tryAcquire("a");
+    expect(rl.remaining("a")).toBe(2);
   });
 
-  it("prunes stale buckets when exceeding maxBuckets", () => {
-    vi.useFakeTimers();
-    const limiter = new SlidingWindowLimiter({
-      maxRequests: 10,
-      windowMs: 1000,
-      maxBuckets: 5,
-    });
-
-    for (let i = 0; i < 6; i++) {
-      limiter.consume(`key${i}`);
-    }
-
-    vi.advanceTimersByTime(6000);
-    limiter.consume("new_key");
-    expect(limiter.size).toBeLessThanOrEqual(5);
+  it("isolates keys", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("a");
+    expect(rl.tryAcquire("b")).toBe(true);
   });
 
-  it("reset removes a specific key", () => {
-    const limiter = new SlidingWindowLimiter({ maxRequests: 1, windowMs: 60_000 });
-    limiter.consume("key1");
-    expect(limiter.consume("key1").allowed).toBe(false);
-    limiter.reset("key1");
-    expect(limiter.consume("key1").allowed).toBe(true);
+  it("reset clears a key", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("a");
+    rl.reset("a");
+    expect(rl.tryAcquire("a")).toBe(true);
+  });
+
+  it("resetAll clears everything", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("a");
+    rl.tryAcquire("b");
+    rl.resetAll();
+    expect(rl.tryAcquire("a")).toBe(true);
+    expect(rl.tryAcquire("b")).toBe(true);
+  });
+
+  it("nextAllowedAt returns null when under limit", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 5, windowMs: 1000 });
+    expect(rl.nextAllowedAt("a")).toBeNull();
+  });
+
+  it("nextAllowedAt returns timestamp when at limit", () => {
+    const rl = new SlidingWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("a");
+    expect(rl.nextAllowedAt("a")).toBeGreaterThan(0);
   });
 });
 
-describe("rateLimitKey", () => {
-  it("combines connector and tenant", () => {
-    expect(rateLimitKey("stripe", "abc123")).toBe("stripe:abc123");
+describe("FixedWindowRateLimiter", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("allows requests within limit", () => {
+    const rl = new FixedWindowRateLimiter({ maxRequests: 2, windowMs: 1000 });
+    expect(rl.tryAcquire("x")).toBe(true);
+    expect(rl.tryAcquire("x")).toBe(true);
+    expect(rl.tryAcquire("x")).toBe(false);
   });
 
-  it("returns connector alone without tenant", () => {
-    expect(rateLimitKey("stripe")).toBe("stripe");
+  it("resets after window expires", () => {
+    const rl = new FixedWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("x");
+    vi.advanceTimersByTime(1001);
+    expect(rl.tryAcquire("x")).toBe(true);
+  });
+
+  it("tracks remaining", () => {
+    const rl = new FixedWindowRateLimiter({ maxRequests: 3, windowMs: 1000 });
+    expect(rl.remaining("x")).toBe(3);
+    rl.tryAcquire("x");
+    expect(rl.remaining("x")).toBe(2);
+  });
+
+  it("reset clears a key", () => {
+    const rl = new FixedWindowRateLimiter({ maxRequests: 1, windowMs: 1000 });
+    rl.tryAcquire("x");
+    rl.reset("x");
+    expect(rl.remaining("x")).toBe(1);
   });
 });

@@ -1,48 +1,84 @@
 import { describe, it, expect } from "vitest";
-import { lookup, extension, isText, isBinary, isImage } from "../mime-types.js";
+import { lookup, extension, isText, isBinary, contentType } from "../mime-types.js";
 
-describe("mime-types", () => {
-  it("lookup by extension", () => {
-    expect(lookup("json")).toBe("application/json");
-    expect(lookup("html")).toBe("text/html");
-    expect(lookup("png")).toBe("image/png");
+describe("lookup", () => {
+  it("looks up by extension", () => {
+    expect(lookup(".html")).toBe("text/html");
+    expect(lookup(".json")).toBe("application/json");
+    expect(lookup(".png")).toBe("image/png");
   });
 
-  it("lookup by filename", () => {
-    expect(lookup("file.js")).toBe("application/javascript");
-    expect(lookup("image.webp")).toBe("image/webp");
-    expect(lookup("data.csv")).toBe("text/csv");
+  it("looks up by file path", () => {
+    expect(lookup("index.html")).toBe("text/html");
+    expect(lookup("/path/to/file.css")).toBe("text/css");
   });
 
-  it("lookup returns undefined for unknown", () => {
-    expect(lookup("xyz123")).toBeUndefined();
+  it("is case-insensitive", () => {
+    expect(lookup(".HTML")).toBe("text/html");
+    expect(lookup(".JSON")).toBe("application/json");
   });
 
-  it("extension finds ext from mime", () => {
-    expect(extension("application/json")).toBe("json");
-    expect(extension("image/png")).toBe("png");
-    expect(extension("text/html")).toBe("html");
+  it("returns undefined for unknown extension", () => {
+    expect(lookup(".xyz123")).toBeUndefined();
   });
 
-  it("extension returns undefined for unknown mime", () => {
-    expect(extension("application/x-unknown")).toBeUndefined();
+  it("handles common types", () => {
+    expect(lookup(".js")).toBe("application/javascript");
+    expect(lookup(".ts")).toBe("application/typescript");
+    expect(lookup(".pdf")).toBe("application/pdf");
+    expect(lookup(".mp4")).toBe("video/mp4");
+    expect(lookup(".svg")).toBe("image/svg+xml");
+  });
+});
+
+describe("extension", () => {
+  it("returns extension for mime type", () => {
+    expect(extension("text/html")).toBe(".html");
+    expect(extension("application/json")).toBe(".json");
   });
 
-  it("isText detects text types", () => {
+  it("returns undefined for unknown mime", () => {
+    expect(extension("application/x-unknown-thing")).toBeUndefined();
+  });
+});
+
+describe("isText", () => {
+  it("identifies text types", () => {
     expect(isText("text/html")).toBe(true);
+    expect(isText("text/plain")).toBe(true);
     expect(isText("application/json")).toBe(true);
-    expect(isText("application/xml")).toBe(true);
     expect(isText("application/javascript")).toBe(true);
   });
 
-  it("isBinary is inverse of isText", () => {
+  it("rejects binary types", () => {
+    expect(isText("image/png")).toBe(false);
+    expect(isText("application/pdf")).toBe(false);
+  });
+});
+
+describe("isBinary", () => {
+  it("identifies binary types", () => {
     expect(isBinary("image/png")).toBe(true);
-    expect(isBinary("text/plain")).toBe(false);
+    expect(isBinary("application/zip")).toBe(true);
   });
 
-  it("isImage detects image types", () => {
-    expect(isImage("image/png")).toBe(true);
-    expect(isImage("image/jpeg")).toBe(true);
-    expect(isImage("text/html")).toBe(false);
+  it("rejects text types", () => {
+    expect(isBinary("text/plain")).toBe(false);
+  });
+});
+
+describe("contentType", () => {
+  it("adds charset for text types", () => {
+    expect(contentType(".html")).toBe("text/html; charset=utf-8");
+    expect(contentType(".json")).toBe("application/json; charset=utf-8");
+  });
+
+  it("omits charset for binary types", () => {
+    expect(contentType(".png")).toBe("image/png");
+    expect(contentType(".pdf")).toBe("application/pdf");
+  });
+
+  it("returns undefined for unknown", () => {
+    expect(contentType(".xyz")).toBeUndefined();
   });
 });
