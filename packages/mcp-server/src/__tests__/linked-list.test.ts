@@ -3,92 +3,56 @@ import { LinkedList } from "../linked-list.js";
 
 describe("LinkedList", () => {
   it("pushBack and popFront", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.pushBack(3);
-    expect(list.popFront()).toBe(1);
-    expect(list.popFront()).toBe(2);
+    const ll = new LinkedList<number>();
+    ll.pushBack(1); ll.pushBack(2); ll.pushBack(3);
+    expect(ll.popFront()).toBe(1);
+    expect(ll.popFront()).toBe(2);
+    expect(ll.size).toBe(1);
   });
-
   it("pushFront and popBack", () => {
-    const list = new LinkedList<number>();
-    list.pushFront(1);
-    list.pushFront(2);
-    expect(list.popBack()).toBe(1);
-    expect(list.popBack()).toBe(2);
+    const ll = new LinkedList<number>();
+    ll.pushFront(1); ll.pushFront(2);
+    expect(ll.popBack()).toBe(1);
+    expect(ll.popBack()).toBe(2);
   });
-
-  it("peek operations", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(10);
-    list.pushBack(20);
-    expect(list.peekFront()).toBe(10);
-    expect(list.peekBack()).toBe(20);
+  it("peek", () => {
+    const ll = new LinkedList<number>();
+    ll.pushBack(10); ll.pushBack(20);
+    expect(ll.peekFront()).toBe(10);
+    expect(ll.peekBack()).toBe(20);
   });
-
-  it("size and isEmpty", () => {
-    const list = new LinkedList<number>();
-    expect(list.isEmpty).toBe(true);
-    list.pushBack(1);
-    expect(list.size).toBe(1);
-    expect(list.isEmpty).toBe(false);
+  it("has", () => {
+    const ll = new LinkedList<number>();
+    ll.pushBack(5);
+    expect(ll.has(5)).toBe(true);
+    expect(ll.has(99)).toBe(false);
   });
-
-  it("find locates element", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.pushBack(3);
-    expect(list.find((v) => v === 2)).toBe(2);
-    expect(list.find((v) => v === 99)).toBeUndefined();
+  it("remove", () => {
+    const ll = new LinkedList<number>();
+    ll.pushBack(1); ll.pushBack(2); ll.pushBack(3);
+    expect(ll.remove(2)).toBe(true);
+    expect(ll.toArray()).toEqual([1, 3]);
+    expect(ll.remove(99)).toBe(false);
   });
-
-  it("remove deletes element", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.pushBack(3);
-    expect(list.remove((v) => v === 2)).toBe(true);
-    expect(list.toArray()).toEqual([1, 3]);
+  it("toArray", () => {
+    const ll = new LinkedList<string>();
+    ll.pushBack("a"); ll.pushBack("b");
+    expect(ll.toArray()).toEqual(["a", "b"]);
   });
-
-  it("toArray returns ordered", () => {
-    const list = new LinkedList<string>();
-    list.pushBack("a");
-    list.pushBack("b");
-    list.pushBack("c");
-    expect(list.toArray()).toEqual(["a", "b", "c"]);
+  it("clear", () => {
+    const ll = new LinkedList<number>();
+    ll.pushBack(1); ll.clear();
+    expect(ll.size).toBe(0);
+    expect(ll.peekFront()).toBeUndefined();
   });
-
-  it("clear resets", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.clear();
-    expect(list.size).toBe(0);
-    expect(list.isEmpty).toBe(true);
+  it("iterator", () => {
+    const ll = new LinkedList<number>();
+    ll.pushBack(1); ll.pushBack(2);
+    expect([...ll]).toEqual([1, 2]);
   });
-
-  it("reverse flips order", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    list.pushBack(3);
-    list.reverse();
-    expect(list.toArray()).toEqual([3, 2, 1]);
-  });
-
-  it("iterator works", () => {
-    const list = new LinkedList<number>();
-    list.pushBack(1);
-    list.pushBack(2);
-    expect([...list]).toEqual([1, 2]);
-  });
-
-  it("pop from empty returns undefined", () => {
-    const list = new LinkedList<number>();
-    expect(list.popFront()).toBeUndefined();
-    expect(list.popBack()).toBeUndefined();
+  it("empty pops return undefined", () => {
+    const ll = new LinkedList<number>();
+    expect(ll.popFront()).toBeUndefined();
+    expect(ll.popBack()).toBeUndefined();
   });
 });

@@ -18,7 +18,7 @@ export function defer<T>(): { promise: Promise<T>; resolve: (value: T) => void; 
   return { promise, resolve, reject };
 }
 
-export async function settle<T>(promises: Promise<T>[]): Promise<{ status: "fulfilled"; value: T } | { status: "rejected"; reason: unknown }>[] {
+export async function settle<T>(promises: Promise<T>[]): Promise<({ status: "fulfilled"; value: T } | { status: "rejected"; reason: unknown })[]> {
   return Promise.all(
     promises.map((p) =>
       p.then(

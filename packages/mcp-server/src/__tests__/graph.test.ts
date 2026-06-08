@@ -9,84 +9,68 @@ describe("Graph", () => {
     expect(g.hasEdge("a", "b")).toBe(true);
     expect(g.nodeCount).toBe(2);
   });
-
-  it("undirected edges go both ways", () => {
+  it("undirected edges work both ways", () => {
     const g = new Graph();
     g.addEdge("a", "b");
     expect(g.hasEdge("b", "a")).toBe(true);
-    expect(g.edgeCount).toBe(1);
   });
-
   it("directed edges are one-way", () => {
     const g = new Graph(true);
     g.addEdge("a", "b");
     expect(g.hasEdge("a", "b")).toBe(true);
     expect(g.hasEdge("b", "a")).toBe(false);
   });
-
-  it("neighbors returns adjacent", () => {
+  it("neighbors", () => {
     const g = new Graph();
-    g.addEdge("a", "b");
-    g.addEdge("a", "c");
+    g.addEdge("a", "b"); g.addEdge("a", "c");
     expect(g.neighbors("a").sort()).toEqual(["b", "c"]);
   });
-
-  it("bfs traverses breadth-first", () => {
+  it("removeEdge", () => {
     const g = new Graph();
     g.addEdge("a", "b");
-    g.addEdge("a", "c");
-    g.addEdge("b", "d");
+    g.removeEdge("a", "b");
+    expect(g.hasEdge("a", "b")).toBe(false);
+  });
+  it("removeNode", () => {
+    const g = new Graph();
+    g.addEdge("a", "b"); g.addEdge("b", "c");
+    g.removeNode("b");
+    expect(g.hasNode("b")).toBe(false);
+    expect(g.neighbors("a")).toEqual([]);
+  });
+  it("bfs traversal", () => {
+    const g = new Graph();
+    g.addEdge("a", "b"); g.addEdge("b", "c"); g.addEdge("a", "d");
     const result = g.bfs("a");
     expect(result[0]).toBe("a");
-    expect(result.length).toBe(4);
+    expect(result).toHaveLength(4);
   });
-
-  it("dfs traverses depth-first", () => {
+  it("dfs traversal", () => {
     const g = new Graph();
-    g.addEdge("a", "b");
-    g.addEdge("b", "c");
+    g.addEdge("a", "b"); g.addEdge("b", "c");
     const result = g.dfs("a");
     expect(result[0]).toBe("a");
-    expect(result.length).toBe(3);
+    expect(result).toHaveLength(3);
   });
-
-  it("shortestPath finds shortest", () => {
+  it("shortestPath", () => {
     const g = new Graph();
-    g.addEdge("a", "b", 1);
-    g.addEdge("b", "c", 2);
-    g.addEdge("a", "c", 10);
-    const result = g.shortestPath("a", "c");
-    expect(result).not.toBeNull();
-    expect(result!.distance).toBe(3);
-    expect(result!.path).toEqual(["a", "b", "c"]);
+    g.addEdge("a", "b"); g.addEdge("b", "c"); g.addEdge("a", "c");
+    const path = g.shortestPath("a", "c");
+    expect(path).toEqual(["a", "c"]);
   });
-
   it("shortestPath returns null for disconnected", () => {
     const g = new Graph();
-    g.addNode("a");
-    g.addNode("z");
-    expect(g.shortestPath("a", "z")).toBeNull();
+    g.addNode("a"); g.addNode("b");
+    expect(g.shortestPath("a", "b")).toBeNull();
   });
-
-  it("hasCycle detects cycle", () => {
-    const g = new Graph(true);
-    g.addEdge("a", "b");
-    g.addEdge("b", "c");
-    g.addEdge("c", "a");
-    expect(g.hasCycle()).toBe(true);
-  });
-
-  it("hasCycle returns false for DAG", () => {
-    const g = new Graph(true);
-    g.addEdge("a", "b");
-    g.addEdge("a", "c");
-    g.addEdge("b", "c");
-    expect(g.hasCycle()).toBe(false);
-  });
-
-  it("getWeight returns edge weight", () => {
+  it("isConnected", () => {
     const g = new Graph();
-    g.addEdge("a", "b", 5);
-    expect(g.getWeight("a", "b")).toBe(5);
+    g.addEdge("a", "b"); g.addEdge("b", "c");
+    expect(g.isConnected()).toBe(true);
+  });
+  it("isConnected false for disconnected", () => {
+    const g = new Graph();
+    g.addNode("a"); g.addNode("b");
+    expect(g.isConnected()).toBe(false);
   });
 });
