@@ -1,62 +1,94 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { PubSub } from "../pubsub.js";
 
+interface Topics {
+  [key: string]: unknown;
+  message: string;
+  count: number;
+}
+
 describe("PubSub", () => {
-  it("subscribe and publish", () => {
-    const ps = new PubSub();
-    let received: string | null = null;
-    ps.subscribe<string>("test", (data: string) => { received = data; });
-    ps.publish("test", "hello");
-    expect(received).toBe("hello");
+  it("publish and subscribe", () => {
+    const ps = new PubSub<Topics>();
+    const fn = vi.fn();
+    ps.subscribe("message", fn);
+    ps.publish("message", "hello");
+    expect(fn).toHaveBeenCalledWith("hello");
   });
 
   it("multiple subscribers", () => {
-    const ps = new PubSub();
-    const results: number[] = [];
-    ps.subscribe<number>("ch", (d: number) => results.push(d));
-    ps.subscribe<number>("ch", (d: number) => results.push(d * 2));
-    ps.publish("ch", 5);
-    expect(results).toEqual([5, 10]);
+    const ps = new PubSub<Topics>();
+    const fn1 = vi.fn();
+    const fn2 = vi.fn();
+    ps.subscribe("message", fn1);
+    ps.subscribe("message", fn2);
+    ps.publish("message", "x");
+    expect(fn1).toHaveBeenCalled();
+    expect(fn2).toHaveBeenCalled();
   });
 
-  it("unsubscribe", () => {
-    const ps = new PubSub();
-    let count = 0;
-    const unsub = ps.subscribe("ch", () => { count++; });
-    ps.publish("ch", null);
+  it("unsubscribe via return", () => {
+    const ps = new PubSub<Topics>();
+    const fn = vi.fn();
+    const unsub = ps.subscribe("message", fn);
     unsub();
-    ps.publish("ch", null);
-    expect(count).toBe(1);
+    ps.publish("message", "x");
+    expect(fn).not.toHaveBeenCalled();
   });
 
   it("once fires only once", () => {
-    const ps = new PubSub();
-    let count = 0;
-    ps.once("ch", () => { count++; });
-    ps.publish("ch", null);
-    ps.publish("ch", null);
-    expect(count).toBe(1);
+    const ps = new PubSub<Topics>();
+    const fn = vi.fn();
+    ps.once("message", fn);
+    ps.publish("message", "a");
+    ps.publish("message", "b");
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith("a");
   });
 
-  it("clear channel", () => {
-    const ps = new PubSub();
-    ps.subscribe("ch1", () => {});
-    ps.subscribe("ch2", () => {});
-    ps.clear("ch1");
-    expect(ps.subscriberCount("ch1")).toBe(0);
-    expect(ps.subscriberCount("ch2")).toBe(1);
+  it("history stores messages", () => {
+    const ps = new PubSub<Topics>({ maxHistory: 3 });
+    ps.publish("message", "a");
+    ps.publish("message", "b");
+    expect(ps.getHistory("message")).toEqual(["a", "b"]);
   });
 
-  it("clear all", () => {
-    const ps = new PubSub();
-    ps.subscribe("ch1", () => {});
-    ps.subscribe("ch2", () => {});
+  it("history caps at maxHistory", () => {
+    const ps = new PubSub<Topics>({ maxHistory: 2 });
+    ps.publish("message", "a");
+    ps.publish("message", "b");
+    ps.publish("message", "c");
+    expect(ps.getHistory("message")).toEqual(["b", "c"]);
+  });
+
+  it("clearHistory", () => {
+    const ps = new PubSub<Topics>({ maxHistory: 5 });
+    ps.publish("message", "a");
+    ps.clearHistory("message");
+    expect(ps.getHistory("message")).toEqual([]);
+  });
+
+  it("subscriberCount", () => {
+    const ps = new PubSub<Topics>();
+    ps.subscribe("message", () => {});
+    ps.subscribe("count", () => {});
+    expect(ps.subscriberCount("message")).toBe(1);
+    expect(ps.subscriberCount()).toBe(2);
+  });
+
+  it("topics returns active topics", () => {
+    const ps = new PubSub<Topics>();
+    ps.subscribe("message", () => {});
+    ps.subscribe("count", () => {});
+    expect(ps.topics().sort()).toEqual(["count", "message"]);
+  });
+
+  it("clear removes everything", () => {
+    const ps = new PubSub<Topics>({ maxHistory: 5 });
+    ps.subscribe("message", () => {});
+    ps.publish("message", "x");
     ps.clear();
-    expect(ps.channelCount).toBe(0);
-  });
-
-  it("publish to non-existent channel is safe", () => {
-    const ps = new PubSub();
-    expect(() => ps.publish("nope", "data")).not.toThrow();
+    expect(ps.subscriberCount()).toBe(0);
+    expect(ps.getHistory("message")).toEqual([]);
   });
 });

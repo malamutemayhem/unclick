@@ -1,64 +1,88 @@
 import { describe, it, expect } from "vitest";
 import { validate, isValid } from "../schema-validator.js";
+import type { Schema } from "../schema-validator.js";
 
-describe("validate", () => {
-  it("checks type", () => {
-    const errors = validate(42, { type: "string" });
-    expect(errors.length).toBe(1);
-    expect(errors[0].message).toContain("expected string");
+describe("schema-validator", () => {
+  describe("string", () => {
+    const s: Schema = { type: "string", minLength: 2, maxLength: 5 };
+    it("passes valid string", () => { expect(isValid("hi", s)).toBe(true); });
+    it("fails non-string", () => { expect(isValid(42, s)).toBe(false); });
+    it("fails too short", () => { expect(isValid("a", s)).toBe(false); });
+    it("fails too long", () => { expect(isValid("toolong", s)).toBe(false); });
+    it("pattern validates", () => {
+      expect(isValid("abc", { type: "string", pattern: "^[a-z]+$" })).toBe(true);
+      expect(isValid("ABC", { type: "string", pattern: "^[a-z]+$" })).toBe(false);
+    });
+    it("enum validates", () => {
+      expect(isValid("a", { type: "string", enum: ["a", "b"] })).toBe(true);
+      expect(isValid("c", { type: "string", enum: ["a", "b"] })).toBe(false);
+    });
   });
 
-  it("passes valid type", () => {
-    expect(validate("hi", { type: "string" })).toEqual([]);
+  describe("number", () => {
+    it("passes valid number", () => { expect(isValid(42, { type: "number" })).toBe(true); });
+    it("fails non-number", () => { expect(isValid("42", { type: "number" })).toBe(false); });
+    it("integer check", () => {
+      expect(isValid(3, { type: "number", integer: true })).toBe(true);
+      expect(isValid(3.5, { type: "number", integer: true })).toBe(false);
+    });
+    it("min/max", () => {
+      expect(isValid(5, { type: "number", min: 1, max: 10 })).toBe(true);
+      expect(isValid(0, { type: "number", min: 1 })).toBe(false);
+    });
   });
 
-  it("checks required", () => {
-    expect(validate(undefined, { required: true })).toEqual([{ path: "$", message: "required" }]);
+  describe("boolean", () => {
+    it("passes", () => { expect(isValid(true, { type: "boolean" })).toBe(true); });
+    it("fails", () => { expect(isValid(1, { type: "boolean" })).toBe(false); });
   });
 
-  it("checks minLength", () => {
-    const errors = validate("ab", { type: "string", minLength: 3 });
-    expect(errors.length).toBe(1);
+  describe("null", () => {
+    it("passes", () => { expect(isValid(null, { type: "null" })).toBe(true); });
+    it("fails", () => { expect(isValid(undefined, { type: "null" })).toBe(false); });
   });
 
-  it("checks number range", () => {
-    expect(validate(5, { type: "number", min: 1, max: 10 })).toEqual([]);
-    expect(validate(15, { type: "number", max: 10 }).length).toBe(1);
+  describe("array", () => {
+    it("passes valid array", () => {
+      expect(isValid([1, 2], { type: "array", items: { type: "number" } })).toBe(true);
+    });
+    it("fails item validation", () => {
+      expect(isValid([1, "x"], { type: "array", items: { type: "number" } })).toBe(false);
+    });
+    it("minItems/maxItems", () => {
+      expect(isValid([1], { type: "array", minItems: 2 })).toBe(false);
+      expect(isValid([1, 2, 3], { type: "array", maxItems: 2 })).toBe(false);
+    });
   });
 
-  it("validates nested objects", () => {
-    const schema = {
-      type: "object" as const,
-      properties: {
-        name: { type: "string" as const, required: true },
-        age: { type: "number" as const, min: 0 },
-      },
+  describe("object", () => {
+    const s: Schema = {
+      type: "object",
+      properties: { name: { type: "string" }, age: { type: "number" } },
+      required: ["name"],
     };
-    expect(validate({ name: "Alice", age: 30 }, schema)).toEqual([]);
-    const errors = validate({ age: -1 }, schema);
-    expect(errors.length).toBe(2);
+    it("passes valid object", () => { expect(isValid({ name: "Jo", age: 5 }, s)).toBe(true); });
+    it("fails missing required", () => { expect(isValid({ age: 5 }, s)).toBe(false); });
+    it("additionalProperties false", () => {
+      const strict: Schema = { type: "object", properties: { a: { type: "string" } }, additionalProperties: false };
+      expect(isValid({ a: "x", b: 1 }, strict)).toBe(false);
+    });
   });
 
-  it("validates arrays", () => {
-    const schema = { type: "array" as const, items: { type: "number" as const } };
-    expect(validate([1, 2, 3], schema)).toEqual([]);
-    expect(validate([1, "two"], schema).length).toBe(1);
+  describe("union", () => {
+    const s: Schema = { type: "union", schemas: [{ type: "string" }, { type: "number" }] };
+    it("matches first", () => { expect(isValid("hi", s)).toBe(true); });
+    it("matches second", () => { expect(isValid(42, s)).toBe(true); });
+    it("fails none", () => { expect(isValid(true, s)).toBe(false); });
   });
 
-  it("checks enum", () => {
-    expect(validate("red", { enum: ["red", "green", "blue"] })).toEqual([]);
-    expect(validate("pink", { enum: ["red", "green", "blue"] }).length).toBe(1);
-  });
-
-  it("checks pattern", () => {
-    expect(validate("abc123", { type: "string", pattern: "^[a-z]+\\d+$" })).toEqual([]);
-    expect(validate("ABC", { type: "string", pattern: "^[a-z]+$" }).length).toBe(1);
-  });
-});
-
-describe("isValid", () => {
-  it("returns boolean", () => {
-    expect(isValid("hello", { type: "string" })).toBe(true);
-    expect(isValid(42, { type: "string" })).toBe(false);
+  describe("validate returns paths", () => {
+    it("error paths are correct", () => {
+      const errors = validate({ name: 123 }, {
+        type: "object",
+        properties: { name: { type: "string" } },
+      });
+      expect(errors[0].path).toBe(".name");
+    });
   });
 });

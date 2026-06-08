@@ -1,44 +1,65 @@
 type Handler<T = unknown> = (data: T) => void;
 
-export class PubSub {
-  private channels = new Map<string, Set<Handler>>();
+export class PubSub<Topics extends Record<string, unknown> = Record<string, unknown>> {
+  private subscribers = new Map<string, Set<Handler<any>>>();
+  private history = new Map<string, unknown[]>();
+  private maxHistory: number;
 
-  subscribe<T = unknown>(channel: string, handler: Handler<T>): () => void {
-    if (!this.channels.has(channel)) this.channels.set(channel, new Set());
-    this.channels.get(channel)!.add(handler as Handler);
-    return () => {
-      this.channels.get(channel)?.delete(handler as Handler);
-    };
+  constructor(options?: { maxHistory?: number }) {
+    this.maxHistory = options?.maxHistory || 0;
   }
 
-  publish<T = unknown>(channel: string, data: T): void {
-    const handlers = this.channels.get(channel);
-    if (!handlers) return;
-    for (const handler of [...handlers]) {
-      (handler as Handler<T>)(data);
+  publish<K extends keyof Topics & string>(topic: K, data: Topics[K]): void {
+    if (this.maxHistory > 0) {
+      if (!this.history.has(topic)) this.history.set(topic, []);
+      const h = this.history.get(topic)!;
+      h.push(data);
+      if (h.length > this.maxHistory) h.shift();
     }
+    const subs = this.subscribers.get(topic);
+    if (subs) for (const handler of subs) handler(data);
   }
 
-  once<T = unknown>(channel: string, handler: Handler<T>): () => void {
-    const unsub = this.subscribe<T>(channel, (data: T) => {
-      unsub();
+  subscribe<K extends keyof Topics & string>(topic: K, handler: Handler<Topics[K]>): () => void {
+    if (!this.subscribers.has(topic)) this.subscribers.set(topic, new Set());
+    this.subscribers.get(topic)!.add(handler);
+    return () => this.unsubscribe(topic, handler);
+  }
+
+  unsubscribe<K extends keyof Topics & string>(topic: K, handler: Handler<Topics[K]>): void {
+    this.subscribers.get(topic)?.delete(handler);
+  }
+
+  once<K extends keyof Topics & string>(topic: K, handler: Handler<Topics[K]>): () => void {
+    const wrapper = ((data: Topics[K]) => {
       handler(data);
-    });
-    return unsub;
+      this.unsubscribe(topic, wrapper as Handler<Topics[K]>);
+    }) as Handler<Topics[K]>;
+    return this.subscribe(topic, wrapper);
   }
 
-  clear(channel?: string): void {
-    if (channel) this.channels.delete(channel);
-    else this.channels.clear();
+  getHistory<K extends keyof Topics & string>(topic: K): Topics[K][] {
+    return (this.history.get(topic) || []) as Topics[K][];
   }
 
-  get channelCount(): number { return this.channels.size; }
-
-  subscriberCount(channel: string): number {
-    return this.channels.get(channel)?.size ?? 0;
+  clearHistory(topic?: string): void {
+    if (topic) this.history.delete(topic);
+    else this.history.clear();
   }
 
-  channels_list(): string[] {
-    return [...this.channels.keys()];
+  subscriberCount(topic?: string): number {
+    if (topic) return this.subscribers.get(topic)?.size || 0;
+    let total = 0;
+    for (const subs of this.subscribers.values()) total += subs.size;
+    return total;
+  }
+
+  topics(): string[] {
+    return [...this.subscribers.keys()];
+  }
+
+  clear(): void {
+    this.subscribers.clear();
+    this.history.clear();
   }
 }

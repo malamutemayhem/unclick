@@ -1,67 +1,74 @@
-type Listener = () => void;
-type Cleanup = () => void;
+type Subscriber<T> = (value: T) => void;
 
 export class Signal<T> {
-  private value: T;
-  private listeners = new Set<Listener>();
+  private _value: T;
+  private subscribers = new Set<Subscriber<T>>();
 
-  constructor(initial: T) {
-    this.value = initial;
+  constructor(initial: T) { this._value = initial; }
+
+  get value(): T { return this._value; }
+
+  set(value: T): void {
+    if (value === this._value) return;
+    this._value = value;
+    for (const sub of this.subscribers) sub(value);
   }
 
-  get(): T {
-    return this.value;
+  update(fn: (current: T) => T): void { this.set(fn(this._value)); }
+
+  subscribe(fn: Subscriber<T>): () => void {
+    this.subscribers.add(fn);
+    return () => this.subscribers.delete(fn);
   }
 
-  set(newValue: T): void {
-    if (this.value === newValue) return;
-    this.value = newValue;
-    this.notify();
-  }
+  get subscriberCount(): number { return this.subscribers.size; }
+}
 
-  update(fn: (current: T) => T): void {
-    this.set(fn(this.value));
-  }
+export class Computed<T> {
+  private _value: T;
+  private unsubs: (() => void)[] = [];
+  private subscribers = new Set<Subscriber<T>>();
 
-  subscribe(listener: Listener): Cleanup {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  get listenerCount(): number {
-    return this.listeners.size;
-  }
-
-  private notify(): void {
-    for (const listener of this.listeners) {
-      listener();
+  constructor(compute: () => T, deps: Signal<unknown>[]) {
+    this._value = compute();
+    for (const dep of deps) {
+      this.unsubs.push(dep.subscribe(() => {
+        const next = compute();
+        if (next !== this._value) {
+          this._value = next;
+          for (const sub of this.subscribers) sub(next);
+        }
+      }));
     }
   }
-}
 
-export function computed<T>(deps: Signal<unknown>[], fn: () => T): Signal<T> {
-  const signal = new Signal(fn());
-  for (const dep of deps) {
-    dep.subscribe(() => signal.set(fn()));
+  get value(): T { return this._value; }
+
+  subscribe(fn: Subscriber<T>): () => void {
+    this.subscribers.add(fn);
+    return () => this.subscribers.delete(fn);
   }
-  return signal;
+
+  dispose(): void {
+    for (const unsub of this.unsubs) unsub();
+    this.unsubs.length = 0;
+    this.subscribers.clear();
+  }
 }
 
-export function effect(deps: Signal<unknown>[], fn: () => void | Cleanup): Cleanup {
-  let cleanup: Cleanup | void;
+export class Effect {
+  private unsubs: (() => void)[] = [];
 
-  const run = () => {
-    if (cleanup) cleanup();
-    cleanup = fn();
-  };
+  constructor(fn: () => void, deps: Signal<unknown>[]) {
+    for (const dep of deps) {
+      this.unsubs.push(dep.subscribe(() => fn()));
+    }
+  }
 
-  const unsubs = deps.map((dep) => dep.subscribe(run));
-  run();
-
-  return () => {
-    for (const unsub of unsubs) unsub();
-    if (cleanup) cleanup();
-  };
+  dispose(): void {
+    for (const unsub of this.unsubs) unsub();
+    this.unsubs.length = 0;
+  }
 }
 
 export function batch(fn: () => void): void {

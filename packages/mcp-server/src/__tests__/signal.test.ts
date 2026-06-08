@@ -1,33 +1,37 @@
 import { describe, it, expect, vi } from "vitest";
-import { Signal, computed, effect } from "../signal.js";
+import { Signal, Computed, Effect } from "../signal.js";
 
 describe("Signal", () => {
-  it("get and set", () => {
-    const s = new Signal(0);
-    expect(s.get()).toBe(0);
-    s.set(42);
-    expect(s.get()).toBe(42);
+  it("holds initial value", () => {
+    const s = new Signal(42);
+    expect(s.value).toBe(42);
   });
 
-  it("update with function", () => {
-    const s = new Signal(10);
-    s.update((v) => v + 5);
-    expect(s.get()).toBe(15);
+  it("set updates value", () => {
+    const s = new Signal(1);
+    s.set(2);
+    expect(s.value).toBe(2);
   });
 
-  it("notifies subscribers", () => {
+  it("update transforms value", () => {
+    const s = new Signal(5);
+    s.update((v) => v * 2);
+    expect(s.value).toBe(10);
+  });
+
+  it("subscribe notifies on change", () => {
     const s = new Signal(0);
     const fn = vi.fn();
     s.subscribe(fn);
     s.set(1);
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(1);
   });
 
-  it("skips notification if same value", () => {
-    const s = new Signal(5);
+  it("does not notify for same value", () => {
+    const s = new Signal(1);
     const fn = vi.fn();
     s.subscribe(fn);
-    s.set(5);
+    s.set(1);
     expect(fn).not.toHaveBeenCalled();
   });
 
@@ -40,43 +44,64 @@ describe("Signal", () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it("tracks listener count", () => {
+  it("subscriberCount", () => {
     const s = new Signal(0);
+    expect(s.subscriberCount).toBe(0);
     const unsub = s.subscribe(() => {});
-    expect(s.listenerCount).toBe(1);
+    expect(s.subscriberCount).toBe(1);
     unsub();
-    expect(s.listenerCount).toBe(0);
+    expect(s.subscriberCount).toBe(0);
   });
 });
 
-describe("computed", () => {
-  it("derives from dependencies", () => {
+describe("Computed", () => {
+  it("derives from signals", () => {
     const a = new Signal(2);
     const b = new Signal(3);
-    const sum = computed([a, b], () => a.get() + b.get());
-    expect(sum.get()).toBe(5);
-    a.set(10);
-    expect(sum.get()).toBe(13);
+    const sum = new Computed(() => a.value + b.value, [a, b]);
+    expect(sum.value).toBe(5);
+  });
+
+  it("updates when dependencies change", () => {
+    const a = new Signal(1);
+    const c = new Computed(() => a.value * 10, [a]);
+    a.set(5);
+    expect(c.value).toBe(50);
+  });
+
+  it("subscribe notifies on change", () => {
+    const a = new Signal(1);
+    const c = new Computed(() => a.value * 2, [a]);
+    const fn = vi.fn();
+    c.subscribe(fn);
+    a.set(3);
+    expect(fn).toHaveBeenCalledWith(6);
+  });
+
+  it("dispose stops updates", () => {
+    const a = new Signal(1);
+    const c = new Computed(() => a.value * 2, [a]);
+    c.dispose();
+    a.set(5);
+    expect(c.value).toBe(2);
   });
 });
 
-describe("effect", () => {
-  it("runs immediately and on change", () => {
-    const s = new Signal(0);
-    const log: number[] = [];
-    const cleanup = effect([s], () => { log.push(s.get()); });
-    s.set(1);
-    s.set(2);
-    expect(log).toEqual([0, 1, 2]);
-    cleanup();
+describe("Effect", () => {
+  it("runs on dependency change", () => {
+    const a = new Signal(0);
+    const fn = vi.fn();
+    new Effect(fn, [a]);
+    a.set(1);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("cleanup stops future runs", () => {
-    const s = new Signal(0);
+  it("dispose stops effect", () => {
+    const a = new Signal(0);
     const fn = vi.fn();
-    const cleanup = effect([s], fn);
-    cleanup();
-    s.set(1);
-    expect(fn).toHaveBeenCalledTimes(1);
+    const e = new Effect(fn, [a]);
+    e.dispose();
+    a.set(1);
+    expect(fn).not.toHaveBeenCalled();
   });
 });
