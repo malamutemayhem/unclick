@@ -22,7 +22,7 @@ export interface JobsmithRulePack {
 
 export const JOBSMITH_RULE_PACK: JobsmithRulePack = {
   "version": 1,
-  "total_rules": 229,
+  "total_rules": 228,
   "rules": [
     {
       "rule_id": "JS-ATS-01",
@@ -1390,6 +1390,45 @@ export const JOBSMITH_RULE_PACK: JobsmithRulePack = {
       }
     },
     {
+      "rule_id": "JS-AIDETECT-33",
+      "name": "no_negative_parallelism",
+      "category": "AIDETECT",
+      "what": "Flag not-X-but-Y phrasing and related negative parallelism that reads like model-polished contrast.",
+      "severity": "WARN",
+      "decay_period_days": 90,
+      "last_verified_at": "2026-05-20T00:00:00.000Z",
+      "check_method": {
+        "type": "regex",
+        "spec": "\\b(?:it's\\s+)?not\\s+[^.!?]{2,80}?(?:,\\s*)?(?:but|it's|it is)\\s+[^.!?]{2,120}"
+      }
+    },
+    {
+      "rule_id": "JS-AIDETECT-34",
+      "name": "no_bold_term_explainer_format",
+      "category": "AIDETECT",
+      "what": "Flag bold-label or title-colon explanation lines such as Strategic Fit: ... when they appear as formulaic AI list formatting.",
+      "severity": "WARN",
+      "decay_period_days": 90,
+      "last_verified_at": "2026-05-20T00:00:00.000Z",
+      "check_method": {
+        "type": "regex",
+        "spec": "(?:^|\\n)(?:[-*]\\s*)?(?:\\*\\*)?[A-Z][A-Za-z ]{2,32}(?::(?:\\*\\*)?|\\*\\*:)\\s+[A-Z]"
+      }
+    },
+    {
+      "rule_id": "JS-AIDETECT-35",
+      "name": "no_detector_evasion_prompts",
+      "category": "AIDETECT",
+      "what": "Block detector-evasion or humanizer prompt residue in application copy.",
+      "severity": "ERROR",
+      "decay_period_days": 90,
+      "last_verified_at": "2026-05-20T00:00:00.000Z",
+      "check_method": {
+        "type": "keyword_list",
+        "spec": "Phrase list: [make this undetectable, bypass AI detectors, fool AI detectors, humanize this AI text, beat AI detection, evade detection, pass as human, remove AI detection]"
+      }
+    },
+    {
       "rule_id": "JS-COVER-01",
       "name": "salutation_hierarchy",
       "category": "COVER",
@@ -1601,7 +1640,7 @@ export const JOBSMITH_RULE_PACK: JobsmithRulePack = {
       "rule_id": "JS-LINKEDIN-03",
       "name": "customised_linkedin_url",
       "category": "LINKEDIN",
-      "what": "LinkedIn URL on the CV uses the customised slug (linkedin.com/in/chrisbyrne), not the default with random characters (linkedin.com/in/chris-byrne-1a2b3c4d5e).",
+      "what": "LinkedIn URL on the CV uses a customised slug (e.g. linkedin.com/in/janesmith), not the default with random characters (e.g. linkedin.com/in/jane-smith-1a2b3c4d5e).",
       "severity": "WARN",
       "decay_period_days": 365,
       "last_verified_at": "2026-05-18T00:00:00.000Z",
@@ -2531,58 +2570,6 @@ export const JOBSMITH_RULE_PACK: JobsmithRulePack = {
       "check_method": {
         "type": "human_review",
         "spec": "Foreign-language titles use canonical English form."
-      }
-    },
-    {
-      "rule_id": "JS-ROLE_SPECIFIC-18",
-      "name": "chris_education_phrasing",
-      "category": "ROLE_SPECIFIC",
-      "what": "Chris's education leads with \"University Degree Equivalent (22+ Years Extensive Professional Experience)\" per Chris brand standard.",
-      "severity": "WARN",
-      "decay_period_days": 365,
-      "last_verified_at": "2026-05-18T00:00:00.000Z",
-      "check_method": {
-        "type": "regex",
-        "spec": "Education section begins with that exact phrasing."
-      }
-    },
-    {
-      "rule_id": "JS-ROLE_SPECIFIC-19",
-      "name": "chris_prompt_composition",
-      "category": "ROLE_SPECIFIC",
-      "what": "Chris uses \"Prompt composition\" not \"prompt engineering\".",
-      "severity": "WARN",
-      "decay_period_days": 365,
-      "last_verified_at": "2026-05-18T00:00:00.000Z",
-      "check_method": {
-        "type": "regex",
-        "spec": "Flag \"prompt engineering\"; suggest \"prompt composition\"."
-      }
-    },
-    {
-      "rule_id": "JS-ROLE_SPECIFIC-20",
-      "name": "chris_higgsfield_top_2",
-      "category": "ROLE_SPECIFIC",
-      "what": "Higgsfield placement is stated as \"top 2%\" (not \"top 2 percent\", not \"top tier\").",
-      "severity": "WARN",
-      "decay_period_days": 365,
-      "last_verified_at": "2026-05-18T00:00:00.000Z",
-      "check_method": {
-        "type": "regex",
-        "spec": "Higgsfield mention uses \"top 2%\"."
-      }
-    },
-    {
-      "rule_id": "JS-ROLE_SPECIFIC-21",
-      "name": "chris_keep_lore_off_cv",
-      "category": "ROLE_SPECIFIC",
-      "what": "Bailey, Malamute Mayhem, UnClick lore stays off the CV unless directly role-relevant.",
-      "severity": "WARN",
-      "decay_period_days": 365,
-      "last_verified_at": "2026-05-18T00:00:00.000Z",
-      "check_method": {
-        "type": "keyword_list",
-        "spec": "Flag Bailey|Malamute Mayhem|UnClick unless role-relevant."
       }
     },
     {

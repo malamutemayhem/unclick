@@ -126,7 +126,7 @@ const EVENT_TYPE_SET = new Set<string>(AUTOPILOT_EVENT_TYPES);
 const REF_KIND_SET = new Set<string>(AUTOPILOT_REF_KINDS);
 const SENSITIVE_KEY_RE = /(api[_-]?key|secret|token|password|credential|authorization|cookie)/i;
 const SENSITIVE_TEXT_RE =
-  /(authorization:\s*bearer\s+\S+|uc_[a-f0-9]{16,}|sk-[a-z0-9_-]{12,}|gh[pousr]_[a-z0-9_]{20,})/i;
+  /(authorization:\s*bearer\s+\S+|uc_[a-f0-9]{16,}|sk-[a-z0-9_-]{12,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|xox[bpra]-[a-z0-9-]{10,}|AKIA[A-Z0-9]{16,}|gh[pousr]_[a-z0-9_]{20,})/i;
 
 function compact(value: unknown, max = 500): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -175,9 +175,9 @@ function boundedNumber(value: unknown, fallback: number, min: number, max: numbe
   return Math.max(min, Math.min(max, value));
 }
 
-const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|^chris$|^malamutemayhem$|\boperator\b|\bhuman\b)/i;
+const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|\boperator\b|\bhuman\b)/i;
 const HUMAN_TOUCH_RE =
-  /\b(human|operator|chris|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
+  /\b(human|operator|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
 const HUMAN_TOUCH_BOOLEAN_KEYS = new Set([
   "human_touch",
   "operator_touch",

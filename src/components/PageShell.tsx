@@ -14,7 +14,7 @@ interface PageShellProps {
   /** Where the accent slots in. `before` puts the accent first, `after` keeps it inside the title. */
   accentPosition?: "before" | "after";
   /** One supporting line. Keep it short. */
-  lede?: string;
+  lede?: ReactNode;
   /** The single primary call to action. */
   cta?: {
     label: string;

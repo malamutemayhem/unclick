@@ -3859,7 +3859,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 - rule_id: JS-LINKEDIN-03
   name: customised_linkedin_url
   category: LINKEDIN
-  what: "LinkedIn URL on the CV uses the customised slug (linkedin.com/in/chrisbyrne), not the default with random characters (linkedin.com/in/chris-byrne-1a2b3c4d5e)."
+  what: "LinkedIn URL on the CV uses the customised slug (linkedin.com/in/janesmith), not the default with random characters (linkedin.com/in/jane-smith-1a2b3c4d5e)."
   why: Default-slug URLs read as junior; clean slug reads as polished.
   sources:
     - doc: cvchecklists_1.md

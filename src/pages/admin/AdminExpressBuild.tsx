@@ -65,7 +65,7 @@ function makeMarkdownBrief(input: ExpressRoomDraftInput): string {
   return [
     `# ${input.job_name_mirror.trim() || "Manual DraftRoom draft"}`,
     "",
-    "## What Chris told the chat agent",
+    "## What you told the chat agent",
     input.brief_markdown.trim() || "- Not captured yet.",
     "",
     "## Short description",
@@ -225,7 +225,7 @@ export default function AdminExpressBuild() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
-        <div className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="mb-4 flex items-center gap-2">
             <NotebookTabs className="h-4 w-4 text-[#61C1C4]" />
             <h2 className="text-sm font-semibold text-white">Builder induction</h2>
@@ -241,7 +241,7 @@ export default function AdminExpressBuild() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="mb-4 flex items-center gap-2">
             <Rocket className="h-4 w-4 text-[#E2B93B]" />
             <h2 className="text-sm font-semibold text-white">Normal conveyor belt</h2>
@@ -271,7 +271,7 @@ export default function AdminExpressBuild() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+      <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">Add Manual DraftRoom job</h2>
@@ -392,7 +392,7 @@ export default function AdminExpressBuild() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+      <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">DraftRoom table</h2>

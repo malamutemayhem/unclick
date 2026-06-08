@@ -356,7 +356,7 @@ function easyReadForEvent(event: OrchestratorContinuityEvent, actor: ActorIdenti
     return "Signal to notice: something needs attention.";
   }
   if (event.role === "user") {
-    return `Chris said: ${cleanSummary}`;
+    return `You said: ${cleanSummary}`;
   }
   if (event.role === "assistant") {
     return `AI replied: ${cleanSummary}`;
@@ -375,7 +375,7 @@ function educationHintForEvent(event: OrchestratorContinuityEvent): string {
     return "Hint: proof is the receipt that tells you why a change can be trusted.";
   }
   if (event.kind === "decision" || event.tags?.includes("decision")) {
-    return "Hint: decision means this should guide future seats until Chris changes it.";
+    return "Hint: decision means this should guide future seats until the operator changes it.";
   }
   if (event.source_kind === "signal") {
     return "Hint: signals are attention lights. They point to things worth checking.";
@@ -546,7 +546,7 @@ function cleanStoryText(value: string): string {
     .replace(/^user:\s*/i, "")
     .replace(/^assistant:\s*/i, "")
     .replace(/^AI replied:\s*/i, "")
-    .replace(/^Chris said:\s*/i, "")
+    .replace(/^You said:\s*/i, "")
     .replace(/^PASS:\s*/i, "")
     .replace(/^BLOCKER:\s*/i, "")
     .trim();
@@ -640,7 +640,7 @@ function latestUserAsk(events: OrchestratorContinuityEvent[]): string | null {
   if (!event) return null;
   const clean = cleanStoryText(event.summary)
     .replace(/^User asked\s*/i, "asked ")
-    .replace(/^Chris said:\s*/i, "")
+    .replace(/^You said:\s*/i, "")
     .trim();
   if (!clean) return null;
   return clean.length > 170 ? `${clean.slice(0, 170).trimEnd()}...` : clean;
@@ -743,7 +743,7 @@ function storyMomentKind(event: OrchestratorContinuityEvent): "ask" | "blocker" 
   if (event.kind === "blocker" || /^blocker:/i.test(event.summary) || /stale|missed|blocked|needs-doing|wakepass stale/.test(text)) {
     return "blocker";
   }
-  if (event.kind === "decision" || /decision from session|greenlit|confirmed|correction from chris/.test(text)) return "decision";
+  if (event.kind === "decision" || /decision from session|greenlit|confirmed|correction from operator/.test(text)) return "decision";
   if (event.kind === "proof" || /^pass:/i.test(event.summary) || /merged cleanly|checks passed|proof landed|todo done|shipped/.test(text)) {
     return "proof";
   }
@@ -805,7 +805,7 @@ function storyTitleForMoment(events: OrchestratorContinuityEvent[]): { emoji: st
     return { emoji: "⚠️", title: "Worker Health Stays Visible", theme: "blocker" };
   }
 
-  if (kind === "ask") return { emoji: "🌅", title: `Chris Asks: ${headlineFromText(event.summary, "The Next Useful Question")}`, theme: "question" };
+  if (kind === "ask") return { emoji: "🌅", title: `You Asked: ${headlineFromText(event.summary, "The Next Useful Question")}`, theme: "question" };
   if (kind === "decision") return { emoji: "🧠", title: headlineFromText(event.summary, "A Decision Sets Direction"), theme: "general" };
   if (kind === "proof") return { emoji: "✅", title: headlineFromText(event.summary, "Proof Lands"), theme: "shipping" };
   if (kind === "blocker") return { emoji: "⚠️", title: headlineFromText(event.summary, "A Handoff Needs Attention"), theme: "blocker" };
@@ -844,7 +844,7 @@ function storyNarrativeForMoment(
 
   if (kind === "ask") {
     return [
-      `Chris asked: ${subject}.`,
+      `You asked: ${subject}.`,
       "The important part is the shape of the request: keep the page readable, keep the trail continuous, and make the next step obvious without turning the story into raw machinery.",
     ].join(" ");
   }
@@ -960,13 +960,13 @@ function storyBeatNarrative(
   if (beat === "big-question") {
     if (/story mode.*fixed|translator patch|#728/.test(text)) {
       return [
-        "Chris pulled the thread back to the real one today: is Story mode actually fixed after the translator patch in PR #728?",
-        "That was not just a status check. It was a push to turn vague reassurance into something Chris could read and judge on the page.",
+        "The thread was pulled back to the real one today: is Story mode actually fixed after the translator patch in PR #728?",
+        "That was not just a status check. It was a push to turn vague reassurance into something the operator could read and judge on the page.",
         "The useful move from here is simple: make the Story surface prove itself in plain English, keep enough detail to feel alive, and leave the receipts underneath for anyone who wants to inspect the raw trail. ✅",
       ].join(" ");
     }
     return [
-      ask ? `Chris pulled the thread back to the real question: ${ask}.` : "Chris pulled the thread back to the real question.",
+      ask ? `The thread was pulled back to the real question: ${ask}.` : "The thread was pulled back to the real question.",
       "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the machinery.",
       "The room stayed pointed at the next action rather than another round of describing the same problem. ✅",
     ].join(" ");
@@ -977,7 +977,7 @@ function storyBeatNarrative(
       "Session set the direction for the room.",
       focus
         ? `The thread to pull was ${focus}, with proof kept nearby so the next seat can trust the decision.`
-        : "The important part was not another alert. It was a clear steer that stays in place until Chris changes course.",
+        : "The important part was not another alert. It was a clear steer that stays in place until the operator changes course.",
       "That gave the pack something steadier to follow than a pile of minute-by-minute signals, and it keeps the next worker from having to rediscover the point of the work. ✅",
     ].join(" ");
   }
@@ -986,7 +986,7 @@ function storyBeatNarrative(
     return [
       prMatches ? `The Orchestrator Story work moved forward around ${prMatches}.` : "The Orchestrator Story work moved forward.",
       "Story is becoming the friendly front door, with Timeline holding the raw receipts underneath for anyone who needs the exact trail.",
-      "The shape is clearer now: Chris should be able to read the day like a running account, with enough context to understand why each moment mattered, while the machine notes stay tucked away for proof. ✅",
+      "The shape is clearer now: the operator should be able to read the day like a running account, with enough context to understand why each moment mattered, while the machine notes stay tucked away for proof. ✅",
     ].join(" ");
   }
 
@@ -1363,7 +1363,7 @@ function OrchestratorStoryPanel({
   };
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#101010] shadow-2xl shadow-black/30">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-2xl shadow-black/30">
       <div className="border-b border-white/[0.06] px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -1614,7 +1614,7 @@ function OrchestratorContinuityPanel({
   }
 
   return (
-    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#0d0d0d]">
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03]">
       <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
@@ -1834,7 +1834,7 @@ function ContinuityFeedRow({
   const visibleNaturalText = expanded || !naturalPreview.truncated ? event.summary : naturalPreview.text;
   const canExpand = mainPreview.truncated || (easyRead && naturalPreview.truncated);
   const content = (
-    <article className="rounded-xl border border-white/[0.06] bg-[#111111] px-4 py-3">
+    <article className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3">
       <div className="mb-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-base ${ACTOR_TONE_STYLES[actor.tone]}`}>
@@ -1928,7 +1928,7 @@ function OrchestratorContextCard({
 }) {
   if (loading) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
         <div className="flex items-center gap-2 text-sm text-white/60">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           Loading Orchestrator context...
@@ -1939,7 +1939,7 @@ function OrchestratorContextCard({
 
   if (!context) {
     return (
-      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
         <header className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-[#61C1C4]" />
           <h3 className="text-sm font-semibold text-white">Orchestrator Context</h3>
@@ -2255,7 +2255,7 @@ function ConnectionCard({
 
 function QuickLinksCard() {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Quick links
       </h3>
@@ -2325,7 +2325,7 @@ function MemoryStatsCard({
     { key: "conversations" as const, label: "Convos", icon: Brain },
   ];
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
         Memory
       </h3>

@@ -86,7 +86,7 @@ describe("MemoryActivityTab", () => {
     activityFactory = () => {
       const backgroundFact = {
         id: "static-profile",
-        fact: "Chris prefers concise worker updates",
+        fact: "User prefers concise worker updates",
         category: "preference",
         access_count: 2080,
         decay_tier: "hot",
@@ -129,7 +129,7 @@ describe("MemoryActivityTab", () => {
     activityFactory = () => {
       const backgroundFacts = Array.from({ length: 10 }, (_, index) => ({
         id: `static-profile-${index + 1}`,
-        fact: `Chris profile preference ${index + 1}`,
+        fact: `User profile preference ${index + 1}`,
         category: "preference",
         access_count: 2080 - index,
         decay_tier: "hot",
@@ -165,5 +165,41 @@ describe("MemoryActivityTab", () => {
 
     expect(screen.getByText("PR #997 made FidelityCopy receipts green")).toBeInTheDocument();
     expect(screen.getAllByText("Background-heavy")).toHaveLength(10);
+  });
+
+  it("labels zero-count facts as new instead of showing misleading 0x counters", async () => {
+    activityFactory = () => {
+      const zeroFact = {
+        id: "fresh-memory",
+        fact: "Fresh saved fact has not been searched yet",
+        category: "technical",
+        access_count: 0,
+        decay_tier: "hot",
+        recall_signal: "top-of-mind" as const,
+        recall_note: "Human-facing recall",
+      };
+
+      return {
+        ...makeActivity(1),
+        recall_diagnostics: {
+          inspected_top_facts: 1,
+          inspected_top_of_mind_candidates: 1,
+          background_heavy_count: 0,
+          background_heavy_candidate_count: 0,
+          zero_access_count: 1,
+          zero_access_candidate_count: 1,
+        },
+        top_of_mind_facts: [zeroFact],
+        top_facts: [zeroFact],
+      };
+    };
+
+    render(<MemoryActivityTab apiKey="test-token" />);
+
+    await screen.findByText("Recall Counter Meaning");
+
+    expect(screen.getByText("Current sample: 1 of 1 most-accessed facts have no targeted recall count yet.")).toBeInTheDocument();
+    expect(screen.getAllByText("new").length).toBeGreaterThan(0);
+    expect(screen.queryByText("0x")).not.toBeInTheDocument();
   });
 });

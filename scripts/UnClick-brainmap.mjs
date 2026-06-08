@@ -584,7 +584,7 @@ async function collectBrainmapModel(root) {
     owner_visibility: {
       route: "/admin/brainmap",
       audience: "private yellow admin",
-      owner_email: "creativelead@malamutemayhem.com",
+      owner_email: process.env.BRAINMAP_OWNER_EMAIL ?? "(configured via env)",
     },
     counts: {
       divisions: DIVISIONS.length,
@@ -700,7 +700,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "## Safety Rules",
     "",
     "- Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.",
-    "- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.",
+    "- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.",
     "- NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.",
     "- IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.",
     "- Heartbeats must never print keys or credentials.",

@@ -95,7 +95,7 @@ describe("AdminExpressBuild", () => {
 
     fireEvent.change(screen.getByLabelText("Job name mirror"), { target: { value: "Worker Registry score panel" } });
     fireEvent.change(screen.getByLabelText("Short description"), { target: { value: "Build a small score panel." } });
-    fireEvent.change(screen.getByLabelText("Detailed intake brief"), { target: { value: "Chris asked for a ranked worker score table." } });
+    fireEvent.change(screen.getByLabelText("Detailed intake brief"), { target: { value: "User asked for a ranked worker score table." } });
     fireEvent.change(screen.getByLabelText("Supplied code"), { target: { value: "export const score = 88;" } });
     fireEvent.change(screen.getByLabelText("Code state"), { target: { value: "complete" } });
 

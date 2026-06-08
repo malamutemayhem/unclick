@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (193 external connectors)
+## Distribution (500 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 154 | 80% |
+| L5 | Agentic | 461 | 92% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 19% |
-| L1 | Wrapper | 3 | 2% |
+| L2 | Reliable | 36 | 7% |
+| L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 189 of 193 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 500 (48%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,172 +34,734 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 154 of 157 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 461 of 464 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
 These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
 
+- `abstract-holidays` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `acnhapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `acronymgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `amiibo` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `angleconv` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `animechan` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `areacalc` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `artic` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `arxiv` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `aspectratio` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `atbash` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `avatarapi` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `balldontlie` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `base64` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `baseconvert` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `bgpview` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `bibleverse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `binaryconv` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `binomprob` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `bitwise` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `braille` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `breakingbad` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `camelsnake` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `carbonintensity` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `cataas` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `charcodes` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `charcount` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `cheapshark` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `cidr` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `citybikes` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `cocktaildb2` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `coincap` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `coinlore` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `coinpaprika` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `collatz` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `colorblend` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `colorconvert` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `colormind` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
+- `colornames` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `colr` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `combination` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `complexnum` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `cosinesim` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `countdowncalc` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `countryflag` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `countryis` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `crates` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `crc32` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `crontab` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `crossproduct` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `crossref` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `csvparse` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `cvecircl` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `damerau` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `datamuse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `dblp` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `diceware` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `difftext` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `digimon` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `diseasesh` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `disneyapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `dogfacts` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `dohdns` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `domainsdb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `dotproduct` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `dummyimage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `dummyjson` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `emojihub` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `emojilookup` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `entropy` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `epoch` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `europeana` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `exchangerate3` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `excuser` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `expgrowth` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `fakerapi` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `fakestoreapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `fibonacci` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `finalspace` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `fishwatch` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `flyover` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `foodish` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `freetogame` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `frequency` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `fruityvice` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `funtranslations` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `gameoflife` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `gbif` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `gcd` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `gcdlcm` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `genderize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `geojs` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `geomseries` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `ghibli` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `gutendex` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `hamming` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `harmonicseries` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `harrypotter` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `hashgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `histogram` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `htmlstrip` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `httpcat` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `httpdog` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `iban` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `iceandfire` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `imgflip` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `interpolate` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `ipaddrinfo` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ipinfo` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ipvalidate` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `iseven` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `isup` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `itis` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `jaccard` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `jisho` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `jobsmith` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `jsoncrack` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `jsonformat` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `jwt` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `languagetool` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
+- `levenshtein` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `libretranslate` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `logbase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `lorem2` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `loremname` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `lotr` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `luhn` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `lyrics` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `markdown` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `markdowntable` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `markov` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `matrix` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mcsrvstat` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `mediawiki` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `memegen` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `metaphone` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mhwdb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `midpoint` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `modpow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `morse` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mtg` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `multiavatar` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mymemory` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `nationalize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `natoalphabet` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `newton` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ngram` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `nhtsa` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `nobelprize` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `nominatim` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `normaldistr` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `npm-registry` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `nthroot` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `oeis` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `officialjoke` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `open-elevation` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openalex` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openchargemap` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `opendota` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openfda` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openfigi` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `openlib2` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openmeteo-airquality` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openmeteo-climate` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openmeteo-flood` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openmeteo-historical` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `openmeteo-marine` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `opensky` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `opentriviadb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `palindrome` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `pascaltri` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `passwordgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `percentage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `permutation` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `phonetic` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `piapprox` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `piglatin` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `placebear` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `placehold` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `placekitten` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `poetrydb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `poisson` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `pokemontcg` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `polygon` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `postcodes` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `primecheck` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `primefactor` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `proportion` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `pubchem` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `publicapis` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `punkapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `pypi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `qrserver` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `quadratic` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `railfence` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `randomduck` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `randomuser` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ratiosimplify` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `rdap` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `readability` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `regexr` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `regression` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `reversetext` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `ripe` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `robohash` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `roman` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `rot13` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `runlength` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `semver` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `setops` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `shibe` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `sigmoid` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `slopeintercept` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `slug` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `solarsystem` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `sortlines` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `soundex` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `spacex` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `stackexchange` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `standardform` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `stapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `statistics` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `stringcase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `tacofancy` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `taylor` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `tempconvert` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `textstats` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `textwrap` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `tfidf` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `thecolorapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `timeapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `timezone` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `tokencount` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `trianglesolve` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `tvmaze` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ukpolice` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `unitpressure` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `universities` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `upcitemdb` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `urbandictionary` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `urlencode` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `urlhaus` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `uuidgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `variancecalc` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `vatcomply` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `vigenere` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `wavelength` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `wayback` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `weightedmean` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `wger` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `wheretheiss` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `wikidata` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `wordcount` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `wordfreq` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `worldbank` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `zscore` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 
 ## Per-connector, highest rung first
 
 | Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
 | L5 Agentic | `abn` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `abstract-holidays` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `abuseipdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `acnhapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `acronymgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `adviceslip` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `affirmation` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `agify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `algolia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `alphavantage` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `amazon` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `amber` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `amiibo` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `angleconv` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `animechan` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `anthropic` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `aoe2` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `apifootball` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `archiveorg` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `areacalc` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `artic` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `arxiv` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `asana` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `aspectratio` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `assemblyai` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `atbash` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `australiapost` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `avatarapi` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `balldontlie` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `bandsintown` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `base64` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `baseconvert` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `bgg` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bgpview` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `bible` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bibleverse` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `binaryconv` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `binomprob` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `bitbucket` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bitwise` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `bored` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `braille` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `breakingbad` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `brevo` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `brewery` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bungie` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calcom` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calendly` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `camelsnake` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `carbonintensity` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `carboninterface` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cataas` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `catapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `catfacts` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `charcodes` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `charcount` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `cheapshark` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `chessdotcom` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `chucknorris` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cidr` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `circleci` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `citybikes` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `cloudinary` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cocktail` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cocktaildb2` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `coda` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `cohere` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `coincap` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `coinlore` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `coinpaprika` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `collatz` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `colorblend` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `colorconvert` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `colormind` | - | - | - | Yes | Yes | not-hardened, 2x-bare-error, no-memory |
+| L5 Agentic | `colornames` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `colr` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `combination` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `complexnum` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `confluence` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `contentful` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `corporatebs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `cosinesim` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `countdowncalc` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `countryflag` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `countryis` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `crates` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `crc32` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `crontab` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `crossproduct` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `crossref` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `csvparse` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `cvecircl` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `dadjoke` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `damerau` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `datadog` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `datamuse` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `dblp` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `deckofcards` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `diceware` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `dictionary` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `difftext` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `digimon` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `digitalocean` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `diseasesh` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `disneyapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `dnd5e` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dogapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dogceo` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dogfacts` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `dohdns` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `domain` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `domainsdb` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `dotproduct` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `dropbox` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `dummyimage` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `dummyjson` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebird` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `elevenlabs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `emojihub` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `emojilookup` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `entropy` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `epoch` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `espn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `etsy` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `europeana` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `eventbrite` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `evilinsult` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `exchangerate` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `exchangerate2` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `exchangerate3` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `excuser` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `expgrowth` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `fakerapi` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `fakestoreapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `fibonacci` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `figma` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `finalspace` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `fishwatch` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `flyio` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `flyover` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `foodish` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `foursquare` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `fpl` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `frankfurter` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `freetogame` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `frequency` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `fruityvice` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `funtranslations` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `gameoflife` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `gbif` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `gcd` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `gcdlcm` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `gdelt` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `genderize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `genius` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `geojs` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `geomseries` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `ghibli` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `ghost` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `giphy` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `github-emoji` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `groq` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `guardian` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gumroad` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `gutendex` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `hackernews` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `hamming` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `harmonicseries` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `harrypotter` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `hashgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `haveibeenpwned` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `heygen` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `higgsfield` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `histogram` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `holidays` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `htmlstrip` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `httpbin` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `httpcat` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `httpdog` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `hubspot` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hunter` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `iban` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `iceandfire` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `igdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `imgflip` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `intercom` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `interpolate` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `ipaddrinfo` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `ipapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ipify` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ipinfo` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `ipvalidate` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `iseven` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `isup` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `itis` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `jaccard` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `jikan` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `jira` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `jisho` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `jobsmith` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `joke` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `jsoncrack` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `jsonformat` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `jsonplaceholder` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `jwt` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `kanye` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `klaviyo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `kling` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `languagetool` | - | - | - | Yes | Yes | not-hardened, 2x-bare-error, no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lego` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lemonsqueezy` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `levenshtein` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `libretranslate` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `lichess` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `logbase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `lorem` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `lorem2` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `loremname` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `lotr` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `luhn` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `lyrics` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `mailchimp` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `makeup` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mapbox` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `markdown` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `markdowntable` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `markov` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `matrix` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `mcsrvstat` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `meal` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `mediawiki` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `memegen` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `metaphone` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `metmuseum` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `mhwdb` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `midpoint` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `miro` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mistral` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mixpanel` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `modpow` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `morse` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `mtg` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `multiavatar` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `musicbrainz` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `mymemory` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `nasa` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `nationalize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `natoalphabet` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `neon` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `netlify` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `newsapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `newton` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `ngram` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `nhtsa` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `nobelprize` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `nominatim` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `normaldistr` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `npm-registry` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `nthroot` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `nvd` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `oeis` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `officialjoke` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `open-elevation` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openai` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openalex` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openaq` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openchargemap` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `opendota` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openexchangerates` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openf1` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openfda` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `openfigi` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openlib2` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openlibrary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openmeteo` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `openmeteo-airquality` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `openmeteo-climate` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `openmeteo-flood` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `openmeteo-historical` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `openmeteo-marine` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `opennotify` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `opensky` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `opentriviadb` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `pagerduty` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `palindrome` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `pandascore` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `pascaltri` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `passwordgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `percentage` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `permutation` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `phonetic` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `piapprox` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `picsum` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `piglatin` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `pika` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinecone` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinterest` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pipedrive` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `placebear` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `placehold` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `placekitten` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `plaid` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `podcastindex` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `poetrydb` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `poisson` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `pokeapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `pokemontcg` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `polygon` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `postcodes` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `primecheck` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `primefactor` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `proportion` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
+| L5 Agentic | `pubchem` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `publicapis` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `punkapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `pypi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `qrserver` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `quadratic` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `quotable` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `railfence` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `randomduck` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `randomfox` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `randomuser` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `ratiosimplify` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `rawg` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `rdap` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `readability` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `reddit` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `regexr` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `regression` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `render` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `replicate` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `reqres` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `restcountries` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `reversetext` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `rickandmorty` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `riot` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ripe` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `robohash` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `roman` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `rot13` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `runlength` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `runway` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `seatgeek` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `segment` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `semver` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `sendle` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `setlistfm` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `setops` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `shibe` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `shodan` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `shortcut` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `sigmoid` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `sleeper` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `slopeintercept` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `slug` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `solarsystem` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `sortlines` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `soundex` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `spaceflight` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `spacex` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `speedrun` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `spotify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `stability` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `stackexchange` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
+| L5 Agentic | `standardform` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `stapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `statistics` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `steam` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `stringcase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `sunrisesunset` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `superhero` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `swapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tab` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `tacofancy` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `tarot` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `taylor` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `tempconvert` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `textstats` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `textwrap` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `tfidf` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `thecolorapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `thelott` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tiktok` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `timeapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `timezone` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `tmdb` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `todoist` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `togetherai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toggl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toilets` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `tokencount` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `tomorrowio` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `trianglesolve` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `trivia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trove` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `turso` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `tvmaze` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `twilio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `twitch` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `typeform` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ukpolice` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `unitpressure` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `universities` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `unsplash` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `untappd` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `upcitemdb` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `upstash` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `uptimerobot` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `urbandictionary` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `urlencode` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `urlhaus` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `urlscan` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `uselessfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `usgs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `uuidgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `variancecalc` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `vatcomply` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `vercel` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `vigenere` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `virustotal` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `wavelength` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `wayback` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `webflow` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `weightedmean` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `wger` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `wheretheiss` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `wikidata` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `wikipedia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `willyweather` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `wise` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `wordcount` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `wordfreq` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `wordpress` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `worldbank` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `worldtime` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `xkcd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `yelp` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `yesno` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `youtube` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `zendesk` | Yes | - | Yes | Yes | Yes | no-memory |
+| L5 Agentic | `zenquotes` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `zippopotamus` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `zscore` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L2 Reliable | `airtable` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 | L2 Reliable | `bluesky` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 | L2 Reliable | `clickup` | Yes | - | - | - | - | L2 by design (action-multiplexer) |

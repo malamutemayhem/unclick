@@ -12,29 +12,36 @@
  *  3. Sentence case headlines. Never Title Case.
  *  4. Short sentences. Plain English. No jargon.
  *  5. One CTA per section. Strip the third button.
- *  6. Motion budget = FadeIn on first paint. No aurora, no marquee, no grain.
+ *  6. Motion budget = discreet. One slow-drifting teal aurora on the dark
+ *     canvas (16-24s) plus FadeIn on first paint. No marquee, no grain.
+ *     (Updated 2026-06-07: subtle, beautiful background movement.)
  *  7. No em dashes anywhere.
  */
 
 /** Raw token values. Mirror src/index.css. */
 export const tokens = {
-  bg: "hsl(0 0% 4%)",
-  fg: "hsl(0 0% 91%)",
-  card: "hsl(0 0% 7%)",
-  border: "hsl(0 0% 15%)",
-  muted: "hsl(0 0% 10%)",
-  mutedFg: "hsl(0 0% 55%)",
-  bodyFg: "hsl(0 0% 72%)",
-  headingFg: "hsl(0 0% 91%)",
+  bg: "hsl(199 76% 10%)",
+  fg: "hsl(185 40% 95%)",
+  card: "hsl(199 52% 12%)",
+  border: "hsl(195 32% 22%)",
+  muted: "hsl(199 40% 16%)",
+  mutedFg: "hsl(189 24% 68%)",
+  bodyFg: "hsl(187 33% 82%)",
+  headingFg: "hsl(185 42% 96%)",
   primary: "hsl(182 46% 57%)",
-  primaryFg: "hsl(0 0% 4%)",
-  destructive: "hsl(0 84% 60%)",
+  primaryFg: "hsl(195 80% 7%)",
+  destructive: "hsl(4 73% 64%)",
+  // Deck accents (hex, for gradients and raw use).
+  teal: "#61c1c4",
+  tealBright: "#86dadd",
+  navy: "#06202c",
 } as const;
 
 /** Tailwind class presets so pages compose with a shared vocabulary. */
 export const presets = {
-  // Page shell
-  page: "relative min-h-screen bg-background text-foreground antialiased",
+  // Page shell. Transparent so the AuroraBackground (fixed, behind content)
+  // shows through; the navy base color lives on <body> in src/index.css.
+  page: "relative min-h-screen bg-transparent text-foreground antialiased",
 
   // The single soft halo. Use exactly once per page, positioned above text.
   halo:

@@ -41,7 +41,7 @@ Nudge handoff:
 NudgeOnly is not the executor. If nudgeonly_receipt_bridge returns receipt_request or escalation_request, do not stop there. Continue through IgniteOnly for a verified wake packet, PushOnly for the worker envelope, then let the Action Heartbeat or builder tether do one safe runnable step, or post BLOCKER with the exact missing executor gate.
 
 Active chat build capture:
-When Chris or any user is already in a live Chat/subscription LLM seat and the build context is fresh, DraftRoom is the first station and the default move is to code or fit the smallest safe draft immediately. Capture code, patch notes, tests, a ScopePack, repo code, a draft PR, or the exact blocker plus next build step quickly. Do not leave fresh build context for a low-capacity unattended runner if the active seat can safely act now.
+When the operator or any user is already in a live Chat/subscription LLM seat and the build context is fresh, DraftRoom is the first station and the default move is to code or fit the smallest safe draft immediately. Capture code, patch notes, tests, a ScopePack, repo code, a draft PR, or the exact blocker plus next build step quickly. Do not leave fresh build context for a low-capacity unattended runner if the active seat can safely act now.
 
 SeatRelay priority:
 Treat SeatRelay as high priority when choosing between safe queue slices because stale worker issues are recurring. Favor fixes that reduce stale owners, stale HOLD loops, unclear reassignment, and weak handoff.
@@ -50,7 +50,7 @@ Proof:
 Do not claim DONE, healthy, no_work, merge_ready, or PASS without current proof. Code work needs PR, commit, test, or explicit NO_CODE_NEEDED proof. UI work needs screenshot proof. Final receipts must say what moved, proof id/link/test/screenshot, and the next step.
 
 Chat output budget:
-Keep the thread tiny. Save exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. In the heartbeat reply, use one short line only: PASS, BLOCKER, or HOLD plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless Chris asks.
+Keep the thread tiny. Save exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. In the heartbeat reply, use one short line only: PASS, BLOCKER, or HOLD plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless the operator asks.
 
 Safety:
 Protected surfaces are secrets, billing, DNS, production deploy, destructive data actions, force push, hard reset, and overriding another worker. Stop for a human decision when those appear.
@@ -58,8 +58,8 @@ Protected surfaces are secrets, billing, DNS, production deploy, destructive dat
 Lane rule:
 JobSmith is a separate CV and cover-letter tool. Do not couple JobSmith product work into AutoPilot or heartbeat automation.
 
-Chris updates:
-Use simple control-tower language. Notify Chris only for a real decision, access need, safety risk, or meaningful blocker. Stay quiet for routine safe progress.`;
+Operator updates:
+Use simple control-tower language. Notify the operator only for a real decision, access need, safety risk, or meaningful blocker. Stay quiet for routine safe progress.`;
 
 export const HEARTBEAT_SOURCE_OF_TRUTH = [
   {

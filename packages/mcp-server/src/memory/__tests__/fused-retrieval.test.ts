@@ -139,11 +139,13 @@ const KEYWORD_FACT = {
   source_type: "manual",
   startup_fact_kind: "durable",
 };
-// Semantic-only hit, session-sourced so the recall-visibility filter passes it through.
+// Semantic-only hit, session-sourced with a matching active session row so the
+// recall-visibility filter proves recycle-bin hidden sessions stay excluded
+// without dropping valid vector-only hits.
 const SEMANTIC_HIT = {
   id: "vec-1",
   source: "session",
-  content: "probe semantic only summary",
+  content: "zeta semantic only summary",
   category: "session",
   confidence: 1,
   created_at: "2026-05-02T00:00:00Z",
@@ -154,6 +156,12 @@ const SEMANTIC_HIT = {
   keyword_rank: null,
   vector_rank: 1,
 };
+const SEMANTIC_SESSION_ROW = {
+  id: "vec-1",
+  summary: "zeta semantic only summary",
+  created_at: "2026-05-02T00:00:00Z",
+  status: "active",
+};
 // A query long enough (>= 24 chars) that the local embedding provider produces a vector.
 const QUERY = "alpha probe coverage retrieval signal";
 
@@ -161,7 +169,7 @@ async function makeBackend(): Promise<FakeBackend> {
   const { SupabaseBackend } = await import("../supabase.js");
   const backend = Object.create(SupabaseBackend.prototype) as FakeBackend;
   backend.client = new FakeRpcClient(
-    { extracted_facts: [KEYWORD_FACT], session_summaries: [], business_context: [] },
+    { extracted_facts: [KEYWORD_FACT], session_summaries: [SEMANTIC_SESSION_ROW], business_context: [] },
     [SEMANTIC_HIT]
   );
   backend.tenancy = { mode: "byod" };
@@ -278,5 +286,26 @@ describe("lane-01 orderByEffectiveScore", () => {
     );
     assert.equal(ordered.length, 2);
     assert.deepEqual(ordered.map((r) => r.id), ["a", "b"]);
+  });
+
+  test("NaN in final_score or effective_score does not break sort order", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const good = eff("good", "fact", 0.5, "");
+    const nanFinal = eff("nan-final", "fact", NaN as unknown as number, "");
+    const nanEff = eff("nan-eff", "fact", 0.3, "", { effective_score: NaN as unknown as number });
+    const infEff = eff("inf-eff", "fact", 0.1, "", { effective_score: Infinity as unknown as number });
+    const ordered = orderByEffectiveScore([nanFinal, good, infEff, nanEff], 10);
+    for (const row of ordered) {
+      assert.equal(Number.isFinite(row.effective_score), true, `${row.id} has finite effective_score`);
+    }
+    assert.equal(ordered[0].id, "good", "valid row ranks first over NaN/Infinity rows");
+  });
+
+  test("NaN in scope_weight falls back to source-based weight", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const nanWeight = eff("nw", "business_context", 0.8, "", { scope_weight: NaN as unknown as number });
+    const ordered = orderByEffectiveScore([nanWeight], 10);
+    assert.equal(Number.isFinite(ordered[0].effective_score), true);
+    assert.ok((ordered[0].effective_score ?? 0) > 0, "falls back to business_context scope weight 1.5");
   });
 });
