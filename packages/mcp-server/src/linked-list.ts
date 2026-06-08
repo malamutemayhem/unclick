@@ -1,39 +1,38 @@
-class Node<T> {
+interface Node<T> {
   value: T;
-  next: Node<T> | null = null;
-  prev: Node<T> | null = null;
-  constructor(value: T) { this.value = value; }
+  prev: Node<T> | null;
+  next: Node<T> | null;
 }
 
-export class DoublyLinkedList<T> {
+export class LinkedList<T> {
   private head: Node<T> | null = null;
   private tail: Node<T> | null = null;
-  private _size = 0;
+  private count = 0;
 
-  get size(): number { return this._size; }
-
-  pushFront(value: T): void {
-    const node = new Node(value);
-    if (!this.head) {
-      this.head = this.tail = node;
-    } else {
-      node.next = this.head;
-      this.head.prev = node;
-      this.head = node;
-    }
-    this._size++;
+  get size(): number {
+    return this.count;
   }
 
-  pushBack(value: T): void {
-    const node = new Node(value);
-    if (!this.tail) {
-      this.head = this.tail = node;
-    } else {
-      node.prev = this.tail;
-      this.tail.next = node;
-      this.tail = node;
-    }
-    this._size++;
+  get isEmpty(): boolean {
+    return this.count === 0;
+  }
+
+  pushFront(value: T): this {
+    const node: Node<T> = { value, prev: null, next: this.head };
+    if (this.head) this.head.prev = node;
+    this.head = node;
+    if (!this.tail) this.tail = node;
+    this.count++;
+    return this;
+  }
+
+  pushBack(value: T): this {
+    const node: Node<T> = { value, prev: this.tail, next: null };
+    if (this.tail) this.tail.next = node;
+    this.tail = node;
+    if (!this.head) this.head = node;
+    this.count++;
+    return this;
   }
 
   popFront(): T | undefined {
@@ -42,7 +41,7 @@ export class DoublyLinkedList<T> {
     this.head = this.head.next;
     if (this.head) this.head.prev = null;
     else this.tail = null;
-    this._size--;
+    this.count--;
     return value;
   }
 
@@ -52,7 +51,7 @@ export class DoublyLinkedList<T> {
     this.tail = this.tail.prev;
     if (this.tail) this.tail.next = null;
     else this.head = null;
-    this._size--;
+    this.count--;
     return value;
   }
 
@@ -81,12 +80,18 @@ export class DoublyLinkedList<T> {
         else this.head = node.next;
         if (node.next) node.next.prev = node.prev;
         else this.tail = node.prev;
-        this._size--;
+        this.count--;
         return true;
       }
       node = node.next;
     }
     return false;
+  }
+
+  clear(): void {
+    this.head = null;
+    this.tail = null;
+    this.count = 0;
   }
 
   toArray(): T[] {
@@ -109,17 +114,15 @@ export class DoublyLinkedList<T> {
     return result;
   }
 
-  clear(): void {
-    this.head = null;
-    this.tail = null;
-    this._size = 0;
-  }
-
-  *[Symbol.iterator](): Iterator<T> {
+  [Symbol.iterator](): Iterator<T> {
     let node = this.head;
-    while (node) {
-      yield node.value;
-      node = node.next;
-    }
+    return {
+      next(): IteratorResult<T> {
+        if (!node) return { done: true, value: undefined };
+        const value = node.value;
+        node = node.next;
+        return { done: false, value };
+      },
+    };
   }
 }

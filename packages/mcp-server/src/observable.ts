@@ -1,104 +1,94 @@
-type Observer<T> = {
-  next: (value: T) => void;
-  error?: (err: any) => void;
-  complete?: () => void;
-};
-
+type Observer<T> = (value: T) => void;
 type Unsubscribe = () => void;
 
 export class Observable<T> {
-  private subscribeFn: (observer: Observer<T>) => Unsubscribe | void;
+  private observers = new Set<Observer<T>>();
 
-  constructor(subscribeFn: (observer: Observer<T>) => Unsubscribe | void) {
-    this.subscribeFn = subscribeFn;
+  subscribe(observer: Observer<T>): Unsubscribe {
+    this.observers.add(observer);
+    return () => { this.observers.delete(observer); };
   }
 
-  subscribe(observer: Observer<T> | ((value: T) => void)): { unsubscribe: Unsubscribe } {
-    const obs: Observer<T> = typeof observer === "function" ? { next: observer } : observer;
-    const cleanup = this.subscribeFn(obs);
-    return { unsubscribe: cleanup ?? (() => {}) };
+  protected emit(value: T): void {
+    for (const observer of this.observers) observer(value);
   }
 
-  map<R>(fn: (value: T) => R): Observable<R> {
-    return new Observable<R>((observer) => {
-      const sub = this.subscribe({
-        next: (value: T) => observer.next(fn(value)),
-        error: observer.error,
-        complete: observer.complete,
-      });
-      return sub.unsubscribe;
-    });
+  get subscriberCount(): number {
+    return this.observers.size;
   }
 
-  filter(pred: (value: T) => boolean): Observable<T> {
-    return new Observable<T>((observer) => {
-      const sub = this.subscribe({
-        next: (value: T) => { if (pred(value)) observer.next(value); },
-        error: observer.error,
-        complete: observer.complete,
-      });
-      return sub.unsubscribe;
-    });
+  pipe<U>(transform: (value: T) => U): Observable<U> {
+    const result = new Subject<U>();
+    this.subscribe((v: T) => result.next(transform(v)));
+    return result;
   }
 
-  take(count: number): Observable<T> {
-    return new Observable<T>((observer) => {
-      let taken = 0;
-      let sub: { unsubscribe: Unsubscribe } | null = null;
-      let done = false;
-      sub = this.subscribe({
-        next: (value: T) => {
-          if (taken < count) {
-            observer.next(value);
-            taken++;
-            if (taken >= count) {
-              done = true;
-              observer.complete?.();
-              sub?.unsubscribe();
-            }
-          }
-        },
-        error: observer.error,
-      });
-      if (done) sub.unsubscribe();
-      return sub.unsubscribe;
-    });
-  }
-
-  static of<T>(...values: T[]): Observable<T> {
-    return new Observable((observer) => {
-      for (const v of values) observer.next(v);
-      observer.complete?.();
-    });
-  }
-
-  static from<T>(iterable: Iterable<T>): Observable<T> {
-    return new Observable((observer) => {
-      for (const v of iterable) observer.next(v);
-      observer.complete?.();
-    });
+  filter(predicate: (value: T) => boolean): Observable<T> {
+    const result = new Subject<T>();
+    this.subscribe((v: T) => { if (predicate(v)) result.next(v); });
+    return result;
   }
 }
 
 export class Subject<T> extends Observable<T> {
-  private observers = new Set<Observer<T>>();
+  private lastValue: T | undefined;
+  private hasValue = false;
 
-  constructor() {
-    super((observer) => {
-      this.observers.add(observer);
-      return () => this.observers.delete(observer);
-    });
+  next(value: T): void {
+    this.lastValue = value;
+    this.hasValue = true;
+    this.emit(value);
+  }
+
+  get value(): T | undefined {
+    return this.lastValue;
+  }
+
+  get hasEmitted(): boolean {
+    return this.hasValue;
+  }
+}
+
+export class BehaviorSubject<T> extends Observable<T> {
+  private currentValue: T;
+
+  constructor(initial: T) {
+    super();
+    this.currentValue = initial;
   }
 
   next(value: T): void {
-    for (const obs of [...this.observers]) obs.next(value);
+    this.currentValue = value;
+    this.emit(value);
   }
 
-  error(err: any): void {
-    for (const obs of [...this.observers]) obs.error?.(err);
+  get value(): T {
+    return this.currentValue;
   }
 
-  complete(): void {
-    for (const obs of [...this.observers]) obs.complete?.();
+  subscribe(observer: Observer<T>): Unsubscribe {
+    observer(this.currentValue);
+    return super.subscribe(observer);
+  }
+}
+
+export class ReplaySubject<T> extends Observable<T> {
+  private buffer: T[] = [];
+  private readonly bufferSize: number;
+
+  constructor(bufferSize: number) {
+    super();
+    this.bufferSize = bufferSize;
+  }
+
+  next(value: T): void {
+    this.buffer.push(value);
+    if (this.buffer.length > this.bufferSize) this.buffer.shift();
+    this.emit(value);
+  }
+
+  subscribe(observer: Observer<T>): Unsubscribe {
+    for (const v of this.buffer) observer(v);
+    return super.subscribe(observer);
   }
 }

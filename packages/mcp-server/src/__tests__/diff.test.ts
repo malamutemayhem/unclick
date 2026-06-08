@@ -1,54 +1,57 @@
 import { describe, it, expect } from "vitest";
-import { diff, diffArrays, unifiedDiff } from "../diff.js";
+import { diffLines, formatUnified, countChanges, hasChanges } from "../diff.js";
 
-describe("diffArrays", () => {
-  it("detects no changes", () => {
-    const result = diffArrays(["a", "b"], ["a", "b"]);
-    expect(result.every((c) => c.type === "equal")).toBe(true);
+describe("diff", () => {
+  it("equal strings produce no changes", () => {
+    const changes = diffLines("a\nb\nc", "a\nb\nc");
+    expect(changes.every((c) => c.type === "equal")).toBe(true);
   });
 
   it("detects additions", () => {
-    const result = diffArrays(["a"], ["a", "b"]);
-    expect(result).toContainEqual({ type: "equal", value: "a" });
-    expect(result).toContainEqual({ type: "add", value: "b" });
+    const changes = diffLines("a\nc", "a\nb\nc");
+    const additions = changes.filter((c) => c.type === "add");
+    expect(additions).toHaveLength(1);
+    expect(additions[0].value).toBe("b");
   });
 
   it("detects removals", () => {
-    const result = diffArrays(["a", "b"], ["a"]);
-    expect(result).toContainEqual({ type: "equal", value: "a" });
-    expect(result).toContainEqual({ type: "remove", value: "b" });
+    const changes = diffLines("a\nb\nc", "a\nc");
+    const removals = changes.filter((c) => c.type === "remove");
+    expect(removals).toHaveLength(1);
+    expect(removals[0].value).toBe("b");
   });
 
-  it("detects replacements", () => {
-    const result = diffArrays(["a", "b", "c"], ["a", "x", "c"]);
-    const types = result.map((c) => c.type);
-    expect(types).toContain("remove");
-    expect(types).toContain("add");
+  it("handles complete replacement", () => {
+    const changes = diffLines("a\nb", "c\nd");
+    const adds = changes.filter((c) => c.type === "add");
+    const removes = changes.filter((c) => c.type === "remove");
+    expect(adds.length).toBeGreaterThan(0);
+    expect(removes.length).toBeGreaterThan(0);
   });
 
-  it("handles empty arrays", () => {
-    expect(diffArrays([], [])).toEqual([]);
-    const addAll = diffArrays([], ["a", "b"]);
-    expect(addAll.every((c) => c.type === "add")).toBe(true);
+  it("handles empty strings", () => {
+    const changes = diffLines("", "a");
+    expect(changes.filter((c) => c.type === "add")).toHaveLength(1);
   });
-});
 
-describe("diff", () => {
-  it("diffs strings by line", () => {
-    const result = diff("a\nb\nc", "a\nx\nc");
-    expect(result).toContainEqual({ type: "equal", value: "a" });
-    expect(result).toContainEqual({ type: "remove", value: "b" });
-    expect(result).toContainEqual({ type: "add", value: "x" });
-    expect(result).toContainEqual({ type: "equal", value: "c" });
+  it("formatUnified produces diff format", () => {
+    const changes = diffLines("a\nb", "a\nc");
+    const output = formatUnified(changes);
+    expect(output).toContain(" a");
+    expect(output).toContain("-b");
+    expect(output).toContain("+c");
   });
-});
 
-describe("unifiedDiff", () => {
-  it("produces unified format", () => {
-    const result = unifiedDiff("a\nb\nc", "a\nx\nc");
-    expect(result).toContain(" a");
-    expect(result).toContain("-b");
-    expect(result).toContain("+x");
-    expect(result).toContain(" c");
+  it("countChanges tallies correctly", () => {
+    const changes = diffLines("a\nb", "a\nc");
+    const counts = countChanges(changes);
+    expect(counts.unchanged).toBe(1);
+    expect(counts.additions).toBe(1);
+    expect(counts.deletions).toBe(1);
+  });
+
+  it("hasChanges detects differences", () => {
+    expect(hasChanges("abc", "abc")).toBe(false);
+    expect(hasChanges("abc", "def")).toBe(true);
   });
 });
