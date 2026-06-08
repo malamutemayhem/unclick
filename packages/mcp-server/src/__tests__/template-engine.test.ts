@@ -1,70 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { render, compile, escapeHtml, unescapeHtml } from "../template-engine.js";
+import { render, renderWithBlocks, escape, unescape } from "../template-engine.js";
 
-describe("render", () => {
+describe("template-engine", () => {
   it("replaces simple variables", () => {
-    expect(render("Hello {{ name }}!", { name: "World" })).toBe("Hello World!");
+    expect(render("Hello {{name}}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("handles nested paths", () => {
-    expect(render("{{ user.name }}", { user: { name: "Alice" } })).toBe("Alice");
+  it("resolves nested paths", () => {
+    expect(render("{{user.name}}", { user: { name: "Alice" } })).toBe("Alice");
   });
 
-  it("returns empty string for missing values", () => {
-    expect(render("{{ missing }}", {})).toBe("");
+  it("returns empty for missing keys", () => {
+    expect(render("{{missing}}", {})).toBe("");
   });
 
-  it("escapes HTML by default", () => {
-    expect(render("{{ content }}", { content: "<b>bold</b>" })).toBe("&lt;b&gt;bold&lt;/b&gt;");
+  it("processes if blocks", () => {
+    const tpl = "{{#if show}}visible{{/if}}";
+    expect(renderWithBlocks(tpl, { show: true })).toBe("visible");
+    expect(renderWithBlocks(tpl, { show: false })).toBe("");
   });
 
-  it("can disable escaping", () => {
-    expect(render("{{ content }}", { content: "<b>bold</b>" }, { escape: false })).toBe("<b>bold</b>");
+  it("processes if/else blocks", () => {
+    const tpl = "{{#if logged}}hi{{else}}login{{/if}}";
+    expect(renderWithBlocks(tpl, { logged: true })).toBe("hi");
+    expect(renderWithBlocks(tpl, { logged: false })).toBe("login");
   });
 
-  it("handles multiple replacements", () => {
-    const result = render("{{ a }} and {{ b }}", { a: "foo", b: "bar" });
-    expect(result).toBe("foo and bar");
+  it("processes each blocks", () => {
+    const tpl = "{{#each items}}{{this}},{{/each}}";
+    expect(renderWithBlocks(tpl, { items: ["a", "b", "c"] })).toBe("a,b,c,");
   });
 
-  it("handles custom delimiters", () => {
-    const result = render("<% name %>", { name: "test" }, { openTag: "<%", closeTag: "%>" });
-    expect(result).toBe("test");
+  it("each with object items", () => {
+    const tpl = "{{#each users}}{{name}} {{/each}}";
+    expect(renderWithBlocks(tpl, { users: [{ name: "A" }, { name: "B" }] })).toBe("A B ");
   });
 
-  it("converts non-string values to string", () => {
-    expect(render("{{ num }}", { num: 42 })).toBe("42");
-    expect(render("{{ bool }}", { bool: true })).toBe("true");
-  });
-});
-
-describe("compile", () => {
-  it("returns a reusable template function", () => {
-    const tmpl = compile("Hello {{ name }}!");
-    expect(tmpl({ name: "Alice" })).toBe("Hello Alice!");
-    expect(tmpl({ name: "Bob" })).toBe("Hello Bob!");
-  });
-});
-
-describe("escapeHtml", () => {
-  it("escapes all special characters", () => {
-    expect(escapeHtml('<script>"hello" & \'world\'</script>')).toBe(
-      "&lt;script&gt;&quot;hello&quot; &amp; &#39;world&#39;&lt;/script&gt;"
-    );
+  it("escapes HTML", () => {
+    expect(escape('<script>"hi"</script>')).toBe("&lt;script&gt;&quot;hi&quot;&lt;/script&gt;");
   });
 
-  it("leaves safe strings unchanged", () => {
-    expect(escapeHtml("hello world")).toBe("hello world");
-  });
-});
-
-describe("unescapeHtml", () => {
-  it("unescapes all entities", () => {
-    expect(unescapeHtml("&lt;b&gt;&amp;&quot;&#39;&lt;/b&gt;")).toBe('<b>&"\'</b>');
-  });
-
-  it("roundtrips with escapeHtml", () => {
-    const original = '<div class="test">&</div>';
-    expect(unescapeHtml(escapeHtml(original))).toBe(original);
+  it("unescapes HTML", () => {
+    expect(unescape("&lt;b&gt;bold&lt;/b&gt;")).toBe("<b>bold</b>");
   });
 });

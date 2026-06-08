@@ -1,54 +1,70 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { TaskScheduler } from "../task-scheduler.js";
 
 describe("TaskScheduler", () => {
-  let scheduler: TaskScheduler;
-
-  afterEach(() => {
-    scheduler?.stop();
+  it("runs tasks with no dependencies", async () => {
+    const log: string[] = [];
+    const s = new TaskScheduler();
+    s.add("a", () => { log.push("a"); });
+    s.add("b", () => { log.push("b"); });
+    await s.runAll();
+    expect(log.sort()).toEqual(["a", "b"]);
   });
 
-  it("schedules and runs a one-shot task", async () => {
-    scheduler = new TaskScheduler();
-    let ran = false;
-    scheduler.schedule(() => { ran = true; }, 20);
-    scheduler.start();
-    await new Promise((r) => setTimeout(r, 50));
-    expect(ran).toBe(true);
+  it("respects dependencies", async () => {
+    const log: string[] = [];
+    const s = new TaskScheduler();
+    s.add("b", () => { log.push("b"); }, 0, ["a"]);
+    s.add("a", () => { log.push("a"); });
+    await s.runAll();
+    expect(log).toEqual(["a", "b"]);
   });
 
-  it("cancels a task", async () => {
-    scheduler = new TaskScheduler();
-    let ran = false;
-    const id = scheduler.schedule(() => { ran = true; }, 20);
-    scheduler.start();
-    scheduler.cancel(id);
-    await new Promise((r) => setTimeout(r, 50));
-    expect(ran).toBe(false);
+  it("respects priority (higher first)", async () => {
+    const log: string[] = [];
+    const s = new TaskScheduler();
+    s.add("low", () => { log.push("low"); }, 1);
+    s.add("high", () => { log.push("high"); }, 10);
+    await s.runAll();
+    expect(log).toEqual(["high", "low"]);
   });
 
-  it("repeats a task", async () => {
-    scheduler = new TaskScheduler();
-    let count = 0;
-    scheduler.schedule(() => { count++; }, 20, true);
-    scheduler.start();
-    await new Promise((r) => setTimeout(r, 90));
-    expect(count).toBeGreaterThanOrEqual(2);
+  it("getReady returns only unblocked tasks", () => {
+    const s = new TaskScheduler();
+    s.add("a", () => {});
+    s.add("b", () => {}, 0, ["a"]);
+    expect(s.getReady()).toEqual(["a"]);
   });
 
-  it("tracks running state", () => {
-    scheduler = new TaskScheduler();
-    expect(scheduler.isRunning).toBe(false);
-    scheduler.start();
-    expect(scheduler.isRunning).toBe(true);
-    scheduler.stop();
-    expect(scheduler.isRunning).toBe(false);
+  it("runNext runs one at a time", async () => {
+    const s = new TaskScheduler();
+    s.add("x", () => {});
+    s.add("y", () => {});
+    const first = await s.runNext();
+    expect(first).not.toBeNull();
   });
 
-  it("tracks task count", () => {
-    scheduler = new TaskScheduler();
-    scheduler.schedule(() => {}, 1000);
-    scheduler.schedule(() => {}, 1000);
-    expect(scheduler.taskCount).toBe(2);
+  it("tracks completion", async () => {
+    const s = new TaskScheduler();
+    s.add("a", () => {});
+    expect(s.allComplete).toBe(false);
+    await s.runAll();
+    expect(s.allComplete).toBe(true);
+    expect(s.isComplete("a")).toBe(true);
+  });
+
+  it("reset clears completed state", async () => {
+    const s = new TaskScheduler();
+    s.add("a", () => {});
+    await s.runAll();
+    s.reset();
+    expect(s.allComplete).toBe(false);
+  });
+
+  it("remove deletes a task", () => {
+    const s = new TaskScheduler();
+    s.add("a", () => {});
+    expect(s.remove("a")).toBe(true);
+    expect(s.getReady()).toEqual([]);
   });
 });

@@ -1,44 +1,59 @@
-export interface TemplateOptions {
-  openTag?: string;
-  closeTag?: string;
-  escape?: boolean;
-}
-
-const DEFAULTS: Required<TemplateOptions> = {
-  openTag: "{{",
-  closeTag: "}}",
-  escape: true,
-};
-
-export function render(
-  template: string,
-  data: Record<string, any>,
-  options?: TemplateOptions
-): string {
-  const opts = { ...DEFAULTS, ...options };
-  const open = escapeRegex(opts.openTag);
-  const close = escapeRegex(opts.closeTag);
-  const re = new RegExp(`${open}\\s*(.+?)\\s*${close}`, "g");
-  return template.replace(re, (_match: string, key: string) => {
-    if (key.startsWith("#if ")) return "";
-    if (key === "/if") return "";
-    if (key.startsWith("#each ")) return "";
-    if (key === "/each") return "";
-    const val = resolve(data, key.trim());
-    if (val === undefined || val === null) return "";
-    const str = String(val);
-    return opts.escape ? escapeHtml(str) : str;
+export function render(template: string, data: Record<string, unknown>): string {
+  return template.replace(/\{\{(.*?)\}\}/g, (_: string, expr: string) => {
+    const trimmed = expr.trim();
+    if (trimmed.startsWith("#if ")) return "";
+    if (trimmed === "/if") return "";
+    if (trimmed.startsWith("#each ")) return "";
+    if (trimmed === "/each") return "";
+    const value = resolvePath(data, trimmed);
+    return value === undefined ? "" : String(value);
   });
 }
 
-export function compile(
-  template: string,
-  options?: TemplateOptions
-): (data: Record<string, any>) => string {
-  return (data: Record<string, any>) => render(template, data, options);
+export function renderWithBlocks(template: string, data: Record<string, unknown>): string {
+  let result = template;
+  result = processEach(result, data);
+  result = processIf(result, data);
+  result = render(result, data);
+  return result;
 }
 
-export function escapeHtml(str: string): string {
+function processIf(template: string, data: Record<string, unknown>): string {
+  const ifRegex = /\{\{#if\s+([\w.]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g;
+  return template.replace(ifRegex, (_: string, key: string, truthy: string, falsy: string) => {
+    const value = resolvePath(data, key);
+    return value ? truthy : (falsy || "");
+  });
+}
+
+function processEach(template: string, data: Record<string, unknown>): string {
+  const eachRegex = /\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g;
+  return template.replace(eachRegex, (_: string, key: string, body: string) => {
+    const arr = resolvePath(data, key);
+    if (!Array.isArray(arr)) return "";
+    return arr.map((item: unknown, index: number) => {
+      let rendered = body;
+      if (typeof item === "object" && item !== null) {
+        const obj = item as Record<string, unknown>;
+        for (const [k, v] of Object.entries(obj)) {
+          rendered = rendered.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v ?? ""));
+        }
+      }
+      rendered = rendered.replace(/\{\{this\}\}/g, String(item));
+      rendered = rendered.replace(/\{\{@index\}\}/g, String(index));
+      return rendered;
+    }).join("");
+  });
+}
+
+function resolvePath(obj: Record<string, unknown>, path: string): unknown {
+  return path.split(".").reduce((acc: unknown, key: string) => {
+    if (acc === null || acc === undefined) return undefined;
+    return (acc as Record<string, unknown>)[key];
+  }, obj);
+}
+
+export function escape(str: string): string {
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -47,22 +62,11 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, "&#39;");
 }
 
-export function unescapeHtml(str: string): string {
+export function unescape(str: string): string {
   return str
     .replace(/&#39;/g, "'")
     .replace(/&quot;/g, '"')
     .replace(/&gt;/g, ">")
     .replace(/&lt;/g, "<")
     .replace(/&amp;/g, "&");
-}
-
-function resolve(obj: Record<string, any>, path: string): any {
-  return path.split(".").reduce((current: any, key: string) => {
-    if (current === null || current === undefined) return undefined;
-    return current[key];
-  }, obj);
-}
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

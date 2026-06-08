@@ -1,63 +1,85 @@
-export interface ScheduledTask {
+type Task = {
   id: string;
-  fn: () => void | Promise<void>;
-  interval: number;
-  nextRun: number;
-  repeat: boolean;
-}
+  fn: () => Promise<void> | void;
+  priority: number;
+  dependencies: string[];
+};
 
 export class TaskScheduler {
-  private tasks = new Map<string, ScheduledTask>();
-  private timers = new Map<string, ReturnType<typeof setTimeout>>();
-  private running = false;
-  private nextId = 0;
+  private tasks = new Map<string, Task>();
+  private completed = new Set<string>();
+  private running = new Set<string>();
 
-  schedule(fn: () => void | Promise<void>, delay: number, repeat = false): string {
-    const id = `task-${this.nextId++}`;
-    const task: ScheduledTask = { id, fn, interval: delay, nextRun: Date.now() + delay, repeat };
-    this.tasks.set(id, task);
-    if (this.running) this.scheduleTimer(task);
-    return id;
+  add(id: string, fn: () => Promise<void> | void, priority: number = 0, dependencies: string[] = []): this {
+    this.tasks.set(id, { id, fn, priority, dependencies });
+    return this;
   }
 
-  cancel(id: string): boolean {
-    const timer = this.timers.get(id);
-    if (timer) clearTimeout(timer);
-    this.timers.delete(id);
+  remove(id: string): boolean {
     return this.tasks.delete(id);
   }
 
-  start(): void {
-    if (this.running) return;
-    this.running = true;
+  getReady(): string[] {
+    const ready: Task[] = [];
     for (const task of this.tasks.values()) {
-      this.scheduleTimer(task);
-    }
-  }
-
-  stop(): void {
-    this.running = false;
-    for (const timer of this.timers.values()) clearTimeout(timer);
-    this.timers.clear();
-  }
-
-  get isRunning(): boolean { return this.running; }
-  get taskCount(): number { return this.tasks.size; }
-
-  private scheduleTimer(task: ScheduledTask): void {
-    const delay = Math.max(0, task.nextRun - Date.now());
-    const timer = setTimeout(async () => {
-      this.timers.delete(task.id);
-      try {
-        await task.fn();
-      } catch (_) {}
-      if (task.repeat && this.tasks.has(task.id)) {
-        task.nextRun = Date.now() + task.interval;
-        if (this.running) this.scheduleTimer(task);
-      } else {
-        this.tasks.delete(task.id);
+      if (this.completed.has(task.id) || this.running.has(task.id)) continue;
+      if (task.dependencies.every((d: string) => this.completed.has(d))) {
+        ready.push(task);
       }
-    }, delay);
-    this.timers.set(task.id, timer);
+    }
+    return ready.sort((a: Task, b: Task) => b.priority - a.priority).map((t: Task) => t.id);
+  }
+
+  async runNext(): Promise<string | null> {
+    const ready = this.getReady();
+    if (ready.length === 0) return null;
+    const id = ready[0];
+    const task = this.tasks.get(id)!;
+    this.running.add(id);
+    try {
+      await task.fn();
+      this.completed.add(id);
+    } finally {
+      this.running.delete(id);
+    }
+    return id;
+  }
+
+  async runAll(concurrency: number = 1): Promise<string[]> {
+    const order: string[] = [];
+    const runBatch = async (): Promise<void> => {
+      const ready = this.getReady();
+      if (ready.length === 0) return;
+      const batch = ready.slice(0, concurrency);
+      await Promise.all(
+        batch.map(async (id: string) => {
+          const task = this.tasks.get(id)!;
+          this.running.add(id);
+          try {
+            await task.fn();
+            this.completed.add(id);
+            order.push(id);
+          } finally {
+            this.running.delete(id);
+          }
+        }),
+      );
+      await runBatch();
+    };
+    await runBatch();
+    return order;
+  }
+
+  isComplete(id: string): boolean {
+    return this.completed.has(id);
+  }
+
+  get allComplete(): boolean {
+    return this.tasks.size > 0 && this.completed.size === this.tasks.size;
+  }
+
+  reset(): void {
+    this.completed.clear();
+    this.running.clear();
   }
 }

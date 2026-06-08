@@ -10,26 +10,24 @@ describe("SortedArray", () => {
     expect(sa.toArray()).toEqual([1, 2, 3]);
   });
 
-  it("removes an item", () => {
+  it("removes elements", () => {
     const sa = new SortedArray<number>();
     sa.insert(1);
     sa.insert(2);
     sa.insert(3);
     expect(sa.remove(2)).toBe(true);
     expect(sa.toArray()).toEqual([1, 3]);
+    expect(sa.remove(99)).toBe(false);
   });
 
-  it("remove returns false for missing", () => {
+  it("finds by index and has", () => {
     const sa = new SortedArray<number>();
-    sa.insert(1);
-    expect(sa.remove(5)).toBe(false);
-  });
-
-  it("has checks existence", () => {
-    const sa = new SortedArray<number>();
-    sa.insert(5);
-    expect(sa.has(5)).toBe(true);
-    expect(sa.has(3)).toBe(false);
+    sa.insert(10);
+    sa.insert(20);
+    sa.insert(30);
+    expect(sa.indexOf(20)).toBe(1);
+    expect(sa.has(20)).toBe(true);
+    expect(sa.has(15)).toBe(false);
   });
 
   it("first and last", () => {
@@ -41,27 +39,18 @@ describe("SortedArray", () => {
     expect(sa.last).toBe(9);
   });
 
-  it("size tracking", () => {
+  it("range query", () => {
     const sa = new SortedArray<number>();
-    expect(sa.size).toBe(0);
-    sa.insert(1);
-    sa.insert(2);
-    expect(sa.size).toBe(2);
+    [1, 3, 5, 7, 9].forEach((n: number) => sa.insert(n));
+    expect(sa.range(3, 7)).toEqual([3, 5, 7]);
   });
 
   it("custom comparator", () => {
     const sa = new SortedArray<string>((a: string, b: string) => a.length - b.length);
-    sa.insert("ccc");
+    sa.insert("cc");
     sa.insert("a");
-    sa.insert("bb");
-    expect(sa.toArray()).toEqual(["a", "bb", "ccc"]);
-  });
-
-  it("clear empties array", () => {
-    const sa = new SortedArray<number>();
-    sa.insert(1);
-    sa.clear();
-    expect(sa.size).toBe(0);
+    sa.insert("bbb");
+    expect(sa.toArray()).toEqual(["a", "cc", "bbb"]);
   });
 
   it("iterates", () => {
@@ -70,5 +59,14 @@ describe("SortedArray", () => {
     sa.insert(1);
     sa.insert(2);
     expect([...sa]).toEqual([1, 2, 3]);
+  });
+
+  it("clear and size", () => {
+    const sa = new SortedArray<number>();
+    sa.insert(1);
+    sa.insert(2);
+    expect(sa.size).toBe(2);
+    sa.clear();
+    expect(sa.size).toBe(0);
   });
 });
