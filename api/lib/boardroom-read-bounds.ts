@@ -185,9 +185,9 @@ function pickRecentAgents<T>(rows: T[], n: number): T[] {
     const ms = typeof raw === "string" || typeof raw === "number" ? Date.parse(String(raw)) : NaN;
     return Number.isFinite(ms) ? ms : 0;
   };
-  return rows
-    .map((row, index) => ({ row, index, ts: lastSeen(row) }))
-    .sort((a, b) => (b.ts - a.ts) || (b.index - a.index))
-    .slice(0, n)
-    .map((entry) => entry.row);
+  const indexed = rows.map((row, index) => ({ row, index, ts: lastSeen(row) }));
+  indexed.sort((a, b) => (b.ts - a.ts) || (b.index - a.index));
+  const kept = indexed.slice(0, n);
+  kept.sort((a, b) => (a.ts - b.ts) || (a.index - b.index));
+  return kept.map((entry) => entry.row);
 }

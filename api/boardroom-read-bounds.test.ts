@@ -107,11 +107,30 @@ describe("Boardroom strict-client read bounds", () => {
       agents: Array<Record<string, unknown>>;
     };
 
-    expect(result.agents.map((a) => a.agent_id)).toEqual(["newest", "mid"]);
+    expect(result.agents.map((a) => a.agent_id)).toEqual(["mid", "newest"]);
     // Verbose transport fields must be dropped.
     expect(result.agents[0]).not.toHaveProperty("user_agent_hint");
-    expect(result.agents[0]).toMatchObject({ agent_id: "newest", display_name: "Agent newest" });
+    expect(result.agents[0]).toMatchObject({ agent_id: "mid", display_name: "Agent mid" });
     expect(bounds(result)).toMatchObject({ agents_returned: 2, agents_available: 3 });
+  });
+
+  it("returns capped agent roster in ascending time order like messages", () => {
+    const raw = {
+      messages: [],
+      mentions: [],
+      agents: [
+        agent("a", "2026-06-01T00:00:00.000Z"),
+        agent("b", "2026-06-03T00:00:00.000Z"),
+        agent("c", "2026-06-02T00:00:00.000Z"),
+        agent("d", "2026-06-04T00:00:00.000Z"),
+      ],
+    };
+
+    const result = compactBoardroomReadForStrictClients(raw, { maxAgents: 3 }) as {
+      agents: Array<Record<string, unknown>>;
+    };
+
+    expect(result.agents.map((a) => a.agent_id)).toEqual(["c", "b", "d"]);
   });
 
   it("drops the verbose transport field from shaped messages", () => {
