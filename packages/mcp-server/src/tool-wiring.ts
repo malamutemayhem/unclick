@@ -620,6 +620,11 @@ import { temperatureConvert } from "./tempconvert-tool.js";
 import { statisticsCalc } from "./statistics-tool.js";
 import { textWrap } from "./textwrap-tool.js";
 import { brailleConvert } from "./braille-tool.js";
+import { pigLatinConvert } from "./piglatin-tool.js";
+import { rot13Convert } from "./rot13-tool.js";
+import { reverseText } from "./reversetext-tool.js";
+import { palindromeCheck } from "./palindrome-tool.js";
+import { acronymGenerate } from "./acronymgen-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9541,6 +9546,65 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text or Braille characters to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── piglatin-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "pig_latin_convert",
+    description: "Convert text to Pig Latin or decode Pig Latin back to English.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+        decode: { type: "boolean" as const, description: "Decode Pig Latin to English (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── rot13-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rot13_convert",
+    description: "Apply ROT13 (or ROT-N) cipher to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode/decode." },
+        shift: { type: "number" as const, description: "Rotation amount (default 13)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── reversetext-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "reverse_text",
+    description: "Reverse text by characters, words, lines, or sentences.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to reverse." },
+        mode: { type: "string" as const, description: "Mode: characters, words, lines, sentences (default characters)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── palindrome-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "palindrome_check",
+    description: "Check if text is a palindrome and find the longest palindromic substring.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to check." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── acronymgen-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "acronym_generate",
+    description: "Generate an acronym from a phrase, optionally skipping small words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Phrase to create acronym from." },
+        include_small_words: { type: "boolean" as const, description: "Include small words like the, of, and (default false)." },
       }, required: ["text"],
     },
   },
@@ -21042,6 +21106,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // braille-tool.ts
   braille_convert:           (args) => brailleConvert(args),
+
+  // piglatin-tool.ts
+  pig_latin_convert:         (args) => pigLatinConvert(args),
+
+  // rot13-tool.ts
+  rot13_convert:             (args) => rot13Convert(args),
+
+  // reversetext-tool.ts
+  reverse_text:              (args) => reverseText(args),
+
+  // palindrome-tool.ts
+  palindrome_check:          (args) => palindromeCheck(args),
+
+  // acronymgen-tool.ts
+  acronym_generate:          (args) => acronymGenerate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

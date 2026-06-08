@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 878,
+    "inventory": 883,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 456,
+    "tools": 461,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 456
+      "count": 461
     },
     {
       "id": "rooms",
@@ -4212,6 +4212,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-acronymgen-packages-mcp-server-src-acronymgen-tool-ts-no-route",
+      "division": "Tools",
+      "name": "acronymgen",
+      "kind": "MCP tool",
+      "meaning": "acronymgen MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/acronymgen-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-adviceslip-packages-mcp-server-src-adviceslip-tool-ts-no-route",
       "division": "Tools",
       "name": "adviceslip",
@@ -7082,6 +7092,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-palindrome-packages-mcp-server-src-palindrome-tool-ts-no-route",
+      "division": "Tools",
+      "name": "palindrome",
+      "kind": "MCP tool",
+      "meaning": "palindrome MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/palindrome-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-pandascore-packages-mcp-server-src-pandascore-tool-ts-no-route",
       "division": "Tools",
       "name": "pandascore",
@@ -7138,6 +7158,16 @@
       "kind": "MCP tool",
       "meaning": "picsum MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/picsum-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-piglatin-packages-mcp-server-src-piglatin-tool-ts-no-route",
+      "division": "Tools",
+      "name": "piglatin",
+      "kind": "MCP tool",
+      "meaning": "piglatin MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/piglatin-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7582,6 +7612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-reversetext-packages-mcp-server-src-reversetext-tool-ts-no-route",
+      "division": "Tools",
+      "name": "reversetext",
+      "kind": "MCP tool",
+      "meaning": "reversetext MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/reversetext-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-rickandmorty-packages-mcp-server-src-rickandmorty-tool-ts-no-route",
       "division": "Tools",
       "name": "rickandmorty",
@@ -7628,6 +7668,16 @@
       "kind": "MCP tool",
       "meaning": "roman MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/roman-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-rot13-packages-mcp-server-src-rot13-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rot13",
+      "kind": "MCP tool",
+      "meaning": "rot13 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rot13-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9490,6 +9540,11 @@
       "packages/mcp-server/src/acnhapi-tool.ts"
     ],
     [
+      "acronymgen",
+      "acronymgen MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/acronymgen-tool.ts"
+    ],
+    [
       "adviceslip",
       "adviceslip MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/adviceslip-tool.ts"
@@ -10925,6 +10980,11 @@
       "packages/mcp-server/src/pagerduty-tool.ts"
     ],
     [
+      "palindrome",
+      "palindrome MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/palindrome-tool.ts"
+    ],
+    [
       "pandascore",
       "pandascore MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pandascore-tool.ts"
@@ -10953,6 +11013,11 @@
       "picsum",
       "picsum MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/picsum-tool.ts"
+    ],
+    [
+      "piglatin",
+      "piglatin MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/piglatin-tool.ts"
     ],
     [
       "pika",
@@ -11175,6 +11240,11 @@
       "packages/mcp-server/src/restcountries-tool.ts"
     ],
     [
+      "reversetext",
+      "reversetext MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/reversetext-tool.ts"
+    ],
+    [
       "rickandmorty",
       "rickandmorty MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/rickandmorty-tool.ts"
@@ -11198,6 +11268,11 @@
       "roman",
       "roman MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/roman-tool.ts"
+    ],
+    [
+      "rot13",
+      "rot13 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rot13-tool.ts"
     ],
     [
       "runway",
@@ -12813,6 +12888,11 @@
       "bytes": 2427
     },
     {
+      "source": "packages/mcp-server/src/acronymgen-tool.ts",
+      "hash": "893f3d635834",
+      "bytes": 1113
+    },
+    {
       "source": "packages/mcp-server/src/adviceslip-tool.ts",
       "hash": "76262ae15005",
       "bytes": 2878
@@ -12986,11 +13066,6 @@
       "source": "packages/mcp-server/src/breakingbad-tool.ts",
       "hash": "3ae61a3c1938",
       "bytes": 1236
-    },
-    {
-      "source": "packages/mcp-server/src/brevo-tool.ts",
-      "hash": "b79b48fd500a",
-      "bytes": 3314
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 455,
-  "toolCount": 1377,
+  "appCount": 460,
+  "toolCount": 1382,
   "categories": [
     "AI",
     "Books",
@@ -68,6 +68,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "acronymgen",
+      "name": "Acronym Generator",
+      "category": "Utilities",
+      "blurb": "Generate an acronym from a phrase, skipping small words by default.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "acronym_generate",
+          "description": "Generate an acronym from a phrase, optionally skipping small words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "adviceslip",
@@ -6590,6 +6606,22 @@
       "hardened": true
     },
     {
+      "slug": "palindrome",
+      "name": "Palindrome Checker",
+      "category": "Utilities",
+      "blurb": "Check if text is a palindrome and find longest palindromic substring.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "palindrome_check",
+          "description": "Check if text is a palindrome and find the longest palindromic substring."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pandascore",
       "name": "PandaScore",
       "category": "Games & esports",
@@ -6688,6 +6720,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "piglatin",
+      "name": "Pig Latin Translator",
+      "category": "Utilities",
+      "blurb": "Translate text to Pig Latin or decode Pig Latin back to English.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pig_latin_convert",
+          "description": "Convert text to Pig Latin or decode Pig Latin back to English."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "pika",
@@ -8046,6 +8094,22 @@
       "hardened": false
     },
     {
+      "slug": "rot13",
+      "name": "ROT13 Cipher",
+      "category": "Utilities",
+      "blurb": "Apply ROT13 or ROT-N Caesar cipher to text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rot13_convert",
+          "description": "Apply ROT13 (or ROT-N) cipher to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runway",
       "name": "Runway",
       "category": "AI",
@@ -9248,6 +9312,22 @@
         {
           "name": "diff_text",
           "description": "Compare two texts line by line and show added/removed lines."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "reversetext",
+      "name": "Text Reverser",
+      "category": "Utilities",
+      "blurb": "Reverse text by characters, words, lines, or sentences.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "reverse_text",
+          "description": "Reverse text by characters, words, lines, or sentences."
         }
       ],
       "level": 5,

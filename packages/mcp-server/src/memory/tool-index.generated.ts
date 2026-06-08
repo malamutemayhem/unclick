@@ -78,6 +78,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "acronymgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "acronym_generate",
+        "description": "Generate an acronym from a phrase, optionally skipping small words."
+      }
+    ]
+  },
+  {
     "app": "adviceslip",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5050,6 +5060,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "palindrome",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "palindrome_check",
+        "description": "Check if text is a palindrome and find the longest palindromic substring."
+      }
+    ]
+  },
+  {
     "app": "pandascore",
     "category": "Gaming",
     "tools": [
@@ -5134,6 +5154,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "picsum_random_url",
         "description": "Generate a random placeholder image URL from Lorem Picsum (no fetch needed)."
+      }
+    ]
+  },
+  {
+    "app": "piglatin",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pig_latin_convert",
+        "description": "Convert text to Pig Latin or decode Pig Latin back to English."
       }
     ]
   },
@@ -6018,6 +6048,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "reversetext",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "reverse_text",
+        "description": "Reverse text by characters, words, lines, or sentences."
+      }
+    ]
+  },
+  {
     "app": "rickandmorty",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6100,6 +6140,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "roman_convert",
         "description": "Convert between Roman numerals and decimal numbers."
+      }
+    ]
+  },
+  {
+    "app": "rot13",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rot13_convert",
+        "description": "Apply ROT13 (or ROT-N) cipher to text."
       }
     ]
   },

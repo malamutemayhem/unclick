@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:30:00.000Z",
+  "updatedAt": "2026-06-08T21:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3562,6 +3562,36 @@
       "note": "braille_convert encodes/decodes Braille Unicode locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
       "toolsTested": ["braille_convert"]
+    },
+    "piglatin": {
+      "status": "pass",
+      "note": "pig_latin_convert translates text to/from Pig Latin locally. No API needed.",
+      "testedAt": "2026-06-08T21:45:00.000Z",
+      "toolsTested": ["pig_latin_convert"]
+    },
+    "rot13": {
+      "status": "pass",
+      "note": "rot13_convert applies ROT13/ROT-N cipher locally. No API needed.",
+      "testedAt": "2026-06-08T21:45:00.000Z",
+      "toolsTested": ["rot13_convert"]
+    },
+    "reversetext": {
+      "status": "pass",
+      "note": "reverse_text reverses text by chars/words/lines locally. No API needed.",
+      "testedAt": "2026-06-08T21:45:00.000Z",
+      "toolsTested": ["reverse_text"]
+    },
+    "palindrome": {
+      "status": "pass",
+      "note": "palindrome_check detects palindromes locally. No API needed.",
+      "testedAt": "2026-06-08T21:45:00.000Z",
+      "toolsTested": ["palindrome_check"]
+    },
+    "acronymgen": {
+      "status": "pass",
+      "note": "acronym_generate creates acronyms from phrases locally. No API needed.",
+      "testedAt": "2026-06-08T21:45:00.000Z",
+      "toolsTested": ["acronym_generate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

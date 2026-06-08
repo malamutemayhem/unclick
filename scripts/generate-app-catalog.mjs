@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -156,6 +156,8 @@ const NAME_OF = {
   emojilookup: "Emoji Lookup", natoalphabet: "NATO Phonetic Alphabet", bitwise: "Bitwise Calculator",
   gcdlcm: "GCD/LCM Calculator", tempconvert: "Temperature Converter",
   statistics: "Statistics Calculator", textwrap: "Text Wrapper", braille: "Braille Converter",
+  piglatin: "Pig Latin Translator", rot13: "ROT13 Cipher",
+  reversetext: "Text Reverser", palindrome: "Palindrome Checker", acronymgen: "Acronym Generator",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -458,6 +460,11 @@ const BLURB_OF = {
   statistics: "Calculate mean, median, mode, standard deviation for a set of numbers.",
   textwrap: "Hard-wrap text to a specified column width for display or formatting.",
   braille: "Convert text to Braille Unicode dots or decode Braille to text.",
+  piglatin: "Translate text to Pig Latin or decode Pig Latin back to English.",
+  rot13: "Apply ROT13 or ROT-N Caesar cipher to text.",
+  reversetext: "Reverse text by characters, words, lines, or sentences.",
+  palindrome: "Check if text is a palindrome and find longest palindromic substring.",
+  acronymgen: "Generate an acronym from a phrase, skipping small words by default.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -605,6 +612,8 @@ const DOMAIN_OF = {
   emojilookup: "local", natoalphabet: "local", bitwise: "local",
   gcdlcm: "local", tempconvert: "local",
   statistics: "local", textwrap: "local", braille: "local",
+  piglatin: "local", rot13: "local",
+  reversetext: "local", palindrome: "local", acronymgen: "local",
 };
 
 function titleCase(slug) {
