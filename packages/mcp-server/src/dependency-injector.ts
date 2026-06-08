@@ -1,89 +1,78 @@
-type Factory<T = unknown> = (container: Container) => T;
-
-interface Binding<T = unknown> {
-  factory: Factory<T>;
-  singleton: boolean;
-  instance?: T;
-  tags: string[];
-}
+type Factory<T> = () => T;
 
 export class Container {
-  private bindings = new Map<string, Binding>();
-  private resolving = new Set<string>();
+  private singletons = new Map<string, unknown>();
+  private factories = new Map<string, Factory<unknown>>();
+  private transients = new Set<string>();
 
-  register<T>(name: string, factory: Factory<T>, options: { singleton?: boolean; tags?: string[] } = {}): this {
-    this.bindings.set(name, {
-      factory: factory as Factory,
-      singleton: options.singleton ?? false,
-      tags: options.tags ?? [],
-    });
+  register<T>(name: string, factory: Factory<T>, options?: { singleton?: boolean }): this {
+    this.factories.set(name, factory);
+    if (options?.singleton !== false) {
+      // default is singleton
+    } else {
+      this.transients.add(name);
+    }
     return this;
   }
 
-  singleton<T>(name: string, factory: Factory<T>, tags: string[] = []): this {
-    return this.register(name, factory, { singleton: true, tags });
+  registerSingleton<T>(name: string, factory: Factory<T>): this {
+    this.factories.set(name, factory);
+    this.transients.delete(name);
+    return this;
   }
 
-  value<T>(name: string, val: T, tags: string[] = []): this {
-    return this.register(name, () => val, { singleton: true, tags });
+  registerTransient<T>(name: string, factory: Factory<T>): this {
+    this.factories.set(name, factory);
+    this.transients.add(name);
+    return this;
   }
 
-  resolve<T = unknown>(name: string): T {
-    const binding = this.bindings.get(name);
-    if (!binding) throw new Error(`No binding for: ${name}`);
+  registerValue<T>(name: string, value: T): this {
+    this.singletons.set(name, value);
+    return this;
+  }
 
-    if (binding.singleton && binding.instance !== undefined) {
-      return binding.instance as T;
+  resolve<T>(name: string): T {
+    if (this.singletons.has(name)) {
+      return this.singletons.get(name) as T;
     }
 
-    if (this.resolving.has(name)) {
-      throw new Error(`Circular dependency detected: ${name}`);
+    const factory = this.factories.get(name);
+    if (!factory) throw new Error(`No registration found for "${name}"`);
+
+    const instance = factory() as T;
+
+    if (!this.transients.has(name)) {
+      this.singletons.set(name, instance);
     }
 
-    this.resolving.add(name);
-    try {
-      const instance = binding.factory(this);
-      if (binding.singleton) binding.instance = instance;
-      return instance as T;
-    } finally {
-      this.resolving.delete(name);
-    }
+    return instance;
   }
 
   has(name: string): boolean {
-    return this.bindings.has(name);
+    return this.singletons.has(name) || this.factories.has(name);
   }
 
-  getByTag(tag: string): unknown[] {
-    const results: unknown[] = [];
-    for (const [name, binding] of this.bindings) {
-      if (binding.tags.includes(tag)) {
-        results.push(this.resolve(name));
-      }
-    }
-    return results;
+  remove(name: string): boolean {
+    const had = this.singletons.delete(name) || this.factories.delete(name);
+    this.transients.delete(name);
+    return had;
   }
 
-  reset(name?: string): void {
-    if (name) {
-      const binding = this.bindings.get(name);
-      if (binding) binding.instance = undefined;
-    } else {
-      for (const binding of this.bindings.values()) {
-        binding.instance = undefined;
-      }
-    }
+  clear(): void {
+    this.singletons.clear();
+    this.factories.clear();
+    this.transients.clear();
   }
 
-  child(): Container {
-    const c = new Container();
-    for (const [name, binding] of this.bindings) {
-      c.bindings.set(name, { ...binding, instance: undefined });
-    }
-    return c;
+  get registeredNames(): string[] {
+    const names = new Set<string>();
+    for (const k of this.singletons.keys()) names.add(k);
+    for (const k of this.factories.keys()) names.add(k);
+    return [...names];
   }
+}
 
-  listBindings(): string[] {
-    return [...this.bindings.keys()];
-  }
+export function createContainer(): Container {
+  return new Container();
 }

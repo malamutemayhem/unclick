@@ -1,99 +1,95 @@
 export interface Interval {
-  low: number;
-  high: number;
+  start: number;
+  end: number;
 }
 
 interface IntervalNode<T> {
   interval: Interval;
-  value: T;
+  data: T;
   max: number;
   left: IntervalNode<T> | null;
   right: IntervalNode<T> | null;
 }
 
-export class IntervalTree<T> {
+export class IntervalTree<T = unknown> {
   private root: IntervalNode<T> | null = null;
-  private count = 0;
+  private _size = 0;
 
-  insert(interval: Interval, value: T): void {
-    this.root = this.insertNode(this.root, interval, value);
-    this.count++;
+  get size(): number { return this._size; }
+
+  insert(interval: Interval, data: T): void {
+    this.root = this.insertNode(this.root, interval, data);
+    this._size++;
   }
 
-  search(point: number): { interval: Interval; value: T }[] {
-    const results: { interval: Interval; value: T }[] = [];
+  search(point: number): { interval: Interval; data: T }[] {
+    const results: { interval: Interval; data: T }[] = [];
     this.searchNode(this.root, point, results);
     return results;
   }
 
-  overlap(query: Interval): { interval: Interval; value: T }[] {
-    const results: { interval: Interval; value: T }[] = [];
-    this.overlapNode(this.root, query, results);
+  overlap(interval: Interval): { interval: Interval; data: T }[] {
+    const results: { interval: Interval; data: T }[] = [];
+    this.overlapNode(this.root, interval, results);
     return results;
   }
 
-  get size(): number {
-    return this.count;
-  }
-
-  all(): { interval: Interval; value: T }[] {
-    const results: { interval: Interval; value: T }[] = [];
-    this.inOrder(this.root, results);
+  all(): { interval: Interval; data: T }[] {
+    const results: { interval: Interval; data: T }[] = [];
+    this.inorder(this.root, results);
     return results;
   }
 
-  private insertNode(node: IntervalNode<T> | null, interval: Interval, value: T): IntervalNode<T> {
+  clear(): void {
+    this.root = null;
+    this._size = 0;
+  }
+
+  private insertNode(node: IntervalNode<T> | null, interval: Interval, data: T): IntervalNode<T> {
     if (!node) {
-      return { interval, value, max: interval.high, left: null, right: null };
+      return { interval, data, max: interval.end, left: null, right: null };
     }
 
-    if (interval.low <= node.interval.low) {
-      node.left = this.insertNode(node.left, interval, value);
+    if (interval.start < node.interval.start) {
+      node.left = this.insertNode(node.left, interval, data);
     } else {
-      node.right = this.insertNode(node.right, interval, value);
+      node.right = this.insertNode(node.right, interval, data);
     }
 
-    if (node.max < interval.high) {
-      node.max = interval.high;
-    }
-
+    if (node.max < interval.end) node.max = interval.end;
     return node;
   }
 
-  private searchNode(node: IntervalNode<T> | null, point: number, results: { interval: Interval; value: T }[]): void {
+  private searchNode(node: IntervalNode<T> | null, point: number, results: { interval: Interval; data: T }[]): void {
     if (!node) return;
-    if (point > node.max) return;
-
-    this.searchNode(node.left, point, results);
-
-    if (point >= node.interval.low && point <= node.interval.high) {
-      results.push({ interval: node.interval, value: node.value });
+    if (node.interval.start <= point && point <= node.interval.end) {
+      results.push({ interval: node.interval, data: node.data });
     }
-
-    if (point >= node.interval.low) {
+    if (node.left && node.left.max >= point) {
+      this.searchNode(node.left, point, results);
+    }
+    if (node.interval.start <= point) {
       this.searchNode(node.right, point, results);
     }
   }
 
-  private overlapNode(node: IntervalNode<T> | null, query: Interval, results: { interval: Interval; value: T }[]): void {
+  private overlapNode(node: IntervalNode<T> | null, interval: Interval, results: { interval: Interval; data: T }[]): void {
     if (!node) return;
-    if (query.low > node.max) return;
-
-    this.overlapNode(node.left, query, results);
-
-    if (node.interval.low <= query.high && node.interval.high >= query.low) {
-      results.push({ interval: node.interval, value: node.value });
+    if (node.interval.start <= interval.end && interval.start <= node.interval.end) {
+      results.push({ interval: node.interval, data: node.data });
     }
-
-    if (query.high >= node.interval.low) {
-      this.overlapNode(node.right, query, results);
+    if (node.left && node.left.max >= interval.start) {
+      this.overlapNode(node.left, interval, results);
+    }
+    if (node.interval.start <= interval.end) {
+      this.overlapNode(node.right, interval, results);
     }
   }
 
-  private inOrder(node: IntervalNode<T> | null, results: { interval: Interval; value: T }[]): void {
+  private inorder(node: IntervalNode<T> | null, results: { interval: Interval; data: T }[]): void {
     if (!node) return;
-    this.inOrder(node.left, results);
-    results.push({ interval: node.interval, value: node.value });
-    this.inOrder(node.right, results);
+    this.inorder(node.left, results);
+    results.push({ interval: node.interval, data: node.data });
+    this.inorder(node.right, results);
   }
 }

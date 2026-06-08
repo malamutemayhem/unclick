@@ -2,73 +2,88 @@ import { describe, it, expect } from "vitest";
 import { UndoStack } from "../undo-stack.js";
 
 describe("UndoStack", () => {
-  it("tracks current state", () => {
-    const stack = new UndoStack("a");
-    expect(stack.state).toBe("a");
-    stack.push("b");
-    expect(stack.state).toBe("b");
+  it("starts with initial value", () => {
+    const s = new UndoStack("a");
+    expect(s.current).toBe("a");
+  });
+
+  it("push updates current", () => {
+    const s = new UndoStack("a");
+    s.push("b");
+    expect(s.current).toBe("b");
   });
 
   it("undo restores previous", () => {
-    const stack = new UndoStack("a");
-    stack.push("b");
-    stack.push("c");
-    expect(stack.undo()).toBe("b");
-    expect(stack.state).toBe("b");
-    expect(stack.undo()).toBe("a");
-    expect(stack.state).toBe("a");
+    const s = new UndoStack("a");
+    s.push("b");
+    expect(s.undo()).toBe("a");
+    expect(s.current).toBe("a");
   });
 
   it("redo restores undone", () => {
-    const stack = new UndoStack("a");
-    stack.push("b");
-    stack.undo();
-    expect(stack.redo()).toBe("b");
-    expect(stack.state).toBe("b");
+    const s = new UndoStack("a");
+    s.push("b");
+    s.undo();
+    expect(s.redo()).toBe("b");
+    expect(s.current).toBe("b");
   });
 
   it("push clears redo stack", () => {
-    const stack = new UndoStack("a");
-    stack.push("b");
-    stack.undo();
-    stack.push("c");
-    expect(stack.canRedo).toBe(false);
+    const s = new UndoStack("a");
+    s.push("b");
+    s.undo();
+    s.push("c");
+    expect(s.canRedo).toBe(false);
   });
 
-  it("undo returns null when empty", () => {
-    const stack = new UndoStack("a");
-    expect(stack.undo()).toBeNull();
+  it("canUndo / canRedo", () => {
+    const s = new UndoStack("a");
+    expect(s.canUndo).toBe(false);
+    expect(s.canRedo).toBe(false);
+    s.push("b");
+    expect(s.canUndo).toBe(true);
+    s.undo();
+    expect(s.canRedo).toBe(true);
   });
 
-  it("redo returns null when empty", () => {
-    const stack = new UndoStack("a");
-    expect(stack.redo()).toBeNull();
+  it("undo returns undefined when empty", () => {
+    const s = new UndoStack("a");
+    expect(s.undo()).toBeUndefined();
   });
 
-  it("tracks canUndo/canRedo", () => {
-    const stack = new UndoStack("a");
-    expect(stack.canUndo).toBe(false);
-    stack.push("b");
-    expect(stack.canUndo).toBe(true);
-    expect(stack.canRedo).toBe(false);
-    stack.undo();
-    expect(stack.canRedo).toBe(true);
+  it("redo returns undefined when empty", () => {
+    const s = new UndoStack("a");
+    expect(s.redo()).toBeUndefined();
+  });
+
+  it("undoCount / redoCount", () => {
+    const s = new UndoStack("a");
+    s.push("b");
+    s.push("c");
+    expect(s.undoCount).toBe(2);
+    s.undo();
+    expect(s.redoCount).toBe(1);
   });
 
   it("respects maxSize", () => {
-    const stack = new UndoStack(0, 3);
-    stack.push(1);
-    stack.push(2);
-    stack.push(3);
-    stack.push(4);
-    expect(stack.undoCount).toBe(3);
+    const s = new UndoStack(0, 3);
+    s.push(1); s.push(2); s.push(3); s.push(4);
+    expect(s.undoCount).toBe(3);
   });
 
-  it("clear empties stacks", () => {
-    const stack = new UndoStack("a");
-    stack.push("b");
-    stack.clear();
-    expect(stack.canUndo).toBe(false);
-    expect(stack.state).toBe("b");
+  it("clear removes history", () => {
+    const s = new UndoStack("a");
+    s.push("b");
+    s.clear();
+    expect(s.canUndo).toBe(false);
+    expect(s.current).toBe("b");
+  });
+
+  it("reset sets new state and clears history", () => {
+    const s = new UndoStack("a");
+    s.push("b");
+    s.reset("x");
+    expect(s.current).toBe("x");
+    expect(s.canUndo).toBe(false);
   });
 });
