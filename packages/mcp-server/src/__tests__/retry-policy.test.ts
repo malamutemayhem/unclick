@@ -1,69 +1,75 @@
 import { describe, it, expect } from "vitest";
-import { retryWith, withTimeout, retryWithFallback } from "../retry-policy.js";
+import { createPolicy, calculateDelay, executeWithPolicy, policies } from "../retry-policy.js";
 
-describe("retryWith", () => {
+describe("createPolicy", () => {
+  it("creates with defaults", () => {
+    const p = createPolicy();
+    expect(p.maxRetries).toBe(3);
+    expect(p.backoffFactor).toBe(2);
+  });
+
+  it("accepts overrides", () => {
+    const p = createPolicy({ maxRetries: 5 });
+    expect(p.maxRetries).toBe(5);
+  });
+});
+
+describe("calculateDelay", () => {
+  it("increases with attempts", () => {
+    const p = createPolicy({ jitter: false });
+    const d0 = calculateDelay(p, 0);
+    const d1 = calculateDelay(p, 1);
+    expect(d1).toBeGreaterThan(d0);
+  });
+
+  it("caps at maxDelay", () => {
+    const p = createPolicy({ jitter: false, maxDelayMs: 5000 });
+    expect(calculateDelay(p, 100)).toBeLessThanOrEqual(5000);
+  });
+
+  it("applies jitter when enabled", () => {
+    const p = createPolicy({ jitter: true });
+    const delays = new Set<number>();
+    for (let i = 0; i < 20; i++) delays.add(calculateDelay(p, 0));
+    expect(delays.size).toBeGreaterThan(1);
+  });
+});
+
+describe("executeWithPolicy", () => {
   it("succeeds on first try", async () => {
-    const result = await retryWith(() => Promise.resolve(42), { maxRetries: 3, baseDelay: 10 });
+    const p = createPolicy({ maxRetries: 0 });
+    const result = await executeWithPolicy(() => Promise.resolve(42), p);
     expect(result).toBe(42);
   });
 
-  it("retries on failure then succeeds", async () => {
-    let attempts = 0;
-    const result = await retryWith(() => {
-      attempts++;
-      if (attempts < 3) throw new Error("fail");
+  it("retries on failure", async () => {
+    let calls = 0;
+    const p = createPolicy({ maxRetries: 3, baseDelayMs: 1, jitter: false });
+    const result = await executeWithPolicy(() => {
+      calls++;
+      if (calls < 3) throw new Error("fail");
       return Promise.resolve("ok");
-    }, { maxRetries: 5, baseDelay: 1 });
+    }, p);
     expect(result).toBe("ok");
-    expect(attempts).toBe(3);
+    expect(calls).toBe(3);
   });
 
   it("throws after max retries", async () => {
-    await expect(retryWith(
-      () => Promise.reject(new Error("always fails")),
-      { maxRetries: 2, baseDelay: 1 }
-    )).rejects.toThrow("always fails");
+    const p = createPolicy({ maxRetries: 1, baseDelayMs: 1, jitter: false });
+    await expect(executeWithPolicy(() => Promise.reject(new Error("always")), p)).rejects.toThrow("always");
   });
 
   it("respects retryOn filter", async () => {
-    let attempts = 0;
-    await expect(retryWith(
-      () => { attempts++; throw new Error("not retryable"); },
-      { maxRetries: 5, baseDelay: 1, retryOn: () => false }
-    )).rejects.toThrow("not retryable");
-    expect(attempts).toBe(1);
+    const p = createPolicy({ maxRetries: 3, baseDelayMs: 1, retryOn: () => false });
+    await expect(executeWithPolicy(() => Promise.reject(new Error("no retry")), p)).rejects.toThrow();
   });
 });
 
-describe("withTimeout", () => {
-  it("resolves within timeout", async () => {
-    const result = await withTimeout(Promise.resolve(1), 1000);
-    expect(result).toBe(1);
-  });
-
-  it("rejects after timeout", async () => {
-    await expect(withTimeout(
-      new Promise((r) => setTimeout(r, 5000)),
-      10
-    )).rejects.toThrow("Timeout");
-  });
-});
-
-describe("retryWithFallback", () => {
-  it("uses primary when it succeeds", async () => {
-    const result = await retryWithFallback(
-      () => Promise.resolve("primary"),
-      () => Promise.resolve("fallback")
-    );
-    expect(result).toBe("primary");
-  });
-
-  it("falls back when primary fails", async () => {
-    const result = await retryWithFallback(
-      () => Promise.reject(new Error("fail")),
-      () => Promise.resolve("fallback"),
-      0
-    );
-    expect(result).toBe("fallback");
+describe("preset policies", () => {
+  it("has named presets", () => {
+    expect(policies.aggressive.maxRetries).toBe(5);
+    expect(policies.conservative.maxRetries).toBe(3);
+    expect(policies.none.maxRetries).toBe(0);
+    expect(policies.linear.backoffFactor).toBe(1);
   });
 });

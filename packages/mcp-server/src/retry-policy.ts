@@ -1,26 +1,36 @@
 export interface RetryPolicy {
   maxRetries: number;
-  baseDelay: number;
-  maxDelay?: number;
-  backoff?: "fixed" | "linear" | "exponential";
-  jitter?: boolean;
+  baseDelayMs: number;
+  maxDelayMs: number;
+  backoffFactor: number;
+  jitter: boolean;
   retryOn?: (error: unknown) => boolean;
 }
 
-function computeDelay(policy: RetryPolicy, attempt: number): number {
-  const { baseDelay, maxDelay = Infinity, backoff = "exponential", jitter = false } = policy;
-  let delay: number;
-  switch (backoff) {
-    case "fixed": delay = baseDelay; break;
-    case "linear": delay = baseDelay * (attempt + 1); break;
-    case "exponential": delay = baseDelay * Math.pow(2, attempt); break;
-  }
-  delay = Math.min(delay, maxDelay);
-  if (jitter) delay = delay * (0.5 + Math.random() * 0.5);
-  return delay;
+export function createPolicy(overrides: Partial<RetryPolicy> = {}): RetryPolicy {
+  return {
+    maxRetries: 3,
+    baseDelayMs: 1000,
+    maxDelayMs: 30000,
+    backoffFactor: 2,
+    jitter: true,
+    ...overrides,
+  };
 }
 
-export async function retryWith<T>(fn: () => Promise<T>, policy: RetryPolicy): Promise<T> {
+export function calculateDelay(policy: RetryPolicy, attempt: number): number {
+  let delay = policy.baseDelayMs * Math.pow(policy.backoffFactor, attempt);
+  delay = Math.min(delay, policy.maxDelayMs);
+  if (policy.jitter) {
+    delay = delay * (0.5 + Math.random() * 0.5);
+  }
+  return Math.round(delay);
+}
+
+export async function executeWithPolicy<T>(
+  fn: () => Promise<T>,
+  policy: RetryPolicy,
+): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= policy.maxRetries; attempt++) {
     try {
@@ -29,27 +39,17 @@ export async function retryWith<T>(fn: () => Promise<T>, policy: RetryPolicy): P
       lastError = err;
       if (policy.retryOn && !policy.retryOn(err)) throw err;
       if (attempt < policy.maxRetries) {
-        await new Promise((r) => setTimeout(r, computeDelay(policy, attempt)));
+        const delay = calculateDelay(policy, attempt);
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
   }
   throw lastError;
 }
 
-export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timeout after " + ms + "ms")), ms);
-    promise.then(
-      (val) => { clearTimeout(timer); resolve(val); },
-      (err) => { clearTimeout(timer); reject(err); }
-    );
-  });
-}
-
-export async function retryWithFallback<T>(primary: () => Promise<T>, fallback: () => Promise<T>, retries = 2): Promise<T> {
-  try {
-    return await retryWith(primary, { maxRetries: retries, baseDelay: 100 });
-  } catch {
-    return fallback();
-  }
-}
+export const policies = {
+  aggressive: createPolicy({ maxRetries: 5, baseDelayMs: 100, backoffFactor: 1.5 }),
+  conservative: createPolicy({ maxRetries: 3, baseDelayMs: 2000, backoffFactor: 3 }),
+  none: createPolicy({ maxRetries: 0 }),
+  linear: createPolicy({ backoffFactor: 1, jitter: false }),
+};
