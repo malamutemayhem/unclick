@@ -28,6 +28,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "abstract-holidays",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_info_detail",
+        "description": "Get country details (borders, languages, official name) from Nager.Date."
+      },
+      {
+        "name": "long_weekends",
+        "description": "Get long weekends for a country and year from Nager.Date."
+      }
+    ]
+  },
+  {
     "app": "abuseipdb",
     "category": "Security",
     "tools": [
@@ -42,6 +56,80 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "abuseipdb_blacklist",
         "description": "Get the AbuseIPDB blacklist."
+      }
+    ]
+  },
+  {
+    "app": "acnhapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "acnh_villagers",
+        "description": "List all Animal Crossing: New Horizons villagers."
+      },
+      {
+        "name": "acnh_fish",
+        "description": "List all Animal Crossing: New Horizons fish with availability and prices."
+      },
+      {
+        "name": "acnh_bugs",
+        "description": "List all Animal Crossing: New Horizons bugs with availability and prices."
+      }
+    ]
+  },
+  {
+    "app": "acronymgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "acronym_generate",
+        "description": "Generate an acronym from a phrase, optionally skipping small words."
+      }
+    ]
+  },
+  {
+    "app": "adviceslip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "advice_random",
+        "description": "Get a random piece of advice."
+      },
+      {
+        "name": "advice_search",
+        "description": "Search advice slips by keyword."
+      },
+      {
+        "name": "advice_by_id",
+        "description": "Get a specific advice slip by ID."
+      }
+    ]
+  },
+  {
+    "app": "affirmation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "affirmation_random",
+        "description": "Get a random positive affirmation."
+      }
+    ]
+  },
+  {
+    "app": "agify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "agify_age",
+        "description": "Predict the age of a person based on their first name."
+      },
+      {
+        "name": "genderize_name",
+        "description": "Predict the gender of a person based on their first name."
+      },
+      {
+        "name": "nationalize_name",
+        "description": "Predict the nationality of a person based on their first name."
       }
     ]
   },
@@ -148,6 +236,48 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "amiibo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "amiibo_search",
+        "description": "Search Nintendo Amiibo figures by character name."
+      },
+      {
+        "name": "amiibo_by_series",
+        "description": "List Amiibo figures in a game series."
+      },
+      {
+        "name": "amiibo_types",
+        "description": "List all Amiibo product types (figure, card, yarn, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "angleconv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "angle_convert",
+        "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
+      }
+    ]
+  },
+  {
+    "app": "animechan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "animechan_random",
+        "description": "Get a random anime quote."
+      },
+      {
+        "name": "animechan_search",
+        "description": "Search for anime quotes from a specific anime."
+      }
+    ]
+  },
+  {
     "app": "anthropic",
     "category": "AI",
     "tools": [
@@ -158,6 +288,102 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "anthropic_list_models",
         "description": "List all Claude models available via the Anthropic API."
+      }
+    ]
+  },
+  {
+    "app": "aoe2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "aoe2_civilizations",
+        "description": "List all Age of Empires II civilizations."
+      },
+      {
+        "name": "aoe2_civilization",
+        "description": "Get an Age of Empires II civilization by ID."
+      },
+      {
+        "name": "aoe2_units",
+        "description": "List all Age of Empires II units."
+      },
+      {
+        "name": "aoe2_unit",
+        "description": "Get an Age of Empires II unit by ID."
+      },
+      {
+        "name": "aoe2_technologies",
+        "description": "List all Age of Empires II technologies."
+      }
+    ]
+  },
+  {
+    "app": "apifootball",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sportsdb_search_team",
+        "description": "Search for a sports team by name on TheSportsDB."
+      },
+      {
+        "name": "sportsdb_search_player",
+        "description": "Search for a sports player by name on TheSportsDB."
+      },
+      {
+        "name": "sportsdb_team_events",
+        "description": "Get upcoming events for a team by TheSportsDB team ID."
+      },
+      {
+        "name": "sportsdb_leagues",
+        "description": "List all sports leagues on TheSportsDB."
+      }
+    ]
+  },
+  {
+    "app": "archiveorg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "archive_search",
+        "description": "Search the Internet Archive (archive.org) for items."
+      },
+      {
+        "name": "archive_metadata",
+        "description": "Get metadata for an Internet Archive item by identifier."
+      }
+    ]
+  },
+  {
+    "app": "areacalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "area_calculate",
+        "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
+      }
+    ]
+  },
+  {
+    "app": "artic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "artic_search_artworks",
+        "description": "Search artworks at the Art Institute of Chicago by keyword."
+      },
+      {
+        "name": "artic_get_artwork",
+        "description": "Get detailed info about a specific artwork at the Art Institute of Chicago."
+      }
+    ]
+  },
+  {
+    "app": "arxiv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "arxiv_search",
+        "description": "Search arXiv for scientific preprints by keyword, title, or author."
       }
     ]
   },
@@ -196,6 +422,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "aspectratio",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "aspect_ratio",
+        "description": "Calculate the aspect ratio of given width and height."
+      }
+    ]
+  },
+  {
     "app": "assemblyai",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -226,6 +462,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "atbash",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "atbash_process",
+        "description": "Apply the Atbash cipher (A=Z, B=Y, ...) to text. Self-inverse."
+      }
+    ]
+  },
+  {
     "app": "australiapost",
     "category": "Australian / Local",
     "tools": [
@@ -244,6 +490,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "avatarapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "avatar_url",
+        "description": "Generate a text-based avatar image URL with initials."
+      }
+    ]
+  },
+  {
+    "app": "balldontlie",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nba_players",
+        "description": "Search NBA players by name."
+      },
+      {
+        "name": "nba_teams",
+        "description": "List all NBA teams."
+      },
+      {
+        "name": "nba_games",
+        "description": "Browse NBA game scores and results."
+      }
+    ]
+  },
+  {
     "app": "bandsintown",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -258,6 +532,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bandsintown_recommended",
         "description": "Get recommended events for an artist on Bandsintown."
+      }
+    ]
+  },
+  {
+    "app": "base64",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "base64_encode",
+        "description": "Encode text to Base64."
+      },
+      {
+        "name": "base64_decode",
+        "description": "Decode a Base64 string to text."
+      }
+    ]
+  },
+  {
+    "app": "baseconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "base_convert",
+        "description": "Convert a number between bases (binary, octal, decimal, hex, or any base 2-36)."
       }
     ]
   },
@@ -288,6 +586,72 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bgpview",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bgpview_asn",
+        "description": "Look up an Autonomous System Number (ASN) on BGPView."
+      },
+      {
+        "name": "bgpview_asn_prefixes",
+        "description": "Get IP prefixes announced by an ASN from BGPView."
+      },
+      {
+        "name": "bgpview_ip",
+        "description": "Look up IP address details (PTR, prefix, ASN) on BGPView."
+      }
+    ]
+  },
+  {
+    "app": "bible",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bible_verse",
+        "description": "Look up a Bible verse or passage by reference (e.g. 'John 3:16', 'Psalm 23')."
+      },
+      {
+        "name": "bible_random",
+        "description": "Get a random Bible verse."
+      }
+    ]
+  },
+  {
+    "app": "bibleverse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quran_verse",
+        "description": "Get a specific verse (ayah) from the Quran with English translation."
+      },
+      {
+        "name": "quran_surah",
+        "description": "Get a full surah (chapter) from the Quran."
+      }
+    ]
+  },
+  {
+    "app": "binaryconv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "number_base_convert",
+        "description": "Convert numbers between binary, octal, decimal, hex, and any base 2-36."
+      }
+    ]
+  },
+  {
+    "app": "binomprob",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "binomial_probability",
+        "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
+      }
+    ]
+  },
+  {
     "app": "bitbucket",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -306,12 +670,60 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitwise",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bitwise_calc",
+        "description": "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers."
+      }
+    ]
+  },
+  {
     "app": "bluesky",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "bluesky_action",
         "description": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow."
+      }
+    ]
+  },
+  {
+    "app": "bored",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bored_random",
+        "description": "Get a random activity suggestion."
+      },
+      {
+        "name": "bored_by_type",
+        "description": "Get an activity by type (education, recreational, social, diy, charity, cooking, relaxation, music, busywork)."
+      },
+      {
+        "name": "bored_by_participants",
+        "description": "Get an activity for a specific number of participants."
+      }
+    ]
+  },
+  {
+    "app": "braille",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "braille_convert",
+        "description": "Convert text to Braille Unicode dots or decode Braille back to text."
+      }
+    ]
+  },
+  {
+    "app": "breakingbad",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "breaking_bad_quote",
+        "description": "Get random Breaking Bad quotes."
       }
     ]
   },
@@ -330,6 +742,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "brevo_get_account",
         "description": "Get the Brevo account profile and plan."
+      }
+    ]
+  },
+  {
+    "app": "brewery",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "brewery_search",
+        "description": "Search breweries by name."
+      },
+      {
+        "name": "brewery_get",
+        "description": "Get a brewery by ID."
+      },
+      {
+        "name": "brewery_list",
+        "description": "List breweries, optionally filtered by city, state, or type."
+      },
+      {
+        "name": "brewery_random",
+        "description": "Get random breweries."
       }
     ]
   },
@@ -426,6 +860,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "camelsnake",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "camelsnake_convert",
+        "description": "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE."
+      }
+    ]
+  },
+  {
+    "app": "carbonintensity",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "carbon_intensity_current",
+        "description": "Get current UK electricity grid carbon intensity (gCO2/kWh)."
+      },
+      {
+        "name": "carbon_intensity_forecast",
+        "description": "Get 24-hour forecast of UK grid carbon intensity."
+      },
+      {
+        "name": "carbon_intensity_generation",
+        "description": "Get current UK electricity generation mix by fuel type."
+      }
+    ]
+  },
+  {
     "app": "carboninterface",
     "category": "Environment / Science",
     "tools": [
@@ -440,6 +902,86 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "carbon_electricity_emissions",
         "description": "Estimate carbon emissions for electricity consumption."
+      }
+    ]
+  },
+  {
+    "app": "cataas",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cataas_random_cat",
+        "description": "Get a random cat image, optionally with a tag or text overlay."
+      },
+      {
+        "name": "cataas_list_tags",
+        "description": "List all available cat image tags."
+      }
+    ]
+  },
+  {
+    "app": "catapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cat_api_random_image",
+        "description": "Get a random cat image from The Cat API."
+      },
+      {
+        "name": "cat_api_breeds",
+        "description": "List cat breeds with details from The Cat API."
+      }
+    ]
+  },
+  {
+    "app": "catfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cat_fact",
+        "description": "Get a random cat fact."
+      },
+      {
+        "name": "cat_facts",
+        "description": "Get multiple cat facts with pagination."
+      },
+      {
+        "name": "cat_breeds",
+        "description": "List cat breeds with details."
+      }
+    ]
+  },
+  {
+    "app": "charcodes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "charcodes_convert",
+        "description": "Convert characters to Unicode code points in decimal, hex, or binary."
+      }
+    ]
+  },
+  {
+    "app": "charcount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "char_frequency",
+        "description": "Analyze character frequency and breakdown of a text."
+      }
+    ]
+  },
+  {
+    "app": "cheapshark",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cheapshark_deals",
+        "description": "Search for game deals across multiple stores (Steam, GOG, etc.)."
+      },
+      {
+        "name": "cheapshark_stores",
+        "description": "List all game stores tracked by CheapShark."
       }
     ]
   },
@@ -466,6 +1008,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "chess_leaderboards",
         "description": "Get Chess.com leaderboards."
+      }
+    ]
+  },
+  {
+    "app": "chucknorris",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chuck_random",
+        "description": "Get a random Chuck Norris joke."
+      },
+      {
+        "name": "chuck_search",
+        "description": "Search Chuck Norris jokes by keyword."
+      },
+      {
+        "name": "chuck_categories",
+        "description": "List available Chuck Norris joke categories."
+      }
+    ]
+  },
+  {
+    "app": "cidr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cidr_calculate",
+        "description": "Calculate subnet details from a CIDR notation (network, broadcast, mask, host count)."
       }
     ]
   },
@@ -500,6 +1070,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "citybikes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "citybikes_networks",
+        "description": "List all bike-sharing networks worldwide from CityBikes."
+      },
+      {
+        "name": "citybikes_network",
+        "description": "Get station details for a specific bike-sharing network."
+      }
+    ]
+  },
+  {
     "app": "clickup",
     "category": "Developer / Productivity",
     "tools": [
@@ -530,6 +1114,50 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cloudinary_get_usage",
         "description": "Get Cloudinary usage and quota."
+      }
+    ]
+  },
+  {
+    "app": "cocktail",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cocktail_search",
+        "description": "Search for cocktails/drinks by name."
+      },
+      {
+        "name": "cocktail_random",
+        "description": "Get a random cocktail/drink recipe."
+      },
+      {
+        "name": "cocktail_get_by_id",
+        "description": "Get a cocktail/drink by ID."
+      },
+      {
+        "name": "cocktail_categories",
+        "description": "List all cocktail categories from TheCocktailDB."
+      },
+      {
+        "name": "cocktail_filter_by_category",
+        "description": "Filter cocktails by category."
+      },
+      {
+        "name": "cocktail_filter_by_ingredient",
+        "description": "Filter cocktails by ingredient."
+      }
+    ]
+  },
+  {
+    "app": "cocktaildb2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cocktail_by_ingredient",
+        "description": "Filter cocktails by ingredient (e.g. Vodka, Gin, Tequila)."
+      },
+      {
+        "name": "cocktail_ingredient_info",
+        "description": "Get details about a cocktail ingredient (description, type, ABV)."
       }
     ]
   },
@@ -582,6 +1210,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "coincap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coincap_assets",
+        "description": "List top crypto assets by market cap from CoinCap."
+      },
+      {
+        "name": "coincap_asset_detail",
+        "description": "Get detailed crypto asset info (price, volume, market cap) from CoinCap."
+      },
+      {
+        "name": "coincap_rates",
+        "description": "List crypto and fiat exchange rates from CoinCap."
+      }
+    ]
+  },
+  {
     "app": "coingecko",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -612,6 +1258,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "coinlore",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coinlore_global",
+        "description": "Get global cryptocurrency market overview from Coinlore."
+      },
+      {
+        "name": "coinlore_tickers",
+        "description": "List top cryptocurrency tickers with price and market cap from Coinlore."
+      },
+      {
+        "name": "coinlore_coin",
+        "description": "Get detailed info for a specific cryptocurrency from Coinlore."
+      }
+    ]
+  },
+  {
     "app": "coinmarketcap",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -634,6 +1298,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cmc_global_metrics",
         "description": "Get global cryptocurrency market metrics from CoinMarketCap."
+      }
+    ]
+  },
+  {
+    "app": "coinpaprika",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coinpaprika_global",
+        "description": "Get global cryptocurrency market stats from Coinpaprika."
+      },
+      {
+        "name": "coinpaprika_coin",
+        "description": "Get detailed info about a cryptocurrency from Coinpaprika."
+      },
+      {
+        "name": "coinpaprika_ticker",
+        "description": "Get live price/ticker data from Coinpaprika. Without id, returns top 20."
+      }
+    ]
+  },
+  {
+    "app": "collatz",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "collatz_sequence",
+        "description": "Compute the Collatz (3n+1) sequence for a positive integer."
       }
     ]
   },
@@ -664,6 +1356,74 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "colorblend",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_blend",
+        "description": "Blend two hex colors together, optionally generating a gradient palette."
+      }
+    ]
+  },
+  {
+    "app": "colorconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_hex_convert",
+        "description": "Convert a hex color to RGB and HSL values."
+      }
+    ]
+  },
+  {
+    "app": "colormind",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "colormind_generate_palette",
+        "description": "Generate an AI-powered 5-color palette using Colormind."
+      },
+      {
+        "name": "colormind_list_models",
+        "description": "List available Colormind color models."
+      }
+    ]
+  },
+  {
+    "app": "colornames",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "color_name_lookup",
+        "description": "Find the closest named color for a hex code."
+      },
+      {
+        "name": "color_name_random",
+        "description": "Get a random named color with its hex code and name."
+      }
+    ]
+  },
+  {
+    "app": "colr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "colr_random_palette",
+        "description": "Get a random color palette from colr.org."
+      }
+    ]
+  },
+  {
+    "app": "combination",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "combination_calc",
+        "description": "Calculate the number of combinations C(n,r) - unordered selections."
+      }
+    ]
+  },
+  {
     "app": "commonsensepass",
     "category": "CommonSensePass (worker sanity-gate verdicts)",
     "tools": [
@@ -674,6 +1434,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "commonsensepass_rules",
         "description": "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets."
+      }
+    ]
+  },
+  {
+    "app": "complexnum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "complex_calc",
+        "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
       }
     ]
   },
@@ -784,6 +1554,80 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "corporatebs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "corporate_bs_phrase",
+        "description": "Generate a random corporate buzzword phrase."
+      }
+    ]
+  },
+  {
+    "app": "cosinesim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cosinesim_compare",
+        "description": "Calculate cosine similarity between two texts using word frequency vectors."
+      }
+    ]
+  },
+  {
+    "app": "countdowncalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "countdown_calc",
+        "description": "Calculate days, weeks until or since a given date."
+      }
+    ]
+  },
+  {
+    "app": "countryflag",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_flag_url",
+        "description": "Get a country flag image URL by ISO 2-letter code."
+      }
+    ]
+  },
+  {
+    "app": "countryis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_by_ip",
+        "description": "Detect country from an IP address using country.is."
+      }
+    ]
+  },
+  {
+    "app": "crates",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crates_search",
+        "description": "Search Rust crates on crates.io by name or keyword."
+      },
+      {
+        "name": "crates_get",
+        "description": "Get detailed info for a Rust crate by name from crates.io."
+      }
+    ]
+  },
+  {
+    "app": "crc32",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crc32_calculate",
+        "description": "Calculate CRC32 checksum for text input."
+      }
+    ]
+  },
+  {
     "app": "crews",
     "category": "Crews (Orchestrator Wizard)",
     "tools": [
@@ -802,12 +1646,98 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "crontab",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crontab_explain",
+        "description": "Explain a cron expression in human-readable terms."
+      }
+    ]
+  },
+  {
+    "app": "crossproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cross_product",
+        "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
+      }
+    ]
+  },
+  {
+    "app": "crossref",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "crossref_search_works",
+        "description": "Search academic papers on Crossref by title, author, or keyword."
+      },
+      {
+        "name": "crossref_get_work",
+        "description": "Get full metadata for an academic paper by DOI from Crossref."
+      }
+    ]
+  },
+  {
     "app": "csuite",
     "category": "AI",
     "tools": [
       {
         "name": "csuite_analyze",
         "description": "Run a C-Suite multi-perspective analysis on a business scenario."
+      }
+    ]
+  },
+  {
+    "app": "csvparse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "csv_parse",
+        "description": "Parse CSV text into structured JSON rows."
+      }
+    ]
+  },
+  {
+    "app": "cvecircl",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "circl_cve_lookup",
+        "description": "Look up a CVE vulnerability by ID from CIRCL (cve.circl.lu)."
+      },
+      {
+        "name": "circl_cve_recent",
+        "description": "Get the most recently published CVE vulnerabilities from CIRCL."
+      }
+    ]
+  },
+  {
+    "app": "dadjoke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dadjoke_random",
+        "description": "Get a random dad joke from icanhazdadjoke."
+      },
+      {
+        "name": "dadjoke_search",
+        "description": "Search for dad jokes by keyword."
+      },
+      {
+        "name": "dadjoke_by_id",
+        "description": "Get a specific dad joke by its ID."
+      }
+    ]
+  },
+  {
+    "app": "damerau",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "damerau_distance",
+        "description": "Calculate Damerau-Levenshtein distance (edits + transpositions) between two strings."
       }
     ]
   },
@@ -842,6 +1772,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "datamuse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "datamuse_words",
+        "description": "Find words by meaning, sound, spelling, rhyme, or adjective/noun relationship."
+      },
+      {
+        "name": "datamuse_suggestions",
+        "description": "Get autocomplete suggestions for a word prefix."
+      }
+    ]
+  },
+  {
     "app": "datetime",
     "category": "Utilities",
     "tools": [
@@ -872,6 +1816,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "datetime_week_number",
         "description": "Get the ISO week number for a date."
+      }
+    ]
+  },
+  {
+    "app": "dblp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dblp_search_publications",
+        "description": "Search DBLP for computer science publications."
+      },
+      {
+        "name": "dblp_search_authors",
+        "description": "Search DBLP for computer science researchers."
+      }
+    ]
+  },
+  {
+    "app": "deckofcards",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "deck_new",
+        "description": "Create and shuffle a new deck of cards."
+      },
+      {
+        "name": "deck_draw",
+        "description": "Draw cards from a deck."
+      },
+      {
+        "name": "deck_shuffle",
+        "description": "Reshuffle an existing deck."
       }
     ]
   },
@@ -924,6 +1900,58 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "diceware",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "diceware_passphrase",
+        "description": "Generate a secure random passphrase using the diceware word list."
+      }
+    ]
+  },
+  {
+    "app": "dictionary",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dictionary_lookup",
+        "description": "Look up a word's definition, phonetics, and examples."
+      },
+      {
+        "name": "dictionary_lookup_language",
+        "description": "Look up a word in a specific language (es, fr, de, it, ja, etc)."
+      }
+    ]
+  },
+  {
+    "app": "difftext",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "diff_text",
+        "description": "Compare two texts line by line and show added/removed lines."
+      }
+    ]
+  },
+  {
+    "app": "digimon",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "digimon_all",
+        "description": "List all Digimon with names, images, and levels."
+      },
+      {
+        "name": "digimon_by_name",
+        "description": "Look up a specific Digimon by name."
+      },
+      {
+        "name": "digimon_by_level",
+        "description": "List Digimon filtered by evolution level."
       }
     ]
   },
@@ -1014,6 +2042,124 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "diseasesh",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "covid_global",
+        "description": "Get global COVID-19 statistics from disease.sh."
+      },
+      {
+        "name": "covid_country",
+        "description": "Get COVID-19 statistics for a specific country from disease.sh."
+      },
+      {
+        "name": "covid_vaccine",
+        "description": "Get COVID-19 vaccine candidate information from disease.sh."
+      }
+    ]
+  },
+  {
+    "app": "disneyapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "disney_character_search",
+        "description": "Search Disney characters by name."
+      },
+      {
+        "name": "disney_all_characters",
+        "description": "Browse all Disney characters (paginated)."
+      }
+    ]
+  },
+  {
+    "app": "dnd5e",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dnd_get_class",
+        "description": "Get a D&D 5e class by index (e.g. wizard, fighter)."
+      },
+      {
+        "name": "dnd_list_classes",
+        "description": "List all D&D 5e character classes."
+      },
+      {
+        "name": "dnd_get_spell",
+        "description": "Get a D&D 5e spell by name/index."
+      },
+      {
+        "name": "dnd_list_spells",
+        "description": "List D&D 5e spells, optionally filtered."
+      },
+      {
+        "name": "dnd_get_monster",
+        "description": "Get a D&D 5e monster stat block by index."
+      },
+      {
+        "name": "dnd_list_monsters",
+        "description": "List D&D 5e monsters, optionally by challenge rating."
+      }
+    ]
+  },
+  {
+    "app": "dogapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_api_random_image",
+        "description": "Get a random dog image from The Dog API."
+      },
+      {
+        "name": "dog_api_breeds",
+        "description": "List dog breeds with details from The Dog API."
+      }
+    ]
+  },
+  {
+    "app": "dogceo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_random_image",
+        "description": "Get random dog image(s) from Dog CEO API."
+      },
+      {
+        "name": "dog_breed_image",
+        "description": "Get random image(s) of a specific dog breed."
+      },
+      {
+        "name": "dog_list_breeds",
+        "description": "List all dog breeds and sub-breeds."
+      },
+      {
+        "name": "dog_breed_list",
+        "description": "List sub-breeds of a specific dog breed."
+      }
+    ]
+  },
+  {
+    "app": "dogfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dog_fact_random",
+        "description": "Get a random dog fact."
+      }
+    ]
+  },
+  {
+    "app": "dohdns",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dohdns_resolve",
+        "description": "Resolve DNS records for a domain via Google DNS-over-HTTPS."
+      }
+    ]
+  },
+  {
     "app": "domain",
     "category": "Australian / Local",
     "tools": [
@@ -1032,6 +2178,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "domainsdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "domainsdb_search",
+        "description": "Search registered domain names by keyword or pattern."
+      },
+      {
+        "name": "domainsdb_tlds",
+        "description": "List available top-level domains (TLDs) from DomainsDB."
+      }
+    ]
+  },
+  {
+    "app": "dotproduct",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dot_product",
+        "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+      }
+    ]
+  },
+  {
     "app": "dropbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1046,6 +2216,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "dropbox_get_account",
         "description": "Get the current Dropbox account profile."
+      }
+    ]
+  },
+  {
+    "app": "dummyimage",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dummy_image_url",
+        "description": "Generate a placeholder image URL with custom size, colors, and text."
+      }
+    ]
+  },
+  {
+    "app": "dummyjson",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dummyjson_products",
+        "description": "Browse fake product data from DummyJSON."
+      },
+      {
+        "name": "dummyjson_search_products",
+        "description": "Search fake products by keyword."
+      },
+      {
+        "name": "dummyjson_quotes",
+        "description": "Browse a collection of quotes from DummyJSON."
+      },
+      {
+        "name": "dummyjson_random_quote",
+        "description": "Get a random quote from DummyJSON."
       }
     ]
   },
@@ -1146,6 +2348,54 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "emojihub",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "emojihub_random",
+        "description": "Get a random emoji with name, category, and HTML/Unicode codes."
+      },
+      {
+        "name": "emojihub_by_category",
+        "description": "Browse emojis by category (smileys, animals, food, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "emojilookup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "emoji_lookup",
+        "description": "Search emojis by name or keyword."
+      }
+    ]
+  },
+  {
+    "app": "entropy",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "entropy_calculate",
+        "description": "Calculate Shannon entropy of text (measures randomness/information density)."
+      }
+    ]
+  },
+  {
+    "app": "epoch",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "epoch_convert",
+        "description": "Convert a Unix epoch timestamp to ISO 8601 and human-readable formats."
+      },
+      {
+        "name": "epoch_now",
+        "description": "Get the current Unix epoch timestamp in seconds and milliseconds."
+      }
+    ]
+  },
+  {
     "app": "espn",
     "category": "Utilities",
     "tools": [
@@ -1206,6 +2456,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "europeana",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "europeana_search",
+        "description": "Search Europeana for European cultural heritage objects (art, books, music, film)."
+      },
+      {
+        "name": "europeana_record",
+        "description": "Get details of a Europeana cultural heritage record by ID."
+      }
+    ]
+  },
+  {
     "app": "eventbrite",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1236,6 +2500,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "evilinsult",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "evil_insult_random",
+        "description": "Get a random insult (for entertainment only)."
+      }
+    ]
+  },
+  {
     "app": "exchangerate",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -1258,12 +2532,102 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "exchangerate2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "er_latest_rates",
+        "description": "Get latest exchange rates from ExchangeRate-API (open endpoint)."
+      }
+    ]
+  },
+  {
+    "app": "exchangerate3",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "currency_api_rates",
+        "description": "Get latest currency exchange rates from fawazahmed0 currency API (free, no key)."
+      },
+      {
+        "name": "currency_api_list",
+        "description": "List all supported currency codes from fawazahmed0 currency API."
+      }
+    ]
+  },
+  {
+    "app": "excuser",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "excuser_random",
+        "description": "Get a random excuse, optionally by category."
+      }
+    ]
+  },
+  {
+    "app": "expgrowth",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "exponential_growth",
+        "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
+      }
+    ]
+  },
+  {
+    "app": "fakerapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "faker_persons",
+        "description": "Generate fake person data (name, email, phone, address) for testing."
+      },
+      {
+        "name": "faker_companies",
+        "description": "Generate fake company data for testing."
+      },
+      {
+        "name": "faker_texts",
+        "description": "Generate fake text/article data for testing."
+      }
+    ]
+  },
+  {
+    "app": "fakestoreapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fakestore_products",
+        "description": "List fake e-commerce products (for testing and prototyping)."
+      },
+      {
+        "name": "fakestore_product",
+        "description": "Get a single fake product by ID."
+      },
+      {
+        "name": "fakestore_categories",
+        "description": "List all fake store product categories."
+      }
+    ]
+  },
+  {
     "app": "feedly",
     "category": "Productivity",
     "tools": [
       {
         "name": "feedly_action",
         "description": "Perform a Feedly action: get_feedly_feeds, get_feedly_streams, search_feedly, get_feedly_categories, mark_as_read."
+      }
+    ]
+  },
+  {
+    "app": "fibonacci",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fibonacci_sequence",
+        "description": "Generate Fibonacci numbers and optionally check if a number is Fibonacci."
       }
     ]
   },
@@ -1312,6 +2676,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "figma_get_team_projects",
         "description": "List all projects for a Figma team."
+      }
+    ]
+  },
+  {
+    "app": "finalspace",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "final_space_characters",
+        "description": "List all Final Space characters."
+      },
+      {
+        "name": "final_space_episodes",
+        "description": "List all Final Space episodes."
+      }
+    ]
+  },
+  {
+    "app": "fishwatch",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fishwatch_species",
+        "description": "List all fish species with sustainability data from NOAA FishWatch."
+      },
+      {
+        "name": "fishwatch_species_detail",
+        "description": "Get detailed info about a specific fish species from NOAA FishWatch."
       }
     ]
   },
@@ -1376,6 +2768,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "flyover",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_flyover",
+        "description": "Get upcoming ISS flyover times for a location (lat/lon)."
+      }
+    ]
+  },
+  {
+    "app": "foodish",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "foodish_random",
+        "description": "Get a random food image from Foodish API."
+      },
+      {
+        "name": "foodish_by_category",
+        "description": "Get a random food image by category from Foodish API."
+      }
+    ]
+  },
+  {
     "app": "foursquare",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1436,6 +2852,124 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "frankfurter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "frankfurter_latest",
+        "description": "Get latest exchange rates from ECB via Frankfurter."
+      },
+      {
+        "name": "frankfurter_convert",
+        "description": "Convert a specific amount between two currencies using ECB rates."
+      },
+      {
+        "name": "frankfurter_historical",
+        "description": "Get historical exchange rates for a specific date from ECB."
+      },
+      {
+        "name": "frankfurter_currencies",
+        "description": "List all currencies supported by the Frankfurter ECB exchange-rate API."
+      }
+    ]
+  },
+  {
+    "app": "freetogame",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "freetogame_list",
+        "description": "Browse free-to-play games, optionally filtered by platform or category."
+      },
+      {
+        "name": "freetogame_detail",
+        "description": "Get full details for a specific free-to-play game."
+      }
+    ]
+  },
+  {
+    "app": "frequency",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "frequency_analyse",
+        "description": "Analyse character or bigram frequencies in text."
+      }
+    ]
+  },
+  {
+    "app": "fruityvice",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fruityvice_all",
+        "description": "List all fruits with nutrition facts from Fruityvice."
+      },
+      {
+        "name": "fruityvice_by_name",
+        "description": "Get detailed nutrition info for a specific fruit from Fruityvice."
+      }
+    ]
+  },
+  {
+    "app": "funtranslations",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fun_translate",
+        "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+      }
+    ]
+  },
+  {
+    "app": "gameoflife",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "game_of_life_step",
+        "description": "Run Conway's Game of Life simulation steps (local, no network)."
+      }
+    ]
+  },
+  {
+    "app": "gbif",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gbif_search_species",
+        "description": "Search GBIF for biodiversity species by name."
+      },
+      {
+        "name": "gbif_species_detail",
+        "description": "Get full taxonomy details for a GBIF species by key."
+      },
+      {
+        "name": "gbif_occurrences",
+        "description": "Search GBIF biodiversity occurrence records by species and/or country."
+      }
+    ]
+  },
+  {
+    "app": "gcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gcd_calculate",
+        "description": "Compute the greatest common divisor (GCD) and least common multiple (LCM) of integers."
+      }
+    ]
+  },
+  {
+    "app": "gcdlcm",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gcd_lcm_calc",
+        "description": "Calculate GCD and LCM of two or more integers."
+      }
+    ]
+  },
+  {
     "app": "gdelt",
     "category": "Gaming",
     "tools": [
@@ -1454,6 +2988,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "gdelt_trending",
         "description": "Check whether a topic is trending in global news using GDELT article volume timelines. Returns a trend classification (surging, rising, stable, declining, fading) and volume data over time."
+      }
+    ]
+  },
+  {
+    "app": "genderize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "genderize_predict",
+        "description": "Predict gender from a first name with probability score."
       }
     ]
   },
@@ -1480,6 +3024,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "geojs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "geojs_lookup",
+        "description": "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup."
+      }
+    ]
+  },
+  {
+    "app": "geomseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "geometric_series",
+        "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
+      }
+    ]
+  },
+  {
     "app": "geopass",
     "category": "GEOPass (AI answer-engine readiness QC, sister to SEOPass)",
     "tools": [
@@ -1490,6 +3054,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "geopass_status",
         "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
+      }
+    ]
+  },
+  {
+    "app": "ghibli",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ghibli_films",
+        "description": "List all Studio Ghibli films with directors and descriptions."
+      },
+      {
+        "name": "ghibli_people",
+        "description": "List characters from Studio Ghibli films."
       }
     ]
   },
@@ -1536,6 +3114,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "github_action",
         "description": "Interact with the GitHub REST API: search repos, get repo details, list and create issues, list PRs, get user profiles, list gists, and search code."
+      }
+    ]
+  },
+  {
+    "app": "github-emoji",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "github_emojis",
+        "description": "List all GitHub emojis with their image URLs."
       }
     ]
   },
@@ -1616,6 +3204,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gutendex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gutendex_search",
+        "description": "Search Project Gutenberg free ebooks."
+      },
+      {
+        "name": "gutendex_book",
+        "description": "Get details for a Project Gutenberg book by ID."
+      }
+    ]
+  },
+  {
     "app": "hackernews",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1646,6 +3248,62 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hn_user",
         "description": "Get a Hacker News user profile."
+      }
+    ]
+  },
+  {
+    "app": "hamming",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hamming_distance",
+        "description": "Calculate Hamming distance between two equal-length strings."
+      }
+    ]
+  },
+  {
+    "app": "harmonicseries",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "harmonic_series",
+        "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
+      }
+    ]
+  },
+  {
+    "app": "harrypotter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hp_all_characters",
+        "description": "List all Harry Potter characters."
+      },
+      {
+        "name": "hp_students",
+        "description": "List Hogwarts students."
+      },
+      {
+        "name": "hp_staff",
+        "description": "List Hogwarts staff."
+      },
+      {
+        "name": "hp_by_house",
+        "description": "List characters by Hogwarts house."
+      }
+    ]
+  },
+  {
+    "app": "hashgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hash_generate",
+        "description": "Generate a cryptographic hash (md5, sha1, sha256, sha384, sha512) of text."
+      },
+      {
+        "name": "hash_compare",
+        "description": "Compare text against an expected hash to verify integrity."
       }
     ]
   },
@@ -1712,6 +3370,94 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "histogram",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "histogram_create",
+        "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
+      }
+    ]
+  },
+  {
+    "app": "holidays",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "holidays_by_country",
+        "description": "Get public holidays for a country and year."
+      },
+      {
+        "name": "holidays_next",
+        "description": "Get upcoming public holidays for a country."
+      },
+      {
+        "name": "holidays_countries",
+        "description": "List all countries supported by the public holidays API."
+      },
+      {
+        "name": "holidays_long_weekends",
+        "description": "Get long weekends for a country and year."
+      }
+    ]
+  },
+  {
+    "app": "htmlstrip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "html_strip",
+        "description": "Strip HTML tags and decode entities to plain text."
+      }
+    ]
+  },
+  {
+    "app": "httpbin",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "httpbin_get",
+        "description": "Test an HTTP GET request - see your headers, IP, and args echoed back."
+      },
+      {
+        "name": "httpbin_headers",
+        "description": "Get your request headers as seen by httpbin."
+      },
+      {
+        "name": "httpbin_ip",
+        "description": "Get your public IP address via httpbin."
+      },
+      {
+        "name": "httpbin_user_agent",
+        "description": "Get your User-Agent string via httpbin."
+      },
+      {
+        "name": "httpbin_uuid",
+        "description": "Generate a random UUID via httpbin."
+      }
+    ]
+  },
+  {
+    "app": "httpcat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "http_cat_image",
+        "description": "Get a cat image for any HTTP status code from http.cat (no network call)."
+      }
+    ]
+  },
+  {
+    "app": "httpdog",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "http_dog_image",
+        "description": "Get a dog image URL for an HTTP status code (like httpcat but with dogs)."
+      }
+    ]
+  },
+  {
     "app": "hubspot",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1760,6 +3506,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "iban",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iban_validate",
+        "description": "Validate an IBAN and get bank/BIC info via OpenIBAN."
+      }
+    ]
+  },
+  {
+    "app": "iceandfire",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iceandfire_characters",
+        "description": "Search characters from A Song of Ice and Fire (Game of Thrones)."
+      },
+      {
+        "name": "iceandfire_books",
+        "description": "List or search books in the A Song of Ice and Fire series."
+      },
+      {
+        "name": "iceandfire_houses",
+        "description": "Search noble houses from A Song of Ice and Fire (Game of Thrones)."
+      }
+    ]
+  },
+  {
     "app": "igdb",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -1804,6 +3578,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "imgflip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "imgflip_get_memes",
+        "description": "Get the top 100 popular meme templates from Imgflip."
+      }
+    ]
+  },
+  {
     "app": "instapaper",
     "category": "Productivity",
     "tools": [
@@ -1832,6 +3616,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "intercom_search_contacts",
         "description": "Search Intercom contacts by email."
+      }
+    ]
+  },
+  {
+    "app": "interpolate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "interpolate_calc",
+        "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+      }
+    ]
+  },
+  {
+    "app": "ipaddrinfo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ip_address_lookup",
+        "description": "Look up geolocation, ISP, and timezone for an IP address."
       }
     ]
   },
@@ -1868,6 +3672,106 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ipify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ipify_get_ip",
+        "description": "Get your public IP address via ipify."
+      }
+    ]
+  },
+  {
+    "app": "ipinfo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ipinfo_lookup",
+        "description": "Get geolocation and ISP info for an IP address (or your own)."
+      }
+    ]
+  },
+  {
+    "app": "ipvalidate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ip_validate",
+        "description": "Validate and classify an IP address (IPv4/IPv6, public/private/loopback)."
+      }
+    ]
+  },
+  {
+    "app": "iseven",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "is_even",
+        "description": "Check whether a number is even, via the isEven API."
+      }
+    ]
+  },
+  {
+    "app": "isup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "isup_check",
+        "description": "Check if a website/domain is up or down via isitup.org."
+      }
+    ]
+  },
+  {
+    "app": "itis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "itis_search_by_name",
+        "description": "Search USDA ITIS for species by common name."
+      },
+      {
+        "name": "itis_get_full_record",
+        "description": "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number)."
+      }
+    ]
+  },
+  {
+    "app": "jaccard",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jaccard_similarity",
+        "description": "Calculate Jaccard similarity index between two texts (word or character level)."
+      }
+    ]
+  },
+  {
+    "app": "jikan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jikan_search_anime",
+        "description": "Search anime on MyAnimeList via Jikan API."
+      },
+      {
+        "name": "jikan_get_anime",
+        "description": "Get anime details by MyAnimeList ID."
+      },
+      {
+        "name": "jikan_top_anime",
+        "description": "Get top-ranked anime from MyAnimeList."
+      },
+      {
+        "name": "jikan_search_manga",
+        "description": "Search manga on MyAnimeList via Jikan API."
+      },
+      {
+        "name": "jikan_get_character",
+        "description": "Get an anime/manga character by MyAnimeList ID."
+      }
+    ]
+  },
+  {
     "app": "jira",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1894,6 +3798,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "jisho",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jisho_search",
+        "description": "Search Jisho.org Japanese dictionary for words, kanji, or English translations."
+      }
+    ]
+  },
+  {
     "app": "jobsmith",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1904,6 +3818,82 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "jobsmith_rules",
         "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+      }
+    ]
+  },
+  {
+    "app": "joke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "joke_random",
+        "description": "Get a random joke from JokeAPI."
+      },
+      {
+        "name": "joke_categories",
+        "description": "List available joke categories from JokeAPI."
+      }
+    ]
+  },
+  {
+    "app": "jsoncrack",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "json_format",
+        "description": "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats."
+      }
+    ]
+  },
+  {
+    "app": "jsonformat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "json_prettify",
+        "description": "Prettify or minify JSON text."
+      }
+    ]
+  },
+  {
+    "app": "jsonplaceholder",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jp_list_posts",
+        "description": "List posts from JSONPlaceholder (fake REST API). Optionally filter by userId."
+      },
+      {
+        "name": "jp_get_post",
+        "description": "Get a single post by ID from JSONPlaceholder."
+      },
+      {
+        "name": "jp_list_comments",
+        "description": "List comments on a post from JSONPlaceholder."
+      },
+      {
+        "name": "jp_list_users",
+        "description": "List all users from JSONPlaceholder (fake test data)."
+      }
+    ]
+  },
+  {
+    "app": "jwt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jwt_decode",
+        "description": "Decode a JWT token to inspect header and payload claims (does NOT verify signature)."
+      }
+    ]
+  },
+  {
+    "app": "kanye",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kanye_quote",
+        "description": "Get a random Kanye West quote."
       }
     ]
   },
@@ -1966,6 +3956,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "kling_get_task",
         "description": "Check the status of a Kling AI video generation task."
+      }
+    ]
+  },
+  {
+    "app": "languagetool",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "languagetool_check",
+        "description": "Check text for grammar, spelling, and style issues using LanguageTool."
+      },
+      {
+        "name": "languagetool_languages",
+        "description": "List all languages supported by LanguageTool."
       }
     ]
   },
@@ -2094,6 +4098,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "levenshtein",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "string_distance",
+        "description": "Calculate Levenshtein edit distance and similarity between two strings."
+      }
+    ]
+  },
+  {
+    "app": "libretranslate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "libretranslate_translate",
+        "description": "Translate text between languages using LibreTranslate (open source)."
+      },
+      {
+        "name": "libretranslate_languages",
+        "description": "List supported languages in LibreTranslate."
+      },
+      {
+        "name": "libretranslate_detect",
+        "description": "Detect the language of a text using LibreTranslate."
+      }
+    ]
+  },
+  {
     "app": "lichess",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2160,6 +4192,84 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "logbase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "log_base",
+        "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
+      }
+    ]
+  },
+  {
+    "app": "lorem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bacon_ipsum",
+        "description": "Generate meat-themed placeholder text (Bacon Ipsum)."
+      }
+    ]
+  },
+  {
+    "app": "lorem2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lorem_generate",
+        "description": "Generate lorem ipsum placeholder text."
+      }
+    ]
+  },
+  {
+    "app": "loremname",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lorem_name_generate",
+        "description": "Generate random placeholder names with optional email addresses."
+      }
+    ]
+  },
+  {
+    "app": "lotr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lotr_books",
+        "description": "List Lord of the Rings books."
+      },
+      {
+        "name": "lotr_characters",
+        "description": "Search Lord of the Rings characters by name."
+      },
+      {
+        "name": "lotr_quotes",
+        "description": "Get Lord of the Rings movie quotes."
+      }
+    ]
+  },
+  {
+    "app": "luhn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "luhn_validate",
+        "description": "Validate or generate a Luhn check digit (credit cards, IMEI, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "lyrics",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lyrics_get",
+        "description": "Get song lyrics by artist and title."
+      }
+    ]
+  },
+  {
     "app": "mailchimp",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2194,6 +4304,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "makeup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "makeup_search",
+        "description": "Search makeup products by brand, type, category, or tags."
+      }
+    ]
+  },
+  {
     "app": "mapbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2220,12 +4340,66 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "markdown",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markdown_to_html",
+        "description": "Convert Markdown text to HTML (headings, bold, italic, links, lists, code)."
+      },
+      {
+        "name": "markdown_stats",
+        "description": "Analyze Markdown text: count headings, links, code blocks, words, and more."
+      }
+    ]
+  },
+  {
+    "app": "markdowntable",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markdowntable_convert",
+        "description": "Convert CSV or TSV text into a Markdown table."
+      }
+    ]
+  },
+  {
+    "app": "markov",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markov_generate",
+        "description": "Generate text using a Markov chain trained on input text (word or character level)."
+      }
+    ]
+  },
+  {
     "app": "mastodon",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "mastodon_action",
         "description": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications."
+      }
+    ]
+  },
+  {
+    "app": "matrix",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_operate",
+        "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+      }
+    ]
+  },
+  {
+    "app": "mcsrvstat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mc_server_status",
+        "description": "Check the status of a Minecraft server (Java or Bedrock)."
       }
     ]
   },
@@ -2260,6 +4434,82 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "meal_filter_by_ingredient",
         "description": "Filter meals by main ingredient."
+      }
+    ]
+  },
+  {
+    "app": "mediawiki",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wiktionary_lookup",
+        "description": "Look up a word definition in Wiktionary (multi-language)."
+      }
+    ]
+  },
+  {
+    "app": "memegen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "memegen_templates",
+        "description": "List available meme templates from memegen.link."
+      },
+      {
+        "name": "memegen_create",
+        "description": "Generate a meme image URL from a template, top text, and bottom text."
+      }
+    ]
+  },
+  {
+    "app": "metaphone",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "metaphone_encode",
+        "description": "Encode words using the Metaphone phonetic algorithm, optionally comparing two words."
+      }
+    ]
+  },
+  {
+    "app": "metmuseum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "met_search",
+        "description": "Search the Metropolitan Museum of Art collection for artworks."
+      },
+      {
+        "name": "met_object",
+        "description": "Get full details for a Met Museum artwork by object ID."
+      },
+      {
+        "name": "met_departments",
+        "description": "List all departments in the Metropolitan Museum of Art."
+      }
+    ]
+  },
+  {
+    "app": "mhwdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mhw_monsters",
+        "description": "Search Monster Hunter World monsters by name."
+      },
+      {
+        "name": "mhw_weapons",
+        "description": "Browse Monster Hunter World weapons by type."
+      }
+    ]
+  },
+  {
+    "app": "midpoint",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "midpoint_calc",
+        "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
       }
     ]
   },
@@ -2326,6 +4576,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "modpow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "modular_arithmetic",
+        "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+      }
+    ]
+  },
+  {
     "app": "monday",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -2366,6 +4626,44 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "morse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "morse_convert",
+        "description": "Encode text to Morse code or decode Morse code to text."
+      }
+    ]
+  },
+  {
+    "app": "mtg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mtg_search_cards",
+        "description": "Search Magic: The Gathering cards by name, color, type, set, or rarity."
+      },
+      {
+        "name": "mtg_get_card",
+        "description": "Get a specific MTG card by its multiverse ID."
+      },
+      {
+        "name": "mtg_sets",
+        "description": "List or search Magic: The Gathering sets."
+      }
+    ]
+  },
+  {
+    "app": "multiavatar",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "multiavatar_generate",
+        "description": "Generate a unique avatar image URL from any string (no network call)."
+      }
+    ]
+  },
+  {
     "app": "musicbrainz",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2392,6 +4690,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mymemory",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mymemory_translate",
+        "description": "Translate text between languages using MyMemory free translation API."
+      }
+    ]
+  },
+  {
     "app": "nasa",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2414,6 +4722,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "nasa_epic",
         "description": "Get NASA EPIC Earth imagery."
+      }
+    ]
+  },
+  {
+    "app": "nationalize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nationalize_predict",
+        "description": "Predict likely nationalities from a first name with probability scores."
+      }
+    ]
+  },
+  {
+    "app": "natoalphabet",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nato_convert",
+        "description": "Convert text to NATO phonetic alphabet or decode NATO words back to text."
       }
     ]
   },
@@ -2488,12 +4816,108 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "newton",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "newton_math",
+        "description": "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API."
+      }
+    ]
+  },
+  {
+    "app": "ngram",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ngram_extract",
+        "description": "Extract and count n-grams (word or character level) from text."
+      }
+    ]
+  },
+  {
+    "app": "nhtsa",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nhtsa_decode_vin",
+        "description": "Decode a vehicle VIN to get make, model, year, and specifications from NHTSA."
+      },
+      {
+        "name": "nhtsa_recalls",
+        "description": "Search NHTSA vehicle safety recalls by make, model, and year."
+      }
+    ]
+  },
+  {
+    "app": "nobelprize",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nobel_prizes",
+        "description": "Search Nobel Prize data by year and/or category."
+      },
+      {
+        "name": "nobel_laureates",
+        "description": "Search Nobel laureates by name, year, or category."
+      }
+    ]
+  },
+  {
+    "app": "nominatim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nominatim_search",
+        "description": "Geocode a place name or address to coordinates using OpenStreetMap Nominatim."
+      },
+      {
+        "name": "nominatim_reverse",
+        "description": "Reverse geocode coordinates to an address using OpenStreetMap Nominatim."
+      }
+    ]
+  },
+  {
+    "app": "normaldistr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "normal_distribution",
+        "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+      }
+    ]
+  },
+  {
     "app": "notion",
     "category": "Productivity",
     "tools": [
       {
         "name": "notion_action",
         "description": "Perform a Notion action: search_notion, get_notion_page, get_notion_database, query_notion_database, create_notion_page, update_notion_page."
+      }
+    ]
+  },
+  {
+    "app": "npm-registry",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "npm_search",
+        "description": "Search npm packages by name or keyword."
+      },
+      {
+        "name": "npm_get_package",
+        "description": "Get metadata for an npm package (latest version)."
+      }
+    ]
+  },
+  {
+    "app": "nthroot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "nth_root",
+        "description": "Calculate the nth root of a number. Default is square root (n=2)."
       }
     ]
   },
@@ -2548,6 +4972,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "oeis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "oeis_search",
+        "description": "Search the Online Encyclopedia of Integer Sequences (OEIS) by sequence or keyword."
+      }
+    ]
+  },
+  {
+    "app": "officialjoke",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "official_joke_random",
+        "description": "Get a random joke from Official Joke API (setup + punchline format)."
+      },
+      {
+        "name": "official_joke_by_type",
+        "description": "Get a random joke by type from Official Joke API."
+      },
+      {
+        "name": "official_joke_ten",
+        "description": "Get 10 random jokes from Official Joke API."
+      }
+    ]
+  },
+  {
     "app": "omdb",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2562,6 +5014,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "omdb_by_id",
         "description": "Get an OMDB movie/show by IMDb ID."
+      }
+    ]
+  },
+  {
+    "app": "open-elevation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "open_elevation_lookup",
+        "description": "Get elevation in meters for given coordinates from Open Elevation API."
       }
     ]
   },
@@ -2592,6 +5054,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openalex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openalex_search_works",
+        "description": "Search OpenAlex for scholarly works by keyword."
+      },
+      {
+        "name": "openalex_get_work",
+        "description": "Get full metadata for a scholarly work by OpenAlex ID or DOI."
+      },
+      {
+        "name": "openalex_search_authors",
+        "description": "Search OpenAlex for academic authors by name."
+      }
+    ]
+  },
+  {
     "app": "openaq",
     "category": "Environment / Science",
     "tools": [
@@ -2606,6 +5086,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "openaq_countries",
         "description": "List countries with air quality data on OpenAQ."
+      }
+    ]
+  },
+  {
+    "app": "openchargemap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openchargemap_search",
+        "description": "Find EV charging stations near a location from Open Charge Map."
+      }
+    ]
+  },
+  {
+    "app": "opendota",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "opendota_heroes",
+        "description": "List all Dota 2 heroes with roles and attack types from OpenDota."
+      },
+      {
+        "name": "opendota_hero_stats",
+        "description": "Get Dota 2 hero statistics including pick/win rates per bracket."
+      },
+      {
+        "name": "opendota_pro_matches",
+        "description": "Get recent professional Dota 2 match results from OpenDota."
       }
     ]
   },
@@ -2670,6 +5178,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openfda",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openfda_drug_search",
+        "description": "Search FDA drug labels by brand name or ingredient."
+      },
+      {
+        "name": "openfda_recall_search",
+        "description": "Search FDA food and drug recall enforcement actions."
+      },
+      {
+        "name": "openfda_adverse_events",
+        "description": "Search FDA drug adverse event reports."
+      }
+    ]
+  },
+  {
+    "app": "openfigi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openfigi_mapping",
+        "description": "Map a financial instrument identifier (ticker, ISIN, CUSIP) to FIGI."
+      },
+      {
+        "name": "openfigi_search",
+        "description": "Search OpenFIGI for financial instruments by name."
+      }
+    ]
+  },
+  {
     "app": "openfoodfacts",
     "category": "Environment / Science",
     "tools": [
@@ -2684,6 +5224,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "food_by_category",
         "description": "Get food products by category from Open Food Facts."
+      }
+    ]
+  },
+  {
+    "app": "openlib2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gutenberg_search",
+        "description": "Search Project Gutenberg free ebooks by title or author."
+      },
+      {
+        "name": "gutenberg_book",
+        "description": "Get details for a specific Project Gutenberg book by ID."
       }
     ]
   },
@@ -2736,6 +5290,102 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "openmeteo-airquality",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "air_quality_current",
+        "description": "Get current air quality index and pollutant levels from Open-Meteo."
+      },
+      {
+        "name": "air_quality_forecast",
+        "description": "Get hourly air quality forecast from Open-Meteo."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-climate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "climate_normals",
+        "description": "Get climate normal projections (mean max/min temp, precipitation) for a location."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-flood",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "flood_forecast",
+        "description": "Get river discharge flood forecast from Open-Meteo."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-historical",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "historical_weather",
+        "description": "Get historical daily weather data for a location from Open-Meteo archive (1940 to 5 days ago)."
+      }
+    ]
+  },
+  {
+    "app": "openmeteo-marine",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "marine_forecast",
+        "description": "Get ocean wave, swell, and marine weather forecast for a location."
+      }
+    ]
+  },
+  {
+    "app": "opennotify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_location",
+        "description": "Get the current location of the International Space Station."
+      },
+      {
+        "name": "iss_astronauts",
+        "description": "Get the list of astronauts currently in space."
+      }
+    ]
+  },
+  {
+    "app": "opensky",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "opensky_states",
+        "description": "Get live aircraft states (position, altitude, velocity) from OpenSky Network."
+      },
+      {
+        "name": "opensky_flights",
+        "description": "Get flight history from OpenSky Network for a time range (max 2 hours)."
+      }
+    ]
+  },
+  {
+    "app": "opentriviadb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "triviadb_questions",
+        "description": "Get trivia questions from Open Trivia Database by category, difficulty, or type."
+      },
+      {
+        "name": "triviadb_categories",
+        "description": "List all available Open Trivia Database question categories."
+      }
+    ]
+  },
+  {
     "app": "pagerduty",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -2770,6 +5420,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "palindrome",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "palindrome_check",
+        "description": "Check if text is a palindrome and find the longest palindromic substring."
+      }
+    ]
+  },
+  {
     "app": "pandascore",
     "category": "Gaming",
     "tools": [
@@ -2796,6 +5456,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pascaltri",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pascaltri_generate",
+        "description": "Generate rows of Pascal's triangle, optionally return a specific row."
+      }
+    ]
+  },
+  {
+    "app": "passwordgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "password_generate",
+        "description": "Generate a cryptographically secure random password."
+      }
+    ]
+  },
+  {
     "app": "paypal",
     "category": "AI",
     "tools": [
@@ -2810,12 +5490,80 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "percentage",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "percentage_calc",
+        "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+      }
+    ]
+  },
+  {
+    "app": "permutation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "permutation_calc",
+        "description": "Calculate the number of permutations P(n,r) - ordered arrangements."
+      }
+    ]
+  },
+  {
     "app": "perplexity",
     "category": "AI Models",
     "tools": [
       {
         "name": "perplexity_chat_completion",
         "description": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web."
+      }
+    ]
+  },
+  {
+    "app": "phonetic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "phonetic_spell",
+        "description": "Spell out text using NATO or IPA phonetic alphabet."
+      }
+    ]
+  },
+  {
+    "app": "piapprox",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pi_approx",
+        "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
+      }
+    ]
+  },
+  {
+    "app": "picsum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "picsum_list",
+        "description": "List photos available on Lorem Picsum."
+      },
+      {
+        "name": "picsum_get",
+        "description": "Get info about a specific Lorem Picsum photo by ID."
+      },
+      {
+        "name": "picsum_random_url",
+        "description": "Generate a random placeholder image URL from Lorem Picsum (no fetch needed)."
+      }
+    ]
+  },
+  {
+    "app": "piglatin",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pig_latin_convert",
+        "description": "Convert text to Pig Latin or decode Pig Latin back to English."
       }
     ]
   },
@@ -2916,6 +5664,40 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "placebear",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placebear_image",
+        "description": "Get a bear placeholder image URL at custom dimensions (no network call)."
+      }
+    ]
+  },
+  {
+    "app": "placehold",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placehold_image",
+        "description": "Generate a placeholder image URL with custom size, colors, and text (no network call)."
+      }
+    ]
+  },
+  {
+    "app": "placekitten",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placeholder_image",
+        "description": "Generate a placeholder image URL with custom size, colors, and text."
+      },
+      {
+        "name": "placekitten_image",
+        "description": "Generate a random kitten placeholder image URL."
+      }
+    ]
+  },
+  {
     "app": "plaid",
     "category": "AI",
     "tools": [
@@ -2968,6 +5750,98 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "poetrydb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poetry_search_by_author",
+        "description": "Search poems by author name on PoetryDB."
+      },
+      {
+        "name": "poetry_search_by_title",
+        "description": "Search poems by title on PoetryDB."
+      },
+      {
+        "name": "poetry_random",
+        "description": "Get a random poem from PoetryDB."
+      }
+    ]
+  },
+  {
+    "app": "poisson",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poisson_probability",
+        "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
+      }
+    ]
+  },
+  {
+    "app": "pokeapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "poke_get_pokemon",
+        "description": "Get Pokemon data by name or ID from PokeAPI."
+      },
+      {
+        "name": "poke_search_pokemon",
+        "description": "List Pokemon with pagination from PokeAPI."
+      },
+      {
+        "name": "poke_get_type",
+        "description": "Get Pokemon type info and which Pokemon have that type."
+      },
+      {
+        "name": "poke_get_ability",
+        "description": "Get Pokemon ability info and which Pokemon have it."
+      },
+      {
+        "name": "poke_get_generation",
+        "description": "Get Pokemon generation info, region, and species list."
+      }
+    ]
+  },
+  {
+    "app": "pokemontcg",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pokemon_tcg_search_cards",
+        "description": "Search Pokemon Trading Card Game cards by name, type, set, or rarity."
+      },
+      {
+        "name": "pokemon_tcg_sets",
+        "description": "List or search Pokemon TCG card sets."
+      }
+    ]
+  },
+  {
+    "app": "polygon",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "polygon_calculate",
+        "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+      }
+    ]
+  },
+  {
+    "app": "postcodes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "postcode_lookup",
+        "description": "Look up a UK postcode for lat/lon, region, district, ward, and constituency."
+      },
+      {
+        "name": "postcode_random",
+        "description": "Get a random UK postcode with full location details."
       }
     ]
   },
@@ -3034,6 +5908,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "primecheck",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prime_check",
+        "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+      }
+    ]
+  },
+  {
+    "app": "primefactor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prime_factor",
+        "description": "Find the prime factorization of an integer."
+      }
+    ]
+  },
+  {
+    "app": "proportion",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "proportion_solve",
+        "description": "Solve a proportion a/b = c/d given any 3 values."
+      }
+    ]
+  },
+  {
     "app": "ptv",
     "category": "Australian / Local",
     "tools": [
@@ -3056,6 +5960,56 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ptv_route_directions",
         "description": "Get directions for a PTV route."
+      }
+    ]
+  },
+  {
+    "app": "pubchem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pubchem_search",
+        "description": "Search PubChem for a chemical compound by name."
+      },
+      {
+        "name": "pubchem_properties",
+        "description": "Get specific properties of a PubChem compound by CID."
+      }
+    ]
+  },
+  {
+    "app": "publicapis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "publicapis_search",
+        "description": "Search the Public APIs directory for free APIs by name or category."
+      },
+      {
+        "name": "publicapis_categories",
+        "description": "List all categories in the Public APIs directory."
+      },
+      {
+        "name": "publicapis_random",
+        "description": "Get a random API from the Public APIs directory."
+      }
+    ]
+  },
+  {
+    "app": "punkapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "punkapi_random_beer",
+        "description": "Get a random craft beer recipe from BrewDog's Punk API."
+      },
+      {
+        "name": "punkapi_search_beers",
+        "description": "Search craft beer recipes by name."
+      },
+      {
+        "name": "punkapi_get_beer",
+        "description": "Get a specific craft beer recipe by ID."
       }
     ]
   },
@@ -3104,6 +6058,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pypi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pypi_get_package",
+        "description": "Get metadata for a Python package from PyPI."
+      },
+      {
+        "name": "pypi_get_version",
+        "description": "Get metadata for a specific version of a Python package from PyPI."
+      }
+    ]
+  },
+  {
     "app": "qc",
     "category": "AI",
     "tools": [
@@ -3118,6 +6086,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "qc_copy_audit",
         "description": "Fetch a page and scan all visible text for em dashes (U+2014), en dashes (U+2013), and a configurable list of banned words. Returns every occurrence with surrounding context."
+      }
+    ]
+  },
+  {
+    "app": "qrserver",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "qrserver_generate",
+        "description": "Generate a QR code image URL for any text or URL."
+      }
+    ]
+  },
+  {
+    "app": "quadratic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quadratic_solve",
+        "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
       }
     ]
   },
@@ -3140,6 +6128,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "quickbooks_payments",
         "description": "Query QuickBooks Online payments."
+      }
+    ]
+  },
+  {
+    "app": "quotable",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "quote_random",
+        "description": "Get a random inspirational quote."
+      },
+      {
+        "name": "quote_search",
+        "description": "Search quotes by keyword."
+      },
+      {
+        "name": "quote_by_author",
+        "description": "Get quotes by a specific author."
+      },
+      {
+        "name": "quote_list_tags",
+        "description": "List all available quote tags/categories."
+      },
+      {
+        "name": "quote_list_authors",
+        "description": "List quote authors sorted by number of quotes."
       }
     ]
   },
@@ -3170,6 +6184,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "radio_countries",
         "description": "List all countries with radio stations."
+      }
+    ]
+  },
+  {
+    "app": "railfence",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "railfence_process",
+        "description": "Encrypt or decrypt text using the rail fence (zigzag) cipher."
       }
     ]
   },
@@ -3222,6 +6246,50 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "randomduck",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_duck_image",
+        "description": "Get a random duck image URL."
+      },
+      {
+        "name": "random_duck_list",
+        "description": "List all available duck image filenames."
+      }
+    ]
+  },
+  {
+    "app": "randomfox",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_fox_image",
+        "description": "Get a random fox image URL."
+      }
+    ]
+  },
+  {
+    "app": "randomuser",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_user",
+        "description": "Generate random user profiles with names, emails, addresses, and photos."
+      }
+    ]
+  },
+  {
+    "app": "ratiosimplify",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ratio_simplify",
+        "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
+      }
+    ]
+  },
+  {
     "app": "rawg",
     "category": "Gaming",
     "tools": [
@@ -3248,6 +6316,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "rawg_upcoming_games",
         "description": "Get upcoming game releases from RAWG."
+      }
+    ]
+  },
+  {
+    "app": "rdap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rdap_domain",
+        "description": "Look up domain registration data via RDAP (WHOIS replacement)."
+      },
+      {
+        "name": "rdap_ip",
+        "description": "Look up IP address registration data via RDAP."
+      }
+    ]
+  },
+  {
+    "app": "readability",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "readability_score",
+        "description": "Calculate Flesch-Kincaid readability scores and reading level for text."
       }
     ]
   },
@@ -3296,6 +6388,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "reddit_subscribe",
         "description": "Subscribe to or unsubscribe from a Reddit subreddit."
+      }
+    ]
+  },
+  {
+    "app": "regexr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "regex_test",
+        "description": "Test a regex pattern against text and return all matches with positions."
+      }
+    ]
+  },
+  {
+    "app": "regression",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "regression_fit",
+        "description": "Fit a linear regression (y = mx + b) to x/y data points, returns slope, intercept, R-squared."
       }
     ]
   },
@@ -3360,6 +6472,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "reqres",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "reqres_list_users",
+        "description": "List fake users from Reqres (test API)."
+      },
+      {
+        "name": "reqres_get_user",
+        "description": "Get a specific fake user by ID from Reqres."
+      },
+      {
+        "name": "reqres_list_resources",
+        "description": "List fake color resources from Reqres (test API)."
+      }
+    ]
+  },
+  {
     "app": "resend",
     "category": "Dev / Infra",
     "tools": [
@@ -3408,6 +6538,42 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "reversetext",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "reverse_text",
+        "description": "Reverse text by characters, words, lines, or sentences."
+      }
+    ]
+  },
+  {
+    "app": "rickandmorty",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ram_get_character",
+        "description": "Get a Rick and Morty character by ID."
+      },
+      {
+        "name": "ram_search_characters",
+        "description": "Search Rick and Morty characters by name, status, species, or gender."
+      },
+      {
+        "name": "ram_get_episode",
+        "description": "Get a Rick and Morty episode by ID."
+      },
+      {
+        "name": "ram_search_episodes",
+        "description": "Search Rick and Morty episodes by name or episode code."
+      },
+      {
+        "name": "ram_get_location",
+        "description": "Get a Rick and Morty location by ID."
+      }
+    ]
+  },
+  {
     "app": "riot",
     "category": "Gaming",
     "tools": [
@@ -3430,6 +6596,60 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "riot_valorant_account",
         "description": "Get a Valorant account by game name and tag line."
+      }
+    ]
+  },
+  {
+    "app": "ripe",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ripe_network_info",
+        "description": "Get network information for an IP or prefix from RIPE NCC."
+      },
+      {
+        "name": "ripe_asn_neighbours",
+        "description": "Get peering neighbours for an ASN from RIPE NCC."
+      }
+    ]
+  },
+  {
+    "app": "robohash",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "robohash_url",
+        "description": "Generate a unique robot/monster/cat avatar from any text."
+      }
+    ]
+  },
+  {
+    "app": "roman",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "roman_convert",
+        "description": "Convert between Roman numerals and decimal numbers."
+      }
+    ]
+  },
+  {
+    "app": "rot13",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rot13_convert",
+        "description": "Apply ROT13 (or ROT-N) cipher to text."
+      }
+    ]
+  },
+  {
+    "app": "runlength",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "runlength_process",
+        "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
       }
     ]
   },
@@ -3542,6 +6762,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "semver",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "semver_parse",
+        "description": "Parse a semantic version string into major, minor, patch, and prerelease."
+      },
+      {
+        "name": "semver_compare",
+        "description": "Compare two semantic versions (returns greater, less, or equal)."
+      }
+    ]
+  },
+  {
     "app": "sendgrid",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3644,6 +6878,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "setops",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "setops_calculate",
+        "description": "Perform set operations: union, intersection, difference, symmetric difference, subset/superset."
+      }
+    ]
+  },
+  {
+    "app": "shibe",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "shibe_random_image",
+        "description": "Get random Shiba Inu, cat, or bird images."
+      }
+    ]
+  },
+  {
     "app": "shodan",
     "category": "Security",
     "tools": [
@@ -3718,6 +6972,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sigmoid",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sigmoid_calculate",
+        "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
+      }
+    ]
+  },
+  {
     "app": "slack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3758,12 +7022,102 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "slopeintercept",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "slope_intercept",
+        "description": "Find the line equation (slope-intercept and standard form) from two points."
+      }
+    ]
+  },
+  {
     "app": "sloppass",
     "category": "SlopPass (AI-code quality and slop-signal QC)",
     "tools": [
       {
         "name": "sloppass_run",
         "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
+      }
+    ]
+  },
+  {
+    "app": "slug",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_slugify",
+        "description": "Convert text into a URL-safe slug."
+      }
+    ]
+  },
+  {
+    "app": "solarsystem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "solarsystem_bodies",
+        "description": "List solar system bodies (planets, moons, asteroids, comets)."
+      },
+      {
+        "name": "solarsystem_body",
+        "description": "Get detailed info about a specific solar system body."
+      }
+    ]
+  },
+  {
+    "app": "sortlines",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sort_lines",
+        "description": "Sort, deduplicate, or reverse lines of text."
+      }
+    ]
+  },
+  {
+    "app": "soundex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "soundex_encode",
+        "description": "Encode words using the Soundex phonetic algorithm, optionally comparing two names."
+      }
+    ]
+  },
+  {
+    "app": "spaceflight",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "spaceflight_articles",
+        "description": "Get latest spaceflight news articles."
+      },
+      {
+        "name": "spaceflight_blogs",
+        "description": "Get latest spaceflight blog posts."
+      },
+      {
+        "name": "spaceflight_reports",
+        "description": "Get latest spaceflight technical reports."
+      }
+    ]
+  },
+  {
+    "app": "spacex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "spacex_latest_launch",
+        "description": "Get the most recent SpaceX launch details."
+      },
+      {
+        "name": "spacex_launches",
+        "description": "List recent SpaceX launches."
+      },
+      {
+        "name": "spacex_rockets",
+        "description": "List all SpaceX rockets with specifications."
       }
     ]
   },
@@ -3882,6 +7236,58 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "stackexchange",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stackexchange_search",
+        "description": "Search Stack Exchange (default: Stack Overflow) for questions."
+      },
+      {
+        "name": "stackexchange_question",
+        "description": "Get a Stack Exchange question by ID."
+      }
+    ]
+  },
+  {
+    "app": "standardform",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "standard_form",
+        "description": "Convert a number to scientific and engineering notation."
+      }
+    ]
+  },
+  {
+    "app": "stapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stapi_search_character",
+        "description": "Search Star Trek characters by name."
+      },
+      {
+        "name": "stapi_search_species",
+        "description": "Search Star Trek species by name."
+      },
+      {
+        "name": "stapi_search_starship",
+        "description": "Search Star Trek starships/spacecraft by name."
+      }
+    ]
+  },
+  {
+    "app": "statistics",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "statistics_calc",
+        "description": "Calculate mean, median, mode, standard deviation, and more for a set of numbers."
+      }
+    ]
+  },
+  {
     "app": "steam",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -3904,6 +7310,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_steam_store",
         "description": "Search the Steam store for games by name."
+      }
+    ]
+  },
+  {
+    "app": "stringcase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "string_case",
+        "description": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more."
       }
     ]
   },
@@ -3934,6 +7350,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stripe_prices",
         "description": "List Stripe prices."
+      }
+    ]
+  },
+  {
+    "app": "sunrisesunset",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sunrise_sunset_times",
+        "description": "Get sunrise and sunset times for GPS coordinates."
       }
     ]
   },
@@ -3972,6 +7398,54 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "superhero",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hero_get_by_id",
+        "description": "Get a superhero/villain by ID from the comic book database."
+      },
+      {
+        "name": "hero_all",
+        "description": "List all superheroes and villains (returns first 50 with IDs)."
+      },
+      {
+        "name": "hero_powerstats",
+        "description": "Get power statistics for a superhero/villain."
+      }
+    ]
+  },
+  {
+    "app": "swapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "swapi_get_person",
+        "description": "Get a Star Wars character by ID."
+      },
+      {
+        "name": "swapi_search_people",
+        "description": "Search Star Wars characters by name."
+      },
+      {
+        "name": "swapi_get_planet",
+        "description": "Get a Star Wars planet by ID."
+      },
+      {
+        "name": "swapi_search_planets",
+        "description": "Search Star Wars planets by name."
+      },
+      {
+        "name": "swapi_get_starship",
+        "description": "Get a Star Wars starship by ID."
+      },
+      {
+        "name": "swapi_search_starships",
+        "description": "Search Star Wars starships by name."
+      }
+    ]
+  },
+  {
     "app": "tab",
     "category": "Australian / Local",
     "tools": [
@@ -3986,6 +7460,44 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tab_sports_markets",
         "description": "Get TAB sports betting markets."
+      }
+    ]
+  },
+  {
+    "app": "tacofancy",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "random_taco",
+        "description": "Generate a random taco recipe with base, seasoning, condiment, and shell."
+      }
+    ]
+  },
+  {
+    "app": "tarot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tarot_all_cards",
+        "description": "List all tarot cards in the deck."
+      },
+      {
+        "name": "tarot_draw",
+        "description": "Draw random tarot cards for a reading."
+      },
+      {
+        "name": "tarot_search",
+        "description": "Search for a specific tarot card by name."
+      }
+    ]
+  },
+  {
+    "app": "taylor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "taylor_expand",
+        "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
       }
     ]
   },
@@ -4016,6 +7528,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "telegram_manage_chat",
         "description": "Manage a Telegram chat (get info, ban, kick, etc.)."
+      }
+    ]
+  },
+  {
+    "app": "tempconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "temperature_convert",
+        "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
       }
     ]
   },
@@ -4100,6 +7622,50 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "textstats",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_readability",
+        "description": "Analyze text readability with Flesch-Kincaid grade and reading ease scores."
+      }
+    ]
+  },
+  {
+    "app": "textwrap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_wrap",
+        "description": "Hard-wrap text to a specified column width."
+      }
+    ]
+  },
+  {
+    "app": "tfidf",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tfidf_calculate",
+        "description": "Calculate TF-IDF scores to rank documents by relevance to a query."
+      }
+    ]
+  },
+  {
+    "app": "thecolorapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "thecolorapi_id",
+        "description": "Get detailed color information (name, RGB, HSL, CMYK) for a hex color."
+      },
+      {
+        "name": "thecolorapi_scheme",
+        "description": "Generate a color scheme from a seed hex color."
+      }
+    ]
+  },
+  {
     "app": "thelott",
     "category": "Australian / Local",
     "tools": [
@@ -4154,6 +7720,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "get_tiktok_video",
         "description": "Get details of a specific TikTok video by ID."
+      }
+    ]
+  },
+  {
+    "app": "timeapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "time_api_current_by_zone",
+        "description": "Get the current date and time for an IANA timezone via timeapi.io."
+      },
+      {
+        "name": "time_api_timezones",
+        "description": "List all available IANA timezone names from timeapi.io."
+      }
+    ]
+  },
+  {
+    "app": "timezone",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "timezone_info",
+        "description": "Look up timezone offset and details by abbreviation, or list all timezones."
       }
     ]
   },
@@ -4276,6 +7866,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "tokencount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tokencount_estimate",
+        "description": "Estimate token counts for text across different LLM tokenizers (GPT-4, Claude, WordPiece)."
+      }
+    ]
+  },
+  {
     "app": "tomorrowio",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4300,6 +7900,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "trello_action",
         "description": "Interact with the Trello REST API: list boards and lists, get and search cards, create cards, and update card properties."
+      }
+    ]
+  },
+  {
+    "app": "trianglesolve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "triangle_solve",
+        "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
       }
     ]
   },
@@ -4358,6 +7968,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "turso_execute_sql",
         "description": "Execute a SQL query against a Turso edge database."
+      }
+    ]
+  },
+  {
+    "app": "tvmaze",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tvmaze_search",
+        "description": "Search for TV shows by name."
+      },
+      {
+        "name": "tvmaze_show",
+        "description": "Get full details for a TV show by its TVmaze ID."
+      },
+      {
+        "name": "tvmaze_schedule",
+        "description": "Get the TV schedule for a country and date."
       }
     ]
   },
@@ -4448,6 +8076,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ukpolice",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "uk_police_forces",
+        "description": "List all UK police forces with id and name."
+      },
+      {
+        "name": "uk_police_crimes",
+        "description": "Get reported crimes at a UK location from data.police.uk."
+      }
+    ]
+  },
+  {
     "app": "unit-converter",
     "category": "Utilities",
     "tools": [
@@ -4478,6 +8120,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "convert_data_storage",
         "description": "Convert between data storage units."
+      }
+    ]
+  },
+  {
+    "app": "unitpressure",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pressure_convert",
+        "description": "Convert pressure between Pa, hPa, kPa, bar, atm, psi, torr, mmHg, inHg."
+      }
+    ]
+  },
+  {
+    "app": "universities",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "universities_search",
+        "description": "Search world universities by name and/or country."
       }
     ]
   },
@@ -4522,6 +8184,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "untappd_beer_activities",
         "description": "Get recent activity/check-ins for a beer on Untappd."
+      }
+    ]
+  },
+  {
+    "app": "upcitemdb",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "upc_lookup",
+        "description": "Look up a product by UPC/EAN barcode number."
+      },
+      {
+        "name": "upc_search",
+        "description": "Search products by name in the UPC item database."
       }
     ]
   },
@@ -4574,6 +8250,48 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "urbandictionary",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "urban_define",
+        "description": "Look up slang definitions on Urban Dictionary."
+      },
+      {
+        "name": "urban_random",
+        "description": "Get random Urban Dictionary definitions."
+      }
+    ]
+  },
+  {
+    "app": "urlencode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "url_encode",
+        "description": "URL-encode text (percent-encoding for query strings)."
+      },
+      {
+        "name": "url_decode",
+        "description": "Decode a URL-encoded (percent-encoded) string."
+      }
+    ]
+  },
+  {
+    "app": "urlhaus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "urlhaus_lookup_url",
+        "description": "Check if a URL is listed as a malware distribution site in the URLhaus database."
+      },
+      {
+        "name": "urlhaus_recent",
+        "description": "Get recent malware URLs added to the URLhaus database."
+      }
+    ]
+  },
+  {
     "app": "urlscan",
     "category": "Security",
     "tools": [
@@ -4592,6 +8310,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "uselessfacts",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "useless_fact_random",
+        "description": "Get a random useless fact."
+      },
+      {
+        "name": "useless_fact_today",
+        "description": "Get today's useless fact of the day."
+      }
+    ]
+  },
+  {
     "app": "usgs",
     "category": "Environment / Science",
     "tools": [
@@ -4606,6 +8338,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "usgs_earthquakes_by_region",
         "description": "Get recent USGS earthquakes within a radius of a point (latitude/longitude)."
+      }
+    ]
+  },
+  {
+    "app": "uuidgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "uuid_generate",
+        "description": "Generate one or more cryptographically random UUID v4 strings."
       }
     ]
   },
@@ -4636,6 +8378,30 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "uxpass_register_pack",
         "description": "Register a UXPass pack from a YAML string. Validates the basic shape (required keys: name, url, viewports, themes, hats, synthesiser, budgets, remediation) and persists the pack so uxpass_run can reference it by name. Returns the assigned pack_id."
+      }
+    ]
+  },
+  {
+    "app": "variancecalc",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "variance_calc",
+        "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+      }
+    ]
+  },
+  {
+    "app": "vatcomply",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "vatcomply_rates",
+        "description": "Get EU VAT rates (standard, reduced, super-reduced) per country."
+      },
+      {
+        "name": "vatcomply_countries",
+        "description": "List EU member states with country name and code."
       }
     ]
   },
@@ -4688,6 +8454,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "vigenere",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "vigenere_process",
+        "description": "Encrypt or decrypt text using the Vigenere polyalphabetic cipher."
+      }
+    ]
+  },
+  {
     "app": "virustotal",
     "category": "Security",
     "tools": [
@@ -4706,6 +8482,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "virustotal_scan_domain",
         "description": "Get a VirusTotal report for a domain."
+      }
+    ]
+  },
+  {
+    "app": "wavelength",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wavelength_convert",
+        "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+      }
+    ]
+  },
+  {
+    "app": "wayback",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wayback_check",
+        "description": "Check if a URL has been archived by the Wayback Machine and get the closest snapshot."
       }
     ]
   },
@@ -4732,6 +8528,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "weightedmean",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "weighted_mean",
+        "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
+      }
+    ]
+  },
+  {
+    "app": "wger",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wger_exercises",
+        "description": "Search and browse exercises from the wger workout database."
+      },
+      {
+        "name": "wger_categories",
+        "description": "List exercise categories from the wger workout database."
+      },
+      {
+        "name": "wger_muscles",
+        "description": "List muscle groups from the wger workout database."
+      }
+    ]
+  },
+  {
     "app": "whatsapp",
     "category": "Messaging",
     "tools": [
@@ -4754,6 +8578,34 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "whatsapp_upload_media",
         "description": "Upload a media file to WhatsApp and get a media ID for use in messages."
+      }
+    ]
+  },
+  {
+    "app": "wheretheiss",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "iss_position",
+        "description": "Get the current position of the International Space Station."
+      },
+      {
+        "name": "iss_pass_times",
+        "description": "Get ISS position relative to an observer location."
+      }
+    ]
+  },
+  {
+    "app": "wikidata",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wikidata_search",
+        "description": "Search Wikidata for entities (people, places, concepts) by label."
+      },
+      {
+        "name": "wikidata_get_entity",
+        "description": "Get structured data for a Wikidata entity by Q-id (e.g. Q42)."
       }
     ]
   },
@@ -4834,6 +8686,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "wordcount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "word_count",
+        "description": "Count words, characters, sentences, and estimate reading time."
+      }
+    ]
+  },
+  {
+    "app": "wordfreq",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wordfreq_analyse",
+        "description": "Analyse word frequencies in text, returning counts and top words."
+      }
+    ]
+  },
+  {
     "app": "wordpress",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4848,6 +8720,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wordpress_list_pages",
         "description": "List WordPress pages."
+      }
+    ]
+  },
+  {
+    "app": "worldbank",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "worldbank_country",
+        "description": "Get country info from the World Bank. Pass a code (US, GB) or omit for all."
+      },
+      {
+        "name": "worldbank_indicator",
+        "description": "Get economic/development indicator data from the World Bank."
+      }
+    ]
+  },
+  {
+    "app": "worldtime",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "worldtime_by_timezone",
+        "description": "Get current time for a specific timezone."
+      },
+      {
+        "name": "worldtime_by_ip",
+        "description": "Get current time based on IP address geolocation."
+      },
+      {
+        "name": "worldtime_list_timezones",
+        "description": "List all available IANA timezones."
       }
     ]
   },
@@ -4890,6 +8794,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "xkcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "xkcd_latest",
+        "description": "Get the latest xkcd comic."
+      },
+      {
+        "name": "xkcd_comic",
+        "description": "Get a specific xkcd comic by number."
+      },
+      {
+        "name": "xkcd_random",
+        "description": "Get a random xkcd comic."
+      }
+    ]
+  },
+  {
     "app": "xpass-aggregated-verdict",
     "category": "XPass (conductor receipt across product checks)",
     "tools": [
@@ -4922,6 +8844,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "yelp_autocomplete",
         "description": "Autocomplete a Yelp business search."
+      }
+    ]
+  },
+  {
+    "app": "yesno",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "yesno_random",
+        "description": "Get a random yes/no answer with an animated GIF."
       }
     ]
   },
@@ -4974,6 +8906,48 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zendesk_add_comment",
         "description": "Add a public or internal comment to a Zendesk ticket."
+      }
+    ]
+  },
+  {
+    "app": "zenquotes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zen_quote_random",
+        "description": "Get a random inspirational quote from Zen Quotes."
+      },
+      {
+        "name": "zen_quote_today",
+        "description": "Get today's quote of the day from Zen Quotes."
+      },
+      {
+        "name": "zen_quotes",
+        "description": "Get a batch of inspirational quotes from Zen Quotes (returns up to 20)."
+      }
+    ]
+  },
+  {
+    "app": "zippopotamus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zip_lookup",
+        "description": "Look up location info for a zip/postal code."
+      },
+      {
+        "name": "zip_by_city",
+        "description": "Look up zip/postal codes for a city and state."
+      }
+    ]
+  },
+  {
+    "app": "zscore",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zscore_calculate",
+        "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
       }
     ]
   }

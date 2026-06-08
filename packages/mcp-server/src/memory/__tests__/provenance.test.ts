@@ -86,6 +86,14 @@ describe("provenance helpers (flag off by default)", () => {
     assert.equal(sanitizeSourceRef(42), null);
   });
 
+  test("sanitizeSourceRef drops Stripe and webhook secret patterns", () => {
+    assert.equal(sanitizeSourceRef("sk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("sk_test_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("rk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("pk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("whsec_0000000000fake"), null);
+  });
+
   test("sanitizeSourceRef caps very long refs", () => {
     const long = "https://example.com/" + "a".repeat(2000);
     const out = sanitizeSourceRef(long);

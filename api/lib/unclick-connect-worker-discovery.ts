@@ -60,7 +60,16 @@ function isFreshProfile(row: FishbowlProfileDiscoveryRow, now: Date): boolean {
   if (now.getTime() - lastSeenAtMs > UNCLICK_CONNECT_WORKER_FRESH_MS) return false;
 
   const status = String(row.current_status ?? "").trim().toLowerCase();
-  if (status.includes("blocked") || status.includes("hold") || status.includes("offline")) {
+  if (
+    status.includes("blocked") ||
+    status.includes("hold") ||
+    status.includes("offline") ||
+    status.includes("paused") ||
+    status.includes("sleeping") ||
+    status.includes("error") ||
+    status.includes("inactive") ||
+    status.includes("unavailable")
+  ) {
     return false;
   }
 

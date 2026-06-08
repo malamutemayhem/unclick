@@ -52,7 +52,7 @@ const CAPTURE_FEED = [
   {
     time: "2:15 PM",
     tag: "Linked",
-    text: "\"Kate's birthday is 15 July\" to family",
+    text: "\"Jason's birthday is 15 July\" to family",
   },
   {
     time: "2:31 PM",

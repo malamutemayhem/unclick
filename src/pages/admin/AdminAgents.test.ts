@@ -27,7 +27,7 @@ function seat(patch: Partial<AISeat>): AISeat {
     name: "AI Seat 1",
     emoji: "💻",
     provider: "Codex Desktop",
-    device: "Chris laptop",
+    device: "Office laptop",
     status: "Ready",
     state: "Cycle-share capacity",
     load: 25,
@@ -71,8 +71,8 @@ describe("AdminAgents seat check-ins", () => {
   it("matches a live profile to a named physical seat", () => {
     expect(
       profileMatchesSeat(
-        profile({ display_name: "Chris laptop Codex" }),
-        seat({ id: "chris-laptop-seat", name: "Chris laptop" }),
+        profile({ display_name: "Office laptop Codex" }),
+        seat({ id: "office-laptop-seat", name: "Office laptop" }),
       ),
     ).toBe(true);
   });
