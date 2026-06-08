@@ -257,7 +257,7 @@ function VerdictPill({ verdict }: { verdict: XGateVerdict }) {
 
 function StatCard({ label, value, hint, className }: { label: string; value: string; hint: string; className?: string }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
       <p className="text-[11px] font-medium uppercase tracking-wide text-white/40">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${className ?? "text-white"}`}>{value}</p>
       <p className="mt-1 text-xs leading-5 text-white/45">{hint}</p>
@@ -327,7 +327,7 @@ function XGateModePanel({
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold text-white">Master XGate</p>
@@ -369,7 +369,7 @@ function XGateModePanel({
         {XGATE_PRODUCT_CONFIGS.map((product) => {
           const mode = modes[product.id] ?? product.defaultMode;
           return (
-            <div key={product.id} id={product.id.toLowerCase()} className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111] p-4">
+            <div key={product.id} id={product.id.toLowerCase()} className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-white">{product.name}</h3>
@@ -401,7 +401,7 @@ function XGateModePanel({
 
 function DecisionTable({ decisions }: { decisions: XGateDecision[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111]">
+    <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.03]">
       <table className="w-full min-w-[820px] text-left text-xs">
         <thead className="text-white/40">
           <tr className="border-b border-white/[0.06]">
@@ -438,7 +438,7 @@ function GateGuideCard({ product, active }: { product: (typeof XGATE_PRODUCT_CON
 
   return (
     <section
-      className={`overflow-hidden rounded-xl border bg-[#111] transition-all ${
+      className={`overflow-hidden rounded-xl border bg-white/[0.03] transition-all ${
         active ? `border-transparent ring-2 ${a.ring}` : "border-white/[0.06]"
       }`}
     >
@@ -667,7 +667,7 @@ export default function AdminXGate() {
         {decisions.length > 0 ? (
           <DecisionTable decisions={decisions} />
         ) : (
-          <div className="rounded-xl border border-dashed border-white/[0.1] bg-[#111] p-8 text-center">
+          <div className="rounded-xl border border-dashed border-white/[0.1] bg-white/[0.03] p-8 text-center">
             <CircleDot className="mx-auto h-6 w-6 text-white/25" />
             <p className="mt-3 text-sm text-white/60">No decisions recorded yet.</p>
             <p className="mt-1 text-xs text-white/35">In Watch or Block mode, flagged actions show up here.</p>

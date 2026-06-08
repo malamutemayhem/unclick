@@ -23,7 +23,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 71a90e55f560 | 16426 |
-| src/pages/admin/AdminShell.tsx | c8bab38bba5e | 24827 |
+| src/pages/admin/AdminShell.tsx | 2c6ec8581d6c | 25721 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -71,68 +71,68 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
+| src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
-| src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
-| src/pages/admin/AdminAppTesting.tsx | fb03a45d06bf | 10144 |
+| src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
+| src/pages/admin/AdminAppTesting.tsx | ffadb7c67d09 | 10153 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
-| src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
-| src/pages/admin/AdminExpressBuild.tsx | 426fed992766 | 22902 |
-| src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
-| src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
-| src/pages/admin/Fishbowl.tsx | ec3c5b4f4b4f | 37557 |
-| src/pages/admin/AdminBrainmap.tsx | e0edf4d7c409 | 26533 |
-| src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
-| src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
+| src/pages/admin/AdminAuditLog.tsx | 947f6c4d8c10 | 877 |
+| src/pages/admin/AdminExpressBuild.tsx | a6563a5742fa | 22926 |
+| src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
+| src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
+| src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
+| src/pages/admin/AdminBrainmap.tsx | eb0a0e70ad71 | 26584 |
+| src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
+| src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
-| src/pages/admin/AdminDashboard.tsx | 7ee015247aa8 | 5257 |
-| src/pages/admin/AdminJobs.tsx | fb05696540e8 | 63548 |
-| src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
-| src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
-| src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
-| src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
-| src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
-| src/pages/admin/AdminPinballWake.tsx | 1b09a0b4c1b4 | 21751 |
-| src/pages/admin/AdminSettings.tsx | cce2a4ca6248 | 40580 |
+| src/pages/admin/AdminDashboard.tsx | c6c9093d733d | 5303 |
+| src/pages/admin/AdminJobs.tsx | 5417b324cff7 | 64232 |
+| src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
+| src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
+| src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
+| src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
+| src/pages/admin/AdminOrchestrator.tsx | a115fb4d4ad4 | 94726 |
+| src/pages/admin/AdminPinballWake.tsx | 4dce3c986684 | 21769 |
+| src/pages/admin/AdminSettings.tsx | 48449b4ebd11 | 40601 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
-| src/pages/admin/signals/SignalsSettings.tsx | 791cd433a5b0 | 9837 |
-| src/pages/admin/signals/SignalsCatalog.tsx | 7baa82ac0d7f | 10835 |
-| src/pages/admin/AdminSystemHealth.tsx | 6e61ae4d3d34 | 867 |
-| src/pages/admin/testpass/NewRunWizard.tsx | fd912523ee14 | 10379 |
-| src/pages/admin/AdminTestPass.tsx | 0b3cc7b44107 | 27259 |
-| src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
-| src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
-| src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
-| src/pages/admin/AdminTruthRate.tsx | 115c5cce9b90 | 8868 |
-| src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
-| src/pages/admin/AdminXGate.tsx | db31f326ff07 | 26775 |
-| src/pages/admin/AdminYou.tsx | 89ed912e326b | 59397 |
+| src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
+| src/pages/admin/signals/SignalsCatalog.tsx | f5332dd8f38e | 10865 |
+| src/pages/admin/AdminSystemHealth.tsx | 4ddaaf1282db | 870 |
+| src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
+| src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
+| src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
+| src/pages/admin/testpass/RunDetail.tsx | 4412674f8382 | 22000 |
+| src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
+| src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
+| src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
+| src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
+| src/pages/admin/AdminYou.tsx | eeed51b39399 | 59427 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
-| src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
+| src/pages/DeveloperDocs.tsx | 9bfae679df42 | 23493 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
-| src/pages/Developers.tsx | 9657fd564797 | 19123 |
+| src/pages/Developers.tsx | c31a8a187fac | 19126 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | da0fc0d07f50 | 62558 |
+| src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
-| src/pages/NewToAI.tsx | a28cb1d9ece8 | 12559 |
+| src/pages/Memory.tsx | fda4fcf632cb | 19192 |
+| src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/XPass.tsx | 717c00a85c16 | 8699 |
+| src/pages/XPass.tsx | ab4f0fe214f6 | 11093 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -242,7 +242,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 131 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -798,6 +798,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
+| Modules and apps | component | Code Tab | Memory admin panel for Code Tab. | - | src/pages/admin/memory/CodeTab.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
@@ -809,6 +810,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
+| Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |
 | Modules and apps | component | Sessions Tab | Memory admin panel for Sessions Tab. | - | src/pages/admin/memory/SessionsTab.tsx |
 | Modules and apps | component | Settings | User-facing page for Settings. | - | src/pages/Settings.tsx |

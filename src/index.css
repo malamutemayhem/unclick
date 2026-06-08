@@ -58,8 +58,16 @@
     @apply border-border;
   }
 
+  /* Navy canvas lives on <html> so it sits BEHIND the fixed aurora layers
+     (which use a negative z-index). <body> must stay transparent or it paints
+     over the aurora and the whole background goes flat. */
+  html {
+    @apply bg-background;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
+    background: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -208,7 +216,7 @@ html {
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(1200px 760px at 80% -12%, hsl(189 55% 24% / 0.55), transparent 60%),
+    radial-gradient(1200px 760px at 80% -12%, hsl(189 55% 24% / 0.62), transparent 60%),
     linear-gradient(160deg, #04141c 0%, #0a2b3b 54%, #06202c 100%);
 }
 .aurora-field::before,
@@ -224,7 +232,7 @@ html {
   height: 62vw;
   left: 52%;
   top: -24%;
-  background: radial-gradient(circle at center, hsl(183 48% 54% / 0.28), transparent 62%);
+  background: radial-gradient(circle at center, hsl(183 48% 54% / 0.42), transparent 62%);
   animation: aurora-drift 18s ease-in-out infinite;
 }
 .aurora-field::after {
@@ -232,7 +240,7 @@ html {
   height: 54vw;
   left: -18%;
   bottom: -28%;
-  background: radial-gradient(circle at center, hsl(187 42% 42% / 0.22), transparent 60%);
+  background: radial-gradient(circle at center, hsl(187 42% 42% / 0.34), transparent 60%);
   animation: aurora-drift 24s ease-in-out infinite reverse;
 }
 .aurora-grid {
@@ -241,11 +249,11 @@ html {
   z-index: -9;
   pointer-events: none;
   background-image:
-    linear-gradient(to right, hsl(187 70% 82% / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(187 70% 82% / 0.035) 1px, transparent 1px);
+    linear-gradient(to right, hsl(187 70% 82% / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(187 70% 82% / 0.06) 1px, transparent 1px);
   background-size: 64px 64px;
-  -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 25%, #000 25%, transparent 100%);
-          mask-image: radial-gradient(ellipse 85% 65% at 50% 25%, #000 25%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 120% 85% at 50% 32%, #000 35%, transparent 100%);
+          mask-image: radial-gradient(ellipse 120% 85% at 50% 32%, #000 35%, transparent 100%);
 }
 @keyframes aurora-drift {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -257,4 +265,29 @@ html {
   .aurora-field::after {
     animation: none;
   }
+}
+
+/* ============================================================
+   Teal-on-navy scrollbars, matched to the theme.
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(195 28% 34% / 0.6) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(195 28% 34% / 0.55);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(182 46% 50% / 0.7);
+  background-clip: padding-box;
 }

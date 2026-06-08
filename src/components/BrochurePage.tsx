@@ -75,31 +75,88 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
           </div>
         </section>
 
-        {/* Feature grid */}
-        <section className="px-6 pb-28">
-          <div className="mx-auto max-w-5xl">
-            {page.featuresTitle && (
+        {/* Optional showcase (e.g. a visual demo) between hero and features */}
+        {page.showcase && (
+          <section className="px-6 pb-6">
+            <div className="mx-auto max-w-5xl">{page.showcase}</div>
+          </section>
+        )}
+
+        {/* Numbered steps (e.g. Autopilot) or feature grid */}
+        {(page.steps || page.features) && (
+          <section className="px-6 pb-28">
+            <div className="mx-auto max-w-5xl">
+              {page.featuresTitle && (
+                <FadeIn>
+                  <div className="mb-10 text-center">
+                    <h2 className="text-2xl font-bold tracking-tight text-heading sm:text-3xl">
+                      {page.featuresTitle}
+                    </h2>
+                    {page.featuresSubtitle && (
+                      <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">
+                        {page.featuresSubtitle}
+                      </p>
+                    )}
+                  </div>
+                </FadeIn>
+              )}
+              {page.steps ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {page.steps.map((s, i) => (
+                    <FadeIn key={s.title} delay={0.03 * i}>
+                      <div className="flex h-full gap-4 rounded-xl border border-[#86dadd]/12 bg-white/[0.03] p-4 backdrop-blur-sm">
+                        <div className="flex shrink-0 flex-col items-center gap-2">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 font-mono text-sm font-bold text-primary">
+                            {i + 1}
+                          </span>
+                          <s.icon className="h-5 w-5 text-primary/60" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-heading">{s.title}</h3>
+                          <p className="mt-1 text-sm leading-relaxed text-body">{s.desc}</p>
+                        </div>
+                      </div>
+                    </FadeIn>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className={
+                    page.featuresCols === 2
+                      ? "mx-auto grid max-w-4xl gap-5 sm:grid-cols-2"
+                      : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                  }
+                >
+                  {page.features?.map((f, i) => (
+                    <FadeIn key={f.title} delay={0.04 * i}>
+                      <GlassCard className={page.featuresCols === 2 ? "h-full p-7" : "h-full"}>
+                        <IconChip>
+                          <f.icon className="h-5 w-5" />
+                        </IconChip>
+                        <h3 className="mt-4 text-base font-semibold text-heading">{f.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-body">{f.desc}</p>
+                      </GlassCard>
+                    </FadeIn>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Optional tail showcase (e.g. the sample Jobs board) */}
+        {page.tail && (
+          <section className="px-6 pb-28">
+            <div className="mx-auto max-w-5xl">
               <FadeIn>
-                <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-heading sm:text-3xl">
-                  {page.featuresTitle}
+                <h2 className="mb-8 text-center text-2xl font-bold tracking-tight text-heading sm:text-3xl">
+                  {page.tailTitle ?? "Your work, on one board."}
                 </h2>
               </FadeIn>
-            )}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {page.features.map((f, i) => (
-                <FadeIn key={f.title} delay={0.04 * i}>
-                  <GlassCard className="h-full">
-                    <IconChip>
-                      <f.icon className="h-5 w-5" />
-                    </IconChip>
-                    <h3 className="mt-4 text-base font-semibold text-heading">{f.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-body">{f.desc}</p>
-                  </GlassCard>
-                </FadeIn>
-              ))}
+              <FadeIn delay={0.05}>{page.tail}</FadeIn>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer />
     </div>

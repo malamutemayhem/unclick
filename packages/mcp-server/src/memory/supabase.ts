@@ -1015,7 +1015,8 @@ export class SupabaseBackend implements MemoryBackend {
         .is("invalidated_at", null);
       let sessQ = this.client
         .from(this.tables.session_summaries)
-        .select("id, summary, created_at");
+        .select("id, summary, created_at")
+        .eq("status", "active");
 
       factQ = factQ
         .lte("valid_from", effectiveAsOf)
@@ -1166,7 +1167,10 @@ export class SupabaseBackend implements MemoryBackend {
     const factIds = rows
       .filter((row) => row.source === "fact" && typeof row.id === "string")
       .map((row) => row.id as string);
-    if (factIds.length === 0) return results;
+    const sessionIds = rows
+      .filter((row) => row.source === "session" && typeof row.id === "string")
+      .map((row) => row.id as string);
+    if (factIds.length === 0 && sessionIds.length === 0) return results;
 
     // --- lane-04: scope-aware recall (only selects scope columns when on) ---
     const scopesOn = scopesEnabled();
@@ -1178,53 +1182,85 @@ export class SupabaseBackend implements MemoryBackend {
       (isTypedMemorySplitEnabled() ? ", memory_class" : "");
     // --- end lane-04 ---
 
-    let query = this.client
-      .from(this.tables.extracted_facts)
-      .select(recallSelect)
-      .in("id", factIds);
-    if (this.tenancy.mode === "managed") {
-      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    let visibleFactIds: Set<string> | null = null;
+    if (factIds.length > 0) {
+      let query = this.client
+        .from(this.tables.extracted_facts)
+        .select(recallSelect)
+        .in("id", factIds);
+      if (this.tenancy.mode === "managed") {
+        query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("[search_memory] recall-visibility filter failed:", error.message);
+        visibleFactIds = new Set(
+          rows
+            .filter((row) => {
+              if (row.source !== "fact" || typeof row.id !== "string") return false;
+              if (scopesOn) return false;
+              return !isMemoryFactOperational({
+                category: typeof row.category === "string" ? row.category : undefined,
+                fact: typeof row.content === "string" ? row.content : undefined,
+              });
+            })
+            .map((row) => row.id as string)
+        );
+      } else {
+        visibleFactIds = new Set(
+          ((data ?? []) as unknown as Array<{
+            id: string;
+            fact?: string | null;
+            category?: string | null;
+            source_type?: string | null;
+            startup_fact_kind?: string | null;
+            memory_class?: string | null;
+            valid_from?: string | null;
+            valid_to?: string | null;
+            invalidated_at?: string | null;
+            created_at?: string | null;
+            visibility?: string | null;
+            source_agent_id?: string | null;
+            boardroom_id?: string | null;
+            credential_scope?: string | null;
+            quarantined_at?: string | null;
+          }>)
+            .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row) &&
+              (!scopesOn || isFactInScope(row, scopeCtx)))
+            .map((row) => row.id)
+        );
+      }
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error("[search_memory] recall-visibility filter failed:", error.message);
-      return rows.filter((row) => {
-        if (row.source !== "fact") return true;
-        // lane-04: fail closed when scope cannot be verified so a transient
-        // error never leaks a private or quarantined fact.
-        if (scopesOn) return false;
-        return !isMemoryFactOperational({
-          category: typeof row.category === "string" ? row.category : undefined,
-          fact: typeof row.content === "string" ? row.content : undefined,
-        });
-      });
+    let visibleSessionIds: Set<string> | null = null;
+    if (sessionIds.length > 0) {
+      let sessionQuery = this.client
+        .from(this.tables.session_summaries)
+        .select("id, status, created_at")
+        .in("id", sessionIds)
+        .lte("created_at", asOf);
+      if (this.tenancy.mode === "managed") {
+        sessionQuery = sessionQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const { data, error } = await sessionQuery;
+      if (error) {
+        console.error("[search_memory] session recall-visibility filter failed:", error.message);
+        visibleSessionIds = new Set();
+      } else {
+        visibleSessionIds = new Set(
+          ((data ?? []) as unknown as Array<{ id: string; status?: string | null }>)
+            .filter((row) => (row.status ?? "active") === "active")
+            .map((row) => row.id)
+        );
+      }
     }
 
-    const visibleFactIds = new Set(
-      ((data ?? []) as unknown as Array<{
-        id: string;
-        fact?: string | null;
-        category?: string | null;
-        source_type?: string | null;
-        startup_fact_kind?: string | null;
-        memory_class?: string | null;
-        valid_from?: string | null;
-        valid_to?: string | null;
-        invalidated_at?: string | null;
-        created_at?: string | null;
-        visibility?: string | null;
-        source_agent_id?: string | null;
-        boardroom_id?: string | null;
-        credential_scope?: string | null;
-        quarantined_at?: string | null;
-      }>)
-        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row) &&
-          (!scopesOn || isFactInScope(row, scopeCtx)))
-        .map((row) => row.id)
-    );
-
-    return rows.filter((row) => row.source !== "fact" || (typeof row.id === "string" && visibleFactIds.has(row.id)));
+    return rows.filter((row) => {
+      if (row.source === "fact") return typeof row.id === "string" && Boolean(visibleFactIds?.has(row.id));
+      if (row.source === "session") return typeof row.id === "string" && Boolean(visibleSessionIds?.has(row.id));
+      return true;
+    });
   }
 
   async searchFacts(query: string): Promise<unknown> {

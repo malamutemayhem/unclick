@@ -878,7 +878,7 @@ export default function AdminYou() {
           </span>
         </div>
       ) : !session ? (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-sm text-white/70">You are not signed in.</p>
           <Link
             to="/login"
@@ -927,7 +927,7 @@ export default function AdminYou() {
             <a
               key={id}
               href={`#${id}`}
-              className="group flex min-h-[76px] items-center gap-3 rounded-xl border border-white/[0.06] bg-[#111111] px-4 py-3 transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.04]"
+              className="group flex min-h-[76px] items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.04]"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-[#61C1C4] group-hover:bg-[#61C1C4]/10">
                 <Icon className="h-4 w-4" />
@@ -942,7 +942,7 @@ export default function AdminYou() {
 
         <div className="space-y-6">
           {/* Profile card */}
-          <div id="you-profile" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div id="you-profile" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -993,7 +993,7 @@ export default function AdminYou() {
           </div>
 
           {/* Local time card */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Clock className="h-4 w-4 text-[#E2B93B]" />
               Local Time
@@ -1032,7 +1032,7 @@ export default function AdminYou() {
                   className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
                 >
                   {timezoneOptions.map((tz) => (
-                    <option key={tz} value={tz} className="bg-[#111111] font-mono">
+                    <option key={tz} value={tz} className="bg-white/[0.03] font-mono">
                       {tz}{tz === detectedTimezone ? " (detected)" : ""}
                     </option>
                   ))}
@@ -1063,7 +1063,7 @@ export default function AdminYou() {
           </div>
 
           {/* Access card */}
-          <div id="you-api-key" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div id="you-api-key" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <KeyRound className="h-4 w-4 text-[#E2B93B]" />
               My API Key
@@ -1080,7 +1080,7 @@ export default function AdminYou() {
                     <span>Your UnClick API key. Copy it now or copy the ready-made MCP URL below. Revealing the key is optional and auto-hides after 60 seconds. Signing out clears this local copy.</span>
                   </div>
                   <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <code className="min-w-0 flex-1 truncate rounded bg-[#0A0A0A] px-3 py-2 font-mono text-xs text-white">
+                    <code className="min-w-0 flex-1 truncate rounded bg-white/[0.02] px-3 py-2 font-mono text-xs text-white">
                       {keyRevealed ? generatedKey : maskValue(generatedKey)}
                     </code>
                     <button
@@ -1199,7 +1199,7 @@ export default function AdminYou() {
           </div>
 
           {/* AI Style card */}
-          <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Sparkles className="h-4 w-4 text-[#E2B93B]" />
@@ -1312,7 +1312,7 @@ export default function AdminYou() {
           </div>
 
           {/* My Data card */}
-          <div id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Database className="h-4 w-4 text-[#E2B93B]" />
               My Data
@@ -1395,7 +1395,7 @@ export default function AdminYou() {
           </div>
 
           {/* Security pointer */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <ShieldCheck className="h-4 w-4 text-[#E2B93B]" />
               Security lives in Settings

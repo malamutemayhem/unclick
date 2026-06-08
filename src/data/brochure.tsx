@@ -9,14 +9,19 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { GradientText } from "@/components/brand";
+import OrchestratorStory from "@/components/OrchestratorStory";
+import ExpandableImage from "@/components/ExpandableImage";
+import JobsBoardSample from "@/components/JobsBoardSample";
+import XGateGates from "@/components/XGateGates";
 import {
   Sparkles, Zap, Plug, RefreshCw,
-  BookOpen, Clock, Compass, Link2,
+  Clock, Compass, Link2, MonitorSmartphone,
   KeyRound, Puzzle, ShieldCheck, Lock,
   Users, HeartPulse, Brain, SlidersHorizontal,
-  Search, Wrench, ClipboardCheck, GitMerge, ShieldHalf, Hand,
+  Search, ShieldHalf,
+  MessageSquare, Bot, Network, LayoutGrid, Code2, BadgeCheck, ClipboardList, GitMerge, Rocket, RotateCcw,
   Terminal, CreditCard, Ban,
-  ListTodo, Bell, ReceiptText,
+  ListTodo, Bell, ReceiptText, Gauge,
   TowerControl, TriangleAlert, Wind,
   ScrollText, Download,
   Hammer, FlaskConical, Eye,
@@ -36,8 +41,16 @@ export type BrochureContent = {
   lede: string;
   primaryCta?: Cta;
   secondaryCta?: Cta;
+  showcase?: ReactNode;
   featuresTitle?: string;
-  features: Feature[];
+  featuresSubtitle?: string;
+  features?: Feature[];
+  /** Feature grid columns. 2 = fewer, larger tiles; default 3. */
+  featuresCols?: 2 | 3;
+  steps?: { icon: LucideIcon; title: string; desc: string }[];
+  tail?: ReactNode;
+  /** Heading above the tail section. Defaults to the Jobs-board wording. */
+  tailTitle?: string;
   meta: { title: string; description: string };
 };
 
@@ -64,16 +77,17 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     path: "/orchestrator",
     eyebrow: "Orchestrator",
     title: <>The running <GradientText>story</GradientText> of your work.</>,
-    lede: "Orchestrator keeps the through-line of every job, so you and your agents stay clear on what just happened and what is next.",
+    lede: "Every job, receipt, and decision, written as one plain-English story you can follow. The same running story shows on each device and seat you connect.",
     primaryCta: GET_STARTED,
-    featuresTitle: "Never lose the thread.",
+    showcase: <OrchestratorStory />,
+    featuresTitle: "One story, everywhere you work.",
     features: [
-      { icon: BookOpen, title: "One clear story", desc: "Every job, in plain language, from start to finish." },
-      { icon: Clock, title: "Live timeline", desc: "See what changed, when, and why." },
-      { icon: Compass, title: "Knows the next step", desc: "Points to the next action, not just history." },
-      { icon: Link2, title: "Source-linked", desc: "Every claim traces back to where it came from." },
+      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read, with the raw timeline underneath." },
+      { icon: MonitorSmartphone, title: "Every connected device", desc: "The same running story on each PC and seat you connect." },
+      { icon: Users, title: "Built for teams", desc: "Share an account and everyone follows the same story." },
+      { icon: Link2, title: "Any seat or account", desc: "Connect a seat or AI account and its work joins the story." },
     ],
-    meta: { title: "Orchestrator - UnClick", description: "The running story of your work, so your agents always know what is next." },
+    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team." },
   },
   passport: {
     path: "/passport",
@@ -112,31 +126,56 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     lede: "Autopilot plans, builds, checks, and ships work for you, with visible approvals and a clear stop button at every step.",
     primaryCta: GET_STARTED,
     secondaryCta: { label: "See the proof", href: "/xpass" },
-    featuresTitle: "From idea to shipped, on a line you can see.",
-    features: [
-      { icon: Search, title: "Research and plan", desc: "It works out what to do before touching anything." },
-      { icon: Wrench, title: "Build", desc: "Focused changes, one scoped step at a time." },
-      { icon: ClipboardCheck, title: "Check with XPass", desc: "Every result is proven before it moves on." },
-      { icon: GitMerge, title: "Review and ship", desc: "You approve. It merges and publishes." },
-      { icon: ShieldHalf, title: "Guarded by XGate", desc: "Risky actions are stopped before they run." },
-      { icon: Hand, title: "Stop anytime", desc: "One clear stop path. You are always in command." },
+    showcase: (
+      <ExpandableImage
+        src="/Unclick_Autopilot_Web.jpg"
+        alt="The Autopilot line, step by step: intake, orchestrator, research, plan, jobs, build, test, review, safety, audit, workers, merge, publish, repair."
+      />
+    ),
+    featuresTitle: "From idea to shipped, step by step.",
+    featuresSubtitle: "Two checkpoints wrap the work: XGate stops risky things from starting (before), and XPass proves the finished work is good (after).",
+    steps: [
+      { icon: MessageSquare, title: "Intake", desc: "You ask for something in plain language. Autopilot takes it in, asks anything it needs, and pins down the details before any work starts." },
+      { icon: Bot, title: "Orchestrator", desc: "It logs the job into the running story, so you and every connected seat can follow what is happening and what is next." },
+      { icon: Search, title: "Research", desc: "It looks up whatever it needs to know first, so the plan is built on facts instead of guesses." },
+      { icon: Network, title: "Plan", desc: "It maps the steps and breaks the work down before touching anything, so there are no surprises later." },
+      { icon: LayoutGrid, title: "Jobs", desc: "The plan becomes small, clear tasks on the board, each with an owner and a finish line." },
+      { icon: Code2, title: "Build", desc: "It does the actual work, one task at a time, and shows progress as it goes." },
+      { icon: FlaskConical, title: "Test", desc: "Where XPass begins: it runs the work and proves it truly works. TestPass lives here." },
+      { icon: BadgeCheck, title: "Review", desc: "The rest of XPass: a second pass checks quality, UX, security, copy, legal, and search, catching mistakes before they ship." },
+      { icon: ShieldCheck, title: "Safety", desc: "This is XGate, the safety gate before anything risky runs. It checks dangerous moves like leaking a secret, wiping data, or a surprise deploy against your rules and blocks them, with a master kill switch you can hit anytime." },
+      { icon: ClipboardList, title: "Audit", desc: "Every step is recorded as proof, so you can go back and see what happened and why." },
+      { icon: Users, title: "Workers", desc: "Role-based helpers each take the part they do best, from building to checking to shipping." },
+      { icon: GitMerge, title: "Merge", desc: "Once XPass proves the work and XGate clears it, approved changes are combined into the real thing." },
+      { icon: Rocket, title: "Publish", desc: "It ships the finished work and goes live, again only after the gate gives the all-clear." },
+      { icon: RotateCcw, title: "Repair", desc: "If something breaks later, it loops back, fixes it, and runs the checks again." },
     ],
+    tail: <JobsBoardSample />,
     meta: { title: "Autopilot - UnClick", description: "Autopilot plans, builds, checks, and ships work for you, with approvals and proof at every step." },
   },
   xgate: {
     path: "/xgate",
     eyebrow: "Autopilot - XGate",
-    title: <>Guardrails <GradientText>before</GradientText> your AI acts.</>,
+    title: <>Guardrails <GradientText>before</GradientText> <span className="whitespace-nowrap">your AI acts.</span></>,
     lede: "XGate checks every risky action against your rules before it runs, so nothing happens that you would not allow.",
     primaryCta: GET_STARTED,
+    showcase: (
+      <ExpandableImage
+        src="/xgate_web.jpg"
+        alt="XGate: an AI action passes through gates - Commands, Data, Publish, Secrets - that open green when allowed and block in red when risky, all checked before it runs, with a master kill switch."
+      />
+    ),
     featuresTitle: "Stop problems before they start.",
+    featuresCols: 2,
     features: [
-      { icon: Terminal, title: "Command and Git gates", desc: "Stops unsafe commands and risky code changes." },
-      { icon: Lock, title: "Secret and Data gates", desc: "Protects credentials and sensitive data." },
-      { icon: CreditCard, title: "Spend and Ship gates", desc: "No surprise costs or unreviewed releases." },
-      { icon: Ban, title: "Kill switch", desc: "One switch halts everything, instantly." },
+      { icon: Terminal, title: "Command and Git gates", desc: "Risky terminal commands and code changes are checked first, so a bad line never just runs." },
+      { icon: Lock, title: "Secret and Data gates", desc: "Your keys, passwords, and important data are protected from leaks and accidental wipes." },
+      { icon: CreditCard, title: "Spend and Ship gates", desc: "No surprise bills, and nothing goes live until it has a clear, human OK." },
+      { icon: Ban, title: "Kill switch", desc: "One switch stops everything the moment you want it to, no questions asked." },
     ],
-    meta: { title: "XGate - UnClick", description: "XGate checks risky AI actions against your rules before they run." },
+    tail: <XGateGates />,
+    tailTitle: "Every gate, in plain English.",
+    meta: { title: "XGate - UnClick", description: "XGate checks risky AI actions against your rules before they run, with a full family of gates." },
   },
   jobs: {
     path: "/jobs",
@@ -147,10 +186,13 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
     featuresTitle: "Always know where things stand.",
     features: [
       { icon: ListTodo, title: "Clear status", desc: "See every job at a glance: doing, done, or blocked." },
-      { icon: Compass, title: "Owns the next action", desc: "Each job knows its next step." },
-      { icon: Bell, title: "Needs-you flags", desc: "It tells you when something needs a human." },
-      { icon: ReceiptText, title: "Receipts when done", desc: "Finished work comes with proof." },
+      { icon: Gauge, title: "Live progress", desc: "A percent and pipeline stages, from Brief to Ship, update as the work moves." },
+      { icon: Bot, title: "Run by your AI", desc: "Jobs are created, worked, commented, and pushed for you, automatically." },
+      { icon: Compass, title: "Owns the next action", desc: "Each job knows its next step and keeps itself moving." },
+      { icon: Bell, title: "Needs-you flags", desc: "It taps you on the shoulder only when something needs a human." },
+      { icon: ReceiptText, title: "Receipts when done", desc: "Finished work arrives with proof: PRs, tests, and screenshots." },
     ],
+    tail: <JobsBoardSample />,
     meta: { title: "Jobs - UnClick", description: "The simple queue of what your AI is doing, what is done, and what needs you." },
   },
   "control-tower": {

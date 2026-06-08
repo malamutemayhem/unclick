@@ -175,7 +175,7 @@ export default function SignalsCatalog() {
         <select
           value={toolFilter}
           onChange={(e) => setToolFilter(e.target.value)}
-          className="rounded-lg border border-white/[0.08] bg-[#111] px-3 py-2 text-sm text-[#ccc]"
+          className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-[#ccc]"
         >
           <option value="all">All tools</option>
           {tools.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -183,7 +183,7 @@ export default function SignalsCatalog() {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}
-          className="rounded-lg border border-white/[0.08] bg-[#111] px-3 py-2 text-sm text-[#ccc]"
+          className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-[#ccc]"
         >
           <option value="all">All severities</option>
           <option value="info">Info</option>
@@ -196,7 +196,7 @@ export default function SignalsCatalog() {
             type="checkbox"
             checked={unreadOnly}
             onChange={(e) => setUnreadOnly(e.target.checked)}
-            className="h-4 w-4 rounded border-white/20 bg-[#111]"
+            className="h-4 w-4 rounded border-white/20 bg-white/[0.03]"
           />
           Unread only
         </label>
@@ -213,7 +213,7 @@ export default function SignalsCatalog() {
           <Loader2 className="h-4 w-4 animate-spin" /> Loading signals...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-lg font-medium text-white">All caught up!</p>
           <p className="mt-2 text-sm text-[#888]">
             No signals yet. Signals appear here when your tools finish jobs or need your attention.
@@ -228,7 +228,7 @@ export default function SignalsCatalog() {
               <div
                 key={s.id}
                 className={`rounded-xl border p-4 transition-colors ${
-                  s.read_at ? "border-white/[0.06] bg-[#0f0f0f]" : "border-white/[0.12] bg-[#141414]"
+                  s.read_at ? "border-white/[0.06] bg-white/[0.03]" : "border-white/[0.12] bg-white/[0.03]"
                 }`}
               >
               <div className="flex items-start justify-between gap-3">

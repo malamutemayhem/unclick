@@ -11,7 +11,7 @@ export default function AdminModeration() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
         <p className="text-sm leading-relaxed text-[#ccc]">
           A review queue for tools submitted by outside developers. Approve what looks good,
           reject what does not, and keep the marketplace safe for everyone using it.

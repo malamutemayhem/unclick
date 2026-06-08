@@ -126,19 +126,23 @@ const PRIORITY_RANK: Record<JobTodo["priority"], number> = {
   low: 1,
 };
 
+// Palette tuned to sit on the navy aurora canvas (no warm-red sea). The brand
+// teal carries "live/active", amber carries "waiting on proof", emerald carries
+// "shipped", and red is reserved for genuine urgency/alerts so it stays rare.
+// Kept in sync with the public brochure sample (src/components/JobsBoardSample).
 const PRIORITY_STYLE: Record<JobTodo["priority"], string> = {
-  urgent: "border-red-400/35 bg-red-500/10 text-red-200",
-  high: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
-  normal: "border-white/10 bg-white/[0.035] text-white/60",
+  urgent: "border-rose-400/30 bg-rose-500/10 text-rose-200",
+  high: "border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]",
+  normal: "border-white/12 bg-white/[0.04] text-white/60",
   low: "border-white/[0.06] bg-white/[0.02] text-white/40",
 };
 
 const STATUS_STYLE: Record<DisplayStatus, string> = {
-  open: "border-white/10 bg-white/[0.035] text-white/60",
-  in_progress: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
-  done: "border-green-400/25 bg-green-400/10 text-green-300",
+  open: "border-white/12 bg-white/[0.04] text-white/65",
+  in_progress: "border-[#61C1C4]/35 bg-[#61C1C4]/12 text-[#8EE8EB]",
+  done: "border-emerald-400/30 bg-emerald-500/12 text-emerald-300",
   dropped: "border-white/[0.06] bg-white/[0.02] text-white/35",
-  needs_proof: "border-red-300/35 bg-red-500/10 text-red-200",
+  needs_proof: "border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]",
 };
 
 const ACTION_BUTTONS = {
@@ -149,8 +153,11 @@ const ACTION_BUTTONS = {
 const STAGES = ["Brief", "Build", "Proof", "Review", "Ship"] as const;
 const TITLE_MAX_CHARS = 90;
 
+// Column widths tuned to avoid "..." where it is cheap to: the Proof and Worker
+// columns are wide enough for their real labels, and the Notes column fits the
+// header plus a two-digit count without clipping. Row height is unchanged.
 const JOB_ROW_GRID =
-  "md:grid md:grid-cols-[48px_minmax(320px,1.2fr)_48px_58px_minmax(96px,0.35fr)_40px_minmax(190px,0.5fr)_78px_30px_18px] md:items-center md:gap-1.5";
+  "md:grid md:grid-cols-[48px_minmax(244px,1.2fr)_78px_58px_minmax(132px,0.6fr)_44px_minmax(188px,0.5fr)_104px_46px_18px] md:items-center md:gap-1.5";
 
 interface JobDisplayCopy {
   title: string;
@@ -366,9 +373,9 @@ function StageStrip({ todo }: { todo: JobTodo }) {
             className={`flex h-4 min-w-0 items-center justify-center text-[7px] font-semibold uppercase ${
               index < active
                 ? displayStatus === "needs_proof"
-                  ? "bg-red-300/85 text-black/70"
+                  ? "bg-[#E2B93B]/90 text-black/70"
                   : displayStatus === "done"
-                  ? "bg-green-400/85 text-black/70"
+                  ? "bg-emerald-400/90 text-black/70"
                   : "bg-[#61C1C4]/90 text-black/70"
                 : "bg-white/[0.08] text-white/30"
             }`}
@@ -384,8 +391,8 @@ function StageStrip({ todo }: { todo: JobTodo }) {
 const SYNC_SIGNAL_STYLE: Record<JobGithubSyncSignal["tone"], string> = {
   quiet: "border-white/[0.08] bg-white/[0.025] text-white/40",
   linked: "border-[#61C1C4]/30 bg-[#61C1C4]/10 text-[#8EE8EB]",
-  done: "border-green-400/25 bg-green-400/10 text-green-300",
-  alert: "border-red-300/30 bg-red-500/10 text-red-200",
+  done: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+  alert: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#E8C766]",
 };
 
 function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
@@ -396,7 +403,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
       {signal.href && <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />}
     </>
   );
-  const className = `inline-flex max-w-[78px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
+  const className = `inline-flex max-w-[104px] shrink-0 items-center justify-self-start gap-1 whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
 
   if (signal.href) {
     return (
@@ -783,12 +790,12 @@ function JobRow({
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 md:contents">
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
+            className={`inline-flex min-w-0 items-center justify-self-start whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
           >
             {statusLabel(displayStatus)}
           </span>
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
+            className={`inline-flex min-w-0 items-center justify-self-start whitespace-nowrap rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
           >
             {todo.priority}
           </span>
@@ -796,14 +803,14 @@ function JobRow({
             <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04] text-[11px]">
               {emoji ?? "AI"}
             </span>
-            <span className="max-w-[130px] truncate" title={ownerLabel(todo)}>
+            <span className="min-w-0 truncate" title={ownerLabel(todo)}>
               {highlightSearchText(ownerLabel(todo), searchQuery)}
             </span>
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/45">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : displayStatus === "done" ? "bg-green-300" : "bg-green-400"
+                isStaleActive(todo) ? "bg-red-300" : displayStatus === "needs_proof" ? "bg-[#E8C766]" : displayStatus === "done" ? "bg-emerald-300" : "bg-emerald-400"
               }`}
             />
             {displayStatus === "needs_proof" ? "proof" : displayStatus === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
@@ -835,7 +842,7 @@ function JobRow({
       </div>
 
       {expanded && (
-        <div className="mx-3 mb-2 space-y-2 rounded-md border border-white/[0.06] bg-black/20 p-2.5">
+        <div className="mx-3 mb-2 space-y-2 rounded-md border border-white/[0.06] bg-white/[0.03] p-2.5">
           <div className="grid gap-3 text-xs text-white/50 sm:grid-cols-5">
             <div>
               <span className="block text-[10px] uppercase tracking-wide text-white/30">Created</span>
@@ -882,7 +889,7 @@ function JobRow({
               <p className="text-xs leading-5 text-white/50">{highlightSearchText(displayCopy.context, searchQuery)}</p>
             </div>
             {showDetails && (
-              <div className="mt-3 rounded-[5px] border border-white/[0.05] bg-black/20 p-2">
+              <div className="mt-3 rounded-[5px] border border-white/[0.05] bg-white/[0.03] p-2">
                 <p className="text-[10px] uppercase tracking-wide text-white/25">Original source</p>
                 <p className="mt-1 text-xs font-medium leading-5 text-white/60">{highlightSearchText(todo.title, searchQuery)}</p>
                 {description ? (
@@ -1004,7 +1011,7 @@ function JobSection({
   };
 
   return (
-    <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#101010]">
+    <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
       <div className={`h-0.5 ${sectionAccent[sectionKey]}`} />
       <div className="flex items-center justify-between border-b border-white/[0.08] bg-white/[0.045] px-3 py-2">
         <button
@@ -1016,7 +1023,7 @@ function JobSection({
           {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           {SECTION_LABELS[sectionKey]}
         </button>
-        <span className="rounded-[4px] border border-white/[0.08] bg-black/20 px-2 py-0.5 text-[11px] font-semibold text-white/50">
+        <span className="rounded-[4px] border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[11px] font-semibold text-white/50">
           {showLoading
             ? "Loading"
             : open
@@ -1046,7 +1053,7 @@ function JobSection({
         </div>
       ) : (
         <ul>
-          <li className={`hidden border-b border-white/[0.05] bg-black/20 px-3 py-1.5 text-[10px] font-semibold uppercase text-white/30 ${JOB_ROW_GRID}`}>
+          <li className={`hidden border-b border-white/[0.05] bg-white/[0.03] px-3 py-1.5 text-[10px] font-semibold uppercase text-white/30 ${JOB_ROW_GRID}`}>
             <SortHeader label="#" value="queue" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
             <SortHeader label="Job" value="title" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
             <SortHeader label="State" value="status" sortKey={sortKey} sortDirection={sortDirection} onSort={setSort} />
@@ -1491,7 +1498,7 @@ export default function AdminJobs() {
         <div className="grid grid-cols-2 gap-2 text-center sm:min-w-[480px] sm:grid-cols-4">
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Being worked</p>
-            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#E2B93B]">
+            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#8EE8EB]">
               {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : activeCount}
             </p>
           </div>
@@ -1503,7 +1510,7 @@ export default function AdminJobs() {
           </div>
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Proof holds</p>
-            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-red-200">
+            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#E8C766]">
               {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : proofHoldCount}
             </p>
           </div>
@@ -1557,7 +1564,7 @@ export default function AdminJobs() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Filter jobs"
-            className="w-full rounded-md border border-white/[0.06] bg-black/20 py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
+            className="w-full rounded-md border border-white/[0.06] bg-white/[0.03] py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
           />
           {searchQuery && (
             <button

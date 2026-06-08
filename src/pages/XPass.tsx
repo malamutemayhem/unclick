@@ -7,13 +7,68 @@ import {
   ExternalLink,
   ShieldCheck,
   Sparkles,
+  FlaskConical,
+  Layout,
+  Route,
+  PenLine,
+  CopyCheck,
+  Scale,
+  Eraser,
+  Lightbulb,
+  Search,
+  Bot,
+  Workflow,
+  RefreshCw,
+  AlarmClock,
+  BadgeCheck,
+  type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
+import ExpandableImage from "@/components/ExpandableImage";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { dogfoodReport } from "@/data/dogfoodReport";
+
+// Fitting icon per Pass (matched by product name; falls back to a checklist).
+const PASS_ICONS: Record<string, LucideIcon> = {
+  TestPass: FlaskConical,
+  UIPass: Layout,
+  UXPass: Route,
+  SecurityPass: ShieldCheck,
+  CopyPass: PenLine,
+  FidelityPass: CopyCheck,
+  LegalPass: Scale,
+  SlopPass: Eraser,
+  CommonSensePass: Lightbulb,
+  SEOPass: Search,
+  GEOPass: Bot,
+  FlowPass: Workflow,
+  RotatePass: RefreshCw,
+  WakePass: AlarmClock,
+  CompliancePass: BadgeCheck,
+};
+
+// Plain-English "what does it ask?" line per Pass (same friendly framing as the
+// in-app XPass page).
+const PASS_QUESTIONS: Record<string, string> = {
+  TestPass: "Does it work?",
+  UIPass: "Does it look right?",
+  UXPass: "Is it easy to use?",
+  SecurityPass: "Is it safe enough?",
+  CopyPass: "Is the wording clear?",
+  FidelityPass: "Was it copied exactly?",
+  LegalPass: "Is the risk language honest?",
+  SlopPass: "Is the work sloppy?",
+  CommonSensePass: "Does the claim make sense?",
+  SEOPass: "Can search read it?",
+  GEOPass: "Can AI answer engines understand it?",
+  FlowPass: "Can the user finish the path?",
+  RotatePass: "Are credentials handled safely?",
+  WakePass: "Will someone act on it?",
+  CompliancePass: "Is the readiness story honest?",
+};
 
 const HERO_ROWS = [
   {
@@ -134,7 +189,16 @@ export default function XPassPage() {
               </div>
             </FadeIn>
 
-            <FadeIn delay={0.15}>
+            <FadeIn delay={0.12}>
+              <div className="mt-10">
+                <ExpandableImage
+                  src="/UnClick_Xpass_web.jpg"
+                  alt="XPass: AI work moves along a line of checks - Works, Reads well, Safe, Honest, Looks right - and earns a proof receipt stamped PASS."
+                />
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
               <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card/40">
                 {HERO_ROWS.map((row) => (
                   <div
@@ -197,17 +261,27 @@ export default function XPassPage() {
               </Link>
             </div>
 
-            <div className="mt-8 overflow-hidden rounded-lg border border-border">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="grid gap-2 border-b border-border bg-card/20 px-4 py-3 last:border-b-0 sm:grid-cols-[180px_160px_minmax(0,1fr)] sm:items-center"
-                >
-                  <p className="text-sm font-medium text-heading">{product.name}</p>
-                  <p className="text-xs text-muted-custom">{product.label}</p>
-                  <p className="text-sm leading-6 text-body">{product.summary}</p>
-                </div>
-              ))}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product) => {
+                const Icon = PASS_ICONS[product.name] ?? ClipboardCheck;
+                return (
+                  <div
+                    key={product.id}
+                    className="rounded-xl border border-[#86dadd]/12 bg-white/[0.03] p-5 backdrop-blur-sm transition-colors hover:border-primary/30 hover:bg-white/[0.05]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-heading">{product.name}</h3>
+                        <p className="text-xs text-primary/80">{PASS_QUESTIONS[product.name] ?? product.label}</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-body">{product.summary}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

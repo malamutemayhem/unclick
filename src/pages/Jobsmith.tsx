@@ -467,7 +467,7 @@ function ManagedRunReport({
           </div>
           <div className="mt-4 grid gap-2">
             {report.steps.map((step) => (
-              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{step.label}</p>
                   <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
@@ -575,7 +575,7 @@ function ManagedRunReport({
 
         <div className="mt-4 space-y-3">
           {decisionCards.slice(0, 5).map((card) => (
-            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-white">{card.title}</p>
@@ -975,7 +975,7 @@ export default function JobsmithPage() {
   const canGenerate = profile !== null && jobText.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-[#090909] text-white">
+    <div className="min-h-screen bg-white/[0.02] text-white">
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 pb-20 pt-20 sm:px-6 lg:px-8">
         <FadeIn>
@@ -1012,7 +1012,7 @@ export default function JobsmithPage() {
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"
           >
             <div className="space-y-4">
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex items-center gap-2">
                   <Upload className="h-4 w-4 text-[#61C1C4]" />
                   <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
@@ -1051,7 +1051,7 @@ export default function JobsmithPage() {
                 )}
               </section>
 
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <ScrollText className="h-4 w-4 text-[#61C1C4]" />
@@ -1105,7 +1105,7 @@ export default function JobsmithPage() {
                 )}
               </section>
 
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex items-center gap-2">
                   <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
                   <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
@@ -1156,7 +1156,7 @@ export default function JobsmithPage() {
               {letterDraft && (
                 <section
                   aria-label="Cover letter draft"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -1225,7 +1225,7 @@ export default function JobsmithPage() {
               {cvDraft && (
                 <section
                   aria-label="CV draft"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -1297,7 +1297,7 @@ export default function JobsmithPage() {
               {letterDraft && (
                 <section
                   aria-label="Truthfulness audit"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-300" />
@@ -1366,7 +1366,7 @@ export default function JobsmithPage() {
             <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
               <section
                 aria-label="ATS and paste readiness"
-                className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -1408,7 +1408,7 @@ export default function JobsmithPage() {
         <FadeIn delay={0.1}>
           <section
             aria-label="Application log"
-            className="mt-4 rounded-lg border border-white/[0.06] bg-[#111] p-5"
+            className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
           >
             <div className="mb-4 flex items-center gap-2">
               <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
