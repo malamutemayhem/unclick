@@ -1,39 +1,31 @@
 export function isValidIPv4(ip: string): boolean {
   const parts = ip.split(".");
   if (parts.length !== 4) return false;
-  return parts.every((p: string) => {
-    const n = Number(p);
-    return /^\d{1,3}$/.test(p) && n >= 0 && n <= 255;
+  return parts.every((p) => {
+    if (!/^\d{1,3}$/.test(p)) return false;
+    const n = parseInt(p, 10);
+    return n >= 0 && n <= 255 && String(n) === p;
   });
 }
 
 export function isValidIPv6(ip: string): boolean {
-  const expanded = expandIPv6(ip);
-  if (!expanded) return false;
-  const groups = expanded.split(":");
-  return groups.length === 8 && groups.every((g: string) => /^[0-9a-f]{1,4}$/i.test(g));
-}
-
-export function expandIPv6(ip: string): string | null {
-  if (ip.includes("::")) {
-    const parts = ip.split("::");
-    if (parts.length > 2) return null;
-    const left = parts[0] ? parts[0].split(":") : [];
-    const right = parts[1] ? parts[1].split(":") : [];
-    const missing = 8 - left.length - right.length;
-    if (missing < 0) return null;
-    const middle = Array(missing).fill("0");
-    return [...left, ...middle, ...right].join(":");
+  const groups = ip.split(":");
+  if (groups.length < 3 || groups.length > 8) return false;
+  const emptyCount = groups.filter((g) => g === "").length;
+  if (emptyCount > 1 && !(emptyCount <= 3 && ip.includes("::"))) return false;
+  for (const g of groups) {
+    if (g === "") continue;
+    if (!/^[0-9a-fA-F]{1,4}$/.test(g)) return false;
   }
-  return ip;
+  return true;
 }
 
-export function ipToNumber(ip: string): number {
-  const parts = ip.split(".");
-  return parts.reduce((acc: number, part: string) => (acc << 8) + Number(part), 0) >>> 0;
+export function ipv4ToLong(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
 }
 
-export function numberToIp(num: number): string {
+export function longToIPv4(num: number): string {
   return [
     (num >>> 24) & 255,
     (num >>> 16) & 255,
@@ -42,18 +34,29 @@ export function numberToIp(num: number): string {
   ].join(".");
 }
 
-export function isInCIDR(ip: string, cidr: string): boolean {
-  const [network, maskStr] = cidr.split("/");
-  const mask = parseInt(maskStr, 10);
-  const ipNum = ipToNumber(ip);
-  const netNum = ipToNumber(network);
-  const bitmask = mask === 0 ? 0 : (~0 << (32 - mask)) >>> 0;
-  return (ipNum & bitmask) === (netNum & bitmask);
+export function isPrivateIPv4(ip: string): boolean {
+  const parts = ip.split(".").map(Number);
+  if (parts[0] === 10) return true;
+  if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+  if (parts[0] === 192 && parts[1] === 168) return true;
+  return false;
 }
 
-export function isPrivate(ip: string): boolean {
-  return isInCIDR(ip, "10.0.0.0/8") ||
-    isInCIDR(ip, "172.16.0.0/12") ||
-    isInCIDR(ip, "192.168.0.0/16") ||
-    isInCIDR(ip, "127.0.0.0/8");
+export function ipInCIDR(ip: string, cidr: string): boolean {
+  const [network, bits] = cidr.split("/");
+  const mask = ~((1 << (32 - parseInt(bits, 10))) - 1) >>> 0;
+  return (ipv4ToLong(ip) & mask) === (ipv4ToLong(network) & mask);
+}
+
+export function expandCIDR(cidr: string): { first: string; last: string; count: number } {
+  const [network, bits] = cidr.split("/");
+  const prefix = parseInt(bits, 10);
+  const mask = ~((1 << (32 - prefix)) - 1) >>> 0;
+  const net = ipv4ToLong(network) & mask;
+  const broadcast = net | (~mask >>> 0);
+  return {
+    first: longToIPv4(net),
+    last: longToIPv4(broadcast),
+    count: broadcast - net + 1,
+  };
 }
