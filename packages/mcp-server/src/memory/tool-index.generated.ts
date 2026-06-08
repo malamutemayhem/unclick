@@ -1540,6 +1540,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "convexhull",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "convex_hull",
+        "description": "Compute the convex hull of 2D points with area and perimeter."
+      }
+    ]
+  },
+  {
     "app": "copypass",
     "category": "CopyPass (copy quality QC, sister to SecurityPass)",
     "tools": [
@@ -1974,6 +1984,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "do_account",
         "description": "Get the DigitalOcean account profile and limits."
+      }
+    ]
+  },
+  {
+    "app": "dijkstra",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dijkstra_path",
+        "description": "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm)."
       }
     ]
   },
@@ -3960,6 +3980,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "knapsack",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "knapsack_solve",
+        "description": "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity."
+      }
+    ]
+  },
+  {
     "app": "languagetool",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4004,6 +4034,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "lastfm_album_info",
         "description": "Get album info from Last.fm."
+      }
+    ]
+  },
+  {
+    "app": "lcs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "string_lcs",
+        "description": "Find the longest common subsequence of two strings with similarity score."
       }
     ]
   },
@@ -4188,6 +4228,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "linear_action",
         "description": "Interact with the Linear GraphQL API: list and search issues, create issues, get project details, and list teams."
+      }
+    ]
+  },
+  {
+    "app": "linearsolve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "linear_solve",
+        "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
       }
     ]
   },
@@ -4390,6 +4440,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "matrix_operate",
         "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+      }
+    ]
+  },
+  {
+    "app": "matrixdecomp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_decomp",
+        "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
       }
     ]
   },
@@ -4950,6 +5010,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "number_random",
         "description": "Get a random number fact."
+      }
+    ]
+  },
+  {
+    "app": "numdiff",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "numerical_diff",
+        "description": "Numerical differentiation of a math expression using five-point stencil (1st-4th order)."
+      }
+    ]
+  },
+  {
+    "app": "numintegrate",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "numerical_integrate",
+        "description": "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method."
       }
     ]
   },
@@ -7148,6 +7228,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "spline",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "spline_interpolate",
+        "description": "Natural cubic spline interpolation through data points, with optional evaluation."
+      }
+    ]
+  },
+  {
     "app": "splitwise",
     "category": "Productivity",
     "tools": [
@@ -7890,6 +7980,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tomorrow_history",
         "description": "Get historical weather data from Tomorrow.io."
+      }
+    ]
+  },
+  {
+    "app": "toposort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "topo_sort",
+        "description": "Topological sort of a directed graph with cycle detection."
       }
     ]
   },

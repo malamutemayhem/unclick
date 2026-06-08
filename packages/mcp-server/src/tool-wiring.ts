@@ -691,6 +691,20 @@ import { harmonicSeries } from "./harmonicseries-tool.js";
 import { piApprox } from "./piapprox-tool.js";
 import { taylorExpand } from "./taylor-tool.js";
 
+// ── batch 58: algorithms & data structures ──
+import { stringLcs } from "./lcs-tool.js";
+import { topoSort } from "./toposort-tool.js";
+import { convexHull } from "./convexhull-tool.js";
+import { knapsackSolve } from "./knapsack-tool.js";
+import { splineInterpolate } from "./spline-tool.js";
+
+// ── batch 59: graphs, linear algebra, calculus ──
+import { dijkstraPath } from "./dijkstra-tool.js";
+import { matrixDecomp } from "./matrixdecomp-tool.js";
+import { linearSolve } from "./linearsolve-tool.js";
+import { numericalDiff } from "./numdiff-tool.js";
+import { numericalIntegrate } from "./numintegrate-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -10481,6 +10495,123 @@ export const ADDITIONAL_TOOLS = [
         x: { type: "number" as const, description: "Point to evaluate at." },
         terms: { type: "number" as const, description: "Number of terms (default 10, max 50)." },
       }, required: ["function", "x"],
+    },
+  },
+
+  // ── lcs-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "string_lcs",
+    description: "Find the longest common subsequence of two strings with similarity score.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "string" as const, description: "First string." },
+        b: { type: "string" as const, description: "Second string." },
+      }, required: ["a", "b"],
+    },
+  },
+  // ── toposort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "topo_sort",
+    description: "Topological sort of a directed graph with cycle detection.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        edges: { type: "array" as const, description: "Array of [from, to] directed edge pairs.", items: { type: "array" as const, items: { type: "string" as const } } },
+      }, required: ["edges"],
+    },
+  },
+  // ── convexhull-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "convex_hull",
+    description: "Compute the convex hull of 2D points with area and perimeter.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] coordinate pairs.", items: { type: "array" as const, items: { type: "number" as const } } },
+      }, required: ["points"],
+    },
+  },
+  // ── knapsack-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "knapsack_solve",
+    description: "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        capacity: { type: "number" as const, description: "Maximum weight capacity (integer units, max 100000)." },
+        items: { type: "array" as const, description: "Array of { name?, weight, value } objects.", items: { type: "object" as const, properties: { name: { type: "string" as const }, weight: { type: "number" as const }, value: { type: "number" as const } }, required: ["weight", "value"] } },
+      }, required: ["capacity", "items"],
+    },
+  },
+  // ── spline-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "spline_interpolate",
+    description: "Natural cubic spline interpolation through data points, with optional evaluation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] data points (at least 3, distinct x).", items: { type: "array" as const, items: { type: "number" as const } } },
+        eval_at: { description: "X value(s) to evaluate the spline at. Number or array of numbers." },
+      }, required: ["points"],
+    },
+  },
+
+  // ── dijkstra-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dijkstra_path",
+    description: "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        source: { type: "string" as const, description: "Source node name." },
+        target: { type: "string" as const, description: "Target node name." },
+        edges: { type: "array" as const, description: "Array of [from, to, weight] triples.", items: { type: "array" as const } },
+        directed: { type: "boolean" as const, description: "Treat graph as directed (default false)." },
+      }, required: ["source", "target", "edges"],
+    },
+  },
+  // ── matrixdecomp-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "matrix_decomp",
+    description: "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "2D array of numbers (the matrix).", items: { type: "array" as const, items: { type: "number" as const } } },
+        operation: { type: "string" as const, description: "Operation: lu, transpose, trace, or rank (default lu)." },
+      }, required: ["matrix"],
+    },
+  },
+  // ── linearsolve-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "linear_solve",
+    description: "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "Coefficient matrix A (square, 2D array).", items: { type: "array" as const, items: { type: "number" as const } } },
+        vector: { type: "array" as const, description: "Right-hand side vector b.", items: { type: "number" as const } },
+      }, required: ["matrix", "vector"],
+    },
+  },
+  // ── numdiff-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "numerical_diff",
+    description: "Numerical differentiation of a math expression using five-point stencil (1st-4th order).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 + 3*x')." },
+        x: { type: "number" as const, description: "Point to evaluate at." },
+        h: { type: "number" as const, description: "Step size (default 1e-7)." },
+        order: { type: "number" as const, description: "Derivative order: 1, 2, 3, or 4 (default 1)." },
+      }, required: ["expression", "x"],
+    },
+  },
+  // ── numintegrate-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "numerical_integrate",
+    description: "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 + 1')." },
+        a: { type: "number" as const, description: "Lower bound of integration." },
+        b: { type: "number" as const, description: "Upper bound of integration." },
+        method: { type: "string" as const, description: "Method: simpson (default), trapezoid, or midpoint." },
+        intervals: { type: "number" as const, description: "Number of intervals (default 1000, max 1000000)." },
+      }, required: ["expression", "a", "b"],
     },
   },
 
@@ -22191,6 +22322,20 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // taylor-tool.ts
   taylor_expand:             (args) => taylorExpand(args),
+
+  // batch 58: algorithms & data structures
+  string_lcs:                (args) => stringLcs(args),
+  topo_sort:                 (args) => topoSort(args),
+  convex_hull:               (args) => convexHull(args),
+  knapsack_solve:            (args) => knapsackSolve(args),
+  spline_interpolate:        (args) => splineInterpolate(args),
+
+  // batch 59: graphs, linear algebra, calculus
+  dijkstra_path:             (args) => dijkstraPath(args),
+  matrix_decomp:             (args) => matrixDecomp(args),
+  linear_solve:              (args) => linearSolve(args),
+  numerical_diff:            (args) => numericalDiff(args),
+  numerical_integrate:       (args) => numericalIntegrate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
