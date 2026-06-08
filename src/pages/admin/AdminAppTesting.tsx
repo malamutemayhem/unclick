@@ -104,7 +104,7 @@ export default function AdminAppTesting() {
 
       {/* Progress + status counts */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
           <div className="text-xs uppercase tracking-wider text-[#888]">Tested</div>
           <div className="mt-2 text-3xl font-semibold text-white">{pctTested}%</div>
           <div className="mt-1 text-xs text-[#666]">{tested} of {APP_COUNT} apps</div>
@@ -135,7 +135,7 @@ export default function AdminAppTesting() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111111]">
+      <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.03]">
         <div className="min-w-[940px]">
           <div className={`grid ${COLS} items-center gap-3 border-b border-white/[0.08] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35`}>
             <span>Status</span>
@@ -198,7 +198,7 @@ function CountCard({ label, value, color, onClick, active }: {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl border bg-[#111111] p-4 text-left transition-colors ${
+      className={`rounded-xl border bg-white/[0.03] p-4 text-left transition-colors ${
         active ? "border-[#E2B93B]/50" : "border-white/[0.06] hover:border-white/15"
       }`}
     >

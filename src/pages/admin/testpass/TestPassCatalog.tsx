@@ -177,7 +177,7 @@ export default function TestPassCatalog() {
         </button>
       </div>
 
-      <div className="mb-6 flex gap-1 rounded-lg border border-white/[0.06] bg-[#111] p-1 w-fit">
+      <div className="mb-6 flex gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 w-fit">
         {(["runs", "packs"] as const).map((t) => (
           <button
             key={t}
@@ -195,7 +195,7 @@ export default function TestPassCatalog() {
 
       {tab === "runs" && (
         <>
-          <div className="mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-white/[0.06] bg-[#111] p-1 w-fit">
+          <div className="mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 w-fit">
             {(["all", "open", "complete", "abandoned"] as StatusFilter[]).map((f) => (
               <button
                 key={f}
@@ -209,7 +209,7 @@ export default function TestPassCatalog() {
             ))}
           </div>
 
-          <section className="rounded-xl border border-white/[0.06] bg-[#111] overflow-hidden">
+          <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] overflow-hidden">
             {loadingReports ? (
               <div className="flex items-center justify-center py-16 gap-2 text-[#888]">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading runs...
@@ -345,7 +345,7 @@ export default function TestPassCatalog() {
 function PackTile({ pack, onStart, onEdit }: { pack: PackCard; onStart: () => void; onEdit: () => void }) {
   const useWhen = PACK_USE_WHEN[pack.slug] ?? pack.description ?? "Use this when you need a custom set of MCP checks.";
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111] p-5 flex flex-col gap-3">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5 flex flex-col gap-3">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold text-white">{pack.name}</h3>
@@ -460,7 +460,7 @@ function RunsEmptyState({
 
 function PacksEmptyState({ onOpenPackEditor }: { onOpenPackEditor: () => void }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111] px-6 py-12 text-center">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-6 py-12 text-center">
       <p className="text-sm text-white">
         No packs yet. Use the testpass-core starter, or create your own from YAML.
       </p>

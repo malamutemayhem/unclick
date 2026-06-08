@@ -11,7 +11,7 @@ export default function AdminUsers() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
         <p className="text-sm leading-relaxed text-[#ccc]">
           See every person who has signed up for UnClick. From here you will be able to step
           into a user's account to help them, or revoke their keys if something goes wrong.

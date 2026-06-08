@@ -207,7 +207,7 @@ export default function AdminActivity() {
               </h2>
 
               {events.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-white/[0.08] bg-[#111111] p-6 text-center">
+                <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-6 text-center">
                   <p className="text-xs text-[#666]">
                     No API calls recorded yet
                   </p>
@@ -226,7 +226,7 @@ export default function AdminActivity() {
                         {dayEvents.slice(0, 10).map((ev) => (
                           <div
                             key={ev.id}
-                            className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-[#111111] px-3 py-2"
+                            className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.03] px-3 py-2"
                           >
                             <div className="flex items-center gap-2">
                               {ev.success ? (
@@ -269,7 +269,7 @@ export default function AdminActivity() {
               </h2>
 
               {sessions.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-white/[0.08] bg-[#111111] p-6 text-center">
+                <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-6 text-center">
                   <p className="text-xs text-[#666]">
                     No conversation sessions recorded
                   </p>
@@ -279,7 +279,7 @@ export default function AdminActivity() {
                   {sessions.map((s) => (
                     <div
                       key={s.session_id}
-                      className="rounded-xl border border-white/[0.06] bg-[#111111] p-3"
+                      className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <code className="truncate font-mono text-[11px] text-white">
@@ -315,11 +315,11 @@ export default function AdminActivity() {
               </h2>
 
               {signups.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-white/[0.08] bg-[#111111] p-6 text-center">
+                <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-6 text-center">
                   <p className="text-xs text-[#666]">No signups yet</p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#111111]">
+                <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
                   <table className="w-full text-left text-xs">
                     <thead className="border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-[#666]">
                       <tr>
@@ -385,7 +385,7 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
       <div className="flex items-center gap-2 text-xs text-[#888]">
         <Icon className="h-3.5 w-3.5" />
         {label}

@@ -252,7 +252,7 @@ function NowPlayingStrip({
 
   return (
     <section
-      className="rounded-xl border border-[#222] bg-[#111]"
+      className="rounded-xl border border-[#222] bg-white/[0.03]"
       aria-label="Now Playing"
     >
       <div className="flex items-center justify-between border-b border-[#222] px-4 py-2">

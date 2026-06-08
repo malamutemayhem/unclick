@@ -182,6 +182,7 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
       { icon: Bell, title: "Needs-you flags", desc: "It tells you when something needs a human." },
       { icon: ReceiptText, title: "Receipts when done", desc: "Finished work comes with proof." },
     ],
+    tail: <JobsBoardSample />,
     meta: { title: "Jobs - UnClick", description: "The simple queue of what your AI is doing, what is done, and what needs you." },
   },
   "control-tower": {
