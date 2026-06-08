@@ -373,9 +373,9 @@ function StageStrip({ todo }: { todo: JobTodo }) {
             className={`flex h-4 min-w-0 items-center justify-center text-[7px] font-semibold uppercase ${
               index < active
                 ? displayStatus === "needs_proof"
-                  ? "bg-red-300/85 text-black/70"
+                  ? "bg-[#E2B93B]/90 text-black/70"
                   : displayStatus === "done"
-                  ? "bg-green-400/85 text-black/70"
+                  ? "bg-emerald-400/90 text-black/70"
                   : "bg-[#61C1C4]/90 text-black/70"
                 : "bg-white/[0.08] text-white/30"
             }`}
@@ -391,8 +391,8 @@ function StageStrip({ todo }: { todo: JobTodo }) {
 const SYNC_SIGNAL_STYLE: Record<JobGithubSyncSignal["tone"], string> = {
   quiet: "border-white/[0.08] bg-white/[0.025] text-white/40",
   linked: "border-[#61C1C4]/30 bg-[#61C1C4]/10 text-[#8EE8EB]",
-  done: "border-green-400/25 bg-green-400/10 text-green-300",
-  alert: "border-red-300/30 bg-red-500/10 text-red-200",
+  done: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+  alert: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#E8C766]",
 };
 
 function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
@@ -1498,7 +1498,7 @@ export default function AdminJobs() {
         <div className="grid grid-cols-2 gap-2 text-center sm:min-w-[480px] sm:grid-cols-4">
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Being worked</p>
-            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#E2B93B]">
+            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#8EE8EB]">
               {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : activeCount}
             </p>
           </div>
@@ -1510,7 +1510,7 @@ export default function AdminJobs() {
           </div>
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Proof holds</p>
-            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-red-200">
+            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#E8C766]">
               {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : proofHoldCount}
             </p>
           </div>
