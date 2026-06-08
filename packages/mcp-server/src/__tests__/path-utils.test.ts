@@ -1,48 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { join, normalize, dirname, basename, extname, isAbsolute, relative } from "../path-utils.js";
+import { join, normalize, basename, dirname, extname, isAbsolute, relative } from "../path-utils.js";
 
 describe("path-utils", () => {
-  it("join combines paths", () => {
+  it("join combines parts", () => {
     expect(join("a", "b", "c")).toBe("a/b/c");
     expect(join("/a", "b", "c")).toBe("/a/b/c");
     expect(join("a", "", "b")).toBe("a/b");
   });
 
-  it("normalize resolves dots", () => {
-    expect(normalize("a/b/../c")).toBe("a/c");
-    expect(normalize("a/./b")).toBe("a/b");
+  it("normalize resolves . and ..", () => {
+    expect(normalize("a/./b/../c")).toBe("a/c");
     expect(normalize("/a/b/../c")).toBe("/a/c");
+    expect(normalize("a/b/../../c")).toBe("c");
     expect(normalize("")).toBe(".");
   });
 
-  it("dirname returns parent", () => {
-    expect(dirname("/a/b/c")).toBe("/a/b");
-    expect(dirname("a/b")).toBe("a");
-    expect(dirname("file.txt")).toBe(".");
-    expect(dirname("/file.txt")).toBe("/");
+  it("basename extracts filename", () => {
+    expect(basename("/foo/bar/baz.txt")).toBe("baz.txt");
+    expect(basename("/foo/bar/baz.txt", ".txt")).toBe("baz");
   });
 
-  it("basename returns filename", () => {
-    expect(basename("/a/b/file.txt")).toBe("file.txt");
-    expect(basename("/a/b/file.txt", ".txt")).toBe("file");
-    expect(basename("file.txt")).toBe("file.txt");
+  it("dirname extracts directory", () => {
+    expect(dirname("/foo/bar/baz.txt")).toBe("/foo/bar");
+    expect(dirname("/foo")).toBe("/");
+    expect(dirname("foo")).toBe(".");
   });
 
-  it("extname returns extension", () => {
-    expect(extname("file.txt")).toBe(".txt");
-    expect(extname("file.tar.gz")).toBe(".gz");
-    expect(extname("file")).toBe("");
+  it("extname extracts extension", () => {
+    expect(extname("file.ts")).toBe(".ts");
+    expect(extname("file.test.ts")).toBe(".ts");
+    expect(extname("noext")).toBe("");
     expect(extname(".hidden")).toBe("");
   });
 
-  it("isAbsolute", () => {
-    expect(isAbsolute("/a/b")).toBe(true);
-    expect(isAbsolute("a/b")).toBe(false);
+  it("isAbsolute checks leading slash", () => {
+    expect(isAbsolute("/foo")).toBe(true);
+    expect(isAbsolute("foo")).toBe(false);
   });
 
-  it("relative", () => {
-    expect(relative("/a/b", "/a/c")).toBe("../c");
-    expect(relative("/a/b/c", "/a/b/c")).toBe(".");
+  it("relative computes path between two", () => {
     expect(relative("/a/b", "/a/b/c/d")).toBe("c/d");
+    expect(relative("/a/b/c", "/a/d")).toBe("../../d");
+    expect(relative("/a/b", "/a/b")).toBe(".");
   });
 });

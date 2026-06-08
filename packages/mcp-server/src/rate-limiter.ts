@@ -1,81 +1,74 @@
-export class RateLimiter {
-  private timestamps: number[] = [];
-  private readonly windowMs: number;
+export class SlidingWindowRateLimiter {
+  private timestamps = new Map<string, number[]>();
   private readonly maxRequests: number;
+  private readonly windowMs: number;
 
   constructor(maxRequests: number, windowMs: number) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;
   }
 
-  tryAcquire(now: number = Date.now()): boolean {
-    this.cleanup(now);
-    if (this.timestamps.length >= this.maxRequests) return false;
-    this.timestamps.push(now);
+  attempt(key: string, now: number = Date.now()): boolean {
+    const window = this.getWindow(key, now);
+    if (window.length >= this.maxRequests) return false;
+    window.push(now);
     return true;
   }
 
-  get remaining(): number {
-    this.cleanup(Date.now());
-    return Math.max(0, this.maxRequests - this.timestamps.length);
+  remaining(key: string, now: number = Date.now()): number {
+    const window = this.getWindow(key, now);
+    return Math.max(0, this.maxRequests - window.length);
   }
 
-  get isLimited(): boolean {
-    this.cleanup(Date.now());
-    return this.timestamps.length >= this.maxRequests;
+  resetAt(key: string, now: number = Date.now()): number {
+    const window = this.getWindow(key, now);
+    if (window.length === 0) return now;
+    return window[0] + this.windowMs;
   }
 
-  retryAfter(now: number = Date.now()): number {
-    this.cleanup(now);
-    if (this.timestamps.length < this.maxRequests) return 0;
-    return this.timestamps[0] + this.windowMs - now;
+  reset(key: string): void {
+    this.timestamps.delete(key);
   }
 
-  reset(): void {
-    this.timestamps = [];
-  }
-
-  private cleanup(now: number): void {
+  private getWindow(key: string, now: number): number[] {
+    if (!this.timestamps.has(key)) this.timestamps.set(key, []);
+    const times = this.timestamps.get(key)!;
     const cutoff = now - this.windowMs;
-    while (this.timestamps.length > 0 && this.timestamps[0] <= cutoff) {
-      this.timestamps.shift();
-    }
+    while (times.length > 0 && times[0] <= cutoff) times.shift();
+    this.timestamps.set(key, times);
+    return times;
   }
 }
 
-export class TokenBucketLimiter {
-  private tokens: number;
+export class TokenBucketRateLimiter {
+  private buckets = new Map<string, { tokens: number; lastRefill: number }>();
   private readonly maxTokens: number;
   private readonly refillRate: number;
-  private lastRefill: number;
 
-  constructor(maxTokens: number, refillRate: number) {
+  constructor(maxTokens: number, refillRatePerSec: number) {
     this.maxTokens = maxTokens;
-    this.tokens = maxTokens;
-    this.refillRate = refillRate;
-    this.lastRefill = Date.now();
+    this.refillRate = refillRatePerSec;
   }
 
-  tryAcquire(count: number = 1, now: number = Date.now()): boolean {
-    this.refill(now);
-    if (this.tokens < count) return false;
-    this.tokens -= count;
+  attempt(key: string, tokens: number = 1, now: number = Date.now()): boolean {
+    const bucket = this.getBucket(key, now);
+    if (bucket.tokens < tokens) return false;
+    bucket.tokens -= tokens;
     return true;
   }
 
-  get available(): number {
-    this.refill(Date.now());
-    return Math.floor(this.tokens);
+  remaining(key: string, now: number = Date.now()): number {
+    return Math.floor(this.getBucket(key, now).tokens);
   }
 
-  reset(): void {
-    this.tokens = this.maxTokens;
-    this.lastRefill = Date.now();
-  }
-
-  private refill(now: number): void {
-    const elapsed = now - this.lastRefill;
-    this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate / 1000);
-    this.lastRefill = now;
+  private getBucket(key: string, now: number): { tokens: number; lastRefill: number } {
+    if (!this.buckets.has(key)) {
+      this.buckets.set(key, { tokens: this.maxTokens, lastRefill: now });
+    }
+    const bucket = this.buckets.get(key)!;
+    const elapsed = (now - bucket.lastRefill) / 1000;
+    bucket.tokens = Math.min(this.maxTokens, bucket.tokens + elapsed * this.refillRate);
+    bucket.lastRefill = now;
+    return bucket;
   }
 }

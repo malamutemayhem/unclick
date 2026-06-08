@@ -1,56 +1,66 @@
 import { describe, it, expect } from "vitest";
-import { RateLimiter, TokenBucketLimiter } from "../rate-limiter.js";
+import { SlidingWindowRateLimiter, TokenBucketRateLimiter } from "../rate-limiter.js";
 
-describe("RateLimiter", () => {
-  it("allows requests within limit", () => {
-    const rl = new RateLimiter(3, 1000);
-    const now = 1000;
-    expect(rl.tryAcquire(now)).toBe(true);
-    expect(rl.tryAcquire(now + 1)).toBe(true);
-    expect(rl.tryAcquire(now + 2)).toBe(true);
-    expect(rl.tryAcquire(now + 3)).toBe(false);
+describe("SlidingWindowRateLimiter", () => {
+  it("allows up to max requests", () => {
+    const rl = new SlidingWindowRateLimiter(3, 10000);
+    expect(rl.attempt("user1", 1000)).toBe(true);
+    expect(rl.attempt("user1", 2000)).toBe(true);
+    expect(rl.attempt("user1", 3000)).toBe(true);
+    expect(rl.attempt("user1", 4000)).toBe(false);
   });
 
-  it("allows after window expires", () => {
-    const rl = new RateLimiter(1, 1000);
-    expect(rl.tryAcquire(1000)).toBe(true);
-    expect(rl.tryAcquire(1500)).toBe(false);
-    expect(rl.tryAcquire(2001)).toBe(true);
+  it("resets after window expires", () => {
+    const rl = new SlidingWindowRateLimiter(2, 1000);
+    rl.attempt("k", 1000);
+    rl.attempt("k", 1500);
+    expect(rl.attempt("k", 1800)).toBe(false);
+    expect(rl.attempt("k", 2500)).toBe(true);
   });
 
-  it("retryAfter returns wait time", () => {
-    const rl = new RateLimiter(1, 1000);
-    rl.tryAcquire(1000);
-    expect(rl.retryAfter(1500)).toBe(500);
+  it("tracks remaining", () => {
+    const rl = new SlidingWindowRateLimiter(5, 10000);
+    expect(rl.remaining("k", 1000)).toBe(5);
+    rl.attempt("k", 1000);
+    expect(rl.remaining("k", 1000)).toBe(4);
   });
 
-  it("reset clears state", () => {
-    const rl = new RateLimiter(1, 1000);
-    rl.tryAcquire(1000);
-    rl.reset();
-    expect(rl.tryAcquire(1000)).toBe(true);
+  it("isolates keys", () => {
+    const rl = new SlidingWindowRateLimiter(1, 10000);
+    rl.attempt("a", 1000);
+    expect(rl.attempt("b", 1000)).toBe(true);
+  });
+
+  it("reset clears a key", () => {
+    const rl = new SlidingWindowRateLimiter(1, 10000);
+    rl.attempt("k", 1000);
+    rl.reset("k");
+    expect(rl.attempt("k", 1000)).toBe(true);
   });
 });
 
-describe("TokenBucketLimiter", () => {
-  it("allows requests up to bucket size", () => {
-    const tbl = new TokenBucketLimiter(5, 1);
-    expect(tbl.tryAcquire(3)).toBe(true);
-    expect(tbl.tryAcquire(3)).toBe(false);
-    expect(tbl.available).toBe(2);
+describe("TokenBucketRateLimiter", () => {
+  it("allows requests within bucket", () => {
+    const rl = new TokenBucketRateLimiter(10, 1);
+    expect(rl.attempt("k", 5, 1000)).toBe(true);
+    expect(rl.remaining("k", 1000)).toBe(5);
+  });
+
+  it("rejects when bucket empty", () => {
+    const rl = new TokenBucketRateLimiter(2, 1);
+    rl.attempt("k", 2, 1000);
+    expect(rl.attempt("k", 1, 1000)).toBe(false);
   });
 
   it("refills over time", () => {
-    const tbl = new TokenBucketLimiter(10, 10);
-    const now = Date.now();
-    tbl.tryAcquire(10, now);
-    expect(tbl.tryAcquire(5, now + 1000)).toBe(true);
+    const rl = new TokenBucketRateLimiter(10, 5);
+    rl.attempt("k", 10, 1000);
+    expect(rl.remaining("k", 1000)).toBe(0);
+    expect(rl.remaining("k", 2000)).toBe(5);
   });
 
-  it("reset refills completely", () => {
-    const tbl = new TokenBucketLimiter(5, 1);
-    tbl.tryAcquire(5);
-    tbl.reset();
-    expect(tbl.available).toBe(5);
+  it("caps at maxTokens", () => {
+    const rl = new TokenBucketRateLimiter(10, 100);
+    expect(rl.remaining("k", 100000)).toBe(10);
   });
 });

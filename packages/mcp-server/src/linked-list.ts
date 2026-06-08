@@ -1,56 +1,61 @@
-interface Node<T> {
+class ListNode<T> {
   value: T;
-  prev: Node<T> | null;
-  next: Node<T> | null;
+  next: ListNode<T> | null = null;
+  prev: ListNode<T> | null = null;
+  constructor(value: T) { this.value = value; }
 }
 
 export class LinkedList<T> {
-  private head: Node<T> | null = null;
-  private tail: Node<T> | null = null;
+  private head: ListNode<T> | null = null;
+  private tail: ListNode<T> | null = null;
   private count = 0;
 
-  get size(): number {
-    return this.count;
-  }
-
-  get isEmpty(): boolean {
-    return this.count === 0;
-  }
-
-  pushFront(value: T): this {
-    const node: Node<T> = { value, prev: null, next: this.head };
-    if (this.head) this.head.prev = node;
-    this.head = node;
-    if (!this.tail) this.tail = node;
+  pushBack(value: T): void {
+    const node = new ListNode(value);
+    if (!this.tail) {
+      this.head = this.tail = node;
+    } else {
+      node.prev = this.tail;
+      this.tail.next = node;
+      this.tail = node;
+    }
     this.count++;
-    return this;
   }
 
-  pushBack(value: T): this {
-    const node: Node<T> = { value, prev: this.tail, next: null };
-    if (this.tail) this.tail.next = node;
-    this.tail = node;
-    if (!this.head) this.head = node;
+  pushFront(value: T): void {
+    const node = new ListNode(value);
+    if (!this.head) {
+      this.head = this.tail = node;
+    } else {
+      node.next = this.head;
+      this.head.prev = node;
+      this.head = node;
+    }
     this.count++;
-    return this;
-  }
-
-  popFront(): T | undefined {
-    if (!this.head) return undefined;
-    const value = this.head.value;
-    this.head = this.head.next;
-    if (this.head) this.head.prev = null;
-    else this.tail = null;
-    this.count--;
-    return value;
   }
 
   popBack(): T | undefined {
     if (!this.tail) return undefined;
     const value = this.tail.value;
-    this.tail = this.tail.prev;
-    if (this.tail) this.tail.next = null;
-    else this.head = null;
+    if (this.tail === this.head) {
+      this.head = this.tail = null;
+    } else {
+      this.tail = this.tail.prev!;
+      this.tail.next = null;
+    }
+    this.count--;
+    return value;
+  }
+
+  popFront(): T | undefined {
+    if (!this.head) return undefined;
+    const value = this.head.value;
+    if (this.head === this.tail) {
+      this.head = this.tail = null;
+    } else {
+      this.head = this.head.next!;
+      this.head.prev = null;
+    }
     this.count--;
     return value;
   }
@@ -63,66 +68,51 @@ export class LinkedList<T> {
     return this.tail?.value;
   }
 
-  contains(value: T): boolean {
-    let node = this.head;
-    while (node) {
-      if (node.value === value) return true;
-      node = node.next;
-    }
-    return false;
+  get size(): number {
+    return this.count;
   }
 
-  remove(value: T): boolean {
-    let node = this.head;
-    while (node) {
-      if (node.value === value) {
-        if (node.prev) node.prev.next = node.next;
-        else this.head = node.next;
-        if (node.next) node.next.prev = node.prev;
-        else this.tail = node.prev;
+  isEmpty(): boolean {
+    return this.count === 0;
+  }
+
+  toArray(): T[] {
+    const result: T[] = [];
+    let current = this.head;
+    while (current) {
+      result.push(current.value);
+      current = current.next;
+    }
+    return result;
+  }
+
+  find(predicate: (value: T) => boolean): T | undefined {
+    let current = this.head;
+    while (current) {
+      if (predicate(current.value)) return current.value;
+      current = current.next;
+    }
+    return undefined;
+  }
+
+  remove(predicate: (value: T) => boolean): boolean {
+    let current = this.head;
+    while (current) {
+      if (predicate(current.value)) {
+        if (current === this.head) this.head = current.next;
+        if (current === this.tail) this.tail = current.prev;
+        if (current.prev) current.prev.next = current.next;
+        if (current.next) current.next.prev = current.prev;
         this.count--;
         return true;
       }
-      node = node.next;
+      current = current.next;
     }
     return false;
   }
 
   clear(): void {
-    this.head = null;
-    this.tail = null;
+    this.head = this.tail = null;
     this.count = 0;
-  }
-
-  toArray(): T[] {
-    const result: T[] = [];
-    let node = this.head;
-    while (node) {
-      result.push(node.value);
-      node = node.next;
-    }
-    return result;
-  }
-
-  toArrayReverse(): T[] {
-    const result: T[] = [];
-    let node = this.tail;
-    while (node) {
-      result.push(node.value);
-      node = node.prev;
-    }
-    return result;
-  }
-
-  [Symbol.iterator](): Iterator<T> {
-    let node = this.head;
-    return {
-      next(): IteratorResult<T> {
-        if (!node) return { done: true, value: undefined };
-        const value = node.value;
-        node = node.next;
-        return { done: false, value };
-      },
-    };
   }
 }
