@@ -124,7 +124,7 @@ export async function yelpSearchEvents(args: Record<string, unknown>): Promise<u
     if (args.location)   params.location   = String(args.location);
     if (args.latitude)   params.latitude   = Number(args.latitude);
     if (args.longitude)  params.longitude  = Number(args.longitude);
-    if (args.category)   params.categories = String(args.category);
+    if (args.categories) params.categories = String(args.categories);
     if (args.start_date) params.start_date = String(args.start_date);
     if (args.end_date)   params.end_date   = String(args.end_date);
     if (args.limit)      params.limit      = Number(args.limit);

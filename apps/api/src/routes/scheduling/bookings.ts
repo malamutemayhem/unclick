@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zv } from '../../middleware/validate.js';
 import { z } from 'zod';
-import { eq, and, isNull, gte, lte, ne } from 'drizzle-orm';
+import { eq, and, isNull, gte, lte, ne, inArray } from 'drizzle-orm';
 import { ok, created, list, Errors, newId } from '@unclick/core';
 import type { Db } from '../../db/index.js';
 import {
@@ -241,22 +241,18 @@ export function createBookingsRouter(db: Db) {
       .where(conditions)
       .orderBy(bookings.startTime);
 
-    const allAnswers = rows.length > 0
-      ? await db.select().from(bookingAnswers).where(
-          // fetch answers for all returned booking IDs
-          // Drizzle doesn't have a clean IN for text, use multiple checks
-          // For simplicity, fetch all org booking answers in this range
-          eq(bookingAnswers.bookingId, rows[0]?.id ?? '')
-        )
-      : [];
-
-    // Build a map for efficient lookup
     const answersByBooking = new Map<string, typeof bookingAnswers.$inferSelect[]>();
-    for (const row of rows) {
-      const ans = await db.select().from(bookingAnswers).where(eq(bookingAnswers.bookingId, row.id));
-      answersByBooking.set(row.id, ans);
+    if (rows.length > 0) {
+      const allAnswers = await db
+        .select()
+        .from(bookingAnswers)
+        .where(inArray(bookingAnswers.bookingId, rows.map((r) => r.id)));
+      for (const ans of allAnswers) {
+        const arr = answersByBooking.get(ans.bookingId) ?? [];
+        arr.push(ans);
+        answersByBooking.set(ans.bookingId, arr);
+      }
     }
-    void allAnswers; // used above to suppress unused var warning
 
     return ok(c, rows.map((row) => formatBooking(row, answersByBooking.get(row.id) ?? [])));
   });
