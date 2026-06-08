@@ -17,23 +17,25 @@ const OUT = path.join(ROOT, "packages/mcp-server/src/jobsmith-rules.generated.ts
 
 const pack = parseYaml(fs.readFileSync(SRC, "utf8"));
 
-const rules = (pack.rules ?? []).map((r) => ({
-  rule_id: String(r.rule_id),
-  name: String(r.name ?? ""),
-  category: String(r.category ?? ""),
-  what: String(r.what ?? ""),
-  severity: String(r.severity ?? "INFO"),
-  decay_period_days: r.decay_period_days ?? null,
-  last_verified_at: r.last_verified_at ?? null,
-  check_method: {
-    type: String(r.check_method?.type ?? "human_review"),
-    spec: String(r.check_method?.spec ?? ""),
-  },
-}));
+const rules = (pack.rules ?? [])
+  .filter((r) => r.notes !== "personal_override")
+  .map((r) => ({
+    rule_id: String(r.rule_id),
+    name: String(r.name ?? ""),
+    category: String(r.category ?? ""),
+    what: String(r.what ?? ""),
+    severity: String(r.severity ?? "INFO"),
+    decay_period_days: r.decay_period_days ?? null,
+    last_verified_at: r.last_verified_at ?? null,
+    check_method: {
+      type: String(r.check_method?.type ?? "human_review"),
+      spec: String(r.check_method?.spec ?? ""),
+    },
+  }));
 
 const data = {
   version: Number(pack.version ?? 1),
-  total_rules: Number(pack.total_rules ?? rules.length),
+  total_rules: rules.length,
   rules,
 };
 
