@@ -9,7 +9,7 @@
  */
 import { Hono, type MiddlewareHandler } from 'hono';
 import { z } from 'zod';
-import { eq, desc, count } from 'drizzle-orm';
+import { eq, and, desc, count } from 'drizzle-orm';
 import { ok, created, list, Errors, newId, parsePagination } from '@unclick/core';
 import type { Db } from '../db/index.js';
 import { feedbackReports } from '../db/schema.js';
@@ -169,8 +169,6 @@ export function createFeedbackRouter(db: Db, authMiddleware?: MiddlewareHandler<
     const conditions = [];
     if (type) conditions.push(eq(feedbackReports.type, type));
     if (status) conditions.push(eq(feedbackReports.status, status));
-
-    const { and } = await import('drizzle-orm');
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
