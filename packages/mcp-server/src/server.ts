@@ -27,7 +27,7 @@ import { createHash } from "node:crypto";
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
 // Fires a fire-and-forget event to the self-hosted Umami instance every time
-// an agent actually invokes a tool. Lets Chris see which tools get used.
+// an agent actually invokes a tool. Lets the operator see which tools get used.
 // No-ops silently if UMAMI_WEBSITE_ID is not set (e.g. dev / local runs).
 // Never awaited so it cannot slow or break a tool call even if Umami is down.
 function trackToolCall(toolName: string): void {
@@ -1565,6 +1565,7 @@ const DIRECT_TOOLS = [
 
 type RuntimeToolSchema = {
   name: string;
+  description?: string;
   inputSchema?: unknown;
 };
 
@@ -1606,8 +1607,8 @@ function registerToolInputSchema(tool: RuntimeToolSchema): void {
   if (tool.inputSchema) TOOL_INPUT_SCHEMAS.set(tool.name, tool.inputSchema);
 }
 
-for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADDITIONAL_TOOLS]) {
-  registerToolInputSchema(tool);
+for (const tools of [INTERNAL_TOOLS, VISIBLE_TOOLS, DIRECT_TOOLS, ADDITIONAL_TOOLS] as unknown as RuntimeToolSchema[][]) {
+  for (const tool of tools) registerToolInputSchema(tool);
 }
 
 export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
@@ -1719,11 +1720,11 @@ const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
 );
 
-export const ADVERTISED_TOOLS = [
-  ...VISIBLE_TOOLS,
+export const ADVERTISED_TOOLS: readonly RuntimeToolSchema[] = [
+  ...(VISIBLE_TOOLS as unknown as RuntimeToolSchema[]),
   ...EXPRESSROOM_VISIBLE_TOOLS,
   ...AUTOPILOT_VISIBLE_TOOLS,
-  ...ADDITIONAL_TOOLS,
+  ...(ADDITIONAL_TOOLS as unknown as RuntimeToolSchema[]),
 ];
 
 /** Combinators the Anthropic API rejects at the TOP level of a tool schema. */

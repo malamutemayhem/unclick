@@ -414,7 +414,7 @@ const TAXONOMY_STOP_WORDS = new Set([
   "after",
   "also",
   "because",
-  "chris",
+  "called",
   "from",
   "into",
   "only",

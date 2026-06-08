@@ -20,6 +20,26 @@
     }
   },
   {
+    "connector": "abstract-holidays",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "abuseipdb",
     "level": 5,
     "levelName": "Agentic",
@@ -30,6 +50,106 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "acnhapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "acronymgen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "adviceslip",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "affirmation",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "agify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -120,6 +240,46 @@
     }
   },
   {
+    "connector": "amiibo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "animechan",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "anthropic",
     "level": 5,
     "levelName": "Agentic",
@@ -140,6 +300,106 @@
     }
   },
   {
+    "connector": "aoe2",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "apifootball",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "archiveorg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "artic",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "arxiv",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "asana",
     "level": 5,
     "levelName": "Agentic",
@@ -149,6 +409,26 @@
     "signals": {
       "hasTimeout": true,
       "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "aspectratio",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
@@ -180,6 +460,26 @@
     }
   },
   {
+    "connector": "atbash",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "australiapost",
     "level": 5,
     "levelName": "Agentic",
@@ -192,6 +492,46 @@
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "avatarapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "balldontlie",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -220,6 +560,26 @@
     }
   },
   {
+    "connector": "base64",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "bgg",
     "level": 5,
     "levelName": "Agentic",
@@ -230,6 +590,86 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "bgpview",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "bible",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "bibleverse",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "binaryconv",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -260,7 +700,107 @@
     }
   },
   {
+    "connector": "bitwise",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "bored",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "braille",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "breakingbad",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "brevo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "brewery",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -340,6 +880,46 @@
     }
   },
   {
+    "connector": "camelsnake",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "carbonintensity",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "carboninterface",
     "level": 5,
     "levelName": "Agentic",
@@ -360,6 +940,126 @@
     }
   },
   {
+    "connector": "cataas",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "catapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "catfacts",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "charcodes",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "charcount",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cheapshark",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "chessdotcom",
     "level": 5,
     "levelName": "Agentic",
@@ -370,6 +1070,46 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "chucknorris",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cidr",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -400,6 +1140,26 @@
     }
   },
   {
+    "connector": "citybikes",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "cloudinary",
     "level": 5,
     "levelName": "Agentic",
@@ -410,6 +1170,46 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cocktail",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cocktaildb2",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -460,6 +1260,26 @@
     }
   },
   {
+    "connector": "coincap",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "coingecko",
     "level": 5,
     "levelName": "Agentic",
@@ -480,6 +1300,26 @@
     }
   },
   {
+    "connector": "coinlore",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "coinmarketcap",
     "level": 5,
     "levelName": "Agentic",
@@ -492,6 +1332,146 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "coinpaprika",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "collatz",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "colorblend",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "colorconvert",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "colormind",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "colornames",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "colr",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -560,6 +1540,266 @@
     }
   },
   {
+    "connector": "corporatebs",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cosinesim",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "countdowncalc",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "countryflag",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "countryis",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "crates",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "crc32",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "crontab",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "crossref",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "csvparse",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "cvecircl",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dadjoke",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "damerau",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "datadog",
     "level": 5,
     "levelName": "Agentic",
@@ -575,6 +1815,66 @@
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": true,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "datamuse",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dblp",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "deckofcards",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
       "agentic": true,
       "sourceStamped": true
     }
@@ -612,6 +1912,86 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "diceware",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dictionary",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "difftext",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "digimon",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -660,6 +2040,146 @@
     }
   },
   {
+    "connector": "diseasesh",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "disneyapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dnd5e",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dogapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dogceo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dogfacts",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dohdns",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "domain",
     "level": 5,
     "levelName": "Agentic",
@@ -680,6 +2200,26 @@
     }
   },
   {
+    "connector": "domainsdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "dropbox",
     "level": 5,
     "levelName": "Agentic",
@@ -692,6 +2232,46 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dummyimage",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "dummyjson",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -760,6 +2340,86 @@
     }
   },
   {
+    "connector": "emojihub",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "emojilookup",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "entropy",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "epoch",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "espn",
     "level": 5,
     "levelName": "Agentic",
@@ -800,6 +2460,26 @@
     }
   },
   {
+    "connector": "europeana",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "eventbrite",
     "level": 5,
     "levelName": "Agentic",
@@ -811,6 +2491,26 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "evilinsult",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -840,6 +2540,126 @@
     }
   },
   {
+    "connector": "exchangerate2",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "exchangerate3",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "excuser",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fakerapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fakestoreapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fibonacci",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "figma",
     "level": 5,
     "levelName": "Agentic",
@@ -860,6 +2680,46 @@
     }
   },
   {
+    "connector": "finalspace",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fishwatch",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "flyio",
     "level": 5,
     "levelName": "Agentic",
@@ -872,6 +2732,46 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "flyover",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "foodish",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -920,6 +2820,166 @@
     }
   },
   {
+    "connector": "frankfurter",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "freetogame",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "frequency",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fruityvice",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "funtranslations",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "gameoflife",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "gbif",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "gcdlcm",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "gdelt",
     "level": 5,
     "levelName": "Agentic",
@@ -940,6 +3000,26 @@
     }
   },
   {
+    "connector": "genderize",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "genius",
     "level": 5,
     "levelName": "Agentic",
@@ -952,6 +3032,46 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "geojs",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ghibli",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -981,6 +3101,26 @@
   },
   {
     "connector": "giphy",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "github-emoji",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -1060,6 +3200,26 @@
     }
   },
   {
+    "connector": "gutendex",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "hackernews",
     "level": 5,
     "levelName": "Agentic",
@@ -1070,6 +3230,66 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "hamming",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "harrypotter",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "hashgen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -1140,6 +3360,126 @@
     }
   },
   {
+    "connector": "histogram",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "holidays",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "htmlstrip",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "httpbin",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "httpcat",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "httpdog",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "hubspot",
     "level": 5,
     "levelName": "Agentic",
@@ -1180,6 +3520,46 @@
     }
   },
   {
+    "connector": "iban",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "iceandfire",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "igdb",
     "level": 5,
     "levelName": "Agentic",
@@ -1200,6 +3580,26 @@
     }
   },
   {
+    "connector": "imgflip",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "intercom",
     "level": 5,
     "levelName": "Agentic",
@@ -1212,6 +3612,26 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ipaddrinfo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1260,6 +3680,166 @@
     }
   },
   {
+    "connector": "ipify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ipinfo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ipvalidate",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "iseven",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "isup",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "itis",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jaccard",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jikan",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "jira",
     "level": 5,
     "levelName": "Agentic",
@@ -1274,6 +3854,146 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jisho",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "joke",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jsoncrack",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jsonformat",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jsonplaceholder",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "jwt",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "kanye",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -1312,6 +4032,26 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "languagetool",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1380,6 +4120,46 @@
     }
   },
   {
+    "connector": "levenshtein",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "libretranslate",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "lichess",
     "level": 5,
     "levelName": "Agentic",
@@ -1400,7 +4180,147 @@
     }
   },
   {
+    "connector": "lorem",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lorem2",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "loremname",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lotr",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "luhn",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lyrics",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "mailchimp",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "makeup",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -1440,6 +4360,106 @@
     }
   },
   {
+    "connector": "markdown",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "markdowntable",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "markov",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "matrix",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mcsrvstat",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "meal",
     "level": 5,
     "levelName": "Agentic",
@@ -1452,6 +4472,106 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mediawiki",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "memegen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "metaphone",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "metmuseum",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mhwdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1540,6 +4660,66 @@
     }
   },
   {
+    "connector": "morse",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mtg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "multiavatar",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "musicbrainz",
     "level": 5,
     "levelName": "Agentic",
@@ -1560,6 +4740,26 @@
     }
   },
   {
+    "connector": "mymemory",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "nasa",
     "level": 5,
     "levelName": "Agentic",
@@ -1571,6 +4771,46 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "nationalize",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "natoalphabet",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1640,6 +4880,126 @@
     }
   },
   {
+    "connector": "newton",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ngram",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "nhtsa",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "nobelprize",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "nominatim",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "npm-registry",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "nvd",
     "level": 5,
     "levelName": "Agentic",
@@ -1652,6 +5012,46 @@
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "oeis",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "officialjoke",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1680,6 +5080,26 @@
     }
   },
   {
+    "connector": "open-elevation",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openai",
     "level": 5,
     "levelName": "Agentic",
@@ -1700,6 +5120,26 @@
     }
   },
   {
+    "connector": "openalex",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openaq",
     "level": 5,
     "levelName": "Agentic",
@@ -1712,6 +5152,46 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openchargemap",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "opendota",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1760,6 +5240,46 @@
     }
   },
   {
+    "connector": "openfda",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openfigi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openfoodfacts",
     "level": 5,
     "levelName": "Agentic",
@@ -1772,6 +5292,26 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openlib2",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1820,6 +5360,166 @@
     }
   },
   {
+    "connector": "openmeteo-airquality",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo-climate",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo-flood",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo-historical",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo-marine",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "opennotify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "opensky",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "opentriviadb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "pagerduty",
     "level": 5,
     "levelName": "Agentic",
@@ -1840,6 +5540,26 @@
     }
   },
   {
+    "connector": "palindrome",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "pandascore",
     "level": 5,
     "levelName": "Agentic",
@@ -1850,6 +5570,126 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "pascaltri",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "passwordgen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "percentage",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "phonetic",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "picsum",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "piglatin",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -1940,6 +5780,66 @@
     }
   },
   {
+    "connector": "placebear",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "placehold",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "placekitten",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "plaid",
     "level": 5,
     "levelName": "Agentic",
@@ -1980,6 +5880,86 @@
     }
   },
   {
+    "connector": "poetrydb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "pokeapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "pokemontcg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "postcodes",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "posthog",
     "level": 5,
     "levelName": "Agentic",
@@ -1994,6 +5974,26 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "primecheck",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -2020,6 +6020,126 @@
     }
   },
   {
+    "connector": "pubchem",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "publicapis",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "punkapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "pypi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "qrserver",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "quotable",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "radiobrowser",
     "level": 5,
     "levelName": "Agentic",
@@ -2032,6 +6152,86 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "railfence",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "randomduck",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "randomfox",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "randomuser",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -2060,6 +6260,46 @@
     }
   },
   {
+    "connector": "rdap",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "readability",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "reddit",
     "level": 5,
     "levelName": "Agentic",
@@ -2071,6 +6311,46 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "regexr",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "regression",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2120,6 +6400,26 @@
     }
   },
   {
+    "connector": "reqres",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "restcountries",
     "level": 5,
     "levelName": "Agentic",
@@ -2140,6 +6440,46 @@
     }
   },
   {
+    "connector": "reversetext",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "rickandmorty",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "riot",
     "level": 5,
     "levelName": "Agentic",
@@ -2150,6 +6490,106 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ripe",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "robohash",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "roman",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "rot13",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "runlength",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -2220,6 +6660,26 @@
     }
   },
   {
+    "connector": "semver",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "sendle",
     "level": 5,
     "levelName": "Agentic",
@@ -2252,6 +6712,46 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "setops",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "shibe",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -2320,6 +6820,126 @@
     }
   },
   {
+    "connector": "slug",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "solarsystem",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "sortlines",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "soundex",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "spaceflight",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "spacex",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "speedrun",
     "level": 5,
     "levelName": "Agentic",
@@ -2380,6 +7000,66 @@
     }
   },
   {
+    "connector": "stackexchange",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "stapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "statistics",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "steam",
     "level": 5,
     "levelName": "Agentic",
@@ -2400,7 +7080,87 @@
     }
   },
   {
+    "connector": "stringcase",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "sunrisesunset",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "supercell",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "superhero",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "swapi",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -2432,6 +7192,146 @@
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "tacofancy",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "tarot",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "tempconvert",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "textstats",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "textwrap",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "tfidf",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "thecolorapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -2491,6 +7391,46 @@
       "handles429": true,
       "hasRetry": false,
       "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "timeapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "timezone",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2600,6 +7540,26 @@
     }
   },
   {
+    "connector": "tokencount",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "tomorrowio",
     "level": 5,
     "levelName": "Agentic",
@@ -2680,6 +7640,26 @@
     }
   },
   {
+    "connector": "tvmaze",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "twilio",
     "level": 5,
     "levelName": "Agentic",
@@ -2740,6 +7720,66 @@
     }
   },
   {
+    "connector": "ukpolice",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "unitpressure",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "universities",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "unsplash",
     "level": 5,
     "levelName": "Agentic",
@@ -2770,6 +7810,26 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "upcitemdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -2820,7 +7880,87 @@
     }
   },
   {
+    "connector": "urbandictionary",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "urlencode",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "urlhaus",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "urlscan",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "uselessfacts",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -2860,6 +8000,46 @@
     }
   },
   {
+    "connector": "uuidgen",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "vatcomply",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "vercel",
     "level": 5,
     "levelName": "Agentic",
@@ -2869,6 +8049,26 @@
     "signals": {
       "hasTimeout": true,
       "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "vigenere",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
@@ -2900,6 +8100,26 @@
     }
   },
   {
+    "connector": "wayback",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "webflow",
     "level": 5,
     "levelName": "Agentic",
@@ -2914,6 +8134,66 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "wger",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "wheretheiss",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "wikidata",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -2980,6 +8260,46 @@
     }
   },
   {
+    "connector": "wordcount",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "wordfreq",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "wordpress",
     "level": 5,
     "levelName": "Agentic",
@@ -3000,7 +8320,87 @@
     }
   },
   {
+    "connector": "worldbank",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "worldtime",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "xkcd",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "yelp",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "yesno",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -3055,6 +8455,46 @@
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": true,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "zenquotes",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "zippopotamus",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
       "agentic": true,
       "sourceStamped": true
     }

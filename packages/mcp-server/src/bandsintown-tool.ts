@@ -1,7 +1,8 @@
 // ─── Bandsintown API Tool ─────────────────────────────────────────────────────
 // Base URL: https://rest.bandsintown.com/
-// Auth: app_id query param (public identifier, not a secret key).
-// Uses "unclick" as app_id by default. Override via BANDSINTOWN_APP_ID env var.
+// Auth: registered app_id query param (not a secret key, but must be approved).
+// Apply at https://www.artists.bandsintown.com/bandsintown-api
+// Set BANDSINTOWN_APP_ID env var or pass app_id per call.
 // Docs: https://app.swaggerhub.com/apis/Bandsintown/PublicAPI/3.0.0
 // No external dependencies - native fetch only.
 
@@ -12,11 +13,15 @@ const BANDSINTOWN_BASE = "https://rest.bandsintown.com";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getAppId(args: Record<string, unknown>): string {
-  return (
+  const id =
     String(args.app_id ?? "").trim() ||
-    (process.env.BANDSINTOWN_APP_ID ?? "").trim() ||
-    "unclick"
-  );
+    (process.env.BANDSINTOWN_APP_ID ?? "").trim();
+  if (!id) {
+    throw new Error(
+      "BANDSINTOWN_APP_ID is required. Apply at https://www.artists.bandsintown.com/bandsintown-api"
+    );
+  }
+  return id;
 }
 
 const BANDSINTOWN_TIMEOUT_MS = Number(process.env.BANDSINTOWN_TIMEOUT_MS) || 10000;
@@ -52,6 +57,11 @@ async function bitFetch(
     clearTimeout(timer);
   }
 
+  if (response.status === 403) {
+    return {
+      error: "Bandsintown rejected the app_id. Ensure BANDSINTOWN_APP_ID is a registered application ID.",
+    };
+  }
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
     return { error: `Bandsintown rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.` };
@@ -75,7 +85,10 @@ async function bitFetch(
 // ─── bandsintown_artist ────────────────────────────────────────────────────────
 
 export async function bandsintownArtist(args: Record<string, unknown>): Promise<unknown> {
-  const appId = getAppId(args);
+  let appId: string;
+  try { appId = getAppId(args); } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
 
   const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
@@ -91,7 +104,10 @@ export async function bandsintownArtist(args: Record<string, unknown>): Promise<
 // ─── bandsintown_events ────────────────────────────────────────────────────────
 
 export async function bandsintownEvents(args: Record<string, unknown>): Promise<unknown> {
-  const appId = getAppId(args);
+  let appId: string;
+  try { appId = getAppId(args); } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
 
   const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
@@ -104,7 +120,10 @@ export async function bandsintownEvents(args: Record<string, unknown>): Promise<
 // ─── bandsintown_recommended ───────────────────────────────────────────────────
 
 export async function bandsintownRecommended(args: Record<string, unknown>): Promise<unknown> {
-  const appId = getAppId(args);
+  let appId: string;
+  try { appId = getAppId(args); } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
 
   const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
