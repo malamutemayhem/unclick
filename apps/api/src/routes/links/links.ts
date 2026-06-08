@@ -259,9 +259,15 @@ export function createLinksRouter(db: Db) {
           continue;
         }
         const updates: Partial<typeof links.$inferInsert> = { updatedAt: new Date() };
-        if (op.data.title) updates.title = op.data.title;
-        if (op.data.url) updates.url = op.data.url;
+        if (op.data.title !== undefined) updates.title = op.data.title;
+        if (op.data.url !== undefined) updates.url = op.data.url;
+        if (op.data.thumbnail_url !== undefined) updates.thumbnailUrl = op.data.thumbnail_url ?? null;
         if (op.data.position !== undefined) updates.position = op.data.position;
+        if (op.data.highlight !== undefined) updates.highlight = op.data.highlight;
+        if (op.data.schedule !== undefined) {
+          updates.scheduleStart = op.data.schedule.starts_at ? new Date(op.data.schedule.starts_at) : null;
+          updates.scheduleEnd = op.data.schedule.ends_at ? new Date(op.data.schedule.ends_at) : null;
+        }
         await db.update(links).set(updates).where(eq(links.id, op.id));
         const [updated] = await db.select().from(links).where(eq(links.id, op.id));
         results.push({ action: 'update', id: op.id, data: formatLink(updated) });

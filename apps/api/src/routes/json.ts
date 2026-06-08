@@ -72,6 +72,8 @@ function flattenObj(
   }
 }
 
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 function unflattenObj(
   flat: Record<string, unknown>,
   delimiter: string,
@@ -79,6 +81,7 @@ function unflattenObj(
   const result: Record<string, unknown> = {};
   for (const [path, value] of Object.entries(flat)) {
     const keys = path.split(delimiter);
+    if (keys.some((k) => UNSAFE_KEYS.has(k))) continue;
     let current: Record<string, unknown> = result;
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];

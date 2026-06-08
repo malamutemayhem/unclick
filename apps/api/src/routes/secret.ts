@@ -130,6 +130,25 @@ export function createSecretRouter(db: Db) {
   router.post('/view', requireScope('secret:read'), zv('json', ViewSchema), async (c) => {
     const { id, passphrase } = c.req.valid('json');
 
+    // Validate passphrase BEFORE consuming the secret so a wrong guess
+    // does not destroy the data for the legitimate recipient.
+    const [existing] = await db
+      .select({ id: secrets.id, passphraseHash: secrets.passphraseHash })
+      .from(secrets)
+      .where(and(eq(secrets.id, id), notViewedOrExpired()))
+      .limit(1);
+
+    if (!existing) throw Errors.notFound('Secret not found, already viewed, or expired');
+
+    if (existing.passphraseHash !== null) {
+      if (!passphrase) {
+        throw Errors.forbidden('This secret requires a passphrase');
+      }
+      if (hashPassphrase(passphrase) !== existing.passphraseHash) {
+        throw Errors.forbidden('Incorrect passphrase');
+      }
+    }
+
     // Atomic claim: mark as viewed and return in one query to prevent
     // two concurrent requests from both reading the secret.
     const [row] = await db
@@ -139,15 +158,6 @@ export function createSecretRouter(db: Db) {
       .returning();
 
     if (!row) throw Errors.notFound('Secret not found, already viewed, or expired');
-
-    if (row.passphraseHash !== null) {
-      if (!passphrase) {
-        throw Errors.forbidden('This secret requires a passphrase');
-      }
-      if (hashPassphrase(passphrase) !== row.passphraseHash) {
-        throw Errors.forbidden('Incorrect passphrase');
-      }
-    }
 
     let text: string;
     try {
