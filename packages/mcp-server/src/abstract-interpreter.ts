@@ -131,8 +131,8 @@ export function contains(domain: AbstractValue, value: number): boolean {
 
 export function isSubset(a: AbstractValue, b: AbstractValue): boolean {
   if (a.kind === "bottom") return true;
-  if (b.kind === "top") return true;
   if (a.kind === "top") return b.kind === "top";
+  if (b.kind === "top") return true;
 
   const m = meet(a, b);
   return abstractEquals(m, a);
