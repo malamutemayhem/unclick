@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 525,
-  "toolCount": 1447,
+  "appCount": 530,
+  "toolCount": 1452,
   "categories": [
     "AI",
     "Books",
@@ -1956,6 +1956,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "convexhull",
+      "name": "Convex Hull",
+      "category": "Utilities",
+      "blurb": "Compute the convex hull of 2D points with area and perimeter.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convex_hull",
+          "description": "Compute the convex hull of 2D points with area and perimeter."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "copypass",
@@ -5170,6 +5186,22 @@
       "hardened": true
     },
     {
+      "slug": "knapsack",
+      "name": "Knapsack Solver",
+      "category": "Utilities",
+      "blurb": "Solve the 0-1 knapsack optimization problem for items with weight and value.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "knapsack_solve",
+          "description": "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "languagetool",
       "name": "LanguageTool",
       "category": "Utilities",
@@ -5228,6 +5260,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "lcs",
+      "name": "LCS (Longest Common Subsequence)",
+      "category": "Utilities",
+      "blurb": "Find the longest common subsequence of two strings with similarity score.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "string_lcs",
+          "description": "Find the longest common subsequence of two strings with similarity score."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "legalpass",
@@ -9566,6 +9614,22 @@
       "hardened": true
     },
     {
+      "slug": "spline",
+      "name": "Spline Interpolation",
+      "category": "Utilities",
+      "blurb": "Natural cubic spline interpolation through data points with evaluation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "spline_interpolate",
+          "description": "Natural cubic spline interpolation through data points, with optional evaluation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "splitwise",
       "name": "Splitwise",
       "category": "Money & payments",
@@ -10684,6 +10748,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "toposort",
+      "name": "Topological Sort",
+      "category": "Utilities",
+      "blurb": "Topological sort of a directed graph with cycle detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "topo_sort",
+          "description": "Topological sort of a directed graph with cycle detection."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "trello",

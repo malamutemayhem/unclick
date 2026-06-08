@@ -691,6 +691,13 @@ import { harmonicSeries } from "./harmonicseries-tool.js";
 import { piApprox } from "./piapprox-tool.js";
 import { taylorExpand } from "./taylor-tool.js";
 
+// ── batch 58: algorithms & data structures ──
+import { stringLcs } from "./lcs-tool.js";
+import { topoSort } from "./toposort-tool.js";
+import { convexHull } from "./convexhull-tool.js";
+import { knapsackSolve } from "./knapsack-tool.js";
+import { splineInterpolate } from "./spline-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -10481,6 +10488,60 @@ export const ADDITIONAL_TOOLS = [
         x: { type: "number" as const, description: "Point to evaluate at." },
         terms: { type: "number" as const, description: "Number of terms (default 10, max 50)." },
       }, required: ["function", "x"],
+    },
+  },
+
+  // ── lcs-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "string_lcs",
+    description: "Find the longest common subsequence of two strings with similarity score.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "string" as const, description: "First string." },
+        b: { type: "string" as const, description: "Second string." },
+      }, required: ["a", "b"],
+    },
+  },
+  // ── toposort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "topo_sort",
+    description: "Topological sort of a directed graph with cycle detection.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        edges: { type: "array" as const, description: "Array of [from, to] directed edge pairs.", items: { type: "array" as const, items: { type: "string" as const } } },
+      }, required: ["edges"],
+    },
+  },
+  // ── convexhull-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "convex_hull",
+    description: "Compute the convex hull of 2D points with area and perimeter.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] coordinate pairs.", items: { type: "array" as const, items: { type: "number" as const } } },
+      }, required: ["points"],
+    },
+  },
+  // ── knapsack-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "knapsack_solve",
+    description: "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        capacity: { type: "number" as const, description: "Maximum weight capacity (integer units, max 100000)." },
+        items: { type: "array" as const, description: "Array of { name?, weight, value } objects.", items: { type: "object" as const, properties: { name: { type: "string" as const }, weight: { type: "number" as const }, value: { type: "number" as const } }, required: ["weight", "value"] } },
+      }, required: ["capacity", "items"],
+    },
+  },
+  // ── spline-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "spline_interpolate",
+    description: "Natural cubic spline interpolation through data points, with optional evaluation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] data points (at least 3, distinct x).", items: { type: "array" as const, items: { type: "number" as const } } },
+        eval_at: { description: "X value(s) to evaluate the spline at. Number or array of numbers." },
+      }, required: ["points"],
     },
   },
 
@@ -22191,6 +22252,13 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // taylor-tool.ts
   taylor_expand:             (args) => taylorExpand(args),
+
+  // batch 58: algorithms & data structures
+  string_lcs:                (args) => stringLcs(args),
+  topo_sort:                 (args) => topoSort(args),
+  convex_hull:               (args) => convexHull(args),
+  knapsack_solve:            (args) => knapsackSolve(args),
+  spline_interpolate:        (args) => splineInterpolate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

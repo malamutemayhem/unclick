@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T12:28:00.000Z",
+  "updatedAt": "2026-06-09T14:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3982,6 +3982,36 @@
       "note": "taylor_expand computes Taylor series for exp, sin, cos, ln1p, atan. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
       "toolsTested": ["taylor_expand"]
+    },
+    "lcs": {
+      "status": "pass",
+      "note": "string_lcs finds longest common subsequence with similarity score. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": ["string_lcs"]
+    },
+    "toposort": {
+      "status": "pass",
+      "note": "topo_sort performs topological sorting with cycle detection. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": ["topo_sort"]
+    },
+    "convexhull": {
+      "status": "pass",
+      "note": "convex_hull computes convex hull of 2D points with area and perimeter. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": ["convex_hull"]
+    },
+    "knapsack": {
+      "status": "pass",
+      "note": "knapsack_solve solves 0-1 knapsack optimization with backtracking. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": ["knapsack_solve"]
+    },
+    "spline": {
+      "status": "pass",
+      "note": "spline_interpolate builds natural cubic spline with evaluation. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": ["spline_interpolate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
