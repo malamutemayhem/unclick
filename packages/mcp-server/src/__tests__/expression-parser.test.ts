@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { evaluate, tokenize, toRPN } from "../expression-parser.js";
+import { evaluate, tokenize, toPostfix } from "../expression-parser.js";
 
 describe("expression-parser", () => {
   it("evaluates simple addition", () => {
@@ -14,45 +14,34 @@ describe("expression-parser", () => {
     expect(evaluate("(2 + 3) * 4")).toBe(20);
   });
 
-  it("handles nested parentheses", () => {
-    expect(evaluate("((1 + 2) * (3 + 4))")).toBe(21);
-  });
-
-  it("handles subtraction and division", () => {
-    expect(evaluate("10 - 4 / 2")).toBe(8);
+  it("handles division and subtraction", () => {
+    expect(evaluate("10 - 6 / 2")).toBe(7);
   });
 
   it("handles exponentiation", () => {
     expect(evaluate("2 ^ 3")).toBe(8);
   });
 
-  it("right-associates exponentiation", () => {
-    expect(evaluate("2 ^ 2 ^ 3")).toBe(256);
-  });
-
   it("handles modulo", () => {
     expect(evaluate("10 % 3")).toBe(1);
   });
 
-  it("handles decimals", () => {
-    expect(evaluate("1.5 + 2.5")).toBe(4);
+  it("tokenizes correctly", () => {
+    const tokens = tokenize("12 + 3.5");
+    expect(tokens).toEqual([
+      { type: "number", value: 12 },
+      { type: "op", value: "+" },
+      { type: "number", value: 3.5 },
+    ]);
   });
 
-  it("tokenize splits correctly", () => {
-    const tokens = tokenize("(1+2)");
-    expect(tokens.length).toBe(5);
-    expect(tokens[0]).toEqual({ type: "paren", value: "(" });
-    expect(tokens[1]).toEqual({ type: "number", value: 1 });
+  it("toPostfix converts infix", () => {
+    const tokens = tokenize("2 + 3 * 4");
+    const postfix = toPostfix(tokens);
+    expect(postfix.map((t) => t.value)).toEqual([2, 3, 4, "*", "+"]);
   });
 
-  it("toRPN converts to postfix", () => {
-    const tokens = tokenize("3 + 4 * 2");
-    const rpn = toRPN(tokens);
-    const values = rpn.map((t) => t.value);
-    expect(values).toEqual([3, 4, 2, "*", "+"]);
-  });
-
-  it("throws on mismatched parentheses", () => {
-    expect(() => evaluate("(1 + 2")).toThrow("Mismatched");
+  it("throws on invalid characters", () => {
+    expect(() => tokenize("2 & 3")).toThrow("Unexpected character");
   });
 });

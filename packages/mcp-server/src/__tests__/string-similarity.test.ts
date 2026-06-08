@@ -1,70 +1,29 @@
 import { describe, it, expect } from "vitest";
-import { jaccardSimilarity, diceCoefficient, longestCommonSubstring, hammingDistance } from "../string-similarity.js";
+import { levenshtein, similarity, jaroWinkler, longestCommonSubstring } from "../string-similarity.js";
 
 describe("string-similarity", () => {
-  describe("jaccardSimilarity", () => {
-    it("identical strings return 1", () => {
-      expect(jaccardSimilarity("hello", "hello")).toBe(1);
-    });
-
-    it("completely different strings approach 0", () => {
-      expect(jaccardSimilarity("abc", "xyz")).toBe(0);
-    });
-
-    it("empty strings return 1", () => {
-      expect(jaccardSimilarity("", "")).toBe(1);
-    });
-
-    it("similar strings score between 0 and 1", () => {
-      const score = jaccardSimilarity("hello", "hallo");
-      expect(score).toBeGreaterThan(0);
-      expect(score).toBeLessThan(1);
-    });
+  it("levenshtein distance", () => {
+    expect(levenshtein("kitten", "sitting")).toBe(3);
+    expect(levenshtein("", "abc")).toBe(3);
+    expect(levenshtein("abc", "abc")).toBe(0);
   });
 
-  describe("diceCoefficient", () => {
-    it("identical strings return 1", () => {
-      expect(diceCoefficient("hello", "hello")).toBe(1);
-    });
-
-    it("empty strings return 1", () => {
-      expect(diceCoefficient("", "")).toBe(1);
-    });
-
-    it("different strings return 0", () => {
-      expect(diceCoefficient("abc", "xyz")).toBe(0);
-    });
+  it("similarity ratio", () => {
+    expect(similarity("abc", "abc")).toBe(1);
+    expect(similarity("abc", "xyz")).toBeCloseTo(0, 1);
+    expect(similarity("", "")).toBe(1);
   });
 
-  describe("longestCommonSubstring", () => {
-    it("finds common substring", () => {
-      expect(longestCommonSubstring("abcdef", "xbcdey")).toBe("bcde");
-    });
-
-    it("returns empty for no overlap", () => {
-      expect(longestCommonSubstring("abc", "xyz")).toBe("");
-    });
-
-    it("returns empty for empty input", () => {
-      expect(longestCommonSubstring("", "abc")).toBe("");
-    });
-
-    it("full match", () => {
-      expect(longestCommonSubstring("abc", "abc")).toBe("abc");
-    });
+  it("jaro-winkler", () => {
+    expect(jaroWinkler("martha", "marhta")).toBeGreaterThan(0.9);
+    expect(jaroWinkler("abc", "abc")).toBe(1);
+    expect(jaroWinkler("", "abc")).toBe(0);
+    expect(jaroWinkler("abc", "")).toBe(0);
   });
 
-  describe("hammingDistance", () => {
-    it("zero distance for identical strings", () => {
-      expect(hammingDistance("abc", "abc")).toBe(0);
-    });
-
-    it("counts differing positions", () => {
-      expect(hammingDistance("karolin", "kathrin")).toBe(3);
-    });
-
-    it("throws for different lengths", () => {
-      expect(() => hammingDistance("ab", "abc")).toThrow("same length");
-    });
+  it("longest common substring", () => {
+    expect(longestCommonSubstring("abcdef", "zbcdf")).toBe("bcd");
+    expect(longestCommonSubstring("abc", "xyz")).toBe("");
+    expect(longestCommonSubstring("hello world", "world hello")).toHaveLength(5);
   });
 });
