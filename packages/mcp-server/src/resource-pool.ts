@@ -1,52 +1,56 @@
+export interface PoolOptions {
+  maxSize: number;
+  acquireTimeoutMs?: number;
+}
+
+export interface PooledResource<T> {
+  resource: T;
+  createdAt: number;
+  lastUsed: number;
+  useCount: number;
+}
+
 export class ResourcePool<T> {
-  private available: T[] = [];
-  private inUse = new Set<T>();
-  private maxSize: number;
-  private factory: () => T | Promise<T>;
-  private destroyer?: (resource: T) => void | Promise<void>;
+  private available: PooledResource<T>[] = [];
+  private inUse = new Map<T, PooledResource<T>>();
+  private factory: () => T;
+  private options: PoolOptions;
 
-  constructor(opts: {
-    maxSize: number;
-    factory: () => T | Promise<T>;
-    destroyer?: (resource: T) => void | Promise<void>;
-  }) {
-    this.maxSize = opts.maxSize;
-    this.factory = opts.factory;
-    this.destroyer = opts.destroyer;
+  constructor(factory: () => T, options: PoolOptions) {
+    this.factory = factory;
+    this.options = options;
   }
 
-  async acquire(): Promise<T> {
-    if (this.available.length > 0) {
-      const resource = this.available.pop()!;
-      this.inUse.add(resource);
-      return resource;
+  acquire(): T | undefined {
+    let pooled = this.available.pop();
+    if (!pooled) {
+      if (this.totalSize >= this.options.maxSize) return undefined;
+      pooled = {
+        resource: this.factory(),
+        createdAt: Date.now(),
+        lastUsed: Date.now(),
+        useCount: 0,
+      };
     }
-    if (this.inUse.size >= this.maxSize) {
-      throw new Error("Pool exhausted");
-    }
-    const resource = await this.factory();
-    this.inUse.add(resource);
-    return resource;
+    pooled.lastUsed = Date.now();
+    pooled.useCount++;
+    this.inUse.set(pooled.resource, pooled);
+    return pooled.resource;
   }
 
-  release(resource: T): void {
-    if (!this.inUse.has(resource)) return;
+  release(resource: T): boolean {
+    const pooled = this.inUse.get(resource);
+    if (!pooled) return false;
     this.inUse.delete(resource);
-    this.available.push(resource);
+    this.available.push(pooled);
+    return true;
   }
 
-  async destroy(resource: T): Promise<void> {
+  destroy(resource: T): boolean {
+    const pooled = this.inUse.get(resource);
+    if (!pooled) return false;
     this.inUse.delete(resource);
-    if (this.destroyer) await this.destroyer(resource);
-  }
-
-  async destroyAll(): Promise<void> {
-    const all = [...this.available, ...this.inUse];
-    this.available = [];
-    this.inUse.clear();
-    if (this.destroyer) {
-      for (const r of all) await this.destroyer(r);
-    }
+    return true;
   }
 
   get availableCount(): number {
@@ -57,7 +61,21 @@ export class ResourcePool<T> {
     return this.inUse.size;
   }
 
-  get totalCount(): number {
+  get totalSize(): number {
     return this.available.length + this.inUse.size;
+  }
+
+  drain(): void {
+    this.available = [];
+    this.inUse.clear();
+  }
+
+  stats(): { available: number; inUse: number; total: number; maxSize: number } {
+    return {
+      available: this.available.length,
+      inUse: this.inUse.size,
+      total: this.totalSize,
+      maxSize: this.options.maxSize,
+    };
   }
 }
