@@ -346,6 +346,20 @@
     ]
   },
   {
+    "app": "bible",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bible_verse",
+        "description": "Look up a Bible verse or passage by reference (e.g. 'John 3:16', 'Psalm 23')."
+      },
+      {
+        "name": "bible_random",
+        "description": "Get a random Bible verse."
+      }
+    ]
+  },
+  {
     "app": "bitbucket",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1684,6 +1698,28 @@
     ]
   },
   {
+    "app": "frankfurter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "frankfurter_latest",
+        "description": "Get latest exchange rates from ECB via Frankfurter."
+      },
+      {
+        "name": "frankfurter_convert",
+        "description": "Convert a specific amount between two currencies using ECB rates."
+      },
+      {
+        "name": "frankfurter_historical",
+        "description": "Get historical exchange rates for a specific date from ECB."
+      },
+      {
+        "name": "frankfurter_currencies",
+        "description": "List all currencies supported by the Frankfurter ECB exchange-rate API."
+      }
+    ]
+  },
+  {
     "app": "gdelt",
     "category": "Gaming",
     "tools": [
@@ -2214,6 +2250,38 @@
       {
         "name": "joke_categories",
         "description": "List available joke categories from JokeAPI."
+      }
+    ]
+  },
+  {
+    "app": "jsonplaceholder",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jp_list_posts",
+        "description": "List posts from JSONPlaceholder (fake REST API). Optionally filter by userId."
+      },
+      {
+        "name": "jp_get_post",
+        "description": "Get a single post by ID from JSONPlaceholder."
+      },
+      {
+        "name": "jp_list_comments",
+        "description": "List comments on a post from JSONPlaceholder."
+      },
+      {
+        "name": "jp_list_users",
+        "description": "List all users from JSONPlaceholder (fake test data)."
+      }
+    ]
+  },
+  {
+    "app": "kanye",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kanye_quote",
+        "description": "Get a random Kanye West quote."
       }
     ]
   },
@@ -3140,6 +3208,24 @@
       {
         "name": "perplexity_chat_completion",
         "description": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web."
+      }
+    ]
+  },
+  {
+    "app": "picsum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "picsum_list",
+        "description": "List photos available on Lorem Picsum."
+      },
+      {
+        "name": "picsum_get",
+        "description": "Get info about a specific Lorem Picsum photo by ID."
+      },
+      {
+        "name": "picsum_random_url",
+        "description": "Generate a random placeholder image URL from Lorem Picsum (no fetch needed)."
       }
     ]
   },
@@ -5460,6 +5546,24 @@
       {
         "name": "zendesk_add_comment",
         "description": "Add a public or internal comment to a Zendesk ticket."
+      }
+    ]
+  },
+  {
+    "app": "zenquotes",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "zen_quote_random",
+        "description": "Get a random inspirational quote from Zen Quotes."
+      },
+      {
+        "name": "zen_quote_today",
+        "description": "Get today's quote of the day from Zen Quotes."
+      },
+      {
+        "name": "zen_quotes",
+        "description": "Get a batch of inspirational quotes from Zen Quotes (returns up to 20)."
       }
     ]
   }

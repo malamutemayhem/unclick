@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 665,
+    "inventory": 671,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 243,
+    "tools": 249,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 243
+      "count": 249
     },
     {
       "id": "rooms",
@@ -4342,6 +4342,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bible-packages-mcp-server-src-bible-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bible",
+      "kind": "MCP tool",
+      "meaning": "bible MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bible-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bitbucket-packages-mcp-server-src-bitbucket-tool-ts-no-route",
       "division": "Tools",
       "name": "bitbucket",
@@ -4932,6 +4942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-frankfurter-packages-mcp-server-src-frankfurter-tool-ts-no-route",
+      "division": "Tools",
+      "name": "frankfurter",
+      "kind": "MCP tool",
+      "meaning": "frankfurter MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/frankfurter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-gdelt-packages-mcp-server-src-gdelt-tool-ts-no-route",
       "division": "Tools",
       "name": "gdelt",
@@ -5208,6 +5228,26 @@
       "kind": "MCP tool",
       "meaning": "joke MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/joke-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-jsonplaceholder-packages-mcp-server-src-jsonplaceholder-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jsonplaceholder",
+      "kind": "MCP tool",
+      "meaning": "jsonplaceholder MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jsonplaceholder-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-kanye-packages-mcp-server-src-kanye-tool-ts-no-route",
+      "division": "Tools",
+      "name": "kanye",
+      "kind": "MCP tool",
+      "meaning": "kanye MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/kanye-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5618,6 +5658,16 @@
       "kind": "MCP tool",
       "meaning": "perplexity MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/perplexity-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-picsum-packages-mcp-server-src-picsum-tool-ts-no-route",
+      "division": "Tools",
+      "name": "picsum",
+      "kind": "MCP tool",
+      "meaning": "picsum MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/picsum-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6602,6 +6652,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-zenquotes-packages-mcp-server-src-zenquotes-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zenquotes",
+      "kind": "MCP tool",
+      "meaning": "zenquotes MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zenquotes-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "workers-and-seats-seat-claude-reviewer-seat-docs-fleet-worker-roles-md-no-route",
       "division": "Workers and seats",
       "name": "Claude Reviewer Seat",
@@ -7425,6 +7485,11 @@
       "packages/mcp-server/src/bgg-tool.ts"
     ],
     [
+      "bible",
+      "bible MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bible-tool.ts"
+    ],
+    [
       "bitbucket",
       "bitbucket MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bitbucket-tool.ts"
@@ -7720,6 +7785,11 @@
       "packages/mcp-server/src/fpl-tool.ts"
     ],
     [
+      "frankfurter",
+      "frankfurter MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/frankfurter-tool.ts"
+    ],
+    [
       "gdelt",
       "gdelt MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gdelt-tool.ts"
@@ -7858,6 +7928,16 @@
       "joke",
       "joke MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/joke-tool.ts"
+    ],
+    [
+      "jsonplaceholder",
+      "jsonplaceholder MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jsonplaceholder-tool.ts"
+    ],
+    [
+      "kanye",
+      "kanye MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/kanye-tool.ts"
     ],
     [
       "keychain",
@@ -8063,6 +8143,11 @@
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
+    ],
+    [
+      "picsum",
+      "picsum MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/picsum-tool.ts"
     ],
     [
       "pika",
@@ -8553,6 +8638,11 @@
       "zendesk",
       "zendesk MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/zendesk-tool.ts"
+    ],
+    [
+      "zenquotes",
+      "zenquotes MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zenquotes-tool.ts"
     ]
   ],
   "roomRows": [
@@ -9683,6 +9773,11 @@
       "bytes": 12903
     },
     {
+      "source": "packages/mcp-server/src/bible-tool.ts",
+      "hash": "94f62f2fa1c1",
+      "bytes": 2338
+    },
+    {
       "source": "packages/mcp-server/src/bitbucket-tool.ts",
       "hash": "a6a405951262",
       "bytes": 4388
@@ -9791,11 +9886,6 @@
       "source": "packages/mcp-server/src/coinmarketcap-tool.ts",
       "hash": "f44ff0239baa",
       "bytes": 8444
-    },
-    {
-      "source": "packages/mcp-server/src/color-tool.ts",
-      "hash": "8e737cb9e16f",
-      "bytes": 13782
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

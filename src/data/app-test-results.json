@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-07T12:50:00.000Z",
+  "updatedAt": "2026-06-08T03:51:41.572Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -18,6 +18,30 @@
         "abuseipdb_check_ip"
       ],
       "comment": ""
+    },
+    "adviceslip": {
+      "status": "pass",
+      "note": "advice_random() returned a random advice slip with id and advice text. Free API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "advice_random"
+      ]
+    },
+    "affirmation": {
+      "status": "pass",
+      "note": "affirmation_random() returned a positive affirmation. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "affirmation_random"
+      ]
+    },
+    "agify": {
+      "status": "pass",
+      "note": "agify_age(name=michael) returned age prediction. Free tier (100 req/day without key).",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "agify_age"
+      ]
     },
     "airtable": {
       "status": "attention",
@@ -67,6 +91,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "aoe2": {
+      "status": "pass",
+      "note": "aoe2_civilizations() returned all AoE2 civilizations with bonuses. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "aoe2_civilizations"
+      ]
+    },
     "asana": {
       "status": "attention",
       "note": "Project management; needs ASANA_ACCESS_TOKEN.",
@@ -101,6 +133,24 @@
       ],
       "comment": ""
     },
+    "bgg": {
+      "status": "attention",
+      "note": "BGG now requires a Bearer token. Set BGG_API_TOKEN env var. Code updated with auth support and 401 handling.",
+      "testedAt": "2026-06-07T07:53:52.816Z",
+      "toolsTested": [
+        "bgg_search",
+        "bgg_top_games"
+      ],
+      "comment": ""
+    },
+    "bible": {
+      "status": "pass",
+      "note": "bible_verse returned John 3:16 text from bible-api.com; free, no key needed.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
+      "toolsTested": [
+        "bible_verse"
+      ]
+    },
     "bitbucket": {
       "status": "attention",
       "note": "Git hosting; needs BITBUCKET_USERNAME and BITBUCKET_APP_PASSWORD.",
@@ -117,21 +167,29 @@
       ],
       "comment": ""
     },
-    "bgg": {
-      "status": "attention",
-      "note": "BGG now requires a Bearer token. Set BGG_API_TOKEN env var. Code updated with auth support and 401 handling.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
+    "bored": {
+      "status": "pass",
+      "note": "bored_random() returned activity suggestion with type and participants. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
       "toolsTested": [
-        "bgg_search",
-        "bgg_top_games"
-      ],
-      "comment": ""
+        "bored_random"
+      ]
     },
     "brevo": {
       "status": "attention",
       "note": "Email marketing; needs BREVO_API_KEY.",
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "brewery": {
+      "status": "pass",
+      "note": "New connector: Open Brewery DB. Free public API, no key needed. Search, browse, filter breweries worldwide. 4 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "brewery_search",
+        "brewery_random"
+      ],
       "comment": ""
     },
     "bungie": {
@@ -141,13 +199,6 @@
       "toolsTested": [
         "bungie_search_player"
       ],
-      "comment": ""
-    },
-    "csuite": {
-      "status": "attention",
-      "note": "Internal analysis tool; needs active context.",
-      "testedAt": "2026-06-07T09:41:21.082Z",
-      "toolsTested": [],
       "comment": ""
     },
     "calcom": {
@@ -184,6 +235,16 @@
       ],
       "comment": ""
     },
+    "catfacts": {
+      "status": "pass",
+      "note": "New connector: Cat Facts API. Free public API, no key needed. Random facts and cat breed data. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "cat_fact",
+        "cat_breeds"
+      ],
+      "comment": ""
+    },
     "chessdotcom": {
       "status": "pass",
       "note": "chess_player returned full profile for hikaru (GM, 1.3M followers); chess_puzzles_random returned valid puzzle with FEN/PGN",
@@ -191,6 +252,16 @@
       "toolsTested": [
         "chess_player",
         "chess_puzzles_random"
+      ],
+      "comment": ""
+    },
+    "chucknorris": {
+      "status": "pass",
+      "note": "New connector: Chuck Norris API. Free public API, no key needed. Random jokes, search, categories. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "chuck_random",
+        "chuck_categories"
       ],
       "comment": ""
     },
@@ -220,6 +291,16 @@
       "note": "Media management; needs CLOUDINARY_CLOUD_NAME.",
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "cocktail": {
+      "status": "pass",
+      "note": "New connector: TheCocktailDB. Free public API, no key needed. Search, random, filter by category/ingredient. 6 tools, all tests passing.",
+      "testedAt": "2026-06-07T09:55:00.000Z",
+      "toolsTested": [
+        "cocktail_search",
+        "cocktail_random"
+      ],
       "comment": ""
     },
     "coda": {
@@ -253,16 +334,6 @@
       "testedAt": "2026-06-07T09:39:36.511Z",
       "toolsTested": [
         "cmc_trending"
-      ],
-      "comment": ""
-    },
-    "cocktail": {
-      "status": "pass",
-      "note": "New connector: TheCocktailDB. Free public API, no key needed. Search, random, filter by category/ingredient. 6 tools, all tests passing.",
-      "testedAt": "2026-06-07T09:55:00.000Z",
-      "toolsTested": [
-        "cocktail_search",
-        "cocktail_random"
       ],
       "comment": ""
     },
@@ -328,6 +399,13 @@
       ],
       "comment": ""
     },
+    "csuite": {
+      "status": "attention",
+      "note": "Internal analysis tool; needs active context.",
+      "testedAt": "2026-06-07T09:41:21.082Z",
+      "toolsTested": [],
+      "comment": ""
+    },
     "datadog": {
       "status": "attention",
       "note": "Monitoring API; needs DATADOG_API_KEY.",
@@ -343,6 +421,14 @@
         "datetime_current_time"
       ],
       "comment": ""
+    },
+    "deckofcards": {
+      "status": "pass",
+      "note": "deck_new() returned shuffled deck with deck_id and 52 remaining. Free public API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "deck_new"
+      ]
     },
     "deepl": {
       "status": "attention",
@@ -393,6 +479,14 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "dnd5e": {
+      "status": "pass",
+      "note": "dnd_get_class(class=wizard) returned Wizard class with hit_die, proficiencies. Free SRD API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "dnd_get_class"
+      ]
     },
     "dogceo": {
       "status": "pass",
@@ -484,15 +578,6 @@
       ],
       "comment": ""
     },
-    "fpl": {
-      "status": "pass",
-      "note": "fpl_bootstrap returned 841 players, 20 teams, GW38 data, top players with points",
-      "testedAt": "2026-06-07T03:47:22.000Z",
-      "toolsTested": [
-        "fpl_bootstrap"
-      ],
-      "comment": ""
-    },
     "feedly": {
       "status": "attention",
       "note": "RSS reader API; needs FEEDLY_ACCESS_TOKEN.",
@@ -538,6 +623,23 @@
         "foursquare_search_places"
       ],
       "comment": ""
+    },
+    "fpl": {
+      "status": "pass",
+      "note": "fpl_bootstrap returned 841 players, 20 teams, GW38 data, top players with points",
+      "testedAt": "2026-06-07T03:47:22.000Z",
+      "toolsTested": [
+        "fpl_bootstrap"
+      ],
+      "comment": ""
+    },
+    "frankfurter": {
+      "status": "pass",
+      "note": "frankfurter_latest returned EUR exchange rates from ECB data; free, no key needed.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
+      "toolsTested": [
+        "frankfurter_latest"
+      ]
     },
     "gdelt": {
       "status": "attention",
@@ -727,12 +829,13 @@
       ],
       "comment": ""
     },
-    "jobsmith": {
+    "jikan": {
       "status": "pass",
-      "note": "jobsmith_rules returned 229 rules across 13 categories successfully",
-      "testedAt": "2026-06-07T04:10:00.000Z",
+      "note": "New connector: Jikan (MyAnimeList). Free public API, no key needed. Anime, manga, characters search and rankings. 5 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
       "toolsTested": [
-        "jobsmith_rules"
+        "jikan_search_anime",
+        "jikan_top_anime"
       ],
       "comment": ""
     },
@@ -741,6 +844,15 @@
       "note": "all tools require jira_domain, email, and api_token as mandatory params",
       "testedAt": "2026-06-07T04:10:00.000Z",
       "toolsTested": [],
+      "comment": ""
+    },
+    "jobsmith": {
+      "status": "pass",
+      "note": "jobsmith_rules returned 229 rules across 13 categories successfully",
+      "testedAt": "2026-06-07T04:10:00.000Z",
+      "toolsTested": [
+        "jobsmith_rules"
+      ],
       "comment": ""
     },
     "joke": {
@@ -752,6 +864,22 @@
         "joke_categories"
       ],
       "comment": ""
+    },
+    "jsonplaceholder": {
+      "status": "pass",
+      "note": "jp_list_posts returned 100 posts from jsonplaceholder.typicode.com; free public API, no key needed.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
+      "toolsTested": [
+        "jp_list_posts"
+      ]
+    },
+    "kanye": {
+      "status": "pass",
+      "note": "kanye_quote returned a Kanye West quote from api.kanye.rest; free, no key needed.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
+      "toolsTested": [
+        "kanye_quote"
+      ]
     },
     "keychain": {
       "status": "pass",
@@ -993,12 +1121,37 @@
       ],
       "comment": ""
     },
+    "openai": {
+      "status": "attention",
+      "note": "Paid or side-effecting only; needs manual test. paid LLM API; needs manual test with OPENAI_API_KEY",
+      "testedAt": "2026-06-07T09:41:21.082Z",
+      "toolsTested": [],
+      "comment": ""
+    },
+    "openaq": {
+      "status": "attention",
+      "note": "Fixed domain from api.openaq.io to api.openaq.org. API key required - register at explore.openaq.org/register and set OPENAQ_API_KEY.",
+      "testedAt": "2026-06-07T07:53:52.816Z",
+      "toolsTested": [
+        "openaq_countries"
+      ],
+      "comment": ""
+    },
     "openexchangerates": {
       "status": "pass",
       "note": "exchangerate_latest returned USD rates (updated 2026-06-07) - works without API key on free tier",
       "testedAt": "2026-06-07T04:25:00.000Z",
       "toolsTested": [
         "exchangerate_latest"
+      ],
+      "comment": ""
+    },
+    "openf1": {
+      "status": "pass",
+      "note": "f1_sessions returned 123 sessions for 2025 season with full schedule data - no auth needed",
+      "testedAt": "2026-06-07T04:30:00.000Z",
+      "toolsTested": [
+        "f1_sessions"
       ],
       "comment": ""
     },
@@ -1029,30 +1182,13 @@
       ],
       "comment": ""
     },
-    "openai": {
-      "status": "attention",
-      "note": "Paid or side-effecting only; needs manual test. paid LLM API; needs manual test with OPENAI_API_KEY",
-      "testedAt": "2026-06-07T09:41:21.082Z",
-      "toolsTested": [],
-      "comment": ""
-    },
-    "openaq": {
-      "status": "attention",
-      "note": "Fixed domain from api.openaq.io to api.openaq.org. API key required - register at explore.openaq.org/register and set OPENAQ_API_KEY.",
-      "testedAt": "2026-06-07T07:53:52.816Z",
-      "toolsTested": [
-        "openaq_countries"
-      ],
-      "comment": ""
-    },
-    "openf1": {
+    "opennotify": {
       "status": "pass",
-      "note": "f1_sessions returned 123 sessions for 2025 season with full schedule data - no auth needed",
-      "testedAt": "2026-06-07T04:30:00.000Z",
+      "note": "iss_location() returned ISS lat/lon position and timestamp. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
       "toolsTested": [
-        "f1_sessions"
-      ],
-      "comment": ""
+        "iss_location"
+      ]
     },
     "pagerduty": {
       "status": "attention",
@@ -1085,6 +1221,14 @@
         "perplexity_chat_completion"
       ],
       "comment": ""
+    },
+    "picsum": {
+      "status": "pass",
+      "note": "picsum_random_url generated a placeholder image URL without fetch; free public API.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
+      "toolsTested": [
+        "picsum_random_url"
+      ]
     },
     "pika": {
       "status": "attention",
@@ -1123,6 +1267,15 @@
       "toolsTested": [],
       "comment": ""
     },
+    "podcastindex": {
+      "status": "attention",
+      "note": "not_connected; needs API key and secret from api.podcastindex.org. Set PODCASTINDEX_API_KEY.",
+      "testedAt": "2026-06-07T09:39:36.511Z",
+      "toolsTested": [
+        "podcast_search"
+      ],
+      "comment": ""
+    },
     "pokeapi": {
       "status": "pass",
       "note": "New connector: PokeAPI. Free public API, no key needed. Get Pokemon by name/id, search, types, abilities, generations. 5 tools, all tests passing.",
@@ -1130,15 +1283,6 @@
       "toolsTested": [
         "poke_get_pokemon",
         "poke_search_pokemon"
-      ],
-      "comment": ""
-    },
-    "podcastindex": {
-      "status": "attention",
-      "note": "not_connected; needs API key and secret from api.podcastindex.org. Set PODCASTINDEX_API_KEY.",
-      "testedAt": "2026-06-07T09:39:36.511Z",
-      "toolsTested": [
-        "podcast_search"
       ],
       "comment": ""
     },
@@ -1203,6 +1347,14 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "quotable": {
+      "status": "pass",
+      "note": "quote_random() returned a random quote with content, author, and tags. Free public API.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "quote_random"
+      ]
     },
     "radiobrowser": {
       "status": "pass",
@@ -1290,6 +1442,16 @@
       "testedAt": "2026-06-07T04:45:00.000Z",
       "toolsTested": [
         "country_by_name"
+      ],
+      "comment": ""
+    },
+    "rickandmorty": {
+      "status": "pass",
+      "note": "New connector: Rick and Morty API. Free public API, no key needed. Characters, episodes, locations. 5 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "ram_get_character",
+        "ram_search_characters"
       ],
       "comment": ""
     },
@@ -1481,6 +1643,22 @@
       ],
       "comment": ""
     },
+    "superhero": {
+      "status": "pass",
+      "note": "hero_get_by_id(id=1) returned character data with powerstats. Free GitHub-hosted API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "hero_get_by_id"
+      ]
+    },
+    "swapi": {
+      "status": "pass",
+      "note": "swapi_get_person(id=1) returned Luke Skywalker character data. Free public API, no auth needed.",
+      "testedAt": "2026-06-07T12:45:00.000Z",
+      "toolsTested": [
+        "swapi_get_person"
+      ]
+    },
     "tab": {
       "status": "attention",
       "note": "Beta API (api.beta.tab.com.au) retired. TAB Studio (studio.tab.com.au) is the replacement and requires OAuth registration. Set TAB_API_BASE env var.",
@@ -1489,6 +1667,14 @@
         "tab_sports_markets"
       ],
       "comment": ""
+    },
+    "tarot": {
+      "status": "pass",
+      "note": "tarot_draw(count=3) returned 3 random tarot cards with meanings. Free public API.",
+      "testedAt": "2026-06-07T12:50:00.000Z",
+      "toolsTested": [
+        "tarot_draw"
+      ]
     },
     "telegram": {
       "status": "attention",
@@ -1801,6 +1987,16 @@
       ],
       "comment": ""
     },
+    "xkcd": {
+      "status": "pass",
+      "note": "New connector: xkcd. Free public API, no key needed. Latest, by number, or random comics. 3 tools, all tests passing.",
+      "testedAt": "2026-06-07T12:25:00.000Z",
+      "toolsTested": [
+        "xkcd_latest",
+        "xkcd_comic"
+      ],
+      "comment": ""
+    },
     "xpass-aggregated-verdict": {
       "status": "attention",
       "note": "Internal aggregated verdict tool; needs active packs.",
@@ -1831,160 +2027,12 @@
       "toolsTested": [],
       "comment": ""
     },
-    "rickandmorty": {
+    "zenquotes": {
       "status": "pass",
-      "note": "New connector: Rick and Morty API. Free public API, no key needed. Characters, episodes, locations. 5 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
+      "note": "zen_quote_random returned an inspirational quote from zenquotes.io; free, no key needed.",
+      "testedAt": "2026-06-08T03:51:41.572Z",
       "toolsTested": [
-        "ram_get_character",
-        "ram_search_characters"
-      ],
-      "comment": ""
-    },
-    "xkcd": {
-      "status": "pass",
-      "note": "New connector: xkcd. Free public API, no key needed. Latest, by number, or random comics. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
-      "toolsTested": [
-        "xkcd_latest",
-        "xkcd_comic"
-      ],
-      "comment": ""
-    },
-    "brewery": {
-      "status": "pass",
-      "note": "New connector: Open Brewery DB. Free public API, no key needed. Search, browse, filter breweries worldwide. 4 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
-      "toolsTested": [
-        "brewery_search",
-        "brewery_random"
-      ],
-      "comment": ""
-    },
-    "jikan": {
-      "status": "pass",
-      "note": "New connector: Jikan (MyAnimeList). Free public API, no key needed. Anime, manga, characters search and rankings. 5 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
-      "toolsTested": [
-        "jikan_search_anime",
-        "jikan_top_anime"
-      ],
-      "comment": ""
-    },
-    "chucknorris": {
-      "status": "pass",
-      "note": "New connector: Chuck Norris API. Free public API, no key needed. Random jokes, search, categories. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
-      "toolsTested": [
-        "chuck_random",
-        "chuck_categories"
-      ],
-      "comment": ""
-    },
-    "catfacts": {
-      "status": "pass",
-      "note": "New connector: Cat Facts API. Free public API, no key needed. Random facts and cat breed data. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
-      "toolsTested": [
-        "cat_fact",
-        "cat_breeds"
-      ],
-      "comment": ""
-    },
-    "swapi": {
-      "status": "pass",
-      "note": "swapi_get_person(id=1) returned Luke Skywalker character data. Free public API, no auth needed.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "swapi_get_person"
-      ]
-    },
-    "dnd5e": {
-      "status": "pass",
-      "note": "dnd_get_class(class=wizard) returned Wizard class with hit_die, proficiencies. Free SRD API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "dnd_get_class"
-      ]
-    },
-    "deckofcards": {
-      "status": "pass",
-      "note": "deck_new() returned shuffled deck with deck_id and 52 remaining. Free public API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "deck_new"
-      ]
-    },
-    "adviceslip": {
-      "status": "pass",
-      "note": "advice_random() returned a random advice slip with id and advice text. Free API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "advice_random"
-      ]
-    },
-    "agify": {
-      "status": "pass",
-      "note": "agify_age(name=michael) returned age prediction. Free tier (100 req/day without key).",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "agify_age"
-      ]
-    },
-    "quotable": {
-      "status": "pass",
-      "note": "quote_random() returned a random quote with content, author, and tags. Free public API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
-      "toolsTested": [
-        "quote_random"
-      ]
-    },
-    "bored": {
-      "status": "pass",
-      "note": "bored_random() returned activity suggestion with type and participants. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "bored_random"
-      ]
-    },
-    "superhero": {
-      "status": "pass",
-      "note": "hero_get_by_id(id=1) returned character data with powerstats. Free GitHub-hosted API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "hero_get_by_id"
-      ]
-    },
-    "opennotify": {
-      "status": "pass",
-      "note": "iss_location() returned ISS lat/lon position and timestamp. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "iss_location"
-      ]
-    },
-    "tarot": {
-      "status": "pass",
-      "note": "tarot_draw(count=3) returned 3 random tarot cards with meanings. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "tarot_draw"
-      ]
-    },
-    "aoe2": {
-      "status": "pass",
-      "note": "aoe2_civilizations() returned all AoE2 civilizations with bonuses. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "aoe2_civilizations"
-      ]
-    },
-    "affirmation": {
-      "status": "pass",
-      "note": "affirmation_random() returned a positive affirmation. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
-      "toolsTested": [
-        "affirmation_random"
+        "zen_quote_random"
       ]
     }
   },

@@ -331,6 +331,20 @@ import {
 
 import { affirmationRandom } from "./affirmation-tool.js";
 
+import { jpListPosts, jpGetPost, jpListComments, jpListUsers } from "./jsonplaceholder-tool.js";
+
+import { picsumList, picsumGet, picsumRandomUrl } from "./picsum-tool.js";
+
+import { bibleVerse, bibleRandom } from "./bible-tool.js";
+
+import {
+  frankfurterLatest, frankfurterConvert, frankfurterHistorical, frankfurterCurrencies,
+} from "./frankfurter-tool.js";
+
+import { zenQuoteRandom, zenQuoteToday, zenQuotes } from "./zenquotes-tool.js";
+
+import { kanyeQuote } from "./kanye-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5317,6 +5331,178 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "affirmation_random",
     description: "Get a random positive affirmation.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── jsonplaceholder-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "jp_list_posts",
+    description: "List posts from JSONPlaceholder (fake REST API). Optionally filter by userId.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        userId: { type: "number", description: "Filter by user ID (1-10)" },
+      },
+    },
+  },
+  {
+    name: "jp_get_post",
+    description: "Get a single post by ID from JSONPlaceholder.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Post ID (1-100)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "jp_list_comments",
+    description: "List comments on a post from JSONPlaceholder.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        postId: { type: "number", description: "Post ID to get comments for" },
+      },
+      required: ["postId"],
+    },
+  },
+  {
+    name: "jp_list_users",
+    description: "List all users from JSONPlaceholder (fake test data).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── picsum-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "picsum_list",
+    description: "List photos available on Lorem Picsum.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+        limit: { type: "number", description: "Photos per page (default 20, max 100)" },
+      },
+    },
+  },
+  {
+    name: "picsum_get",
+    description: "Get info about a specific Lorem Picsum photo by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Photo ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "picsum_random_url",
+    description: "Generate a random placeholder image URL from Lorem Picsum (no fetch needed).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Image width in pixels (default 800)" },
+        height: { type: "number", description: "Image height in pixels (default 600)" },
+        grayscale: { type: "boolean", description: "Convert to grayscale" },
+        blur: { type: "number", description: "Blur amount (1-10)" },
+      },
+    },
+  },
+
+  // ── bible-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bible_verse",
+    description: "Look up a Bible verse or passage by reference (e.g. 'John 3:16', 'Psalm 23').",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        reference: { type: "string", description: "Bible reference, e.g. 'John 3:16', 'Romans 8:28-30'" },
+      },
+      required: ["reference"],
+    },
+  },
+  {
+    name: "bible_random",
+    description: "Get a random Bible verse.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── frankfurter-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "frankfurter_latest",
+    description: "Get latest exchange rates from ECB via Frankfurter.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        from: { type: "string", description: "Base currency code (default EUR)" },
+        to: { type: "string", description: "Target currency code (optional, returns all if omitted)" },
+      },
+    },
+  },
+  {
+    name: "frankfurter_convert",
+    description: "Convert a specific amount between two currencies using ECB rates.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        amount: { type: "number", description: "Amount to convert" },
+        from: { type: "string", description: "Source currency code" },
+        to: { type: "string", description: "Target currency code" },
+      },
+      required: ["amount", "from", "to"],
+    },
+  },
+  {
+    name: "frankfurter_historical",
+    description: "Get historical exchange rates for a specific date from ECB.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        date: { type: "string", description: "Date in YYYY-MM-DD format" },
+        from: { type: "string", description: "Base currency code (default EUR)" },
+        to: { type: "string", description: "Target currency code (optional)" },
+      },
+      required: ["date"],
+    },
+  },
+  {
+    name: "frankfurter_currencies",
+    description: "List all currencies supported by the Frankfurter ECB exchange-rate API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── zenquotes-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "zen_quote_random",
+    description: "Get a random inspirational quote from Zen Quotes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "zen_quote_today",
+    description: "Get today's quote of the day from Zen Quotes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "zen_quotes",
+    description: "Get a batch of inspirational quotes from Zen Quotes (returns up to 20).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── kanye-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "kanye_quote",
+    description: "Get a random Kanye West quote.",
     inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
   },
 
@@ -16091,6 +16277,35 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // affirmation-tool.ts
   affirmation_random:      (args) => affirmationRandom(args),
+
+  // jsonplaceholder-tool.ts
+  jp_list_posts:           (args) => jpListPosts(args),
+  jp_get_post:             (args) => jpGetPost(args),
+  jp_list_comments:        (args) => jpListComments(args),
+  jp_list_users:           (args) => jpListUsers(args),
+
+  // picsum-tool.ts
+  picsum_list:             (args) => picsumList(args),
+  picsum_get:              (args) => picsumGet(args),
+  picsum_random_url:       (args) => picsumRandomUrl(args),
+
+  // bible-tool.ts
+  bible_verse:             (args) => bibleVerse(args),
+  bible_random:            (args) => bibleRandom(args),
+
+  // frankfurter-tool.ts
+  frankfurter_latest:      (args) => frankfurterLatest(args),
+  frankfurter_convert:     (args) => frankfurterConvert(args),
+  frankfurter_historical:  (args) => frankfurterHistorical(args),
+  frankfurter_currencies:  (args) => frankfurterCurrencies(args),
+
+  // zenquotes-tool.ts
+  zen_quote_random:        (args) => zenQuoteRandom(args),
+  zen_quote_today:         (args) => zenQuoteToday(args),
+  zen_quotes:              (args) => zenQuotes(args),
+
+  // kanye-tool.ts
+  kanye_quote:             (args) => kanyeQuote(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

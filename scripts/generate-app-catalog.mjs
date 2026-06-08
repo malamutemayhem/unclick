@@ -27,9 +27,9 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
-bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates"]);
+bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia"]);
@@ -42,9 +42,9 @@ bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq"
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
-bucket("Books", ["openlibrary"]);
-bucket("Images", ["unsplash", "giphy", "dogceo"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero"]);
+bucket("Books", ["openlibrary", "bible"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -79,6 +79,8 @@ const NAME_OF = {
   adviceslip: "Advice Slip", agify: "Name Analysis", quotable: "Quotable",
   bored: "Bored API", superhero: "Superhero DB", opennotify: "ISS Tracker",
   tarot: "Tarot Cards", aoe2: "Age of Empires II", affirmation: "Affirmations",
+  jsonplaceholder: "JSONPlaceholder", picsum: "Lorem Picsum", bible: "Bible API",
+  frankfurter: "Frankfurter", zenquotes: "Zen Quotes", kanye: "Kanye Quotes",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -168,6 +170,12 @@ const BLURB_OF = {
   tarot: "Draw tarot cards and look up card meanings.",
   aoe2: "Browse Age of Empires II civilizations, units, and technologies.",
   affirmation: "Get random positive affirmations for daily motivation.",
+  jsonplaceholder: "Fake REST API for testing - posts, comments, and users.",
+  picsum: "Random placeholder photos with custom dimensions and effects.",
+  bible: "Look up Bible verses and passages, or get a random verse.",
+  frankfurter: "Currency exchange rates from ECB data - convert and historical.",
+  zenquotes: "Inspirational and motivational quotes of the day.",
+  kanye: "Random Kanye West quotes.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -228,6 +236,9 @@ const DOMAIN_OF = {
   bored: "bored-api.appbrewery.com", superhero: "akabab.github.io",
   opennotify: "open-notify.org", tarot: "tarotapi.dev",
   aoe2: "age-of-empires-2-api.herokuapp.com", affirmation: "affirmations.dev",
+  jsonplaceholder: "jsonplaceholder.typicode.com", picsum: "picsum.photos",
+  bible: "bible-api.com", frankfurter: "frankfurter.app",
+  zenquotes: "zenquotes.io", kanye: "api.kanye.rest",
 };
 
 function titleCase(slug) {
