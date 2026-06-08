@@ -55,6 +55,8 @@ import { createHumanizeRouter } from './routes/humanize.js';
 import { createMarketplaceRouter } from './routes/marketplace.js';
 import { createBillingRouter } from './routes/billing.js';
 import { createReportBugRouter } from './routes/report-bug.js';
+import { eq, and, isNull, asc } from 'drizzle-orm';
+import { linkPages, links, socialLinks, linkClicks } from './db/schema.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -105,8 +107,6 @@ export function createApp() {
     }
 
     const { slug } = c.req.param();
-    const { linkPages, links, socialLinks } = await import('./db/schema.js');
-    const { eq, and, isNull, asc } = await import('drizzle-orm');
 
     const [page] = await db
       .select()
@@ -240,9 +240,6 @@ export function createApp() {
     const body = await c.req.json().catch(() => ({}));
 
     if (!body.link_id) return c.json({ error: 'link_id required' }, 400);
-
-    const { linkPages, linkClicks, links } = await import('./db/schema.js');
-    const { eq, and, isNull } = await import('drizzle-orm');
 
     // Look up the page to get org_id - never trust body for this
     const [page] = await db

@@ -324,7 +324,8 @@ async function performStartRun(
   let pack;
   try {
     if (packRow.owner_user_id === null) {
-      const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+      const safeSlug = packRow.slug.replace(/[\/\\\.]+/g, '');
+      const packPath = path.join(path.resolve(__dirname, '../packages/testpass/packs'), `${safeSlug}.yaml`);
       pack = loadPackFromFile(packPath);
     } else {
       pack = packFromJsonb(packRow.yaml);
@@ -709,7 +710,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let pack;
     try {
       if (packRow.owner_user_id === null) {
-        const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+        const safeSlug = packRow.slug.replace(/[\/\\\.]+/g, '');
+        const packPath = path.join(path.resolve(__dirname, '../packages/testpass/packs'), `${safeSlug}.yaml`);
         pack = loadPackFromFile(packPath);
       } else {
         pack = packFromJsonb(packRow.yaml);

@@ -455,7 +455,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? await getApiKeyHashForUser(supabaseUrl, serviceKey, actorUserId)
     : null;
 
-  const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packSlug}.yaml`);
+  const safeSlug = packSlug.replace(/[\/\\\.]+/g, '');
+  const packsDir = path.resolve(__dirname, '../packages/testpass/packs');
+  const packPath = path.join(packsDir, `${safeSlug}.yaml`);
   let pack;
   try {
     pack = packRow.owner_user_id === null

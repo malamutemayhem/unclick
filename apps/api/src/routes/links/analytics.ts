@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zv } from '../../middleware/validate.js';
-import { eq, and, isNull, gte, lte, sql, count } from 'drizzle-orm';
+import { eq, and, isNull, gte, lte, sql, count, inArray } from 'drizzle-orm';
 import { ok } from '@unclick/core';
 import type { Db } from '../../db/index.js';
 import { linkClicks, pageViews, analyticsDaily, links } from '../../db/schema.js';
@@ -72,13 +72,21 @@ export function createAnalyticsRouter(db: Db) {
       .orderBy(sql`count(*) DESC`)
       .limit(10);
 
-    // Fetch titles for top links
-    const topLinks = await Promise.all(
-      topLinksRaw.map(async (r) => {
-        const [link] = await db.select({ title: links.title }).from(links).where(eq(links.id, r.link_id)).limit(1);
-        return { id: r.link_id, title: link?.title ?? 'Unknown', clicks: r.clicks };
-      }),
-    );
+    // Fetch titles for top links in a single batch query
+    const topLinkIds = topLinksRaw.map((r) => r.link_id);
+    const linkTitleMap = new Map<string, string>();
+    if (topLinkIds.length > 0) {
+      const titleRows = await db
+        .select({ id: links.id, title: links.title })
+        .from(links)
+        .where(inArray(links.id, topLinkIds));
+      for (const r of titleRows) linkTitleMap.set(r.id, r.title);
+    }
+    const topLinks = topLinksRaw.map((r) => ({
+      id: r.link_id,
+      title: linkTitleMap.get(r.link_id) ?? 'Unknown',
+      clicks: r.clicks,
+    }));
 
     // Top referrers
     const referrersRaw = await db

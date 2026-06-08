@@ -80,7 +80,8 @@ export function createThemesRouter(db: Db) {
     await assertPageOwnership(db, pageId, orgId);
 
     const [page] = await db.select({ themeOverrides: linkPages.themeOverrides }).from(linkPages).where(eq(linkPages.id, pageId)).limit(1);
-    const existingOverrides = JSON.parse(page!.themeOverrides ?? '{}');
+    if (!page) throw Errors.notFound('Page not found');
+    const existingOverrides = JSON.parse(page.themeOverrides ?? '{}');
     const newOverrides = { ...existingOverrides, ...(body.overrides ?? {}) };
 
     const updates: Partial<typeof linkPages.$inferInsert> = {
