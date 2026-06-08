@@ -1,56 +1,66 @@
 import { describe, it, expect } from "vitest";
-import { some, none, fromNullable } from "../option.js";
+import {
+  some, none, isSome, isNone, unwrapOption, unwrapOptionOr,
+  mapOption, flatMapOption, filterOption, fromNullable, toNullable
+} from "../option.js";
 
 describe("option", () => {
-  it("some wraps a value", () => {
+  it("some creates Some", () => {
     const opt = some(42);
-    expect(opt.isSome()).toBe(true);
-    expect(opt.isNone()).toBe(false);
-    expect(opt.unwrap()).toBe(42);
+    expect(isSome(opt)).toBe(true);
+    expect(isNone(opt)).toBe(false);
   });
 
-  it("none represents absence", () => {
+  it("none creates None", () => {
     const opt = none();
-    expect(opt.isSome()).toBe(false);
-    expect(opt.isNone()).toBe(true);
-    expect(() => opt.unwrap()).toThrow("None");
+    expect(isNone(opt)).toBe(true);
+    expect(isSome(opt)).toBe(false);
   });
 
-  it("unwrapOr provides fallback", () => {
-    expect(some(5).unwrapOr(0)).toBe(5);
-    expect(none<number>().unwrapOr(0)).toBe(0);
+  it("unwrapOption returns value on Some", () => {
+    expect(unwrapOption(some(42))).toBe(42);
   });
 
-  it("map transforms some", () => {
-    const result = some(3).map((n) => n * 2);
-    expect(result.unwrap()).toBe(6);
+  it("unwrapOption throws on None", () => {
+    expect(() => unwrapOption(none())).toThrow("Unwrap called on None");
   });
 
-  it("map on none stays none", () => {
-    const result = none<number>().map((n) => n * 2);
-    expect(result.isNone()).toBe(true);
+  it("unwrapOptionOr returns value on Some", () => {
+    expect(unwrapOptionOr(some(42), 0)).toBe(42);
   });
 
-  it("flatMap chains options", () => {
-    const safeDivide = (a: number, b: number) =>
-      b === 0 ? none<number>() : some(a / b);
-    expect(some(10).flatMap((n) => safeDivide(n, 2)).unwrap()).toBe(5);
-    expect(some(10).flatMap((n) => safeDivide(n, 0)).isNone()).toBe(true);
+  it("unwrapOptionOr returns fallback on None", () => {
+    expect(unwrapOptionOr(none(), 0)).toBe(0);
   });
 
-  it("filter narrows some", () => {
-    expect(some(5).filter((n) => n > 3).isSome()).toBe(true);
-    expect(some(1).filter((n) => n > 3).isNone()).toBe(true);
+  it("mapOption transforms Some", () => {
+    const opt = mapOption(some(5), (v: number) => v * 2);
+    expect(unwrapOption(opt)).toBe(10);
   });
 
-  it("match dispatches correctly", () => {
-    expect(some(42).match({ some: (v) => `got ${v}`, none: () => "empty" })).toBe("got 42");
-    expect(none().match({ some: () => "got", none: () => "empty" })).toBe("empty");
+  it("mapOption passes through None", () => {
+    const opt = mapOption(none<number>(), (v: number) => v * 2);
+    expect(isNone(opt)).toBe(true);
   });
 
-  it("fromNullable converts nullable values", () => {
-    expect(fromNullable(42).isSome()).toBe(true);
-    expect(fromNullable(null).isNone()).toBe(true);
-    expect(fromNullable(undefined).isNone()).toBe(true);
+  it("flatMapOption chains", () => {
+    const opt = flatMapOption(some(5), (v: number) => v > 3 ? some(v) : none());
+    expect(unwrapOption(opt)).toBe(5);
+  });
+
+  it("filterOption keeps matching", () => {
+    expect(isSome(filterOption(some(5), (v: number) => v > 3))).toBe(true);
+    expect(isNone(filterOption(some(2), (v: number) => v > 3))).toBe(true);
+  });
+
+  it("fromNullable converts values", () => {
+    expect(isSome(fromNullable(42))).toBe(true);
+    expect(isNone(fromNullable(null))).toBe(true);
+    expect(isNone(fromNullable(undefined))).toBe(true);
+  });
+
+  it("toNullable converts back", () => {
+    expect(toNullable(some(42))).toBe(42);
+    expect(toNullable(none())).toBe(null);
   });
 });
