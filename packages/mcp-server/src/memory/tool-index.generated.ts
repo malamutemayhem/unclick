@@ -212,6 +212,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "animechan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "animechan_random",
+        "description": "Get a random anime quote."
+      },
+      {
+        "name": "animechan_search",
+        "description": "Search for anime quotes from a specific anime."
+      }
+    ]
+  },
+  {
     "app": "anthropic",
     "category": "AI",
     "tools": [
@@ -956,6 +970,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cmc_global_metrics",
         "description": "Get global cryptocurrency market metrics from CoinMarketCap."
+      }
+    ]
+  },
+  {
+    "app": "coinpaprika",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coinpaprika_global",
+        "description": "Get global cryptocurrency market stats from Coinpaprika."
+      },
+      {
+        "name": "coinpaprika_coin",
+        "description": "Get detailed info about a cryptocurrency from Coinpaprika."
+      },
+      {
+        "name": "coinpaprika_ticker",
+        "description": "Get live price/ticker data from Coinpaprika. Without id, returns top 20."
       }
     ]
   },
@@ -2076,6 +2108,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "funtranslations",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fun_translate",
+        "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+      }
+    ]
+  },
+  {
     "app": "gdelt",
     "category": "Gaming",
     "tools": [
@@ -3024,6 +3066,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lotr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lotr_books",
+        "description": "List Lord of the Rings books."
+      },
+      {
+        "name": "lotr_characters",
+        "description": "Search Lord of the Rings characters by name."
+      },
+      {
+        "name": "lotr_quotes",
+        "description": "Get Lord of the Rings movie quotes."
+      }
+    ]
+  },
+  {
     "app": "mailchimp",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3578,6 +3638,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "f1_weather",
         "description": "Get Formula 1 weather data from OpenF1."
+      }
+    ]
+  },
+  {
+    "app": "openfda",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "openfda_drug_search",
+        "description": "Search FDA drug labels by brand name or ingredient."
+      },
+      {
+        "name": "openfda_recall_search",
+        "description": "Search FDA food and drug recall enforcement actions."
+      },
+      {
+        "name": "openfda_adverse_events",
+        "description": "Search FDA drug adverse event reports."
       }
     ]
   },
@@ -6040,6 +6118,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "webflow_list_items",
         "description": "List items in a Webflow CMS collection."
+      }
+    ]
+  },
+  {
+    "app": "wger",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wger_exercises",
+        "description": "Search and browse exercises from the wger workout database."
+      },
+      {
+        "name": "wger_categories",
+        "description": "List exercise categories from the wger workout database."
+      },
+      {
+        "name": "wger_muscles",
+        "description": "List muscle groups from the wger workout database."
       }
     ]
   },

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T08:30:00.000Z",
+  "updatedAt": "2026-06-08T09:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -83,6 +83,15 @@
         "amber_current_price"
       ],
       "comment": ""
+    },
+    "animechan": {
+      "status": "pass",
+      "note": "animechan_random and animechan_search return anime quotes. Free, no key needed.",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "animechan_random",
+        "animechan_search"
+      ]
     },
     "amiibo": {
       "status": "pass",
@@ -406,6 +415,16 @@
       "testedAt": "2026-06-08T06:15:00.000Z",
       "toolsTested": [
         "colormind_generate_palette"
+      ]
+    },
+    "coinpaprika": {
+      "status": "pass",
+      "note": "coinpaprika_global, coinpaprika_coin, coinpaprika_ticker return crypto market data. Free, no key needed.",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "coinpaprika_global",
+        "coinpaprika_coin",
+        "coinpaprika_ticker"
       ]
     },
     "coinmarketcap": {
@@ -844,6 +863,14 @@
         "frankfurter_latest"
       ]
     },
+    "funtranslations": {
+      "status": "pass",
+      "note": "fun_translate translates text into Yoda, Pirate, Shakespeare, etc. Free (5 calls/hour).",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "fun_translate"
+      ]
+    },
     "gdelt": {
       "status": "attention",
       "note": "API rate limited (429) on news_search. geo_events returned 404. Service may be intermittent. No auth required.",
@@ -1236,6 +1263,16 @@
         "bacon_ipsum"
       ]
     },
+    "lotr": {
+      "status": "attention",
+      "note": "lotr_books, lotr_characters, lotr_quotes connect to the-one-api.dev. Free tier needs LOTR_API_KEY.",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "lotr_books",
+        "lotr_characters",
+        "lotr_quotes"
+      ]
+    },
     "mailchimp": {
       "status": "attention",
       "note": "all tools require api_key as mandatory param (format: key-dc)",
@@ -1463,6 +1500,16 @@
         "f1_sessions"
       ],
       "comment": ""
+    },
+    "openfda": {
+      "status": "pass",
+      "note": "openfda_drug_search, openfda_recall_search, openfda_adverse_events query FDA data. Free, no key needed.",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "openfda_drug_search",
+        "openfda_recall_search",
+        "openfda_adverse_events"
+      ]
     },
     "openfoodfacts": {
       "status": "pass",
@@ -2375,6 +2422,16 @@
       "testedAt": "2026-06-07T09:41:21.082Z",
       "toolsTested": [],
       "comment": ""
+    },
+    "wger": {
+      "status": "pass",
+      "note": "wger_exercises, wger_categories, wger_muscles return workout database. Free, no key needed.",
+      "testedAt": "2026-06-08T09:00:00.000Z",
+      "toolsTested": [
+        "wger_exercises",
+        "wger_categories",
+        "wger_muscles"
+      ]
     },
     "whatsapp": {
       "status": "attention",

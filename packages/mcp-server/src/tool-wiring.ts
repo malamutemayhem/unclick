@@ -459,6 +459,18 @@ import { randomTaco } from "./tacofancy-tool.js";
 
 import { publicapisSearch, publicapisCategories, publicapisRandom } from "./publicapis-tool.js";
 
+import { wgerExercises, wgerCategories, wgerMuscles } from "./wger-tool.js";
+
+import { animechanRandom, animechanSearch } from "./animechan-tool.js";
+
+import { lotrBooks, lotrCharacters, lotrQuotes } from "./lotr-tool.js";
+
+import { coinpaprikaGlobal, coinpaprikaCoin, coinpaprikaTicker } from "./coinpaprika-tool.js";
+
+import { openfdaDrugSearch, openfdaRecallSearch, openfdaAdverseEvents } from "./openfda-tool.js";
+
+import { funTranslate } from "./funtranslations-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6772,6 +6784,166 @@ export const ADDITIONAL_TOOLS = [
     description: "Get a random API from the Public APIs directory.",
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── wger-tool.ts (workout database) ──────────────────────────────────────────
+  {
+    name: "wger_exercises",
+    description: "Search and browse exercises from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        search: { type: "string", description: "Exercise name to search for" },
+        category: { type: "number", description: "Category ID (use wger_categories for list)" },
+        limit: { type: "number", description: "Results per page (default 20)" },
+      },
+    },
+  },
+  {
+    name: "wger_categories",
+    description: "List exercise categories from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "wger_muscles",
+    description: "List muscle groups from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── animechan-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "animechan_random",
+    description: "Get a random anime quote.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "animechan_search",
+    description: "Search for anime quotes from a specific anime.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        anime: { type: "string", description: "Anime title to search quotes from" },
+      },
+      required: ["anime"],
+    },
+  },
+
+  // ── lotr-tool.ts (Lord of the Rings) ───────────────────────────────────────
+  {
+    name: "lotr_books",
+    description: "List Lord of the Rings books.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "lotr_characters",
+    description: "Search Lord of the Rings characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+  {
+    name: "lotr_quotes",
+    description: "Get Lord of the Rings movie quotes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of quotes (default 10)" },
+      },
+    },
+  },
+
+  // ── coinpaprika-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "coinpaprika_global",
+    description: "Get global cryptocurrency market stats from Coinpaprika.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "coinpaprika_coin",
+    description: "Get detailed info about a cryptocurrency from Coinpaprika.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Coin ID (e.g. btc-bitcoin, eth-ethereum)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "coinpaprika_ticker",
+    description: "Get live price/ticker data from Coinpaprika. Without id, returns top 20.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Coin ID for specific ticker (optional)" },
+      },
+    },
+  },
+
+  // ── openfda-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "openfda_drug_search",
+    description: "Search FDA drug labels by brand name or ingredient.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Drug name or ingredient to search for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "openfda_recall_search",
+    description: "Search FDA food and drug recall enforcement actions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Product or reason to search for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "openfda_adverse_events",
+    description: "Search FDA drug adverse event reports.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        drug: { type: "string", description: "Drug name to search adverse events for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["drug"],
+    },
+  },
+
+  // ── funtranslations-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "fun_translate",
+    description: "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "Text to translate" },
+        dialect: { type: "string", description: "Dialect: yoda, pirate, shakespeare, minion, dothraki, valyrian, pig-latin, morse (default yoda)" },
+      },
+      required: ["text"],
     },
   },
 
@@ -17800,6 +17972,33 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   publicapis_search:       (args) => publicapisSearch(args),
   publicapis_categories:   (args) => publicapisCategories(args),
   publicapis_random:       (args) => publicapisRandom(args),
+
+  // wger-tool.ts
+  wger_exercises:          (args) => wgerExercises(args),
+  wger_categories:         (args) => wgerCategories(args),
+  wger_muscles:            (args) => wgerMuscles(args),
+
+  // animechan-tool.ts
+  animechan_random:        (args) => animechanRandom(args),
+  animechan_search:        (args) => animechanSearch(args),
+
+  // lotr-tool.ts
+  lotr_books:              (args) => lotrBooks(args),
+  lotr_characters:         (args) => lotrCharacters(args),
+  lotr_quotes:             (args) => lotrQuotes(args),
+
+  // coinpaprika-tool.ts
+  coinpaprika_global:      (args) => coinpaprikaGlobal(args),
+  coinpaprika_coin:        (args) => coinpaprikaCoin(args),
+  coinpaprika_ticker:      (args) => coinpaprikaTicker(args),
+
+  // openfda-tool.ts
+  openfda_drug_search:     (args) => openfdaDrugSearch(args),
+  openfda_recall_search:   (args) => openfdaRecallSearch(args),
+  openfda_adverse_events:  (args) => openfdaAdverseEvents(args),
+
+  // funtranslations-tool.ts
+  fun_translate:           (args) => funTranslate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

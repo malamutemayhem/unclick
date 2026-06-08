@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 305,
-  "toolCount": 1131,
+  "appCount": 311,
+  "toolCount": 1146,
   "categories": [
     "AI",
     "Books",
@@ -312,6 +312,26 @@
         {
           "name": "amiibo_types",
           "description": "List all Amiibo product types (figure, card, yarn, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "animechan",
+      "name": "AnimeChan",
+      "category": "Social",
+      "blurb": "Get random anime quotes or search by anime title.",
+      "domain": "animechan.io",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "animechan_random",
+          "description": "Get a random anime quote."
+        },
+        {
+          "name": "animechan_search",
+          "description": "Search for anime quotes from a specific anime."
         }
       ],
       "level": 5,
@@ -1124,6 +1144,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "coinpaprika",
+      "name": "Coinpaprika",
+      "category": "Markets & crypto",
+      "blurb": "Cryptocurrency market data, coin info, and live tickers.",
+      "domain": "coinpaprika.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "coinpaprika_global",
+          "description": "Get global cryptocurrency market stats from Coinpaprika."
+        },
+        {
+          "name": "coinpaprika_coin",
+          "description": "Get detailed info about a cryptocurrency from Coinpaprika."
+        },
+        {
+          "name": "coinpaprika_ticker",
+          "description": "Get live price/ticker data from Coinpaprika. Without id, returns top 20."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "color",
@@ -2530,6 +2574,22 @@
       "hardened": false
     },
     {
+      "slug": "funtranslations",
+      "name": "Fun Translations",
+      "category": "Utilities",
+      "blurb": "Translate text into Yoda, Pirate, Shakespeare, and more.",
+      "domain": "funtranslations.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fun_translate",
+          "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gdelt",
       "name": "GDELT",
       "category": "News & reading",
@@ -3742,6 +3802,30 @@
       "hardened": true
     },
     {
+      "slug": "lotr",
+      "name": "Lord of the Rings API",
+      "category": "Social",
+      "blurb": "Browse Lord of the Rings books, characters, and movie quotes.",
+      "domain": "the-one-api.dev",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "lotr_books",
+          "description": "List Lord of the Rings books."
+        },
+        {
+          "name": "lotr_characters",
+          "description": "Search Lord of the Rings characters by name."
+        },
+        {
+          "name": "lotr_quotes",
+          "description": "Get Lord of the Rings movie quotes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "picsum",
       "name": "Lorem Picsum",
       "category": "Images",
@@ -4604,6 +4688,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "openfda",
+      "name": "OpenFDA",
+      "category": "Weather & science",
+      "blurb": "Search FDA drug labels, recalls, and adverse event reports.",
+      "domain": "api.fda.gov",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "openfda_drug_search",
+          "description": "Search FDA drug labels by brand name or ingredient."
+        },
+        {
+          "name": "openfda_recall_search",
+          "description": "Search FDA food and drug recall enforcement actions."
+        },
+        {
+          "name": "openfda_adverse_events",
+          "description": "Search FDA drug adverse event reports."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "pagerduty",
@@ -7772,6 +7880,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "wger",
+      "name": "wger Workout DB",
+      "category": "Weather & science",
+      "blurb": "Browse exercises, muscle groups, and workout categories.",
+      "domain": "wger.de",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "wger_exercises",
+          "description": "Search and browse exercises from the wger workout database."
+        },
+        {
+          "name": "wger_categories",
+          "description": "List exercise categories from the wger workout database."
+        },
+        {
+          "name": "wger_muscles",
+          "description": "List muscle groups from the wger workout database."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "whatsapp",
