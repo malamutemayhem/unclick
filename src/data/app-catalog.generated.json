@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 266,
-  "toolCount": 1058,
+  "appCount": 271,
+  "toolCount": 1066,
   "categories": [
     "AI",
     "Books",
@@ -388,6 +388,22 @@
         {
           "name": "auspost_delivery_times",
           "description": "Get Australia Post estimated delivery times."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "lorem",
+      "name": "Bacon Ipsum",
+      "category": "Utilities",
+      "blurb": "Generate meat-themed lorem ipsum placeholder text.",
+      "domain": "baconipsum.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bacon_ipsum",
+          "description": "Generate meat-themed placeholder text (Bacon Ipsum)."
         }
       ],
       "level": 5,
@@ -2338,6 +2354,22 @@
       "hardened": true
     },
     {
+      "slug": "github-emoji",
+      "name": "GitHub Emojis",
+      "category": "Utilities",
+      "blurb": "Browse all GitHub emoji names and image URLs.",
+      "domain": "github.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "github_emojis",
+          "description": "List all GitHub emojis with their image URLs."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "gitlab",
       "name": "GitLab",
       "category": "Developer & infra",
@@ -3374,6 +3406,22 @@
       "hardened": true
     },
     {
+      "slug": "makeup",
+      "name": "Makeup API",
+      "category": "Shopping",
+      "blurb": "Search makeup products by brand, type, category, or tags.",
+      "domain": "makeup-api.herokuapp.com",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "makeup_search",
+          "description": "Search makeup products by brand, type, category, or tags."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "mapbox",
       "name": "Mapbox",
       "category": "Travel, maps & local",
@@ -3456,6 +3504,30 @@
         {
           "name": "meal_filter_by_ingredient",
           "description": "Filter meals by main ingredient."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "metmuseum",
+      "name": "Met Museum",
+      "category": "News & reading",
+      "blurb": "Search the Met Museum collection and get artwork details.",
+      "domain": "metmuseum.github.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "met_search",
+          "description": "Search the Metropolitan Museum of Art collection for artworks."
+        },
+        {
+          "name": "met_object",
+          "description": "Get full details for a Met Museum artwork by object ID."
+        },
+        {
+          "name": "met_departments",
+          "description": "List all departments in the Metropolitan Museum of Art."
         }
       ],
       "level": 5,
@@ -4344,6 +4416,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "placekitten",
+      "name": "Placekitten",
+      "category": "Images",
+      "blurb": "Generate placeholder image URLs with custom dimensions.",
+      "domain": "placekitten.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "placeholder_image",
+          "description": "Generate a placeholder image URL with custom size, colors, and text."
+        },
+        {
+          "name": "placekitten_image",
+          "description": "Generate a random kitten placeholder image URL."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "plaid",

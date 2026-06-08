@@ -381,6 +381,16 @@ import { ipifyGetIp } from "./ipify-tool.js";
 
 import { erLatestRates } from "./exchangerate2-tool.js";
 
+import { makeupSearch } from "./makeup-tool.js";
+
+import { githubEmojis } from "./github-emoji-tool.js";
+
+import { metSearch, metObject, metDepartments } from "./metmuseum-tool.js";
+
+import { baconIpsum } from "./lorem-tool.js";
+
+import { placeholderImage, placekittenImage } from "./placekitten-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -5910,6 +5920,97 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const, additionalProperties: false,
       properties: { base: { type: "string", description: "Base currency code (default: USD)" } },
+    },
+  },
+
+  // ── makeup-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "makeup_search",
+    description: "Search makeup products by brand, type, category, or tags.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        brand: { type: "string", description: "Brand name (e.g. maybelline, covergirl, nyx)" },
+        product_type: { type: "string", description: "Product type (e.g. lipstick, foundation, mascara)" },
+        product_category: { type: "string", description: "Category (e.g. powder, cream, liquid)" },
+        product_tags: { type: "string", description: "Tags (e.g. vegan, organic, gluten_free)" },
+      },
+    },
+  },
+
+  // ── github-emoji-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "github_emojis",
+    description: "List all GitHub emojis with their image URLs.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── metmuseum-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "met_search",
+    description: "Search the Metropolitan Museum of Art collection for artworks.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. sunflowers, Egyptian, armor)" },
+        hasImages: { type: "boolean", description: "Only return objects with images (default true)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "met_object",
+    description: "Get full details for a Met Museum artwork by object ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { objectID: { type: "number", description: "Met Museum object ID" } },
+      required: ["objectID"],
+    },
+  },
+  {
+    name: "met_departments",
+    description: "List all departments in the Metropolitan Museum of Art.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── lorem-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bacon_ipsum",
+    description: "Generate meat-themed placeholder text (Bacon Ipsum).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        paragraphs: { type: "number", description: "Number of paragraphs (max 10, default 3)" },
+        type: { type: "string", enum: ["meat-and-filler", "all-meat"], description: "Text type (default: meat-and-filler)" },
+      },
+    },
+  },
+
+  // ── placekitten-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "placeholder_image",
+    description: "Generate a placeholder image URL with custom size, colors, and text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        text: { type: "string", description: "Text overlay on the image" },
+        bg: { type: "string", description: "Background hex color (default EEEEEE)" },
+        fg: { type: "string", description: "Text hex color (default 333333)" },
+      },
+    },
+  },
+  {
+    name: "placekitten_image",
+    description: "Generate a random kitten placeholder image URL.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        grayscale: { type: "boolean", description: "Grayscale kitten image" },
+      },
     },
   },
 
@@ -16787,6 +16888,24 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // exchangerate2-tool.ts
   er_latest_rates:         (args) => erLatestRates(args),
+
+  // makeup-tool.ts
+  makeup_search:           (args) => makeupSearch(args),
+
+  // github-emoji-tool.ts
+  github_emojis:           (args) => githubEmojis(args),
+
+  // metmuseum-tool.ts
+  met_search:              (args) => metSearch(args),
+  met_object:              (args) => metObject(args),
+  met_departments:         (args) => metDepartments(args),
+
+  // lorem-tool.ts
+  bacon_ipsum:             (args) => baconIpsum(args),
+
+  // placekitten-tool.ts
+  placeholder_image:       (args) => placeholderImage(args),
+  placekitten_image:       (args) => placekittenImage(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

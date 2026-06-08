@@ -32,9 +32,9 @@ bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd"]);
-bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg"]);
+bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
-bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
+bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
@@ -43,8 +43,8 @@ bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virusto
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -87,6 +87,8 @@ const NAME_OF = {
   yesno: "YesNo", evilinsult: "Evil Insult", dogapi: "The Dog API",
   apifootball: "TheSportsDB", catapi: "The Cat API", spaceflight: "Spaceflight News",
   archiveorg: "Internet Archive", ipify: "ipify", exchangerate2: "ExchangeRate-API Open",
+  makeup: "Makeup API", "github-emoji": "GitHub Emojis", metmuseum: "Met Museum",
+  lorem: "Bacon Ipsum", placekitten: "Placekitten",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -200,6 +202,11 @@ const BLURB_OF = {
   archiveorg: "Search the Internet Archive for books, movies, audio, and software.",
   ipify: "Get your public IP address (IPv4 or IPv6).",
   exchangerate2: "Open exchange rates from ExchangeRate-API (no key needed).",
+  makeup: "Search makeup products by brand, type, category, or tags.",
+  "github-emoji": "Browse all GitHub emoji names and image URLs.",
+  metmuseum: "Search the Met Museum collection and get artwork details.",
+  lorem: "Generate meat-themed lorem ipsum placeholder text.",
+  placekitten: "Generate placeholder image URLs with custom dimensions.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -272,6 +279,9 @@ const DOMAIN_OF = {
   apifootball: "thesportsdb.com", catapi: "thecatapi.com",
   spaceflight: "spaceflightnewsapi.net", archiveorg: "archive.org",
   ipify: "ipify.org", exchangerate2: "open.er-api.com",
+  makeup: "makeup-api.herokuapp.com", "github-emoji": "github.com",
+  metmuseum: "metmuseum.github.io", lorem: "baconipsum.com",
+  placekitten: "placekitten.com",
 };
 
 function titleCase(slug) {

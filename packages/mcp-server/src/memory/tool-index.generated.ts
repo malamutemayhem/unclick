@@ -1950,6 +1950,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "github-emoji",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "github_emojis",
+        "description": "List all GitHub emojis with their image URLs."
+      }
+    ]
+  },
+  {
     "app": "gitlab",
     "category": "Developer / Productivity",
     "tools": [
@@ -2700,6 +2710,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lorem",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bacon_ipsum",
+        "description": "Generate meat-themed placeholder text (Bacon Ipsum)."
+      }
+    ]
+  },
+  {
     "app": "mailchimp",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2730,6 +2750,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mailchimp_search_members",
         "description": "Search for subscribers across all or a specific Mailchimp audience."
+      }
+    ]
+  },
+  {
+    "app": "makeup",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "makeup_search",
+        "description": "Search makeup products by brand, type, category, or tags."
       }
     ]
   },
@@ -2800,6 +2830,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "meal_filter_by_ingredient",
         "description": "Filter meals by main ingredient."
+      }
+    ]
+  },
+  {
+    "app": "metmuseum",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "met_search",
+        "description": "Search the Metropolitan Museum of Art collection for artworks."
+      },
+      {
+        "name": "met_object",
+        "description": "Get full details for a Met Museum artwork by object ID."
+      },
+      {
+        "name": "met_departments",
+        "description": "List all departments in the Metropolitan Museum of Art."
       }
     ]
   },
@@ -3484,6 +3532,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "pipedrive_search_deals",
         "description": "Search Pipedrive deals by term."
+      }
+    ]
+  },
+  {
+    "app": "placekitten",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "placeholder_image",
+        "description": "Generate a placeholder image URL with custom size, colors, and text."
+      },
+      {
+        "name": "placekitten_image",
+        "description": "Generate a random kitten placeholder image URL."
       }
     ]
   },
