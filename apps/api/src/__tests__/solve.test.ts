@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { createApp } from '../app.js';
 import { setupTestDb } from './setup.js';
+import { getDb } from '../db/index.js';
+import { apiKeys } from '../db/schema.js';
+import { hashKey } from '@unclick/core';
 
 let app: ReturnType<typeof createApp>;
 let devKey: string;
+const SECOND_KEY = 'agt_test_devkey2_localdev_0000000000000000000000';
+let secondKeyReady = false;
 
 function authHeader(key: string) {
   return { Authorization: `Bearer ${key}` };
@@ -16,6 +21,20 @@ async function json<T>(res: Response): Promise<T> {
 beforeAll(async () => {
   devKey = await setupTestDb();
   app = createApp();
+
+  const db = getDb();
+  const hash = hashKey(SECOND_KEY);
+  await db.insert(apiKeys).values({
+    id: 'key_dev2',
+    orgId: 'org_dev',
+    name: 'Dev Key 2',
+    keyHash: hash,
+    keyPrefix: 'devkey2',
+    scopes: '[]',
+    environment: 'test',
+    createdAt: new Date(),
+  }).onConflictDoNothing();
+  secondKeyReady = true;
 });
 
 // ---------------------------------------------------------------------------
@@ -436,5 +455,77 @@ describe('Solve : feed', () => {
     expect(res.status).toBe(200);
     const body = await json<{ data: unknown[] }>(res);
     expect(body.data.length).toBeLessThanOrEqual(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Vote change adjusts totalUpvotes on agent profile
+// ---------------------------------------------------------------------------
+
+describe('Solve : vote change updates totalUpvotes', () => {
+  let problemId: string;
+  let solutionId: string;
+
+  beforeAll(async () => {
+    expect(secondKeyReady).toBe(true);
+
+    const catRes = await app.request('/v1/solve/categories');
+    const catBody = await json<{ data: { id: string; slug: string }[] }>(catRes);
+    const categoryId = catBody.data.find((c) => c.slug === 'automation')!.id;
+
+    const pRes = await app.request('/v1/solve/problems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category_id: categoryId,
+        title: 'How to handle vote-change edge cases?',
+        body: 'When a user changes their vote from upvote to downvote the totalUpvotes counter should adjust.',
+      }),
+    });
+    const pBody = await json<{ data: { id: string } }>(pRes);
+    problemId = pBody.data.id;
+
+    // Solution posted by devKey (key_dev)
+    const sRes = await app.request(`/v1/solve/problems/${problemId}/solutions`, {
+      method: 'POST',
+      headers: { ...authHeader(devKey), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        body: 'Track the delta between old and new vote values and adjust the counter accordingly.',
+      }),
+    });
+    const sBody = await json<{ data: { id: string } }>(sRes);
+    solutionId = sBody.data.id;
+  });
+
+  it('adjusts totalUpvotes when vote changes from upvote to downvote', async () => {
+    // Upvote with second key
+    const voteRes = await app.request(`/v1/solve/solutions/${solutionId}/vote`, {
+      method: 'POST',
+      headers: { ...authHeader(SECOND_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: 1 }),
+    });
+    expect(voteRes.status).toBe(200);
+
+    // Check totalUpvotes after upvote
+    const profileAfterUpvote = await app.request('/v1/solve/agents/me', {
+      headers: authHeader(devKey),
+    });
+    const upvoteBody = await json<{ data: { total_upvotes: number } }>(profileAfterUpvote);
+    const upvotesAfterUpvote = upvoteBody.data.total_upvotes;
+
+    // Change vote to downvote
+    const changeRes = await app.request(`/v1/solve/solutions/${solutionId}/vote`, {
+      method: 'POST',
+      headers: { ...authHeader(SECOND_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: -1 }),
+    });
+    expect(changeRes.status).toBe(200);
+
+    // Check totalUpvotes decreased
+    const profileAfterChange = await app.request('/v1/solve/agents/me', {
+      headers: authHeader(devKey),
+    });
+    const changeBody = await json<{ data: { total_upvotes: number } }>(profileAfterChange);
+    expect(changeBody.data.total_upvotes).toBe(upvotesAfterUpvote - 1);
   });
 });
