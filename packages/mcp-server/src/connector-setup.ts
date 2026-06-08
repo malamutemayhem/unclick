@@ -894,7 +894,7 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     credential:  "app id",
     arg:         "app_id",
     envVar:      "BANDSINTOWN_APP_ID",
-    setupUrl:    "https://www.artists.bandsintown.com/support/api-installation",
+    setupUrl:    "https://www.artists.bandsintown.com/bandsintown-api",
   },
 
   // ─── Finance / data feeds ─────────────────────────────────────────────────
@@ -956,7 +956,19 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     credential:  "API key",
     arg:         "api_key",
     envVar:      "OPENAQ_API_KEY",
-    setupUrl:    "https://explore.openaq.org/account",
+    setupUrl:    "https://explore.openaq.org/register",
+  },
+  bgg: {
+    displayName: "BoardGameGeek",
+    credential:  "API token",
+    envVar:      "BGG_API_TOKEN",
+    setupUrl:    "https://boardgamegeek.com/wiki/page/BGG_XML_API2",
+  },
+  tab: {
+    displayName: "TAB Australia",
+    credential:  "API base URL",
+    envVar:      "TAB_API_BASE",
+    setupUrl:    "https://www.studio.tab.com.au/docs",
   },
   steam: {
     displayName: "Steam",

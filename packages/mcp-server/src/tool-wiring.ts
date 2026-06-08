@@ -253,6 +253,406 @@ import {
 import { triviaQuestions, triviaCategories } from "./trivia-tool.js";
 
 import {
+  pokeGetPokemon, pokeSearchPokemon, pokeGetType,
+  pokeGetAbility, pokeGetGeneration,
+} from "./pokeapi-tool.js";
+
+import {
+  searchCocktails, getRandomCocktail, getCocktailById,
+  listCocktailCategories, filterCocktailsByCategory, filterCocktailsByIngredient,
+} from "./cocktail-tool.js";
+
+import { dictionaryLookup, dictionaryLookupLanguage } from "./dictionary-tool.js";
+
+import { jokeRandom, jokeCategories } from "./joke-tool.js";
+
+import {
+  holidaysByCountry, holidaysNextWorldwide,
+  holidayCountries, holidayLongWeekends,
+} from "./holidays-tool.js";
+
+import {
+  dogRandomImage, dogBreedImage, dogListBreeds, dogBreedList,
+} from "./dogceo-tool.js";
+
+import {
+  ramGetCharacter, ramSearchCharacters, ramGetEpisode,
+  ramSearchEpisodes, ramGetLocation,
+} from "./rickandmorty-tool.js";
+
+import { xkcdLatest, xkcdComic, xkcdRandom } from "./xkcd-tool.js";
+
+import {
+  brewerySearch, breweryGet, breweryList, breweryRandom,
+} from "./brewery-tool.js";
+
+import {
+  jikanSearchAnime, jikanGetAnime, jikanTopAnime,
+  jikanSearchManga, jikanGetCharacter,
+} from "./jikan-tool.js";
+
+import { chuckRandom, chuckSearch, chuckCategories } from "./chucknorris-tool.js";
+
+import { catFact, catFacts, catBreeds } from "./catfacts-tool.js";
+
+import {
+  swapiGetPerson, swapiSearchPeople, swapiGetPlanet,
+  swapiSearchPlanets, swapiGetStarship, swapiSearchStarships,
+} from "./swapi-tool.js";
+
+import {
+  dndGetClass, dndListClasses, dndGetSpell,
+  dndListSpells, dndGetMonster, dndListMonsters,
+} from "./dnd5e-tool.js";
+
+import { deckNew, deckDraw, deckShuffle } from "./deckofcards-tool.js";
+
+import { adviceRandom, adviceSearch, adviceById } from "./adviceslip-tool.js";
+
+import { agifyAge, genderizeName, nationalizeName } from "./agify-tool.js";
+
+import {
+  quoteRandom, quoteSearch, quoteByAuthor,
+  quoteListTags, quoteListAuthors,
+} from "./quotable-tool.js";
+
+import { boredRandom, boredByType, boredByParticipants } from "./bored-tool.js";
+
+import { heroGetById, heroAll, heroPowerstats } from "./superhero-tool.js";
+
+import { issLocation, issAstronauts } from "./opennotify-tool.js";
+
+import { tarotAllCards, tarotDraw, tarotSearch } from "./tarot-tool.js";
+
+import {
+  aoe2Civilizations, aoe2Civilization, aoe2Units,
+  aoe2Unit, aoe2Technologies,
+} from "./aoe2-tool.js";
+
+import { affirmationRandom } from "./affirmation-tool.js";
+
+import { jpListPosts, jpGetPost, jpListComments, jpListUsers } from "./jsonplaceholder-tool.js";
+
+import { picsumList, picsumGet, picsumRandomUrl } from "./picsum-tool.js";
+
+import { bibleVerse, bibleRandom } from "./bible-tool.js";
+
+import {
+  frankfurterLatest, frankfurterConvert, frankfurterHistorical, frankfurterCurrencies,
+} from "./frankfurter-tool.js";
+
+import { zenQuoteRandom, zenQuoteToday, zenQuotes } from "./zenquotes-tool.js";
+
+import { kanyeQuote } from "./kanye-tool.js";
+
+import { dadJokeRandom, dadJokeSearch, dadJokeById } from "./dadjoke-tool.js";
+
+import { uselessFactRandom, uselessFactToday } from "./uselessfacts-tool.js";
+
+import { randomFoxImage } from "./randomfox-tool.js";
+
+import { httpbinGet, httpbinHeaders, httpbinIp, httpbinUserAgent, httpbinUuid } from "./httpbin-tool.js";
+
+import { reqresListUsers, reqresGetUser, reqresListResources } from "./reqres-tool.js";
+
+import { corporateBsPhrase } from "./corporatebs-tool.js";
+
+import { worldTimeByTimezone, worldTimeByIp, worldTimeListTimezones } from "./worldtime-tool.js";
+
+import { sunriseSunsetTimes } from "./sunrisesunset-tool.js";
+
+import { zipLookup, zipByCity } from "./zippopotamus-tool.js";
+
+import { yesNoRandom } from "./yesno-tool.js";
+
+import { evilInsultRandom } from "./evilinsult-tool.js";
+
+import { dogApiRandomImage, dogApiBreeds } from "./dogapi-tool.js";
+
+import { sportsdbSearchTeam, sportsdbSearchPlayer, sportsdbTeamEvents, sportsdbLeagues } from "./apifootball-tool.js";
+
+import { catApiRandomImage, catApiBreeds } from "./catapi-tool.js";
+
+import { spaceflightArticles, spaceflightBlogs, spaceflightReports } from "./spaceflight-tool.js";
+
+import { archiveSearch, archiveMetadata } from "./archiveorg-tool.js";
+
+import { ipifyGetIp } from "./ipify-tool.js";
+
+import { erLatestRates } from "./exchangerate2-tool.js";
+
+import { makeupSearch } from "./makeup-tool.js";
+
+import { githubEmojis } from "./github-emoji-tool.js";
+
+import { metSearch, metObject, metDepartments } from "./metmuseum-tool.js";
+
+import { baconIpsum } from "./lorem-tool.js";
+
+import { placeholderImage, placekittenImage } from "./placekitten-tool.js";
+
+import { shibeRandomImage } from "./shibe-tool.js";
+
+import { cataasRandomCat, cataasListTags } from "./cataas-tool.js";
+
+import { punkApiRandomBeer, punkApiSearchBeers, punkApiGetBeer } from "./punkapi-tool.js";
+
+import { colormindGeneratePalette, colormindListModels } from "./colormind-tool.js";
+
+import { dummyjsonProducts, dummyjsonSearchProducts, dummyjsonQuotes, dummyjsonRandomQuote } from "./dummyjson-tool.js";
+
+import { excuserRandom } from "./excuser-tool.js";
+
+import { dogFactRandom } from "./dogfacts-tool.js";
+
+import { amiiboSearch, amiiboBySeries, amiiboTypes } from "./amiibo-tool.js";
+
+import { dummyImageUrl } from "./dummyimage-tool.js";
+
+import { ipInfoLookup } from "./ipinfo-tool.js";
+
+import { ghibliFilms, ghibliPeople } from "./ghibli-tool.js";
+
+import { finalSpaceCharacters, finalSpaceEpisodes } from "./finalspace-tool.js";
+
+import { mcServerStatus } from "./mcsrvstat-tool.js";
+
+import { disneyCharacterSearch, disneyAllCharacters } from "./disneyapi-tool.js";
+
+import { hpAllCharacters, hpStudents, hpStaff, hpByHouse } from "./harrypotter-tool.js";
+
+import { emojihubRandom, emojihubByCategory } from "./emojihub-tool.js";
+
+import { avatarUrl } from "./avatarapi-tool.js";
+
+import { robohashUrl } from "./robohash-tool.js";
+
+import { gutenbergSearch, gutenbergBook } from "./openlib2-tool.js";
+
+import { countryFlagUrl } from "./countryflag-tool.js";
+
+import { wiktionaryLookup } from "./mediawiki-tool.js";
+
+import { quranVerse, quranSurah } from "./bibleverse-tool.js";
+
+import { urlhausLookupUrl, urlhausRecent } from "./urlhaus-tool.js";
+
+import { tvmazeSearch, tvmazeShow, tvmazeSchedule } from "./tvmaze-tool.js";
+
+import { freetogameList, freetogameDetail } from "./freetogame-tool.js";
+
+import { cheapsharkDeals, cheapsharkStores } from "./cheapshark-tool.js";
+
+import { isEven } from "./iseven-tool.js";
+
+import { iceandfireCharacters, iceandfireBooks, iceandfireHouses } from "./iceandfire-tool.js";
+
+import { randomUser } from "./randomuser-tool.js";
+
+import { digimonAll, digimonByName, digimonByLevel } from "./digimon-tool.js";
+
+import { stapiSearchCharacter, stapiSearchSpecies, stapiSearchStarship } from "./stapi-tool.js";
+
+import { breakingBadQuote } from "./breakingbad-tool.js";
+
+import { randomTaco } from "./tacofancy-tool.js";
+
+import { publicapisSearch, publicapisCategories, publicapisRandom } from "./publicapis-tool.js";
+
+import { wgerExercises, wgerCategories, wgerMuscles } from "./wger-tool.js";
+
+import { animechanRandom, animechanSearch } from "./animechan-tool.js";
+
+import { lotrBooks, lotrCharacters, lotrQuotes } from "./lotr-tool.js";
+
+import { coinpaprikaGlobal, coinpaprikaCoin, coinpaprikaTicker } from "./coinpaprika-tool.js";
+
+import { openfdaDrugSearch, openfdaRecallSearch, openfdaAdverseEvents } from "./openfda-tool.js";
+
+import { funTranslate } from "./funtranslations-tool.js";
+
+import { datamuseWords, datamuseSuggestions } from "./datamuse-tool.js";
+
+import { nbaPlayers, nbaTeams, nbaGames } from "./balldontlie-tool.js";
+
+import { worldbankCountry, worldbankIndicator } from "./worldbank-tool.js";
+
+import { carbonIntensityCurrent, carbonIntensityForecast, carbonIntensityGeneration } from "./carbonintensity-tool.js";
+
+import { lyricsGet } from "./lyrics-tool.js";
+
+import { urbanDefine, urbanRandom } from "./urbandictionary-tool.js";
+import { nobelPrizes, nobelLaureates } from "./nobelprize-tool.js";
+import { universitiesSearch } from "./universities-tool.js";
+import { fakestoreProducts, fakestoreProduct, fakestoreCategories } from "./fakestoreapi-tool.js";
+import { mtgSearchCards, mtgGetCard, mtgSets } from "./mtg-tool.js";
+import { domainsdbSearch, domainsdbTlds } from "./domainsdb-tool.js";
+import { pokemonTcgSearchCards, pokemonTcgSets } from "./pokemontcg-tool.js";
+import { spacexLatestLaunch, spacexLaunches, spacexRockets } from "./spacex-tool.js";
+import { genderizePredict } from "./genderize-tool.js";
+import { nationalizePredict } from "./nationalize-tool.js";
+import { qrserverGenerate } from "./qrserver-tool.js";
+import { solarsystemBodies, solarsystemBody } from "./solarsystem-tool.js";
+import { pubchemSearch, pubchemProperties } from "./pubchem-tool.js";
+import { marineForecast } from "./openmeteo-marine-tool.js";
+import { triviaDbQuestions, triviaDbCategories } from "./opentriviadb-tool.js";
+import { ipAddressLookup } from "./ipaddrinfo-tool.js";
+import { dicewarePassphrase } from "./diceware-tool.js";
+import { colorNameLookup, colorNameRandom } from "./colornames-tool.js";
+import { mhwMonsters, mhwWeapons } from "./mhwdb-tool.js";
+import { currencyApiRates, currencyApiList } from "./exchangerate3-tool.js";
+import { jishoSearch } from "./jisho-tool.js";
+import { colrRandomPalette } from "./colr-tool.js";
+import { gameOfLifeStep } from "./gameoflife-tool.js";
+import { fruityviceAll, fruityviceByName } from "./fruityvice-tool.js";
+import { opendotaHeroes, opendotaHeroStats, opendotaProMatches } from "./opendota-tool.js";
+import { imgflipGetMemes } from "./imgflip-tool.js";
+import { articSearchArtworks, articGetArtwork } from "./artic-tool.js";
+import { citybikesNetworks, citybikesNetwork } from "./citybikes-tool.js";
+import { issPosition, issPassTimes } from "./wheretheiss-tool.js";
+import { coinloreGlobal, coinloreTickers, coinloreCoin } from "./coinlore-tool.js";
+import { airQualityCurrent, airQualityForecast } from "./openmeteo-airquality-tool.js";
+import { officialJokeRandom, officialJokeByType, officialJokeTen } from "./officialjoke-tool.js";
+import { multiavatarGenerate } from "./multiavatar-tool.js";
+import { foodishRandom, foodishByCategory } from "./foodish-tool.js";
+import { acnhVillagers, acnhFish, acnhBugs } from "./acnhapi-tool.js";
+import { httpCatImage } from "./httpcat-tool.js";
+import { poetrySearchByAuthor, poetrySearchByTitle, poetryRandom } from "./poetrydb-tool.js";
+import { floodForecast } from "./openmeteo-flood-tool.js";
+import { covidGlobal, covidCountry, covidVaccine } from "./diseasesh-tool.js";
+import { fishwatchSpecies, fishwatchSpeciesDetail } from "./fishwatch-tool.js";
+import { newtonMath } from "./newton-tool.js";
+import { placebearImage } from "./placebear-tool.js";
+import { countryByIp } from "./countryis-tool.js";
+import { historicalWeather } from "./openmeteo-historical-tool.js";
+import { ukPoliceForces, ukPoliceCrimes } from "./ukpolice-tool.js";
+import { memegenTemplates, memegenCreate } from "./memegen-tool.js";
+import { timeApiCurrentByZone, timeApiTimezones } from "./timeapi-tool.js";
+import { postcodeLookup, postcodeRandom } from "./postcodes-tool.js";
+import { climateNormals } from "./openmeteo-climate-tool.js";
+import { gbifSearchSpecies, gbifSpeciesDetail, gbifOccurrences } from "./gbif-tool.js";
+import { crossrefSearchWorks, crossrefGetWork } from "./crossref-tool.js";
+import { nominatimSearch, nominatimReverse } from "./nominatim-tool.js";
+import { coincapAssets, coincapAssetDetail, coincapRates } from "./coincap-tool.js";
+import { openElevationLookup } from "./open-elevation-tool.js";
+import { itisSearchByName, itisGetFullRecord } from "./itis-tool.js";
+import { arxivSearch } from "./arxiv-tool.js";
+import { openalexSearchWorks, openalexGetWork, openalexSearchAuthors } from "./openalex-tool.js";
+import { dblpSearchPublications, dblpSearchAuthors } from "./dblp-tool.js";
+import { wikidataSearch, wikidataGetEntity } from "./wikidata-tool.js";
+import { randomDuckImage, randomDuckList } from "./randomduck-tool.js";
+import { httpDogImage } from "./httpdog-tool.js";
+import { openskyStates, openskyFlights } from "./opensky-tool.js";
+import { circlCveLookup, circlCveRecent } from "./cvecircl-tool.js";
+import { vatcomplyRates, vatcomplyCountries } from "./vatcomply-tool.js";
+import { theColorApiId, theColorApiScheme } from "./thecolorapi-tool.js";
+import { placeholdImage } from "./placehold-tool.js";
+import { languagetoolCheck, languagetoolLanguages } from "./languagetool-tool.js";
+import { bgpviewAsn, bgpviewAsnPrefixes, bgpviewIp } from "./bgpview-tool.js";
+import { mymemoryTranslate } from "./mymemory-tool.js";
+import { openchargemapSearch } from "./openchargemap-tool.js";
+import { cratesSearch, cratesGet } from "./crates-tool.js";
+import { npmSearch, npmGetPackage } from "./npm-registry-tool.js";
+import { pypiGetPackage, pypiGetVersion } from "./pypi-tool.js";
+import { rdapDomain, rdapIp } from "./rdap-tool.js";
+import { ibanValidate } from "./iban-tool.js";
+import { stackexchangeSearch, stackexchangeQuestion } from "./stackexchange-tool.js";
+import { ripeNetworkInfo, ripeAsnNeighbours } from "./ripe-tool.js";
+import { gutendexSearch, gutendexBook } from "./gutendex-tool.js";
+import { dohdnsResolve } from "./dohdns-tool.js";
+import { nhtsaDecodeVin, nhtsaRecalls } from "./nhtsa-tool.js";
+import { geojsLookup } from "./geojs-tool.js";
+import { isupCheck } from "./isup-tool.js";
+import { waybackCheck } from "./wayback-tool.js";
+import { oeisSearch } from "./oeis-tool.js";
+import { upcLookup, upcSearch } from "./upcitemdb-tool.js";
+import { fakerPersons, fakerCompanies, fakerTexts } from "./fakerapi-tool.js";
+import { openfigiMapping, openfigiSearch } from "./openfigi-tool.js";
+import { libretranslateTranslate, libretranslateLanguages, libretranslateDetect } from "./libretranslate-tool.js";
+import { europeanaSearch, europeanaRecord } from "./europeana-tool.js";
+import { issFlyover } from "./flyover-tool.js";
+import { jsoncrackFormat } from "./jsoncrack-tool.js";
+import { abstractCountryInfo, abstractLongWeekends } from "./abstract-holidays-tool.js";
+import { cocktailByIngredient, cocktailIngredientInfo } from "./cocktaildb2-tool.js";
+import { regexTest } from "./regexr-tool.js";
+import { hashGenerate, hashCompare } from "./hashgen-tool.js";
+import { base64Encode, base64Decode } from "./base64-tool.js";
+import { urlEncode, urlDecode } from "./urlencode-tool.js";
+import { crontabExplain } from "./crontab-tool.js";
+import { jwtDecode } from "./jwt-tool.js";
+import { markdownToHtml, markdownStats } from "./markdown-tool.js";
+import { cidrCalculate } from "./cidr-tool.js";
+import { semverParse, semverCompare } from "./semver-tool.js";
+import { colorHexConvert } from "./colorconvert-tool.js";
+import { epochConvert, epochNow } from "./epoch-tool.js";
+import { diffText } from "./difftext-tool.js";
+import { passwordGenerate } from "./passwordgen-tool.js";
+import { slugify } from "./slug-tool.js";
+import { loremGenerate } from "./lorem2-tool.js";
+import { csvParse } from "./csvparse-tool.js";
+import { wordCount } from "./wordcount-tool.js";
+import { jsonFormat } from "./jsonformat-tool.js";
+import { htmlStrip } from "./htmlstrip-tool.js";
+import { uuidGenerate } from "./uuidgen-tool.js";
+import { charFrequency } from "./charcount-tool.js";
+import { ipValidate } from "./ipvalidate-tool.js";
+import { stringCase } from "./stringcase-tool.js";
+import { aspectRatio } from "./aspectratio-tool.js";
+import { percentageCalc } from "./percentage-tool.js";
+import { romanConvert } from "./roman-tool.js";
+import { morseConvert } from "./morse-tool.js";
+import { numberBaseConvert } from "./binaryconv-tool.js";
+import { stringDistance } from "./levenshtein-tool.js";
+import { loremNameGenerate } from "./loremname-tool.js";
+import { textReadability } from "./textstats-tool.js";
+import { timezoneInfo } from "./timezone-tool.js";
+import { colorBlend } from "./colorblend-tool.js";
+import { fibonacciSequence } from "./fibonacci-tool.js";
+import { primeCheck } from "./primecheck-tool.js";
+import { sortLines } from "./sortlines-tool.js";
+import { countdownCalc } from "./countdowncalc-tool.js";
+import { pressureConvert } from "./unitpressure-tool.js";
+import { emojiLookup } from "./emojilookup-tool.js";
+import { natoConvert } from "./natoalphabet-tool.js";
+import { bitwiseCalc } from "./bitwise-tool.js";
+import { gcdLcmCalc } from "./gcdlcm-tool.js";
+import { temperatureConvert } from "./tempconvert-tool.js";
+import { statisticsCalc } from "./statistics-tool.js";
+import { textWrap } from "./textwrap-tool.js";
+import { brailleConvert } from "./braille-tool.js";
+import { pigLatinConvert } from "./piglatin-tool.js";
+import { rot13Convert } from "./rot13-tool.js";
+import { reverseText } from "./reversetext-tool.js";
+import { palindromeCheck } from "./palindrome-tool.js";
+import { acronymGenerate } from "./acronymgen-tool.js";
+import { wordfreqAnalyse } from "./wordfreq-tool.js";
+import { markdowntableConvert } from "./markdowntable-tool.js";
+import { runlengthProcess } from "./runlength-tool.js";
+import { luhnValidate } from "./luhn-tool.js";
+import { charcodesConvert } from "./charcodes-tool.js";
+import { soundexEncode } from "./soundex-tool.js";
+import { frequencyAnalyse } from "./frequency-tool.js";
+import { entropyCalculate } from "./entropy-tool.js";
+import { ngramExtract } from "./ngram-tool.js";
+import { camelsnakeConvert } from "./camelsnake-tool.js";
+import { metaphoneEncode } from "./metaphone-tool.js";
+import { tfidfCalculate } from "./tfidf-tool.js";
+import { readabilityScore } from "./readability-tool.js";
+import { tokencountEstimate } from "./tokencount-tool.js";
+import { crc32Calculate } from "./crc32-tool.js";
+import { jaccardSimilarity } from "./jaccard-tool.js";
+import { hammingDistance } from "./hamming-tool.js";
+import { cosinesimCompare } from "./cosinesim-tool.js";
+import { damerauDistance } from "./damerau-tool.js";
+import { markovGenerate } from "./markov-tool.js";
+import { vigenereProcess } from "./vigenere-tool.js";
+import { atbashProcess } from "./atbash-tool.js";
+import { railfenceProcess } from "./railfence-tool.js";
+import { phoneticSpell } from "./phonetic-tool.js";
+import { matrixOperate } from "./matrix-tool.js";
+import { setopsCalculate } from "./setops-tool.js";
+
+import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
 } from "./nasa-tool.js";
@@ -4214,6 +4614,5342 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {},
+    },
+  },
+
+  // ── pokeapi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "poke_get_pokemon",
+    description: "Get Pokemon data by name or ID from PokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Pokemon name or ID (e.g. pikachu, 25)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "poke_search_pokemon",
+    description: "List Pokemon with pagination from PokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Results per page (max 100, default 20)" },
+        offset: { type: "number", description: "Offset for pagination" },
+      },
+    },
+  },
+  {
+    name: "poke_get_type",
+    description: "Get Pokemon type info and which Pokemon have that type.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", description: "Type name or ID (e.g. electric, fire, 10)" },
+      },
+      required: ["type"],
+    },
+  },
+  {
+    name: "poke_get_ability",
+    description: "Get Pokemon ability info and which Pokemon have it.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ability: { type: "string", description: "Ability name or ID (e.g. static, levitate)" },
+      },
+      required: ["ability"],
+    },
+  },
+  {
+    name: "poke_get_generation",
+    description: "Get Pokemon generation info, region, and species list.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        generation: { type: "string", description: "Generation ID (1-9) or name" },
+      },
+      required: ["generation"],
+    },
+  },
+
+  // ── cocktail-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cocktail_search",
+    description: "Search for cocktails/drinks by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "cocktail_random",
+    description: "Get a random cocktail/drink recipe.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cocktail_get_by_id",
+    description: "Get a cocktail/drink by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "TheCocktailDB drink ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "cocktail_categories",
+    description: "List all cocktail categories from TheCocktailDB.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cocktail_filter_by_category",
+    description: "Filter cocktails by category.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "e.g. Cocktail, Shot, Punch, Shake" },
+      },
+      required: ["category"],
+    },
+  },
+  {
+    name: "cocktail_filter_by_ingredient",
+    description: "Filter cocktails by ingredient.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ingredient: { type: "string", description: "e.g. Vodka, Rum, Gin, Whiskey" },
+      },
+      required: ["ingredient"],
+    },
+  },
+
+  // ── dictionary-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "dictionary_lookup",
+    description: "Look up a word's definition, phonetics, and examples.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        word: { type: "string" },
+      },
+      required: ["word"],
+    },
+  },
+  {
+    name: "dictionary_lookup_language",
+    description: "Look up a word in a specific language (es, fr, de, it, ja, etc).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        word: { type: "string" },
+        language: { type: "string", description: "Language code (e.g. es, fr, de, it, ja)" },
+      },
+      required: ["word", "language"],
+    },
+  },
+
+  // ── joke-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "joke_random",
+    description: "Get a random joke from JokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Programming, Misc, Dark, Pun, Spooky, Christmas" },
+        type: { type: "string", enum: ["single", "twopart"], description: "single or twopart" },
+        amount: { type: "number", description: "Number of jokes (1-10)" },
+      },
+    },
+  },
+  {
+    name: "joke_categories",
+    description: "List available joke categories from JokeAPI.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── holidays-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "holidays_by_country",
+    description: "Get public holidays for a country and year.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code (US, AU, GB, DE, etc)" },
+        year: { type: "number", description: "Year (defaults to current year)" },
+      },
+      required: ["country_code"],
+    },
+  },
+  {
+    name: "holidays_next",
+    description: "Get upcoming public holidays for a country.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code" },
+      },
+      required: ["country_code"],
+    },
+  },
+  {
+    name: "holidays_countries",
+    description: "List all countries supported by the public holidays API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "holidays_long_weekends",
+    description: "Get long weekends for a country and year.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO code" },
+        year: { type: "number", description: "Year (defaults to current year)" },
+      },
+      required: ["country_code"],
+    },
+  },
+
+  // ── dogceo-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "dog_random_image",
+    description: "Get random dog image(s) from Dog CEO API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of images (1-50, default 1)" },
+      },
+    },
+  },
+  {
+    name: "dog_breed_image",
+    description: "Get random image(s) of a specific dog breed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        breed: { type: "string", description: "Breed name (e.g. husky, bulldog/french)" },
+        count: { type: "number", description: "Number of images (1-50, default 1)" },
+      },
+      required: ["breed"],
+    },
+  },
+  {
+    name: "dog_list_breeds",
+    description: "List all dog breeds and sub-breeds.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "dog_breed_list",
+    description: "List sub-breeds of a specific dog breed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        breed: { type: "string", description: "Breed name (e.g. bulldog, hound)" },
+      },
+      required: ["breed"],
+    },
+  },
+
+  // ── rickandmorty-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ram_get_character",
+    description: "Get a Rick and Morty character by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ram_search_characters",
+    description: "Search Rick and Morty characters by name, status, species, or gender.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        status: { type: "string", enum: ["alive", "dead", "unknown"] },
+        species: { type: "string" },
+        gender: { type: "string", enum: ["female", "male", "genderless", "unknown"] },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "ram_get_episode",
+    description: "Get a Rick and Morty episode by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Episode ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ram_search_episodes",
+    description: "Search Rick and Morty episodes by name or episode code.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        episode_code: { type: "string", description: "e.g. S01E01" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "ram_get_location",
+    description: "Get a Rick and Morty location by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Location ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── xkcd-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "xkcd_latest",
+    description: "Get the latest xkcd comic.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "xkcd_comic",
+    description: "Get a specific xkcd comic by number.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "Comic number" },
+      },
+      required: ["number"],
+    },
+  },
+  {
+    name: "xkcd_random",
+    description: "Get a random xkcd comic.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── brewery-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "brewery_search",
+    description: "Search breweries by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        per_page: { type: "number", description: "Results per page (max 50)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "brewery_get",
+    description: "Get a brewery by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "brewery_list",
+    description: "List breweries, optionally filtered by city, state, or type.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        city: { type: "string" },
+        state: { type: "string" },
+        type: { type: "string", description: "micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, closed" },
+        per_page: { type: "number" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "brewery_random",
+    description: "Get random breweries.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        size: { type: "number", description: "Number of breweries (1-50, default 1)" },
+      },
+    },
+  },
+
+  // ── jikan-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "jikan_search_anime",
+    description: "Search anime on MyAnimeList via Jikan API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        limit: { type: "number", description: "Max results (up to 25)" },
+        page: { type: "number" },
+        type: { type: "string", description: "tv, movie, ova, special, ona, music" },
+        status: { type: "string", description: "airing, complete, upcoming" },
+        order_by: { type: "string", description: "score, popularity, rank" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "jikan_get_anime",
+    description: "Get anime details by MyAnimeList ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "MyAnimeList anime ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "jikan_top_anime",
+    description: "Get top-ranked anime from MyAnimeList.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number" },
+        page: { type: "number" },
+        type: { type: "string", description: "tv, movie, ova, special, ona, music" },
+        filter: { type: "string", description: "airing, upcoming, bypopularity, favorite" },
+      },
+    },
+  },
+  {
+    name: "jikan_search_manga",
+    description: "Search manga on MyAnimeList via Jikan API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string" },
+        limit: { type: "number" },
+        page: { type: "number" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "jikan_get_character",
+    description: "Get an anime/manga character by MyAnimeList ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "MyAnimeList character ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── chucknorris-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "chuck_random",
+    description: "Get a random Chuck Norris joke.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Joke category (use chuck_categories to list)" },
+      },
+    },
+  },
+  {
+    name: "chuck_search",
+    description: "Search Chuck Norris jokes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (min 3 chars)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "chuck_categories",
+    description: "List available Chuck Norris joke categories.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
+  // ── catfacts-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cat_fact",
+    description: "Get a random cat fact.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "cat_facts",
+    description: "Get multiple cat facts with pagination.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of facts (max 50, default 5)" },
+        page: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "cat_breeds",
+    description: "List cat breeds with details.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds (max 50, default 10)" },
+        page: { type: "number" },
+      },
+    },
+  },
+
+  // ── swapi-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "swapi_get_person",
+    description: "Get a Star Wars character by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Character ID (e.g. 1 for Luke Skywalker)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_people",
+    description: "Search Star Wars characters by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'luke')" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "swapi_get_planet",
+    description: "Get a Star Wars planet by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Planet ID (e.g. 1 for Tatooine)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_planets",
+    description: "Search Star Wars planets by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'tatooine')" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "swapi_get_starship",
+    description: "Get a Star Wars starship by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Starship ID (e.g. 10 for Millennium Falcon)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "swapi_search_starships",
+    description: "Search Star Wars starships by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. 'falcon')" },
+      },
+      required: ["query"],
+    },
+  },
+
+  // ── dnd5e-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dnd_get_class",
+    description: "Get a D&D 5e class by index (e.g. wizard, fighter).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        class: { type: "string", description: "Class index (e.g. 'wizard', 'fighter')" },
+      },
+      required: ["class"],
+    },
+  },
+  {
+    name: "dnd_list_classes",
+    description: "List all D&D 5e character classes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dnd_get_spell",
+    description: "Get a D&D 5e spell by name/index.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        spell: { type: "string", description: "Spell index (e.g. 'fireball', 'magic-missile')" },
+      },
+      required: ["spell"],
+    },
+  },
+  {
+    name: "dnd_list_spells",
+    description: "List D&D 5e spells, optionally filtered.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        school: { type: "string", description: "Filter by school (e.g. 'evocation')" },
+        level: { type: "number", description: "Filter by spell level (0-9)" },
+      },
+    },
+  },
+  {
+    name: "dnd_get_monster",
+    description: "Get a D&D 5e monster stat block by index.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        monster: { type: "string", description: "Monster index (e.g. 'goblin', 'adult-red-dragon')" },
+      },
+      required: ["monster"],
+    },
+  },
+  {
+    name: "dnd_list_monsters",
+    description: "List D&D 5e monsters, optionally by challenge rating.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        challenge_rating: { type: "string", description: "Filter by CR (e.g. '1', '0.25')" },
+      },
+    },
+  },
+
+  // ── deckofcards-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "deck_new",
+    description: "Create and shuffle a new deck of cards.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_count: { type: "number", description: "Number of decks (default 1)" },
+      },
+    },
+  },
+  {
+    name: "deck_draw",
+    description: "Draw cards from a deck.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_id: { type: "string", description: "Deck ID from deck_new" },
+        count: { type: "number", description: "Number of cards to draw (default 1)" },
+      },
+      required: ["deck_id"],
+    },
+  },
+  {
+    name: "deck_shuffle",
+    description: "Reshuffle an existing deck.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        deck_id: { type: "string", description: "Deck ID to reshuffle" },
+      },
+      required: ["deck_id"],
+    },
+  },
+
+  // ── adviceslip-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "advice_random",
+    description: "Get a random piece of advice.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "advice_search",
+    description: "Search advice slips by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "advice_by_id",
+    description: "Get a specific advice slip by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Advice slip ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── agify-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "agify_age",
+    description: "Predict the age of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+        country_id: { type: "string", description: "ISO 3166-1 alpha-2 country code for localization" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "genderize_name",
+    description: "Predict the gender of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+        country_id: { type: "string", description: "ISO 3166-1 alpha-2 country code for localization" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "nationalize_name",
+    description: "Predict the nationality of a person based on their first name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "First name to analyze" },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── quotable-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "quote_random",
+    description: "Get a random inspirational quote.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        tags: { type: "string", description: "Comma-separated tags to filter by (e.g. 'wisdom,life')" },
+      },
+    },
+  },
+  {
+    name: "quote_search",
+    description: "Search quotes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "quote_by_author",
+    description: "Get quotes by a specific author.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        author: { type: "string", description: "Author name or slug" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["author"],
+    },
+  },
+  {
+    name: "quote_list_tags",
+    description: "List all available quote tags/categories.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "quote_list_authors",
+    description: "List quote authors sorted by number of quotes.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 20)" },
+      },
+    },
+  },
+
+  // ── bored-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "bored_random",
+    description: "Get a random activity suggestion.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "bored_by_type",
+    description: "Get an activity by type (education, recreational, social, diy, charity, cooking, relaxation, music, busywork).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", description: "Activity type" },
+      },
+      required: ["type"],
+    },
+  },
+  {
+    name: "bored_by_participants",
+    description: "Get an activity for a specific number of participants.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        participants: { type: "number", description: "Number of participants" },
+      },
+      required: ["participants"],
+    },
+  },
+
+  // ── superhero-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "hero_get_by_id",
+    description: "Get a superhero/villain by ID from the comic book database.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "hero_all",
+    description: "List all superheroes and villains (returns first 50 with IDs).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hero_powerstats",
+    description: "Get power statistics for a superhero/villain.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Character ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── opennotify-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "iss_location",
+    description: "Get the current location of the International Space Station.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "iss_astronauts",
+    description: "Get the list of astronauts currently in space.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── tarot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "tarot_all_cards",
+    description: "List all tarot cards in the deck.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "tarot_draw",
+    description: "Draw random tarot cards for a reading.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of cards to draw (default 3)" },
+      },
+    },
+  },
+  {
+    name: "tarot_search",
+    description: "Search for a specific tarot card by name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Card name (e.g. 'The Fool', 'Death', 'Ace of Cups')" },
+      },
+      required: ["query"],
+    },
+  },
+
+  // ── aoe2-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "aoe2_civilizations",
+    description: "List all Age of Empires II civilizations.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "aoe2_civilization",
+    description: "Get an Age of Empires II civilization by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Civilization ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "aoe2_units",
+    description: "List all Age of Empires II units.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "aoe2_unit",
+    description: "Get an Age of Empires II unit by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Unit ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "aoe2_technologies",
+    description: "List all Age of Empires II technologies.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── affirmation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "affirmation_random",
+    description: "Get a random positive affirmation.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── jsonplaceholder-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "jp_list_posts",
+    description: "List posts from JSONPlaceholder (fake REST API). Optionally filter by userId.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        userId: { type: "number", description: "Filter by user ID (1-10)" },
+      },
+    },
+  },
+  {
+    name: "jp_get_post",
+    description: "Get a single post by ID from JSONPlaceholder.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Post ID (1-100)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "jp_list_comments",
+    description: "List comments on a post from JSONPlaceholder.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        postId: { type: "number", description: "Post ID to get comments for" },
+      },
+      required: ["postId"],
+    },
+  },
+  {
+    name: "jp_list_users",
+    description: "List all users from JSONPlaceholder (fake test data).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── picsum-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "picsum_list",
+    description: "List photos available on Lorem Picsum.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+        limit: { type: "number", description: "Photos per page (default 20, max 100)" },
+      },
+    },
+  },
+  {
+    name: "picsum_get",
+    description: "Get info about a specific Lorem Picsum photo by ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Photo ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "picsum_random_url",
+    description: "Generate a random placeholder image URL from Lorem Picsum (no fetch needed).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Image width in pixels (default 800)" },
+        height: { type: "number", description: "Image height in pixels (default 600)" },
+        grayscale: { type: "boolean", description: "Convert to grayscale" },
+        blur: { type: "number", description: "Blur amount (1-10)" },
+      },
+    },
+  },
+
+  // ── bible-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bible_verse",
+    description: "Look up a Bible verse or passage by reference (e.g. 'John 3:16', 'Psalm 23').",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        reference: { type: "string", description: "Bible reference, e.g. 'John 3:16', 'Romans 8:28-30'" },
+      },
+      required: ["reference"],
+    },
+  },
+  {
+    name: "bible_random",
+    description: "Get a random Bible verse.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── frankfurter-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "frankfurter_latest",
+    description: "Get latest exchange rates from ECB via Frankfurter.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        from: { type: "string", description: "Base currency code (default EUR)" },
+        to: { type: "string", description: "Target currency code (optional, returns all if omitted)" },
+      },
+    },
+  },
+  {
+    name: "frankfurter_convert",
+    description: "Convert a specific amount between two currencies using ECB rates.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        amount: { type: "number", description: "Amount to convert" },
+        from: { type: "string", description: "Source currency code" },
+        to: { type: "string", description: "Target currency code" },
+      },
+      required: ["amount", "from", "to"],
+    },
+  },
+  {
+    name: "frankfurter_historical",
+    description: "Get historical exchange rates for a specific date from ECB.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        date: { type: "string", description: "Date in YYYY-MM-DD format" },
+        from: { type: "string", description: "Base currency code (default EUR)" },
+        to: { type: "string", description: "Target currency code (optional)" },
+      },
+      required: ["date"],
+    },
+  },
+  {
+    name: "frankfurter_currencies",
+    description: "List all currencies supported by the Frankfurter ECB exchange-rate API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── zenquotes-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "zen_quote_random",
+    description: "Get a random inspirational quote from Zen Quotes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "zen_quote_today",
+    description: "Get today's quote of the day from Zen Quotes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "zen_quotes",
+    description: "Get a batch of inspirational quotes from Zen Quotes (returns up to 20).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── kanye-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "kanye_quote",
+    description: "Get a random Kanye West quote.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dadjoke-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "dadjoke_random",
+    description: "Get a random dad joke from icanhazdadjoke.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dadjoke_search",
+    description: "Search for dad jokes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        term: { type: "string", description: "Search keyword" },
+        page: { type: "number", description: "Page number (default 1)" },
+        limit: { type: "number", description: "Results per page (max 30, default 20)" },
+      },
+      required: ["term"],
+    },
+  },
+  {
+    name: "dadjoke_by_id",
+    description: "Get a specific dad joke by its ID.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Joke ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── uselessfacts-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "useless_fact_random",
+    description: "Get a random useless fact.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "useless_fact_today",
+    description: "Get today's useless fact of the day.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── randomfox-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "random_fox_image",
+    description: "Get a random fox image URL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── httpbin-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "httpbin_get",
+    description: "Test an HTTP GET request - see your headers, IP, and args echoed back.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_headers",
+    description: "Get your request headers as seen by httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_ip",
+    description: "Get your public IP address via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_user_agent",
+    description: "Get your User-Agent string via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "httpbin_uuid",
+    description: "Generate a random UUID via httpbin.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── reqres-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "reqres_list_users",
+    description: "List fake users from Reqres (test API).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+  {
+    name: "reqres_get_user",
+    description: "Get a specific fake user by ID from Reqres.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "User ID (1-12)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "reqres_list_resources",
+    description: "List fake color resources from Reqres (test API).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+
+  // ── corporatebs-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "corporate_bs_phrase",
+    description: "Generate a random corporate buzzword phrase.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── worldtime-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "worldtime_by_timezone",
+    description: "Get current time for a specific timezone.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        timezone: { type: "string", description: "IANA timezone, e.g. 'America/New_York', 'Europe/London'" },
+      },
+      required: ["timezone"],
+    },
+  },
+  {
+    name: "worldtime_by_ip",
+    description: "Get current time based on IP address geolocation.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        ip: { type: "string", description: "IP address (omit for your own IP)" },
+      },
+    },
+  },
+  {
+    name: "worldtime_list_timezones",
+    description: "List all available IANA timezones.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── sunrisesunset-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "sunrise_sunset_times",
+    description: "Get sunrise and sunset times for GPS coordinates.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        lat: { type: "number", description: "Latitude" },
+        lng: { type: "number", description: "Longitude" },
+        date: { type: "string", description: "Date (YYYY-MM-DD) or 'today' (default)" },
+      },
+      required: ["lat", "lng"],
+    },
+  },
+
+  // ── zippopotamus-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "zip_lookup",
+    description: "Look up location info for a zip/postal code.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        code: { type: "string", description: "Zip or postal code" },
+        country: { type: "string", description: "Country code (default: us). Supports us, gb, au, ca, de, fr, etc." },
+      },
+      required: ["code"],
+    },
+  },
+  {
+    name: "zip_by_city",
+    description: "Look up zip/postal codes for a city and state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        state: { type: "string", description: "State abbreviation (e.g. CA, NY)" },
+        city: { type: "string", description: "City name" },
+        country: { type: "string", description: "Country code (default: us)" },
+      },
+      required: ["state", "city"],
+    },
+  },
+
+  // ── yesno-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "yesno_random",
+    description: "Get a random yes/no answer with an animated GIF.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        force: { type: "string", enum: ["yes", "no", "maybe"], description: "Force a specific answer" },
+      },
+    },
+  },
+
+  // ── evilinsult-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "evil_insult_random",
+    description: "Get a random insult (for entertainment only).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        lang: { type: "string", description: "Language code (default: en). Supports en, es, de, etc." },
+      },
+    },
+  },
+
+  // ── dogapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dog_api_random_image",
+    description: "Get a random dog image from The Dog API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "dog_api_breeds",
+    description: "List dog breeds with details from The Dog API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds to return (max 50, default 20)" },
+        page: { type: "number", description: "Page number (default 0)" },
+      },
+    },
+  },
+
+  // ── apifootball-tool.ts (TheSportsDB) ──────────────────────────────────────
+  {
+    name: "sportsdb_search_team",
+    description: "Search for a sports team by name on TheSportsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { team: { type: "string", description: "Team name to search for" } },
+      required: ["team"],
+    },
+  },
+  {
+    name: "sportsdb_search_player",
+    description: "Search for a sports player by name on TheSportsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { player: { type: "string", description: "Player name to search for" } },
+      required: ["player"],
+    },
+  },
+  {
+    name: "sportsdb_team_events",
+    description: "Get upcoming events for a team by TheSportsDB team ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { id: { type: "string", description: "TheSportsDB team ID" } },
+      required: ["id"],
+    },
+  },
+  {
+    name: "sportsdb_leagues",
+    description: "List all sports leagues on TheSportsDB.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── catapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "cat_api_random_image",
+    description: "Get a random cat image from The Cat API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "cat_api_breeds",
+    description: "List cat breeds with details from The Cat API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of breeds (max 50, default 20)" },
+        page: { type: "number", description: "Page number (default 0)" },
+      },
+    },
+  },
+
+  // ── spaceflight-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "spaceflight_articles",
+    description: "Get latest spaceflight news articles.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of articles (max 20, default 10)" },
+        search: { type: "string", description: "Search keyword" },
+      },
+    },
+  },
+  {
+    name: "spaceflight_blogs",
+    description: "Get latest spaceflight blog posts.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of posts (max 20, default 10)" },
+        search: { type: "string", description: "Search keyword" },
+      },
+    },
+  },
+  {
+    name: "spaceflight_reports",
+    description: "Get latest spaceflight technical reports.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { limit: { type: "number", description: "Number of reports (max 20, default 10)" } },
+    },
+  },
+
+  // ── archiveorg-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "archive_search",
+    description: "Search the Internet Archive (archive.org) for items.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query" },
+        mediatype: { type: "string", description: "Filter: texts, audio, movies, software, image, collection" },
+        limit: { type: "number", description: "Results per page (max 20, default 10)" },
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "archive_metadata",
+    description: "Get metadata for an Internet Archive item by identifier.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { identifier: { type: "string", description: "Archive.org item identifier" } },
+      required: ["identifier"],
+    },
+  },
+
+  // ── ipify-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "ipify_get_ip",
+    description: "Get your public IP address via ipify.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { ipv6: { type: "boolean", description: "Use IPv6 endpoint" } },
+    },
+  },
+
+  // ── exchangerate2-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "er_latest_rates",
+    description: "Get latest exchange rates from ExchangeRate-API (open endpoint).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { base: { type: "string", description: "Base currency code (default: USD)" } },
+    },
+  },
+
+  // ── makeup-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "makeup_search",
+    description: "Search makeup products by brand, type, category, or tags.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        brand: { type: "string", description: "Brand name (e.g. maybelline, covergirl, nyx)" },
+        product_type: { type: "string", description: "Product type (e.g. lipstick, foundation, mascara)" },
+        product_category: { type: "string", description: "Category (e.g. powder, cream, liquid)" },
+        product_tags: { type: "string", description: "Tags (e.g. vegan, organic, gluten_free)" },
+      },
+    },
+  },
+
+  // ── github-emoji-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "github_emojis",
+    description: "List all GitHub emojis with their image URLs.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── metmuseum-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "met_search",
+    description: "Search the Metropolitan Museum of Art collection for artworks.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search query (e.g. sunflowers, Egyptian, armor)" },
+        hasImages: { type: "boolean", description: "Only return objects with images (default true)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "met_object",
+    description: "Get full details for a Met Museum artwork by object ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: { objectID: { type: "number", description: "Met Museum object ID" } },
+      required: ["objectID"],
+    },
+  },
+  {
+    name: "met_departments",
+    description: "List all departments in the Metropolitan Museum of Art.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── lorem-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bacon_ipsum",
+    description: "Generate meat-themed placeholder text (Bacon Ipsum).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        paragraphs: { type: "number", description: "Number of paragraphs (max 10, default 3)" },
+        type: { type: "string", enum: ["meat-and-filler", "all-meat"], description: "Text type (default: meat-and-filler)" },
+      },
+    },
+  },
+
+  // ── placekitten-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "placeholder_image",
+    description: "Generate a placeholder image URL with custom size, colors, and text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        text: { type: "string", description: "Text overlay on the image" },
+        bg: { type: "string", description: "Background hex color (default EEEEEE)" },
+        fg: { type: "string", description: "Text hex color (default 333333)" },
+      },
+    },
+  },
+  {
+    name: "placekitten_image",
+    description: "Generate a random kitten placeholder image URL.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        grayscale: { type: "boolean", description: "Grayscale kitten image" },
+      },
+    },
+  },
+
+  // ── shibe-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "shibe_random_image",
+    description: "Get random Shiba Inu, cat, or bird images.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of images (1-10, default 1)" },
+        type: { type: "string", description: "Image type: shibes, cats, or birds (default shibes)" },
+      },
+    },
+  },
+
+  // ── cataas-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "cataas_random_cat",
+    description: "Get a random cat image, optionally with a tag or text overlay.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        tag: { type: "string", description: "Filter by tag (e.g. cute, funny, sleeping)" },
+        text: { type: "string", description: "Text to overlay on the image" },
+      },
+    },
+  },
+  {
+    name: "cataas_list_tags",
+    description: "List all available cat image tags.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── punkapi-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "punkapi_random_beer",
+    description: "Get a random craft beer recipe from BrewDog's Punk API.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "punkapi_search_beers",
+    description: "Search craft beer recipes by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Beer name to search for" },
+        per_page: { type: "number", description: "Results per page (max 25, default 10)" },
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+  {
+    name: "punkapi_get_beer",
+    description: "Get a specific craft beer recipe by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Numeric beer ID" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── colormind-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "colormind_generate_palette",
+    description: "Generate an AI-powered 5-color palette using Colormind.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        model: { type: "string", description: "Color model to use (default: default)" },
+        input: {
+          type: "array",
+          description: "Optional 5-element array of [R,G,B] or 'N' for colors to lock/generate",
+          items: {},
+        },
+      },
+    },
+  },
+  {
+    name: "colormind_list_models",
+    description: "List available Colormind color models.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dummyjson-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "dummyjson_products",
+    description: "Browse fake product data from DummyJSON.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 10, max 30)" },
+        skip: { type: "number", description: "Offset for pagination" },
+      },
+    },
+  },
+  {
+    name: "dummyjson_search_products",
+    description: "Search fake products by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search keyword" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "dummyjson_quotes",
+    description: "Browse a collection of quotes from DummyJSON.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Max results (default 10, max 30)" },
+      },
+    },
+  },
+  {
+    name: "dummyjson_random_quote",
+    description: "Get a random quote from DummyJSON.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── excuser-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "excuser_random",
+    description: "Get a random excuse, optionally by category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Category: family, office, college, party, or unspecified" },
+      },
+    },
+  },
+
+  // ── dogfacts-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "dog_fact_random",
+    description: "Get a random dog fact.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── amiibo-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "amiibo_search",
+    description: "Search Nintendo Amiibo figures by character name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "amiibo_by_series",
+    description: "List Amiibo figures in a game series.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        series: { type: "string", description: "Amiibo series name (e.g. Super Mario, Zelda)" },
+      },
+      required: ["series"],
+    },
+  },
+  {
+    name: "amiibo_types",
+    description: "List all Amiibo product types (figure, card, yarn, etc.).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── dummyimage-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "dummy_image_url",
+    description: "Generate a placeholder image URL with custom size, colors, and text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        width: { type: "number", description: "Width in pixels (default 600)" },
+        height: { type: "number", description: "Height in pixels (default 400)" },
+        bg_color: { type: "string", description: "Background hex color without # (default cccccc)" },
+        fg_color: { type: "string", description: "Text hex color without # (default 000000)" },
+        text: { type: "string", description: "Text to show on the image" },
+      },
+    },
+  },
+
+  // ── ipinfo-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "ipinfo_lookup",
+    description: "Get geolocation and ISP info for an IP address (or your own).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        ip: { type: "string", description: "IP address to look up (omit for your own)" },
+      },
+    },
+  },
+
+  // ── ghibli-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "ghibli_films",
+    description: "List all Studio Ghibli films with directors and descriptions.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "ghibli_people",
+    description: "List characters from Studio Ghibli films.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── finalspace-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "final_space_characters",
+    description: "List all Final Space characters.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "final_space_episodes",
+    description: "List all Final Space episodes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── mcsrvstat-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "mc_server_status",
+    description: "Check the status of a Minecraft server (Java or Bedrock).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        address: { type: "string", description: "Server address (e.g. mc.hypixel.net)" },
+        edition: { type: "string", description: "java or bedrock (default java)" },
+      },
+      required: ["address"],
+    },
+  },
+
+  // ── disneyapi-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "disney_character_search",
+    description: "Search Disney characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "disney_all_characters",
+    description: "Browse all Disney characters (paginated).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+
+  // ── harrypotter-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "hp_all_characters",
+    description: "List all Harry Potter characters.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_students",
+    description: "List Hogwarts students.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_staff",
+    description: "List Hogwarts staff.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_by_house",
+    description: "List characters by Hogwarts house.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        house: { type: "string", description: "House name: gryffindor, slytherin, hufflepuff, or ravenclaw" },
+      },
+      required: ["house"],
+    },
+  },
+
+  // ── emojihub-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "emojihub_random",
+    description: "Get a random emoji with name, category, and HTML/Unicode codes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "emojihub_by_category",
+    description: "Browse emojis by category (smileys, animals, food, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Category slug (e.g. smileys-and-people, animals-and-nature)" },
+      },
+      required: ["category"],
+    },
+  },
+
+  // ── avatarapi-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "avatar_url",
+    description: "Generate a text-based avatar image URL with initials.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Name for the avatar initials (default User)" },
+        size: { type: "number", description: "Size in pixels (default 200)" },
+        background: { type: "string", description: "Background hex color or 'random'" },
+        color: { type: "string", description: "Text hex color (default fff)" },
+        format: { type: "string", description: "Format: svg or png (default svg)" },
+      },
+    },
+  },
+
+  // ── robohash-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "robohash_url",
+    description: "Generate a unique robot/monster/cat avatar from any text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "Text seed for the avatar (default robot)" },
+        size: { type: "number", description: "Size in pixels (default 300)" },
+        set: { type: "string", description: "Style: set1 (robots), set2 (monsters), set3 (heads), set4 (cats), set5 (humans)" },
+        bg: { type: "string", description: "Background: bg1 or bg2" },
+      },
+    },
+  },
+
+  // ── openlib2-tool.ts (gutendex/project gutenberg) ─────────────────────────
+  {
+    name: "gutenberg_search",
+    description: "Search Project Gutenberg free ebooks by title or author.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Search term (title or author)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "gutenberg_book",
+    description: "Get details for a specific Project Gutenberg book by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Numeric book ID from Project Gutenberg" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── countryflag-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "country_flag_url",
+    description: "Get a country flag image URL by ISO 2-letter code.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country_code: { type: "string", description: "2-letter ISO country code (e.g. US, GB, AU)" },
+        style: { type: "string", description: "flat (PNG) or svg (default flat)" },
+        size: { type: "number", description: "Size: 16, 32, 48, or 64 (default 64)" },
+      },
+      required: ["country_code"],
+    },
+  },
+
+  // ── mediawiki-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "wiktionary_lookup",
+    description: "Look up a word definition in Wiktionary (multi-language).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        word: { type: "string", description: "Word to look up" },
+        language: { type: "string", description: "Language code (default en)" },
+      },
+      required: ["word"],
+    },
+  },
+
+  // ── bibleverse-tool.ts (quran) ─────────────────────────────────────────────
+  {
+    name: "quran_verse",
+    description: "Get a specific verse (ayah) from the Quran with English translation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        surah: { type: "number", description: "Surah number (1-114, default 1)" },
+        ayah: { type: "number", description: "Ayah (verse) number within the surah" },
+      },
+    },
+  },
+  {
+    name: "quran_surah",
+    description: "Get a full surah (chapter) from the Quran.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "Surah number (1-114, default 1)" },
+      },
+    },
+  },
+
+  // ── urlhaus-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "urlhaus_lookup_url",
+    description: "Check if a URL is listed as a malware distribution site in the URLhaus database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        url: { type: "string", description: "The URL to look up" },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "urlhaus_recent",
+    description: "Get recent malware URLs added to the URLhaus database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── tvmaze-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "tvmaze_search",
+    description: "Search for TV shows by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Show name to search for" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "tvmaze_show",
+    description: "Get full details for a TV show by its TVmaze ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "TVmaze show ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "tvmaze_schedule",
+    description: "Get the TV schedule for a country and date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country: { type: "string", description: "ISO 3166-1 country code (default US)" },
+        date: { type: "string", description: "Date in YYYY-MM-DD format (default today)" },
+      },
+    },
+  },
+
+  // ── freetogame-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "freetogame_list",
+    description: "Browse free-to-play games, optionally filtered by platform or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        platform: { type: "string", description: "Filter: pc, browser, or all (default all)" },
+        category: { type: "string", description: "Filter: mmorpg, shooter, moba, strategy, etc." },
+        sort_by: { type: "string", description: "Sort: relevance, popularity, release-date, alphabetical" },
+      },
+    },
+  },
+  {
+    name: "freetogame_detail",
+    description: "Get full details for a specific free-to-play game.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "number", description: "Game ID from freetogame" },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── cheapshark-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cheapshark_deals",
+    description: "Search for game deals across multiple stores (Steam, GOG, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        title: { type: "string", description: "Game title to search for" },
+        upper_price: { type: "number", description: "Max price filter" },
+        lower_price: { type: "number", description: "Min price filter" },
+        store_id: { type: "string", description: "Store ID to filter (use cheapshark_stores to find IDs)" },
+        sort_by: { type: "string", description: "Sort: Deal Rating, Title, Savings, Price, Store, recent" },
+        limit: { type: "number", description: "Number of results (default 10)" },
+      },
+    },
+  },
+  {
+    name: "cheapshark_stores",
+    description: "List all game stores tracked by CheapShark.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── iseven-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "is_even",
+    description: "Check whether a number is even, via the isEven API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        number: { type: "number", description: "The number to check" },
+      },
+      required: ["number"],
+    },
+  },
+
+  // ── iceandfire-tool.ts (Game of Thrones / ASOIAF) ──────────────────────────
+  {
+    name: "iceandfire_characters",
+    description: "Search characters from A Song of Ice and Fire (Game of Thrones).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+  {
+    name: "iceandfire_books",
+    description: "List or search books in the A Song of Ice and Fire series.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Book title to search for" },
+      },
+    },
+  },
+  {
+    name: "iceandfire_houses",
+    description: "Search noble houses from A Song of Ice and Fire (Game of Thrones).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "House name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+
+  // ── randomuser-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "random_user",
+    description: "Generate random user profiles with names, emails, addresses, and photos.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of users to generate (default 1)" },
+        gender: { type: "string", description: "Filter by gender: male or female" },
+        nationality: { type: "string", description: "ISO 3166-1 alpha-2 codes, comma-separated (e.g. US,GB,AU)" },
+      },
+    },
+  },
+
+  // ── digimon-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "digimon_all",
+    description: "List all Digimon with names, images, and levels.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "digimon_by_name",
+    description: "Look up a specific Digimon by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Digimon name (e.g. Agumon, Greymon)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "digimon_by_level",
+    description: "List Digimon filtered by evolution level.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        level: { type: "string", description: "Level: Fresh, In Training, Rookie, Champion, Ultimate, or Mega" },
+      },
+      required: ["level"],
+    },
+  },
+
+  // ── stapi-tool.ts (Star Trek) ───────────────────────────────────────────────
+  {
+    name: "stapi_search_character",
+    description: "Search Star Trek characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "stapi_search_species",
+    description: "Search Star Trek species by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Species name (e.g. Vulcan, Klingon)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "stapi_search_starship",
+    description: "Search Star Trek starships/spacecraft by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Starship name (e.g. Enterprise)" },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── breakingbad-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "breaking_bad_quote",
+    description: "Get random Breaking Bad quotes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        count: { type: "number", description: "Number of quotes (default 1)" },
+      },
+    },
+  },
+
+  // ── tacofancy-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "random_taco",
+    description: "Generate a random taco recipe with base, seasoning, condiment, and shell.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── publicapis-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "publicapis_search",
+    description: "Search the Public APIs directory for free APIs by name or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        title: { type: "string", description: "API name to search for" },
+        category: { type: "string", description: "Category filter (use publicapis_categories for list)" },
+        https: { type: "boolean", description: "Filter HTTPS-only APIs" },
+        auth: { type: "string", description: "Auth type filter: apiKey, OAuth, or empty for none" },
+      },
+    },
+  },
+  {
+    name: "publicapis_categories",
+    description: "List all categories in the Public APIs directory.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "publicapis_random",
+    description: "Get a random API from the Public APIs directory.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── wger-tool.ts (workout database) ──────────────────────────────────────────
+  {
+    name: "wger_exercises",
+    description: "Search and browse exercises from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        search: { type: "string", description: "Exercise name to search for" },
+        category: { type: "number", description: "Category ID (use wger_categories for list)" },
+        limit: { type: "number", description: "Results per page (default 20)" },
+      },
+    },
+  },
+  {
+    name: "wger_categories",
+    description: "List exercise categories from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "wger_muscles",
+    description: "List muscle groups from the wger workout database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── animechan-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "animechan_random",
+    description: "Get a random anime quote.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "animechan_search",
+    description: "Search for anime quotes from a specific anime.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        anime: { type: "string", description: "Anime title to search quotes from" },
+      },
+      required: ["anime"],
+    },
+  },
+
+  // ── lotr-tool.ts (Lord of the Rings) ───────────────────────────────────────
+  {
+    name: "lotr_books",
+    description: "List Lord of the Rings books.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "lotr_characters",
+    description: "Search Lord of the Rings characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search for" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+  {
+    name: "lotr_quotes",
+    description: "Get Lord of the Rings movie quotes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        limit: { type: "number", description: "Number of quotes (default 10)" },
+      },
+    },
+  },
+
+  // ── coinpaprika-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "coinpaprika_global",
+    description: "Get global cryptocurrency market stats from Coinpaprika.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "coinpaprika_coin",
+    description: "Get detailed info about a cryptocurrency from Coinpaprika.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Coin ID (e.g. btc-bitcoin, eth-ethereum)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "coinpaprika_ticker",
+    description: "Get live price/ticker data from Coinpaprika. Without id, returns top 20.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Coin ID for specific ticker (optional)" },
+      },
+    },
+  },
+
+  // ── openfda-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "openfda_drug_search",
+    description: "Search FDA drug labels by brand name or ingredient.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Drug name or ingredient to search for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "openfda_recall_search",
+    description: "Search FDA food and drug recall enforcement actions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Product or reason to search for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "openfda_adverse_events",
+    description: "Search FDA drug adverse event reports.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        drug: { type: "string", description: "Drug name to search adverse events for" },
+        limit: { type: "number", description: "Number of results (default 5)" },
+      },
+      required: ["drug"],
+    },
+  },
+
+  // ── funtranslations-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "fun_translate",
+    description: "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "Text to translate" },
+        dialect: { type: "string", description: "Dialect: yoda, pirate, shakespeare, minion, dothraki, valyrian, pig-latin, morse (default yoda)" },
+      },
+      required: ["text"],
+    },
+  },
+
+  // ── datamuse-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "datamuse_words",
+    description: "Find words by meaning, sound, spelling, rhyme, or adjective/noun relationship.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        means_like: { type: "string", description: "Words with similar meaning" },
+        sounds_like: { type: "string", description: "Words that sound similar" },
+        spelled_like: { type: "string", description: "Wildcard pattern (? = one char, * = any)" },
+        rhymes_with: { type: "string", description: "Words that rhyme" },
+        adjectives_for: { type: "string", description: "Adjectives commonly used with this noun" },
+        nouns_for: { type: "string", description: "Nouns commonly described by this adjective" },
+        limit: { type: "number", description: "Max results (default 20)" },
+      },
+    },
+  },
+  {
+    name: "datamuse_suggestions",
+    description: "Get autocomplete suggestions for a word prefix.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        prefix: { type: "string", description: "Word prefix to autocomplete" },
+        limit: { type: "number", description: "Max results (default 10)" },
+      },
+      required: ["prefix"],
+    },
+  },
+
+  // ── balldontlie-tool.ts (NBA) ───────────────────────────────────────────────
+  {
+    name: "nba_players",
+    description: "Search NBA players by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        search: { type: "string", description: "Player name to search for" },
+        limit: { type: "number", description: "Results per page (default 25)" },
+      },
+    },
+  },
+  {
+    name: "nba_teams",
+    description: "List all NBA teams.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "nba_games",
+    description: "Browse NBA game scores and results.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        season: { type: "number", description: "Season year (e.g. 2023)" },
+        team_id: { type: "number", description: "Filter by team ID (use nba_teams for IDs)" },
+        limit: { type: "number", description: "Results per page (default 10)" },
+      },
+    },
+  },
+
+  // ── worldbank-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "worldbank_country",
+    description: "Get country info from the World Bank. Pass a code (US, GB) or omit for all.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        code: { type: "string", description: "ISO 3166-1 alpha-2 or alpha-3 code (default all)" },
+      },
+    },
+  },
+  {
+    name: "worldbank_indicator",
+    description: "Get economic/development indicator data from the World Bank.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        country: { type: "string", description: "Country code (default US)" },
+        indicator: { type: "string", description: "Indicator ID (e.g. NY.GDP.MKTP.CD for GDP, SP.POP.TOTL for population)" },
+        date: { type: "string", description: "Year range (e.g. 2015:2023, default last 8 years)" },
+      },
+      required: ["indicator"],
+    },
+  },
+
+  // ── carbonintensity-tool.ts (UK grid) ───────────────────────────────────────
+  {
+    name: "carbon_intensity_current",
+    description: "Get current UK electricity grid carbon intensity (gCO2/kWh).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "carbon_intensity_forecast",
+    description: "Get 24-hour forecast of UK grid carbon intensity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "carbon_intensity_generation",
+    description: "Get current UK electricity generation mix by fuel type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── lyrics-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "lyrics_get",
+    description: "Get song lyrics by artist and title.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        artist: { type: "string", description: "Artist/band name" },
+        title: { type: "string", description: "Song title" },
+      },
+      required: ["artist", "title"],
+    },
+  },
+
+  // ── urbandictionary-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "urban_define",
+    description: "Look up slang definitions on Urban Dictionary.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        term: { type: "string", description: "Slang term to define" },
+      },
+      required: ["term"],
+    },
+  },
+  {
+    name: "urban_random",
+    description: "Get random Urban Dictionary definitions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── nobelprize-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "nobel_prizes",
+    description: "Search Nobel Prize data by year and/or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        year: { type: "number" as const, description: "Award year (e.g. 2023)." },
+        category: { type: "string" as const, description: "Category code: che, eco, lit, pea, phy, med." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "nobel_laureates",
+    description: "Search Nobel laureates by name, year, or category.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Laureate name to search." },
+        year: { type: "number" as const, description: "Award year." },
+        category: { type: "string" as const, description: "Category code: che, eco, lit, pea, phy, med." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── universities-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "universities_search",
+    description: "Search world universities by name and/or country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "University name to search (partial match)." },
+        country: { type: "string" as const, description: "Country name (e.g. 'Australia', 'United States')." },
+        limit: { type: "number" as const, description: "Max results (default 25)." },
+      },
+    },
+  },
+
+  // ── fakestoreapi-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "fakestore_products",
+    description: "List fake e-commerce products (for testing and prototyping).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Max products (default 10)." },
+      },
+    },
+  },
+  {
+    name: "fakestore_product",
+    description: "Get a single fake product by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "number" as const, description: "Product ID (1-20)." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "fakestore_categories",
+    description: "List all fake store product categories.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── mtg-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "mtg_search_cards",
+    description: "Search Magic: The Gathering cards by name, color, type, set, or rarity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Card name to search." },
+        colors: { type: "string" as const, description: "Color filter (W, U, B, R, G or combinations)." },
+        type: { type: "string" as const, description: "Card type (e.g. Instant, Creature, Sorcery)." },
+        set: { type: "string" as const, description: "Set code (e.g. LEA, M21)." },
+        rarity: { type: "string" as const, description: "Rarity: common, uncommon, rare, mythic." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "mtg_get_card",
+    description: "Get a specific MTG card by its multiverse ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Multiverse ID of the card." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "mtg_sets",
+    description: "List or search Magic: The Gathering sets.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Set name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── domainsdb-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "domainsdb_search",
+    description: "Search registered domain names by keyword or pattern.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain keyword to search (e.g. 'google', 'shop')." },
+        zone: { type: "string" as const, description: "TLD zone filter (e.g. 'com', 'org', 'io')." },
+        limit: { type: "number" as const, description: "Max results (default 20)." },
+      }, required: ["domain"],
+    },
+  },
+  {
+    name: "domainsdb_tlds",
+    description: "List available top-level domains (TLDs) from DomainsDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── pokemontcg-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "pokemon_tcg_search_cards",
+    description: "Search Pokemon Trading Card Game cards by name, type, set, or rarity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Card name to search." },
+        type: { type: "string" as const, description: "Pokemon type (e.g. Fire, Water, Grass)." },
+        set: { type: "string" as const, description: "Set name to search within." },
+        rarity: { type: "string" as const, description: "Card rarity (e.g. Rare, Common)." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "pokemon_tcg_sets",
+    description: "List or search Pokemon TCG card sets.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Set name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── spacex-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "spacex_latest_launch",
+    description: "Get the most recent SpaceX launch details.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "spacex_launches",
+    description: "List recent SpaceX launches.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Number of most recent launches to return (default 10)." },
+      },
+    },
+  },
+  {
+    name: "spacex_rockets",
+    description: "List all SpaceX rockets with specifications.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── genderize-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "genderize_predict",
+    description: "Predict gender from a first name with probability score.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "First name to predict gender for." },
+        country_id: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code for localized prediction." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── nationalize-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "nationalize_predict",
+    description: "Predict likely nationalities from a first name with probability scores.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "First name to predict nationality for." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── qrserver-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "qrserver_generate",
+    description: "Generate a QR code image URL for any text or URL.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        data: { type: "string" as const, description: "Text or URL to encode in the QR code." },
+        size: { type: "string" as const, description: "Image dimensions as WxH (default '200x200')." },
+        format: { type: "string" as const, description: "Image format: png, svg, jpg (default 'png')." },
+        color: { type: "string" as const, description: "QR code color as hex without # (e.g. '000000')." },
+        bgcolor: { type: "string" as const, description: "Background color as hex without # (e.g. 'ffffff')." },
+      }, required: ["data"],
+    },
+  },
+
+  // ── solarsystem-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "solarsystem_bodies",
+    description: "List solar system bodies (planets, moons, asteroids, comets).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        filter: { type: "string" as const, description: "Body type filter: Star, Planet, Dwarf Planet, Asteroid, Comet, Moon." },
+        limit: { type: "number" as const, description: "Max results to return." },
+      },
+    },
+  },
+  {
+    name: "solarsystem_body",
+    description: "Get detailed info about a specific solar system body.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Body ID (e.g. 'terre' for Earth, 'mars', 'jupiter', 'lune' for Moon)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── pubchem-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pubchem_search",
+    description: "Search PubChem for a chemical compound by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Compound name (e.g. 'aspirin', 'caffeine', 'water')." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "pubchem_properties",
+    description: "Get specific properties of a PubChem compound by CID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cid: { type: "string" as const, description: "PubChem Compound ID." },
+        properties: { type: "string" as const, description: "Comma-separated property list (default: MolecularFormula,MolecularWeight,IUPACName,IsomericSMILES)." },
+      }, required: ["cid"],
+    },
+  },
+
+  // ── openmeteo-marine-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "marine_forecast",
+    description: "Get ocean wave, swell, and marine weather forecast for a location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the ocean point." },
+        longitude: { type: "number" as const, description: "Longitude of the ocean point." },
+        forecast_days: { type: "number" as const, description: "Number of forecast days (default 7, max 16)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── opentriviadb-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "triviadb_questions",
+    description: "Get trivia questions from Open Trivia Database by category, difficulty, or type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        amount: { type: "number" as const, description: "Number of questions (default 5, max 50)." },
+        category: { type: "number" as const, description: "Category ID (use triviadb_categories to list them)." },
+        difficulty: { type: "string" as const, description: "Difficulty: easy, medium, or hard." },
+        type: { type: "string" as const, description: "Question type: multiple (4 choices) or boolean (true/false)." },
+      },
+    },
+  },
+  {
+    name: "triviadb_categories",
+    description: "List all available Open Trivia Database question categories.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── ipaddrinfo-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "ip_address_lookup",
+    description: "Look up geolocation, ISP, and timezone for an IP address.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up (omit for current server IP)." },
+      },
+    },
+  },
+
+  // ── diceware-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "diceware_passphrase",
+    description: "Generate a secure random passphrase using the diceware word list.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        words: { type: "number" as const, description: "Number of words (3-12, default 6)." },
+        separator: { type: "string" as const, description: "Word separator (default '-')." },
+      },
+    },
+  },
+
+  // ── colornames-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "color_name_lookup",
+    description: "Find the closest named color for a hex code.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. 'ff5733' or '#ff5733')." },
+      }, required: ["hex"],
+    },
+  },
+  {
+    name: "color_name_random",
+    description: "Get a random named color with its hex code and name.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── mhwdb-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "mhw_monsters",
+    description: "Search Monster Hunter World monsters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Monster name to search." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+  {
+    name: "mhw_weapons",
+    description: "Browse Monster Hunter World weapons by type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        type: { type: "string" as const, description: "Weapon type (e.g. great-sword, long-sword, bow, hammer)." },
+        limit: { type: "number" as const, description: "Max results (default 10)." },
+      },
+    },
+  },
+
+  // ── exchangerate3-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "currency_api_rates",
+    description: "Get latest currency exchange rates from fawazahmed0 currency API (free, no key).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        base: { type: "string" as const, description: "Base currency code (default: usd)." },
+      },
+    },
+  },
+  {
+    name: "currency_api_list",
+    description: "List all supported currency codes from fawazahmed0 currency API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── jisho-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "jisho_search",
+    description: "Search Jisho.org Japanese dictionary for words, kanji, or English translations.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        keyword: { type: "string" as const, description: "Search keyword (English, Japanese, romaji)." },
+      },
+      required: ["keyword"],
+    },
+  },
+
+  // ── colr-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "colr_random_palette",
+    description: "Get a random color palette from colr.org.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── gameoflife-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "game_of_life_step",
+    description: "Run Conway's Game of Life simulation steps (local, no network).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        grid: { type: "string" as const, description: "Grid string with rows separated by newlines. '#' or '1' = alive, '.' or '0' = dead." },
+        width: { type: "number" as const, description: "Grid width for random generation (default 10, max 50)." },
+        height: { type: "number" as const, description: "Grid height for random generation (default 10, max 50)." },
+        steps: { type: "number" as const, description: "Number of simulation steps (default 1, max 20)." },
+      },
+    },
+  },
+
+  // ── fruityvice-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "fruityvice_all",
+    description: "List all fruits with nutrition facts from Fruityvice.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "fruityvice_by_name",
+    description: "Get detailed nutrition info for a specific fruit from Fruityvice.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Fruit name (e.g. banana, apple, strawberry)." },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── opendota-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "opendota_heroes",
+    description: "List all Dota 2 heroes with roles and attack types from OpenDota.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "opendota_hero_stats",
+    description: "Get Dota 2 hero statistics including pick/win rates per bracket.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "opendota_pro_matches",
+    description: "Get recent professional Dota 2 match results from OpenDota.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── artic-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "artic_search_artworks",
+    description: "Search artworks at the Art Institute of Chicago by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term (e.g. monet, sunflowers, impressionism)." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "artic_get_artwork",
+    description: "Get detailed info about a specific artwork at the Art Institute of Chicago.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "number" as const, description: "Artwork ID (from search results)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── imgflip-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "imgflip_get_memes",
+    description: "Get the top 100 popular meme templates from Imgflip.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── foodish-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "foodish_random",
+    description: "Get a random food image from Foodish API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "foodish_by_category",
+    description: "Get a random food image by category from Foodish API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        category: { type: "string" as const, description: "Food category (e.g. pizza, burger, biryani, pasta, rice)." },
+      },
+      required: ["category"],
+    },
+  },
+
+  // ── acnhapi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "acnh_villagers",
+    description: "List all Animal Crossing: New Horizons villagers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "acnh_fish",
+    description: "List all Animal Crossing: New Horizons fish with availability and prices.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "acnh_bugs",
+    description: "List all Animal Crossing: New Horizons bugs with availability and prices.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── httpcat-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "http_cat_image",
+    description: "Get a cat image for any HTTP status code from http.cat (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        status_code: { type: "number" as const, description: "HTTP status code (e.g. 200, 404, 500)." },
+      },
+    },
+  },
+
+  // ── poetrydb-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "poetry_search_by_author",
+    description: "Search poems by author name on PoetryDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        author: { type: "string" as const, description: "Author name (e.g. Shakespeare, Emily Dickinson)." },
+      },
+      required: ["author"],
+    },
+  },
+  {
+    name: "poetry_search_by_title",
+    description: "Search poems by title on PoetryDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        title: { type: "string" as const, description: "Poem title or partial title." },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "poetry_random",
+    description: "Get a random poem from PoetryDB.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── citybikes-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "citybikes_networks",
+    description: "List all bike-sharing networks worldwide from CityBikes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "citybikes_network",
+    description: "Get station details for a specific bike-sharing network.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Network ID (e.g. citi-bike-nyc, velib-metropole)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── wheretheiss-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "iss_position",
+    description: "Get the current position of the International Space Station.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "iss_pass_times",
+    description: "Get ISS position relative to an observer location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Observer latitude." },
+        longitude: { type: "number" as const, description: "Observer longitude." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── coinlore-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "coinlore_global",
+    description: "Get global cryptocurrency market overview from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "coinlore_tickers",
+    description: "List top cryptocurrency tickers with price and market cap from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        start: { type: "number" as const, description: "Offset for pagination (default 0)." },
+        limit: { type: "number" as const, description: "Max results (default 20, max 100)." },
+      },
+    },
+  },
+  {
+    name: "coinlore_coin",
+    description: "Get detailed info for a specific cryptocurrency from Coinlore.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Coin ID (e.g. 90 for Bitcoin, 80 for Ethereum)." },
+      },
+      required: ["id"],
+    },
+  },
+
+  // ── openmeteo-airquality-tool.ts ─────────────────────────────────────────────
+  {
+    name: "air_quality_current",
+    description: "Get current air quality index and pollutant levels from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+  {
+    name: "air_quality_forecast",
+    description: "Get hourly air quality forecast from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+        days: { type: "number" as const, description: "Forecast days (default 3, max 5)." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── officialjoke-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "official_joke_random",
+    description: "Get a random joke from Official Joke API (setup + punchline format).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "official_joke_by_type",
+    description: "Get a random joke by type from Official Joke API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        type: { type: "string" as const, description: "Joke type: general, programming, or knock-knock." },
+      },
+    },
+  },
+  {
+    name: "official_joke_ten",
+    description: "Get 10 random jokes from Official Joke API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── multiavatar-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "multiavatar_generate",
+    description: "Generate a unique avatar image URL from any string (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Any string to generate a deterministic avatar (default: 'default')." },
+      },
+    },
+  },
+
+  // ── openmeteo-flood-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "flood_forecast",
+    description: "Get river discharge flood forecast from Open-Meteo.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Location latitude." },
+        longitude: { type: "number" as const, description: "Location longitude." },
+        days: { type: "number" as const, description: "Forecast days (default 7, max 92)." },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── diseasesh-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "covid_global",
+    description: "Get global COVID-19 statistics from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "covid_country",
+    description: "Get COVID-19 statistics for a specific country from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country: { type: "string" as const, description: "Country name (e.g. USA, UK, Australia)." },
+      },
+      required: ["country"],
+    },
+  },
+  {
+    name: "covid_vaccine",
+    description: "Get COVID-19 vaccine candidate information from disease.sh.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── fishwatch-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "fishwatch_species",
+    description: "List all fish species with sustainability data from NOAA FishWatch.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "fishwatch_species_detail",
+    description: "Get detailed info about a specific fish species from NOAA FishWatch.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Species name with hyphens (e.g. atlantic-salmon, pacific-cod)." },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── newton-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "newton_math",
+    description: "Perform math operations (simplify, derive, integrate, factor, etc.) via Newton API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Math operation: simplify, factor, derive, integrate, zeroes, tangent, area, cos, sin, tan, arccos, arcsin, arctan, abs, log." },
+        expression: { type: "string" as const, description: "Math expression (e.g. x^2+2x, 2^2+2(2))." },
+      },
+      required: ["expression"],
+    },
+  },
+
+  // ── placebear-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "placebear_image",
+    description: "Get a bear placeholder image URL at custom dimensions (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Image width in pixels (default 300, max 2000)." },
+        height: { type: "number" as const, description: "Image height in pixels (default 300, max 2000)." },
+      },
+    },
+  },
+
+  // ── countryis-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "country_by_ip",
+    description: "Detect country from an IP address using country.is.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up (omit for auto-detect)." },
+      },
+    },
+  },
+
+  // ── openmeteo-historical-tool.ts ─────────────────────────────────────────────
+  {
+    name: "historical_weather",
+    description: "Get historical daily weather data for a location from Open-Meteo archive (1940 to 5 days ago).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+        start_date: { type: "string" as const, description: "Start date in YYYY-MM-DD format." },
+        end_date: { type: "string" as const, description: "End date in YYYY-MM-DD format." },
+      }, required: ["latitude", "longitude", "start_date", "end_date"],
+    },
+  },
+
+  // ── ukpolice-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "uk_police_forces",
+    description: "List all UK police forces with id and name.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "uk_police_crimes",
+    description: "Get reported crimes at a UK location from data.police.uk.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+        date: { type: "string" as const, description: "Month in YYYY-MM format (default: latest)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── memegen-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "memegen_templates",
+    description: "List available meme templates from memegen.link.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "memegen_create",
+    description: "Generate a meme image URL from a template, top text, and bottom text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        template: { type: "string" as const, description: "Template id (default: fry). Use memegen_templates to list." },
+        top_text: { type: "string" as const, description: "Top line of the meme." },
+        bottom_text: { type: "string" as const, description: "Bottom line of the meme." },
+      },
+    },
+  },
+
+  // ── timeapi-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "time_api_current_by_zone",
+    description: "Get the current date and time for an IANA timezone via timeapi.io.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timezone: { type: "string" as const, description: "IANA timezone name (default: UTC). E.g. America/New_York." },
+      },
+    },
+  },
+  {
+    name: "time_api_timezones",
+    description: "List all available IANA timezone names from timeapi.io.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── postcodes-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "postcode_lookup",
+    description: "Look up a UK postcode for lat/lon, region, district, ward, and constituency.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        postcode: { type: "string" as const, description: "UK postcode (e.g. SW1A 1AA)." },
+      }, required: ["postcode"],
+    },
+  },
+  {
+    name: "postcode_random",
+    description: "Get a random UK postcode with full location details.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── openmeteo-climate-tool.ts ──────────────────────────────────────────────
+  {
+    name: "climate_normals",
+    description: "Get climate normal projections (mean max/min temp, precipitation) for a location.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude of the location." },
+        longitude: { type: "number" as const, description: "Longitude of the location." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── gbif-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "gbif_search_species",
+    description: "Search GBIF for biodiversity species by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Species name to search for." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "gbif_species_detail",
+    description: "Get full taxonomy details for a GBIF species by key.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        species_key: { type: "string" as const, description: "GBIF taxon key (numeric)." },
+      }, required: ["species_key"],
+    },
+  },
+  {
+    name: "gbif_occurrences",
+    description: "Search GBIF biodiversity occurrence records by species and/or country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        species_key: { type: "string" as const, description: "GBIF taxon key to filter by." },
+        country: { type: "string" as const, description: "ISO 2-letter country code." },
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      },
+    },
+  },
+
+  // ── crossref-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "crossref_search_works",
+    description: "Search academic papers on Crossref by title, author, or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query (title, author, or keyword)." },
+        rows: { type: "number" as const, description: "Max results (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "crossref_get_work",
+    description: "Get full metadata for an academic paper by DOI from Crossref.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        doi: { type: "string" as const, description: "DOI of the paper (e.g. 10.1038/nature12373)." },
+      }, required: ["doi"],
+    },
+  },
+
+  // ── nominatim-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "nominatim_search",
+    description: "Geocode a place name or address to coordinates using OpenStreetMap Nominatim.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Place name or address to search." },
+        limit: { type: "number" as const, description: "Max results (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "nominatim_reverse",
+    description: "Reverse geocode coordinates to an address using OpenStreetMap Nominatim.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── coincap-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "coincap_assets",
+    description: "List top crypto assets by market cap from CoinCap.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        limit: { type: "number" as const, description: "Max results (default 10, max 50)." },
+        search: { type: "string" as const, description: "Filter by asset name or symbol." },
+      },
+    },
+  },
+  {
+    name: "coincap_asset_detail",
+    description: "Get detailed crypto asset info (price, volume, market cap) from CoinCap.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Asset id (e.g. bitcoin, ethereum)." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "coincap_rates",
+    description: "List crypto and fiat exchange rates from CoinCap.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── open-elevation-tool.ts ────────────────────────────────────────────────
+  {
+    name: "open_elevation_lookup",
+    description: "Get elevation in meters for given coordinates from Open Elevation API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── itis-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "itis_search_by_name",
+    description: "Search USDA ITIS for species by common name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Common name to search (e.g. lion, oak, salmon)." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "itis_get_full_record",
+    description: "Get full taxonomic record from USDA ITIS by TSN (Taxonomic Serial Number).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        tsn: { type: "string" as const, description: "Taxonomic Serial Number." },
+      }, required: ["tsn"],
+    },
+  },
+
+  // ── arxiv-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "arxiv_search",
+    description: "Search arXiv for scientific preprints by keyword, title, or author.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term or arXiv query." },
+        max_results: { type: "number" as const, description: "Max papers to return (default 5, max 20)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── openalex-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "openalex_search_works",
+    description: "Search OpenAlex for scholarly works by keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term." },
+        per_page: { type: "number" as const, description: "Results per page (default 5, max 25)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "openalex_get_work",
+    description: "Get full metadata for a scholarly work by OpenAlex ID or DOI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "OpenAlex ID (e.g. W2741809807) or DOI URL." },
+      }, required: ["id"],
+    },
+  },
+  {
+    name: "openalex_search_authors",
+    description: "Search OpenAlex for academic authors by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Author name to search." },
+        per_page: { type: "number" as const, description: "Results per page (default 5, max 25)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── dblp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "dblp_search_publications",
+    description: "Search DBLP for computer science publications.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Title, author, or keyword." },
+        max_results: { type: "number" as const, description: "Max results (default 10, max 30)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "dblp_search_authors",
+    description: "Search DBLP for computer science researchers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Author name." },
+        max_results: { type: "number" as const, description: "Max results (default 10, max 30)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── wikidata-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "wikidata_search",
+    description: "Search Wikidata for entities (people, places, concepts) by label.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term." },
+        limit: { type: "number" as const, description: "Max results (default 5, max 20)." },
+        language: { type: "string" as const, description: "Language code (default: en)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "wikidata_get_entity",
+    description: "Get structured data for a Wikidata entity by Q-id (e.g. Q42).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Wikidata entity ID (e.g. Q42)." },
+        language: { type: "string" as const, description: "Language code (default: en)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── randomduck-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "random_duck_image",
+    description: "Get a random duck image URL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "random_duck_list",
+    description: "List all available duck image filenames.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── httpdog-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "http_dog_image",
+    description: "Get a dog image URL for an HTTP status code (like httpcat but with dogs).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        status_code: { type: "number" as const, description: "HTTP status code (100-599)." },
+      }, required: ["status_code"],
+    },
+  },
+
+  // ── opensky-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "opensky_states",
+    description: "Get live aircraft states (position, altitude, velocity) from OpenSky Network.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        icao24: { type: "string" as const, description: "Filter by ICAO24 transponder address." },
+        lamin: { type: "number" as const, description: "Bounding box min latitude." },
+        lomin: { type: "number" as const, description: "Bounding box min longitude." },
+        lamax: { type: "number" as const, description: "Bounding box max latitude." },
+        lomax: { type: "number" as const, description: "Bounding box max longitude." },
+      },
+    },
+  },
+  {
+    name: "opensky_flights",
+    description: "Get flight history from OpenSky Network for a time range (max 2 hours).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        begin: { type: "number" as const, description: "Start time (Unix timestamp)." },
+        end: { type: "number" as const, description: "End time (Unix timestamp)." },
+        icao24: { type: "string" as const, description: "Filter by ICAO24 transponder address." },
+      }, required: ["begin", "end"],
+    },
+  },
+
+  // ── cvecircl-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "circl_cve_lookup",
+    description: "Look up a CVE vulnerability by ID from CIRCL (cve.circl.lu).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cve_id: { type: "string" as const, description: "CVE ID (e.g. CVE-2024-1234)." },
+      }, required: ["cve_id"],
+    },
+  },
+  {
+    name: "circl_cve_recent",
+    description: "Get the most recently published CVE vulnerabilities from CIRCL.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── vatcomply-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "vatcomply_rates",
+    description: "Get EU VAT rates (standard, reduced, super-reduced) per country.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 2-letter country code (omit for all EU countries)." },
+      },
+    },
+  },
+  {
+    name: "vatcomply_countries",
+    description: "List EU member states with country name and code.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── thecolorapi-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "thecolorapi_id",
+    description: "Get detailed color information (name, RGB, HSL, CMYK) for a hex color.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. FF5733 or #FF5733)." },
+      }, required: ["hex"],
+    },
+  },
+  {
+    name: "thecolorapi_scheme",
+    description: "Generate a color scheme from a seed hex color.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Seed hex color (e.g. FF5733)." },
+        mode: { type: "string" as const, description: "Scheme mode: monochrome, analogic, complement, triad, quad (default: analogic)." },
+        count: { type: "number" as const, description: "Number of colors (default 5, max 10)." },
+      }, required: ["hex"],
+    },
+  },
+
+  // ── placehold-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "placehold_image",
+    description: "Generate a placeholder image URL with custom size, colors, and text (no network call).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Image width in pixels (default 300, max 4000)." },
+        height: { type: "number" as const, description: "Image height in pixels (default: same as width)." },
+        background: { type: "string" as const, description: "Background hex color (default: CCCCCC)." },
+        foreground: { type: "string" as const, description: "Text hex color (default: 333333)." },
+        text: { type: "string" as const, description: "Custom text overlay." },
+        font: { type: "string" as const, description: "Font name (roboto, lato, open-sans, montserrat, etc.)." },
+      },
+    },
+  },
+
+  // ── languagetool-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "languagetool_check",
+    description: "Check text for grammar, spelling, and style issues using LanguageTool.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to check." },
+        language: { type: "string" as const, description: "Language code (default: auto). E.g. en-US, de-DE, fr." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "languagetool_languages",
+    description: "List all languages supported by LanguageTool.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── bgpview-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bgpview_asn",
+    description: "Look up an Autonomous System Number (ASN) on BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN number (e.g. 13335 for Cloudflare)." },
+      }, required: ["asn"],
+    },
+  },
+  {
+    name: "bgpview_asn_prefixes",
+    description: "Get IP prefixes announced by an ASN from BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN number." },
+      }, required: ["asn"],
+    },
+  },
+  {
+    name: "bgpview_ip",
+    description: "Look up IP address details (PTR, prefix, ASN) on BGPView.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up." },
+      }, required: ["ip"],
+    },
+  },
+
+  // ── mymemory-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "mymemory_translate",
+    description: "Translate text between languages using MyMemory free translation API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to translate." },
+        source: { type: "string" as const, description: "Source language code (default: en)." },
+        target: { type: "string" as const, description: "Target language code (default: es)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── openchargemap-tool.ts ─────────────────────────────────────────────────
+  {
+    name: "openchargemap_search",
+    description: "Find EV charging stations near a location from Open Charge Map.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        latitude: { type: "number" as const, description: "Latitude." },
+        longitude: { type: "number" as const, description: "Longitude." },
+        distance: { type: "number" as const, description: "Search radius in km (default 10)." },
+        max_results: { type: "number" as const, description: "Max stations (default 10, max 50)." },
+      }, required: ["latitude", "longitude"],
+    },
+  },
+
+  // ── crates-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "crates_search",
+    description: "Search Rust crates on crates.io by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Crate name or keyword." },
+        per_page: { type: "number" as const, description: "Results per page (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "crates_get",
+    description: "Get detailed info for a Rust crate by name from crates.io.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Crate name." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── npm-registry-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "npm_search",
+    description: "Search npm packages by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Package name or keyword." },
+        size: { type: "number" as const, description: "Max results (default 10, max 50)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "npm_get_package",
+    description: "Get metadata for an npm package (latest version).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── pypi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pypi_get_package",
+    description: "Get metadata for a Python package from PyPI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+      }, required: ["name"],
+    },
+  },
+  {
+    name: "pypi_get_version",
+    description: "Get metadata for a specific version of a Python package from PyPI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Package name." },
+        version: { type: "string" as const, description: "Version string." },
+      }, required: ["name", "version"],
+    },
+  },
+
+  // ── rdap-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "rdap_domain",
+    description: "Look up domain registration data via RDAP (WHOIS replacement).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain name to look up." },
+      }, required: ["domain"],
+    },
+  },
+  {
+    name: "rdap_ip",
+    description: "Look up IP address registration data via RDAP.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to look up." },
+      }, required: ["ip"],
+    },
+  },
+
+  // ── iban-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "iban_validate",
+    description: "Validate an IBAN and get bank/BIC info via OpenIBAN.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        iban: { type: "string" as const, description: "IBAN to validate." },
+      }, required: ["iban"],
+    },
+  },
+
+  // ── stackexchange-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "stackexchange_search",
+    description: "Search Stack Exchange (default: Stack Overflow) for questions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        site: { type: "string" as const, description: "SE site (default: stackoverflow)." },
+        page: { type: "number" as const, description: "Page number." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "stackexchange_question",
+    description: "Get a Stack Exchange question by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Question ID." },
+        site: { type: "string" as const, description: "SE site (default: stackoverflow)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── ripe-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "ripe_network_info",
+    description: "Get network information for an IP or prefix from RIPE NCC.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        resource: { type: "string" as const, description: "IP address or prefix." },
+      }, required: ["resource"],
+    },
+  },
+  {
+    name: "ripe_asn_neighbours",
+    description: "Get peering neighbours for an ASN from RIPE NCC.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        asn: { type: "string" as const, description: "ASN (e.g. AS13335)." },
+      }, required: ["asn"],
+    },
+  },
+
+  // ── gutendex-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "gutendex_search",
+    description: "Search Project Gutenberg free ebooks.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        page: { type: "number" as const, description: "Page number." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "gutendex_book",
+    description: "Get details for a Project Gutenberg book by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Gutenberg book ID." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── dohdns-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dohdns_resolve",
+    description: "Resolve DNS records for a domain via Google DNS-over-HTTPS.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Domain name to resolve." },
+        type: { type: "string" as const, description: "Record type: A, AAAA, MX, TXT, CNAME, NS (default: A)." },
+      }, required: ["name"],
+    },
+  },
+
+  // ── nhtsa-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "nhtsa_decode_vin",
+    description: "Decode a vehicle VIN to get make, model, year, and specifications from NHTSA.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        vin: { type: "string" as const, description: "17-character Vehicle Identification Number." },
+      }, required: ["vin"],
+    },
+  },
+  {
+    name: "nhtsa_recalls",
+    description: "Search NHTSA vehicle safety recalls by make, model, and year.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        make: { type: "string" as const, description: "Vehicle make (e.g. Toyota)." },
+        model: { type: "string" as const, description: "Vehicle model (e.g. Camry)." },
+        year: { type: "string" as const, description: "Model year (e.g. 2020)." },
+      }, required: ["make", "year"],
+    },
+  },
+
+  // ── geojs-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "geojs_lookup",
+    description: "Get IP geolocation (country, region, city, lat/lon) from GeoJS. Omit IP for self-lookup.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address (optional, defaults to caller IP)." },
+      },
+    },
+  },
+
+  // ── isup-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "isup_check",
+    description: "Check if a website/domain is up or down via isitup.org.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        domain: { type: "string" as const, description: "Domain to check (e.g. google.com)." },
+      }, required: ["domain"],
+    },
+  },
+
+  // ── wayback-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wayback_check",
+    description: "Check if a URL has been archived by the Wayback Machine and get the closest snapshot.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        url: { type: "string" as const, description: "URL to check for archived snapshots." },
+        timestamp: { type: "string" as const, description: "Target timestamp (YYYYMMDDhhmmss) for closest snapshot." },
+      }, required: ["url"],
+    },
+  },
+
+  // ── oeis-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "oeis_search",
+    description: "Search the Online Encyclopedia of Integer Sequences (OEIS) by sequence or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Sequence (e.g. '1,1,2,3,5,8') or keyword." },
+        start: { type: "number" as const, description: "Result offset for pagination." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── upcitemdb-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "upc_lookup",
+    description: "Look up a product by UPC/EAN barcode number.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        upc: { type: "string" as const, description: "UPC or EAN barcode number." },
+      }, required: ["upc"],
+    },
+  },
+  {
+    name: "upc_search",
+    description: "Search products by name in the UPC item database.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Product search query." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── fakerapi-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "faker_persons",
+    description: "Generate fake person data (name, email, phone, address) for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of persons (max 100, default 5)." },
+        locale: { type: "string" as const, description: "Locale code (default: en_US)." },
+      },
+    },
+  },
+  {
+    name: "faker_companies",
+    description: "Generate fake company data for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of companies (max 100, default 5)." },
+        locale: { type: "string" as const, description: "Locale code (default: en_US)." },
+      },
+    },
+  },
+  {
+    name: "faker_texts",
+    description: "Generate fake text/article data for testing.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        quantity: { type: "number" as const, description: "Number of texts (max 100, default 3)." },
+        characters: { type: "number" as const, description: "Approx characters per text (default 200)." },
+      },
+    },
+  },
+
+  // ── openfigi-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "openfigi_mapping",
+    description: "Map a financial instrument identifier (ticker, ISIN, CUSIP) to FIGI.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id_type: { type: "string" as const, description: "Identifier type: TICKER, ISIN, CUSIP, SEDOL (default: TICKER)." },
+        id_value: { type: "string" as const, description: "Identifier value (e.g. AAPL)." },
+      }, required: ["id_value"],
+    },
+  },
+  {
+    name: "openfigi_search",
+    description: "Search OpenFIGI for financial instruments by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query (company or instrument name)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── libretranslate-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "libretranslate_translate",
+    description: "Translate text between languages using LibreTranslate (open source).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to translate." },
+        source: { type: "string" as const, description: "Source language code (default: auto-detect)." },
+        target: { type: "string" as const, description: "Target language code (default: en)." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "libretranslate_languages",
+    description: "List supported languages in LibreTranslate.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "libretranslate_detect",
+    description: "Detect the language of a text using LibreTranslate.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to detect language of." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── europeana-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "europeana_search",
+    description: "Search Europeana for European cultural heritage objects (art, books, music, film).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search query." },
+        rows: { type: "number" as const, description: "Results per page (max 100, default 10)." },
+        start: { type: "number" as const, description: "Result offset (default 1)." },
+      }, required: ["query"],
+    },
+  },
+  {
+    name: "europeana_record",
+    description: "Get details of a Europeana cultural heritage record by ID.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        id: { type: "string" as const, description: "Europeana record ID (e.g. /123/abc)." },
+      }, required: ["id"],
+    },
+  },
+
+  // ── flyover-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "iss_flyover",
+    description: "Get upcoming ISS flyover times for a location (lat/lon).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        lat: { type: "number" as const, description: "Latitude." },
+        lon: { type: "number" as const, description: "Longitude." },
+        count: { type: "number" as const, description: "Number of flyovers (max 20, default 5)." },
+      }, required: ["lat", "lon"],
+    },
+  },
+
+  // ── jsoncrack-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "json_format",
+    description: "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        json: { type: "string" as const, description: "Raw JSON string to parse and format." },
+      }, required: ["json"],
+    },
+  },
+
+  // ── abstract-holidays-tool.ts ────────────────────────────────────────────────
+  {
+    name: "country_info_detail",
+    description: "Get country details (borders, languages, official name) from Nager.Date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code (e.g. AU, US)." },
+      }, required: ["country_code"],
+    },
+  },
+  {
+    name: "long_weekends",
+    description: "Get long weekends for a country and year from Nager.Date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code." },
+        year: { type: "string" as const, description: "Year (default: current year)." },
+      }, required: ["country_code"],
+    },
+  },
+
+  // ── cocktaildb2-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cocktail_by_ingredient",
+    description: "Filter cocktails by ingredient (e.g. Vodka, Gin, Tequila).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ingredient: { type: "string" as const, description: "Ingredient name." },
+      }, required: ["ingredient"],
+    },
+  },
+  {
+    name: "cocktail_ingredient_info",
+    description: "Get details about a cocktail ingredient (description, type, ABV).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ingredient: { type: "string" as const, description: "Ingredient name." },
+      }, required: ["ingredient"],
+    },
+  },
+
+  // ── regexr-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "regex_test",
+    description: "Test a regex pattern against text and return all matches with positions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        pattern: { type: "string" as const, description: "Regular expression pattern." },
+        text: { type: "string" as const, description: "Text to test against." },
+        flags: { type: "string" as const, description: "Regex flags (default: g). Options: g, i, m, s." },
+      }, required: ["pattern", "text"],
+    },
+  },
+
+  // ── hashgen-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hash_generate",
+    description: "Generate a cryptographic hash (md5, sha1, sha256, sha384, sha512) of text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to hash." },
+        algorithm: { type: "string" as const, description: "Hash algorithm (default: sha256)." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "hash_compare",
+    description: "Compare text against an expected hash to verify integrity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to hash and compare." },
+        hash: { type: "string" as const, description: "Expected hash value." },
+        algorithm: { type: "string" as const, description: "Hash algorithm (default: sha256)." },
+      }, required: ["text", "hash"],
+    },
+  },
+
+  // ── base64-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "base64_encode",
+    description: "Encode text to Base64.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "base64_decode",
+    description: "Decode a Base64 string to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        encoded: { type: "string" as const, description: "Base64 string to decode." },
+      }, required: ["encoded"],
+    },
+  },
+
+  // ── urlencode-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "url_encode",
+    description: "URL-encode text (percent-encoding for query strings).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to URL-encode." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "url_decode",
+    description: "Decode a URL-encoded (percent-encoded) string.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        encoded: { type: "string" as const, description: "URL-encoded string to decode." },
+      }, required: ["encoded"],
+    },
+  },
+
+  // ── crontab-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "crontab_explain",
+    description: "Explain a cron expression in human-readable terms.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Cron expression (e.g. '0 9 * * 1-5') or shortcut (@daily, @hourly)." },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── jwt-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "jwt_decode",
+    description: "Decode a JWT token to inspect header and payload claims (does NOT verify signature).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        token: { type: "string" as const, description: "JWT token string." },
+      }, required: ["token"],
+    },
+  },
+
+  // ── markdown-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "markdown_to_html",
+    description: "Convert Markdown text to HTML (headings, bold, italic, links, lists, code).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        markdown: { type: "string" as const, description: "Markdown text to convert." },
+      }, required: ["markdown"],
+    },
+  },
+  {
+    name: "markdown_stats",
+    description: "Analyze Markdown text: count headings, links, code blocks, words, and more.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        markdown: { type: "string" as const, description: "Markdown text to analyze." },
+      }, required: ["markdown"],
+    },
+  },
+
+  // ── cidr-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "cidr_calculate",
+    description: "Calculate subnet details from a CIDR notation (network, broadcast, mask, host count).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        cidr: { type: "string" as const, description: "CIDR notation (e.g. 192.168.1.0/24)." },
+      }, required: ["cidr"],
+    },
+  },
+
+  // ── semver-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "semver_parse",
+    description: "Parse a semantic version string into major, minor, patch, and prerelease.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        version: { type: "string" as const, description: "Version string (e.g. 2.3.1-beta.1)." },
+      }, required: ["version"],
+    },
+  },
+  {
+    name: "semver_compare",
+    description: "Compare two semantic versions (returns greater, less, or equal).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        version_a: { type: "string" as const, description: "First version." },
+        version_b: { type: "string" as const, description: "Second version." },
+      }, required: ["version_a", "version_b"],
+    },
+  },
+
+  // ── colorconvert-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "color_hex_convert",
+    description: "Convert a hex color to RGB and HSL values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        hex: { type: "string" as const, description: "Hex color code (e.g. #FF5733 or FF5733)." },
+      }, required: ["hex"],
+    },
+  },
+
+  // ── epoch-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "epoch_convert",
+    description: "Convert a Unix epoch timestamp to ISO 8601 and human-readable formats.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timestamp: { type: "number" as const, description: "Unix epoch (seconds or milliseconds)." },
+      }, required: ["timestamp"],
+    },
+  },
+  {
+    name: "epoch_now",
+    description: "Get the current Unix epoch timestamp in seconds and milliseconds.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── difftext-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "diff_text",
+    description: "Compare two texts line by line and show added/removed lines.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text (original)." },
+        text_b: { type: "string" as const, description: "Second text (modified)." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── passwordgen-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "password_generate",
+    description: "Generate a cryptographically secure random password.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        length: { type: "number" as const, description: "Password length (4-128, default 16)." },
+        uppercase: { type: "boolean" as const, description: "Include uppercase letters (default true)." },
+        lowercase: { type: "boolean" as const, description: "Include lowercase letters (default true)." },
+        digits: { type: "boolean" as const, description: "Include digits (default true)." },
+        symbols: { type: "boolean" as const, description: "Include symbols (default true)." },
+      },
+    },
+  },
+
+  // ── slug-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "text_slugify",
+    description: "Convert text into a URL-safe slug.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to slugify." },
+        separator: { type: "string" as const, description: "Separator character (default -)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── lorem2-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "lorem_generate",
+    description: "Generate lorem ipsum placeholder text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        paragraphs: { type: "number" as const, description: "Number of paragraphs (1-20, default 3)." },
+        sentences: { type: "number" as const, description: "Sentences per paragraph (1-15, default 5)." },
+      },
+    },
+  },
+
+  // ── csvparse-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "csv_parse",
+    description: "Parse CSV text into structured JSON rows.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        csv: { type: "string" as const, description: "Raw CSV text to parse." },
+        delimiter: { type: "string" as const, description: "Column delimiter (default comma)." },
+      }, required: ["csv"],
+    },
+  },
+
+  // ── wordcount-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "word_count",
+    description: "Count words, characters, sentences, and estimate reading time.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── jsonformat-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "json_prettify",
+    description: "Prettify or minify JSON text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        json: { type: "string" as const, description: "JSON text to format." },
+        indent: { type: "number" as const, description: "Indent spaces (default 2)." },
+        minify: { type: "boolean" as const, description: "Minify instead of prettify (default false)." },
+      }, required: ["json"],
+    },
+  },
+
+  // ── htmlstrip-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "html_strip",
+    description: "Strip HTML tags and decode entities to plain text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        html: { type: "string" as const, description: "HTML text to strip." },
+        preserve_line_breaks: { type: "boolean" as const, description: "Keep line breaks from block elements (default true)." },
+      }, required: ["html"],
+    },
+  },
+
+  // ── uuidgen-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "uuid_generate",
+    description: "Generate one or more cryptographically random UUID v4 strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        count: { type: "number" as const, description: "Number of UUIDs (1-100, default 1)." },
+        uppercase: { type: "boolean" as const, description: "Output in uppercase (default false)." },
+      },
+    },
+  },
+
+  // ── charcount-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "char_frequency",
+    description: "Analyze character frequency and breakdown of a text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze." },
+        case_sensitive: { type: "boolean" as const, description: "Distinguish upper/lower case (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ipvalidate-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ip_validate",
+    description: "Validate and classify an IP address (IPv4/IPv6, public/private/loopback).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ip: { type: "string" as const, description: "IP address to validate." },
+      }, required: ["ip"],
+    },
+  },
+
+  // ── stringcase-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "string_case",
+    description: "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── aspectratio-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "aspect_ratio",
+    description: "Calculate the aspect ratio of given width and height.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        width: { type: "number" as const, description: "Width in pixels." },
+        height: { type: "number" as const, description: "Height in pixels." },
+      }, required: ["width", "height"],
+    },
+  },
+
+  // ── percentage-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "percentage_calc",
+    description: "Perform percentage calculations (of, change, increase, decrease, is_what_percent).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: of, is_what_percent, change, increase, decrease (default of)." },
+        a: { type: "number" as const, description: "First number." },
+        b: { type: "number" as const, description: "Second number." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── roman-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "roman_convert",
+    description: "Convert between Roman numerals and decimal numbers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "string" as const, description: "Integer 1-3999 or Roman numeral string." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── morse-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "morse_convert",
+    description: "Encode text to Morse code or decode Morse code to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or Morse code to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── binaryconv-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "number_base_convert",
+    description: "Convert numbers between binary, octal, decimal, hex, and any base 2-36.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "string" as const, description: "Number to convert." },
+        from_base: { type: "number" as const, description: "Input base (2-36, default 10)." },
+        to_base: { type: "number" as const, description: "Optional custom output base (2-36)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── levenshtein-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "string_distance",
+    description: "Calculate Levenshtein edit distance and similarity between two strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "string" as const, description: "First string." },
+        b: { type: "string" as const, description: "Second string." },
+        case_sensitive: { type: "boolean" as const, description: "Case sensitive comparison (default true)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── loremname-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "lorem_name_generate",
+    description: "Generate random placeholder names with optional email addresses.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        count: { type: "number" as const, description: "Number of names (1-50, default 1)." },
+        email: { type: "boolean" as const, description: "Include email addresses (default true)." },
+        domain: { type: "string" as const, description: "Email domain (default example.com)." },
+      },
+    },
+  },
+
+  // ── textstats-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "text_readability",
+    description: "Analyze text readability with Flesch-Kincaid grade and reading ease scores.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze for readability." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── timezone-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "timezone_info",
+    description: "Look up timezone offset and details by abbreviation, or list all timezones.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        timezone: { type: "string" as const, description: "Timezone abbreviation (e.g. EST, AEST). Omit to list all." },
+      },
+    },
+  },
+
+  // ── colorblend-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "color_blend",
+    description: "Blend two hex colors together, optionally generating a gradient palette.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        color1: { type: "string" as const, description: "First hex color." },
+        color2: { type: "string" as const, description: "Second hex color." },
+        weight: { type: "number" as const, description: "Blend weight 0-1 (default 0.5)." },
+        steps: { type: "number" as const, description: "Number of gradient steps (1-20, default 1)." },
+      }, required: ["color1", "color2"],
+    },
+  },
+
+  // ── fibonacci-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "fibonacci_sequence",
+    description: "Generate Fibonacci numbers and optionally check if a number is Fibonacci.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "How many Fibonacci numbers (1-100, default 10)." },
+        check: { type: "number" as const, description: "Optional number to test if it is a Fibonacci number." },
+      },
+    },
+  },
+
+  // ── primecheck-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "prime_check",
+    description: "Check if a number is prime, get its factorization, and find adjacent primes.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        number: { type: "number" as const, description: "Non-negative integer to check (max 1 trillion)." },
+      }, required: ["number"],
+    },
+  },
+
+  // ── sortlines-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "sort_lines",
+    description: "Sort, deduplicate, or reverse lines of text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Multi-line text to sort." },
+        reverse: { type: "boolean" as const, description: "Sort descending (default false)." },
+        deduplicate: { type: "boolean" as const, description: "Remove duplicate lines (default false)." },
+        numeric: { type: "boolean" as const, description: "Sort numerically (default false)." },
+        case_insensitive: { type: "boolean" as const, description: "Case-insensitive sort (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── countdowncalc-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "countdown_calc",
+    description: "Calculate days, weeks until or since a given date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        date: { type: "string" as const, description: "Target date (YYYY-MM-DD)." },
+      }, required: ["date"],
+    },
+  },
+
+  // ── unitpressure-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "pressure_convert",
+    description: "Convert pressure between Pa, hPa, kPa, bar, atm, psi, torr, mmHg, inHg.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Pressure value to convert." },
+        from: { type: "string" as const, description: "Source unit (default pa)." },
+        to: { type: "string" as const, description: "Target unit (omit for all)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── emojilookup-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "emoji_lookup",
+    description: "Search emojis by name or keyword.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        query: { type: "string" as const, description: "Search term (e.g. heart, fire, smile)." },
+      }, required: ["query"],
+    },
+  },
+
+  // ── natoalphabet-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "nato_convert",
+    description: "Convert text to NATO phonetic alphabet or decode NATO words back to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or NATO words to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── bitwise-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bitwise_calc",
+    description: "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First integer." },
+        b: { type: "number" as const, description: "Second integer (not needed for NOT)." },
+        operation: { type: "string" as const, description: "Operation: and, or, xor, not, nand, nor, shift_left, shift_right (default and)." },
+      }, required: ["a"],
+    },
+  },
+
+  // ── gcdlcm-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "gcd_lcm_calc",
+    description: "Calculate GCD and LCM of two or more integers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        numbers: { type: "string" as const, description: "Comma-separated integers (or use a and b)." },
+        a: { type: "number" as const, description: "First integer." },
+        b: { type: "number" as const, description: "Second integer." },
+      },
+    },
+  },
+
+  // ── tempconvert-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "temperature_convert",
+    description: "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Temperature value." },
+        from: { type: "string" as const, description: "Source unit: c, f, k, or r (default c)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── statistics-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "statistics_calc",
+    description: "Calculate mean, median, mode, standard deviation, and more for a set of numbers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        numbers: { type: "string" as const, description: "Comma-separated numbers or array." },
+      }, required: ["numbers"],
+    },
+  },
+
+  // ── textwrap-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "text_wrap",
+    description: "Hard-wrap text to a specified column width.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to wrap." },
+        width: { type: "number" as const, description: "Column width (10-200, default 80)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── braille-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "braille_convert",
+    description: "Convert text to Braille Unicode dots or decode Braille back to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or Braille characters to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── piglatin-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "pig_latin_convert",
+    description: "Convert text to Pig Latin or decode Pig Latin back to English.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+        decode: { type: "boolean" as const, description: "Decode Pig Latin to English (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── rot13-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rot13_convert",
+    description: "Apply ROT13 (or ROT-N) cipher to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode/decode." },
+        shift: { type: "number" as const, description: "Rotation amount (default 13)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── reversetext-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "reverse_text",
+    description: "Reverse text by characters, words, lines, or sentences.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to reverse." },
+        mode: { type: "string" as const, description: "Mode: characters, words, lines, sentences (default characters)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── palindrome-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "palindrome_check",
+    description: "Check if text is a palindrome and find the longest palindromic substring.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to check." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── acronymgen-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "acronym_generate",
+    description: "Generate an acronym from a phrase, optionally skipping small words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Phrase to create acronym from." },
+        include_small_words: { type: "boolean" as const, description: "Include small words like the, of, and (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── wordfreq-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wordfreq_analyse",
+    description: "Analyse word frequencies in text, returning counts and top words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        top: { type: "number" as const, description: "Return only the top N words (default all)." },
+        case_sensitive: { type: "boolean" as const, description: "Case-sensitive counting (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── markdowntable-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "markdowntable_convert",
+    description: "Convert CSV or TSV text into a Markdown table.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        input: { type: "string" as const, description: "CSV or TSV text." },
+        delimiter: { type: "string" as const, description: "',' (default) or 'tab'." },
+        has_header: { type: "boolean" as const, description: "First row is header (default true)." },
+      }, required: ["input"],
+    },
+  },
+
+  // ── runlength-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "runlength_process",
+    description: "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode or encoded text to decode." },
+        decode: { type: "boolean" as const, description: "Decode instead of encode (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── luhn-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "luhn_validate",
+    description: "Validate or generate a Luhn check digit (credit cards, IMEI, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        number: { type: "string" as const, description: "Digit string to validate or partial number for generation." },
+        mode: { type: "string" as const, description: "'validate' (default) or 'generate' to compute check digit." },
+      }, required: ["number"],
+    },
+  },
+
+  // ── charcodes-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "charcodes_convert",
+    description: "Convert characters to Unicode code points in decimal, hex, or binary.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to convert." },
+        format: { type: "string" as const, description: "'decimal' (default), 'hex', or 'binary'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── soundex-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "soundex_encode",
+    description: "Encode words using the Soundex phonetic algorithm, optionally comparing two names.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Word(s) to encode." },
+        compare: { type: "string" as const, description: "Second name to compare with the first." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── frequency-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "frequency_analyse",
+    description: "Analyse character or bigram frequencies in text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        mode: { type: "string" as const, description: "'character' (default) or 'bigram'." },
+        top: { type: "number" as const, description: "Number of top entries to return (default 10)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── entropy-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "entropy_calculate",
+    description: "Calculate Shannon entropy of text (measures randomness/information density).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to measure." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ngram-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "ngram_extract",
+    description: "Extract and count n-grams (word or character level) from text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyse." },
+        n: { type: "number" as const, description: "N-gram size (default 2)." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+        top: { type: "number" as const, description: "Number of top entries to return (default 20)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── camelsnake-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "camelsnake_convert",
+    description: "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Identifier or text to convert." },
+        target: { type: "string" as const, description: "Target case: camel, pascal, snake, kebab, constant. Omit for all." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── metaphone-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "metaphone_encode",
+    description: "Encode words using the Metaphone phonetic algorithm, optionally comparing two words.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Word(s) to encode." },
+        compare: { type: "string" as const, description: "Second word to compare phonetically." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── tfidf-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "tfidf_calculate",
+    description: "Calculate TF-IDF scores to rank documents by relevance to a query.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        documents: { type: "array" as const, items: { type: "string" as const }, description: "Array of document strings." },
+        query: { type: "string" as const, description: "Search query." },
+      }, required: ["documents", "query"],
+    },
+  },
+
+  // ── readability-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "readability_score",
+    description: "Calculate Flesch-Kincaid readability scores and reading level for text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to score." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── tokencount-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "tokencount_estimate",
+    description: "Estimate token counts for text across different LLM tokenizers (GPT-4, Claude, WordPiece).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to estimate tokens for." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── crc32-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "crc32_calculate",
+    description: "Calculate CRC32 checksum for text input.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to checksum." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── jaccard-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "jaccard_similarity",
+    description: "Calculate Jaccard similarity index between two texts (word or character level).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text." },
+        text_b: { type: "string" as const, description: "Second text." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── hamming-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hamming_distance",
+    description: "Calculate Hamming distance between two equal-length strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First string." },
+        text_b: { type: "string" as const, description: "Second string (must be same length)." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── cosinesim-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "cosinesim_compare",
+    description: "Calculate cosine similarity between two texts using word frequency vectors.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First text." },
+        text_b: { type: "string" as const, description: "Second text." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── damerau-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "damerau_distance",
+    description: "Calculate Damerau-Levenshtein distance (edits + transpositions) between two strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First string." },
+        text_b: { type: "string" as const, description: "Second string." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── markov-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "markov_generate",
+    description: "Generate text using a Markov chain trained on input text (word or character level).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Training corpus." },
+        order: { type: "number" as const, description: "Chain order/context size (default 2)." },
+        length: { type: "number" as const, description: "Number of tokens to generate (default 50)." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── vigenere-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "vigenere_process",
+    description: "Encrypt or decrypt text using the Vigenere polyalphabetic cipher.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to process." },
+        key: { type: "string" as const, description: "Cipher key (letters only)." },
+        decrypt: { type: "boolean" as const, description: "Decrypt instead of encrypt (default false)." },
+      }, required: ["text", "key"],
+    },
+  },
+
+  // ── atbash-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "atbash_process",
+    description: "Apply the Atbash cipher (A=Z, B=Y, ...) to text. Self-inverse.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode/decode." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── railfence-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "railfence_process",
+    description: "Encrypt or decrypt text using the rail fence (zigzag) cipher.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to process." },
+        rails: { type: "number" as const, description: "Number of rails (default 3)." },
+        decrypt: { type: "boolean" as const, description: "Decrypt instead of encrypt (default false)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── phonetic-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "phonetic_spell",
+    description: "Spell out text using NATO or IPA phonetic alphabet.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to spell out." },
+        format: { type: "string" as const, description: "'nato' (default) or 'ipa'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matrix-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "matrix_operate",
+    description: "Perform matrix operations: add, multiply, transpose, or determinant.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix_a: { type: "array" as const, description: "First matrix (2D number array)." },
+        matrix_b: { type: "array" as const, description: "Second matrix (for add/multiply)." },
+        operation: { type: "string" as const, description: "Operation: add, multiply, transpose, determinant." },
+      }, required: ["matrix_a"],
+    },
+  },
+
+  // ── setops-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "setops_calculate",
+    description: "Perform set operations: union, intersection, difference, symmetric difference, subset/superset.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        set_a: { type: "array" as const, description: "First set (array of values)." },
+        set_b: { type: "array" as const, description: "Second set (array of values)." },
+      }, required: ["set_a", "set_b"],
     },
   },
 
@@ -14851,6 +20587,962 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // trivia-tool.ts
   trivia_questions:        (args) => triviaQuestions(args),
   trivia_categories:       (args) => triviaCategories(args),
+
+  // pokeapi-tool.ts
+  poke_get_pokemon:        (args) => pokeGetPokemon(args),
+  poke_search_pokemon:     (args) => pokeSearchPokemon(args),
+  poke_get_type:           (args) => pokeGetType(args),
+  poke_get_ability:        (args) => pokeGetAbility(args),
+  poke_get_generation:     (args) => pokeGetGeneration(args),
+
+  // cocktail-tool.ts
+  cocktail_search:              (args) => searchCocktails(args),
+  cocktail_random:              (args) => getRandomCocktail(args),
+  cocktail_get_by_id:           (args) => getCocktailById(args),
+  cocktail_categories:          (args) => listCocktailCategories(args),
+  cocktail_filter_by_category:  (args) => filterCocktailsByCategory(args),
+  cocktail_filter_by_ingredient:(args) => filterCocktailsByIngredient(args),
+
+  // dictionary-tool.ts
+  dictionary_lookup:          (args) => dictionaryLookup(args),
+  dictionary_lookup_language: (args) => dictionaryLookupLanguage(args),
+
+  // joke-tool.ts
+  joke_random:             (args) => jokeRandom(args),
+  joke_categories:         (args) => jokeCategories(args),
+
+  // holidays-tool.ts
+  holidays_by_country:     (args) => holidaysByCountry(args),
+  holidays_next:           (args) => holidaysNextWorldwide(args),
+  holidays_countries:      (args) => holidayCountries(args),
+  holidays_long_weekends:  (args) => holidayLongWeekends(args),
+
+  // dogceo-tool.ts
+  dog_random_image:        (args) => dogRandomImage(args),
+  dog_breed_image:         (args) => dogBreedImage(args),
+  dog_list_breeds:         (args) => dogListBreeds(args),
+  dog_breed_list:          (args) => dogBreedList(args),
+
+  // rickandmorty-tool.ts
+  ram_get_character:       (args) => ramGetCharacter(args),
+  ram_search_characters:   (args) => ramSearchCharacters(args),
+  ram_get_episode:         (args) => ramGetEpisode(args),
+  ram_search_episodes:     (args) => ramSearchEpisodes(args),
+  ram_get_location:        (args) => ramGetLocation(args),
+
+  // xkcd-tool.ts
+  xkcd_latest:             (args) => xkcdLatest(args),
+  xkcd_comic:              (args) => xkcdComic(args),
+  xkcd_random:             (args) => xkcdRandom(args),
+
+  // brewery-tool.ts
+  brewery_search:          (args) => brewerySearch(args),
+  brewery_get:             (args) => breweryGet(args),
+  brewery_list:            (args) => breweryList(args),
+  brewery_random:          (args) => breweryRandom(args),
+
+  // jikan-tool.ts
+  jikan_search_anime:      (args) => jikanSearchAnime(args),
+  jikan_get_anime:         (args) => jikanGetAnime(args),
+  jikan_top_anime:         (args) => jikanTopAnime(args),
+  jikan_search_manga:      (args) => jikanSearchManga(args),
+  jikan_get_character:     (args) => jikanGetCharacter(args),
+
+  // chucknorris-tool.ts
+  chuck_random:            (args) => chuckRandom(args),
+  chuck_search:            (args) => chuckSearch(args),
+  chuck_categories:        (args) => chuckCategories(args),
+
+  // catfacts-tool.ts
+  cat_fact:                (args) => catFact(args),
+  cat_facts:               (args) => catFacts(args),
+  cat_breeds:              (args) => catBreeds(args),
+
+  // swapi-tool.ts
+  swapi_get_person:        (args) => swapiGetPerson(args),
+  swapi_search_people:     (args) => swapiSearchPeople(args),
+  swapi_get_planet:        (args) => swapiGetPlanet(args),
+  swapi_search_planets:    (args) => swapiSearchPlanets(args),
+  swapi_get_starship:      (args) => swapiGetStarship(args),
+  swapi_search_starships:  (args) => swapiSearchStarships(args),
+
+  // dnd5e-tool.ts
+  dnd_get_class:           (args) => dndGetClass(args),
+  dnd_list_classes:        (args) => dndListClasses(args),
+  dnd_get_spell:           (args) => dndGetSpell(args),
+  dnd_list_spells:         (args) => dndListSpells(args),
+  dnd_get_monster:         (args) => dndGetMonster(args),
+  dnd_list_monsters:       (args) => dndListMonsters(args),
+
+  // deckofcards-tool.ts
+  deck_new:                (args) => deckNew(args),
+  deck_draw:               (args) => deckDraw(args),
+  deck_shuffle:            (args) => deckShuffle(args),
+
+  // adviceslip-tool.ts
+  advice_random:           (args) => adviceRandom(args),
+  advice_search:           (args) => adviceSearch(args),
+  advice_by_id:            (args) => adviceById(args),
+
+  // agify-tool.ts
+  agify_age:               (args) => agifyAge(args),
+  genderize_name:          (args) => genderizeName(args),
+  nationalize_name:        (args) => nationalizeName(args),
+
+  // quotable-tool.ts
+  quote_random:            (args) => quoteRandom(args),
+  quote_search:            (args) => quoteSearch(args),
+  quote_by_author:         (args) => quoteByAuthor(args),
+  quote_list_tags:         (args) => quoteListTags(args),
+  quote_list_authors:      (args) => quoteListAuthors(args),
+
+  // bored-tool.ts
+  bored_random:            (args) => boredRandom(args),
+  bored_by_type:           (args) => boredByType(args),
+  bored_by_participants:   (args) => boredByParticipants(args),
+
+  // superhero-tool.ts
+  hero_get_by_id:          (args) => heroGetById(args),
+  hero_all:                (args) => heroAll(args),
+  hero_powerstats:         (args) => heroPowerstats(args),
+
+  // opennotify-tool.ts
+  iss_location:            (args) => issLocation(args),
+  iss_astronauts:          (args) => issAstronauts(args),
+
+  // tarot-tool.ts
+  tarot_all_cards:         (args) => tarotAllCards(args),
+  tarot_draw:              (args) => tarotDraw(args),
+  tarot_search:            (args) => tarotSearch(args),
+
+  // aoe2-tool.ts
+  aoe2_civilizations:      (args) => aoe2Civilizations(args),
+  aoe2_civilization:       (args) => aoe2Civilization(args),
+  aoe2_units:              (args) => aoe2Units(args),
+  aoe2_unit:               (args) => aoe2Unit(args),
+  aoe2_technologies:       (args) => aoe2Technologies(args),
+
+  // affirmation-tool.ts
+  affirmation_random:      (args) => affirmationRandom(args),
+
+  // jsonplaceholder-tool.ts
+  jp_list_posts:           (args) => jpListPosts(args),
+  jp_get_post:             (args) => jpGetPost(args),
+  jp_list_comments:        (args) => jpListComments(args),
+  jp_list_users:           (args) => jpListUsers(args),
+
+  // picsum-tool.ts
+  picsum_list:             (args) => picsumList(args),
+  picsum_get:              (args) => picsumGet(args),
+  picsum_random_url:       (args) => picsumRandomUrl(args),
+
+  // bible-tool.ts
+  bible_verse:             (args) => bibleVerse(args),
+  bible_random:            (args) => bibleRandom(args),
+
+  // frankfurter-tool.ts
+  frankfurter_latest:      (args) => frankfurterLatest(args),
+  frankfurter_convert:     (args) => frankfurterConvert(args),
+  frankfurter_historical:  (args) => frankfurterHistorical(args),
+  frankfurter_currencies:  (args) => frankfurterCurrencies(args),
+
+  // zenquotes-tool.ts
+  zen_quote_random:        (args) => zenQuoteRandom(args),
+  zen_quote_today:         (args) => zenQuoteToday(args),
+  zen_quotes:              (args) => zenQuotes(args),
+
+  // kanye-tool.ts
+  kanye_quote:             (args) => kanyeQuote(args),
+
+  // dadjoke-tool.ts
+  dadjoke_random:          (args) => dadJokeRandom(args),
+  dadjoke_search:          (args) => dadJokeSearch(args),
+  dadjoke_by_id:           (args) => dadJokeById(args),
+
+  // uselessfacts-tool.ts
+  useless_fact_random:     (args) => uselessFactRandom(args),
+  useless_fact_today:      (args) => uselessFactToday(args),
+
+  // randomfox-tool.ts
+  random_fox_image:        (args) => randomFoxImage(args),
+
+  // httpbin-tool.ts
+  httpbin_get:             (args) => httpbinGet(args),
+  httpbin_headers:         (args) => httpbinHeaders(args),
+  httpbin_ip:              (args) => httpbinIp(args),
+  httpbin_user_agent:      (args) => httpbinUserAgent(args),
+  httpbin_uuid:            (args) => httpbinUuid(args),
+
+  // reqres-tool.ts
+  reqres_list_users:       (args) => reqresListUsers(args),
+  reqres_get_user:         (args) => reqresGetUser(args),
+  reqres_list_resources:   (args) => reqresListResources(args),
+
+  // corporatebs-tool.ts
+  corporate_bs_phrase:     (args) => corporateBsPhrase(args),
+
+  // worldtime-tool.ts
+  worldtime_by_timezone:   (args) => worldTimeByTimezone(args),
+  worldtime_by_ip:         (args) => worldTimeByIp(args),
+  worldtime_list_timezones: (args) => worldTimeListTimezones(args),
+
+  // sunrisesunset-tool.ts
+  sunrise_sunset_times:    (args) => sunriseSunsetTimes(args),
+
+  // zippopotamus-tool.ts
+  zip_lookup:              (args) => zipLookup(args),
+  zip_by_city:             (args) => zipByCity(args),
+
+  // yesno-tool.ts
+  yesno_random:            (args) => yesNoRandom(args),
+
+  // evilinsult-tool.ts
+  evil_insult_random:      (args) => evilInsultRandom(args),
+
+  // dogapi-tool.ts
+  dog_api_random_image:    (args) => dogApiRandomImage(args),
+  dog_api_breeds:          (args) => dogApiBreeds(args),
+
+  // apifootball-tool.ts (TheSportsDB)
+  sportsdb_search_team:    (args) => sportsdbSearchTeam(args),
+  sportsdb_search_player:  (args) => sportsdbSearchPlayer(args),
+  sportsdb_team_events:    (args) => sportsdbTeamEvents(args),
+  sportsdb_leagues:        (args) => sportsdbLeagues(args),
+
+  // catapi-tool.ts
+  cat_api_random_image:    (args) => catApiRandomImage(args),
+  cat_api_breeds:          (args) => catApiBreeds(args),
+
+  // spaceflight-tool.ts
+  spaceflight_articles:    (args) => spaceflightArticles(args),
+  spaceflight_blogs:       (args) => spaceflightBlogs(args),
+  spaceflight_reports:     (args) => spaceflightReports(args),
+
+  // archiveorg-tool.ts
+  archive_search:          (args) => archiveSearch(args),
+  archive_metadata:        (args) => archiveMetadata(args),
+
+  // ipify-tool.ts
+  ipify_get_ip:            (args) => ipifyGetIp(args),
+
+  // exchangerate2-tool.ts
+  er_latest_rates:         (args) => erLatestRates(args),
+
+  // makeup-tool.ts
+  makeup_search:           (args) => makeupSearch(args),
+
+  // github-emoji-tool.ts
+  github_emojis:           (args) => githubEmojis(args),
+
+  // metmuseum-tool.ts
+  met_search:              (args) => metSearch(args),
+  met_object:              (args) => metObject(args),
+  met_departments:         (args) => metDepartments(args),
+
+  // lorem-tool.ts
+  bacon_ipsum:             (args) => baconIpsum(args),
+
+  // placekitten-tool.ts
+  placeholder_image:       (args) => placeholderImage(args),
+  placekitten_image:       (args) => placekittenImage(args),
+
+  // shibe-tool.ts
+  shibe_random_image:      (args) => shibeRandomImage(args),
+
+  // cataas-tool.ts
+  cataas_random_cat:       (args) => cataasRandomCat(args),
+  cataas_list_tags:        (args) => cataasListTags(args),
+
+  // punkapi-tool.ts
+  punkapi_random_beer:     (args) => punkApiRandomBeer(args),
+  punkapi_search_beers:    (args) => punkApiSearchBeers(args),
+  punkapi_get_beer:        (args) => punkApiGetBeer(args),
+
+  // colormind-tool.ts
+  colormind_generate_palette: (args) => colormindGeneratePalette(args),
+  colormind_list_models:   (args) => colormindListModels(args),
+
+  // dummyjson-tool.ts
+  dummyjson_products:      (args) => dummyjsonProducts(args),
+  dummyjson_search_products: (args) => dummyjsonSearchProducts(args),
+  dummyjson_quotes:        (args) => dummyjsonQuotes(args),
+  dummyjson_random_quote:  (args) => dummyjsonRandomQuote(args),
+
+  // excuser-tool.ts
+  excuser_random:          (args) => excuserRandom(args),
+
+  // dogfacts-tool.ts
+  dog_fact_random:         (args) => dogFactRandom(args),
+
+  // amiibo-tool.ts
+  amiibo_search:           (args) => amiiboSearch(args),
+  amiibo_by_series:        (args) => amiiboBySeries(args),
+  amiibo_types:            (args) => amiiboTypes(args),
+
+  // dummyimage-tool.ts
+  dummy_image_url:         (args) => dummyImageUrl(args),
+
+  // ipinfo-tool.ts
+  ipinfo_lookup:           (args) => ipInfoLookup(args),
+
+  // ghibli-tool.ts
+  ghibli_films:            (args) => ghibliFilms(args),
+  ghibli_people:           (args) => ghibliPeople(args),
+
+  // finalspace-tool.ts
+  final_space_characters:  (args) => finalSpaceCharacters(args),
+  final_space_episodes:    (args) => finalSpaceEpisodes(args),
+
+  // mcsrvstat-tool.ts
+  mc_server_status:        (args) => mcServerStatus(args),
+
+  // disneyapi-tool.ts
+  disney_character_search: (args) => disneyCharacterSearch(args),
+  disney_all_characters:   (args) => disneyAllCharacters(args),
+
+  // harrypotter-tool.ts
+  hp_all_characters:       (args) => hpAllCharacters(args),
+  hp_students:             (args) => hpStudents(args),
+  hp_staff:                (args) => hpStaff(args),
+  hp_by_house:             (args) => hpByHouse(args),
+
+  // emojihub-tool.ts
+  emojihub_random:         (args) => emojihubRandom(args),
+  emojihub_by_category:    (args) => emojihubByCategory(args),
+
+  // avatarapi-tool.ts
+  avatar_url:              (args) => avatarUrl(args),
+
+  // robohash-tool.ts
+  robohash_url:            (args) => robohashUrl(args),
+
+  // openlib2-tool.ts
+  gutenberg_search:        (args) => gutenbergSearch(args),
+  gutenberg_book:          (args) => gutenbergBook(args),
+
+  // countryflag-tool.ts
+  country_flag_url:        (args) => countryFlagUrl(args),
+
+  // mediawiki-tool.ts
+  wiktionary_lookup:       (args) => wiktionaryLookup(args),
+
+  // bibleverse-tool.ts
+  quran_verse:             (args) => quranVerse(args),
+  quran_surah:             (args) => quranSurah(args),
+
+  // urlhaus-tool.ts
+  urlhaus_lookup_url:      (args) => urlhausLookupUrl(args),
+  urlhaus_recent:          (args) => urlhausRecent(args),
+
+  // tvmaze-tool.ts
+  tvmaze_search:           (args) => tvmazeSearch(args),
+  tvmaze_show:             (args) => tvmazeShow(args),
+  tvmaze_schedule:         (args) => tvmazeSchedule(args),
+
+  // freetogame-tool.ts
+  freetogame_list:         (args) => freetogameList(args),
+  freetogame_detail:       (args) => freetogameDetail(args),
+
+  // cheapshark-tool.ts
+  cheapshark_deals:        (args) => cheapsharkDeals(args),
+  cheapshark_stores:       (args) => cheapsharkStores(args),
+
+  // iseven-tool.ts
+  is_even:                 (args) => isEven(args),
+
+  // iceandfire-tool.ts
+  iceandfire_characters:   (args) => iceandfireCharacters(args),
+  iceandfire_books:        (args) => iceandfireBooks(args),
+  iceandfire_houses:       (args) => iceandfireHouses(args),
+
+  // randomuser-tool.ts
+  random_user:             (args) => randomUser(args),
+
+  // digimon-tool.ts
+  digimon_all:             (args) => digimonAll(args),
+  digimon_by_name:         (args) => digimonByName(args),
+  digimon_by_level:        (args) => digimonByLevel(args),
+
+  // stapi-tool.ts
+  stapi_search_character:  (args) => stapiSearchCharacter(args),
+  stapi_search_species:    (args) => stapiSearchSpecies(args),
+  stapi_search_starship:   (args) => stapiSearchStarship(args),
+
+  // breakingbad-tool.ts
+  breaking_bad_quote:      (args) => breakingBadQuote(args),
+
+  // tacofancy-tool.ts
+  random_taco:             (args) => randomTaco(args),
+
+  // publicapis-tool.ts
+  publicapis_search:       (args) => publicapisSearch(args),
+  publicapis_categories:   (args) => publicapisCategories(args),
+  publicapis_random:       (args) => publicapisRandom(args),
+
+  // wger-tool.ts
+  wger_exercises:          (args) => wgerExercises(args),
+  wger_categories:         (args) => wgerCategories(args),
+  wger_muscles:            (args) => wgerMuscles(args),
+
+  // animechan-tool.ts
+  animechan_random:        (args) => animechanRandom(args),
+  animechan_search:        (args) => animechanSearch(args),
+
+  // lotr-tool.ts
+  lotr_books:              (args) => lotrBooks(args),
+  lotr_characters:         (args) => lotrCharacters(args),
+  lotr_quotes:             (args) => lotrQuotes(args),
+
+  // coinpaprika-tool.ts
+  coinpaprika_global:      (args) => coinpaprikaGlobal(args),
+  coinpaprika_coin:        (args) => coinpaprikaCoin(args),
+  coinpaprika_ticker:      (args) => coinpaprikaTicker(args),
+
+  // openfda-tool.ts
+  openfda_drug_search:     (args) => openfdaDrugSearch(args),
+  openfda_recall_search:   (args) => openfdaRecallSearch(args),
+  openfda_adverse_events:  (args) => openfdaAdverseEvents(args),
+
+  // funtranslations-tool.ts
+  fun_translate:           (args) => funTranslate(args),
+
+  // datamuse-tool.ts
+  datamuse_words:            (args) => datamuseWords(args),
+  datamuse_suggestions:      (args) => datamuseSuggestions(args),
+  // balldontlie-tool.ts
+  nba_players:               (args) => nbaPlayers(args),
+  nba_teams:                 (args) => nbaTeams(args),
+  nba_games:                 (args) => nbaGames(args),
+  // worldbank-tool.ts
+  worldbank_country:         (args) => worldbankCountry(args),
+  worldbank_indicator:       (args) => worldbankIndicator(args),
+  // carbonintensity-tool.ts
+  carbon_intensity_current:  (args) => carbonIntensityCurrent(args),
+  carbon_intensity_forecast: (args) => carbonIntensityForecast(args),
+  carbon_intensity_generation: (args) => carbonIntensityGeneration(args),
+  // lyrics-tool.ts
+  lyrics_get:                (args) => lyricsGet(args),
+  // urbandictionary-tool.ts
+  urban_define:              (args) => urbanDefine(args),
+  urban_random:              (args) => urbanRandom(args),
+
+  // nobelprize-tool.ts
+  nobel_prizes:              (args) => nobelPrizes(args),
+  nobel_laureates:           (args) => nobelLaureates(args),
+  // universities-tool.ts
+  universities_search:       (args) => universitiesSearch(args),
+  // fakestoreapi-tool.ts
+  fakestore_products:        (args) => fakestoreProducts(args),
+  fakestore_product:         (args) => fakestoreProduct(args),
+  fakestore_categories:      (args) => fakestoreCategories(args),
+  // mtg-tool.ts
+  mtg_search_cards:          (args) => mtgSearchCards(args),
+  mtg_get_card:              (args) => mtgGetCard(args),
+  mtg_sets:                  (args) => mtgSets(args),
+  // domainsdb-tool.ts
+  domainsdb_search:          (args) => domainsdbSearch(args),
+  domainsdb_tlds:            (args) => domainsdbTlds(args),
+  // pokemontcg-tool.ts
+  pokemon_tcg_search_cards:  (args) => pokemonTcgSearchCards(args),
+  pokemon_tcg_sets:          (args) => pokemonTcgSets(args),
+
+  // spacex-tool.ts
+  spacex_latest_launch:      (args) => spacexLatestLaunch(args),
+  spacex_launches:           (args) => spacexLaunches(args),
+  spacex_rockets:            (args) => spacexRockets(args),
+  // genderize-tool.ts
+  genderize_predict:         (args) => genderizePredict(args),
+  // nationalize-tool.ts
+  nationalize_predict:       (args) => nationalizePredict(args),
+  // qrserver-tool.ts
+  qrserver_generate:         (args) => qrserverGenerate(args),
+  // solarsystem-tool.ts
+  solarsystem_bodies:        (args) => solarsystemBodies(args),
+  solarsystem_body:          (args) => solarsystemBody(args),
+  // pubchem-tool.ts
+  pubchem_search:            (args) => pubchemSearch(args),
+  pubchem_properties:        (args) => pubchemProperties(args),
+
+  // openmeteo-marine-tool.ts
+  marine_forecast:           (args) => marineForecast(args),
+  // opentriviadb-tool.ts
+  triviadb_questions:        (args) => triviaDbQuestions(args),
+  triviadb_categories:       (args) => triviaDbCategories(args),
+  // ipaddrinfo-tool.ts
+  ip_address_lookup:         (args) => ipAddressLookup(args),
+  // diceware-tool.ts
+  diceware_passphrase:       (args) => dicewarePassphrase(args),
+  // colornames-tool.ts
+  color_name_lookup:         (args) => colorNameLookup(args),
+  color_name_random:         (args) => colorNameRandom(args),
+  // mhwdb-tool.ts
+  mhw_monsters:              (args) => mhwMonsters(args),
+  mhw_weapons:               (args) => mhwWeapons(args),
+  // exchangerate3-tool.ts
+  currency_api_rates:        (args) => currencyApiRates(args),
+  currency_api_list:         (args) => currencyApiList(args),
+  // jisho-tool.ts
+  jisho_search:              (args) => jishoSearch(args),
+  // colr-tool.ts
+  colr_random_palette:       (args) => colrRandomPalette(args),
+  // gameoflife-tool.ts
+  game_of_life_step:         (args) => gameOfLifeStep(args),
+  // fruityvice-tool.ts
+  fruityvice_all:            (args) => fruityviceAll(args),
+  fruityvice_by_name:        (args) => fruityviceByName(args),
+  // opendota-tool.ts
+  opendota_heroes:           (args) => opendotaHeroes(args),
+  opendota_hero_stats:       (args) => opendotaHeroStats(args),
+  opendota_pro_matches:      (args) => opendotaProMatches(args),
+  // artic-tool.ts
+  artic_search_artworks:     (args) => articSearchArtworks(args),
+  artic_get_artwork:         (args) => articGetArtwork(args),
+  // imgflip-tool.ts
+  imgflip_get_memes:         (args) => imgflipGetMemes(args),
+  // foodish-tool.ts
+  foodish_random:            (args) => foodishRandom(args),
+  foodish_by_category:       (args) => foodishByCategory(args),
+  // acnhapi-tool.ts
+  acnh_villagers:            (args) => acnhVillagers(args),
+  acnh_fish:                 (args) => acnhFish(args),
+  acnh_bugs:                 (args) => acnhBugs(args),
+  // httpcat-tool.ts
+  http_cat_image:            (args) => httpCatImage(args),
+  // poetrydb-tool.ts
+  poetry_search_by_author:   (args) => poetrySearchByAuthor(args),
+  poetry_search_by_title:    (args) => poetrySearchByTitle(args),
+  poetry_random:             (args) => poetryRandom(args),
+  // citybikes-tool.ts
+  citybikes_networks:        (args) => citybikesNetworks(args),
+  citybikes_network:         (args) => citybikesNetwork(args),
+  // wheretheiss-tool.ts
+  iss_position:              (args) => issPosition(args),
+  iss_pass_times:            (args) => issPassTimes(args),
+  // coinlore-tool.ts
+  coinlore_global:           (args) => coinloreGlobal(args),
+  coinlore_tickers:          (args) => coinloreTickers(args),
+  coinlore_coin:             (args) => coinloreCoin(args),
+  // openmeteo-airquality-tool.ts
+  air_quality_current:       (args) => airQualityCurrent(args),
+  air_quality_forecast:      (args) => airQualityForecast(args),
+  // officialjoke-tool.ts
+  official_joke_random:      (args) => officialJokeRandom(args),
+  official_joke_by_type:     (args) => officialJokeByType(args),
+  official_joke_ten:         (args) => officialJokeTen(args),
+  // multiavatar-tool.ts
+  multiavatar_generate:      (args) => multiavatarGenerate(args),
+  // openmeteo-flood-tool.ts
+  flood_forecast:            (args) => floodForecast(args),
+  // diseasesh-tool.ts
+  covid_global:              (args) => covidGlobal(args),
+  covid_country:             (args) => covidCountry(args),
+  covid_vaccine:             (args) => covidVaccine(args),
+  // fishwatch-tool.ts
+  fishwatch_species:         (args) => fishwatchSpecies(args),
+  fishwatch_species_detail:  (args) => fishwatchSpeciesDetail(args),
+  // newton-tool.ts
+  newton_math:               (args) => newtonMath(args),
+  // placebear-tool.ts
+  placebear_image:           (args) => placebearImage(args),
+  // countryis-tool.ts
+  country_by_ip:             (args) => countryByIp(args),
+  // openmeteo-historical-tool.ts
+  historical_weather:        (args) => historicalWeather(args),
+  // ukpolice-tool.ts
+  uk_police_forces:          (args) => ukPoliceForces(args),
+  uk_police_crimes:          (args) => ukPoliceCrimes(args),
+  // memegen-tool.ts
+  memegen_templates:         (args) => memegenTemplates(args),
+  memegen_create:            (args) => memegenCreate(args),
+  // timeapi-tool.ts
+  time_api_current_by_zone:  (args) => timeApiCurrentByZone(args),
+  time_api_timezones:        (args) => timeApiTimezones(args),
+  // postcodes-tool.ts
+  postcode_lookup:           (args) => postcodeLookup(args),
+  postcode_random:           (args) => postcodeRandom(args),
+  // openmeteo-climate-tool.ts
+  climate_normals:           (args) => climateNormals(args),
+  // gbif-tool.ts
+  gbif_search_species:       (args) => gbifSearchSpecies(args),
+  gbif_species_detail:       (args) => gbifSpeciesDetail(args),
+  gbif_occurrences:          (args) => gbifOccurrences(args),
+  // crossref-tool.ts
+  crossref_search_works:     (args) => crossrefSearchWorks(args),
+  crossref_get_work:         (args) => crossrefGetWork(args),
+  // nominatim-tool.ts
+  nominatim_search:          (args) => nominatimSearch(args),
+  nominatim_reverse:         (args) => nominatimReverse(args),
+  // coincap-tool.ts
+  coincap_assets:            (args) => coincapAssets(args),
+  coincap_asset_detail:      (args) => coincapAssetDetail(args),
+  coincap_rates:             (args) => coincapRates(args),
+  // open-elevation-tool.ts
+  open_elevation_lookup:     (args) => openElevationLookup(args),
+  // itis-tool.ts
+  itis_search_by_name:       (args) => itisSearchByName(args),
+  itis_get_full_record:      (args) => itisGetFullRecord(args),
+  // arxiv-tool.ts
+  arxiv_search:              (args) => arxivSearch(args),
+  // openalex-tool.ts
+  openalex_search_works:     (args) => openalexSearchWorks(args),
+  openalex_get_work:         (args) => openalexGetWork(args),
+  openalex_search_authors:   (args) => openalexSearchAuthors(args),
+  // dblp-tool.ts
+  dblp_search_publications:  (args) => dblpSearchPublications(args),
+  dblp_search_authors:       (args) => dblpSearchAuthors(args),
+  // wikidata-tool.ts
+  wikidata_search:           (args) => wikidataSearch(args),
+  wikidata_get_entity:       (args) => wikidataGetEntity(args),
+  // randomduck-tool.ts
+  random_duck_image:         (args) => randomDuckImage(args),
+  random_duck_list:          (args) => randomDuckList(args),
+  // httpdog-tool.ts
+  http_dog_image:            (args) => httpDogImage(args),
+  // opensky-tool.ts
+  opensky_states:            (args) => openskyStates(args),
+  opensky_flights:           (args) => openskyFlights(args),
+  // cvecircl-tool.ts
+  circl_cve_lookup:          (args) => circlCveLookup(args),
+  circl_cve_recent:          (args) => circlCveRecent(args),
+  // vatcomply-tool.ts
+  vatcomply_rates:           (args) => vatcomplyRates(args),
+  vatcomply_countries:       (args) => vatcomplyCountries(args),
+  // thecolorapi-tool.ts
+  thecolorapi_id:            (args) => theColorApiId(args),
+  thecolorapi_scheme:        (args) => theColorApiScheme(args),
+  // placehold-tool.ts
+  placehold_image:           (args) => placeholdImage(args),
+  // languagetool-tool.ts
+  languagetool_check:        (args) => languagetoolCheck(args),
+  languagetool_languages:    (args) => languagetoolLanguages(args),
+  // bgpview-tool.ts
+  bgpview_asn:               (args) => bgpviewAsn(args),
+  bgpview_asn_prefixes:      (args) => bgpviewAsnPrefixes(args),
+  bgpview_ip:                (args) => bgpviewIp(args),
+  // mymemory-tool.ts
+  mymemory_translate:        (args) => mymemoryTranslate(args),
+  // openchargemap-tool.ts
+  openchargemap_search:      (args) => openchargemapSearch(args),
+  // crates-tool.ts
+  crates_search:             (args) => cratesSearch(args),
+  crates_get:                (args) => cratesGet(args),
+  // npm-registry-tool.ts
+  npm_search:                (args) => npmSearch(args),
+  npm_get_package:           (args) => npmGetPackage(args),
+  // pypi-tool.ts
+  pypi_get_package:          (args) => pypiGetPackage(args),
+  pypi_get_version:          (args) => pypiGetVersion(args),
+
+  // rdap-tool.ts
+  rdap_domain:               (args) => rdapDomain(args),
+  rdap_ip:                   (args) => rdapIp(args),
+
+  // iban-tool.ts
+  iban_validate:             (args) => ibanValidate(args),
+
+  // stackexchange-tool.ts
+  stackexchange_search:      (args) => stackexchangeSearch(args),
+  stackexchange_question:    (args) => stackexchangeQuestion(args),
+
+  // ripe-tool.ts
+  ripe_network_info:         (args) => ripeNetworkInfo(args),
+  ripe_asn_neighbours:       (args) => ripeAsnNeighbours(args),
+
+  // gutendex-tool.ts
+  gutendex_search:           (args) => gutendexSearch(args),
+  gutendex_book:             (args) => gutendexBook(args),
+
+  // dohdns-tool.ts
+  dohdns_resolve:            (args) => dohdnsResolve(args),
+
+  // nhtsa-tool.ts
+  nhtsa_decode_vin:          (args) => nhtsaDecodeVin(args),
+  nhtsa_recalls:             (args) => nhtsaRecalls(args),
+
+  // geojs-tool.ts
+  geojs_lookup:              (args) => geojsLookup(args),
+
+  // isup-tool.ts
+  isup_check:                (args) => isupCheck(args),
+
+  // wayback-tool.ts
+  wayback_check:             (args) => waybackCheck(args),
+
+  // oeis-tool.ts
+  oeis_search:               (args) => oeisSearch(args),
+
+  // upcitemdb-tool.ts
+  upc_lookup:                (args) => upcLookup(args),
+  upc_search:                (args) => upcSearch(args),
+
+  // fakerapi-tool.ts
+  faker_persons:             (args) => fakerPersons(args),
+  faker_companies:           (args) => fakerCompanies(args),
+  faker_texts:               (args) => fakerTexts(args),
+
+  // openfigi-tool.ts
+  openfigi_mapping:          (args) => openfigiMapping(args),
+  openfigi_search:           (args) => openfigiSearch(args),
+
+  // libretranslate-tool.ts
+  libretranslate_translate:  (args) => libretranslateTranslate(args),
+  libretranslate_languages:  (args) => libretranslateLanguages(args),
+  libretranslate_detect:     (args) => libretranslateDetect(args),
+
+  // europeana-tool.ts
+  europeana_search:          (args) => europeanaSearch(args),
+  europeana_record:          (args) => europeanaRecord(args),
+
+  // flyover-tool.ts
+  iss_flyover:               (args) => issFlyover(args),
+
+  // jsoncrack-tool.ts
+  json_format:               (args) => jsoncrackFormat(args),
+
+  // abstract-holidays-tool.ts
+  country_info_detail:       (args) => abstractCountryInfo(args),
+  long_weekends:             (args) => abstractLongWeekends(args),
+
+  // cocktaildb2-tool.ts
+  cocktail_by_ingredient:    (args) => cocktailByIngredient(args),
+  cocktail_ingredient_info:  (args) => cocktailIngredientInfo(args),
+
+  // regexr-tool.ts
+  regex_test:                (args) => regexTest(args),
+
+  // hashgen-tool.ts
+  hash_generate:             (args) => hashGenerate(args),
+  hash_compare:              (args) => hashCompare(args),
+
+  // base64-tool.ts
+  base64_encode:             (args) => base64Encode(args),
+  base64_decode:             (args) => base64Decode(args),
+
+  // urlencode-tool.ts
+  url_encode:                (args) => urlEncode(args),
+  url_decode:                (args) => urlDecode(args),
+
+  // crontab-tool.ts
+  crontab_explain:           (args) => crontabExplain(args),
+
+  // jwt-tool.ts
+  jwt_decode:                (args) => jwtDecode(args),
+
+  // markdown-tool.ts
+  markdown_to_html:          (args) => markdownToHtml(args),
+  markdown_stats:            (args) => markdownStats(args),
+
+  // cidr-tool.ts
+  cidr_calculate:            (args) => cidrCalculate(args),
+
+  // semver-tool.ts
+  semver_parse:              (args) => semverParse(args),
+  semver_compare:            (args) => semverCompare(args),
+
+  // colorconvert-tool.ts
+  color_hex_convert:         (args) => colorHexConvert(args),
+
+  // epoch-tool.ts
+  epoch_convert:             (args) => epochConvert(args),
+  epoch_now:                 (args) => epochNow(args),
+
+  // difftext-tool.ts
+  diff_text:                 (args) => diffText(args),
+
+  // passwordgen-tool.ts
+  password_generate:         (args) => passwordGenerate(args),
+
+  // slug-tool.ts
+  text_slugify:              (args) => slugify(args),
+
+  // lorem2-tool.ts
+  lorem_generate:            (args) => loremGenerate(args),
+
+  // csvparse-tool.ts
+  csv_parse:                 (args) => csvParse(args),
+
+  // wordcount-tool.ts
+  word_count:                (args) => wordCount(args),
+
+  // jsonformat-tool.ts
+  json_prettify:             (args) => jsonFormat(args),
+
+  // htmlstrip-tool.ts
+  html_strip:                (args) => htmlStrip(args),
+
+  // uuidgen-tool.ts
+  uuid_generate:             (args) => uuidGenerate(args),
+
+  // charcount-tool.ts
+  char_frequency:            (args) => charFrequency(args),
+
+  // ipvalidate-tool.ts
+  ip_validate:               (args) => ipValidate(args),
+
+  // stringcase-tool.ts
+  string_case:               (args) => stringCase(args),
+
+  // aspectratio-tool.ts
+  aspect_ratio:              (args) => aspectRatio(args),
+
+  // percentage-tool.ts
+  percentage_calc:           (args) => percentageCalc(args),
+
+  // roman-tool.ts
+  roman_convert:             (args) => romanConvert(args),
+
+  // morse-tool.ts
+  morse_convert:             (args) => morseConvert(args),
+
+  // binaryconv-tool.ts
+  number_base_convert:       (args) => numberBaseConvert(args),
+
+  // levenshtein-tool.ts
+  string_distance:           (args) => stringDistance(args),
+
+  // loremname-tool.ts
+  lorem_name_generate:       (args) => loremNameGenerate(args),
+
+  // textstats-tool.ts
+  text_readability:          (args) => textReadability(args),
+
+  // timezone-tool.ts
+  timezone_info:             (args) => timezoneInfo(args),
+
+  // colorblend-tool.ts
+  color_blend:               (args) => colorBlend(args),
+
+  // fibonacci-tool.ts
+  fibonacci_sequence:        (args) => fibonacciSequence(args),
+
+  // primecheck-tool.ts
+  prime_check:               (args) => primeCheck(args),
+
+  // sortlines-tool.ts
+  sort_lines:                (args) => sortLines(args),
+
+  // countdowncalc-tool.ts
+  countdown_calc:            (args) => countdownCalc(args),
+
+  // unitpressure-tool.ts
+  pressure_convert:          (args) => pressureConvert(args),
+
+  // emojilookup-tool.ts
+  emoji_lookup:              (args) => emojiLookup(args),
+
+  // natoalphabet-tool.ts
+  nato_convert:              (args) => natoConvert(args),
+
+  // bitwise-tool.ts
+  bitwise_calc:              (args) => bitwiseCalc(args),
+
+  // gcdlcm-tool.ts
+  gcd_lcm_calc:              (args) => gcdLcmCalc(args),
+
+  // tempconvert-tool.ts
+  temperature_convert:       (args) => temperatureConvert(args),
+
+  // statistics-tool.ts
+  statistics_calc:           (args) => statisticsCalc(args),
+
+  // textwrap-tool.ts
+  text_wrap:                 (args) => textWrap(args),
+
+  // braille-tool.ts
+  braille_convert:           (args) => brailleConvert(args),
+
+  // piglatin-tool.ts
+  pig_latin_convert:         (args) => pigLatinConvert(args),
+
+  // rot13-tool.ts
+  rot13_convert:             (args) => rot13Convert(args),
+
+  // reversetext-tool.ts
+  reverse_text:              (args) => reverseText(args),
+
+  // palindrome-tool.ts
+  palindrome_check:          (args) => palindromeCheck(args),
+
+  // acronymgen-tool.ts
+  acronym_generate:          (args) => acronymGenerate(args),
+
+  // wordfreq-tool.ts
+  wordfreq_analyse:          (args) => wordfreqAnalyse(args),
+
+  // markdowntable-tool.ts
+  markdowntable_convert:     (args) => markdowntableConvert(args),
+
+  // runlength-tool.ts
+  runlength_process:         (args) => runlengthProcess(args),
+
+  // luhn-tool.ts
+  luhn_validate:             (args) => luhnValidate(args),
+
+  // charcodes-tool.ts
+  charcodes_convert:         (args) => charcodesConvert(args),
+
+  // soundex-tool.ts
+  soundex_encode:            (args) => soundexEncode(args),
+
+  // frequency-tool.ts
+  frequency_analyse:         (args) => frequencyAnalyse(args),
+
+  // entropy-tool.ts
+  entropy_calculate:         (args) => entropyCalculate(args),
+
+  // ngram-tool.ts
+  ngram_extract:             (args) => ngramExtract(args),
+
+  // camelsnake-tool.ts
+  camelsnake_convert:        (args) => camelsnakeConvert(args),
+
+  // metaphone-tool.ts
+  metaphone_encode:          (args) => metaphoneEncode(args),
+
+  // tfidf-tool.ts
+  tfidf_calculate:           (args) => tfidfCalculate(args),
+
+  // readability-tool.ts
+  readability_score:         (args) => readabilityScore(args),
+
+  // tokencount-tool.ts
+  tokencount_estimate:       (args) => tokencountEstimate(args),
+
+  // crc32-tool.ts
+  crc32_calculate:           (args) => crc32Calculate(args),
+
+  // jaccard-tool.ts
+  jaccard_similarity:        (args) => jaccardSimilarity(args),
+
+  // hamming-tool.ts
+  hamming_distance:          (args) => hammingDistance(args),
+
+  // cosinesim-tool.ts
+  cosinesim_compare:         (args) => cosinesimCompare(args),
+
+  // damerau-tool.ts
+  damerau_distance:          (args) => damerauDistance(args),
+
+  // markov-tool.ts
+  markov_generate:           (args) => markovGenerate(args),
+
+  // vigenere-tool.ts
+  vigenere_process:          (args) => vigenereProcess(args),
+
+  // atbash-tool.ts
+  atbash_process:            (args) => atbashProcess(args),
+
+  // railfence-tool.ts
+  railfence_process:         (args) => railfenceProcess(args),
+
+  // phonetic-tool.ts
+  phonetic_spell:            (args) => phoneticSpell(args),
+
+  // matrix-tool.ts
+  matrix_operate:            (args) => matrixOperate(args),
+
+  // setops-tool.ts
+  setops_calculate:          (args) => setopsCalculate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
