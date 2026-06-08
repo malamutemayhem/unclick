@@ -1,28 +1,42 @@
+interface LRUNode<K, V> {
+  key: K;
+  value: V;
+  prev: LRUNode<K, V> | null;
+  next: LRUNode<K, V> | null;
+}
+
 export class LRUCache<K, V> {
-  private map = new Map<K, V>();
-  private readonly capacity: number;
+  private capacity: number;
+  private map = new Map<K, LRUNode<K, V>>();
+  private head: LRUNode<K, V> | null = null;
+  private tail: LRUNode<K, V> | null = null;
 
   constructor(capacity: number) {
-    if (capacity < 1) throw new Error("Capacity must be at least 1");
     this.capacity = capacity;
   }
 
   get(key: K): V | undefined {
-    if (!this.map.has(key)) return undefined;
-    const value = this.map.get(key)!;
-    this.map.delete(key);
-    this.map.set(key, value);
-    return value;
+    const node = this.map.get(key);
+    if (!node) return undefined;
+    this.moveToFront(node);
+    return node.value;
   }
 
-  set(key: K, value: V): this {
-    if (this.map.has(key)) this.map.delete(key);
-    this.map.set(key, value);
-    if (this.map.size > this.capacity) {
-      const oldest = this.map.keys().next().value;
-      this.map.delete(oldest!);
+  set(key: K, value: V): void {
+    const existing = this.map.get(key);
+    if (existing) {
+      existing.value = value;
+      this.moveToFront(existing);
+      return;
     }
-    return this;
+    if (this.map.size >= this.capacity) {
+      this.evict();
+    }
+    const node: LRUNode<K, V> = { key, value, prev: null, next: this.head };
+    if (this.head) this.head.prev = node;
+    this.head = node;
+    if (!this.tail) this.tail = node;
+    this.map.set(key, node);
   }
 
   has(key: K): boolean {
@@ -30,30 +44,53 @@ export class LRUCache<K, V> {
   }
 
   delete(key: K): boolean {
-    return this.map.delete(key);
-  }
-
-  clear(): void {
-    this.map.clear();
+    const node = this.map.get(key);
+    if (!node) return false;
+    this.removeNode(node);
+    this.map.delete(key);
+    return true;
   }
 
   get size(): number {
     return this.map.size;
   }
 
+  clear(): void {
+    this.map.clear();
+    this.head = null;
+    this.tail = null;
+  }
+
   keys(): K[] {
-    return [...this.map.keys()].reverse();
+    const result: K[] = [];
+    let node = this.head;
+    while (node) {
+      result.push(node.key);
+      node = node.next;
+    }
+    return result;
   }
 
-  values(): V[] {
-    return [...this.map.values()].reverse();
+  private moveToFront(node: LRUNode<K, V>): void {
+    if (node === this.head) return;
+    this.removeNode(node);
+    node.prev = null;
+    node.next = this.head;
+    if (this.head) this.head.prev = node;
+    this.head = node;
+    if (!this.tail) this.tail = node;
   }
 
-  entries(): Array<[K, V]> {
-    return [...this.map.entries()].reverse();
+  private removeNode(node: LRUNode<K, V>): void {
+    if (node.prev) node.prev.next = node.next;
+    else this.head = node.next;
+    if (node.next) node.next.prev = node.prev;
+    else this.tail = node.prev;
   }
 
-  peek(key: K): V | undefined {
-    return this.map.get(key);
+  private evict(): void {
+    if (!this.tail) return;
+    this.map.delete(this.tail.key);
+    this.removeNode(this.tail);
   }
 }

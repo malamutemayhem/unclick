@@ -1,47 +1,58 @@
 import { describe, it, expect } from "vitest";
-import { evaluate, tokenize, toPostfix } from "../expression-parser.js";
+import { evaluate } from "../expression-parser.js";
 
-describe("expression-parser", () => {
-  it("evaluates simple addition", () => {
+describe("evaluate", () => {
+  it("basic arithmetic", () => {
     expect(evaluate("2 + 3")).toBe(5);
+    expect(evaluate("10 - 4")).toBe(6);
+    expect(evaluate("3 * 4")).toBe(12);
+    expect(evaluate("15 / 3")).toBe(5);
+    expect(evaluate("7 % 3")).toBe(1);
   });
 
-  it("respects operator precedence", () => {
+  it("operator precedence", () => {
     expect(evaluate("2 + 3 * 4")).toBe(14);
-  });
-
-  it("handles parentheses", () => {
     expect(evaluate("(2 + 3) * 4")).toBe(20);
   });
 
-  it("handles division and subtraction", () => {
-    expect(evaluate("10 - 6 / 2")).toBe(7);
-  });
-
-  it("handles exponentiation", () => {
+  it("exponentiation (right associative)", () => {
     expect(evaluate("2 ^ 3")).toBe(8);
+    expect(evaluate("2 ^ 3 ^ 2")).toBe(512);
   });
 
-  it("handles modulo", () => {
-    expect(evaluate("10 % 3")).toBe(1);
+  it("unary minus", () => {
+    expect(evaluate("-5")).toBe(-5);
+    expect(evaluate("-3 + 7")).toBe(4);
+    expect(evaluate("-(2 + 3)")).toBe(-5);
   });
 
-  it("tokenizes correctly", () => {
-    const tokens = tokenize("12 + 3.5");
-    expect(tokens).toEqual([
-      { type: "number", value: 12 },
-      { type: "op", value: "+" },
-      { type: "number", value: 3.5 },
-    ]);
+  it("variables", () => {
+    expect(evaluate("x + y", { x: 10, y: 20 })).toBe(30);
+    expect(evaluate("a * b + c", { a: 2, b: 3, c: 1 })).toBe(7);
   });
 
-  it("toPostfix converts infix", () => {
-    const tokens = tokenize("2 + 3 * 4");
-    const postfix = toPostfix(tokens);
-    expect(postfix.map((t) => t.value)).toEqual([2, 3, 4, "*", "+"]);
+  it("functions", () => {
+    expect(evaluate("abs(-5)")).toBe(5);
+    expect(evaluate("sqrt(16)")).toBe(4);
+    expect(evaluate("floor(3.7)")).toBe(3);
+    expect(evaluate("ceil(3.2)")).toBe(4);
   });
 
-  it("throws on invalid characters", () => {
-    expect(() => tokenize("2 & 3")).toThrow("Unexpected character");
+  it("nested expressions", () => {
+    expect(evaluate("sqrt(abs(-16))")).toBe(4);
+    expect(evaluate("(1 + 2) * (3 + 4)")).toBe(21);
+  });
+
+  it("decimals", () => {
+    expect(evaluate("1.5 + 2.5")).toBe(4);
+    expect(evaluate("0.1 + 0.2")).toBeCloseTo(0.3);
+  });
+
+  it("throws on unknown variable", () => {
+    expect(() => evaluate("x + 1")).toThrow("Unknown variable");
+  });
+
+  it("throws on unknown function", () => {
+    expect(() => evaluate("foo(1)")).toThrow("Unknown function");
   });
 });

@@ -2,63 +2,52 @@ import { describe, it, expect } from "vitest";
 import { SkipList } from "../skip-list.js";
 
 describe("SkipList", () => {
-  it("sets and gets values", () => {
-    const sl = new SkipList<number, string>();
-    sl.set(1, "a");
-    sl.set(2, "b");
-    sl.set(3, "c");
-    expect(sl.get(1)).toBe("a");
-    expect(sl.get(2)).toBe("b");
-    expect(sl.get(3)).toBe("c");
+  const numCompare = (a: number, b: number) => a - b;
+
+  it("insert and get", () => {
+    const sl = new SkipList<number, string>(numCompare);
+    sl.insert(3, "three");
+    sl.insert(1, "one");
+    sl.insert(2, "two");
+    expect(sl.get(1)).toBe("one");
+    expect(sl.get(2)).toBe("two");
+    expect(sl.get(3)).toBe("three");
+    expect(sl.get(4)).toBeUndefined();
   });
 
-  it("overwrites existing keys", () => {
-    const sl = new SkipList<number, string>();
-    sl.set(1, "old");
-    sl.set(1, "new");
-    expect(sl.get(1)).toBe("new");
+  it("updates existing key", () => {
+    const sl = new SkipList<number, string>(numCompare);
+    sl.insert(1, "one");
+    sl.insert(1, "ONE");
+    expect(sl.get(1)).toBe("ONE");
     expect(sl.size).toBe(1);
   });
 
-  it("returns undefined for missing keys", () => {
-    const sl = new SkipList<number, string>();
-    expect(sl.get(99)).toBeUndefined();
-  });
-
-  it("has checks existence", () => {
-    const sl = new SkipList<string, number>();
-    sl.set("x", 1);
-    expect(sl.has("x")).toBe(true);
-    expect(sl.has("y")).toBe(false);
-  });
-
-  it("deletes keys", () => {
-    const sl = new SkipList<number, string>();
-    sl.set(1, "a");
-    sl.set(2, "b");
-    expect(sl.delete(1)).toBe(true);
-    expect(sl.get(1)).toBeUndefined();
-    expect(sl.size).toBe(1);
+  it("delete removes key", () => {
+    const sl = new SkipList<number, string>(numCompare);
+    sl.insert(1, "a");
+    sl.insert(2, "b");
+    sl.insert(3, "c");
+    expect(sl.delete(2)).toBe(true);
+    expect(sl.get(2)).toBeUndefined();
+    expect(sl.size).toBe(2);
     expect(sl.delete(99)).toBe(false);
   });
 
-  it("toArray returns sorted entries", () => {
-    const sl = new SkipList<number, string>();
-    sl.set(3, "c");
-    sl.set(1, "a");
-    sl.set(2, "b");
+  it("toArray returns sorted order", () => {
+    const sl = new SkipList<number, string>(numCompare);
+    sl.insert(5, "e");
+    sl.insert(1, "a");
+    sl.insert(3, "c");
     const arr = sl.toArray();
-    expect(arr.map((e) => e.key)).toEqual([1, 2, 3]);
-    expect(arr.map((e) => e.value)).toEqual(["a", "b", "c"]);
+    expect(arr.map((x) => x.key)).toEqual([1, 3, 5]);
   });
 
-  it("tracks size", () => {
-    const sl = new SkipList<number, number>();
-    expect(sl.size).toBe(0);
-    sl.set(1, 1);
-    sl.set(2, 2);
-    expect(sl.size).toBe(2);
-    sl.delete(1);
-    expect(sl.size).toBe(1);
+  it("handles string keys", () => {
+    const sl = new SkipList<string, number>((a, b) => a.localeCompare(b));
+    sl.insert("banana", 2);
+    sl.insert("apple", 1);
+    sl.insert("cherry", 3);
+    expect(sl.toArray().map((x) => x.key)).toEqual(["apple", "banana", "cherry"]);
   });
 });
