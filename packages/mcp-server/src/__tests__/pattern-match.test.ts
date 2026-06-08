@@ -1,74 +1,92 @@
 import { describe, it, expect } from "vitest";
-import { match, is, isIn, isType, not, and, or, always } from "../pattern-match.js";
+import { Matcher, match, isString, isNumber, isArray, isNullish } from "../pattern-match.js";
 
-describe("match", () => {
+describe("Matcher", () => {
   it("matches first pattern", () => {
-    const result = match(5, [
-      [is(1), () => "one"],
-      [is(5), () => "five"],
-    ]);
-    expect(result).toBe("five");
+    const m = new Matcher<number, string>()
+      .when((v) => v > 10, () => "big")
+      .when((v) => v > 0, () => "small")
+      .otherwise(() => "zero or negative");
+
+    expect(m.execute(15)).toBe("big");
+    expect(m.execute(5)).toBe("small");
+    expect(m.execute(-1)).toBe("zero or negative");
   });
 
-  it("uses fallback", () => {
-    const result = match(99, [
-      [is(1), () => "one"],
-    ], () => "other");
-    expect(result).toBe("other");
+  it("whenEqual matches exact value", () => {
+    const m = new Matcher<string, number>()
+      .whenEqual("a", () => 1)
+      .whenEqual("b", () => 2)
+      .otherwise(() => 0);
+
+    expect(m.execute("a")).toBe(1);
+    expect(m.execute("b")).toBe(2);
+    expect(m.execute("c")).toBe(0);
   });
 
-  it("throws without fallback", () => {
-    expect(() => match(99, [[is(1), () => "one"]])).toThrow("No matching");
-  });
-});
+  it("whenIn matches from list", () => {
+    const m = new Matcher<string, boolean>()
+      .whenIn(["yes", "y", "true"], () => true)
+      .otherwise(() => false);
 
-describe("is", () => {
-  it("matches exact value", () => {
-    expect(is(5)(5)).toBe(true);
-    expect(is(5)(6)).toBe(false);
+    expect(m.execute("yes")).toBe(true);
+    expect(m.execute("no")).toBe(false);
   });
-});
 
-describe("isIn", () => {
-  it("matches any in set", () => {
-    const pred = isIn(1, 2, 3);
-    expect(pred(2)).toBe(true);
-    expect(pred(4)).toBe(false);
-  });
-});
-
-describe("isType", () => {
-  it("matches typeof", () => {
-    expect(isType("string")("hello")).toBe(true);
-    expect(isType("number")("hello")).toBe(false);
+  it("throws without match or fallback", () => {
+    const m = new Matcher<number, string>()
+      .when((v) => v > 100, () => "big");
+    expect(() => m.execute(1)).toThrow("No matching pattern");
   });
 });
 
-describe("not", () => {
-  it("negates predicate", () => {
-    expect(not(is(5))(5)).toBe(false);
-    expect(not(is(5))(3)).toBe(true);
+describe("match builder", () => {
+  it("matches with equals", () => {
+    const result = match(42)
+      .equals(1, "one")
+      .equals(42, "answer")
+      .otherwise("unknown");
+    expect(result).toBe("answer");
+  });
+
+  it("matches with predicate", () => {
+    const result = match(15)
+      .with((v) => v > 10, "big")
+      .otherwise("small");
+    expect(result).toBe("big");
+  });
+
+  it("otherwise returns default", () => {
+    const result = match("x")
+      .equals("a", 1)
+      .otherwise(0);
+    expect(result).toBe(0);
+  });
+
+  it("exhaustive throws on no match", () => {
+    expect(() => match(5).equals(1, "one").exhaustive()).toThrow("Non-exhaustive");
   });
 });
 
-describe("and", () => {
-  it("all predicates must match", () => {
-    const pred = and(isType("number") as (v: number) => boolean, (n: number) => n > 0);
-    expect(pred(5)).toBe(true);
-    expect(pred(-1)).toBe(false);
+describe("type guards", () => {
+  it("isString", () => {
+    expect(isString("hi")).toBe(true);
+    expect(isString(42)).toBe(false);
   });
-});
 
-describe("or", () => {
-  it("any predicate matches", () => {
-    const pred = or(is(1), is(2));
-    expect(pred(1)).toBe(true);
-    expect(pred(3)).toBe(false);
+  it("isNumber", () => {
+    expect(isNumber(42)).toBe(true);
+    expect(isNumber("42")).toBe(false);
   });
-});
 
-describe("always", () => {
-  it("always returns true", () => {
-    expect(always()(42)).toBe(true);
+  it("isArray", () => {
+    expect(isArray([1, 2])).toBe(true);
+    expect(isArray("abc")).toBe(false);
+  });
+
+  it("isNullish", () => {
+    expect(isNullish(null)).toBe(true);
+    expect(isNullish(undefined)).toBe(true);
+    expect(isNullish(0)).toBe(false);
   });
 });
