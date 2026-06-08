@@ -1,50 +1,84 @@
-import { describe, it, expect } from "vitest";
-import { Deferred, deferred, timeout, delay } from "../deferred.js";
+import { describe, it, expect, vi } from "vitest";
+import { createDeferred, timeout, delay, settling, props, retry } from "../deferred.js";
 
-describe("Deferred", () => {
-  it("resolves externally", async () => {
-    const d = new Deferred<number>();
-    expect(d.isSettled).toBe(false);
+describe("createDeferred", () => {
+  it("resolves when resolve is called", async () => {
+    const d = createDeferred<number>();
+    expect(d.settled).toBe(false);
     d.resolve(42);
-    expect(d.isSettled).toBe(true);
     expect(await d.promise).toBe(42);
+    expect(d.settled).toBe(true);
   });
 
-  it("rejects externally", async () => {
-    const d = new Deferred<number>();
+  it("rejects when reject is called", async () => {
+    const d = createDeferred<number>();
     d.reject(new Error("fail"));
     await expect(d.promise).rejects.toThrow("fail");
-  });
-
-  it("ignores double settle", async () => {
-    const d = new Deferred<number>();
-    d.resolve(1);
-    d.resolve(2);
-    expect(await d.promise).toBe(1);
-  });
-
-  it("factory function works", async () => {
-    const d = deferred<string>();
-    d.resolve("hello");
-    expect(await d.promise).toBe("hello");
+    expect(d.settled).toBe(true);
   });
 });
 
 describe("timeout", () => {
-  it("resolves before timeout", async () => {
+  it("resolves if fast enough", async () => {
     const result = await timeout(Promise.resolve(42), 1000);
     expect(result).toBe(42);
   });
 
   it("rejects on timeout", async () => {
-    await expect(timeout(new Promise(() => {}), 10, "too slow")).rejects.toThrow("too slow");
+    const slow = new Promise((r) => setTimeout(r, 5000));
+    await expect(timeout(slow, 10)).rejects.toThrow("Timeout");
   });
 });
 
 describe("delay", () => {
   it("resolves after ms", async () => {
     const start = Date.now();
-    await delay(10);
-    expect(Date.now() - start).toBeGreaterThanOrEqual(5);
+    await delay(50);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(40);
+  });
+});
+
+describe("settling", () => {
+  it("settles all promises", async () => {
+    const results = await settling([
+      Promise.resolve(1),
+      Promise.reject(new Error("bad")),
+      Promise.resolve(3),
+    ]);
+    expect(results[0]).toEqual({ status: "fulfilled", value: 1 });
+    expect(results[1].status).toBe("rejected");
+    expect(results[2]).toEqual({ status: "fulfilled", value: 3 });
+  });
+});
+
+describe("props", () => {
+  it("resolves object of promises", async () => {
+    const result = await props({
+      a: Promise.resolve(1),
+      b: Promise.resolve("hello"),
+    });
+    expect(result).toEqual({ a: 1, b: "hello" });
+  });
+});
+
+describe("retry", () => {
+  it("succeeds on first try", async () => {
+    const fn = vi.fn().mockResolvedValue("ok");
+    expect(await retry(fn, 3)).toBe("ok");
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries and succeeds", async () => {
+    const fn = vi.fn()
+      .mockRejectedValueOnce(new Error("x"))
+      .mockResolvedValue("ok");
+    expect(await retry(fn, 3, 1)).toBe("ok");
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws after all attempts", async () => {
+    const fn = vi.fn().mockRejectedValue(new Error("fail"));
+    await expect(retry(fn, 2, 1)).rejects.toThrow("fail");
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });

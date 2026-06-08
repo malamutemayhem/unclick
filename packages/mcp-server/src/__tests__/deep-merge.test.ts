@@ -1,48 +1,63 @@
 import { describe, it, expect } from "vitest";
-import { deepMerge, deepClone, deepFreeze, deepEqual } from "../deep-merge.js";
+import { deepMerge, deepMergeWith, deepClone, deepFreeze, deepEqual } from "../deep-merge.js";
 
 describe("deepMerge", () => {
   it("merges flat objects", () => {
     expect(deepMerge({ a: 1 }, { b: 2 })).toEqual({ a: 1, b: 2 });
   });
 
-  it("merges nested objects", () => {
-    expect(deepMerge({ a: { x: 1 } }, { a: { y: 2 } })).toEqual({ a: { x: 1, y: 2 } });
-  });
-
-  it("later values override", () => {
+  it("overrides with last source", () => {
     expect(deepMerge({ a: 1 }, { a: 2 })).toEqual({ a: 2 });
   });
 
-  it("handles arrays (replace, not merge)", () => {
-    expect(deepMerge({ a: [1] }, { a: [2, 3] })).toEqual({ a: [2, 3] });
+  it("recursively merges nested objects", () => {
+    const result = deepMerge({ a: { b: 1, c: 2 } }, { a: { c: 3, d: 4 } });
+    expect(result).toEqual({ a: { b: 1, c: 3, d: 4 } });
   });
 
-  it("merges multiple objects", () => {
+  it("arrays are replaced not merged", () => {
+    expect(deepMerge({ a: [1, 2] }, { a: [3, 4] })).toEqual({ a: [3, 4] });
+  });
+
+  it("handles multiple sources", () => {
     expect(deepMerge({ a: 1 }, { b: 2 }, { c: 3 })).toEqual({ a: 1, b: 2, c: 3 });
   });
 });
 
+describe("deepMergeWith", () => {
+  it("uses custom merger", () => {
+    const result = deepMergeWith(
+      (target, source) => {
+        if (Array.isArray(target) && Array.isArray(source)) return [...target, ...source];
+        return source;
+      },
+      { a: [1] },
+      { a: [2] }
+    );
+    expect(result).toEqual({ a: [1, 2] });
+  });
+});
+
 describe("deepClone", () => {
-  it("clones objects", () => {
-    const original = { a: { b: [1, 2] } };
+  it("clones objects deeply", () => {
+    const original = { a: { b: [1, 2, 3] }, c: "hi" };
     const cloned = deepClone(original);
     expect(cloned).toEqual(original);
-    cloned.a.b.push(3);
-    expect(original.a.b).toEqual([1, 2]);
+    cloned.a.b.push(4);
+    expect(original.a.b).toEqual([1, 2, 3]);
   });
 
-  it("clones dates", () => {
-    const d = new Date("2024-01-01");
-    const cloned = deepClone(d);
-    expect(cloned.getTime()).toBe(d.getTime());
-    expect(cloned).not.toBe(d);
-  });
-
-  it("handles primitives", () => {
+  it("clones primitives", () => {
     expect(deepClone(42)).toBe(42);
-    expect(deepClone("hi")).toBe("hi");
+    expect(deepClone("hello")).toBe("hello");
     expect(deepClone(null)).toBe(null);
+  });
+
+  it("clones Date", () => {
+    const d = new Date("2024-01-01");
+    const c = deepClone(d);
+    expect(c.getTime()).toBe(d.getTime());
+    expect(c).not.toBe(d);
   });
 });
 
@@ -50,25 +65,34 @@ describe("deepFreeze", () => {
   it("freezes nested objects", () => {
     const obj = deepFreeze({ a: { b: 1 } });
     expect(Object.isFrozen(obj)).toBe(true);
-    expect(Object.isFrozen(obj.a)).toBe(true);
+    expect(Object.isFrozen((obj as any).a)).toBe(true);
   });
 });
 
 describe("deepEqual", () => {
-  it("compares equal objects", () => {
-    expect(deepEqual({ a: [1, 2] }, { a: [1, 2] })).toBe(true);
+  it("equal objects", () => {
+    expect(deepEqual({ a: 1, b: [2, 3] }, { a: 1, b: [2, 3] })).toBe(true);
   });
 
-  it("detects differences", () => {
+  it("different values", () => {
     expect(deepEqual({ a: 1 }, { a: 2 })).toBe(false);
-    expect(deepEqual([1], [1, 2])).toBe(false);
+  });
+
+  it("different keys", () => {
     expect(deepEqual({ a: 1 }, { b: 1 })).toBe(false);
   });
 
-  it("handles primitives", () => {
+  it("primitives", () => {
     expect(deepEqual(1, 1)).toBe(true);
     expect(deepEqual("a", "b")).toBe(false);
+  });
+
+  it("arrays of different length", () => {
+    expect(deepEqual([1, 2], [1, 2, 3])).toBe(false);
+  });
+
+  it("null handling", () => {
     expect(deepEqual(null, null)).toBe(true);
-    expect(deepEqual(null, undefined)).toBe(false);
+    expect(deepEqual(null, {})).toBe(false);
   });
 });

@@ -1,33 +1,33 @@
-export interface FSMConfig<S extends string, E extends string> {
-  initial: S;
-  states: Record<S, StateConfig<S, E>>;
+export interface FSMConfig<E extends string = string> {
+  initial: string;
+  states: Record<string, StateConfig<E>>;
 }
 
-export interface StateConfig<S extends string, E extends string> {
-  on?: Partial<Record<E, S | TransitionConfig<S>>>;
+export interface StateConfig<E extends string = string> {
+  on?: Partial<Record<E, string | TransitionConfig>>;
   onEnter?: () => void;
   onExit?: () => void;
 }
 
-export interface TransitionConfig<S extends string> {
-  target: S;
+export interface TransitionConfig {
+  target: string;
   guard?: () => boolean;
   action?: () => void;
 }
 
-export class StateMachine<S extends string, E extends string> {
-  private _state: S;
-  private config: FSMConfig<S, E>;
-  private listeners = new Set<(state: S, event: E) => void>();
+export class StateMachine<E extends string = string> {
+  private _state: string;
+  private config: FSMConfig<E>;
+  private listeners = new Set<(state: string, event: E) => void>();
 
-  constructor(config: FSMConfig<S, E>) {
+  constructor(config: FSMConfig<E>) {
     this.config = config;
     this._state = config.initial;
     const initial = config.states[config.initial];
     if (initial?.onEnter) initial.onEnter();
   }
 
-  get state(): S {
+  get state(): string {
     return this._state;
   }
 
@@ -37,16 +37,15 @@ export class StateMachine<S extends string, E extends string> {
     const transition = stateConfig.on[event];
     if (!transition) return false;
 
-    let target: S;
+    let target: string;
     let action: (() => void) | undefined;
 
     if (typeof transition === "string") {
       target = transition;
     } else {
-      const t = transition as TransitionConfig<S>;
-      if (t.guard && !t.guard()) return false;
-      target = t.target;
-      action = t.action;
+      if (transition.guard && !transition.guard()) return false;
+      target = transition.target;
+      action = transition.action;
     }
 
     if (stateConfig.onExit) stateConfig.onExit();
@@ -67,22 +66,21 @@ export class StateMachine<S extends string, E extends string> {
     const transition = stateConfig.on[event];
     if (!transition) return false;
     if (typeof transition !== "string") {
-      const t = transition as TransitionConfig<S>;
-      if (t.guard && !t.guard()) return false;
+      if (transition.guard && !transition.guard()) return false;
     }
     return true;
   }
 
-  subscribe(listener: (state: S, event: E) => void): () => void {
+  subscribe(listener: (state: string, event: E) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
-  matches(state: S): boolean {
+  matches(state: string): boolean {
     return this._state === state;
   }
 }
 
-export function createMachine<S extends string, E extends string>(config: FSMConfig<S, E>): StateMachine<S, E> {
+export function createMachine<E extends string = string>(config: FSMConfig<E>): StateMachine<E> {
   return new StateMachine(config);
 }
