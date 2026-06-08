@@ -1,44 +1,36 @@
-export interface BatchOptions {
-  batchSize: number;
-  delayMs?: number;
-  onBatch?: (batch: unknown[], index: number) => void;
+export interface BatchResult<T, R> {
+  input: T;
+  output?: R;
+  error?: Error;
+  success: boolean;
 }
 
 export async function processBatch<T, R>(
   items: T[],
   processor: (item: T) => Promise<R>,
-  options: BatchOptions
-): Promise<R[]> {
-  const results: R[] = [];
-  const batches = chunk(items, options.batchSize);
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    if (options.onBatch) options.onBatch(batch, i);
-    const batchResults = await Promise.all(batch.map(processor));
-    results.push(...batchResults);
-    if (options.delayMs && i < batches.length - 1) {
-      await sleep(options.delayMs);
-    }
-  }
-  return results;
-}
+  concurrency = 5,
+): Promise<BatchResult<T, R>[]> {
+  const results: BatchResult<T, R>[] = [];
+  const queue = [...items];
+  const promises: Promise<void>[] = [];
 
-export async function processBatchSequential<T, R>(
-  items: T[],
-  processor: (item: T) => Promise<R>,
-  options: BatchOptions
-): Promise<R[]> {
-  const results: R[] = [];
-  const batches = chunk(items, options.batchSize);
-  for (let i = 0; i < batches.length; i++) {
-    if (options.onBatch) options.onBatch(batches[i], i);
-    for (const item of batches[i]) {
-      results.push(await processor(item));
-    }
-    if (options.delayMs && i < batches.length - 1) {
-      await sleep(options.delayMs);
+  for (let i = 0; i < Math.min(concurrency, queue.length); i++) {
+    promises.push(worker());
+  }
+
+  async function worker(): Promise<void> {
+    while (queue.length > 0) {
+      const item = queue.shift()!;
+      try {
+        const output = await processor(item);
+        results.push({ input: item, output, success: true });
+      } catch (err) {
+        results.push({ input: item, error: err instanceof Error ? err : new Error(String(err)), success: false });
+      }
     }
   }
+
+  await Promise.all(promises);
   return results;
 }
 
@@ -50,23 +42,15 @@ export function chunk<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-export async function mapConcurrent<T, R>(
+export async function processChunked<T, R>(
   items: T[],
-  fn: (item: T) => Promise<R>,
-  concurrency: number
+  chunkSize: number,
+  processor: (chunk: T[]) => Promise<R[]>,
 ): Promise<R[]> {
-  const results: R[] = new Array(items.length);
-  let index = 0;
-  const worker = async () => {
-    while (index < items.length) {
-      const i = index++;
-      results[i] = await fn(items[i]);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  const chunks = chunk(items, chunkSize);
+  const results: R[] = [];
+  for (const c of chunks) {
+    results.push(...await processor(c));
+  }
   return results;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

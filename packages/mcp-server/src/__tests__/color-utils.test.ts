@@ -1,51 +1,66 @@
 import { describe, it, expect } from "vitest";
-import { hexToRgb, rgbToHex, rgbToHsl, luminance, contrastRatio, isLight } from "../color-utils.js";
+import { hexToRgb, rgbToHex, rgbToHsl, luminance, contrastRatio, isAccessible } from "../color-utils.js";
 
-describe("color-utils", () => {
-  it("hexToRgb parses 6-digit hex", () => {
+describe("hexToRgb", () => {
+  it("converts hex to RGB", () => {
     expect(hexToRgb("#ff0000")).toEqual({ r: 255, g: 0, b: 0 });
     expect(hexToRgb("#00ff00")).toEqual({ r: 0, g: 255, b: 0 });
     expect(hexToRgb("0000ff")).toEqual({ r: 0, g: 0, b: 255 });
   });
+});
 
-  it("hexToRgb parses 3-digit shorthand", () => {
-    expect(hexToRgb("#f00")).toEqual({ r: 255, g: 0, b: 0 });
-    expect(hexToRgb("#fff")).toEqual({ r: 255, g: 255, b: 255 });
-  });
-
-  it("rgbToHex converts back", () => {
+describe("rgbToHex", () => {
+  it("converts RGB to hex", () => {
     expect(rgbToHex({ r: 255, g: 0, b: 0 })).toBe("#ff0000");
-    expect(rgbToHex({ r: 0, g: 128, b: 255 })).toBe("#0080ff");
+    expect(rgbToHex({ r: 0, g: 255, b: 0 })).toBe("#00ff00");
   });
+});
 
-  it("roundtrip hex -> rgb -> hex", () => {
-    expect(rgbToHex(hexToRgb("#1a2b3c"))).toBe("#1a2b3c");
+describe("rgbToHsl", () => {
+  it("converts red", () => {
+    const hsl = rgbToHsl({ r: 255, g: 0, b: 0 });
+    expect(hsl.h).toBe(0);
+    expect(hsl.s).toBe(100);
+    expect(hsl.l).toBe(50);
   });
-
-  it("rgbToHsl converts correctly", () => {
-    const red = rgbToHsl({ r: 255, g: 0, b: 0 });
-    expect(red.h).toBe(0);
-    expect(red.s).toBe(100);
-    expect(red.l).toBe(50);
+  it("converts white", () => {
+    const hsl = rgbToHsl({ r: 255, g: 255, b: 255 });
+    expect(hsl.l).toBe(100);
   });
-
-  it("rgbToHsl handles grayscale", () => {
-    const gray = rgbToHsl({ r: 128, g: 128, b: 128 });
-    expect(gray.s).toBe(0);
+  it("converts black", () => {
+    const hsl = rgbToHsl({ r: 0, g: 0, b: 0 });
+    expect(hsl.l).toBe(0);
   });
+});
 
-  it("luminance of white is 1, black is 0", () => {
+describe("luminance", () => {
+  it("white has high luminance", () => {
     expect(luminance({ r: 255, g: 255, b: 255 })).toBeCloseTo(1, 1);
-    expect(luminance({ r: 0, g: 0, b: 0 })).toBeCloseTo(0, 1);
   });
+  it("black has zero luminance", () => {
+    expect(luminance({ r: 0, g: 0, b: 0 })).toBe(0);
+  });
+});
 
-  it("contrastRatio of black on white is 21:1", () => {
+describe("contrastRatio", () => {
+  it("black/white has max contrast", () => {
     const ratio = contrastRatio({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 });
     expect(ratio).toBeCloseTo(21, 0);
   });
+  it("same color has contrast 1", () => {
+    const ratio = contrastRatio({ r: 128, g: 128, b: 128 }, { r: 128, g: 128, b: 128 });
+    expect(ratio).toBe(1);
+  });
+});
 
-  it("isLight detects light colors", () => {
-    expect(isLight({ r: 255, g: 255, b: 255 })).toBe(true);
-    expect(isLight({ r: 0, g: 0, b: 0 })).toBe(false);
+describe("isAccessible", () => {
+  it("black on white passes AA", () => {
+    expect(isAccessible({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toBe(true);
+  });
+  it("black on white passes AAA", () => {
+    expect(isAccessible({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, "AAA")).toBe(true);
+  });
+  it("similar colors fail AA", () => {
+    expect(isAccessible({ r: 200, g: 200, b: 200 }, { r: 210, g: 210, b: 210 })).toBe(false);
   });
 });

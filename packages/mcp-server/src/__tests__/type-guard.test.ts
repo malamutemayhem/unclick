@@ -1,92 +1,65 @@
 import { describe, it, expect } from "vitest";
-import {
-  isString, isNumber, isBoolean, isNull, isUndefined, isNil,
-  isArray, isObject, isFunction, isDate, isRegExp, isPromise,
-  assertDefined, assertType
-} from "../type-guard.js";
+import { isString, isNumber, isBoolean, isArray, isObject, isNullish, isNonNullish, hasProperty, hasProperties, assertType, narrowType } from "../type-guard.js";
 
-describe("type-guard", () => {
+describe("type guards", () => {
   it("isString", () => {
-    expect(isString("hi")).toBe(true);
-    expect(isString(5)).toBe(false);
-    expect(isString(null)).toBe(false);
+    expect(isString("hello")).toBe(true);
+    expect(isString(42)).toBe(false);
   });
-
   it("isNumber", () => {
     expect(isNumber(42)).toBe(true);
     expect(isNumber(NaN)).toBe(false);
-    expect(isNumber("5")).toBe(false);
+    expect(isNumber("42")).toBe(false);
   });
-
   it("isBoolean", () => {
     expect(isBoolean(true)).toBe(true);
     expect(isBoolean(0)).toBe(false);
   });
-
-  it("isNull and isUndefined", () => {
-    expect(isNull(null)).toBe(true);
-    expect(isNull(undefined)).toBe(false);
-    expect(isUndefined(undefined)).toBe(true);
-    expect(isUndefined(null)).toBe(false);
-  });
-
-  it("isNil", () => {
-    expect(isNil(null)).toBe(true);
-    expect(isNil(undefined)).toBe(true);
-    expect(isNil(0)).toBe(false);
-  });
-
   it("isArray", () => {
     expect(isArray([1, 2])).toBe(true);
-    expect(isArray("string")).toBe(false);
+    expect(isArray("abc")).toBe(false);
   });
-
   it("isObject", () => {
-    expect(isObject({ a: 1 })).toBe(true);
+    expect(isObject({})).toBe(true);
     expect(isObject(null)).toBe(false);
-    expect(isObject([1])).toBe(false);
+    expect(isObject([])).toBe(false);
   });
-
-  it("isFunction", () => {
-    expect(isFunction(() => {})).toBe(true);
-    expect(isFunction("fn")).toBe(false);
+  it("isNullish", () => {
+    expect(isNullish(null)).toBe(true);
+    expect(isNullish(undefined)).toBe(true);
+    expect(isNullish(0)).toBe(false);
   });
-
-  it("isDate", () => {
-    expect(isDate(new Date())).toBe(true);
-    expect(isDate(new Date("invalid"))).toBe(false);
-    expect(isDate("2024-01-01")).toBe(false);
+  it("isNonNullish", () => {
+    expect(isNonNullish(0)).toBe(true);
+    expect(isNonNullish(null)).toBe(false);
   });
+});
 
-  it("isRegExp", () => {
-    expect(isRegExp(/abc/)).toBe(true);
-    expect(isRegExp("abc")).toBe(false);
+describe("hasProperty / hasProperties", () => {
+  it("checks single property", () => {
+    expect(hasProperty({ a: 1 }, "a")).toBe(true);
+    expect(hasProperty({ a: 1 }, "b")).toBe(false);
   });
-
-  it("isPromise", () => {
-    expect(isPromise(Promise.resolve())).toBe(true);
-    expect(isPromise({ then: () => {} })).toBe(true);
-    expect(isPromise(42)).toBe(false);
+  it("checks multiple properties", () => {
+    expect(hasProperties({ a: 1, b: 2 }, "a", "b")).toBe(true);
+    expect(hasProperties({ a: 1 }, "a", "b")).toBe(false);
   });
+});
 
-  it("assertDefined returns value", () => {
-    expect(assertDefined("hello")).toBe("hello");
-    expect(assertDefined(0)).toBe(0);
+describe("assertType", () => {
+  it("passes for correct type", () => {
+    expect(() => assertType("hello", isString)).not.toThrow();
   });
-
-  it("assertDefined throws for null/undefined", () => {
-    expect(() => assertDefined(null)).toThrow();
-    expect(() => assertDefined(undefined)).toThrow();
-    expect(() => assertDefined(null, "custom msg")).toThrow("custom msg");
+  it("throws for wrong type", () => {
+    expect(() => assertType(42, isString, "Expected string")).toThrow("Expected string");
   });
+});
 
-  it("assertType returns typed value", () => {
-    const val = assertType("hi", isString);
-    expect(val).toBe("hi");
+describe("narrowType", () => {
+  it("returns value on match", () => {
+    expect(narrowType("hello", isString)).toBe("hello");
   });
-
-  it("assertType throws on mismatch", () => {
-    expect(() => assertType(42, isString)).toThrow("Type assertion failed");
-    expect(() => assertType(42, isString, "not a string")).toThrow("not a string");
+  it("returns undefined on mismatch", () => {
+    expect(narrowType(42, isString)).toBeUndefined();
   });
 });

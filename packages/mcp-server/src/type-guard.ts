@@ -1,57 +1,47 @@
-export function isString(v: unknown): v is string {
-  return typeof v === "string";
+export function isString(value: unknown): value is string {
+  return typeof value === "string";
 }
 
-export function isNumber(v: unknown): v is number {
-  return typeof v === "number" && !Number.isNaN(v);
+export function isNumber(value: unknown): value is number {
+  return typeof value === "number" && !Number.isNaN(value);
 }
 
-export function isBoolean(v: unknown): v is boolean {
-  return typeof v === "boolean";
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }
 
-export function isNull(v: unknown): v is null {
-  return v === null;
+export function isArray<T = unknown>(value: unknown): value is T[] {
+  return Array.isArray(value);
 }
 
-export function isUndefined(v: unknown): v is undefined {
-  return v === undefined;
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-export function isNil(v: unknown): v is null | undefined {
-  return v == null;
+export function isNullish(value: unknown): value is null | undefined {
+  return value === null || value === undefined;
 }
 
-export function isArray(v: unknown): v is unknown[] {
-  return Array.isArray(v);
+export function isNonNullish<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
 }
 
-export function isObject(v: unknown): v is Record<string, unknown> {
-  return v !== null && typeof v === "object" && !Array.isArray(v);
+export function hasProperty<K extends string>(obj: unknown, key: K): obj is Record<K, unknown> {
+  return isObject(obj) && key in obj;
 }
 
-export function isFunction(v: unknown): v is (...args: any[]) => any {
-  return typeof v === "function";
+export function hasProperties<K extends string>(obj: unknown, ...keys: K[]): obj is Record<K, unknown> {
+  return isObject(obj) && keys.every((k) => k in obj);
 }
 
-export function isDate(v: unknown): v is Date {
-  return v instanceof Date && !Number.isNaN(v.getTime());
+export function isInstanceOf<T>(value: unknown, constructor: new (...args: unknown[]) => T): value is T {
+  return value instanceof constructor;
 }
 
-export function isRegExp(v: unknown): v is RegExp {
-  return v instanceof RegExp;
+export function assertType<T>(value: unknown, guard: (v: unknown) => v is T, message?: string): asserts value is T {
+  if (!guard(value)) throw new TypeError(message ?? "Type assertion failed");
 }
 
-export function isPromise(v: unknown): v is Promise<unknown> {
-  return v instanceof Promise || (isObject(v) && isFunction((v as any).then));
-}
-
-export function assertDefined<T>(v: T | null | undefined, msg?: string): T {
-  if (v == null) throw new Error(msg ?? "Expected defined value");
-  return v;
-}
-
-export function assertType<T>(v: unknown, guard: (v: unknown) => v is T, msg?: string): T {
-  if (!guard(v)) throw new Error(msg ?? "Type assertion failed");
-  return v;
+export function narrowType<T>(value: unknown, guard: (v: unknown) => v is T): T | undefined {
+  return guard(value) ? value : undefined;
 }
