@@ -27,7 +27,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -37,8 +37,8 @@ bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linea
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup", "upcitemdb"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife", "acnhapi"]);
-bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation", "opensky", "openchargemap", "geojs", "nhtsa"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate", "gbif", "itis", "oeis", "flyover"]);
+bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery", "citybikes", "countryis", "postcodes", "nominatim", "open-elevation", "opensky", "openchargemap", "geojs", "nhtsa", "abstract-holidays"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice", "foodish", "wheretheiss", "openmeteo-airquality", "openmeteo-flood", "diseasesh", "fishwatch", "openmeteo-historical", "openmeteo-climate", "gbif", "itis", "oeis", "flyover", "cocktaildb2"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus", "ukpolice", "cvecircl", "bgpview", "rdap", "ripe"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
@@ -136,6 +136,8 @@ const NAME_OF = {
   wayback: "Wayback Machine", oeis: "OEIS", upcitemdb: "UPC Item DB",
   fakerapi: "FakerAPI", openfigi: "OpenFIGI", libretranslate: "LibreTranslate",
   europeana: "Europeana", flyover: "ISS Flyover",
+  jsoncrack: "JSON Format", "abstract-holidays": "Long Weekends",
+  cocktaildb2: "Cocktail Ingredients", regexr: "Regex Tester", hashgen: "Hash Generator",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -389,6 +391,11 @@ const BLURB_OF = {
   libretranslate: "Open-source text translation, language detection, and supported language listing.",
   europeana: "Search millions of European cultural heritage objects from museums and archives.",
   flyover: "Get upcoming ISS flyover times for any location on Earth.",
+  jsoncrack: "Parse, pretty-print, and analyze JSON structure with element counts.",
+  "abstract-holidays": "Country details and long weekends from Nager.Date.",
+  cocktaildb2: "Filter cocktails by ingredient and get ingredient details.",
+  regexr: "Test regex patterns against text and get match positions.",
+  hashgen: "Generate and compare cryptographic hashes (MD5, SHA-256, SHA-512).",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -516,6 +523,8 @@ const DOMAIN_OF = {
   wayback: "web.archive.org", oeis: "oeis.org", upcitemdb: "upcitemdb.com",
   fakerapi: "fakerapi.it", openfigi: "openfigi.com", libretranslate: "libretranslate.com",
   europeana: "europeana.eu", flyover: "open-notify.org",
+  jsoncrack: "local", "abstract-holidays": "date.nager.at",
+  cocktaildb2: "thecocktaildb.com", regexr: "local", hashgen: "local",
 };
 
 function titleCase(slug) {

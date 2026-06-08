@@ -571,6 +571,11 @@ import { openfigiMapping, openfigiSearch } from "./openfigi-tool.js";
 import { libretranslateTranslate, libretranslateLanguages, libretranslateDetect } from "./libretranslate-tool.js";
 import { europeanaSearch, europeanaRecord } from "./europeana-tool.js";
 import { issFlyover } from "./flyover-tool.js";
+import { jsoncrackFormat } from "./jsoncrack-tool.js";
+import { abstractCountryInfo, abstractLongWeekends } from "./abstract-holidays-tool.js";
+import { cocktailByIngredient, cocktailIngredientInfo } from "./cocktaildb2-tool.js";
+import { regexTest } from "./regexr-tool.js";
+import { hashGenerate, hashCompare } from "./hashgen-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -8841,6 +8846,94 @@ export const ADDITIONAL_TOOLS = [
         lon: { type: "number" as const, description: "Longitude." },
         count: { type: "number" as const, description: "Number of flyovers (max 20, default 5)." },
       }, required: ["lat", "lon"],
+    },
+  },
+
+  // ── jsoncrack-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "json_format",
+    description: "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        json: { type: "string" as const, description: "Raw JSON string to parse and format." },
+      }, required: ["json"],
+    },
+  },
+
+  // ── abstract-holidays-tool.ts ────────────────────────────────────────────────
+  {
+    name: "country_info_detail",
+    description: "Get country details (borders, languages, official name) from Nager.Date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code (e.g. AU, US)." },
+      }, required: ["country_code"],
+    },
+  },
+  {
+    name: "long_weekends",
+    description: "Get long weekends for a country and year from Nager.Date.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        country_code: { type: "string" as const, description: "ISO 3166-1 alpha-2 country code." },
+        year: { type: "string" as const, description: "Year (default: current year)." },
+      }, required: ["country_code"],
+    },
+  },
+
+  // ── cocktaildb2-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cocktail_by_ingredient",
+    description: "Filter cocktails by ingredient (e.g. Vodka, Gin, Tequila).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ingredient: { type: "string" as const, description: "Ingredient name." },
+      }, required: ["ingredient"],
+    },
+  },
+  {
+    name: "cocktail_ingredient_info",
+    description: "Get details about a cocktail ingredient (description, type, ABV).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        ingredient: { type: "string" as const, description: "Ingredient name." },
+      }, required: ["ingredient"],
+    },
+  },
+
+  // ── regexr-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "regex_test",
+    description: "Test a regex pattern against text and return all matches with positions.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        pattern: { type: "string" as const, description: "Regular expression pattern." },
+        text: { type: "string" as const, description: "Text to test against." },
+        flags: { type: "string" as const, description: "Regex flags (default: g). Options: g, i, m, s." },
+      }, required: ["pattern", "text"],
+    },
+  },
+
+  // ── hashgen-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hash_generate",
+    description: "Generate a cryptographic hash (md5, sha1, sha256, sha384, sha512) of text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to hash." },
+        algorithm: { type: "string" as const, description: "Hash algorithm (default: sha256)." },
+      }, required: ["text"],
+    },
+  },
+  {
+    name: "hash_compare",
+    description: "Compare text against an expected hash to verify integrity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to hash and compare." },
+        hash: { type: "string" as const, description: "Expected hash value." },
+        algorithm: { type: "string" as const, description: "Hash algorithm (default: sha256)." },
+      }, required: ["text", "hash"],
     },
   },
 
@@ -20186,6 +20279,24 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // flyover-tool.ts
   iss_flyover:               (args) => issFlyover(args),
+
+  // jsoncrack-tool.ts
+  json_format:               (args) => jsoncrackFormat(args),
+
+  // abstract-holidays-tool.ts
+  country_info_detail:       (args) => abstractCountryInfo(args),
+  long_weekends:             (args) => abstractLongWeekends(args),
+
+  // cocktaildb2-tool.ts
+  cocktail_by_ingredient:    (args) => cocktailByIngredient(args),
+  cocktail_ingredient_info:  (args) => cocktailIngredientInfo(args),
+
+  // regexr-tool.ts
+  regex_test:                (args) => regexTest(args),
+
+  // hashgen-tool.ts
+  hash_generate:             (args) => hashGenerate(args),
+  hash_compare:              (args) => hashCompare(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

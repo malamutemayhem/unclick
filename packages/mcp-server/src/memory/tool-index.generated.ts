@@ -28,6 +28,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "abstract-holidays",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "country_info_detail",
+        "description": "Get country details (borders, languages, official name) from Nager.Date."
+      },
+      {
+        "name": "long_weekends",
+        "description": "Get long weekends for a country and year from Nager.Date."
+      }
+    ]
+  },
+  {
     "app": "abuseipdb",
     "category": "Security",
     "tools": [
@@ -976,6 +990,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cocktail_filter_by_ingredient",
         "description": "Filter cocktails by ingredient."
+      }
+    ]
+  },
+  {
+    "app": "cocktaildb2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cocktail_by_ingredient",
+        "description": "Filter cocktails by ingredient (e.g. Vodka, Gin, Tequila)."
+      },
+      {
+        "name": "cocktail_ingredient_info",
+        "description": "Get details about a cocktail ingredient (description, type, ABV)."
       }
     ]
   },
@@ -2858,6 +2886,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hashgen",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hash_generate",
+        "description": "Generate a cryptographic hash (md5, sha1, sha256, sha384, sha512) of text."
+      },
+      {
+        "name": "hash_compare",
+        "description": "Compare text against an expected hash to verify integrity."
+      }
+    ]
+  },
+  {
     "app": "haveibeenpwned",
     "category": "Security",
     "tools": [
@@ -3332,6 +3374,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "joke_categories",
         "description": "List available joke categories from JokeAPI."
+      }
+    ]
+  },
+  {
+    "app": "jsoncrack",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "json_format",
+        "description": "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats."
       }
     ]
   },
@@ -5514,6 +5566,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "reddit_subscribe",
         "description": "Subscribe to or unsubscribe from a Reddit subreddit."
+      }
+    ]
+  },
+  {
+    "app": "regexr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "regex_test",
+        "description": "Test a regex pattern against text and return all matches with positions."
       }
     ]
   },

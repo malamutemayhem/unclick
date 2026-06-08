@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 829,
+    "inventory": 834,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 407,
+    "tools": 412,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 407
+      "count": 412
     },
     {
       "id": "rooms",
@@ -4182,6 +4182,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-abstract-holidays-packages-mcp-server-src-abstract-holidays-tool-ts-no-route",
+      "division": "Tools",
+      "name": "abstract holidays",
+      "kind": "MCP tool",
+      "meaning": "abstract holidays MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/abstract-holidays-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-abuseipdb-packages-mcp-server-src-abuseipdb-tool-ts-no-route",
       "division": "Tools",
       "name": "abuseipdb",
@@ -4698,6 +4708,16 @@
       "kind": "MCP tool",
       "meaning": "cocktail MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/cocktail-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-cocktaildb2-packages-mcp-server-src-cocktaildb2-tool-ts-no-route",
+      "division": "Tools",
+      "name": "cocktaildb2",
+      "kind": "MCP tool",
+      "meaning": "cocktaildb2 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/cocktaildb2-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5712,6 +5732,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hashgen-packages-mcp-server-src-hashgen-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hashgen",
+      "kind": "MCP tool",
+      "meaning": "hashgen MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hashgen-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-haveibeenpwned-packages-mcp-server-src-haveibeenpwned-tool-ts-no-route",
       "division": "Tools",
       "name": "haveibeenpwned",
@@ -6008,6 +6038,16 @@
       "kind": "MCP tool",
       "meaning": "joke MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/joke-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-jsoncrack-packages-mcp-server-src-jsoncrack-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jsoncrack",
+      "kind": "MCP tool",
+      "meaning": "jsoncrack MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jsoncrack-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7178,6 +7218,16 @@
       "kind": "MCP tool",
       "meaning": "reddit MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/reddit-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-regexr-packages-mcp-server-src-regexr-tool-ts-no-route",
+      "division": "Tools",
+      "name": "regexr",
+      "kind": "MCP tool",
+      "meaning": "regexr MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/regexr-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8985,6 +9035,11 @@
       "packages/mcp-server/src/abn-tool.ts"
     ],
     [
+      "abstract holidays",
+      "abstract holidays MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/abstract-holidays-tool.ts"
+    ],
+    [
       "abuseipdb",
       "abuseipdb MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/abuseipdb-tool.ts"
@@ -9243,6 +9298,11 @@
       "cocktail",
       "cocktail MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/cocktail-tool.ts"
+    ],
+    [
+      "cocktaildb2",
+      "cocktaildb2 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/cocktaildb2-tool.ts"
     ],
     [
       "coda",
@@ -9750,6 +9810,11 @@
       "packages/mcp-server/src/harrypotter-tool.ts"
     ],
     [
+      "hashgen",
+      "hashgen MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hashgen-tool.ts"
+    ],
+    [
       "haveibeenpwned",
       "haveibeenpwned MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/haveibeenpwned-tool.ts"
@@ -9898,6 +9963,11 @@
       "joke",
       "joke MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/joke-tool.ts"
+    ],
+    [
+      "jsoncrack",
+      "jsoncrack MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jsoncrack-tool.ts"
     ],
     [
       "jsonplaceholder",
@@ -10483,6 +10553,11 @@
       "reddit",
       "reddit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/reddit-tool.ts"
+    ],
+    [
+      "regexr",
+      "regexr MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/regexr-tool.ts"
     ],
     [
       "render",
@@ -12063,6 +12138,11 @@
       "bytes": 6329
     },
     {
+      "source": "packages/mcp-server/src/abstract-holidays-tool.ts",
+      "hash": "3d58cdb9aa5a",
+      "bytes": 1559
+    },
+    {
       "source": "packages/mcp-server/src/abuseipdb-tool.ts",
       "hash": "c3c7f2d8566c",
       "bytes": 6263
@@ -12251,11 +12331,6 @@
       "source": "packages/mcp-server/src/calendly-tool.ts",
       "hash": "12032f4f7f6c",
       "bytes": 7492
-    },
-    {
-      "source": "packages/mcp-server/src/carbonintensity-tool.ts",
-      "hash": "24eb52711fa1",
-      "bytes": 2150
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

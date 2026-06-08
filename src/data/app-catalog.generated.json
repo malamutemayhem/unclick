@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 406,
-  "toolCount": 1320,
+  "appCount": 411,
+  "toolCount": 1328,
   "categories": [
     "AI",
     "Books",
@@ -1188,6 +1188,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "cocktaildb2",
+      "name": "Cocktail Ingredients",
+      "category": "Weather & science",
+      "blurb": "Filter cocktails by ingredient and get ingredient details.",
+      "domain": "thecocktaildb.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "cocktail_by_ingredient",
+          "description": "Filter cocktails by ingredient (e.g. Vodka, Gin, Tequila)."
+        },
+        {
+          "name": "cocktail_ingredient_info",
+          "description": "Get details about a cocktail ingredient (description, type, ABV)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "coda",
@@ -3582,6 +3602,26 @@
       "hardened": false
     },
     {
+      "slug": "hashgen",
+      "name": "Hash Generator",
+      "category": "Developer & infra",
+      "blurb": "Generate and compare cryptographic hashes (MD5, SHA-256, SHA-512).",
+      "domain": "local",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "hash_generate",
+          "description": "Generate a cryptographic hash (md5, sha1, sha256, sha384, sha512) of text."
+        },
+        {
+          "name": "hash_compare",
+          "description": "Compare text against an expected hash to verify integrity."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "haveibeenpwned",
       "name": "Have I Been Pwned",
       "category": "Security",
@@ -4246,6 +4286,22 @@
       "hardened": true
     },
     {
+      "slug": "jsoncrack",
+      "name": "JSON Format",
+      "category": "Developer & infra",
+      "blurb": "Parse, pretty-print, and analyze JSON structure with element counts.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "json_format",
+          "description": "Parse, format, and analyze a JSON string. Returns pretty-printed output and structure stats."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "jsonplaceholder",
       "name": "JSONPlaceholder",
       "category": "Developer & infra",
@@ -4644,6 +4700,26 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "abstract-holidays",
+      "name": "Long Weekends",
+      "category": "Travel, maps & local",
+      "blurb": "Country details and long weekends from Nager.Date.",
+      "domain": "date.nager.at",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "country_info_detail",
+          "description": "Get country details (borders, languages, official name) from Nager.Date."
+        },
+        {
+          "name": "long_weekends",
+          "description": "Get long weekends for a country and year from Nager.Date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "lotr",
@@ -7172,6 +7248,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "regexr",
+      "name": "Regex Tester",
+      "category": "Developer & infra",
+      "blurb": "Test regex patterns against text and get match positions.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "regex_test",
+          "description": "Test a regex pattern against text and return all matches with positions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "render",

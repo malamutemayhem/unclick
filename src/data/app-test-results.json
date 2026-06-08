@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T18:00:00.000Z",
+  "updatedAt": "2026-06-08T18:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3268,6 +3268,36 @@
       "note": "iss_flyover returns upcoming ISS pass times for a location. Free, no key needed.",
       "testedAt": "2026-06-08T18:00:00.000Z",
       "toolsTested": ["iss_flyover"]
+    },
+    "jsoncrack": {
+      "status": "pass",
+      "note": "json_format parses, pretty-prints, and analyzes JSON locally. No API needed.",
+      "testedAt": "2026-06-08T18:30:00.000Z",
+      "toolsTested": ["json_format"]
+    },
+    "abstract-holidays": {
+      "status": "pass",
+      "note": "country_info_detail and long_weekends return country/holiday data from Nager.Date. Free, no key.",
+      "testedAt": "2026-06-08T18:30:00.000Z",
+      "toolsTested": ["country_info_detail", "long_weekends"]
+    },
+    "cocktaildb2": {
+      "status": "pass",
+      "note": "cocktail_by_ingredient filters cocktails and gets ingredient info from TheCocktailDB. Free, no key.",
+      "testedAt": "2026-06-08T18:30:00.000Z",
+      "toolsTested": ["cocktail_by_ingredient", "cocktail_ingredient_info"]
+    },
+    "regexr": {
+      "status": "pass",
+      "note": "regex_test matches regex patterns against text locally. No API needed.",
+      "testedAt": "2026-06-08T18:30:00.000Z",
+      "toolsTested": ["regex_test"]
+    },
+    "hashgen": {
+      "status": "pass",
+      "note": "hash_generate and hash_compare compute crypto hashes locally. No API needed.",
+      "testedAt": "2026-06-08T18:30:00.000Z",
+      "toolsTested": ["hash_generate", "hash_compare"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
