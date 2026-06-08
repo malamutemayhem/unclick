@@ -1,16 +1,18 @@
-type Listener<K, V> = (event: { type: "set" | "delete" | "clear"; key?: K; value?: V }) => void;
+type MapListener<K, V> = (event: MapEvent<K, V>) => void;
+
+export interface MapEvent<K, V> {
+  type: "set" | "delete" | "clear";
+  key?: K;
+  value?: V;
+  oldValue?: V;
+}
 
 export class ObservableMap<K, V> {
   private map = new Map<K, V>();
-  private listeners = new Set<Listener<K, V>>();
+  private listeners = new Set<MapListener<K, V>>();
 
   get size(): number {
     return this.map.size;
-  }
-
-  set(key: K, value: V): void {
-    this.map.set(key, value);
-    this.emit({ type: "set", key, value });
   }
 
   get(key: K): V | undefined {
@@ -21,10 +23,20 @@ export class ObservableMap<K, V> {
     return this.map.has(key);
   }
 
+  set(key: K, value: V): this {
+    const oldValue = this.map.get(key);
+    this.map.set(key, value);
+    this.emit({ type: "set", key, value, oldValue });
+    return this;
+  }
+
   delete(key: K): boolean {
-    const had = this.map.delete(key);
-    if (had) this.emit({ type: "delete", key });
-    return had;
+    const oldValue = this.map.get(key);
+    const existed = this.map.delete(key);
+    if (existed) {
+      this.emit({ type: "delete", key, oldValue });
+    }
+    return existed;
   }
 
   clear(): void {
@@ -32,24 +44,46 @@ export class ObservableMap<K, V> {
     this.emit({ type: "clear" });
   }
 
-  keys(): K[] {
-    return [...this.map.keys()];
+  subscribe(listener: MapListener<K, V>): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
-  values(): V[] {
-    return [...this.map.values()];
+  keys(): IterableIterator<K> {
+    return this.map.keys();
   }
 
-  entries(): [K, V][] {
-    return [...this.map.entries()];
+  values(): IterableIterator<V> {
+    return this.map.values();
   }
 
-  subscribe(fn: Listener<K, V>): () => void {
-    this.listeners.add(fn);
-    return () => this.listeners.delete(fn);
+  entries(): IterableIterator<[K, V]> {
+    return this.map.entries();
   }
 
-  private emit(event: { type: "set" | "delete" | "clear"; key?: K; value?: V }): void {
-    for (const fn of this.listeners) fn(event);
+  forEach(fn: (value: V, key: K) => void): void {
+    this.map.forEach(fn);
+  }
+
+  toObject(): Record<string, V> {
+    const result: Record<string, V> = {};
+    for (const [key, value] of this.map) {
+      result[String(key)] = value;
+    }
+    return result;
+  }
+
+  static from<K, V>(entries: Iterable<[K, V]>): ObservableMap<K, V> {
+    const om = new ObservableMap<K, V>();
+    for (const [k, v] of entries) {
+      om.map.set(k, v);
+    }
+    return om;
+  }
+
+  private emit(event: MapEvent<K, V>): void {
+    for (const listener of this.listeners) {
+      listener(event);
+    }
   }
 }
