@@ -30,9 +30,10 @@ export function constant<T>(value: T): () => T {
   return () => value;
 }
 
-export async function pipeAsync<T>(
-  value: T,
-  ...fns: Fn[]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function pipeAsync(
+  value: unknown,
+  ...fns: Array<(input: any) => any>
 ): Promise<unknown> {
   let result: unknown = value;
   for (const fn of fns) {
