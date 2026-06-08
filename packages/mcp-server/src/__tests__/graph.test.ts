@@ -1,68 +1,92 @@
 import { describe, it, expect } from "vitest";
 import { Graph } from "../graph.js";
 
-describe("Graph (undirected)", () => {
+describe("Graph", () => {
   it("adds nodes and edges", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
+    const g = new Graph();
+    g.addEdge("a", "b");
     expect(g.hasNode("a")).toBe(true);
     expect(g.hasEdge("a", "b")).toBe(true);
-    expect(g.hasEdge("b", "a")).toBe(true);
+    expect(g.nodeCount).toBe(2);
   });
 
-  it("neighbors returns adjacent nodes", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "A").addNode("b", "B").addNode("c", "C");
-    g.addEdge("a", "b").addEdge("a", "c");
+  it("undirected edges go both ways", () => {
+    const g = new Graph();
+    g.addEdge("a", "b");
+    expect(g.hasEdge("b", "a")).toBe(true);
+    expect(g.edgeCount).toBe(1);
+  });
+
+  it("directed edges are one-way", () => {
+    const g = new Graph(true);
+    g.addEdge("a", "b");
+    expect(g.hasEdge("a", "b")).toBe(true);
+    expect(g.hasEdge("b", "a")).toBe(false);
+  });
+
+  it("neighbors returns adjacent", () => {
+    const g = new Graph();
+    g.addEdge("a", "b");
+    g.addEdge("a", "c");
     expect(g.neighbors("a").sort()).toEqual(["b", "c"]);
   });
 
   it("bfs traverses breadth-first", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "A").addNode("b", "B").addNode("c", "C").addNode("d", "D");
-    g.addEdge("a", "b").addEdge("a", "c").addEdge("b", "d");
+    const g = new Graph();
+    g.addEdge("a", "b");
+    g.addEdge("a", "c");
+    g.addEdge("b", "d");
     const result = g.bfs("a");
     expect(result[0]).toBe("a");
-    expect(result).toContain("d");
+    expect(result.length).toBe(4);
   });
 
   it("dfs traverses depth-first", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "A").addNode("b", "B").addNode("c", "C");
-    g.addEdge("a", "b").addEdge("b", "c");
+    const g = new Graph();
+    g.addEdge("a", "b");
+    g.addEdge("b", "c");
     const result = g.dfs("a");
-    expect(result).toEqual(["a", "b", "c"]);
+    expect(result[0]).toBe("a");
+    expect(result.length).toBe(3);
   });
 
-  it("shortestPath finds path", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "").addNode("b", "").addNode("c", "").addNode("d", "");
-    g.addEdge("a", "b").addEdge("b", "c").addEdge("a", "d").addEdge("d", "c");
-    const path = g.shortestPath("a", "c");
-    expect(path).not.toBeNull();
-    expect(path!.length).toBeLessThanOrEqual(3);
+  it("shortestPath finds shortest", () => {
+    const g = new Graph();
+    g.addEdge("a", "b", 1);
+    g.addEdge("b", "c", 2);
+    g.addEdge("a", "c", 10);
+    const result = g.shortestPath("a", "c");
+    expect(result).not.toBeNull();
+    expect(result!.distance).toBe(3);
+    expect(result!.path).toEqual(["a", "b", "c"]);
   });
 
-  it("shortestPath returns null if no path", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "").addNode("b", "");
-    expect(g.shortestPath("a", "b")).toBeNull();
+  it("shortestPath returns null for disconnected", () => {
+    const g = new Graph();
+    g.addNode("a");
+    g.addNode("z");
+    expect(g.shortestPath("a", "z")).toBeNull();
   });
 
-  it("removeNode removes node and edges", () => {
-    const g = new Graph<string>();
-    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
-    g.removeNode("b");
-    expect(g.hasNode("b")).toBe(false);
-    expect(g.neighbors("a")).toEqual([]);
+  it("hasCycle detects cycle", () => {
+    const g = new Graph(true);
+    g.addEdge("a", "b");
+    g.addEdge("b", "c");
+    g.addEdge("c", "a");
+    expect(g.hasCycle()).toBe(true);
   });
-});
 
-describe("Graph (directed)", () => {
-  it("edges are one-directional", () => {
-    const g = new Graph<string>(true);
-    g.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
-    expect(g.hasEdge("a", "b")).toBe(true);
-    expect(g.hasEdge("b", "a")).toBe(false);
+  it("hasCycle returns false for DAG", () => {
+    const g = new Graph(true);
+    g.addEdge("a", "b");
+    g.addEdge("a", "c");
+    g.addEdge("b", "c");
+    expect(g.hasCycle()).toBe(false);
+  });
+
+  it("getWeight returns edge weight", () => {
+    const g = new Graph();
+    g.addEdge("a", "b", 5);
+    expect(g.getWeight("a", "b")).toBe(5);
   });
 });

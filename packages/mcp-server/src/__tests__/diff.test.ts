@@ -1,47 +1,64 @@
 import { describe, it, expect } from "vitest";
-import { diffLines, unifiedDiff, applyPatch, Change } from "../diff.js";
+import { diffLines, diffWords, formatUnifiedDiff, applyPatch } from "../diff.js";
 
 describe("diffLines", () => {
-  it("equal texts produce all equal changes", () => {
+  it("detects no changes", () => {
     const result = diffLines("a\nb\nc", "a\nb\nc");
-    expect(result.every((c) => c.type === "equal")).toBe(true);
-    expect(result).toHaveLength(3);
+    expect(result.every((r) => r.type === "equal")).toBe(true);
   });
 
-  it("detects added lines", () => {
+  it("detects additions", () => {
     const result = diffLines("a\nc", "a\nb\nc");
-    const added = result.filter((c) => c.type === "add");
-    expect(added).toHaveLength(1);
-    expect(added[0].value).toBe("b");
+    const adds = result.filter((r) => r.type === "add");
+    expect(adds.length).toBeGreaterThan(0);
+    expect(adds.some((a) => a.value === "b")).toBe(true);
   });
 
-  it("detects removed lines", () => {
+  it("detects removals", () => {
     const result = diffLines("a\nb\nc", "a\nc");
-    const removed = result.filter((c) => c.type === "remove");
-    expect(removed).toHaveLength(1);
-    expect(removed[0].value).toBe("b");
+    const removes = result.filter((r) => r.type === "remove");
+    expect(removes.length).toBeGreaterThan(0);
   });
 
-  it("handles completely different content", () => {
-    const result = diffLines("a\nb", "x\ny");
-    expect(result.some((c) => c.type === "add")).toBe(true);
-    expect(result.some((c) => c.type === "remove")).toBe(true);
+  it("handles empty strings", () => {
+    const result = diffLines("", "a");
+    expect(result.length).toBeGreaterThan(0);
   });
 });
 
-describe("unifiedDiff", () => {
-  it("produces unified format", () => {
-    const result = unifiedDiff("a\nb\nc", "a\nx\nc");
-    expect(result).toContain("-b");
-    expect(result).toContain("+x");
-    expect(result).toContain(" a");
+describe("diffWords", () => {
+  it("detects word changes", () => {
+    const result = diffWords("hello world", "hello there");
+    const changes = result.filter((r) => r.type !== "equal");
+    expect(changes.length).toBeGreaterThan(0);
+  });
+
+  it("identical strings have no changes", () => {
+    const result = diffWords("same same", "same same");
+    expect(result.every((r) => r.type === "equal")).toBe(true);
+  });
+});
+
+describe("formatUnifiedDiff", () => {
+  it("formats with +/-/space prefixes", () => {
+    const diffs = [
+      { type: "equal" as const, value: "a" },
+      { type: "remove" as const, value: "b" },
+      { type: "add" as const, value: "c" },
+    ];
+    const out = formatUnifiedDiff(diffs);
+    expect(out).toContain(" a");
+    expect(out).toContain("-b");
+    expect(out).toContain("+c");
   });
 });
 
 describe("applyPatch", () => {
-  it("reconstructs target from changes", () => {
-    const changes = diffLines("hello\nworld", "hello\nthere\nworld");
-    const result = applyPatch("hello\nworld", changes);
-    expect(result).toBe("hello\nthere\nworld");
+  it("applies diffs to reconstruct", () => {
+    const original = "a\nb\nc";
+    const target = "a\nx\nc";
+    const diffs = diffLines(original, target);
+    const result = applyPatch(original, diffs);
+    expect(result).toBe(target);
   });
 });

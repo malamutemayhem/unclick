@@ -1,18 +1,27 @@
-export type Change = { type: "add" | "remove" | "equal"; value: string };
-
-export function diffLines(a: string, b: string): Change[] {
-  const aLines = a.split("\n");
-  const bLines = b.split("\n");
-  const lcs = lcsMatrix(aLines, bLines);
-  return backtrack(aLines, bLines, lcs);
+export interface DiffResult {
+  type: "equal" | "add" | "remove";
+  value: string;
 }
 
-function lcsMatrix(a: string[], b: string[]): number[][] {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0) as number[]);
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
+export function diffLines(a: string, b: string): DiffResult[] {
+  const aLines = a.split("\n");
+  const bLines = b.split("\n");
+  return lcsDiff(aLines, bLines);
+}
+
+export function diffWords(a: string, b: string): DiffResult[] {
+  const aWords = a.split(/(\s+)/);
+  const bWords = b.split(/(\s+)/);
+  return lcsDiff(aWords, bWords);
+}
+
+function lcsDiff(a: string[], b: string[]): DiffResult[] {
+  const n = a.length;
+  const m = b.length;
+  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
       if (a[i - 1] === b[j - 1]) {
         dp[i][j] = dp[i - 1][j - 1] + 1;
       } else {
@@ -20,13 +29,11 @@ function lcsMatrix(a: string[], b: string[]): number[][] {
       }
     }
   }
-  return dp;
-}
 
-function backtrack(a: string[], b: string[], dp: number[][]): Change[] {
-  const result: Change[] = [];
-  let i = a.length;
-  let j = b.length;
+  const result: DiffResult[] = [];
+  let i = n;
+  let j = m;
+
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
       result.unshift({ type: "equal", value: a[i - 1] });
@@ -40,30 +47,21 @@ function backtrack(a: string[], b: string[], dp: number[][]): Change[] {
       i--;
     }
   }
+
   return result;
 }
 
-export function unifiedDiff(a: string, b: string, context: number = 3): string {
-  const changes = diffLines(a, b);
-  const lines: string[] = [];
-  for (let i = 0; i < changes.length; i++) {
-    const c = changes[i];
-    if (c.type === "equal") {
-      const nearChange = changes.slice(Math.max(0, i - context), Math.min(changes.length, i + context + 1))
-        .some((ch) => ch.type !== "equal");
-      if (nearChange) lines.push(" " + c.value);
-    } else if (c.type === "add") {
-      lines.push("+" + c.value);
-    } else {
-      lines.push("-" + c.value);
-    }
-  }
-  return lines.join("\n");
+export function formatUnifiedDiff(diffs: DiffResult[]): string {
+  return diffs.map((d) => {
+    if (d.type === "equal") return ` ${d.value}`;
+    if (d.type === "add") return `+${d.value}`;
+    return `-${d.value}`;
+  }).join("\n");
 }
 
-export function applyPatch(original: string, changes: Change[]): string {
-  return changes
-    .filter((c) => c.type !== "remove")
-    .map((c) => c.value)
+export function applyPatch(original: string, diffs: DiffResult[]): string {
+  return diffs
+    .filter((d) => d.type !== "remove")
+    .map((d) => d.value)
     .join("\n");
 }

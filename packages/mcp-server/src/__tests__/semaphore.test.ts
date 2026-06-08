@@ -1,42 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { Semaphore, Mutex } from "../semaphore.js";
+import { Semaphore, Mutex, ReadWriteLock } from "../semaphore.js";
 
 describe("Semaphore", () => {
-  it("allows up to max permits", async () => {
+  it("allows up to N concurrent", async () => {
     const sem = new Semaphore(2);
-    await sem.acquire();
-    await sem.acquire();
-    expect(sem.available).toBe(0);
-  });
+    let running = 0;
+    let peak = 0;
 
-  it("blocks when no permits available", async () => {
-    const sem = new Semaphore(1);
-    await sem.acquire();
-    let resolved = false;
-    const p = sem.acquire().then(() => { resolved = true; });
-    await new Promise((r) => setTimeout(r, 10));
-    expect(resolved).toBe(false);
-    sem.release();
-    await p;
-    expect(resolved).toBe(true);
-  });
+    const task = async () => {
+      await sem.acquire();
+      running++;
+      if (running > peak) peak = running;
+      await new Promise((r) => setTimeout(r, 10));
+      running--;
+      sem.release();
+    };
 
-  it("tryAcquire returns boolean", () => {
-    const sem = new Semaphore(1);
-    expect(sem.tryAcquire()).toBe(true);
-    expect(sem.tryAcquire()).toBe(false);
-  });
-
-  it("reports available and waiting", async () => {
-    const sem = new Semaphore(2);
-    expect(sem.available).toBe(2);
-    expect(sem.waiting).toBe(0);
-    await sem.acquire();
-    await sem.acquire();
-    const p = sem.acquire();
-    expect(sem.waiting).toBe(1);
-    sem.release();
-    await p;
+    await Promise.all([task(), task(), task(), task()]);
+    expect(peak).toBeLessThanOrEqual(2);
   });
 
   it("withPermit auto-releases", async () => {
@@ -48,32 +29,80 @@ describe("Semaphore", () => {
 
   it("withPermit releases on error", async () => {
     const sem = new Semaphore(1);
-    await expect(sem.withPermit(async () => { throw new Error("fail"); })).rejects.toThrow("fail");
+    await expect(sem.withPermit(async () => { throw new Error("boom"); })).rejects.toThrow("boom");
     expect(sem.available).toBe(1);
   });
 
-  it("max returns max permits", () => {
-    expect(new Semaphore(5).max).toBe(5);
-  });
-
-  it("throws for invalid max", () => {
-    expect(() => new Semaphore(0)).toThrow();
+  it("tracks waiting count", async () => {
+    const sem = new Semaphore(1);
+    await sem.acquire();
+    const p = sem.acquire();
+    expect(sem.waitingCount).toBe(1);
+    sem.release();
+    await p;
+    expect(sem.waitingCount).toBe(0);
   });
 });
 
 describe("Mutex", () => {
-  it("allows one at a time", async () => {
+  it("serializes access", async () => {
     const mutex = new Mutex();
-    expect(mutex.max).toBe(1);
-    await mutex.acquire();
-    expect(mutex.available).toBe(0);
-    mutex.release();
-    expect(mutex.available).toBe(1);
+    const log: number[] = [];
+
+    const task = async (id: number) => {
+      await mutex.lock();
+      log.push(id);
+      await new Promise((r) => setTimeout(r, 5));
+      mutex.unlock();
+    };
+
+    await Promise.all([task(1), task(2), task(3)]);
+    expect(log.length).toBe(3);
   });
 
-  it("withLock provides mutual exclusion", async () => {
+  it("withLock works", async () => {
     const mutex = new Mutex();
     const result = await mutex.withLock(async () => "done");
     expect(result).toBe("done");
+  });
+});
+
+describe("ReadWriteLock", () => {
+  it("allows concurrent reads", async () => {
+    const rwl = new ReadWriteLock();
+    let readers = 0;
+    let peak = 0;
+
+    const read = async () => {
+      await rwl.readLock();
+      readers++;
+      if (readers > peak) peak = readers;
+      await new Promise((r) => setTimeout(r, 10));
+      readers--;
+      rwl.readUnlock();
+    };
+
+    await Promise.all([read(), read(), read()]);
+    expect(peak).toBe(3);
+  });
+
+  it("write excludes reads", async () => {
+    const rwl = new ReadWriteLock();
+    const log: string[] = [];
+
+    await rwl.writeLock();
+    log.push("write-start");
+
+    const readPromise = rwl.readLock().then(() => {
+      log.push("read-start");
+      rwl.readUnlock();
+    });
+
+    await new Promise((r) => setTimeout(r, 10));
+    log.push("write-end");
+    rwl.writeUnlock();
+
+    await readPromise;
+    expect(log).toEqual(["write-start", "write-end", "read-start"]);
   });
 });

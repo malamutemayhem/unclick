@@ -1,68 +1,94 @@
 import { describe, it, expect } from "vitest";
 import { SparseArray } from "../sparse-array.js";
 
-describe("sparse-array", () => {
-  it("set and get at arbitrary indices", () => {
+describe("SparseArray", () => {
+  it("set and get", () => {
     const sa = new SparseArray<string>();
-    sa.set(100, "a");
-    sa.set(0, "b");
-    expect(sa.get(100)).toBe("a");
-    expect(sa.get(0)).toBe("b");
+    sa.set(0, "a");
+    sa.set(100, "b");
+    expect(sa.get(0)).toBe("a");
+    expect(sa.get(100)).toBe("b");
     expect(sa.get(50)).toBeUndefined();
   });
 
-  it("length tracks highest index + 1", () => {
+  it("has checks existence", () => {
     const sa = new SparseArray<number>();
-    sa.set(10, 1);
-    expect(sa.length).toBe(11);
-    sa.set(5, 2);
-    expect(sa.length).toBe(11);
+    sa.set(5, 10);
+    expect(sa.has(5)).toBe(true);
+    expect(sa.has(6)).toBe(false);
   });
 
-  it("count tracks occupied slots", () => {
+  it("delete removes", () => {
+    const sa = new SparseArray<number>();
+    sa.set(1, 10);
+    sa.delete(1);
+    expect(sa.has(1)).toBe(false);
+  });
+
+  it("size counts entries", () => {
     const sa = new SparseArray<number>();
     sa.set(0, 1);
-    sa.set(100, 2);
-    expect(sa.count).toBe(2);
+    sa.set(1000, 2);
+    expect(sa.size).toBe(2);
   });
 
-  it("delete removes a slot", () => {
+  it("length reflects max index", () => {
     const sa = new SparseArray<number>();
-    sa.set(5, 42);
-    sa.delete(5);
-    expect(sa.has(5)).toBe(false);
-    expect(sa.count).toBe(0);
+    sa.set(99, 1);
+    expect(sa.length).toBe(100);
   });
 
-  it("indices returns sorted occupied indices", () => {
+  it("density calculates", () => {
+    const sa = new SparseArray<number>();
+    sa.set(0, 1);
+    sa.set(9, 2);
+    expect(sa.density).toBe(0.2);
+  });
+
+  it("indices returns sorted indices", () => {
     const sa = new SparseArray<string>();
-    sa.set(10, "a");
+    sa.set(5, "a");
+    sa.set(1, "b");
+    sa.set(3, "c");
+    expect(sa.indices()).toEqual([1, 3, 5]);
+  });
+
+  it("values returns ordered values", () => {
+    const sa = new SparseArray<string>();
     sa.set(2, "b");
-    sa.set(7, "c");
-    expect(sa.indices()).toEqual([2, 7, 10]);
-  });
-
-  it("values returns in index order", () => {
-    const sa = new SparseArray<string>();
-    sa.set(5, "b");
-    sa.set(1, "a");
+    sa.set(0, "a");
     expect(sa.values()).toEqual(["a", "b"]);
   });
 
-  it("map creates new sparse array", () => {
+  it("map transforms", () => {
     const sa = new SparseArray<number>();
     sa.set(0, 1);
     sa.set(5, 2);
-    const doubled = sa.map((v) => v * 2);
-    expect(doubled.get(0)).toBe(2);
-    expect(doubled.get(5)).toBe(4);
+    const mapped = sa.map((v) => v * 10);
+    expect(mapped.get(0)).toBe(10);
+    expect(mapped.get(5)).toBe(20);
   });
 
-  it("compact returns dense array of values", () => {
+  it("filter keeps matching", () => {
     const sa = new SparseArray<number>();
-    sa.set(100, 3);
     sa.set(0, 1);
-    sa.set(50, 2);
-    expect(sa.compact()).toEqual([1, 2, 3]);
+    sa.set(1, 2);
+    sa.set(2, 3);
+    const filtered = sa.filter((v) => v > 1);
+    expect(filtered.size).toBe(2);
+  });
+
+  it("toDense fills gaps", () => {
+    const sa = new SparseArray<number>();
+    sa.set(0, 1);
+    sa.set(2, 3);
+    expect(sa.toDense(0)).toEqual([1, 0, 3]);
+  });
+
+  it("clear resets", () => {
+    const sa = new SparseArray<number>();
+    sa.set(0, 1);
+    sa.clear();
+    expect(sa.size).toBe(0);
   });
 });
