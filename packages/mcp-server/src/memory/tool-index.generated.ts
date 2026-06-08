@@ -1362,6 +1362,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "disneyapi",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "disney_character_search",
+        "description": "Search Disney characters by name."
+      },
+      {
+        "name": "disney_all_characters",
+        "description": "Browse all Disney characters (paginated)."
+      }
+    ]
+  },
+  {
     "app": "dnd5e",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1602,6 +1616,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "emojihub",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "emojihub_random",
+        "description": "Get a random emoji with name, category, and HTML/Unicode codes."
+      },
+      {
+        "name": "emojihub_by_category",
+        "description": "Browse emojis by category (smileys, animals, food, etc.)."
+      }
+    ]
+  },
+  {
     "app": "espn",
     "category": "Utilities",
     "tools": [
@@ -1798,6 +1826,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "figma_get_team_projects",
         "description": "List all projects for a Figma team."
+      }
+    ]
+  },
+  {
+    "app": "finalspace",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "final_space_characters",
+        "description": "List all Final Space characters."
+      },
+      {
+        "name": "final_space_episodes",
+        "description": "List all Final Space episodes."
       }
     ]
   },
@@ -2002,6 +2044,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ghibli",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ghibli_films",
+        "description": "List all Studio Ghibli films with directors and descriptions."
+      },
+      {
+        "name": "ghibli_people",
+        "description": "List characters from Studio Ghibli films."
+      }
+    ]
+  },
+  {
     "app": "ghost",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -2164,6 +2220,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hn_user",
         "description": "Get a Hacker News user profile."
+      }
+    ]
+  },
+  {
+    "app": "harrypotter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hp_all_characters",
+        "description": "List all Harry Potter characters."
+      },
+      {
+        "name": "hp_students",
+        "description": "List Hogwarts students."
+      },
+      {
+        "name": "hp_staff",
+        "description": "List Hogwarts staff."
+      },
+      {
+        "name": "hp_by_house",
+        "description": "List characters by Hogwarts house."
       }
     ]
   },
@@ -2904,6 +2982,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mastodon_action",
         "description": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications."
+      }
+    ]
+  },
+  {
+    "app": "mcsrvstat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mc_server_status",
+        "description": "Check the status of a Minecraft server (Java or Bedrock)."
       }
     ]
   },

@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (256 external connectors)
+## Distribution (262 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 217 | 85% |
+| L5 | Agentic | 223 | 85% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 14% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 256 (94%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 262 (92%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 217 of 220 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 223 of 226 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -43,12 +43,18 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `amiibo` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `cataas` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `colormind` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
+- `disneyapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `dogfacts` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `dummyimage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `dummyjson` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `emojihub` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `excuser` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `finalspace` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `ghibli` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `harrypotter` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `ipinfo` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `jobsmith` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mcsrvstat` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `placekitten` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `punkapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `shibe` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -110,6 +116,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `dictionary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `digitalocean` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `disneyapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `dnd5e` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dogapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dogceo` | Yes | - | - | Yes | Yes | no-memory |
@@ -121,6 +128,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebird` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `elevenlabs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `emojihub` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `espn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `etsy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `eventbrite` | Yes | - | - | Yes | Yes | no-memory |
@@ -129,12 +137,14 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `exchangerate2` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `excuser` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `figma` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `finalspace` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `flyio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `foursquare` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `fpl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `frankfurter` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gdelt` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `genius` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ghibli` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `ghost` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `giphy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `github-emoji` | Yes | - | - | Yes | Yes | no-memory |
@@ -142,6 +152,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `guardian` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gumroad` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hackernews` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `harrypotter` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `haveibeenpwned` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `heygen` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `higgsfield` | Yes | - | - | Yes | Yes | no-memory |
@@ -171,6 +182,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mailchimp` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `makeup` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mapbox` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `mcsrvstat` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `meal` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `metmuseum` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `miro` | Yes | - | - | Yes | Yes | no-memory |

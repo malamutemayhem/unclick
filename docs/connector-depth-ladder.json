@@ -1060,6 +1060,26 @@
     }
   },
   {
+    "connector": "disneyapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "dnd5e",
     "level": 5,
     "levelName": "Agentic",
@@ -1280,6 +1300,26 @@
     }
   },
   {
+    "connector": "emojihub",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "espn",
     "level": 5,
     "levelName": "Agentic",
@@ -1440,6 +1480,26 @@
     }
   },
   {
+    "connector": "finalspace",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "flyio",
     "level": 5,
     "levelName": "Agentic",
@@ -1552,6 +1612,26 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ghibli",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -1692,6 +1772,26 @@
       "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "harrypotter",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -2272,6 +2372,26 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mcsrvstat",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T06:30:00.000Z",
+  "updatedAt": "2026-06-08T06:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -544,6 +544,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "disneyapi": {
+      "status": "pass",
+      "note": "disney_all_characters returned paginated Disney character list. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "disney_all_characters"
+      ]
+    },
     "dnd5e": {
       "status": "pass",
       "note": "dnd_get_class(class=wizard) returned Wizard class with hit_die, proficiencies. Free SRD API.",
@@ -633,6 +641,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "emojihub": {
+      "status": "pass",
+      "note": "emojihub_random returned a random emoji with name and codes. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "emojihub_random"
+      ]
+    },
     "email": {
       "status": "attention",
       "note": "Email client; needs email provider credentials.",
@@ -719,6 +735,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "finalspace": {
+      "status": "pass",
+      "note": "final_space_characters returned Final Space character list. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "final_space_characters"
+      ]
+    },
     "flowpass": {
       "status": "attention",
       "note": "Internal flow tool; needs active pack.",
@@ -795,6 +819,14 @@
       "toolsTested": [],
       "comment": ""
     },
+    "ghibli": {
+      "status": "pass",
+      "note": "ghibli_films returned Studio Ghibli film list with directors. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "ghibli_films"
+      ]
+    },
     "giphy": {
       "status": "attention",
       "note": "GIF API; needs GIPHY_API_KEY.",
@@ -855,6 +887,14 @@
         "hn_top_stories"
       ],
       "comment": ""
+    },
+    "harrypotter": {
+      "status": "pass",
+      "note": "hp_all_characters returned Harry Potter character list. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "hp_all_characters"
+      ]
     },
     "haveibeenpwned": {
       "status": "attention",
@@ -1158,6 +1198,14 @@
         "meal_search"
       ],
       "comment": ""
+    },
+    "mcsrvstat": {
+      "status": "pass",
+      "note": "mc_server_status returned Minecraft server status. Free, no key needed.",
+      "testedAt": "2026-06-08T06:45:00.000Z",
+      "toolsTested": [
+        "mc_server_status"
+      ]
     },
     "metmuseum": {
       "status": "pass",

@@ -411,6 +411,18 @@ import { dummyImageUrl } from "./dummyimage-tool.js";
 
 import { ipInfoLookup } from "./ipinfo-tool.js";
 
+import { ghibliFilms, ghibliPeople } from "./ghibli-tool.js";
+
+import { finalSpaceCharacters, finalSpaceEpisodes } from "./finalspace-tool.js";
+
+import { mcServerStatus } from "./mcsrvstat-tool.js";
+
+import { disneyCharacterSearch, disneyAllCharacters } from "./disneyapi-tool.js";
+
+import { hpAllCharacters, hpStudents, hpStaff, hpByHouse } from "./harrypotter-tool.js";
+
+import { emojihubRandom, emojihubByCategory } from "./emojihub-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -6229,6 +6241,113 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         ip: { type: "string", description: "IP address to look up (omit for your own)" },
       },
+    },
+  },
+
+  // ── ghibli-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "ghibli_films",
+    description: "List all Studio Ghibli films with directors and descriptions.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "ghibli_people",
+    description: "List characters from Studio Ghibli films.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── finalspace-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "final_space_characters",
+    description: "List all Final Space characters.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "final_space_episodes",
+    description: "List all Final Space episodes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+
+  // ── mcsrvstat-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "mc_server_status",
+    description: "Check the status of a Minecraft server (Java or Bedrock).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        address: { type: "string", description: "Server address (e.g. mc.hypixel.net)" },
+        edition: { type: "string", description: "java or bedrock (default java)" },
+      },
+      required: ["address"],
+    },
+  },
+
+  // ── disneyapi-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "disney_character_search",
+    description: "Search Disney characters by name.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        name: { type: "string", description: "Character name to search" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "disney_all_characters",
+    description: "Browse all Disney characters (paginated).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        page: { type: "number", description: "Page number (default 1)" },
+      },
+    },
+  },
+
+  // ── harrypotter-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "hp_all_characters",
+    description: "List all Harry Potter characters.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_students",
+    description: "List Hogwarts students.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_staff",
+    description: "List Hogwarts staff.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "hp_by_house",
+    description: "List characters by Hogwarts house.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        house: { type: "string", description: "House name: gryffindor, slytherin, hufflepuff, or ravenclaw" },
+      },
+      required: ["house"],
+    },
+  },
+
+  // ── emojihub-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "emojihub_random",
+    description: "Get a random emoji with name, category, and HTML/Unicode codes.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {} },
+  },
+  {
+    name: "emojihub_by_category",
+    description: "Browse emojis by category (smileys, animals, food, etc.).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Category slug (e.g. smileys-and-people, animals-and-nature)" },
+      },
+      required: ["category"],
     },
   },
 
@@ -17163,6 +17282,31 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // ipinfo-tool.ts
   ipinfo_lookup:           (args) => ipInfoLookup(args),
+
+  // ghibli-tool.ts
+  ghibli_films:            (args) => ghibliFilms(args),
+  ghibli_people:           (args) => ghibliPeople(args),
+
+  // finalspace-tool.ts
+  final_space_characters:  (args) => finalSpaceCharacters(args),
+  final_space_episodes:    (args) => finalSpaceEpisodes(args),
+
+  // mcsrvstat-tool.ts
+  mc_server_status:        (args) => mcServerStatus(args),
+
+  // disneyapi-tool.ts
+  disney_character_search: (args) => disneyCharacterSearch(args),
+  disney_all_characters:   (args) => disneyAllCharacters(args),
+
+  // harrypotter-tool.ts
+  hp_all_characters:       (args) => hpAllCharacters(args),
+  hp_students:             (args) => hpStudents(args),
+  hp_staff:                (args) => hpStaff(args),
+  hp_by_house:             (args) => hpByHouse(args),
+
+  // emojihub-tool.ts
+  emojihub_random:         (args) => emojihubRandom(args),
+  emojihub_by_category:    (args) => emojihubByCategory(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

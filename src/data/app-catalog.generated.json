@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 281,
-  "toolCount": 1085,
+  "appCount": 287,
+  "toolCount": 1098,
   "categories": [
     "AI",
     "Books",
@@ -1666,6 +1666,26 @@
       "hardened": true
     },
     {
+      "slug": "disneyapi",
+      "name": "Disney API",
+      "category": "Social",
+      "blurb": "Search and browse Disney characters.",
+      "domain": "disneyapi.dev",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "disney_character_search",
+          "description": "Search Disney characters by name."
+        },
+        {
+          "name": "disney_all_characters",
+          "description": "Browse all Disney characters (paginated)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dogceo",
       "name": "Dog CEO",
       "category": "Images",
@@ -1920,6 +1940,26 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "emojihub",
+      "name": "EmojiHub",
+      "category": "Utilities",
+      "blurb": "Browse emojis by category with HTML and Unicode codes.",
+      "domain": "emojihub.yurace.pro",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "emojihub_random",
+          "description": "Get a random emoji with name, category, and HTML/Unicode codes."
+        },
+        {
+          "name": "emojihub_by_category",
+          "description": "Browse emojis by category (smileys, animals, food, etc.)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "espn",
@@ -2220,6 +2260,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "finalspace",
+      "name": "Final Space",
+      "category": "Social",
+      "blurb": "Browse Final Space characters and episodes.",
+      "domain": "finalspaceapi.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "final_space_characters",
+          "description": "List all Final Space characters."
+        },
+        {
+          "name": "final_space_episodes",
+          "description": "List all Final Space episodes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "flowpass",
@@ -2648,6 +2708,34 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "harrypotter",
+      "name": "Harry Potter",
+      "category": "Social",
+      "blurb": "Harry Potter characters, students, staff, and houses.",
+      "domain": "hp-api.onrender.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "hp_all_characters",
+          "description": "List all Harry Potter characters."
+        },
+        {
+          "name": "hp_students",
+          "description": "List Hogwarts students."
+        },
+        {
+          "name": "hp_staff",
+          "description": "List Hogwarts staff."
+        },
+        {
+          "name": "hp_by_house",
+          "description": "List characters by Hogwarts house."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "haveibeenpwned",
@@ -3624,6 +3712,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "mcsrvstat",
+      "name": "MC Server Status",
+      "category": "Games & esports",
+      "blurb": "Check Minecraft server status, player count, and MOTD.",
+      "domain": "mcsrvstat.us",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "mc_server_status",
+          "description": "Check the status of a Minecraft server (Java or Bedrock)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "meal",
@@ -6136,6 +6240,26 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "ghibli",
+      "name": "Studio Ghibli",
+      "category": "Social",
+      "blurb": "Browse Studio Ghibli films and characters.",
+      "domain": "ghibliapi.vercel.app",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "ghibli_films",
+          "description": "List all Studio Ghibli films with directors and descriptions."
+        },
+        {
+          "name": "ghibli_people",
+          "description": "List characters from Studio Ghibli films."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "sunrisesunset",
