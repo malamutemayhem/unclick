@@ -111,7 +111,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | eeed51b39399 | 59427 |
+| src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |

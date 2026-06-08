@@ -62,6 +62,50 @@ describe("strict-client memory response bounds", () => {
     );
   });
 
+  test("load_memory compact mode pins always-on operator preferences past the top-6 cut", () => {
+    const business = [
+      ...Array.from({ length: 8 }, (_, i) => ({
+        category: "standing_rule",
+        key: `rule-${i}`,
+        value: `standing rule body ${i}`,
+        priority: 200 - i,
+      })),
+      {
+        category: "preference",
+        key: "ai_style",
+        value: {
+          directive:
+            "Operator AI style, always honor unless overridden in-session: keep replies brief and to the point; use simple, plain English.",
+          response_length: "brief",
+        },
+        priority: 99,
+      },
+      {
+        category: "identity",
+        key: "about_you",
+        value: "I run a small creative studio and prefer plain-English answers.",
+        priority: 100,
+      },
+    ];
+
+    const compact = compactStartupContextForStrictClients({ business_context: business }) as {
+      business_context: Array<{ key: string; value: unknown }>;
+      response_bounds: { business_context_returned: number };
+    };
+
+    const keys = compact.business_context.map((row) => row.key);
+    assert.ok(keys.includes("ai_style"), "ai_style should be pinned into compact business_context");
+    assert.ok(keys.includes("about_you"), "about_you should be pinned into compact business_context");
+    // 6 top-priority rules + the 2 pinned always-on preferences.
+    assert.equal(compact.business_context.length, 8);
+    assert.equal(compact.response_bounds.business_context_returned, 8);
+
+    // The directive keeps its roomier value cap (vs the default 130) so it
+    // survives compaction and actually reaches the agent.
+    const aiStyleRow = compact.business_context.find((row) => row.key === "ai_style");
+    assert.ok(JSON.stringify(aiStyleRow?.value ?? "").includes("keep replies brief"));
+  });
+
   test("load_memory non-lite mode returns truncated session summaries", () => {
     const compact = compactStartupContextForStrictClients({
       recent_sessions: [{ session_id: "s-1", summary: long("summary", 4000) }],

@@ -458,6 +458,55 @@ async function readAiStylePreferences(
   return data ? normalizeAiStyleValue(data.value, data.updated_at as string | null) : null;
 }
 
+// ---------------------------------------------------------------------------
+// About You
+//
+// A single free-text "about me / my business" block the operator writes on
+// /admin/you. It is stored as one high-priority business_context row
+// (identity/about_you), so load_memory surfaces it to every connected agent as
+// a standing rule the same way ai_style does. Stored as plain text so the
+// compact startup payload shows the words directly instead of wrapped JSON.
+// ---------------------------------------------------------------------------
+
+const ABOUT_YOU_CATEGORY = "identity";
+const ABOUT_YOU_KEY = "about_you";
+const ABOUT_YOU_PRIORITY = 100;
+const ABOUT_YOU_MAX_CHARS = 1500;
+
+interface AboutYouValue {
+  text: string;
+  updated_at: string;
+}
+
+function normalizeAboutYouText(value: unknown): string {
+  const raw = typeof value === "string"
+    ? value
+    : isRecord(value) && typeof value.text === "string"
+      ? value.text
+      : "";
+  // Keep single newlines so paragraphs read naturally for the agent, but
+  // collapse runs of blank lines and trim the edges.
+  return raw.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim().slice(0, ABOUT_YOU_MAX_CHARS);
+}
+
+async function readAboutYou(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+): Promise<AboutYouValue | null> {
+  const { data, error } = await supabase
+    .from("mc_business_context")
+    .select("value, updated_at")
+    .eq("api_key_hash", apiKeyHash)
+    .eq("category", ABOUT_YOU_CATEGORY)
+    .eq("key", ABOUT_YOU_KEY)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const text = normalizeAboutYouText(data.value);
+  if (!text) return null;
+  return { text, updated_at: (data.updated_at as string | null) ?? new Date().toISOString() };
+}
+
 const RELIABILITY_SOURCES = [
   "fishbowl",
   "connectors",
@@ -4762,12 +4811,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const isAdmin = user.email
           ? adminEmails.includes(user.email.toLowerCase())
           : false;
-        const [operatorTime, aiStyle] = keyRow?.key_hash
+        const [operatorTime, aiStyle, aboutYou] = keyRow?.key_hash
           ? await Promise.all([
               readOperatorTimeContext(supabase, keyRow.key_hash),
               readAiStylePreferences(supabase, keyRow.key_hash),
+              readAboutYou(supabase, keyRow.key_hash),
             ])
-          : [null, null];
+          : [null, null, null];
 
         return res.status(200).json({
           user_id: user.id,
@@ -4780,6 +4830,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           memory_quota_exempt: isMemoryQuotaExemptEmail(user.email),
           operator_time: operatorTime,
           ai_style: aiStyle,
+          about_you: aboutYou,
         });
       }
 
@@ -4871,6 +4922,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         if (error) throw error;
         return res.status(200).json({ success: true, ai_style: value });
+      }
+
+      case "about_you_update": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+        const keyRow = (await supabase
+          .from("api_keys")
+          .select("key_hash")
+          .eq("user_id", user.id)
+          .maybeSingle()).data as { key_hash: string | null } | null;
+        if (!keyRow?.key_hash) {
+          return res.status(404).json({ error: "No active UnClick key found for this user" });
+        }
+
+        const nowIso = new Date().toISOString();
+        const text = normalizeAboutYouText(isRecord(req.body) ? req.body.text : "");
+
+        // Empty text clears the row, so an emptied About You does not keep
+        // loading a stale block into every session.
+        if (!text) {
+          const { error: delError } = await supabase
+            .from("mc_business_context")
+            .delete()
+            .eq("api_key_hash", keyRow.key_hash)
+            .eq("category", ABOUT_YOU_CATEGORY)
+            .eq("key", ABOUT_YOU_KEY);
+          if (delError) throw delError;
+          return res.status(200).json({ success: true, about_you: { text: "", updated_at: nowIso } });
+        }
+
+        const { error } = await supabase
+          .from("mc_business_context")
+          .upsert(
+            {
+              api_key_hash: keyRow.key_hash,
+              category: ABOUT_YOU_CATEGORY,
+              key: ABOUT_YOU_KEY,
+              value: text,
+              priority: ABOUT_YOU_PRIORITY,
+              decay_tier: "hot",
+              updated_at: nowIso,
+              last_accessed: nowIso,
+            },
+            { onConflict: "api_key_hash,category,key" },
+          );
+        if (error) throw error;
+        return res.status(200).json({ success: true, about_you: { text, updated_at: nowIso } });
       }
 
       case "generate_api_key": {
