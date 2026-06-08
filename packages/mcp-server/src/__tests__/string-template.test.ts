@@ -1,51 +1,30 @@
 import { describe, it, expect } from "vitest";
-import { template, namedTemplate, printf, dedent, indent } from "../string-template.js";
+import { template, tagged, dedent, indent, oneLine, commaList, pluralize } from "../string-template.js";
 
 describe("template", () => {
-  it("replaces ${var} syntax", () => {
+  it("substitutes variables", () => {
     expect(template("Hello ${name}!", { name: "World" })).toBe("Hello World!");
   });
 
-  it("resolves nested paths", () => {
+  it("nested dot paths", () => {
     expect(template("${user.name}", { user: { name: "Alice" } })).toBe("Alice");
   });
 
-  it("returns empty for missing vars", () => {
+  it("missing vars become empty string", () => {
     expect(template("${missing}", {})).toBe("");
   });
 });
 
-describe("namedTemplate", () => {
-  it("replaces :name params", () => {
-    expect(namedTemplate("/users/:id/posts/:postId", { id: "42", postId: "7" }))
-      .toBe("/users/42/posts/7");
-  });
-
-  it("keeps unmatched params", () => {
-    expect(namedTemplate("/users/:id", {})).toBe("/users/:id");
-  });
-});
-
-describe("printf", () => {
-  it("formats %s as string", () => {
-    expect(printf("Hello %s", "World")).toBe("Hello World");
-  });
-
-  it("formats %d as number", () => {
-    expect(printf("Count: %d", 42)).toBe("Count: 42");
-  });
-
-  it("formats %o as JSON", () => {
-    expect(printf("Data: %o", { a: 1 })).toBe('Data: {"a":1}');
-  });
-
-  it("escapes %%", () => {
-    expect(printf("100%%")).toBe("100%");
+describe("tagged", () => {
+  it("creates reusable template function", () => {
+    const greet = tagged`Hello ${"name"}!`;
+    expect(greet({ name: "World" })).toBe("Hello World!");
+    expect(greet({ name: "Alice" })).toBe("Hello Alice!");
   });
 });
 
 describe("dedent", () => {
-  it("removes common indentation", () => {
+  it("removes common leading whitespace", () => {
     const result = dedent(`
       hello
       world
@@ -53,7 +32,7 @@ describe("dedent", () => {
     expect(result).toBe("hello\nworld");
   });
 
-  it("preserves relative indentation", () => {
+  it("handles mixed indentation", () => {
     const result = dedent(`
       a
         b
@@ -65,6 +44,29 @@ describe("dedent", () => {
 
 describe("indent", () => {
   it("adds spaces to each line", () => {
-    expect(indent("a\nb\nc", 4)).toBe("    a\n    b\n    c");
+    expect(indent("a\nb", 4)).toBe("    a\n    b");
   });
+});
+
+describe("oneLine", () => {
+  it("collapses multiline to single", () => {
+    expect(oneLine(`
+      hello
+      world
+    `)).toBe("hello world");
+  });
+});
+
+describe("commaList", () => {
+  it("no items", () => expect(commaList([])).toBe(""));
+  it("one item", () => expect(commaList(["a"])).toBe("a"));
+  it("two items", () => expect(commaList(["a", "b"])).toBe("a and b"));
+  it("three items", () => expect(commaList(["a", "b", "c"])).toBe("a, b, and c"));
+  it("custom conjunction", () => expect(commaList(["a", "b"], "or")).toBe("a or b"));
+});
+
+describe("pluralize", () => {
+  it("singular", () => expect(pluralize(1, "item")).toBe("1 item"));
+  it("plural", () => expect(pluralize(3, "item")).toBe("3 items"));
+  it("custom plural", () => expect(pluralize(2, "child", "children")).toBe("2 children"));
 });

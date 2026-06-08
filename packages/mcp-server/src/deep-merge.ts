@@ -48,7 +48,7 @@ export function deepClone<T>(value: T): T {
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
     result[k] = deepClone(v);
   }
-  return result;
+  return result as T;
 }
 
 export function deepFreeze<T extends Record<string, unknown>>(obj: T): Readonly<T> {

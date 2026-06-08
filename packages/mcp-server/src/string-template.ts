@@ -1,43 +1,36 @@
-export function template(str: string, vars: Record<string, unknown>): string {
-  return str.replace(/\$\{([^}]+)\}/g, (_: string, key: string) => {
+export function template(str: string, values: Record<string, unknown>): string {
+  return str.replace(/\$\{([^}]+)\}/g, (_, key: string) => {
     const trimmed = key.trim();
-    const value = resolve(vars, trimmed);
-    return value === undefined ? "" : String(value);
+    const value = resolve(values, trimmed);
+    return value === undefined || value === null ? "" : String(value);
   });
 }
 
-export function namedTemplate(str: string, vars: Record<string, unknown>): string {
-  return str.replace(/:(\w+)/g, (_: string, key: string) => {
-    const value = vars[key];
-    return value === undefined ? `:${key}` : String(value);
-  });
-}
-
-export function printf(format: string, ...args: unknown[]): string {
-  let i = 0;
-  return format.replace(/%([sdfo%])/g, (_: string, spec: string) => {
-    if (spec === "%") return "%";
-    const arg = args[i++];
-    switch (spec) {
-      case "s": return String(arg);
-      case "d": return String(Number(arg));
-      case "f": return String(Number(arg));
-      case "o": return JSON.stringify(arg);
-      default: return String(arg);
+export function tagged(strings: TemplateStringsArray, ...keys: string[]): (values: Record<string, unknown>) => string {
+  return (values: Record<string, unknown>) => {
+    let result = strings[0];
+    for (let i = 0; i < keys.length; i++) {
+      const value = resolve(values, keys[i]);
+      result += (value === undefined || value === null ? "" : String(value)) + strings[i + 1];
     }
-  });
+    return result;
+  };
 }
 
 export function dedent(str: string): string {
   const lines = str.split("\n");
   if (lines[0].trim() === "") lines.shift();
   if (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
-  const indents = lines.filter((l) => l.trim().length > 0).map((l) => {
-    const match = l.match(/^(\s+)/);
-    return match ? match[1].length : 0;
-  });
-  const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
-  return lines.map((l) => l.slice(minIndent)).join("\n");
+
+  let minIndent = Infinity;
+  for (const line of lines) {
+    if (line.trim() === "") continue;
+    const match = line.match(/^(\s*)/);
+    if (match) minIndent = Math.min(minIndent, match[1].length);
+  }
+
+  if (minIndent === Infinity) minIndent = 0;
+  return lines.map((line) => line.slice(minIndent)).join("\n");
 }
 
 export function indent(str: string, spaces: number): string {
@@ -45,9 +38,33 @@ export function indent(str: string, spaces: number): string {
   return str.split("\n").map((line) => prefix + line).join("\n");
 }
 
+export function stripIndent(str: string): string {
+  return dedent(str);
+}
+
+export function oneLine(str: string): string {
+  return str.replace(/\s*\n\s*/g, " ").trim();
+}
+
+export function commaList(items: string[], conjunction = "and"): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} ${conjunction} ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, ${conjunction} ${items[items.length - 1]}`;
+}
+
+export function pluralize(count: number, singular: string, plural?: string): string {
+  const p = plural || singular + "s";
+  return `${count} ${count === 1 ? singular : p}`;
+}
+
 function resolve(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce((acc: unknown, key: string) => {
-    if (acc === null || acc === undefined) return undefined;
-    return (acc as Record<string, unknown>)[key];
-  }, obj);
+  const parts = path.split(".");
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (current === null || current === undefined) return undefined;
+    if (typeof current !== "object") return undefined;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
 }

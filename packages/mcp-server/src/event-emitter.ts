@@ -1,6 +1,6 @@
 type Handler<T = unknown> = (data: T) => void;
 
-export class EventEmitter<Events extends Record<string, unknown> = Record<string, unknown>> {
+export class EventEmitter<Events extends { [K: string]: unknown } = { [K: string]: unknown }> {
   private handlers = new Map<string, Set<Handler<any>>>();
   private onceHandlers = new Map<string, Set<Handler<any>>>();
 
