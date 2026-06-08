@@ -27,7 +27,7 @@ import { createHash } from "node:crypto";
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
 // Fires a fire-and-forget event to the self-hosted Umami instance every time
-// an agent actually invokes a tool. Lets Chris see which tools get used.
+// an agent actually invokes a tool. Lets the operator see which tools get used.
 // No-ops silently if UMAMI_WEBSITE_ID is not set (e.g. dev / local runs).
 // Never awaited so it cannot slow or break a tool call even if Umami is down.
 function trackToolCall(toolName: string): void {

@@ -103,7 +103,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-// BuildDeskPage import removed 2026-05-28 - page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
+// BuildDeskPage import removed 2026-05-28 - page hidden (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -256,7 +256,7 @@ const App = () => (
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/xpass" element={<XPassPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+          {/* BuildDesk: hidden 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace
               chapter is ready. Page component retained; route redirected. */}
           <Route path="/build" element={<Navigate to="/" replace />} />

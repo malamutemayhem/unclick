@@ -52,7 +52,7 @@ describe("Jobs and GitHub sync helpers", () => {
   it("surfaces failed preview deployments as an action item", () => {
     const job = {
       ...baseJob,
-      description: "Failed preview deployment on https://vercel.com/chris/unclick-agent-native-endpoints/abc123",
+      description: "Failed preview deployment on https://vercel.com/team/unclick-agent-native-endpoints/abc123",
     };
 
     expect(jobHasDeploymentFailure(job)).toBe(true);
@@ -60,7 +60,7 @@ describe("Jobs and GitHub sync helpers", () => {
       label: "Deploy issue",
       detail: "A linked deployment needs attention.",
       tone: "alert",
-      href: "https://vercel.com/chris/unclick-agent-native-endpoints/abc123",
+      href: "https://vercel.com/team/unclick-agent-native-endpoints/abc123",
     });
   });
 

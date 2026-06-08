@@ -8545,8 +8545,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "e9b8edbb20e3",
-      "bytes": 16519
+      "hash": "ead5f39c080b",
+      "bytes": 16499
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -8795,8 +8795,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "cbafa8394842",
-      "bytes": 11617
+      "hash": "f9548c19ddab",
+      "bytes": 11641
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -8825,8 +8825,8 @@
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "a6563a5742fa",
-      "bytes": 22926
+      "hash": "883d77d7b764",
+      "bytes": 22924
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
@@ -8845,8 +8845,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "7e3db4318397",
-      "bytes": 26625
+      "hash": "825a4928a569",
+      "bytes": 26632
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -8915,8 +8915,8 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "a115fb4d4ad4",
-      "bytes": 94726
+      "hash": "5eea2b54d8d6",
+      "bytes": 94742
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
