@@ -99,7 +99,7 @@ describe("AdminControlTower", () => {
 
     await screen.findByText("Claim posted to Boardroom.");
     const commentCall = fetchMock.mock.calls.find(([input]) => String(input).includes("fishbowl_comment_on"));
-    expect(commentCall).toBeTruthy();
+    expect(commentCall).toBeDefined();
 
     const body = JSON.parse(String((commentCall?.[1] as RequestInit | undefined)?.body));
     expect(body).toMatchObject({
