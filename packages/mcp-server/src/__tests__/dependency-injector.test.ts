@@ -8,75 +8,79 @@ describe("Container", () => {
     expect(c.resolve("greeting")).toBe("hello");
   });
 
-  it("throws for unregistered name", () => {
+  it("resolves dependencies", () => {
     const c = new Container();
-    expect(() => c.resolve("nope")).toThrow("No registration for: nope");
-  });
-
-  it("creates new instance each time by default", () => {
-    const c = new Container();
-    c.register("obj", () => ({ id: Math.random() }));
-    const a = c.resolve<{ id: number }>("obj");
-    const b = c.resolve<{ id: number }>("obj");
-    expect(a.id).not.toBe(b.id);
+    c.value("name", "World");
+    c.register("greeting", (ctx) => `Hello, ${ctx.resolve<string>("name")}!`);
+    expect(c.resolve("greeting")).toBe("Hello, World!");
   });
 
   it("singleton returns same instance", () => {
     const c = new Container();
-    c.register("obj", () => ({ id: Math.random() }), { singleton: true });
-    const a = c.resolve<{ id: number }>("obj");
-    const b = c.resolve<{ id: number }>("obj");
-    expect(a.id).toBe(b.id);
+    c.singleton("obj", () => ({ id: Math.random() }));
+    const a = c.resolve("obj");
+    const b = c.resolve("obj");
+    expect(a).toBe(b);
   });
 
-  it("registerValue stores constant", () => {
+  it("non-singleton creates new each time", () => {
     const c = new Container();
-    c.registerValue("config", { port: 3000 });
-    expect(c.resolve<{ port: number }>("config").port).toBe(3000);
+    c.register("obj", () => ({ id: Math.random() }));
+    const a = c.resolve("obj");
+    const b = c.resolve("obj");
+    expect(a).not.toBe(b);
   });
 
-  it("has checks registration", () => {
+  it("detects circular dependencies", () => {
     const c = new Container();
-    c.register("x", () => 1);
+    c.register("a", (ctx) => ctx.resolve("b"));
+    c.register("b", (ctx) => ctx.resolve("a"));
+    expect(() => c.resolve("a")).toThrow("Circular");
+  });
+
+  it("throws for unknown binding", () => {
+    const c = new Container();
+    expect(() => c.resolve("missing")).toThrow("No binding");
+  });
+
+  it("has checks existence", () => {
+    const c = new Container();
+    c.value("x", 1);
     expect(c.has("x")).toBe(true);
     expect(c.has("y")).toBe(false);
   });
 
-  it("unregister removes", () => {
+  it("getByTag returns tagged bindings", () => {
     const c = new Container();
-    c.register("x", () => 1);
-    expect(c.unregister("x")).toBe(true);
-    expect(c.has("x")).toBe(false);
+    c.value("a", 1, ["num"]);
+    c.value("b", 2, ["num"]);
+    c.value("c", "x", ["str"]);
+    expect(c.getByTag("num")).toEqual([1, 2]);
   });
 
-  it("getByTag filters", () => {
+  it("reset clears singleton instances", () => {
     const c = new Container();
-    c.register("a", () => 1, { tags: ["service"] });
-    c.register("b", () => 2, { tags: ["service", "core"] });
-    c.register("c", () => 3, { tags: ["util"] });
-    expect(c.getByTag("service")).toEqual(["a", "b"]);
+    c.singleton("obj", () => ({ id: Math.random() }));
+    const a = c.resolve("obj");
+    c.reset();
+    const b = c.resolve("obj");
+    expect(a).not.toBe(b);
   });
 
-  it("names lists all", () => {
-    const c = new Container();
-    c.register("a", () => 1);
-    c.register("b", () => 2);
-    expect(c.names()).toEqual(["a", "b"]);
-  });
-
-  it("clear empties", () => {
-    const c = new Container();
-    c.register("a", () => 1);
-    c.clear();
-    expect(c.size).toBe(0);
-  });
-
-  it("createChild inherits registrations", () => {
+  it("child creates independent container", () => {
     const parent = new Container();
-    parent.register("x", () => 42);
-    const child = parent.createChild();
-    expect(child.resolve("x")).toBe(42);
-    child.register("y", () => 99);
-    expect(parent.has("y")).toBe(false);
+    parent.singleton("x", () => ({ v: 1 }));
+    parent.resolve("x");
+    const child = parent.child();
+    const cv = child.resolve<{ v: number }>("x");
+    expect(cv.v).toBe(1);
+    expect(child.resolve("x")).not.toBe(parent.resolve("x"));
+  });
+
+  it("listBindings returns names", () => {
+    const c = new Container();
+    c.value("a", 1);
+    c.value("b", 2);
+    expect(c.listBindings().sort()).toEqual(["a", "b"]);
   });
 });

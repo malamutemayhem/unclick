@@ -1,6 +1,6 @@
-type Factory<T> = () => T;
+type Factory<T = unknown> = (container: Container) => T;
 
-interface Registration<T = unknown> {
+interface Binding<T = unknown> {
   factory: Factory<T>;
   singleton: boolean;
   instance?: T;
@@ -8,66 +8,82 @@ interface Registration<T = unknown> {
 }
 
 export class Container {
-  private registrations = new Map<string, Registration>();
+  private bindings = new Map<string, Binding>();
+  private resolving = new Set<string>();
 
-  register<T>(name: string, factory: Factory<T>, options: { singleton?: boolean; tags?: string[] } = {}): void {
-    this.registrations.set(name, {
-      factory,
+  register<T>(name: string, factory: Factory<T>, options: { singleton?: boolean; tags?: string[] } = {}): this {
+    this.bindings.set(name, {
+      factory: factory as Factory,
       singleton: options.singleton ?? false,
       tags: options.tags ?? [],
     });
+    return this;
   }
 
-  registerValue<T>(name: string, value: T, tags: string[] = []): void {
-    this.registrations.set(name, {
-      factory: () => value,
-      singleton: true,
-      instance: value,
-      tags,
-    });
+  singleton<T>(name: string, factory: Factory<T>, tags: string[] = []): this {
+    return this.register(name, factory, { singleton: true, tags });
   }
 
-  resolve<T>(name: string): T {
-    const reg = this.registrations.get(name);
-    if (!reg) throw new Error(`No registration for: ${name}`);
-    if (reg.singleton) {
-      if (reg.instance === undefined) reg.instance = reg.factory();
-      return reg.instance as T;
+  value<T>(name: string, val: T, tags: string[] = []): this {
+    return this.register(name, () => val, { singleton: true, tags });
+  }
+
+  resolve<T = unknown>(name: string): T {
+    const binding = this.bindings.get(name);
+    if (!binding) throw new Error(`No binding for: ${name}`);
+
+    if (binding.singleton && binding.instance !== undefined) {
+      return binding.instance as T;
     }
-    return reg.factory() as T;
+
+    if (this.resolving.has(name)) {
+      throw new Error(`Circular dependency detected: ${name}`);
+    }
+
+    this.resolving.add(name);
+    try {
+      const instance = binding.factory(this);
+      if (binding.singleton) binding.instance = instance;
+      return instance as T;
+    } finally {
+      this.resolving.delete(name);
+    }
   }
 
   has(name: string): boolean {
-    return this.registrations.has(name);
+    return this.bindings.has(name);
   }
 
-  unregister(name: string): boolean {
-    return this.registrations.delete(name);
-  }
-
-  getByTag(tag: string): string[] {
-    return [...this.registrations.entries()]
-      .filter(([, r]) => r.tags.includes(tag))
-      .map(([name]) => name);
-  }
-
-  names(): string[] {
-    return [...this.registrations.keys()];
-  }
-
-  get size(): number {
-    return this.registrations.size;
-  }
-
-  clear(): void {
-    this.registrations.clear();
-  }
-
-  createChild(): Container {
-    const child = new Container();
-    for (const [name, reg] of this.registrations) {
-      child.registrations.set(name, { ...reg });
+  getByTag(tag: string): unknown[] {
+    const results: unknown[] = [];
+    for (const [name, binding] of this.bindings) {
+      if (binding.tags.includes(tag)) {
+        results.push(this.resolve(name));
+      }
     }
-    return child;
+    return results;
+  }
+
+  reset(name?: string): void {
+    if (name) {
+      const binding = this.bindings.get(name);
+      if (binding) binding.instance = undefined;
+    } else {
+      for (const binding of this.bindings.values()) {
+        binding.instance = undefined;
+      }
+    }
+  }
+
+  child(): Container {
+    const c = new Container();
+    for (const [name, binding] of this.bindings) {
+      c.bindings.set(name, { ...binding, instance: undefined });
+    }
+    return c;
+  }
+
+  listBindings(): string[] {
+    return [...this.bindings.keys()];
   }
 }

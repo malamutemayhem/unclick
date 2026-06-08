@@ -1,52 +1,99 @@
 import { describe, it, expect } from "vitest";
-import { DFA } from "../finite-automaton.js";
+import { createFA, runDFA, runNFA, accepts, getReachableStates, isComplete } from "../finite-automaton.js";
 
 describe("DFA", () => {
-  it("accepts matching strings", () => {
-    const dfa = DFA.fromTransitions("q0", ["q1"], [
-      { from: "q0", input: "a", to: "q1" },
-      { from: "q1", input: "b", to: "q0" },
-    ]);
-    expect(dfa.accepts_string("a")).toBe(true);
-    expect(dfa.accepts_string("aba")).toBe(true);
+  it("accepts matching string", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+      { from: "s1", to: "s2", on: "b" },
+    ], "s0", ["s2"]);
+    expect(runDFA(fa, "ab")).toBe(true);
   });
 
-  it("rejects non-matching strings", () => {
-    const dfa = DFA.fromTransitions("q0", ["q1"], [
-      { from: "q0", input: "a", to: "q1" },
-      { from: "q1", input: "b", to: "q0" },
-    ]);
-    expect(dfa.accepts_string("b")).toBe(false);
-    expect(dfa.accepts_string("ab")).toBe(false);
+  it("rejects non-matching string", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+      { from: "s1", to: "s2", on: "b" },
+    ], "s0", ["s2"]);
+    expect(runDFA(fa, "ba")).toBe(false);
   });
 
-  it("step by step execution", () => {
-    const dfa = DFA.fromTransitions("s0", ["s2"], [
-      { from: "s0", input: "0", to: "s1" },
-      { from: "s1", input: "1", to: "s2" },
-    ]);
-    expect(dfa.state).toBe("s0");
-    dfa.step("0");
-    expect(dfa.state).toBe("s1");
-    dfa.step("1");
-    expect(dfa.state).toBe("s2");
-    expect(dfa.isAccepting()).toBe(true);
+  it("rejects partial match", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+      { from: "s1", to: "s2", on: "b" },
+    ], "s0", ["s2"]);
+    expect(runDFA(fa, "a")).toBe(false);
   });
 
-  it("reset returns to start state", () => {
-    const dfa = DFA.fromTransitions("q0", ["q1"], [
-      { from: "q0", input: "a", to: "q1" },
-    ]);
-    dfa.step("a");
-    expect(dfa.state).toBe("q1");
-    dfa.reset();
-    expect(dfa.state).toBe("q0");
+  it("accepts empty string if start is accept", () => {
+    const fa = createFA([], "s0", ["s0"]);
+    expect(runDFA(fa, "")).toBe(true);
+  });
+});
+
+describe("NFA", () => {
+  it("handles epsilon transitions", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "" },
+      { from: "s1", to: "s2", on: "a" },
+    ], "s0", ["s2"]);
+    expect(runNFA(fa, "a")).toBe(true);
   });
 
-  it("rejects on unknown input", () => {
-    const dfa = DFA.fromTransitions("q0", ["q1"], [
-      { from: "q0", input: "a", to: "q1" },
-    ]);
-    expect(dfa.accepts_string("x")).toBe(false);
+  it("handles nondeterminism", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+      { from: "s0", to: "s2", on: "a" },
+    ], "s0", ["s2"]);
+    expect(runNFA(fa, "a")).toBe(true);
+  });
+});
+
+describe("accepts", () => {
+  it("auto-detects DFA", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "x" },
+    ], "s0", ["s1"]);
+    expect(accepts(fa, "x")).toBe(true);
+  });
+
+  it("auto-detects NFA with epsilon", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "" },
+      { from: "s1", to: "s2", on: "y" },
+    ], "s0", ["s2"]);
+    expect(accepts(fa, "y")).toBe(true);
+  });
+});
+
+describe("getReachableStates", () => {
+  it("finds reachable states", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+      { from: "s1", to: "s2", on: "b" },
+    ], "s0", ["s2"]);
+    const reachable = getReachableStates(fa);
+    expect(reachable.has("s0")).toBe(true);
+    expect(reachable.has("s1")).toBe(true);
+    expect(reachable.has("s2")).toBe(true);
+  });
+});
+
+describe("isComplete", () => {
+  it("returns true for complete DFA", () => {
+    const fa = createFA([
+      { from: "s0", to: "s0", on: "a" },
+      { from: "s0", to: "s0", on: "b" },
+    ], "s0", ["s0"]);
+    expect(isComplete(fa)).toBe(true);
+  });
+
+  it("returns false for incomplete DFA", () => {
+    const fa = createFA([
+      { from: "s0", to: "s1", on: "a" },
+    ], "s0", ["s1"]);
+    fa.alphabet.add("b");
+    expect(isComplete(fa)).toBe(false);
   });
 });
