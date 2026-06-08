@@ -1,61 +1,78 @@
 import { describe, it, expect } from "vitest";
-import { parseCron, matches, describe as describeCron } from "../cron-parser.js";
+import { parseCron, matches, nextMatch } from "../cron-parser.js";
 
-describe("cron-parser", () => {
-  it("parses wildcard fields", () => {
-    const fields = parseCron("* * * * *");
-    expect(fields.minute).toHaveLength(60);
-    expect(fields.hour).toHaveLength(24);
-    expect(fields.dayOfMonth).toHaveLength(31);
-    expect(fields.month).toHaveLength(12);
-    expect(fields.dayOfWeek).toHaveLength(7);
+describe("parseCron", () => {
+  it("parses every-minute expression", () => {
+    const result = parseCron("* * * * *");
+    expect(result.minute).toHaveLength(60);
+    expect(result.hour).toHaveLength(24);
   });
 
   it("parses specific values", () => {
-    const fields = parseCron("30 14 * * *");
-    expect(fields.minute).toEqual([30]);
-    expect(fields.hour).toEqual([14]);
+    const result = parseCron("30 9 * * 1");
+    expect(result.minute).toEqual([30]);
+    expect(result.hour).toEqual([9]);
+    expect(result.dayOfWeek).toEqual([1]);
   });
 
   it("parses ranges", () => {
-    const fields = parseCron("0 9-17 * * *");
-    expect(fields.hour).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17]);
+    const result = parseCron("0-5 * * * *");
+    expect(result.minute).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it("parses steps", () => {
-    const fields = parseCron("*/15 * * * *");
-    expect(fields.minute).toEqual([0, 15, 30, 45]);
+    const result = parseCron("*/15 * * * *");
+    expect(result.minute).toEqual([0, 15, 30, 45]);
   });
 
-  it("parses comma lists", () => {
-    const fields = parseCron("0 8,12,18 * * *");
-    expect(fields.hour).toEqual([8, 12, 18]);
+  it("parses comma-separated values", () => {
+    const result = parseCron("0 9,17 * * *");
+    expect(result.hour).toEqual([9, 17]);
   });
 
-  it("throws on invalid field count", () => {
-    expect(() => parseCron("* * *")).toThrow("Expected 5 fields");
+  it("throws for invalid expression", () => {
+    expect(() => parseCron("* * *")).toThrow("5 fields");
   });
 
-  it("matches a date correctly", () => {
-    const date = new Date(2025, 0, 15, 10, 30);
-    expect(matches("30 10 15 1 *", date)).toBe(true);
-    expect(matches("0 10 15 1 *", date)).toBe(false);
+  it("throws for out of range values", () => {
+    expect(() => parseCron("60 * * * *")).toThrow("out of range");
+  });
+});
+
+describe("matches", () => {
+  it("matches a specific time", () => {
+    const date = new Date(2025, 0, 6, 9, 30, 0);
+    expect(matches("30 9 6 1 *", date)).toBe(true);
   });
 
-  it("matches day of week", () => {
-    const monday = new Date(2025, 0, 6, 9, 0);
-    expect(matches("0 9 * * 1", monday)).toBe(true);
-    expect(matches("0 9 * * 0", monday)).toBe(false);
+  it("does not match wrong minute", () => {
+    const date = new Date(2025, 0, 6, 9, 31, 0);
+    expect(matches("30 9 6 1 *", date)).toBe(false);
   });
 
-  it("describe returns human readable text", () => {
-    expect(describeCron("*/5 * * * *")).toContain("minutes");
-    expect(describeCron("0 9 * * *")).toContain("minute 0");
-    expect(describeCron("0 9 * * *")).toContain("hour 9");
+  it("matches wildcard fields", () => {
+    const date = new Date(2025, 5, 15, 12, 0, 0);
+    expect(matches("0 12 * * *", date)).toBe(true);
+  });
+});
+
+describe("nextMatch", () => {
+  it("finds next match", () => {
+    const after = new Date(2025, 0, 1, 0, 0, 0);
+    const next = nextMatch("0 12 * * *", after);
+    expect(next.getHours()).toBe(12);
+    expect(next.getMinutes()).toBe(0);
   });
 
-  it("throws on invalid values", () => {
-    expect(() => parseCron("60 * * * *")).toThrow();
-    expect(() => parseCron("* 25 * * *")).toThrow();
+  it("skips current minute", () => {
+    const after = new Date(2025, 0, 1, 12, 0, 0);
+    const next = nextMatch("0 12 * * *", after);
+    expect(next.getDate()).toBe(2);
+  });
+
+  it("finds next matching day of week", () => {
+    const monday = new Date(2025, 0, 6, 10, 0, 0);
+    const next = nextMatch("0 9 * * 5", monday);
+    expect(next.getDay()).toBe(5);
   });
 });

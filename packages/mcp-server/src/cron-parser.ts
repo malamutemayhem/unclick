@@ -1,4 +1,4 @@
-export interface CronFields {
+export interface CronParts {
   minute: number[];
   hour: number[];
   dayOfMonth: number[];
@@ -6,9 +6,9 @@ export interface CronFields {
   dayOfWeek: number[];
 }
 
-export function parseCron(expression: string): CronFields {
+export function parseCron(expression: string): CronParts {
   const parts = expression.trim().split(/\s+/);
-  if (parts.length !== 5) throw new Error(`Expected 5 fields, got ${parts.length}`);
+  if (parts.length !== 5) throw new Error("Cron expression must have 5 fields");
   return {
     minute: parseField(parts[0], 0, 59),
     hour: parseField(parts[1], 0, 23),
@@ -19,35 +19,25 @@ export function parseCron(expression: string): CronFields {
 }
 
 export function matches(expression: string, date: Date): boolean {
-  const fields = parseCron(expression);
-  const minute = date.getMinutes();
-  const hour = date.getHours();
-  const dom = date.getDate();
-  const month = date.getMonth() + 1;
-  const dow = date.getDay();
-
+  const cron = parseCron(expression);
   return (
-    fields.minute.includes(minute) &&
-    fields.hour.includes(hour) &&
-    fields.dayOfMonth.includes(dom) &&
-    fields.month.includes(month) &&
-    fields.dayOfWeek.includes(dow)
+    cron.minute.includes(date.getMinutes()) &&
+    cron.hour.includes(date.getHours()) &&
+    cron.dayOfMonth.includes(date.getDate()) &&
+    cron.month.includes(date.getMonth() + 1) &&
+    cron.dayOfWeek.includes(date.getDay())
   );
 }
 
-export function describe(expression: string): string {
-  const fields = parseCron(expression);
-  const parts: string[] = [];
-
-  if (fields.minute.length === 60) parts.push("every minute");
-  else if (fields.minute.length === 1) parts.push(`at minute ${fields.minute[0]}`);
-  else parts.push(`at minutes ${fields.minute.join(",")}`);
-
-  if (fields.hour.length === 24) parts.push("of every hour");
-  else if (fields.hour.length === 1) parts.push(`of hour ${fields.hour[0]}`);
-  else parts.push(`of hours ${fields.hour.join(",")}`);
-
-  return parts.join(" ");
+export function nextMatch(expression: string, after: Date): Date {
+  const d = new Date(after.getTime());
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() + 1);
+  for (let i = 0; i < 525960; i++) {
+    if (matches(expression, d)) return d;
+    d.setMinutes(d.getMinutes() + 1);
+  }
+  throw new Error("No match found within one year");
 }
 
 function parseField(field: string, min: number, max: number): number[] {
@@ -58,20 +48,22 @@ function parseField(field: string, min: number, max: number): number[] {
     } else if (part.includes("/")) {
       const [range, stepStr] = part.split("/");
       const step = parseInt(stepStr, 10);
-      if (isNaN(step) || step < 1) throw new Error(`Invalid step: ${stepStr}`);
-      const start = range === "*" ? min : parseInt(range, 10);
-      for (let i = start; i <= max; i += step) values.add(i);
+      const [start, end] = range === "*" ? [min, max] : parseRange(range, min, max);
+      for (let i = start; i <= end; i += step) values.add(i);
     } else if (part.includes("-")) {
-      const [startStr, endStr] = part.split("-");
-      const start = parseInt(startStr, 10);
-      const end = parseInt(endStr, 10);
-      if (isNaN(start) || isNaN(end)) throw new Error(`Invalid range: ${part}`);
+      const [start, end] = parseRange(part, min, max);
       for (let i = start; i <= end; i++) values.add(i);
     } else {
-      const val = parseInt(part, 10);
-      if (isNaN(val) || val < min || val > max) throw new Error(`Invalid value: ${part}`);
-      values.add(val);
+      const n = parseInt(part, 10);
+      if (n < min || n > max) throw new Error(`Value ${n} out of range ${min}-${max}`);
+      values.add(n);
     }
   }
   return [...values].sort((a, b) => a - b);
+}
+
+function parseRange(range: string, min: number, max: number): [number, number] {
+  const [a, b] = range.split("-").map((s) => parseInt(s, 10));
+  if (a < min || b > max || a > b) throw new Error(`Invalid range: ${range}`);
+  return [a, b];
 }
