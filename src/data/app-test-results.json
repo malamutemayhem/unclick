@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T21:15:00.000Z",
+  "updatedAt": "2026-06-08T21:30:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3532,6 +3532,36 @@
       "note": "bitwise_calc performs bitwise operations locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
       "toolsTested": ["bitwise_calc"]
+    },
+    "gcdlcm": {
+      "status": "pass",
+      "note": "gcd_lcm_calc computes GCD and LCM locally. No API needed.",
+      "testedAt": "2026-06-08T21:30:00.000Z",
+      "toolsTested": ["gcd_lcm_calc"]
+    },
+    "tempconvert": {
+      "status": "pass",
+      "note": "temperature_convert converts C/F/K/R locally. No API needed.",
+      "testedAt": "2026-06-08T21:30:00.000Z",
+      "toolsTested": ["temperature_convert"]
+    },
+    "statistics": {
+      "status": "pass",
+      "note": "statistics_calc computes mean/median/mode/stddev locally. No API needed.",
+      "testedAt": "2026-06-08T21:30:00.000Z",
+      "toolsTested": ["statistics_calc"]
+    },
+    "textwrap": {
+      "status": "pass",
+      "note": "text_wrap hard-wraps text to column width locally. No API needed.",
+      "testedAt": "2026-06-08T21:30:00.000Z",
+      "toolsTested": ["text_wrap"]
+    },
+    "braille": {
+      "status": "pass",
+      "note": "braille_convert encodes/decodes Braille Unicode locally. No API needed.",
+      "testedAt": "2026-06-08T21:30:00.000Z",
+      "toolsTested": ["braille_convert"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 450,
-  "toolCount": 1372,
+  "appCount": 455,
+  "toolCount": 1377,
   "categories": [
     "AI",
     "Books",
@@ -772,6 +772,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "braille",
+      "name": "Braille Converter",
+      "category": "Utilities",
+      "blurb": "Convert text to Braille Unicode dots or decode Braille to text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "braille_convert",
+          "description": "Convert text to Braille Unicode dots or decode Braille back to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "breakingbad",
@@ -3436,6 +3452,22 @@
         {
           "name": "gbif_occurrences",
           "description": "Search GBIF biodiversity occurrence records by species and/or country."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gcdlcm",
+      "name": "GCD/LCM Calculator",
+      "category": "Developer & infra",
+      "blurb": "Calculate greatest common divisor and least common multiple of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gcd_lcm_calc",
+          "description": "Calculate GCD and LCM of two or more integers."
         }
       ],
       "level": 5,
@@ -8782,6 +8814,22 @@
       "hardened": true
     },
     {
+      "slug": "statistics",
+      "name": "Statistics Calculator",
+      "category": "Developer & infra",
+      "blurb": "Calculate mean, median, mode, standard deviation for a set of numbers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "statistics_calc",
+          "description": "Calculate mean, median, mode, standard deviation, and more for a set of numbers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "steam",
       "name": "Steam",
       "category": "Games & esports",
@@ -9082,6 +9130,22 @@
       "hardened": true
     },
     {
+      "slug": "tempconvert",
+      "name": "Temperature Converter",
+      "category": "Utilities",
+      "blurb": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "temperature_convert",
+          "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "testpass",
       "name": "TestPass",
       "category": "Quality (XPass)",
@@ -9184,6 +9248,22 @@
         {
           "name": "diff_text",
           "description": "Compare two texts line by line and show added/removed lines."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "textwrap",
+      "name": "Text Wrapper",
+      "category": "Utilities",
+      "blurb": "Hard-wrap text to a specified column width for display or formatting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "text_wrap",
+          "description": "Hard-wrap text to a specified column width."
         }
       ],
       "level": 5,

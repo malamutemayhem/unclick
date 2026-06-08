@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 873,
+    "inventory": 878,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 451,
+    "tools": 456,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 451
+      "count": 456
     },
     {
       "id": "rooms",
@@ -4542,6 +4542,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-braille-packages-mcp-server-src-braille-tool-ts-no-route",
+      "division": "Tools",
+      "name": "braille",
+      "kind": "MCP tool",
+      "meaning": "braille MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/braille-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-breakingbad-packages-mcp-server-src-breakingbad-tool-ts-no-route",
       "division": "Tools",
       "name": "breakingbad",
@@ -5708,6 +5718,16 @@
       "kind": "MCP tool",
       "meaning": "gbif MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gbif-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gcdlcm-packages-mcp-server-src-gcdlcm-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gcdlcm",
+      "kind": "MCP tool",
+      "meaning": "gcdlcm MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gcdlcm-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7902,6 +7922,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-statistics-packages-mcp-server-src-statistics-tool-ts-no-route",
+      "division": "Tools",
+      "name": "statistics",
+      "kind": "MCP tool",
+      "meaning": "statistics MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/statistics-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-steam-packages-mcp-server-src-steam-tool-ts-no-route",
       "division": "Tools",
       "name": "steam",
@@ -8012,6 +8042,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-tempconvert-packages-mcp-server-src-tempconvert-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tempconvert",
+      "kind": "MCP tool",
+      "meaning": "tempconvert MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tempconvert-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-testpass-packages-mcp-server-src-testpass-tool-ts-no-route",
       "division": "Tools",
       "name": "testpass",
@@ -8038,6 +8078,16 @@
       "kind": "MCP tool",
       "meaning": "textstats MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/textstats-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-textwrap-packages-mcp-server-src-textwrap-tool-ts-no-route",
+      "division": "Tools",
+      "name": "textwrap",
+      "kind": "MCP tool",
+      "meaning": "textwrap MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/textwrap-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9605,6 +9655,11 @@
       "packages/mcp-server/src/bored-tool.ts"
     ],
     [
+      "braille",
+      "braille MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/braille-tool.ts"
+    ],
+    [
       "breakingbad",
       "breakingbad MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/breakingbad-tool.ts"
@@ -10188,6 +10243,11 @@
       "gbif",
       "gbif MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gbif-tool.ts"
+    ],
+    [
+      "gcdlcm",
+      "gcdlcm MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gcdlcm-tool.ts"
     ],
     [
       "gdelt",
@@ -11285,6 +11345,11 @@
       "packages/mcp-server/src/stapi-tool.ts"
     ],
     [
+      "statistics",
+      "statistics MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/statistics-tool.ts"
+    ],
+    [
       "steam",
       "steam MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/steam-tool.ts"
@@ -11340,6 +11405,11 @@
       "packages/mcp-server/src/telegram-tool.ts"
     ],
     [
+      "tempconvert",
+      "tempconvert MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tempconvert-tool.ts"
+    ],
+    [
       "testpass",
       "TestPass proof and test orchestration capability.",
       "packages/mcp-server/src/testpass-tool.ts"
@@ -11353,6 +11423,11 @@
       "textstats",
       "textstats MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/textstats-tool.ts"
+    ],
+    [
+      "textwrap",
+      "textwrap MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/textwrap-tool.ts"
     ],
     [
       "thecolorapi",
@@ -12903,6 +12978,11 @@
       "bytes": 3043
     },
     {
+      "source": "packages/mcp-server/src/braille-tool.ts",
+      "hash": "a2a71da4a678",
+      "bytes": 1894
+    },
+    {
       "source": "packages/mcp-server/src/breakingbad-tool.ts",
       "hash": "3ae61a3c1938",
       "bytes": 1236
@@ -12911,11 +12991,6 @@
       "source": "packages/mcp-server/src/brevo-tool.ts",
       "hash": "b79b48fd500a",
       "bytes": 3314
-    },
-    {
-      "source": "packages/mcp-server/src/brewery-tool.ts",
-      "hash": "9a69cc3c3ebc",
-      "bytes": 5073
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

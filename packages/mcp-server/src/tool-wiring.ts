@@ -615,6 +615,11 @@ import { pressureConvert } from "./unitpressure-tool.js";
 import { emojiLookup } from "./emojilookup-tool.js";
 import { natoConvert } from "./natoalphabet-tool.js";
 import { bitwiseCalc } from "./bitwise-tool.js";
+import { gcdLcmCalc } from "./gcdlcm-tool.js";
+import { temperatureConvert } from "./tempconvert-tool.js";
+import { statisticsCalc } from "./statistics-tool.js";
+import { textWrap } from "./textwrap-tool.js";
+import { brailleConvert } from "./braille-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9478,6 +9483,65 @@ export const ADDITIONAL_TOOLS = [
         b: { type: "number" as const, description: "Second integer (not needed for NOT)." },
         operation: { type: "string" as const, description: "Operation: and, or, xor, not, nand, nor, shift_left, shift_right (default and)." },
       }, required: ["a"],
+    },
+  },
+
+  // ── gcdlcm-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "gcd_lcm_calc",
+    description: "Calculate GCD and LCM of two or more integers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        numbers: { type: "string" as const, description: "Comma-separated integers (or use a and b)." },
+        a: { type: "number" as const, description: "First integer." },
+        b: { type: "number" as const, description: "Second integer." },
+      },
+    },
+  },
+
+  // ── tempconvert-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "temperature_convert",
+    description: "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Temperature value." },
+        from: { type: "string" as const, description: "Source unit: c, f, k, or r (default c)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── statistics-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "statistics_calc",
+    description: "Calculate mean, median, mode, standard deviation, and more for a set of numbers.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        numbers: { type: "string" as const, description: "Comma-separated numbers or array." },
+      }, required: ["numbers"],
+    },
+  },
+
+  // ── textwrap-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "text_wrap",
+    description: "Hard-wrap text to a specified column width.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to wrap." },
+        width: { type: "number" as const, description: "Column width (10-200, default 80)." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── braille-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "braille_convert",
+    description: "Convert text to Braille Unicode dots or decode Braille back to text.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text or Braille characters to convert." },
+      }, required: ["text"],
     },
   },
 
@@ -20963,6 +21027,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // bitwise-tool.ts
   bitwise_calc:              (args) => bitwiseCalc(args),
+
+  // gcdlcm-tool.ts
+  gcd_lcm_calc:              (args) => gcdLcmCalc(args),
+
+  // tempconvert-tool.ts
+  temperature_convert:       (args) => temperatureConvert(args),
+
+  // statistics-tool.ts
+  statistics_calc:           (args) => statisticsCalc(args),
+
+  // textwrap-tool.ts
+  text_wrap:                 (args) => textWrap(args),
+
+  // braille-tool.ts
+  braille_convert:           (args) => brailleConvert(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

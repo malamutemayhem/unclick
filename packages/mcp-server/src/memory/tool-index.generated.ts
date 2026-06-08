@@ -648,6 +648,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "braille",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "braille_convert",
+        "description": "Convert text to Braille Unicode dots or decode Braille back to text."
+      }
+    ]
+  },
+  {
     "app": "breakingbad",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2746,6 +2756,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "gbif_occurrences",
         "description": "Search GBIF biodiversity occurrence records by species and/or country."
+      }
+    ]
+  },
+  {
+    "app": "gcdlcm",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gcd_lcm_calc",
+        "description": "Calculate GCD and LCM of two or more integers."
       }
     ]
   },
@@ -6658,6 +6678,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "statistics",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "statistics_calc",
+        "description": "Calculate mean, median, mode, standard deviation, and more for a set of numbers."
+      }
+    ]
+  },
+  {
     "app": "steam",
     "category": "Productivity / Social / Misc",
     "tools": [
@@ -6892,6 +6922,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "tempconvert",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "temperature_convert",
+        "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
+      }
+    ]
+  },
+  {
     "app": "testpass",
     "category": "TestPass",
     "tools": [
@@ -6978,6 +7018,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "text_readability",
         "description": "Analyze text readability with Flesch-Kincaid grade and reading ease scores."
+      }
+    ]
+  },
+  {
+    "app": "textwrap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_wrap",
+        "description": "Hard-wrap text to a specified column width."
       }
     ]
   },

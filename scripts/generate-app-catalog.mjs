@@ -27,7 +27,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -154,6 +154,8 @@ const NAME_OF = {
   fibonacci: "Fibonacci Generator", primecheck: "Prime Checker", sortlines: "Line Sorter",
   countdowncalc: "Countdown Calculator", unitpressure: "Pressure Converter",
   emojilookup: "Emoji Lookup", natoalphabet: "NATO Phonetic Alphabet", bitwise: "Bitwise Calculator",
+  gcdlcm: "GCD/LCM Calculator", tempconvert: "Temperature Converter",
+  statistics: "Statistics Calculator", textwrap: "Text Wrapper", braille: "Braille Converter",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -451,6 +453,11 @@ const BLURB_OF = {
   emojilookup: "Search emojis by name or keyword.",
   natoalphabet: "Convert text to NATO phonetic alphabet or decode NATO words.",
   bitwise: "Perform bitwise operations (AND, OR, XOR, NOT, shifts) on integers.",
+  gcdlcm: "Calculate greatest common divisor and least common multiple of integers.",
+  tempconvert: "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine.",
+  statistics: "Calculate mean, median, mode, standard deviation for a set of numbers.",
+  textwrap: "Hard-wrap text to a specified column width for display or formatting.",
+  braille: "Convert text to Braille Unicode dots or decode Braille to text.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -596,6 +603,8 @@ const DOMAIN_OF = {
   fibonacci: "local", primecheck: "local", sortlines: "local",
   countdowncalc: "local", unitpressure: "local",
   emojilookup: "local", natoalphabet: "local", bitwise: "local",
+  gcdlcm: "local", tempconvert: "local",
+  statistics: "local", textwrap: "local", braille: "local",
 };
 
 function titleCase(slug) {
