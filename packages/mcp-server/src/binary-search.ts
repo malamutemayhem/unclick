@@ -64,7 +64,7 @@ export function insertionPoint<T>(
   return lowerBound(arr, target, compare);
 }
 
-function defaultCompare(a: unknown, b: unknown): number {
+function defaultCompare(a: any, b: any): number {
   if (a < b) return -1;
   if (a > b) return 1;
   return 0;
