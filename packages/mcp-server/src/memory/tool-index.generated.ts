@@ -1082,6 +1082,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "colr",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "colr_random_palette",
+        "description": "Get a random color palette from colr.org."
+      }
+    ]
+  },
+  {
     "app": "commonsensepass",
     "category": "CommonSensePass (worker sanity-gate verdicts)",
     "tools": [
@@ -1958,6 +1968,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "exchangerate3",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "currency_api_rates",
+        "description": "Get latest currency exchange rates from fawazahmed0 currency API (free, no key)."
+      },
+      {
+        "name": "currency_api_list",
+        "description": "List all supported currency codes from fawazahmed0 currency API."
+      }
+    ]
+  },
+  {
     "app": "excuser",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2214,12 +2238,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "fruityvice",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fruityvice_all",
+        "description": "List all fruits with nutrition facts from Fruityvice."
+      },
+      {
+        "name": "fruityvice_by_name",
+        "description": "Get detailed nutrition info for a specific fruit from Fruityvice."
+      }
+    ]
+  },
+  {
     "app": "funtranslations",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "fun_translate",
         "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+      }
+    ]
+  },
+  {
+    "app": "gameoflife",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "game_of_life_step",
+        "description": "Run Conway's Game of Life simulation steps (local, no network)."
       }
     ]
   },
@@ -2866,6 +2914,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "jira_add_comment",
         "description": "Add a comment to a Jira issue."
+      }
+    ]
+  },
+  {
+    "app": "jisho",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "jisho_search",
+        "description": "Search Jisho.org Japanese dictionary for words, kanji, or English translations."
       }
     ]
   },
@@ -3770,6 +3828,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "openaq_countries",
         "description": "List countries with air quality data on OpenAQ."
+      }
+    ]
+  },
+  {
+    "app": "opendota",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "opendota_heroes",
+        "description": "List all Dota 2 heroes with roles and attack types from OpenDota."
+      },
+      {
+        "name": "opendota_hero_stats",
+        "description": "Get Dota 2 hero statistics including pick/win rates per bracket."
+      },
+      {
+        "name": "opendota_pro_matches",
+        "description": "Get recent professional Dota 2 match results from OpenDota."
       }
     ]
   },

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T11:30:00.000Z",
+  "updatedAt": "2026-06-08T12:00:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -2773,6 +2773,58 @@
       "testedAt": "2026-06-08T04:01:53.563Z",
       "toolsTested": [
         "zip_lookup"
+      ]
+    },
+    "exchangerate3": {
+      "status": "pass",
+      "note": "currency_api_rates and currency_api_list return exchange rates from fawazahmed0 via jsDelivr CDN. Free, no key needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "currency_api_rates",
+        "currency_api_list"
+      ]
+    },
+    "jisho": {
+      "status": "pass",
+      "note": "jisho_search returns Japanese-English dictionary results from jisho.org. Free, no key needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "jisho_search"
+      ]
+    },
+    "colr": {
+      "status": "pass",
+      "note": "colr_random_palette returns random color palettes from colr.org. Free, no key needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "colr_random_palette"
+      ]
+    },
+    "gameoflife": {
+      "status": "pass",
+      "note": "game_of_life_step runs Conway's Game of Life simulation locally. No network call needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "game_of_life_step"
+      ]
+    },
+    "fruityvice": {
+      "status": "pass",
+      "note": "fruityvice_all and fruityvice_by_name return fruit nutrition facts from fruityvice.com. Free, no key needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "fruityvice_all",
+        "fruityvice_by_name"
+      ]
+    },
+    "opendota": {
+      "status": "pass",
+      "note": "opendota_heroes, opendota_hero_stats, opendota_pro_matches return Dota 2 data from opendota.com. Free, no key needed.",
+      "testedAt": "2026-06-08T12:00:00.000Z",
+      "toolsTested": [
+        "opendota_heroes",
+        "opendota_hero_stats",
+        "opendota_pro_matches"
       ]
     }
   },

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 335,
-  "toolCount": 1191,
+  "appCount": 341,
+  "toolCount": 1201,
   "categories": [
     "AI",
     "Books",
@@ -1290,6 +1290,22 @@
       "hardened": false
     },
     {
+      "slug": "colr",
+      "name": "Colr",
+      "category": "Images",
+      "blurb": "Get random color palettes from colr.org.",
+      "domain": "colr.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "colr_random_palette",
+          "description": "Get a random color palette from colr.org."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "commonsensepass",
       "name": "CommonSensePass",
       "category": "Quality (XPass)",
@@ -1499,6 +1515,26 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "exchangerate3",
+      "name": "Currency API (fawazahmed0)",
+      "category": "Markets & crypto",
+      "blurb": "Free currency exchange rates from fawazahmed0 currency API via jsDelivr CDN.",
+      "domain": "cdn.jsdelivr.net",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "currency_api_rates",
+          "description": "Get latest currency exchange rates from fawazahmed0 currency API (free, no key)."
+        },
+        {
+          "name": "currency_api_list",
+          "description": "List all supported currency codes from fawazahmed0 currency API."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -2722,6 +2758,26 @@
       "hardened": false
     },
     {
+      "slug": "fruityvice",
+      "name": "Fruityvice",
+      "category": "Weather & science",
+      "blurb": "Look up fruit nutrition facts including calories, sugar, and protein.",
+      "domain": "fruityvice.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "fruityvice_all",
+          "description": "List all fruits with nutrition facts from Fruityvice."
+        },
+        {
+          "name": "fruityvice_by_name",
+          "description": "Get detailed nutrition info for a specific fruit from Fruityvice."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "funtranslations",
       "name": "Fun Translations",
       "category": "Utilities",
@@ -2732,6 +2788,22 @@
         {
           "name": "fun_translate",
           "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gameoflife",
+      "name": "Game of Life",
+      "category": "Games & esports",
+      "blurb": "Run Conway's Game of Life simulation locally with customizable grids.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "game_of_life_step",
+          "description": "Run Conway's Game of Life simulation steps (local, no network)."
         }
       ],
       "level": 5,
@@ -3584,6 +3656,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "jisho",
+      "name": "Jisho",
+      "category": "Books",
+      "blurb": "Search the Jisho.org Japanese-English dictionary for words and kanji.",
+      "domain": "jisho.org",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "jisho_search",
+          "description": "Search Jisho.org Japanese dictionary for words, kanji, or English translations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "jobsmith",
@@ -4956,6 +5044,30 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "opendota",
+      "name": "OpenDota",
+      "category": "Games & esports",
+      "blurb": "Dota 2 hero stats, win rates, and pro match results from OpenDota.",
+      "domain": "opendota.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "opendota_heroes",
+          "description": "List all Dota 2 heroes with roles and attack types from OpenDota."
+        },
+        {
+          "name": "opendota_hero_stats",
+          "description": "Get Dota 2 hero statistics including pick/win rates per bracket."
+        },
+        {
+          "name": "opendota_pro_matches",
+          "description": "Get recent professional Dota 2 match results from OpenDota."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "openf1",

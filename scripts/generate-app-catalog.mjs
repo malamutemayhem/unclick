@@ -29,21 +29,21 @@ const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; })
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
 bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
-bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika"]);
+bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities"]);
 bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
-bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb"]);
+bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife"]);
 bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australiapost", "sendle", "domain", "toilets", "ipapi", "restcountries", "abn", "ipaustralia", "amber", "thelott", "tab", "holidays", "brewery"]);
-bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine"]);
+bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd", "cocktail", "opennotify", "sunrisesunset", "worldtime", "punkapi", "wger", "openfda", "carbonintensity", "worldbank", "solarsystem", "pubchem", "spacex", "openmeteo-marine", "fruityvice"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter", "urlhaus"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
-bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki"]);
-bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag"]);
+bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho"]);
+bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
@@ -111,6 +111,8 @@ const NAME_OF = {
   qrserver: "QR Server", solarsystem: "Solar System", pubchem: "PubChem",
   "openmeteo-marine": "Open-Meteo Marine", opentriviadb: "Open Trivia DB", ipaddrinfo: "IP Address Info",
   diceware: "Diceware", colornames: "Color Names", mhwdb: "Monster Hunter World DB",
+  exchangerate3: "Currency API (fawazahmed0)", jisho: "Jisho", colr: "Colr",
+  gameoflife: "Game of Life", fruityvice: "Fruityvice", opendota: "OpenDota",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -293,6 +295,12 @@ const BLURB_OF = {
   diceware: "Generate secure random passphrases from a word list.",
   colornames: "Find the closest named color for any hex code.",
   mhwdb: "Browse Monster Hunter World monsters, weapons, and armor.",
+  exchangerate3: "Free currency exchange rates from fawazahmed0 currency API via jsDelivr CDN.",
+  jisho: "Search the Jisho.org Japanese-English dictionary for words and kanji.",
+  colr: "Get random color palettes from colr.org.",
+  gameoflife: "Run Conway's Game of Life simulation locally with customizable grids.",
+  fruityvice: "Look up fruit nutrition facts including calories, sugar, and protein.",
+  opendota: "Dota 2 hero stats, win rates, and pro match results from OpenDota.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -395,6 +403,8 @@ const DOMAIN_OF = {
   qrserver: "goqr.me", solarsystem: "le-systeme-solaire.net", pubchem: "pubchem.ncbi.nlm.nih.gov",
   "openmeteo-marine": "open-meteo.com", opentriviadb: "opentdb.com", ipaddrinfo: "ipwho.is",
   colornames: "color.pizza", mhwdb: "mhw-db.com",
+  exchangerate3: "cdn.jsdelivr.net", jisho: "jisho.org", colr: "colr.org",
+  gameoflife: "local", fruityvice: "fruityvice.com", opendota: "opendota.com",
 };
 
 function titleCase(slug) {

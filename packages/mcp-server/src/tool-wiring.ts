@@ -500,6 +500,12 @@ import { ipAddressLookup } from "./ipaddrinfo-tool.js";
 import { dicewarePassphrase } from "./diceware-tool.js";
 import { colorNameLookup, colorNameRandom } from "./colornames-tool.js";
 import { mhwMonsters, mhwWeapons } from "./mhwdb-tool.js";
+import { currencyApiRates, currencyApiList } from "./exchangerate3-tool.js";
+import { jishoSearch } from "./jisho-tool.js";
+import { colrRandomPalette } from "./colr-tool.js";
+import { gameOfLifeStep } from "./gameoflife-tool.js";
+import { fruityviceAll, fruityviceByName } from "./fruityvice-tool.js";
+import { opendotaHeroes, opendotaHeroStats, opendotaProMatches } from "./opendota-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -7457,6 +7463,101 @@ export const ADDITIONAL_TOOLS = [
         type: { type: "string" as const, description: "Weapon type (e.g. great-sword, long-sword, bow, hammer)." },
         limit: { type: "number" as const, description: "Max results (default 10)." },
       },
+    },
+  },
+
+  // ── exchangerate3-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "currency_api_rates",
+    description: "Get latest currency exchange rates from fawazahmed0 currency API (free, no key).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        base: { type: "string" as const, description: "Base currency code (default: usd)." },
+      },
+    },
+  },
+  {
+    name: "currency_api_list",
+    description: "List all supported currency codes from fawazahmed0 currency API.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── jisho-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "jisho_search",
+    description: "Search Jisho.org Japanese dictionary for words, kanji, or English translations.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        keyword: { type: "string" as const, description: "Search keyword (English, Japanese, romaji)." },
+      },
+      required: ["keyword"],
+    },
+  },
+
+  // ── colr-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "colr_random_palette",
+    description: "Get a random color palette from colr.org.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+
+  // ── gameoflife-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "game_of_life_step",
+    description: "Run Conway's Game of Life simulation steps (local, no network).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        grid: { type: "string" as const, description: "Grid string with rows separated by newlines. '#' or '1' = alive, '.' or '0' = dead." },
+        width: { type: "number" as const, description: "Grid width for random generation (default 10, max 50)." },
+        height: { type: "number" as const, description: "Grid height for random generation (default 10, max 50)." },
+        steps: { type: "number" as const, description: "Number of simulation steps (default 1, max 20)." },
+      },
+    },
+  },
+
+  // ── fruityvice-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "fruityvice_all",
+    description: "List all fruits with nutrition facts from Fruityvice.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "fruityvice_by_name",
+    description: "Get detailed nutrition info for a specific fruit from Fruityvice.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        name: { type: "string" as const, description: "Fruit name (e.g. banana, apple, strawberry)." },
+      },
+      required: ["name"],
+    },
+  },
+
+  // ── opendota-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "opendota_heroes",
+    description: "List all Dota 2 heroes with roles and attack types from OpenDota.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "opendota_hero_stats",
+    description: "Get Dota 2 hero statistics including pick/win rates per bracket.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
+    },
+  },
+  {
+    name: "opendota_pro_matches",
+    description: "Get recent professional Dota 2 match results from OpenDota.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {},
     },
   },
 
@@ -18585,6 +18686,22 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // mhwdb-tool.ts
   mhw_monsters:              (args) => mhwMonsters(args),
   mhw_weapons:               (args) => mhwWeapons(args),
+  // exchangerate3-tool.ts
+  currency_api_rates:        (args) => currencyApiRates(args),
+  currency_api_list:         (args) => currencyApiList(args),
+  // jisho-tool.ts
+  jisho_search:              (args) => jishoSearch(args),
+  // colr-tool.ts
+  colr_random_palette:       (args) => colrRandomPalette(args),
+  // gameoflife-tool.ts
+  game_of_life_step:         (args) => gameOfLifeStep(args),
+  // fruityvice-tool.ts
+  fruityvice_all:            (args) => fruityviceAll(args),
+  fruityvice_by_name:        (args) => fruityviceByName(args),
+  // opendota-tool.ts
+  opendota_heroes:           (args) => opendotaHeroes(args),
+  opendota_hero_stats:       (args) => opendotaHeroStats(args),
+  opendota_pro_matches:      (args) => opendotaProMatches(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
