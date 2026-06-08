@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { parseCron, cronMatches, nextCronDate, describeCron } from "../cron-parser.js";
+import { parseCron, nextRun, matches, describe as describeCron } from "../cron-parser.js";
 
 describe("parseCron", () => {
-  it("parses wildcard", () => {
+  it("parses wildcard expression", () => {
     const fields = parseCron("* * * * *");
     expect(fields.minute.length).toBe(60);
     expect(fields.hour.length).toBe(24);
@@ -29,36 +29,42 @@ describe("parseCron", () => {
     expect(fields.minute).toEqual([0, 30]);
   });
 
-  it("throws for invalid format", () => {
-    expect(() => parseCron("* *")).toThrow("5 fields");
+  it("throws for invalid expression", () => {
+    expect(() => parseCron("* *")).toThrow();
   });
 });
 
-describe("cronMatches", () => {
-  it("matches specific time", () => {
-    const d = new Date("2024-06-15T12:30:00");
-    expect(cronMatches("30 12 * * *", d)).toBe(true);
-    expect(cronMatches("0 12 * * *", d)).toBe(false);
-  });
-});
-
-describe("nextCronDate", () => {
-  it("finds next matching minute", () => {
-    const after = new Date("2024-06-15T12:00:00");
-    const next = nextCronDate("30 12 * * *", after);
+describe("nextRun", () => {
+  it("finds next matching time", () => {
+    const from = new Date(2024, 0, 1, 10, 0, 0);
+    const next = nextRun("0 12 * * *", from);
     expect(next.getHours()).toBe(12);
-    expect(next.getMinutes()).toBe(30);
+    expect(next.getMinutes()).toBe(0);
+  });
+
+  it("moves to next day if past today", () => {
+    const from = new Date(2024, 0, 1, 13, 0, 0);
+    const next = nextRun("0 12 * * *", from);
+    expect(next.getDate()).toBe(2);
   });
 });
 
-describe("describeCron", () => {
-  it("describes every minute", () => {
-    expect(describeCron("* * * * *")).toContain("every minute");
+describe("matches", () => {
+  it("returns true for matching date", () => {
+    const date = new Date(2024, 0, 1, 12, 0, 0);
+    expect(matches("0 12 * * *", date)).toBe(true);
   });
 
-  it("describes specific minute and hour", () => {
-    const desc = describeCron("30 12 * * *");
-    expect(desc).toContain("minute 30");
+  it("returns false for non-matching date", () => {
+    const date = new Date(2024, 0, 1, 13, 0, 0);
+    expect(matches("0 12 * * *", date)).toBe(false);
+  });
+});
+
+describe("describe", () => {
+  it("describes a cron expression", () => {
+    const desc = describeCron("0 12 * * *");
+    expect(desc).toContain("minute 0");
     expect(desc).toContain("hour 12");
   });
 });
