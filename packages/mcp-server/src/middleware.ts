@@ -1,16 +1,15 @@
-export type Context = Record<string, unknown>;
 export type Next = () => Promise<void>;
-export type MiddlewareFn = (ctx: Context, next: Next) => Promise<void>;
+export type Middleware<C> = (ctx: C, next: Next) => Promise<void>;
 
-export class MiddlewareChain {
-  private stack: MiddlewareFn[] = [];
+export class MiddlewareChain<C> {
+  private stack: Middleware<C>[] = [];
 
-  use(fn: MiddlewareFn): this {
-    this.stack.push(fn);
+  use(mw: Middleware<C>): this {
+    this.stack.push(mw);
     return this;
   }
 
-  async execute(ctx: Context = {}): Promise<Context> {
+  async execute(ctx: C): Promise<void> {
     let index = -1;
     const dispatch = async (i: number): Promise<void> => {
       if (i <= index) throw new Error("next() called multiple times");
@@ -19,36 +18,42 @@ export class MiddlewareChain {
       await this.stack[i](ctx, () => dispatch(i + 1));
     };
     await dispatch(0);
-    return ctx;
   }
 
-  get length(): number {
-    return this.stack.length;
-  }
+  get length(): number { return this.stack.length; }
 }
 
-export function compose(...middlewares: MiddlewareFn[]): MiddlewareFn {
-  return async (ctx: Context, next: Next) => {
+export function compose<C>(...middlewares: Middleware<C>[]): Middleware<C> {
+  return async (ctx: C, next: Next) => {
     let index = -1;
     const dispatch = async (i: number): Promise<void> => {
       if (i <= index) throw new Error("next() called multiple times");
       index = i;
-      if (i >= middlewares.length) {
-        await next();
-        return;
-      }
+      if (i >= middlewares.length) { await next(); return; }
       await middlewares[i](ctx, () => dispatch(i + 1));
     };
     await dispatch(0);
   };
 }
 
-export function errorHandler(handler: (err: unknown, ctx: Context) => void): MiddlewareFn {
-  return async (ctx: Context, next: Next) => {
-    try {
-      await next();
-    } catch (err) {
-      handler(err, ctx);
-    }
+export function conditional<C>(
+  predicate: (ctx: C) => boolean,
+  mw: Middleware<C>
+): Middleware<C> {
+  return async (ctx, next) => {
+    if (predicate(ctx)) { await mw(ctx, next); }
+    else { await next(); }
+  };
+}
+
+export function timing<C extends { timing?: Record<string, number> }>(
+  label: string,
+  mw: Middleware<C>
+): Middleware<C> {
+  return async (ctx, next) => {
+    const start = performance.now();
+    await mw(ctx, next);
+    if (!ctx.timing) ctx.timing = {};
+    ctx.timing[label] = performance.now() - start;
   };
 }

@@ -31,7 +31,7 @@ describe("Result", () => {
     it("mapErr transforms error", () => { expect(err("x").mapErr((e) => e + "!").unwrapErr()).toBe("x!"); });
     it("flatMap is no-op", () => { expect(err("x").flatMap(() => ok(1)).isErr()).toBe(true); });
     it("match calls err handler", () => {
-      expect(err("bad").match({ ok: () => 0, err: (e) => e })).toBe("bad");
+      expect(err("bad").match({ ok: () => "nope", err: (e) => e })).toBe("bad");
     });
   });
 

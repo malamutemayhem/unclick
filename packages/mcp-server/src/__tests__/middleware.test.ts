@@ -1,68 +1,92 @@
 import { describe, it, expect } from "vitest";
-import { MiddlewareChain, compose, errorHandler } from "../middleware.js";
+import { MiddlewareChain, compose, conditional, timing } from "../middleware.js";
+
+interface Ctx {
+  [key: string]: unknown;
+  log: string[];
+  timing?: Record<string, number>;
+}
 
 describe("MiddlewareChain", () => {
   it("executes in order", async () => {
-    const chain = new MiddlewareChain();
-    const order: number[] = [];
-    chain.use(async (_ctx, next) => { order.push(1); await next(); order.push(4); });
-    chain.use(async (_ctx, next) => { order.push(2); await next(); order.push(3); });
-    await chain.execute();
-    expect(order).toEqual([1, 2, 3, 4]);
+    const chain = new MiddlewareChain<Ctx>();
+    chain.use(async (ctx, next) => { ctx.log.push("a"); await next(); ctx.log.push("a-after"); });
+    chain.use(async (ctx, next) => { ctx.log.push("b"); await next(); });
+    const ctx: Ctx = { log: [] };
+    await chain.execute(ctx);
+    expect(ctx.log).toEqual(["a", "b", "a-after"]);
   });
 
-  it("passes context through", async () => {
-    const chain = new MiddlewareChain();
-    chain.use(async (ctx, next) => { ctx.value = 42; await next(); });
-    chain.use(async (ctx, next) => { ctx.doubled = (ctx.value as number) * 2; await next(); });
-    const result = await chain.execute();
-    expect(result.doubled).toBe(84);
+  it("works with no middleware", async () => {
+    const chain = new MiddlewareChain<Ctx>();
+    await chain.execute({ log: [] });
   });
 
   it("stops if next not called", async () => {
-    const chain = new MiddlewareChain();
-    chain.use(async (ctx) => { ctx.stopped = true; });
-    chain.use(async (ctx, next) => { ctx.reached = true; await next(); });
-    const result = await chain.execute();
-    expect(result.stopped).toBe(true);
-    expect(result.reached).toBeUndefined();
+    const chain = new MiddlewareChain<Ctx>();
+    chain.use(async (ctx) => { ctx.log.push("only"); });
+    chain.use(async (ctx) => { ctx.log.push("never"); });
+    const ctx: Ctx = { log: [] };
+    await chain.execute(ctx);
+    expect(ctx.log).toEqual(["only"]);
   });
 
-  it("throws if next called twice", async () => {
-    const chain = new MiddlewareChain();
+  it("throws on double next()", async () => {
+    const chain = new MiddlewareChain<Ctx>();
     chain.use(async (_ctx, next) => { await next(); await next(); });
-    await expect(chain.execute()).rejects.toThrow("next() called multiple times");
+    await expect(chain.execute({ log: [] })).rejects.toThrow("multiple times");
   });
 
-  it("length tracks middleware count", () => {
-    const chain = new MiddlewareChain();
-    chain.use(async (_ctx, next) => { await next(); });
-    chain.use(async (_ctx, next) => { await next(); });
-    expect(chain.length).toBe(2);
+  it("length reflects stack size", () => {
+    const chain = new MiddlewareChain<Ctx>();
+    expect(chain.length).toBe(0);
+    chain.use(async (_, next) => next());
+    expect(chain.length).toBe(1);
   });
 });
 
 describe("compose", () => {
-  it("combines middlewares into one", async () => {
-    const combined = compose(
-      async (ctx, next) => { ctx.a = 1; await next(); },
-      async (ctx, next) => { ctx.b = 2; await next(); },
+  it("composes middlewares into one", async () => {
+    const composed = compose<Ctx>(
+      async (ctx, next) => { ctx.log.push("1"); await next(); },
+      async (ctx, next) => { ctx.log.push("2"); await next(); }
     );
-    const chain = new MiddlewareChain();
-    chain.use(combined);
-    const result = await chain.execute();
-    expect(result.a).toBe(1);
-    expect(result.b).toBe(2);
+    const ctx: Ctx = { log: [] };
+    await composed(ctx, async () => { ctx.log.push("end"); });
+    expect(ctx.log).toEqual(["1", "2", "end"]);
   });
 });
 
-describe("errorHandler", () => {
-  it("catches errors from downstream", async () => {
-    const chain = new MiddlewareChain();
-    let caught: unknown;
-    chain.use(errorHandler((err) => { caught = err; }));
-    chain.use(async () => { throw new Error("boom"); });
-    await chain.execute();
-    expect((caught as Error).message).toBe("boom");
+describe("conditional", () => {
+  it("runs middleware when predicate is true", async () => {
+    const mw = conditional<Ctx>((ctx) => ctx.log.length === 0, async (ctx, next) => {
+      ctx.log.push("ran");
+      await next();
+    });
+    const ctx: Ctx = { log: [] };
+    await mw(ctx, async () => {});
+    expect(ctx.log).toEqual(["ran"]);
+  });
+
+  it("skips middleware when predicate is false", async () => {
+    const mw = conditional<Ctx>(() => false, async (ctx, next) => {
+      ctx.log.push("ran");
+      await next();
+    });
+    const ctx: Ctx = { log: [] };
+    let nextCalled = false;
+    await mw(ctx, async () => { nextCalled = true; });
+    expect(ctx.log).toEqual([]);
+    expect(nextCalled).toBe(true);
+  });
+});
+
+describe("timing", () => {
+  it("records timing", async () => {
+    const mw = timing<Ctx>("test", async (_ctx, next) => { await next(); });
+    const ctx: Ctx = { log: [] };
+    await mw(ctx, async () => {});
+    expect(ctx.timing).toBeDefined();
+    expect(ctx.timing!["test"]).toBeGreaterThanOrEqual(0);
   });
 });

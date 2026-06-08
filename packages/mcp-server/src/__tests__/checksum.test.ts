@@ -1,70 +1,81 @@
 import { describe, it, expect } from "vitest";
-import { crc32, adler32, fnv1a, djb2, murmurHash3, hexDigest } from "../checksum.js";
+import { crc32, crc32Hex, adler32, fnv1a32, djb2, murmur3 } from "../checksum.js";
 
-describe("crc32", () => {
-  it("computes known hash", () => {
-    const hash = crc32("hello");
-    expect(hash).toBeTypeOf("number");
-    expect(hash).toBeGreaterThan(0);
+describe("checksum", () => {
+  describe("crc32", () => {
+    it("computes known crc32", () => {
+      expect(crc32("hello")).toBe(0x3610A686);
+    });
+
+    it("returns 0 for empty input", () => {
+      expect(crc32("")).toBe(0);
+    });
+
+    it("accepts Uint8Array", () => {
+      const bytes = new TextEncoder().encode("hello");
+      expect(crc32(bytes)).toBe(crc32("hello"));
+    });
+
+    it("different inputs produce different hashes", () => {
+      expect(crc32("hello")).not.toBe(crc32("world"));
+    });
   });
 
-  it("different inputs give different hashes", () => {
-    expect(crc32("hello")).not.toBe(crc32("world"));
+  describe("crc32Hex", () => {
+    it("returns padded hex string", () => {
+      const hex = crc32Hex("hello");
+      expect(hex).toHaveLength(8);
+      expect(hex).toMatch(/^[0-9a-f]{8}$/);
+    });
   });
 
-  it("same input gives same hash", () => {
-    expect(crc32("test")).toBe(crc32("test"));
-  });
-});
+  describe("adler32", () => {
+    it("computes known adler32 for Wikipedia", () => {
+      expect(adler32("Wikipedia")).toBe(0x11E60398);
+    });
 
-describe("adler32", () => {
-  it("computes hash", () => {
-    expect(adler32("hello")).toBeTypeOf("number");
-  });
-
-  it("deterministic", () => {
-    expect(adler32("abc")).toBe(adler32("abc"));
-  });
-});
-
-describe("fnv1a", () => {
-  it("computes hash", () => {
-    expect(fnv1a("hello")).toBeTypeOf("number");
+    it("handles empty string", () => {
+      expect(adler32("")).toBe(1);
+    });
   });
 
-  it("different for different inputs", () => {
-    expect(fnv1a("a")).not.toBe(fnv1a("b"));
-  });
-});
+  describe("fnv1a32", () => {
+    it("produces consistent results", () => {
+      expect(fnv1a32("hello")).toBe(fnv1a32("hello"));
+    });
 
-describe("djb2", () => {
-  it("computes hash", () => {
-    expect(djb2("hello")).toBeTypeOf("number");
-  });
-
-  it("deterministic", () => {
-    expect(djb2("test")).toBe(djb2("test"));
-  });
-});
-
-describe("murmurHash3", () => {
-  it("computes hash", () => {
-    expect(murmurHash3("hello")).toBeTypeOf("number");
+    it("different inputs differ", () => {
+      expect(fnv1a32("hello")).not.toBe(fnv1a32("world"));
+    });
   });
 
-  it("seed changes hash", () => {
-    expect(murmurHash3("hello", 0)).not.toBe(murmurHash3("hello", 42));
+  describe("djb2", () => {
+    it("produces consistent results", () => {
+      expect(djb2("hello")).toBe(djb2("hello"));
+    });
+
+    it("different inputs differ", () => {
+      expect(djb2("hello")).not.toBe(djb2("world"));
+    });
   });
 
-  it("deterministic with same seed", () => {
-    expect(murmurHash3("test", 1)).toBe(murmurHash3("test", 1));
-  });
-});
+  describe("murmur3", () => {
+    it("produces consistent results", () => {
+      expect(murmur3("hello")).toBe(murmur3("hello"));
+    });
 
-describe("hexDigest", () => {
-  it("formats as 8-char hex", () => {
-    const hex = hexDigest(255);
-    expect(hex).toBe("000000ff");
-    expect(hex.length).toBe(8);
+    it("different seeds produce different results", () => {
+      expect(murmur3("hello", 0)).not.toBe(murmur3("hello", 42));
+    });
+
+    it("handles empty string", () => {
+      expect(murmur3("")).toBe(murmur3(""));
+    });
+
+    it("handles strings not aligned to 4 bytes", () => {
+      expect(murmur3("a")).toBe(murmur3("a"));
+      expect(murmur3("ab")).toBe(murmur3("ab"));
+      expect(murmur3("abc")).toBe(murmur3("abc"));
+    });
   });
 });

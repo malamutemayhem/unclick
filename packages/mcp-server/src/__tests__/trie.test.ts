@@ -2,87 +2,106 @@ import { describe, it, expect } from "vitest";
 import { Trie } from "../trie.js";
 
 describe("Trie", () => {
-  it("insert and has", () => {
-    const t = new Trie();
-    t.insert("hello");
-    expect(t.has("hello")).toBe(true);
-    expect(t.has("hell")).toBe(false);
+  it("set and get", () => {
+    const t = new Trie<number>();
+    t.set("hello", 1);
+    expect(t.get("hello")).toBe(1);
   });
 
-  it("stores values", () => {
+  it("has returns true for existing keys", () => {
     const t = new Trie<number>();
-    t.insert("key", 42);
-    expect(t.get("key")).toBe(42);
+    t.set("abc", 1);
+    expect(t.has("abc")).toBe(true);
+    expect(t.has("ab")).toBe(false);
+    expect(t.has("abcd")).toBe(false);
+  });
+
+  it("get returns undefined for missing keys", () => {
+    const t = new Trie<number>();
     expect(t.get("missing")).toBeUndefined();
   });
 
-  it("delete removes key", () => {
-    const t = new Trie();
-    t.insert("hello");
-    t.insert("help");
-    expect(t.delete("hello")).toBe(true);
-    expect(t.has("hello")).toBe(false);
-    expect(t.has("help")).toBe(true);
-  });
-
-  it("delete returns false for missing", () => {
-    const t = new Trie();
-    expect(t.delete("nope")).toBe(false);
-  });
-
-  it("startsWith returns matching keys", () => {
-    const t = new Trie();
-    t.insert("hello");
-    t.insert("help");
-    t.insert("world");
-    const results = t.startsWith("hel");
-    expect(results.sort()).toEqual(["hello", "help"]);
-  });
-
-  it("startsWith returns empty for no match", () => {
-    const t = new Trie();
-    t.insert("hello");
-    expect(t.startsWith("xyz")).toEqual([]);
-  });
-
-  it("tracks size", () => {
-    const t = new Trie();
-    t.insert("a");
-    t.insert("b");
-    t.insert("a");
-    expect(t.size).toBe(2);
-    t.delete("a");
+  it("overwrite value", () => {
+    const t = new Trie<number>();
+    t.set("key", 1);
+    t.set("key", 2);
+    expect(t.get("key")).toBe(2);
     expect(t.size).toBe(1);
   });
 
-  it("keys returns all keys", () => {
-    const t = new Trie();
-    t.insert("cat");
-    t.insert("car");
-    t.insert("dog");
-    expect(t.keys().sort()).toEqual(["car", "cat", "dog"]);
+  it("size tracks entries", () => {
+    const t = new Trie<number>();
+    expect(t.size).toBe(0);
+    t.set("a", 1);
+    t.set("ab", 2);
+    expect(t.size).toBe(2);
   });
 
-  it("clear resets", () => {
-    const t = new Trie();
-    t.insert("test");
+  it("delete removes key", () => {
+    const t = new Trie<number>();
+    t.set("hello", 1);
+    expect(t.delete("hello")).toBe(true);
+    expect(t.has("hello")).toBe(false);
+    expect(t.size).toBe(0);
+  });
+
+  it("delete returns false for missing key", () => {
+    const t = new Trie<number>();
+    expect(t.delete("nope")).toBe(false);
+  });
+
+  it("delete preserves other keys sharing prefix", () => {
+    const t = new Trie<number>();
+    t.set("ab", 1);
+    t.set("abc", 2);
+    t.delete("abc");
+    expect(t.has("ab")).toBe(true);
+    expect(t.has("abc")).toBe(false);
+  });
+
+  it("startsWith finds matching keys", () => {
+    const t = new Trie<number>();
+    t.set("app", 1);
+    t.set("apple", 2);
+    t.set("apply", 3);
+    t.set("banana", 4);
+    expect(t.startsWith("app").sort()).toEqual(["app", "apple", "apply"]);
+  });
+
+  it("startsWith returns empty for no match", () => {
+    const t = new Trie<number>();
+    t.set("abc", 1);
+    expect(t.startsWith("xyz")).toEqual([]);
+  });
+
+  it("longestPrefix finds longest matching key", () => {
+    const t = new Trie<number>();
+    t.set("/", 1);
+    t.set("/api", 2);
+    t.set("/api/v1", 3);
+    expect(t.longestPrefix("/api/v1/users")).toBe("/api/v1");
+  });
+
+  it("longestPrefix returns empty for no match", () => {
+    const t = new Trie<number>();
+    t.set("abc", 1);
+    expect(t.longestPrefix("xyz")).toBe("");
+  });
+
+  it("clear resets trie", () => {
+    const t = new Trie<number>();
+    t.set("a", 1);
+    t.set("b", 2);
     t.clear();
     expect(t.size).toBe(0);
-    expect(t.has("test")).toBe(false);
+    expect(t.has("a")).toBe(false);
   });
 
-  it("longestPrefix finds match", () => {
-    const t = new Trie();
-    t.insert("http");
-    t.insert("https");
-    t.insert("httpserver");
-    expect(t.longestPrefix("httpserver123")).toBe("httpserver");
-    expect(t.longestPrefix("httprequest")).toBe("http");
-  });
-
-  it("longestPrefix returns empty when no match", () => {
-    const t = new Trie();
-    t.insert("abc");
-    expect(t.longestPrefix("xyz")).toBe("");
+  it("keys returns all keys", () => {
+    const t = new Trie<number>();
+    t.set("cat", 1);
+    t.set("car", 2);
+    t.set("dog", 3);
+    expect(t.keys().sort()).toEqual(["car", "cat", "dog"]);
   });
 });

@@ -1,62 +1,58 @@
-interface TrieNode {
-  children: Map<string, TrieNode>;
+interface TrieNode<T> {
+  children: Map<string, TrieNode<T>>;
+  value?: T;
   isEnd: boolean;
-  value?: unknown;
 }
 
-function createTrieNode(): TrieNode {
+function createNode<T>(): TrieNode<T> {
   return { children: new Map(), isEnd: false };
 }
 
-export class Trie<V = boolean> {
-  private root: TrieNode = createTrieNode();
-  private count = 0;
+export class Trie<T = boolean> {
+  private root: TrieNode<T> = createNode();
+  private _size = 0;
 
-  insert(key: string, value?: V): void {
+  get size(): number { return this._size; }
+
+  set(key: string, value: T): void {
     let node = this.root;
-    for (const ch of key) {
-      if (!node.children.has(ch)) {
-        node.children.set(ch, createTrieNode());
-      }
-      node = node.children.get(ch)!;
+    for (const char of key) {
+      if (!node.children.has(char)) node.children.set(char, createNode());
+      node = node.children.get(char)!;
     }
-    if (!node.isEnd) this.count++;
+    if (!node.isEnd) this._size++;
     node.isEnd = true;
-    node.value = value ?? true;
+    node.value = value;
+  }
+
+  get(key: string): T | undefined {
+    const node = this.findNode(key);
+    return node?.isEnd ? node.value : undefined;
   }
 
   has(key: string): boolean {
     const node = this.findNode(key);
-    return node !== null && node.isEnd;
-  }
-
-  get(key: string): V | undefined {
-    const node = this.findNode(key);
-    if (!node || !node.isEnd) return undefined;
-    return node.value as V;
+    return node !== undefined && node.isEnd;
   }
 
   delete(key: string): boolean {
-    const path: [TrieNode, string][] = [];
+    const path: [TrieNode<T>, string][] = [];
     let node = this.root;
-    for (const ch of key) {
-      if (!node.children.has(ch)) return false;
-      path.push([node, ch]);
-      node = node.children.get(ch)!;
+    for (const char of key) {
+      if (!node.children.has(char)) return false;
+      path.push([node, char]);
+      node = node.children.get(char)!;
     }
     if (!node.isEnd) return false;
     node.isEnd = false;
     node.value = undefined;
-    this.count--;
+    this._size--;
 
     for (let i = path.length - 1; i >= 0; i--) {
-      const [parent, ch] = path[i];
-      const child = parent.children.get(ch)!;
-      if (!child.isEnd && child.children.size === 0) {
-        parent.children.delete(ch);
-      } else {
-        break;
-      }
+      const [parent, char] = path[i];
+      const child = parent.children.get(char)!;
+      if (child.isEnd || child.children.size > 0) break;
+      parent.children.delete(char);
     }
     return true;
   }
@@ -69,8 +65,22 @@ export class Trie<V = boolean> {
     return results;
   }
 
-  get size(): number {
-    return this.count;
+  longestPrefix(text: string): string {
+    let node = this.root;
+    let longest = "";
+    let current = "";
+    for (const char of text) {
+      if (!node.children.has(char)) break;
+      node = node.children.get(char)!;
+      current += char;
+      if (node.isEnd) longest = current;
+    }
+    return longest;
+  }
+
+  clear(): void {
+    this.root = createNode();
+    this._size = 0;
   }
 
   keys(): string[] {
@@ -79,37 +89,19 @@ export class Trie<V = boolean> {
     return results;
   }
 
-  clear(): void {
-    this.root = createTrieNode();
-    this.count = 0;
-  }
-
-  longestPrefix(text: string): string {
+  private findNode(key: string): TrieNode<T> | undefined {
     let node = this.root;
-    let longest = "";
-    let current = "";
-    for (const ch of text) {
-      if (!node.children.has(ch)) break;
-      node = node.children.get(ch)!;
-      current += ch;
-      if (node.isEnd) longest = current;
-    }
-    return longest;
-  }
-
-  private findNode(key: string): TrieNode | null {
-    let node = this.root;
-    for (const ch of key) {
-      if (!node.children.has(ch)) return null;
-      node = node.children.get(ch)!;
+    for (const char of key) {
+      if (!node.children.has(char)) return undefined;
+      node = node.children.get(char)!;
     }
     return node;
   }
 
-  private collect(node: TrieNode, prefix: string, results: string[]): void {
+  private collect(node: TrieNode<T>, prefix: string, results: string[]): void {
     if (node.isEnd) results.push(prefix);
-    for (const [ch, child] of node.children) {
-      this.collect(child, prefix + ch, results);
+    for (const [char, child] of node.children) {
+      this.collect(child, prefix + char, results);
     }
   }
 }

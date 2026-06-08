@@ -1,84 +1,74 @@
-export function crc32(input: string): number {
-  const table = makeCRC32Table();
-  const bytes = new TextEncoder().encode(input);
-  let crc = 0xffffffff;
+export function crc32(data: string | Uint8Array): number {
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  let crc = 0xFFFFFFFF;
   for (const byte of bytes) {
-    crc = (crc >>> 8) ^ table[(crc ^ byte) & 0xff];
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function makeCRC32Table(): Uint32Array {
-  const table = new Uint32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let c = i;
+    crc ^= byte;
     for (let j = 0; j < 8; j++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
     }
-    table[i] = c >>> 0;
   }
-  return table;
+  return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
-export function adler32(input: string): number {
-  const bytes = new TextEncoder().encode(input);
+export function crc32Hex(data: string | Uint8Array): string {
+  return crc32(data).toString(16).padStart(8, "0");
+}
+
+export function adler32(data: string | Uint8Array): number {
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
   let a = 1;
   let b = 0;
-  const MOD = 65521;
   for (const byte of bytes) {
-    a = (a + byte) % MOD;
-    b = (b + a) % MOD;
+    a = (a + byte) % 65521;
+    b = (b + a) % 65521;
   }
   return ((b << 16) | a) >>> 0;
 }
 
-export function fnv1a(input: string): number {
+export function fnv1a32(data: string | Uint8Array): number {
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
   let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
+  for (const byte of bytes) {
+    hash ^= byte;
     hash = Math.imul(hash, 0x01000193);
   }
   return hash >>> 0;
 }
 
-export function djb2(input: string): number {
+export function djb2(data: string): number {
   let hash = 5381;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) + hash + data.charCodeAt(i)) | 0;
   }
   return hash >>> 0;
 }
 
-export function murmurHash3(input: string, seed = 0): number {
-  const bytes = new TextEncoder().encode(input);
-  const len = bytes.length;
+export function murmur3(data: string, seed = 0): number {
+  const bytes = new TextEncoder().encode(data);
   let h = seed;
-  const c1 = 0xcc9e2d51;
-  const c2 = 0x1b873593;
-  let i = 0;
+  const len = bytes.length;
+  const nblocks = len >> 2;
 
-  while (i + 4 <= len) {
-    let k = bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24);
-    k = Math.imul(k, c1);
+  for (let i = 0; i < nblocks; i++) {
+    let k = bytes[i * 4] | (bytes[i * 4 + 1] << 8) | (bytes[i * 4 + 2] << 16) | (bytes[i * 4 + 3] << 24);
+    k = Math.imul(k, 0xcc9e2d51);
     k = (k << 15) | (k >>> 17);
-    k = Math.imul(k, c2);
+    k = Math.imul(k, 0x1b873593);
     h ^= k;
     h = (h << 13) | (h >>> 19);
     h = Math.imul(h, 5) + 0xe6546b64;
-    i += 4;
   }
 
   let k = 0;
+  const tail = nblocks * 4;
   switch (len & 3) {
-    case 3: k ^= bytes[i + 2] << 16;
-    // falls through
-    case 2: k ^= bytes[i + 1] << 8;
-    // falls through
+    case 3: k ^= bytes[tail + 2] << 16;
+    case 2: k ^= bytes[tail + 1] << 8;
     case 1:
-      k ^= bytes[i];
-      k = Math.imul(k, c1);
+      k ^= bytes[tail];
+      k = Math.imul(k, 0xcc9e2d51);
       k = (k << 15) | (k >>> 17);
-      k = Math.imul(k, c2);
+      k = Math.imul(k, 0x1b873593);
       h ^= k;
   }
 
@@ -90,8 +80,4 @@ export function murmurHash3(input: string, seed = 0): number {
   h ^= h >>> 16;
 
   return h >>> 0;
-}
-
-export function hexDigest(hash: number): string {
-  return hash.toString(16).padStart(8, "0");
 }
