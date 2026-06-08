@@ -40,11 +40,7 @@ export default function AuthCallbackPage() {
       // Fire auth_success via analytics wrapper exactly once per callback landing.
       if (!tracked.current) {
         tracked.current = true;
-        const created = user?.created_at ? Date.parse(user.created_at) : 0;
-        const lastSignIn = user?.last_sign_in_at ? Date.parse(user.last_sign_in_at) : 0;
-        const newUser =
-          created > 0 && lastSignIn > 0 && Math.abs(lastSignIn - created) < 10_000;
-        track("auth_success", { new_user: newUser, provider });
+        track("auth_success", { new_user: isNewUser, provider });
       }
       posthog.identify(user.id, {
         email: user.email,

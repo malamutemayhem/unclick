@@ -74,7 +74,7 @@ export default function InstallRecoverPage() {
     if (state.kind !== "ready") return;
     navigator.clipboard.writeText(state.config).then(() => {
       setState({ ...state, copied: true });
-    });
+    }).catch(() => {});
   };
 
   return (

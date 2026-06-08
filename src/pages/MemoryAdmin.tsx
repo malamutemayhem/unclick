@@ -160,14 +160,18 @@ export default function MemoryAdminPage() {
   async function dismissNudge(toolName: string, dismissed = true): Promise<void> {
     const apiKey = localStorage.getItem("unclick_api_key") ?? "";
     if (!apiKey) return;
-    await fetch("/api/memory-admin?action=dismiss_tool_nudge", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ tool_name: toolName, dismissed }),
-    });
+    try {
+      await fetch("/api/memory-admin?action=dismiss_tool_nudge", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ tool_name: toolName, dismissed }),
+      });
+    } catch {
+      return;
+    }
     setToolScan((prev) => {
       if (!prev) return prev;
       const update = (list: ToolDetection[]): ToolDetection[] =>

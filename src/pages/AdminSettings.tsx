@@ -172,7 +172,10 @@ export default function AdminSettingsPage() {
         },
         body: JSON.stringify({ key: "autoload", value: next }),
       });
-      if (!res.ok) throw new Error((await res.json())?.error ?? "Save failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error((body as Record<string, string> | null)?.error ?? "Save failed");
+      }
       toast({
         title: next ? "Auto-load on" : "Auto-load off",
         description: next
