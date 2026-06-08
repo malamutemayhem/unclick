@@ -442,6 +442,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "atbash",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "atbash_process",
+        "description": "Apply the Atbash cipher (A=Z, B=Y, ...) to text. Self-inverse."
+      }
+    ]
+  },
+  {
     "app": "australiapost",
     "category": "Australian / Local",
     "tools": [
@@ -1638,6 +1648,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "dadjoke_by_id",
         "description": "Get a specific dad joke by its ID."
+      }
+    ]
+  },
+  {
+    "app": "damerau",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "damerau_distance",
+        "description": "Calculate Damerau-Levenshtein distance (edits + transpositions) between two strings."
       }
     ]
   },
@@ -4180,6 +4200,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "markdowntable_convert",
         "description": "Convert CSV or TSV text into a Markdown table."
+      }
+    ]
+  },
+  {
+    "app": "markov",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "markov_generate",
+        "description": "Generate text using a Markov chain trained on input text (word or character level)."
       }
     ]
   },
@@ -8020,6 +8050,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "vercel_create_deployment",
         "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
+      }
+    ]
+  },
+  {
+    "app": "vigenere",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "vigenere_process",
+        "description": "Encrypt or decrypt text using the Vigenere polyalphabetic cipher."
       }
     ]
   },

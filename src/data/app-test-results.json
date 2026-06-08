@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T22:05:00.000Z",
+  "updatedAt": "2026-06-08T22:10:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3700,6 +3700,30 @@
       "note": "cosinesim_compare computes cosine similarity locally. No API needed.",
       "testedAt": "2026-06-08T22:05:00.000Z",
       "toolsTested": ["cosinesim_compare"]
+    },
+    "damerau": {
+      "status": "pass",
+      "note": "damerau_distance computes edit+transposition distance locally. No API needed.",
+      "testedAt": "2026-06-08T22:10:00.000Z",
+      "toolsTested": ["damerau_distance"]
+    },
+    "markov": {
+      "status": "pass",
+      "note": "markov_generate builds and samples a Markov chain locally. No API needed.",
+      "testedAt": "2026-06-08T22:10:00.000Z",
+      "toolsTested": ["markov_generate"]
+    },
+    "vigenere": {
+      "status": "pass",
+      "note": "vigenere_process encrypts/decrypts with Vigenere cipher locally. No API needed.",
+      "testedAt": "2026-06-08T22:10:00.000Z",
+      "toolsTested": ["vigenere_process"]
+    },
+    "atbash": {
+      "status": "pass",
+      "note": "atbash_process applies Atbash cipher locally. No API needed.",
+      "testedAt": "2026-06-08T22:10:00.000Z",
+      "toolsTested": ["atbash_process"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

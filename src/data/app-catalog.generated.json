@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 478,
-  "toolCount": 1400,
+  "appCount": 482,
+  "toolCount": 1404,
   "categories": [
     "AI",
     "Books",
@@ -524,6 +524,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "atbash",
+      "name": "Atbash Cipher",
+      "category": "Utilities",
+      "blurb": "Apply the Atbash cipher (A=Z, B=Y) to text. Self-inverse.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "atbash_process",
+          "description": "Apply the Atbash cipher (A=Z, B=Y, ...) to text. Self-inverse."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "australiapost",
@@ -2104,6 +2120,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "damerau",
+      "name": "Damerau-Levenshtein",
+      "category": "Utilities",
+      "blurb": "Calculate Damerau-Levenshtein distance (edits plus transpositions).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "damerau_distance",
+          "description": "Calculate Damerau-Levenshtein distance (edits + transpositions) between two strings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "datadog",
@@ -5432,6 +5464,22 @@
         {
           "name": "markdown_stats",
           "description": "Analyze Markdown text: count headings, links, code blocks, words, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "markov",
+      "name": "Markov Chain",
+      "category": "Utilities",
+      "blurb": "Generate text using a Markov chain trained on input text.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "markov_generate",
+          "description": "Generate text using a Markov chain trained on input text (word or character level)."
         }
       ],
       "level": 5,
@@ -10720,6 +10768,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "vigenere",
+      "name": "Vigenere Cipher",
+      "category": "Utilities",
+      "blurb": "Encrypt or decrypt text using the Vigenere polyalphabetic cipher.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "vigenere_process",
+          "description": "Encrypt or decrypt text using the Vigenere polyalphabetic cipher."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "virustotal",

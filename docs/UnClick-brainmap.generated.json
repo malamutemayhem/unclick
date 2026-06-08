@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 901,
+    "inventory": 905,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 479,
+    "tools": 483,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 479
+      "count": 483
     },
     {
       "id": "rooms",
@@ -4412,6 +4412,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-atbash-packages-mcp-server-src-atbash-tool-ts-no-route",
+      "division": "Tools",
+      "name": "atbash",
+      "kind": "MCP tool",
+      "meaning": "atbash MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/atbash-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-australiapost-packages-mcp-server-src-australiapost-tool-ts-no-route",
       "division": "Tools",
       "name": "australiapost",
@@ -5148,6 +5158,16 @@
       "kind": "MCP tool",
       "meaning": "dadjoke MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/dadjoke-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-damerau-packages-mcp-server-src-damerau-tool-ts-no-route",
+      "division": "Tools",
+      "name": "damerau",
+      "kind": "MCP tool",
+      "meaning": "damerau MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/damerau-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6608,6 +6628,16 @@
       "kind": "MCP tool",
       "meaning": "markdowntable MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/markdowntable-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-markov-packages-mcp-server-src-markov-tool-ts-no-route",
+      "division": "Tools",
+      "name": "markov",
+      "kind": "MCP tool",
+      "meaning": "markov MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/markov-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8712,6 +8742,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-vigenere-packages-mcp-server-src-vigenere-tool-ts-no-route",
+      "division": "Tools",
+      "name": "vigenere",
+      "kind": "MCP tool",
+      "meaning": "vigenere MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/vigenere-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-virustotal-packages-mcp-server-src-virustotal-tool-ts-no-route",
       "division": "Tools",
       "name": "virustotal",
@@ -9820,6 +9860,11 @@
       "packages/mcp-server/src/assemblyai-tool.ts"
     ],
     [
+      "atbash",
+      "atbash MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/atbash-tool.ts"
+    ],
+    [
       "australiapost",
       "australiapost MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/australiapost-tool.ts"
@@ -10188,6 +10233,11 @@
       "dadjoke",
       "dadjoke MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/dadjoke-tool.ts"
+    ],
+    [
+      "damerau",
+      "damerau MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/damerau-tool.ts"
     ],
     [
       "datadog",
@@ -10918,6 +10968,11 @@
       "markdowntable",
       "markdowntable MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/markdowntable-tool.ts"
+    ],
+    [
+      "markov",
+      "markov MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/markov-tool.ts"
     ],
     [
       "mastodon",
@@ -11968,6 +12023,11 @@
       "vercel",
       "vercel MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/vercel-tool.ts"
+    ],
+    [
+      "vigenere",
+      "vigenere MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/vigenere-tool.ts"
     ],
     [
       "virustotal",
@@ -13258,6 +13318,11 @@
       "bytes": 11837
     },
     {
+      "source": "packages/mcp-server/src/atbash-tool.ts",
+      "hash": "90f7681ac6a5",
+      "bytes": 863
+    },
+    {
       "source": "packages/mcp-server/src/australiapost-tool.ts",
       "hash": "ed627c360433",
       "bytes": 6185
@@ -13331,11 +13396,6 @@
       "source": "packages/mcp-server/src/braille-tool.ts",
       "hash": "a2a71da4a678",
       "bytes": 1894
-    },
-    {
-      "source": "packages/mcp-server/src/breakingbad-tool.ts",
-      "hash": "3ae61a3c1938",
-      "bytes": 1236
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

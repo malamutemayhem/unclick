@@ -643,6 +643,10 @@ import { crc32Calculate } from "./crc32-tool.js";
 import { jaccardSimilarity } from "./jaccard-tool.js";
 import { hammingDistance } from "./hamming-tool.js";
 import { cosinesimCompare } from "./cosinesim-tool.js";
+import { damerauDistance } from "./damerau-tool.js";
+import { markovGenerate } from "./markov-tool.js";
+import { vigenereProcess } from "./vigenere-tool.js";
+import { atbashProcess } from "./atbash-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9842,6 +9846,56 @@ export const ADDITIONAL_TOOLS = [
         text_a: { type: "string" as const, description: "First text." },
         text_b: { type: "string" as const, description: "Second text." },
       }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── damerau-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "damerau_distance",
+    description: "Calculate Damerau-Levenshtein distance (edits + transpositions) between two strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text_a: { type: "string" as const, description: "First string." },
+        text_b: { type: "string" as const, description: "Second string." },
+      }, required: ["text_a", "text_b"],
+    },
+  },
+
+  // ── markov-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "markov_generate",
+    description: "Generate text using a Markov chain trained on input text (word or character level).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Training corpus." },
+        order: { type: "number" as const, description: "Chain order/context size (default 2)." },
+        length: { type: "number" as const, description: "Number of tokens to generate (default 50)." },
+        mode: { type: "string" as const, description: "'word' (default) or 'character'." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── vigenere-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "vigenere_process",
+    description: "Encrypt or decrypt text using the Vigenere polyalphabetic cipher.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to process." },
+        key: { type: "string" as const, description: "Cipher key (letters only)." },
+        decrypt: { type: "boolean" as const, description: "Decrypt instead of encrypt (default false)." },
+      }, required: ["text", "key"],
+    },
+  },
+
+  // ── atbash-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "atbash_process",
+    description: "Apply the Atbash cipher (A=Z, B=Y, ...) to text. Self-inverse.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to encode/decode." },
+      }, required: ["text"],
     },
   },
 
@@ -21411,6 +21465,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // cosinesim-tool.ts
   cosinesim_compare:         (args) => cosinesimCompare(args),
+
+  // damerau-tool.ts
+  damerau_distance:          (args) => damerauDistance(args),
+
+  // markov-tool.ts
+  markov_generate:           (args) => markovGenerate(args),
+
+  // vigenere-tool.ts
+  vigenere_process:          (args) => vigenereProcess(args),
+
+  // atbash-tool.ts
+  atbash_process:            (args) => atbashProcess(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
