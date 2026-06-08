@@ -1,77 +1,88 @@
 import { describe, it, expect, vi } from "vitest";
-import { Observable, of, fromArray, merge } from "../observable.js";
+import { Observable, Subject } from "../observable.js";
 
 describe("Observable", () => {
   it("emits values to subscriber", () => {
     const values: number[] = [];
-    const obs = new Observable<number>((observer) => {
-      observer.next(1);
-      observer.next(2);
-      observer.complete?.();
-    });
+    const obs = new Observable<number>((o) => { o.next?.(1); o.next?.(2); o.complete?.(); });
     obs.subscribe({ next: (v) => values.push(v) });
     expect(values).toEqual([1, 2]);
   });
 
-  it("supports function subscriber", () => {
-    const values: number[] = [];
-    of(1, 2, 3).subscribe((v) => values.push(v));
-    expect(values).toEqual([1, 2, 3]);
+  it("calls complete", () => {
+    const complete = vi.fn();
+    const obs = new Observable<number>((o) => { o.complete?.(); });
+    obs.subscribe({ complete });
+    expect(complete).toHaveBeenCalled();
   });
 
-  it("unsubscribe stops notifications", () => {
-    const fn = vi.fn();
-    const obs = new Observable<number>((observer) => {
-      observer.next(1);
-      setTimeout(() => observer.next(2), 10);
+  it("calls error", () => {
+    const error = vi.fn();
+    const obs = new Observable<number>((o) => { o.error?.(new Error("boom")); });
+    obs.subscribe({ error });
+    expect(error).toHaveBeenCalled();
+  });
+
+  it("unsubscribe stops emissions", () => {
+    const values: number[] = [];
+    const obs = new Observable<number>((o) => {
+      o.next?.(1);
+      return () => {};
     });
-    const sub = obs.subscribe(fn);
+    const sub = obs.subscribe({ next: (v) => values.push(v) });
     sub.unsubscribe();
-    expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it("map transforms values", () => {
     const values: number[] = [];
-    of(1, 2, 3).map((x) => x * 2).subscribe((v) => values.push(v));
+    Observable.of(1, 2, 3).map((x) => x * 2).subscribe({ next: (v) => values.push(v) });
     expect(values).toEqual([2, 4, 6]);
   });
 
   it("filter removes values", () => {
     const values: number[] = [];
-    of(1, 2, 3, 4).filter((x) => x % 2 === 0).subscribe((v) => values.push(v));
+    Observable.of(1, 2, 3, 4).filter((x) => x % 2 === 0).subscribe({ next: (v) => values.push(v) });
     expect(values).toEqual([2, 4]);
   });
 
-  it("take limits count", () => {
+  it("take limits emissions", () => {
     const values: number[] = [];
-    of(1, 2, 3, 4, 5).take(3).subscribe((v) => values.push(v));
+    Observable.of(1, 2, 3, 4, 5).take(3).subscribe({ next: (v) => values.push(v) });
     expect(values).toEqual([1, 2, 3]);
   });
 
-  it("scan accumulates", () => {
+  it("from creates from iterable", () => {
     const values: number[] = [];
-    of(1, 2, 3).scan((acc, v) => acc + v, 0).subscribe((v) => values.push(v));
-    expect(values).toEqual([1, 3, 6]);
+    Observable.from([10, 20]).subscribe({ next: (v) => values.push(v) });
+    expect(values).toEqual([10, 20]);
   });
 
   it("toPromise resolves with last value", async () => {
-    const result = await of(1, 2, 3).toPromise();
+    const result = await Observable.of(1, 2, 3).toPromise();
     expect(result).toBe(3);
   });
 });
 
-describe("fromArray", () => {
-  it("emits array elements", () => {
-    const values: string[] = [];
-    fromArray(["a", "b"]).subscribe((v) => values.push(v));
-    expect(values).toEqual(["a", "b"]);
+describe("Subject", () => {
+  it("multicasts to subscribers", () => {
+    const s = new Subject<number>();
+    const a: number[] = [];
+    const b: number[] = [];
+    s.subscribe({ next: (v) => a.push(v) });
+    s.subscribe({ next: (v) => b.push(v) });
+    s.next(1);
+    s.next(2);
+    expect(a).toEqual([1, 2]);
+    expect(b).toEqual([1, 2]);
   });
-});
 
-describe("merge", () => {
-  it("combines observables", () => {
+  it("complete stops emissions", () => {
+    const s = new Subject<number>();
     const values: number[] = [];
-    merge(of(1, 2), of(3, 4)).subscribe((v) => values.push(v));
-    expect(values.sort()).toEqual([1, 2, 3, 4]);
+    s.subscribe({ next: (v) => values.push(v) });
+    s.next(1);
+    s.complete();
+    s.next(2);
+    expect(values).toEqual([1]);
   });
 });

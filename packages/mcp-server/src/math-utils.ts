@@ -11,9 +11,46 @@ export function inverseLerp(a: number, b: number, value: number): number {
   return (value - a) / (b - a);
 }
 
-export function remap(value: number, fromMin: number, fromMax: number, toMin: number, toMax: number): number {
-  const t = inverseLerp(fromMin, fromMax, value);
-  return lerp(toMin, toMax, t);
+export function remap(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+  return lerp(outMin, outMax, inverseLerp(inMin, inMax, value));
+}
+
+export function round(value: number, decimals: number): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
+}
+
+export function sum(values: number[]): number {
+  return values.reduce((a, b) => a + b, 0);
+}
+
+export function mean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return sum(values) / values.length;
+}
+
+export function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+export function standardDeviation(values: number[]): number {
+  if (values.length === 0) return 0;
+  const avg = mean(values);
+  const squareDiffs = values.map((v) => Math.pow(v - avg, 2));
+  return Math.sqrt(mean(squareDiffs));
+}
+
+export function percentile(values: number[], p: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) return sorted[lower];
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
 }
 
 export function gcd(a: number, b: number): number {
@@ -37,48 +74,9 @@ export function isPrime(n: number): boolean {
   return true;
 }
 
-export function factorial(n: number): number {
-  if (n < 0) throw new Error("Negative input");
-  if (n <= 1) return 1;
-  let result = 1;
-  for (let i = 2; i <= n; i++) result *= i;
-  return result;
-}
-
 export function fibonacci(n: number): number {
-  if (n <= 0) return 0;
-  if (n === 1) return 1;
-  let a = 0;
-  let b = 1;
-  for (let i = 2; i <= n; i++) {
-    [a, b] = [b, a + b];
-  }
+  if (n <= 1) return n;
+  let a = 0, b = 1;
+  for (let i = 2; i <= n; i++) { [a, b] = [b, a + b]; }
   return b;
-}
-
-export function mean(values: number[]): number {
-  if (values.length === 0) return 0;
-  return values.reduce((sum, v) => sum + v, 0) / values.length;
-}
-
-export function median(values: number[]): number {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-export function standardDeviation(values: number[]): number {
-  if (values.length === 0) return 0;
-  const avg = mean(values);
-  const squaredDiffs = values.map((v) => (v - avg) ** 2);
-  return Math.sqrt(mean(squaredDiffs));
-}
-
-export function sum(values: number[]): number {
-  return values.reduce((acc, v) => acc + v, 0);
-}
-
-export function product(values: number[]): number {
-  return values.reduce((acc, v) => acc * v, 1);
 }

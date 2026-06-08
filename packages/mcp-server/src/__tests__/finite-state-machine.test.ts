@@ -1,123 +1,90 @@
 import { describe, it, expect, vi } from "vitest";
-import { createMachine } from "../finite-state-machine.js";
+import { FiniteStateMachine } from "../finite-state-machine.js";
 
-describe("StateMachine", () => {
-  it("starts in initial state", () => {
-    const m = createMachine({
-      initial: "idle",
-      states: { idle: { on: { START: "running" } }, running: {} },
+type LightState = "red" | "yellow" | "green";
+type LightEvent = "next" | "emergency";
+
+describe("FiniteStateMachine", () => {
+  function createLight() {
+    return new FiniteStateMachine<LightState, LightEvent, { count: number }>({
+      initial: "red",
+      context: { count: 0 },
+      transitions: {
+        red: { next: "green" },
+        green: { next: "yellow", emergency: "red" },
+        yellow: { next: "red" },
+      },
     });
-    expect(m.state).toBe("idle");
+  }
+
+  it("starts in initial state", () => {
+    const fsm = createLight();
+    expect(fsm.state).toBe("red");
   });
 
   it("transitions on event", () => {
-    const m = createMachine({
-      initial: "idle",
-      states: { idle: { on: { START: "running" } }, running: {} },
-    });
-    expect(m.send("START")).toBe(true);
-    expect(m.state).toBe("running");
+    const fsm = createLight();
+    expect(fsm.send("next")).toBe(true);
+    expect(fsm.state).toBe("green");
   });
 
-  it("returns false for invalid event", () => {
-    const m = createMachine({
-      initial: "idle",
-      states: { idle: { on: { START: "running" } }, running: {} },
-    });
-    expect(m.send("STOP" as any)).toBe(false);
-    expect(m.state).toBe("idle");
+  it("rejects invalid events", () => {
+    const fsm = createLight();
+    expect(fsm.send("emergency")).toBe(false);
+    expect(fsm.state).toBe("red");
   });
 
-  it("calls onEnter and onExit", () => {
+  it("can check allowed events", () => {
+    const fsm = createLight();
+    expect(fsm.can("next")).toBe(true);
+    expect(fsm.can("emergency")).toBe(false);
+  });
+
+  it("lists allowed events", () => {
+    const fsm = createLight();
+    fsm.send("next");
+    expect(fsm.allowedEvents()).toContain("next");
+    expect(fsm.allowedEvents()).toContain("emergency");
+  });
+
+  it("tracks history", () => {
+    const fsm = createLight();
+    fsm.send("next");
+    fsm.send("next");
+    const h = fsm.getHistory();
+    expect(h).toHaveLength(2);
+    expect(h[0].from).toBe("red");
+    expect(h[0].to).toBe("green");
+  });
+
+  it("calls onChange listeners", () => {
+    const fsm = createLight();
+    const listener = vi.fn();
+    fsm.onChange(listener);
+    fsm.send("next");
+    expect(listener).toHaveBeenCalledWith("green", expect.any(Object));
+  });
+
+  it("resets to initial", () => {
+    const fsm = createLight();
+    fsm.send("next");
+    fsm.reset();
+    expect(fsm.state).toBe("red");
+    expect(fsm.getHistory()).toHaveLength(0);
+  });
+
+  it("calls onEnter/onExit", () => {
     const enter = vi.fn();
     const exit = vi.fn();
-    const m = createMachine({
-      initial: "a",
-      states: {
-        a: { on: { GO: "b" }, onExit: exit },
-        b: { onEnter: enter },
-      },
+    const fsm = new FiniteStateMachine<LightState, LightEvent, { count: number }>({
+      initial: "red",
+      context: { count: 0 },
+      transitions: { red: { next: "green" }, green: { next: "yellow" }, yellow: { next: "red" } },
+      onEnter: { green: enter },
+      onExit: { red: exit },
     });
-    m.send("GO");
+    fsm.send("next");
     expect(exit).toHaveBeenCalled();
-    expect(enter).toHaveBeenCalled();
-  });
-
-  it("guard prevents transition", () => {
-    const m = createMachine({
-      initial: "locked",
-      states: {
-        locked: { on: { UNLOCK: { target: "unlocked", guard: () => false } } },
-        unlocked: {},
-      },
-    });
-    expect(m.send("UNLOCK")).toBe(false);
-    expect(m.state).toBe("locked");
-  });
-
-  it("guard allows transition", () => {
-    const m = createMachine({
-      initial: "locked",
-      states: {
-        locked: { on: { UNLOCK: { target: "unlocked", guard: () => true } } },
-        unlocked: {},
-      },
-    });
-    expect(m.send("UNLOCK")).toBe(true);
-    expect(m.state).toBe("unlocked");
-  });
-
-  it("action runs on transition", () => {
-    const action = vi.fn();
-    const m = createMachine({
-      initial: "a",
-      states: {
-        a: { on: { GO: { target: "b", action } } },
-        b: {},
-      },
-    });
-    m.send("GO");
-    expect(action).toHaveBeenCalled();
-  });
-
-  it("can() checks availability", () => {
-    const m = createMachine({
-      initial: "idle",
-      states: { idle: { on: { START: "running" } }, running: {} },
-    });
-    expect(m.can("START")).toBe(true);
-    expect(m.can("STOP" as any)).toBe(false);
-  });
-
-  it("matches() checks current state", () => {
-    const m = createMachine({
-      initial: "idle",
-      states: { idle: {}, running: {} },
-    });
-    expect(m.matches("idle")).toBe(true);
-    expect(m.matches("running")).toBe(false);
-  });
-
-  it("subscribe notifies on transition", () => {
-    const listener = vi.fn();
-    const m = createMachine({
-      initial: "a",
-      states: { a: { on: { GO: "b" } }, b: {} },
-    });
-    const unsub = m.subscribe(listener);
-    m.send("GO");
-    expect(listener).toHaveBeenCalledWith("b", "GO");
-    unsub();
-    m.send("GO" as any);
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
-
-  it("onEnter called for initial state", () => {
-    const enter = vi.fn();
-    createMachine({
-      initial: "start",
-      states: { start: { onEnter: enter } },
-    });
     expect(enter).toHaveBeenCalled();
   });
 });

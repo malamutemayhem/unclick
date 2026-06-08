@@ -1,90 +1,80 @@
 type Observer<T> = {
-  next: (value: T) => void;
-  error?: (err: unknown) => void;
+  next?: (value: T) => void;
+  error?: (err: Error) => void;
   complete?: () => void;
 };
 
-type TeardownFn = () => void;
-type SubscribeFn<T> = (observer: Observer<T>) => TeardownFn | void;
+type Subscription = { unsubscribe: () => void };
 
 export class Observable<T> {
-  private subscribeFn: SubscribeFn<T>;
+  private producer: (observer: Observer<T>) => (() => void) | void;
 
-  constructor(subscribeFn: SubscribeFn<T>) {
-    this.subscribeFn = subscribeFn;
+  constructor(producer: (observer: Observer<T>) => (() => void) | void) {
+    this.producer = producer;
   }
 
-  subscribe(observer: Observer<T> | ((value: T) => void)): { unsubscribe: () => void } {
-    const obs: Observer<T> = typeof observer === "function" ? { next: observer } : observer;
-    let active = true;
-    const teardown = this.subscribeFn({
-      next: (v) => { if (active) obs.next(v); },
-      error: (e) => { if (active) { active = false; obs.error?.(e); } },
-      complete: () => { if (active) { active = false; obs.complete?.(); } },
-    });
+  subscribe(observer: Observer<T>): Subscription {
+    let closed = false;
+    const safeObserver: Observer<T> = {
+      next: (v) => { if (!closed && observer.next) observer.next(v); },
+      error: (e) => { if (!closed) { closed = true; if (observer.error) observer.error(e); } },
+      complete: () => { if (!closed) { closed = true; if (observer.complete) observer.complete(); } },
+    };
+    const teardown = this.producer(safeObserver);
     return {
-      unsubscribe: () => {
-        active = false;
-        teardown?.();
-      },
+      unsubscribe: () => { closed = true; if (teardown) teardown(); },
     };
   }
 
-  map<R>(fn: (value: T) => R): Observable<R> {
-    return new Observable<R>((observer) => {
+  map<U>(fn: (value: T) => U): Observable<U> {
+    return new Observable<U>((obs) => {
       const sub = this.subscribe({
-        next: (v) => observer.next(fn(v)),
-        error: (e) => observer.error?.(e),
-        complete: () => observer.complete?.(),
+        next: (v) => obs.next?.(fn(v)),
+        error: (e) => obs.error?.(e),
+        complete: () => obs.complete?.(),
       });
       return () => sub.unsubscribe();
     });
   }
 
   filter(predicate: (value: T) => boolean): Observable<T> {
-    return new Observable<T>((observer) => {
+    return new Observable<T>((obs) => {
       const sub = this.subscribe({
-        next: (v) => { if (predicate(v)) observer.next(v); },
-        error: (e) => observer.error?.(e),
-        complete: () => observer.complete?.(),
+        next: (v) => { if (predicate(v)) obs.next?.(v); },
+        error: (e) => obs.error?.(e),
+        complete: () => obs.complete?.(),
       });
       return () => sub.unsubscribe();
     });
   }
 
   take(count: number): Observable<T> {
-    return new Observable<T>((observer) => {
+    return new Observable<T>((obs) => {
       let taken = 0;
-      let subRef: { unsubscribe: () => void } | null = null;
-      const sub = this.subscribe({
+      let sub: Subscription | undefined;
+      sub = this.subscribe({
         next: (v) => {
-          if (taken < count) {
-            taken++;
-            observer.next(v);
-            if (taken >= count) {
-              observer.complete?.();
-              if (subRef) subRef.unsubscribe();
-            }
-          }
+          if (taken < count) { taken++; obs.next?.(v); }
+          if (taken >= count) { obs.complete?.(); sub?.unsubscribe(); }
         },
-        error: (e) => observer.error?.(e),
-        complete: () => observer.complete?.(),
+        error: (e) => obs.error?.(e),
+        complete: () => obs.complete?.(),
       });
-      subRef = sub;
-      if (taken >= count) sub.unsubscribe();
-      return () => sub.unsubscribe();
+      return () => sub?.unsubscribe();
     });
   }
 
-  scan<R>(fn: (acc: R, value: T) => R, seed: R): Observable<R> {
-    return new Observable<R>((observer) => {
-      let acc = seed;
-      const sub = this.subscribe({
-        next: (v) => { acc = fn(acc, v); observer.next(acc); },
-        error: (e) => observer.error?.(e),
-        complete: () => observer.complete?.(),
-      });
-      return () => sub.unsubscribe();
+  static of<T>(...values: T[]): Observable<T> {
+    return new Observable<T>((obs) => {
+      for (const v of values) obs.next?.(v);
+      obs.complete?.();
+    });
+  }
+
+  static from<T>(iterable: Iterable<T>): Observable<T> {
+    return new Observable<T>((obs) => {
+      for (const v of iterable) obs.next?.(v);
+      obs.complete?.();
     });
   }
 
@@ -100,35 +90,32 @@ export class Observable<T> {
   }
 }
 
-export function of<T>(...values: T[]): Observable<T> {
-  return new Observable<T>((observer) => {
-    for (const v of values) observer.next(v);
-    observer.complete?.();
-  });
-}
+export class Subject<T> extends Observable<T> {
+  private observers = new Set<Observer<T>>();
+  private closed = false;
 
-export function fromArray<T>(arr: T[]): Observable<T> {
-  return of(...arr);
-}
+  constructor() {
+    super((observer) => {
+      this.observers.add(observer);
+      return () => this.observers.delete(observer);
+    });
+  }
 
-export function interval(ms: number): Observable<number> {
-  return new Observable<number>((observer) => {
-    let count = 0;
-    const id = setInterval(() => observer.next(count++), ms);
-    return () => clearInterval(id);
-  });
-}
+  next(value: T): void {
+    if (this.closed) return;
+    for (const obs of this.observers) obs.next?.(value);
+  }
 
-export function merge<T>(...observables: Observable<T>[]): Observable<T> {
-  return new Observable<T>((observer) => {
-    let completed = 0;
-    const subs = observables.map((obs) =>
-      obs.subscribe({
-        next: (v) => observer.next(v),
-        error: (e) => observer.error?.(e),
-        complete: () => { completed++; if (completed === observables.length) observer.complete?.(); },
-      })
-    );
-    return () => subs.forEach((s) => s.unsubscribe());
-  });
+  error(err: Error): void {
+    if (this.closed) return;
+    this.closed = true;
+    for (const obs of this.observers) obs.error?.(err);
+  }
+
+  complete(): void {
+    if (this.closed) return;
+    this.closed = true;
+    for (const obs of this.observers) obs.complete?.();
+    this.observers.clear();
+  }
 }
