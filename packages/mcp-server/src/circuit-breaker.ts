@@ -4,6 +4,7 @@ export interface CircuitBreakerOptions {
   failureThreshold: number;
   resetTimeoutMs: number;
   halfOpenMax?: number;
+  onStateChange?: (from: CircuitState, to: CircuitState) => void;
 }
 
 export class CircuitBreaker {
@@ -11,79 +12,73 @@ export class CircuitBreaker {
   private failures = 0;
   private successes = 0;
   private lastFailureTime = 0;
-  private readonly failureThreshold: number;
-  private readonly resetTimeoutMs: number;
-  private readonly halfOpenMax: number;
+  private options: Required<CircuitBreakerOptions>;
 
   constructor(options: CircuitBreakerOptions) {
-    this.failureThreshold = options.failureThreshold;
-    this.resetTimeoutMs = options.resetTimeoutMs;
-    this.halfOpenMax = options.halfOpenMax ?? 1;
+    this.options = {
+      failureThreshold: options.failureThreshold,
+      resetTimeoutMs: options.resetTimeoutMs,
+      halfOpenMax: options.halfOpenMax || 1,
+      onStateChange: options.onStateChange || (() => {}),
+    };
   }
 
+  get currentState(): CircuitState { return this.state; }
+  get failureCount(): number { return this.failures; }
+
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    if (!this.canExecute()) {
-      throw new Error("Circuit is open");
+    if (this.state === "open") {
+      if (Date.now() - this.lastFailureTime >= this.options.resetTimeoutMs) {
+        this.transition("half-open");
+      } else {
+        throw new Error("Circuit breaker is open");
+      }
     }
 
     try {
       const result = await fn();
       this.onSuccess();
       return result;
-    } catch (err) {
+    } catch (error) {
       this.onFailure();
-      throw err;
+      throw error;
     }
   }
 
-  canExecute(): boolean {
-    if (this.state === "closed") return true;
-    if (this.state === "open") {
-      if (Date.now() - this.lastFailureTime >= this.resetTimeoutMs) {
-        this.state = "half-open";
-        this.successes = 0;
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  onSuccess(): void {
+  private onSuccess(): void {
     if (this.state === "half-open") {
       this.successes++;
-      if (this.successes >= this.halfOpenMax) {
-        this.state = "closed";
+      if (this.successes >= this.options.halfOpenMax) {
         this.failures = 0;
+        this.successes = 0;
+        this.transition("closed");
       }
     } else {
       this.failures = 0;
     }
   }
 
-  onFailure(): void {
+  private onFailure(): void {
     this.failures++;
     this.lastFailureTime = Date.now();
-    if (this.failures >= this.failureThreshold) {
-      this.state = "open";
+
+    if (this.state === "half-open") {
+      this.transition("open");
+    } else if (this.failures >= this.options.failureThreshold) {
+      this.transition("open");
     }
   }
 
-  getState(): CircuitState {
-    if (this.state === "open" && Date.now() - this.lastFailureTime >= this.resetTimeoutMs) {
-      return "half-open";
-    }
-    return this.state;
+  private transition(to: CircuitState): void {
+    const from = this.state;
+    this.state = to;
+    this.successes = 0;
+    this.options.onStateChange(from, to);
   }
 
   reset(): void {
-    this.state = "closed";
     this.failures = 0;
     this.successes = 0;
-    this.lastFailureTime = 0;
-  }
-
-  getFailures(): number {
-    return this.failures;
+    this.state = "closed";
   }
 }

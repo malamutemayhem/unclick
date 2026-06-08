@@ -3,63 +3,50 @@ import { URLBuilder, parseQueryString, buildQueryString } from "../url-builder.j
 
 describe("URLBuilder", () => {
   it("builds base URL", () => {
-    expect(new URLBuilder("https://api.example.com").toString()).toBe("https://api.example.com");
-  });
-
-  it("appends path segments", () => {
-    const url = new URLBuilder("https://api.example.com")
-      .path("users", "123")
-      .toString();
-    expect(url).toBe("https://api.example.com/users/123");
-  });
-
-  it("encodes path segments", () => {
-    const url = new URLBuilder("https://example.com")
-      .path("hello world")
-      .toString();
-    expect(url).toContain("hello%20world");
-  });
-
-  it("rawPath skips encoding", () => {
-    const url = new URLBuilder("https://example.com")
-      .rawPath("v1/users")
-      .toString();
-    expect(url).toBe("https://example.com/v1/users");
-  });
-
-  it("adds query params", () => {
-    const url = new URLBuilder("https://example.com")
-      .query("page", 1)
-      .query("limit", 10)
-      .toString();
-    expect(url).toBe("https://example.com?page=1&limit=10");
-  });
-
-  it("queryIf conditional", () => {
-    const url = new URLBuilder("https://example.com")
-      .queryIf(true, "a", 1)
-      .queryIf(false, "b", 2)
-      .toString();
-    expect(url).toContain("a=1");
-    expect(url).not.toContain("b=2");
-  });
-
-  it("adds hash", () => {
-    const url = new URLBuilder("https://example.com")
-      .hash("section")
-      .toString();
-    expect(url).toBe("https://example.com#section");
-  });
-
-  it("clone is independent", () => {
-    const base = new URLBuilder("https://example.com").query("a", 1);
-    const copy = base.clone().query("b", 2);
-    expect(base.toString()).not.toContain("b=2");
-    expect(copy.toString()).toContain("b=2");
+    expect(new URLBuilder("https://example.com").build()).toBe("https://example.com");
   });
 
   it("strips trailing slash from base", () => {
-    expect(new URLBuilder("https://example.com/").path("x").toString()).toBe("https://example.com/x");
+    expect(new URLBuilder("https://example.com/").build()).toBe("https://example.com");
+  });
+
+  it("adds path segments (encoded)", () => {
+    expect(new URLBuilder("https://api.com").path("users", "john doe").build())
+      .toBe("https://api.com/users/john%20doe");
+  });
+
+  it("adds raw path segments", () => {
+    expect(new URLBuilder("https://api.com").rawPath("v1/users").build())
+      .toBe("https://api.com/v1/users");
+  });
+
+  it("adds query params", () => {
+    expect(new URLBuilder("https://api.com").query("page", 1).query("q", "hello world").build())
+      .toBe("https://api.com?page=1&q=hello%20world");
+  });
+
+  it("queryObject skips undefined", () => {
+    expect(new URLBuilder("https://api.com").queryObject({ a: "1", b: undefined }).build())
+      .toBe("https://api.com?a=1");
+  });
+
+  it("adds hash fragment", () => {
+    expect(new URLBuilder("https://example.com").hash("section").build())
+      .toBe("https://example.com#section");
+  });
+
+  it("full URL with all parts", () => {
+    const url = new URLBuilder("https://api.com")
+      .rawPath("v1/search")
+      .query("q", "test")
+      .hash("results")
+      .build();
+    expect(url).toBe("https://api.com/v1/search?q=test#results");
+  });
+
+  it("toString calls build", () => {
+    const b = new URLBuilder("https://x.com").query("a", "1");
+    expect(b.toString()).toBe(b.build());
   });
 });
 
@@ -72,13 +59,29 @@ describe("parseQueryString", () => {
     expect(parseQueryString("x=1")).toEqual({ x: "1" });
   });
 
-  it("returns empty for empty string", () => {
+  it("handles empty string", () => {
     expect(parseQueryString("")).toEqual({});
+  });
+
+  it("decodes encoded values", () => {
+    expect(parseQueryString("q=hello%20world")).toEqual({ q: "hello world" });
+  });
+
+  it("handles value with =", () => {
+    expect(parseQueryString("url=http://x.com?a=1")).toEqual({ url: "http://x.com?a=1" });
   });
 });
 
 describe("buildQueryString", () => {
-  it("builds from object", () => {
-    expect(buildQueryString({ a: "1", b: true })).toBe("a=1&b=true");
+  it("builds query string", () => {
+    expect(buildQueryString({ a: "1", b: 2 })).toBe("?a=1&b=2");
+  });
+
+  it("skips undefined", () => {
+    expect(buildQueryString({ a: "1", b: undefined })).toBe("?a=1");
+  });
+
+  it("returns empty for no params", () => {
+    expect(buildQueryString({})).toBe("");
   });
 });

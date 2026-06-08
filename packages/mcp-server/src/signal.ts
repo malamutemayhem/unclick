@@ -29,7 +29,7 @@ export class Computed<T> {
   private unsubs: (() => void)[] = [];
   private subscribers = new Set<Subscriber<T>>();
 
-  constructor(compute: () => T, deps: Signal<unknown>[]) {
+  constructor(compute: () => T, deps: Signal<any>[]) {
     this._value = compute();
     for (const dep of deps) {
       this.unsubs.push(dep.subscribe(() => {
@@ -59,7 +59,7 @@ export class Computed<T> {
 export class Effect {
   private unsubs: (() => void)[] = [];
 
-  constructor(fn: () => void, deps: Signal<unknown>[]) {
+  constructor(fn: () => void, deps: Signal<any>[]) {
     for (const dep of deps) {
       this.unsubs.push(dep.subscribe(() => fn()));
     }

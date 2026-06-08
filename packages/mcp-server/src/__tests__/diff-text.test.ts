@@ -1,45 +1,47 @@
 import { describe, it, expect } from "vitest";
-import { diffLines, formatDiff, stats } from "../diff-text.js";
+import { diffLines, applyPatch } from "../diff-text.js";
 
 describe("diff-text", () => {
-  it("detects added lines", () => {
-    const diffs = diffLines("a\nb", "a\nb\nc");
-    expect(diffs.some((d) => d.type === "added" && d.line === "c")).toBe(true);
+  describe("diffLines", () => {
+    it("returns empty for equal strings", () => {
+      const chunks = diffLines("hello\nworld", "hello\nworld");
+      expect(chunks.every((c) => c.type === "equal")).toBe(true);
+    });
+
+    it("detects added lines", () => {
+      const chunks = diffLines("a\nb", "a\nb\nc");
+      expect(chunks.some((c) => c.type === "add" && c.value === "c")).toBe(true);
+    });
+
+    it("detects removed lines", () => {
+      const chunks = diffLines("a\nb\nc", "a\nc");
+      expect(chunks.some((c) => c.type === "remove" && c.value === "b")).toBe(true);
+    });
+
+    it("detects replaced lines", () => {
+      const chunks = diffLines("a\nb\nc", "a\nx\nc");
+      expect(chunks.some((c) => c.type === "remove" && c.value === "b")).toBe(true);
+      expect(chunks.some((c) => c.type === "add" && c.value === "x")).toBe(true);
+    });
   });
 
-  it("detects removed lines", () => {
-    const diffs = diffLines("a\nb\nc", "a\nc");
-    expect(diffs.some((d) => d.type === "removed" && d.line === "b")).toBe(true);
-  });
+  describe("applyPatch", () => {
+    it("reconstructs target from diff", () => {
+      const a = "line1\nline2\nline3";
+      const b = "line1\nchanged\nline3\nline4";
+      const chunks = diffLines(a, b);
+      expect(applyPatch(a, chunks)).toBe(b);
+    });
 
-  it("marks unchanged lines", () => {
-    const diffs = diffLines("a\nb", "a\nb");
-    expect(diffs.every((d) => d.type === "unchanged")).toBe(true);
-  });
+    it("handles empty to non-empty", () => {
+      const chunks = diffLines("", "hello");
+      expect(applyPatch("", chunks)).toBe("hello");
+    });
 
-  it("handles empty before", () => {
-    const diffs = diffLines("", "a\nb");
-    expect(diffs.filter((d) => d.type === "added").length).toBeGreaterThan(0);
-  });
-
-  it("formatDiff uses +/- prefix", () => {
-    const diffs = diffLines("old", "new");
-    const formatted = formatDiff(diffs);
-    expect(formatted).toContain("- old");
-    expect(formatted).toContain("+ new");
-  });
-
-  it("stats counts by type", () => {
-    const diffs = diffLines("a\nb\nc", "a\nd");
-    const s = stats(diffs);
-    expect(s.unchanged).toBeGreaterThanOrEqual(1);
-    expect(s.added + s.removed).toBeGreaterThan(0);
-  });
-
-  it("identical text has no changes", () => {
-    const text = "line1\nline2\nline3";
-    const s = stats(diffLines(text, text));
-    expect(s.added).toBe(0);
-    expect(s.removed).toBe(0);
+    it("handles identical strings", () => {
+      const text = "same\nlines";
+      const chunks = diffLines(text, text);
+      expect(applyPatch(text, chunks)).toBe(text);
+    });
   });
 });

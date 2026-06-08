@@ -1,93 +1,102 @@
 export interface CSVOptions {
   delimiter?: string;
   quote?: string;
-  escape?: string;
   header?: boolean;
 }
 
 export function parseCSV(input: string, options?: CSVOptions): string[][] {
-  const { delimiter = ",", quote = '"', escape = '"' } = options || {};
+  const delim = options?.delimiter || ",";
+  const quote = options?.quote || '"';
   const rows: string[][] = [];
   let row: string[] = [];
-  let field = "";
-  let inQuotes = false;
-  let i = 0;
+  let cell = "";
+  let inQuote = false;
 
-  while (i < input.length) {
+  for (let i = 0; i < input.length; i++) {
     const ch = input[i];
 
-    if (inQuotes) {
-      if (ch === escape && i + 1 < input.length && input[i + 1] === quote) {
-        field += quote;
-        i += 2;
-      } else if (ch === quote) {
-        inQuotes = false;
-        i++;
+    if (inQuote) {
+      if (ch === quote) {
+        if (i + 1 < input.length && input[i + 1] === quote) {
+          cell += quote;
+          i++;
+        } else {
+          inQuote = false;
+        }
       } else {
-        field += ch;
-        i++;
+        cell += ch;
       }
     } else {
       if (ch === quote) {
-        inQuotes = true;
-        i++;
-      } else if (ch === delimiter) {
-        row.push(field);
-        field = "";
-        i++;
-      } else if (ch === "\r" && i + 1 < input.length && input[i + 1] === "\n") {
-        row.push(field);
-        rows.push(row);
-        row = [];
-        field = "";
-        i += 2;
+        inQuote = true;
+      } else if (ch === delim) {
+        row.push(cell);
+        cell = "";
       } else if (ch === "\n") {
-        row.push(field);
+        row.push(cell);
+        cell = "";
         rows.push(row);
         row = [];
-        field = "";
-        i++;
+      } else if (ch === "\r") {
+        if (i + 1 < input.length && input[i + 1] === "\n") i++;
+        row.push(cell);
+        cell = "";
+        rows.push(row);
+        row = [];
       } else {
-        field += ch;
-        i++;
+        cell += ch;
       }
     }
   }
 
-  if (field || row.length > 0) {
-    row.push(field);
+  if (cell || row.length > 0) {
+    row.push(cell);
     rows.push(row);
   }
 
   return rows;
 }
 
-export function parseCSVWithHeaders(input: string, options?: CSVOptions): Record<string, string>[] {
+export function parseCSVWithHeader(input: string, options?: CSVOptions): Record<string, string>[] {
   const rows = parseCSV(input, options);
   if (rows.length === 0) return [];
   const headers = rows[0];
   return rows.slice(1).map((row) => {
     const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+    for (let i = 0; i < headers.length; i++) {
+      obj[headers[i]] = row[i] || "";
+    }
     return obj;
   });
 }
 
-export function toCSV(data: string[][], options?: CSVOptions): string {
-  const { delimiter = ",", quote = '"' } = options || {};
-  return data.map((row) =>
-    row.map((field) => {
-      if (field.includes(delimiter) || field.includes(quote) || field.includes("\n")) {
-        return `${quote}${field.replace(new RegExp(quote.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), quote + quote)}${quote}`;
-      }
-      return field;
-    }).join(delimiter)
-  ).join("\n");
+export function stringifyCSV(data: string[][], options?: CSVOptions): string {
+  const delim = options?.delimiter || ",";
+  const quote = options?.quote || '"';
+  return data
+    .map((row) =>
+      row
+        .map((cell) => {
+          if (cell.includes(delim) || cell.includes(quote) || cell.includes("\n") || cell.includes("\r")) {
+            return `${quote}${cell.replace(new RegExp(escapeRegex(quote), "g"), quote + quote)}${quote}`;
+          }
+          return cell;
+        })
+        .join(delim)
+    )
+    .join("\n");
 }
 
-export function objectsToCSV(data: Record<string, unknown>[], keys?: string[]): string {
-  if (data.length === 0) return "";
-  const headers = keys || Object.keys(data[0]);
-  const rows = data.map((obj) => headers.map((h) => String(obj[h] ?? "")));
-  return toCSV([headers, ...rows]);
+export function stringifyCSVWithHeader(
+  data: Record<string, string>[],
+  headers?: string[],
+  options?: CSVOptions
+): string {
+  const cols = headers || (data.length > 0 ? Object.keys(data[0]) : []);
+  const rows = data.map((obj) => cols.map((h) => obj[h] || ""));
+  return stringifyCSV([cols, ...rows], options);
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

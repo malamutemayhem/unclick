@@ -1,48 +1,58 @@
-export interface LineDiff {
-  type: "added" | "removed" | "unchanged";
-  line: string;
-  lineNumber: { before?: number; after?: number };
+export interface DiffChunk {
+  type: "equal" | "add" | "remove";
+  value: string;
 }
 
-export function diffLines(before: string, after: string): LineDiff[] {
-  const linesA = before.split("\n");
-  const linesB = after.split("\n");
-  const diffs: LineDiff[] = [];
+export function diffLines(a: string, b: string): DiffChunk[] {
+  const aLines = a.split("\n");
+  const bLines = b.split("\n");
+  const lcs = longestCommonSubsequence(aLines, bLines);
+  const chunks: DiffChunk[] = [];
 
-  const lcs = longestCommonSubsequence(linesA, linesB);
-  let ai = 0;
-  let bi = 0;
-  let li = 0;
-
-  while (ai < linesA.length || bi < linesB.length) {
-    if (li < lcs.length && ai < linesA.length && linesA[ai] === lcs[li]) {
-      if (bi < linesB.length && linesB[bi] === lcs[li]) {
-        diffs.push({ type: "unchanged", line: lcs[li], lineNumber: { before: ai + 1, after: bi + 1 } });
-        ai++;
-        bi++;
-        li++;
-      } else {
-        diffs.push({ type: "added", line: linesB[bi], lineNumber: { after: bi + 1 } });
-        bi++;
-      }
-    } else if (ai < linesA.length) {
-      if (li < lcs.length && bi < linesB.length && linesB[bi] === lcs[li]) {
-        diffs.push({ type: "removed", line: linesA[ai], lineNumber: { before: ai + 1 } });
-        ai++;
-      } else if (bi < linesB.length) {
-        diffs.push({ type: "removed", line: linesA[ai], lineNumber: { before: ai + 1 } });
-        ai++;
-      } else {
-        diffs.push({ type: "removed", line: linesA[ai], lineNumber: { before: ai + 1 } });
-        ai++;
-      }
-    } else if (bi < linesB.length) {
-      diffs.push({ type: "added", line: linesB[bi], lineNumber: { after: bi + 1 } });
+  let ai = 0, bi = 0, li = 0;
+  while (ai < aLines.length || bi < bLines.length) {
+    if (li < lcs.length && ai < aLines.length && bi < bLines.length && aLines[ai] === lcs[li] && bLines[bi] === lcs[li]) {
+      chunks.push({ type: "equal", value: lcs[li] });
+      ai++; bi++; li++;
+    } else if (bi < bLines.length && (li >= lcs.length || bLines[bi] !== lcs[li])) {
+      chunks.push({ type: "add", value: bLines[bi] });
       bi++;
+    } else if (ai < aLines.length && (li >= lcs.length || aLines[ai] !== lcs[li])) {
+      chunks.push({ type: "remove", value: aLines[ai] });
+      ai++;
+    }
+  }
+  return chunks;
+}
+
+export function formatUnifiedDiff(a: string, b: string, context = 3): string {
+  const chunks = diffLines(a, b);
+  const lines: string[] = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    if (chunk.type === "equal") {
+      const nearChange = chunks.slice(Math.max(0, i - context), i).some((c) => c.type !== "equal") ||
+        chunks.slice(i + 1, i + context + 1).some((c) => c.type !== "equal");
+      if (nearChange) lines.push(` ${chunk.value}`);
+    } else if (chunk.type === "add") {
+      lines.push(`+${chunk.value}`);
+    } else {
+      lines.push(`-${chunk.value}`);
     }
   }
 
-  return diffs;
+  return lines.join("\n");
+}
+
+export function applyPatch(original: string, chunks: DiffChunk[]): string {
+  const lines: string[] = [];
+  for (const chunk of chunks) {
+    if (chunk.type === "equal" || chunk.type === "add") {
+      lines.push(chunk.value);
+    }
+  }
+  return lines.join("\n");
 }
 
 function longestCommonSubsequence(a: string[], b: string[]): string[] {
@@ -52,43 +62,25 @@ function longestCommonSubsequence(a: string[], b: string[]): string[] {
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1] + 1
-        : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
     }
   }
 
   const result: string[] = [];
-  let i = m;
-  let j = n;
+  let i = m, j = n;
   while (i > 0 && j > 0) {
     if (a[i - 1] === b[j - 1]) {
       result.unshift(a[i - 1]);
-      i--;
-      j--;
+      i--; j--;
     } else if (dp[i - 1][j] > dp[i][j - 1]) {
       i--;
     } else {
       j--;
     }
   }
-
   return result;
-}
-
-export function formatDiff(diffs: LineDiff[]): string {
-  return diffs
-    .map((d) => {
-      const prefix = d.type === "added" ? "+" : d.type === "removed" ? "-" : " ";
-      return `${prefix} ${d.line}`;
-    })
-    .join("\n");
-}
-
-export function stats(diffs: LineDiff[]): { added: number; removed: number; unchanged: number } {
-  return {
-    added: diffs.filter((d) => d.type === "added").length,
-    removed: diffs.filter((d) => d.type === "removed").length,
-    unchanged: diffs.filter((d) => d.type === "unchanged").length,
-  };
 }
