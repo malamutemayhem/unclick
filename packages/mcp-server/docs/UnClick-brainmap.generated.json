@@ -1,0 +1,676 @@
+{
+  "schema_version": "brainmap-v2",
+  "title": "UnClick Ecosystem Brainmap",
+  "summary": "Generated sitemap, system map, and tool-worker tree for private UnClick onboarding.",
+  "owner_visibility": {
+    "route": "/admin/brainmap",
+    "audience": "private yellow admin",
+    "owner_email": "creativelead@malamutemayhem.com"
+  },
+  "counts": {
+    "divisions": 12,
+    "inventory": 31,
+    "source_manifest": 21,
+    "pages": 0,
+    "tools": 0,
+    "rooms": 0,
+    "workers": 8
+  },
+  "divisions": [
+    {
+      "id": "admin-surfaces",
+      "name": "Admin surfaces",
+      "meaning": "Private operator views and internal control panels.",
+      "count": 0
+    },
+    {
+      "id": "public-surfaces",
+      "name": "Public surfaces",
+      "meaning": "Public product, docs, marketplace, and user-facing routes.",
+      "count": 0
+    },
+    {
+      "id": "tools",
+      "name": "Tools",
+      "meaning": "MCP and gateway capabilities available to seats.",
+      "count": 0
+    },
+    {
+      "id": "rooms",
+      "name": "Rooms",
+      "meaning": "PinballWake and Boardroom lanes that route work.",
+      "count": 0
+    },
+    {
+      "id": "workers-and-seats",
+      "name": "Workers and seats",
+      "meaning": "Human and AI roles that move work through the system.",
+      "count": 11
+    },
+    {
+      "id": "passes-and-gates",
+      "name": "Passes and gates",
+      "meaning": "Quality, proof, safety, and fidelity checks.",
+      "count": 5
+    },
+    {
+      "id": "wrappers-and-protocols",
+      "name": "Wrappers and protocols",
+      "meaning": "Thin harnesses, bridges, policies, and routing helpers.",
+      "count": 3
+    },
+    {
+      "id": "automations",
+      "name": "Automations",
+      "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
+      "count": 0
+    },
+    {
+      "id": "ledgers-and-proof",
+      "name": "Ledgers and proof",
+      "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
+      "count": 1
+    },
+    {
+      "id": "source-of-truth",
+      "name": "Source of truth",
+      "meaning": "Canonical state, queue, memory, and context surfaces.",
+      "count": 3
+    },
+    {
+      "id": "modules-and-apps",
+      "name": "Modules and apps",
+      "meaning": "Apps, packages, and product modules that make up UnClick.",
+      "count": 3
+    },
+    {
+      "id": "launch-and-onboarding",
+      "name": "Launch and onboarding",
+      "meaning": "Launchpad, Heartbeat, Brainmap, and first-seat orientation.",
+      "count": 5
+    }
+  ],
+  "inventory": [
+    {
+      "id": "launch-and-onboarding-coordination-layer-control-tower-src-pages-admin-admincontroltower-tsx-admin-controltower",
+      "division": "Launch and onboarding",
+      "name": "Control Tower",
+      "kind": "coordination layer",
+      "meaning": "Big-job coordinator that creates worker lanes, Master Copy Box prompts, worker counts, stale takeovers, and XGate/XPass/Crews proof paths.",
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "route": "/admin/controltower",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-judgement-prompt-crews-council-induction-scripts-pinballwake-launchpad-room-mjs-admin-pinballwake",
+      "division": "Launch and onboarding",
+      "name": "Crews Council Induction",
+      "kind": "judgement prompt",
+      "meaning": "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.",
+      "source": "scripts/pinballwake-launchpad-room.mjs",
+      "route": "/admin/pinballwake",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-map-ecosystem-brainmap-src-pages-admin-adminbrainmap-tsx-admin-brainmap",
+      "division": "Launch and onboarding",
+      "name": "Ecosystem Brainmap",
+      "kind": "map",
+      "meaning": "Generated sitemap and system map that teaches seats what UnClick contains.",
+      "source": "src/pages/admin/AdminBrainmap.tsx",
+      "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-policy-heartbeat-master-src-pages-admin-adminseatheartbeat-tsx-admin-agents-heartbeat",
+      "division": "Launch and onboarding",
+      "name": "Heartbeat Master",
+      "kind": "policy",
+      "meaning": "Canonical schedule prompt and procedure for safe heartbeat seats.",
+      "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
+      "route": "/admin/agents/heartbeat",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-route-launchpad-scripts-pinballwake-launchpad-room-mjs-admin-pinballwake",
+      "division": "Launch and onboarding",
+      "name": "Launchpad",
+      "kind": "route",
+      "meaning": "Control hub that points seats to the next safe operating lane.",
+      "source": "scripts/pinballwake-launchpad-room.mjs",
+      "route": "/admin/pinballwake",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-ledger-proof-ledger-docs-agent-observability-md-no-route",
+      "division": "Ledgers and proof",
+      "name": "Proof Ledger",
+      "kind": "ledger",
+      "meaning": "Structured evidence, proof freshness, receipts, and DONE trust surface.",
+      "source": "docs/agent-observability.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-jobsmith-apps-jobsmith-package-json-admin-jobsmith",
+      "division": "Modules and apps",
+      "name": "JobSmith",
+      "kind": "app",
+      "meaning": "CV, cover-letter, job application, and rules/checklist engine.",
+      "source": "apps/jobsmith/package.json",
+      "route": "/admin/jobsmith",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-automation-module-autopilotkit-autopilot-md-no-route",
+      "division": "Modules and apps",
+      "name": "AutoPilotKit",
+      "kind": "automation module",
+      "meaning": "Internal automation bolt-on for proof-first work motion.",
+      "source": "AUTOPILOT.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-library-skills-library-src-pages-admin-adminskills-tsx-admin-skills",
+      "division": "Modules and apps",
+      "name": "Skills Library",
+      "kind": "skill library",
+      "meaning": "Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages.",
+      "source": "src/pages/admin/AdminSkills.tsx",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-component-source-gate-uipass-toolbox-packages-uxpass-src-ui-toolbox-ts-no-route",
+      "division": "Passes and gates",
+      "name": "UIPass Toolbox",
+      "kind": "component source gate",
+      "meaning": "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.",
+      "source": "packages/uxpass/src/ui-toolbox.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-fidelity-gate-copyroom-docs-unclick-brainmap-generated-md-no-route",
+      "division": "Passes and gates",
+      "name": "CopyRoom",
+      "kind": "fidelity gate",
+      "meaning": "Exact-copy room for code, docs, tables, notes, and source text so seats do not retype drift-prone material.",
+      "source": "docs/UnClick-brainmap.generated.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-fidelity-gate-fidelitypass-scripts-fidelitycopy-test-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "FidelityPass",
+      "kind": "fidelity gate",
+      "meaning": "Checks exactness and invariant preservation when copying, refactoring, or translating content.",
+      "source": "scripts/fidelitycopy.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-judgment-gate-commonsensepass-api-commonsensepass-bridge-test-ts-no-route",
+      "division": "Passes and gates",
+      "name": "CommonSensePass",
+      "kind": "judgment gate",
+      "meaning": "Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims.",
+      "source": "api/commonsensepass-bridge.test.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-wake-gate-wakepass-docs-pinballwake-igniteonly-api-md-no-route",
+      "division": "Passes and gates",
+      "name": "WakePass",
+      "kind": "wake gate",
+      "meaning": "Verifies ACKs, stale handoffs, and worker wake requests before motion claims.",
+      "source": "docs/pinballwake-igniteonly-api.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-context-orchestrator-src-pages-admin-adminorchestrator-tsx-admin-orchestrator",
+      "division": "Source of truth",
+      "name": "Orchestrator",
+      "kind": "context",
+      "meaning": "Continuity stream and story layer that helps seats understand what happened.",
+      "source": "src/pages/admin/AdminOrchestrator.tsx",
+      "route": "/admin/orchestrator",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-memory-memory-library-src-pages-admin-adminmemory-tsx-admin-memory",
+      "division": "Source of truth",
+      "name": "Memory Library",
+      "kind": "memory",
+      "meaning": "Source-linked facts, sessions, context, and generated memory shelves.",
+      "source": "src/pages/admin/AdminMemory.tsx",
+      "route": "/admin/memory",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-queue-boardroom-jobs-src-pages-admin-adminjobs-tsx-admin-jobs",
+      "division": "Source of truth",
+      "name": "Boardroom Jobs",
+      "kind": "queue",
+      "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
+      "source": "src/pages/admin/AdminJobs.tsx",
+      "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-seat-claude-reviewer-seat-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Claude Reviewer Seat",
+      "kind": "seat",
+      "meaning": "External reviewer lane used for independent checks and proof review.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-seat-codex-builder-seat-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Codex Builder Seat",
+      "kind": "seat",
+      "meaning": "Codex lane used for scoped implementation, routing, and proof updates.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-seat-cursor-builder-seat-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Cursor Builder Seat",
+      "kind": "seat",
+      "meaning": "External builder lane used for scoped code work and PRs.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-builder-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Builder",
+      "kind": "worker role",
+      "meaning": "Implements focused code or content changes from a scoped packet.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-coordinator-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Coordinator",
+      "kind": "worker role",
+      "meaning": "Routes work, chooses the next room, and keeps lanes aligned.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-improver-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Improver",
+      "kind": "worker role",
+      "meaning": "Turns repeated pain into system improvements.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-ledger-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Ledger",
+      "kind": "worker role",
+      "meaning": "Records proof, receipts, approvals, and rollback evidence.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-publisher-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Publisher",
+      "kind": "worker role",
+      "meaning": "Moves approved work toward deployment and public proof.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-reviewer-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Reviewer",
+      "kind": "worker role",
+      "meaning": "Checks quality, regressions, and missing tests.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-safety-checker-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Safety Checker",
+      "kind": "worker role",
+      "meaning": "Protects secrets, auth, destructive actions, and release gates.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "workers-and-seats-worker-role-tester-docs-fleet-worker-roles-md-no-route",
+      "division": "Workers and seats",
+      "name": "Tester",
+      "kind": "worker role",
+      "meaning": "Runs proof and reports what passed or blocked.",
+      "source": "docs/fleet-worker-roles.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "wrappers-and-protocols-bridge-igniteonly-docs-pinballwake-igniteonly-api-md-no-route",
+      "division": "Wrappers and protocols",
+      "name": "IgniteOnly",
+      "kind": "bridge",
+      "meaning": "Verified worker wake packets only, never build, merge, or completion state.",
+      "source": "docs/pinballwake-igniteonly-api.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "wrappers-and-protocols-bridge-nudgeonly-docs-pinballwake-nudgeonly-api-md-no-route",
+      "division": "Wrappers and protocols",
+      "name": "NudgeOnly",
+      "kind": "bridge",
+      "meaning": "Low-risk receipt nudges that never mutate source-of-truth state.",
+      "source": "docs/pinballwake-nudgeonly-api.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "wrappers-and-protocols-claim-lifecycle-seatrelay-docs-unclick-brainmap-generated-md-no-route",
+      "division": "Wrappers and protocols",
+      "name": "SeatRelay",
+      "kind": "claim lifecycle",
+      "meaning": "Stale release, smart reassignment, and bonded handoff for stuck worker claims.",
+      "source": "docs/UnClick-brainmap.generated.md",
+      "route": "",
+      "tags": []
+    }
+  ],
+  "pageRows": [],
+  "inductionRows": [
+    [
+      "1",
+      "Load UnClick Memory",
+      "Read standing rules, recent facts, and source-linked context before interpreting the work.",
+      "UnClick Memory",
+      "mcp__unclick__.load_memory"
+    ],
+    [
+      "2",
+      "Log, then read Orchestrator",
+      "Save the accepted turn, read Orchestrator continuity, and treat it as context rather than queue authority.",
+      "Orchestrator",
+      "/admin/orchestrator"
+    ],
+    [
+      "3",
+      "Open Boardroom Jobs",
+      "Use Jobs as the source of truth for active work, proof state, blockers, and safe next action.",
+      "Boardroom Jobs",
+      "/admin/jobs"
+    ],
+    [
+      "4",
+      "Check Control Tower",
+      "For big jobs, use Control Tower to split work into worker lanes, copy boxes, stale takeovers, and proof paths.",
+      "Control Tower",
+      "/admin/controltower"
+    ],
+    [
+      "5",
+      "Pass through Brainmap",
+      "Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates.",
+      "Ecosystem Brainmap",
+      "/admin/brainmap"
+    ],
+    [
+      "6",
+      "Choose the Launchpad lane",
+      "Route the work through the safest current Autopilot lane before acting or handing off.",
+      "Launchpad",
+      "/admin/pinballwake"
+    ],
+    [
+      "7",
+      "Ask Crews Council if needed",
+      "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+      "Crews Council",
+      "scripts/pinballwake-launchpad-room.mjs"
+    ],
+    [
+      "8",
+      "Check proof gates",
+      "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
+      "Proof Ledger",
+      "docs/agent-observability.md"
+    ],
+    [
+      "9",
+      "Dogtest the outcome",
+      "Run the focused local tests and browser or live proof that match the touched surface.",
+      "XPass and CI",
+      "package.json"
+    ],
+    [
+      "10",
+      "Reply and log proof",
+      "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
+      "Boardroom and Orchestrator",
+      "/admin/jobs"
+    ]
+  ],
+  "toolRows": [],
+  "roomRows": [],
+  "workerRows": [
+    [
+      "Coordinator",
+      "Routes work, chooses the next room, and keeps lanes aligned."
+    ],
+    [
+      "Builder",
+      "Implements focused code or content changes from a scoped packet."
+    ],
+    [
+      "Tester",
+      "Runs proof and reports what passed or blocked."
+    ],
+    [
+      "Reviewer",
+      "Checks quality, regressions, and missing tests."
+    ],
+    [
+      "Safety Checker",
+      "Protects secrets, auth, destructive actions, and release gates."
+    ],
+    [
+      "Ledger",
+      "Records proof, receipts, approvals, and rollback evidence."
+    ],
+    [
+      "Publisher",
+      "Moves approved work toward deployment and public proof."
+    ],
+    [
+      "Improver",
+      "Turns repeated pain into system improvements."
+    ]
+  ],
+  "aliasRows": [
+    [
+      "EnterprisePass",
+      "CompliancePass",
+      "Enterprise readiness checks need a public-safe product name."
+    ],
+    [
+      "QualityPass",
+      "SlopPass",
+      "Old QualityPass references now resolve to SlopPass."
+    ],
+    [
+      "Fishbowl",
+      "Boardroom",
+      "Internal worker discussion becomes a user-facing room name."
+    ],
+    [
+      "To-Do List",
+      "Jobs",
+      "Task queue language maps to the current admin Jobs surface."
+    ],
+    [
+      "Heartbeat",
+      "Heartbeat Master",
+      "The copy policy that teaches scheduled seats how to pulse."
+    ],
+    [
+      "NudgeOnlyAPI",
+      "NudgeOnly",
+      "Low-risk receipt nudges, never source-of-truth mutation."
+    ],
+    [
+      "IgniteOnlyAPI",
+      "IgniteOnly",
+      "Verified worker wake packets, never build, merge, or completion state."
+    ]
+  ],
+  "ciRows": [
+    [
+      "build",
+      "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsc"
+    ],
+    [
+      "dev",
+      "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx src/index.ts"
+    ],
+    [
+      "prepublishOnly",
+      "npm run build"
+    ],
+    [
+      "test",
+      "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx --test src/memory/__tests__/typed-links.test.ts src/memory/__tests__/typed-memory.test.ts src/memory/__tests__/hybrid-search.test.ts src/memory/__tests__/business-context-search.test.ts src/memory/__tests__/fused-retrieval.test.ts src/memory/__tests__/bitemporal.test.ts src/memory/__tests__/reconcile.test.ts src/memory/__tests__/response-bounds.test.ts src/memory/__tests__/load-memory-invalidation.test.ts src/memory/__tests__/snapshot-taxonomy.test.ts src/memory/__tests__/local-backend.test.ts src/memory/__tests__/session-inspection-trigger.test.ts src/memory/__tests__/provenance.test.ts src/memory/__tests__/decay-policy.test.ts src/memory/__tests__/consolidation.test.ts src/memory/__tests__/scopes.test.ts src/memory/__tests__/write-gate.test.ts src/memory/__tests__/forget-propagation.test.ts src/memory/__tests__/corrections.test.ts src/memory/__tests__/eval-harness.test.ts src/memory/__tests__/passport.test.ts src/memory/__tests__/auto-capture.test.ts && vitest run && node --test scripts/connector-depth-ladder.test.mjs && node scripts/generate-tool-index.mjs --check && node scripts/connector-depth-ladder.mjs --check && node scripts/check-standalone-registry.mjs"
+    ]
+  ],
+  "source_manifest": [
+    {
+      "source": "AUTOPILOT.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "FLEET_SYNC.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/unclick-context-boot-packet.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/agent-observability.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/pinballwake-nudgeonly-api.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/pinballwake-igniteonly-api.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/fleet-worker-roles.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/adr/0005-two-layer-admin-gating.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/adr/0006-orchestrator-is-user-chat.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/App.tsx",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/pages/admin/AdminShell.tsx",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/lib/controltower.ts",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "docs/prd/controltower.md",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/pages/admin/AdminSkills.tsx",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/lib/skillLibrary.ts",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "src/lib/skillLibrarySeeds.ts",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": ".github/workflows/ci.yml",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": ".github/workflows/brainmap-auto-update.yml",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "hash": "missing",
+      "bytes": 0
+    },
+    {
+      "source": "package.json",
+      "hash": "0d42bc8a0ea2",
+      "bytes": 3519
+    }
+  ]
+}
