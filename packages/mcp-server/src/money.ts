@@ -1,76 +1,71 @@
 export class Money {
-  readonly cents: number;
+  readonly amount: number;
   readonly currency: string;
 
-  constructor(cents: number, currency = "USD") {
-    this.cents = Math.round(cents);
-    this.currency = currency;
-  }
-
-  static fromDollars(amount: number, currency = "USD"): Money {
-    return new Money(Math.round(amount * 100), currency);
-  }
-
-  get dollars(): number {
-    return this.cents / 100;
+  constructor(amount: number, currency: string) {
+    this.amount = Math.round(amount * 100) / 100;
+    this.currency = currency.toUpperCase();
   }
 
   add(other: Money): Money {
     this.assertSameCurrency(other);
-    return new Money(this.cents + other.cents, this.currency);
+    return new Money(this.amount + other.amount, this.currency);
   }
 
   subtract(other: Money): Money {
     this.assertSameCurrency(other);
-    return new Money(this.cents - other.cents, this.currency);
+    return new Money(this.amount - other.amount, this.currency);
   }
 
   multiply(factor: number): Money {
-    return new Money(Math.round(this.cents * factor), this.currency);
+    return new Money(this.amount * factor, this.currency);
   }
 
   divide(divisor: number): Money {
-    return new Money(Math.round(this.cents / divisor), this.currency);
+    if (divisor === 0) throw new Error("Division by zero");
+    return new Money(this.amount / divisor, this.currency);
   }
 
   equals(other: Money): boolean {
-    return this.cents === other.cents && this.currency === other.currency;
+    return this.amount === other.amount && this.currency === other.currency;
   }
 
-  isPositive(): boolean {
-    return this.cents > 0;
-  }
+  isZero(): boolean { return this.amount === 0; }
+  isPositive(): boolean { return this.amount > 0; }
+  isNegative(): boolean { return this.amount < 0; }
 
-  isNegative(): boolean {
-    return this.cents < 0;
-  }
-
-  isZero(): boolean {
-    return this.cents === 0;
-  }
+  abs(): Money { return new Money(Math.abs(this.amount), this.currency); }
+  negate(): Money { return new Money(-this.amount, this.currency); }
 
   format(locale = "en-US"): string {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: this.currency,
-    }).format(this.dollars);
+    return new Intl.NumberFormat(locale, { style: "currency", currency: this.currency }).format(this.amount);
   }
 
   toString(): string {
-    return `${this.currency} ${this.dollars.toFixed(2)}`;
+    return `${this.amount.toFixed(2)} ${this.currency}`;
   }
 
-  static sum(amounts: Money[]): Money {
-    if (amounts.length === 0) return new Money(0);
-    const currency = amounts[0].currency;
-    const total = amounts.reduce((acc, m) => {
-      if (m.currency !== currency) throw new Error("Currency mismatch");
-      return acc + m.cents;
-    }, 0);
-    return new Money(total, currency);
+  allocate(ratios: number[]): Money[] {
+    const total = ratios.reduce((a, b) => a + b, 0);
+    const cents = Math.round(this.amount * 100);
+    let remainder = cents;
+    const results = ratios.map((ratio) => {
+      const share = Math.floor((cents * ratio) / total);
+      remainder -= share;
+      return share;
+    });
+    for (let i = 0; remainder > 0; i++) {
+      results[i % results.length]++;
+      remainder--;
+    }
+    return results.map((c) => new Money(c / 100, this.currency));
   }
 
   private assertSameCurrency(other: Money): void {
-    if (this.currency !== other.currency) throw new Error("Currency mismatch");
+    if (this.currency !== other.currency) throw new Error(`Currency mismatch: ${this.currency} vs ${other.currency}`);
   }
+}
+
+export function money(amount: number, currency: string): Money {
+  return new Money(amount, currency);
 }

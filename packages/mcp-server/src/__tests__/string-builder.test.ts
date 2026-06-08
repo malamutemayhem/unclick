@@ -1,70 +1,93 @@
 import { describe, it, expect } from "vitest";
-import { StringBuilder } from "../string-builder.js";
+import { StringBuilder, sb } from "../string-builder.js";
 
 describe("StringBuilder", () => {
   it("appends strings", () => {
-    const sb = new StringBuilder();
-    sb.append("hello").append(" world");
-    expect(sb.toString()).toBe("hello world");
+    const b = new StringBuilder();
+    b.append("hello").append(" world");
+    expect(b.toString()).toBe("hello world");
   });
 
   it("appendLine adds newline", () => {
-    const sb = new StringBuilder();
-    sb.appendLine("line1").appendLine("line2");
-    expect(sb.toString()).toBe("line1\nline2\n");
+    const b = new StringBuilder();
+    b.appendLine("line1").appendLine("line2");
+    expect(b.toString()).toBe("line1\nline2\n");
   });
 
-  it("appendLine with no arg adds empty line", () => {
-    const sb = new StringBuilder();
-    sb.appendLine();
-    expect(sb.toString()).toBe("\n");
+  it("prepend adds to front", () => {
+    const b = new StringBuilder();
+    b.append("world").prepend("hello ");
+    expect(b.toString()).toBe("hello world");
   });
 
-  it("appendIf only appends when true", () => {
-    const sb = new StringBuilder();
-    sb.append("start").appendIf(true, "-yes").appendIf(false, "-no");
-    expect(sb.toString()).toBe("start-yes");
+  it("insert at position", () => {
+    const b = new StringBuilder();
+    b.append("helloworld").insert(5, " ");
+    expect(b.toString()).toBe("hello world");
   });
 
-  it("prepend adds to beginning", () => {
-    const sb = new StringBuilder();
-    sb.append("world").prepend("hello ");
-    expect(sb.toString()).toBe("hello world");
+  it("replace first occurrence", () => {
+    const b = new StringBuilder();
+    b.append("foo bar foo").replace("foo", "baz");
+    expect(b.toString()).toBe("baz bar foo");
   });
 
-  it("clear resets", () => {
-    const sb = new StringBuilder();
-    sb.append("stuff").clear();
-    expect(sb.toString()).toBe("");
-    expect(sb.length).toBe(0);
+  it("replaceAll occurrences", () => {
+    const b = new StringBuilder();
+    b.append("foo bar foo").replaceAll("foo", "baz");
+    expect(b.toString()).toBe("baz bar baz");
   });
 
-  it("join uses separator", () => {
-    const sb = new StringBuilder();
-    sb.append("a").append("b").append("c");
-    expect(sb.join(", ")).toBe("a, b, c");
+  it("tracks length", () => {
+    const b = new StringBuilder();
+    b.append("hello");
+    expect(b.length).toBe(5);
   });
 
-  it("tracks length and partCount", () => {
-    const sb = new StringBuilder();
-    sb.append("abc").append("de");
-    expect(sb.length).toBe(5);
-    expect(sb.partCount).toBe(2);
+  it("isEmpty", () => {
+    const b = new StringBuilder();
+    expect(b.isEmpty()).toBe(true);
+    b.append("x");
+    expect(b.isEmpty()).toBe(false);
   });
 
-  it("isEmpty reports correctly", () => {
-    const sb = new StringBuilder();
-    expect(sb.isEmpty()).toBe(true);
-    sb.append("x");
-    expect(sb.isEmpty()).toBe(false);
+  it("clear empties content", () => {
+    const b = new StringBuilder();
+    b.append("hello").clear();
+    expect(b.isEmpty()).toBe(true);
+    expect(b.toString()).toBe("");
   });
 
-  it("supports chaining", () => {
-    const result = new StringBuilder()
-      .append("a")
-      .appendLine("b")
-      .appendIf(true, "c")
-      .toString();
+  it("toLines splits on newline", () => {
+    const b = new StringBuilder();
+    b.append("a\nb\nc");
+    expect(b.toLines()).toEqual(["a", "b", "c"]);
+  });
+
+  it("indent adds spaces", () => {
+    const b = new StringBuilder();
+    b.append("line1\nline2").indent(4);
+    expect(b.toString()).toBe("    line1\n    line2");
+  });
+
+  it("wrap respects max width", () => {
+    const b = new StringBuilder();
+    b.append("the quick brown fox jumps").wrap(15);
+    const lines = b.toLines();
+    for (const line of lines) {
+      expect(line.length).toBeLessThanOrEqual(15);
+    }
+  });
+
+  it("sb factory creates empty builder", () => {
+    const b = sb();
+    expect(b.isEmpty()).toBe(true);
+    b.append("test");
+    expect(b.toString()).toBe("test");
+  });
+
+  it("chaining works fluently", () => {
+    const result = sb().append("a").appendLine("b").append("c").toString();
     expect(result).toBe("ab\nc");
   });
 });

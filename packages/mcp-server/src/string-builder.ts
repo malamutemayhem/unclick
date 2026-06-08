@@ -1,33 +1,49 @@
 export class StringBuilder {
   private parts: string[] = [];
-  private totalLength = 0;
 
   append(str: string): this {
     this.parts.push(str);
-    this.totalLength += str.length;
     return this;
   }
 
   appendLine(str = ""): this {
     this.parts.push(str + "\n");
-    this.totalLength += str.length + 1;
-    return this;
-  }
-
-  appendIf(condition: boolean, str: string): this {
-    if (condition) this.append(str);
     return this;
   }
 
   prepend(str: string): this {
     this.parts.unshift(str);
-    this.totalLength += str.length;
     return this;
+  }
+
+  insert(index: number, str: string): this {
+    const current = this.toString();
+    this.parts = [current.slice(0, index) + str + current.slice(index)];
+    return this;
+  }
+
+  replace(search: string, replacement: string): this {
+    const current = this.toString();
+    this.parts = [current.replace(search, replacement)];
+    return this;
+  }
+
+  replaceAll(search: string, replacement: string): this {
+    const current = this.toString();
+    this.parts = [current.split(search).join(replacement)];
+    return this;
+  }
+
+  get length(): number {
+    return this.parts.reduce((sum, p) => sum + p.length, 0);
+  }
+
+  isEmpty(): boolean {
+    return this.length === 0;
   }
 
   clear(): this {
     this.parts = [];
-    this.totalLength = 0;
     return this;
   }
 
@@ -35,19 +51,35 @@ export class StringBuilder {
     return this.parts.join("");
   }
 
-  join(separator: string): string {
-    return this.parts.join(separator);
+  toLines(): string[] {
+    return this.toString().split("\n");
   }
 
-  get length(): number {
-    return this.totalLength;
+  indent(spaces: number): this {
+    const prefix = " ".repeat(spaces);
+    const current = this.toString();
+    this.parts = [current.split("\n").map((line) => prefix + line).join("\n")];
+    return this;
   }
 
-  get partCount(): number {
-    return this.parts.length;
+  wrap(maxWidth: number): this {
+    const words = this.toString().split(/\s+/);
+    const lines: string[] = [];
+    let currentLine = "";
+    for (const word of words) {
+      if (currentLine.length + word.length + 1 > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = currentLine ? currentLine + " " + word : word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    this.parts = [lines.join("\n")];
+    return this;
   }
+}
 
-  isEmpty(): boolean {
-    return this.totalLength === 0;
-  }
+export function sb(): StringBuilder {
+  return new StringBuilder();
 }
