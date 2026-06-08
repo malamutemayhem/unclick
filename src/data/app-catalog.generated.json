@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 436,
-  "toolCount": 1358,
+  "appCount": 440,
+  "toolCount": 1362,
   "categories": [
     "AI",
     "Books",
@@ -5778,6 +5778,22 @@
       "hardened": false
     },
     {
+      "slug": "binaryconv",
+      "name": "Number Base Converter",
+      "category": "Developer & infra",
+      "blurb": "Convert numbers between binary, octal, decimal, hex, and any base 2-36.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "number_base_convert",
+          "description": "Convert numbers between binary, octal, decimal, hex, and any base 2-36."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "numbers",
       "name": "Numbers",
       "category": "Utilities",
@@ -7402,6 +7418,22 @@
       "hardened": true
     },
     {
+      "slug": "loremname",
+      "name": "Random Name Generator",
+      "category": "Utilities",
+      "blurb": "Generate random placeholder names with optional email addresses.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lorem_name_generate",
+          "description": "Generate random placeholder names with optional email addresses."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "randomuser",
       "name": "Random User",
       "category": "Developer & infra",
@@ -7468,6 +7500,22 @@
         {
           "name": "rdap_ip",
           "description": "Look up IP address registration data via RDAP."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "textstats",
+      "name": "Readability Analyzer",
+      "category": "Utilities",
+      "blurb": "Analyze text readability with Flesch-Kincaid grade and reading ease scores.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "text_readability",
+          "description": "Analyze text readability with Flesch-Kincaid grade and reading ease scores."
         }
       ],
       "level": 5,
@@ -8632,6 +8680,22 @@
         {
           "name": "string_case",
           "description": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "levenshtein",
+      "name": "String Distance",
+      "category": "Developer & infra",
+      "blurb": "Calculate Levenshtein edit distance and similarity between two strings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "string_distance",
+          "description": "Calculate Levenshtein edit distance and similarity between two strings."
         }
       ],
       "level": 5,

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 859,
+    "inventory": 863,
     "source_manifest": 214,
     "pages": 87,
-    "tools": 437,
+    "tools": 441,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 437
+      "count": 441
     },
     {
       "id": "rooms",
@@ -4492,6 +4492,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-binaryconv-packages-mcp-server-src-binaryconv-tool-ts-no-route",
+      "division": "Tools",
+      "name": "binaryconv",
+      "kind": "MCP tool",
+      "meaning": "binaryconv MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/binaryconv-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bitbucket-packages-mcp-server-src-bitbucket-tool-ts-no-route",
       "division": "Tools",
       "name": "bitbucket",
@@ -6282,6 +6292,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-levenshtein-packages-mcp-server-src-levenshtein-tool-ts-no-route",
+      "division": "Tools",
+      "name": "levenshtein",
+      "kind": "MCP tool",
+      "meaning": "levenshtein MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/levenshtein-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-libretranslate-packages-mcp-server-src-libretranslate-tool-ts-no-route",
       "division": "Tools",
       "name": "libretranslate",
@@ -6338,6 +6358,16 @@
       "kind": "MCP tool",
       "meaning": "lorem2 MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/lorem2-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-loremname-packages-mcp-server-src-loremname-tool-ts-no-route",
+      "division": "Tools",
+      "name": "loremname",
+      "kind": "MCP tool",
+      "meaning": "loremname MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/loremname-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7922,6 +7952,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-textstats-packages-mcp-server-src-textstats-tool-ts-no-route",
+      "division": "Tools",
+      "name": "textstats",
+      "kind": "MCP tool",
+      "meaning": "textstats MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/textstats-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-thecolorapi-packages-mcp-server-src-thecolorapi-tool-ts-no-route",
       "division": "Tools",
       "name": "thecolorapi",
@@ -9440,6 +9480,11 @@
       "packages/mcp-server/src/bibleverse-tool.ts"
     ],
     [
+      "binaryconv",
+      "binaryconv MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/binaryconv-tool.ts"
+    ],
+    [
       "bitbucket",
       "bitbucket MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bitbucket-tool.ts"
@@ -10335,6 +10380,11 @@
       "packages/mcp-server/src/lemonsqueezy-tool.ts"
     ],
     [
+      "levenshtein",
+      "levenshtein MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/levenshtein-tool.ts"
+    ],
+    [
       "libretranslate",
       "libretranslate MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/libretranslate-tool.ts"
@@ -10363,6 +10413,11 @@
       "lorem2",
       "lorem2 MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lorem2-tool.ts"
+    ],
+    [
+      "loremname",
+      "loremname MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/loremname-tool.ts"
     ],
     [
       "lotr",
@@ -11153,6 +11208,11 @@
       "text",
       "text MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/text-tool.ts"
+    ],
+    [
+      "textstats",
+      "textstats MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/textstats-tool.ts"
     ],
     [
       "thecolorapi",
@@ -12668,6 +12728,11 @@
       "bytes": 1698
     },
     {
+      "source": "packages/mcp-server/src/binaryconv-tool.ts",
+      "hash": "b09d86831da2",
+      "bytes": 1337
+    },
+    {
       "source": "packages/mcp-server/src/bitbucket-tool.ts",
       "hash": "a6a405951262",
       "bytes": 4388
@@ -12701,11 +12766,6 @@
       "source": "packages/mcp-server/src/bungie-tool.ts",
       "hash": "a6a1a1915cc3",
       "bytes": 7686
-    },
-    {
-      "source": "packages/mcp-server/src/calcom-tool.ts",
-      "hash": "d287d0a01077",
-      "bytes": 3332
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

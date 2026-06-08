@@ -582,6 +582,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "binaryconv",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "number_base_convert",
+        "description": "Convert numbers between binary, octal, decimal, hex, and any base 2-36."
+      }
+    ]
+  },
+  {
     "app": "bitbucket",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3758,6 +3768,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "levenshtein",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "string_distance",
+        "description": "Calculate Levenshtein edit distance and similarity between two strings."
+      }
+    ]
+  },
+  {
     "app": "libretranslate",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3858,6 +3878,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "lorem_generate",
         "description": "Generate lorem ipsum placeholder text."
+      }
+    ]
+  },
+  {
+    "app": "loremname",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lorem_name_generate",
+        "description": "Generate random placeholder names with optional email addresses."
       }
     ]
   },
@@ -6858,6 +6888,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "text_truncate",
         "description": "Truncate text to a maximum length."
+      }
+    ]
+  },
+  {
+    "app": "textstats",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "text_readability",
+        "description": "Analyze text readability with Flesch-Kincaid grade and reading ease scores."
       }
     ]
   },

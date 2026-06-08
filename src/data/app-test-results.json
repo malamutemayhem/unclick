@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T20:30:00.000Z",
+  "updatedAt": "2026-06-08T20:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -3448,6 +3448,30 @@
       "note": "morse_convert encodes/decodes Morse code locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
       "toolsTested": ["morse_convert"]
+    },
+    "binaryconv": {
+      "status": "pass",
+      "note": "number_base_convert converts between binary/octal/decimal/hex locally. No API needed.",
+      "testedAt": "2026-06-08T20:45:00.000Z",
+      "toolsTested": ["number_base_convert"]
+    },
+    "levenshtein": {
+      "status": "pass",
+      "note": "string_distance calculates Levenshtein edit distance locally. No API needed.",
+      "testedAt": "2026-06-08T20:45:00.000Z",
+      "toolsTested": ["string_distance"]
+    },
+    "loremname": {
+      "status": "pass",
+      "note": "lorem_name_generate creates random placeholder names locally. No API needed.",
+      "testedAt": "2026-06-08T20:45:00.000Z",
+      "toolsTested": ["lorem_name_generate"]
+    },
+    "textstats": {
+      "status": "pass",
+      "note": "text_readability analyzes Flesch-Kincaid readability locally. No API needed.",
+      "testedAt": "2026-06-08T20:45:00.000Z",
+      "toolsTested": ["text_readability"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

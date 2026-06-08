@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (411 external connectors)
+## Distribution (415 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 372 | 91% |
+| L5 | Agentic | 376 | 91% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 9% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 411 (59%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 415 (58%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 372 of 375 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 376 of 379 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -52,6 +52,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `base64` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `bgpview` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `bibleverse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `binaryconv` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `breakingbad` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `carbonintensity` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `cataas` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -126,8 +127,10 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `jsonformat` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `jwt` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `languagetool` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
+- `levenshtein` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `libretranslate` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `lorem2` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `loremname` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `lotr` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `lyrics` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `markdown` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -190,6 +193,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `stapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `stringcase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tacofancy` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `textstats` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `thecolorapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `timeapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `tvmaze` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -243,6 +247,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `bgpview` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `bible` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bibleverse` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `binaryconv` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `bitbucket` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bored` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `breakingbad` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
@@ -398,10 +403,12 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lego` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lemonsqueezy` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `levenshtein` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `libretranslate` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `lichess` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lorem` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lorem2` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `loremname` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `lotr` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `lyrics` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `mailchimp` | Yes | - | - | Yes | Yes | no-memory |
@@ -530,6 +537,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `tab` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tacofancy` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `tarot` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `textstats` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `thecolorapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `thelott` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |

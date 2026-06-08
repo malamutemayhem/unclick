@@ -601,6 +601,10 @@ import { aspectRatio } from "./aspectratio-tool.js";
 import { percentageCalc } from "./percentage-tool.js";
 import { romanConvert } from "./roman-tool.js";
 import { morseConvert } from "./morse-tool.js";
+import { numberBaseConvert } from "./binaryconv-tool.js";
+import { stringDistance } from "./levenshtein-tool.js";
+import { loremNameGenerate } from "./loremname-tool.js";
+import { textReadability } from "./textstats-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -9291,6 +9295,56 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const, additionalProperties: false, properties: {
         text: { type: "string" as const, description: "Text or Morse code to convert." },
+      }, required: ["text"],
+    },
+  },
+
+  // ── binaryconv-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "number_base_convert",
+    description: "Convert numbers between binary, octal, decimal, hex, and any base 2-36.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "string" as const, description: "Number to convert." },
+        from_base: { type: "number" as const, description: "Input base (2-36, default 10)." },
+        to_base: { type: "number" as const, description: "Optional custom output base (2-36)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── levenshtein-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "string_distance",
+    description: "Calculate Levenshtein edit distance and similarity between two strings.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "string" as const, description: "First string." },
+        b: { type: "string" as const, description: "Second string." },
+        case_sensitive: { type: "boolean" as const, description: "Case sensitive comparison (default true)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── loremname-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "lorem_name_generate",
+    description: "Generate random placeholder names with optional email addresses.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        count: { type: "number" as const, description: "Number of names (1-50, default 1)." },
+        email: { type: "boolean" as const, description: "Include email addresses (default true)." },
+        domain: { type: "string" as const, description: "Email domain (default example.com)." },
+      },
+    },
+  },
+
+  // ── textstats-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "text_readability",
+    description: "Analyze text readability with Flesch-Kincaid grade and reading ease scores.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        text: { type: "string" as const, description: "Text to analyze for readability." },
       }, required: ["text"],
     },
   },
@@ -20735,6 +20789,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // morse-tool.ts
   morse_convert:             (args) => morseConvert(args),
+
+  // binaryconv-tool.ts
+  number_base_convert:       (args) => numberBaseConvert(args),
+
+  // levenshtein-tool.ts
+  string_distance:           (args) => stringDistance(args),
+
+  // loremname-tool.ts
+  lorem_name_generate:       (args) => loremNameGenerate(args),
+
+  // textstats-tool.ts
+  text_readability:          (args) => textReadability(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
