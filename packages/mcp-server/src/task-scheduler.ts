@@ -1,66 +1,63 @@
 export interface ScheduledTask {
   id: string;
   fn: () => void | Promise<void>;
-  intervalMs: number;
-  timer?: ReturnType<typeof setInterval>;
-  running: boolean;
-  lastRun?: number;
-  runCount: number;
+  interval: number;
+  nextRun: number;
+  repeat: boolean;
 }
 
 export class TaskScheduler {
   private tasks = new Map<string, ScheduledTask>();
+  private timers = new Map<string, ReturnType<typeof setTimeout>>();
+  private running = false;
+  private nextId = 0;
 
-  schedule(id: string, fn: () => void | Promise<void>, intervalMs: number): void {
-    if (this.tasks.has(id)) this.cancel(id);
-
-    const task: ScheduledTask = { id, fn, intervalMs, running: false, runCount: 0 };
-    const timer = setInterval(() => {
-      if (task.running) return;
-      task.running = true;
-      try {
-        const result = task.fn();
-        if (result && typeof (result as Promise<void>).then === "function") {
-          (result as Promise<void>).then(
-            () => { task.runCount++; task.lastRun = Date.now(); task.running = false; },
-            () => { task.running = false; },
-          );
-        } else {
-          task.runCount++;
-          task.lastRun = Date.now();
-          task.running = false;
-        }
-      } catch {
-        task.running = false;
-      }
-    }, intervalMs);
-    task.timer = timer;
+  schedule(fn: () => void | Promise<void>, delay: number, repeat = false): string {
+    const id = `task-${this.nextId++}`;
+    const task: ScheduledTask = { id, fn, interval: delay, nextRun: Date.now() + delay, repeat };
     this.tasks.set(id, task);
+    if (this.running) this.scheduleTimer(task);
+    return id;
   }
 
   cancel(id: string): boolean {
-    const task = this.tasks.get(id);
-    if (!task) return false;
-    if (task.timer) clearInterval(task.timer);
-    this.tasks.delete(id);
-    return true;
+    const timer = this.timers.get(id);
+    if (timer) clearTimeout(timer);
+    this.timers.delete(id);
+    return this.tasks.delete(id);
   }
 
-  cancelAll(): void {
-    for (const [id] of this.tasks) this.cancel(id);
+  start(): void {
+    if (this.running) return;
+    this.running = true;
+    for (const task of this.tasks.values()) {
+      this.scheduleTimer(task);
+    }
   }
 
-  isScheduled(id: string): boolean {
-    return this.tasks.has(id);
+  stop(): void {
+    this.running = false;
+    for (const timer of this.timers.values()) clearTimeout(timer);
+    this.timers.clear();
   }
 
-  getStats(id: string): { runCount: number; lastRun?: number } | undefined {
-    const task = this.tasks.get(id);
-    if (!task) return undefined;
-    return { runCount: task.runCount, lastRun: task.lastRun };
-  }
+  get isRunning(): boolean { return this.running; }
+  get taskCount(): number { return this.tasks.size; }
 
-  get size(): number {
-    return this.tasks.size;
+  private scheduleTimer(task: ScheduledTask): void {
+    const delay = Math.max(0, task.nextRun - Date.now());
+    const timer = setTimeout(async () => {
+      this.timers.delete(task.id);
+      try {
+        await task.fn();
+      } catch (_) {}
+      if (task.repeat && this.tasks.has(task.id)) {
+        task.nextRun = Date.now() + task.interval;
+        if (this.running) this.scheduleTimer(task);
+      } else {
+        this.tasks.delete(task.id);
+      }
+    }, delay);
+    this.timers.set(task.id, timer);
   }
 }

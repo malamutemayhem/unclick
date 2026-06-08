@@ -18,7 +18,7 @@ export function isErr<T, E>(result: Result<T, E>): result is { ok: false; error:
 
 export function unwrap<T, E>(result: Result<T, E>): T {
   if (result.ok) return result.value;
-  throw result.error instanceof Error ? result.error : new Error(String(result.error));
+  throw result.error;
 }
 
 export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {

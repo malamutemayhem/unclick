@@ -1,68 +1,54 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { TaskScheduler } from "../task-scheduler.js";
 
 describe("TaskScheduler", () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  afterEach(() => { vi.useRealTimers(); });
+  let scheduler: TaskScheduler;
 
-  it("schedules a task", () => {
-    const scheduler = new TaskScheduler();
-    scheduler.schedule("test", () => {}, 1000);
-    expect(scheduler.isScheduled("test")).toBe(true);
-    expect(scheduler.size).toBe(1);
-    scheduler.cancelAll();
+  afterEach(() => {
+    scheduler?.stop();
   });
 
-  it("runs task at interval", () => {
-    const scheduler = new TaskScheduler();
-    const fn = vi.fn();
-    scheduler.schedule("test", fn, 100);
-    vi.advanceTimersByTime(350);
-    expect(fn).toHaveBeenCalledTimes(3);
-    scheduler.cancelAll();
+  it("schedules and runs a one-shot task", async () => {
+    scheduler = new TaskScheduler();
+    let ran = false;
+    scheduler.schedule(() => { ran = true; }, 20);
+    scheduler.start();
+    await new Promise((r) => setTimeout(r, 50));
+    expect(ran).toBe(true);
   });
 
-  it("cancel stops the task", () => {
-    const scheduler = new TaskScheduler();
-    const fn = vi.fn();
-    scheduler.schedule("test", fn, 100);
-    scheduler.cancel("test");
-    vi.advanceTimersByTime(500);
-    expect(fn).not.toHaveBeenCalled();
+  it("cancels a task", async () => {
+    scheduler = new TaskScheduler();
+    let ran = false;
+    const id = scheduler.schedule(() => { ran = true; }, 20);
+    scheduler.start();
+    scheduler.cancel(id);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(ran).toBe(false);
   });
 
-  it("cancelAll stops all tasks", () => {
-    const scheduler = new TaskScheduler();
-    scheduler.schedule("a", vi.fn(), 100);
-    scheduler.schedule("b", vi.fn(), 100);
-    scheduler.cancelAll();
-    expect(scheduler.size).toBe(0);
+  it("repeats a task", async () => {
+    scheduler = new TaskScheduler();
+    let count = 0;
+    scheduler.schedule(() => { count++; }, 20, true);
+    scheduler.start();
+    await new Promise((r) => setTimeout(r, 90));
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 
-  it("getStats returns run info", () => {
-    const scheduler = new TaskScheduler();
-    scheduler.schedule("test", () => {}, 100);
-    vi.advanceTimersByTime(250);
-    const stats = scheduler.getStats("test");
-    expect(stats?.runCount).toBe(2);
-    expect(stats?.lastRun).toBeDefined();
-    scheduler.cancelAll();
+  it("tracks running state", () => {
+    scheduler = new TaskScheduler();
+    expect(scheduler.isRunning).toBe(false);
+    scheduler.start();
+    expect(scheduler.isRunning).toBe(true);
+    scheduler.stop();
+    expect(scheduler.isRunning).toBe(false);
   });
 
-  it("returns undefined stats for unknown task", () => {
-    const scheduler = new TaskScheduler();
-    expect(scheduler.getStats("nope")).toBeUndefined();
-  });
-
-  it("reschedule replaces existing task", () => {
-    const scheduler = new TaskScheduler();
-    const fn1 = vi.fn();
-    const fn2 = vi.fn();
-    scheduler.schedule("test", fn1, 100);
-    scheduler.schedule("test", fn2, 100);
-    vi.advanceTimersByTime(150);
-    expect(fn1).not.toHaveBeenCalled();
-    expect(fn2).toHaveBeenCalled();
-    scheduler.cancelAll();
+  it("tracks task count", () => {
+    scheduler = new TaskScheduler();
+    scheduler.schedule(() => {}, 1000);
+    scheduler.schedule(() => {}, 1000);
+    expect(scheduler.taskCount).toBe(2);
   });
 });
