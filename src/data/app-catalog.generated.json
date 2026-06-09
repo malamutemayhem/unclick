@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 559,
-  "toolCount": 1481,
+  "appCount": 563,
+  "toolCount": 1485,
   "categories": [
     "AI",
     "Books",
@@ -724,6 +724,22 @@
         {
           "name": "base64_decode",
           "description": "Decode a Base64 string to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bellmanford",
+      "name": "Bellman-Ford",
+      "category": "Utilities",
+      "blurb": "Single-source shortest paths with negative edge weight support (Bellman-Ford).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bellman_ford",
+          "description": "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights)."
         }
       ],
       "level": 5,
@@ -3730,6 +3746,22 @@
       "hardened": false
     },
     {
+      "slug": "floydwarshall",
+      "name": "Floyd-Warshall",
+      "category": "Utilities",
+      "blurb": "All-pairs shortest paths via Floyd-Warshall algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "floyd_warshall",
+          "description": "Compute all-pairs shortest paths using Floyd-Warshall."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "flyio",
       "name": "Fly.io",
       "category": "Developer & infra",
@@ -5308,6 +5340,22 @@
         {
           "name": "jwt_decode",
           "description": "Decode a JWT token to inspect header and payload claims (does NOT verify signature)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "kmeans",
+      "name": "K-Means Clustering",
+      "category": "Utilities",
+      "blurb": "Partition data points into k clusters using the k-means algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmeans_cluster",
+          "description": "Partition points into k clusters using the k-means algorithm."
         }
       ],
       "level": 5,
@@ -9204,6 +9252,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "reservoir",
+      "name": "Reservoir Sampling",
+      "category": "Utilities",
+      "blurb": "Select k random items from a list with equal probability (reservoir sampling).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "reservoir_sample",
+          "description": "Select k random items from a list with equal probability using reservoir sampling."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "restcountries",

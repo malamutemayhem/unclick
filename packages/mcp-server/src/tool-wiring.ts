@@ -732,6 +732,11 @@ import { astarPath } from "./astar-tool.js";
 import { simplexSolve } from "./simplex-tool.js";
 import { hungarianAssign } from "./hungarian-tool.js";
 
+import { kmeansCluster } from "./kmeans-tool.js";
+import { bellmanFord } from "./bellmanford-tool.js";
+import { floydWarshall } from "./floydwarshall-tool.js";
+import { reservoirSample } from "./reservoir-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -10974,6 +10979,61 @@ export const ADDITIONAL_TOOLS = [
         cost_matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "NxN cost matrix" },
         maximize: { type: "boolean", description: "Maximize instead of minimize (default false)" },
       }, required: ["cost_matrix"],
+    },
+  },
+
+  // ── kmeans-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "kmeans_cluster",
+    description: "Partition points into k clusters using the k-means algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of numeric vectors (all same dimension)" },
+        k: { type: "number", description: "Number of clusters (default 3)" },
+        max_iterations: { type: "number", description: "Max iterations (default 100)" },
+      }, required: ["points"],
+    },
+  },
+
+  // ── bellmanford-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bellman_ford",
+    description: "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted directed edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node for path reconstruction" },
+      }, required: ["edges", "start"],
+    },
+  },
+
+  // ── floydwarshall-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "floyd_warshall",
+    description: "Compute all-pairs shortest paths using Floyd-Warshall.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted edges" },
+        directed: { type: "boolean", description: "Treat as directed graph (default true)" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── reservoir-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "reservoir_sample",
+    description: "Select k random items from a list with equal probability using reservoir sampling.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        items: { type: "array", items: {}, description: "Array of items to sample from" },
+        k: { type: "number", description: "Number of items to sample (default 1)" },
+        seed: { type: "number", description: "Optional seed for reproducible results" },
+      }, required: ["items"],
     },
   },
 
@@ -22734,6 +22794,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   astar_path:                (args) => astarPath(args),
   simplex_solve:             (args) => simplexSolve(args),
   hungarian_assign:          (args) => hungarianAssign(args),
+
+  // batch 66: k-means, Bellman-Ford, Floyd-Warshall, reservoir sampling
+  kmeans_cluster:            (args) => kmeansCluster(args),
+  bellman_ford:              (args) => bellmanFord(args),
+  floyd_warshall:            (args) => floydWarshall(args),
+  reservoir_sample:          (args) => reservoirSample(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

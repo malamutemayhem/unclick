@@ -570,6 +570,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bellmanford",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bellman_ford",
+        "description": "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights)."
+      }
+    ]
+  },
+  {
     "app": "bezier",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2852,6 +2862,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "floydwarshall",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "floyd_warshall",
+        "description": "Compute all-pairs shortest paths using Floyd-Warshall."
+      }
+    ]
+  },
+  {
     "app": "flyio",
     "category": "Dev / Cloud",
     "tools": [
@@ -4106,6 +4126,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "kling_get_task",
         "description": "Check the status of a Kling AI video generation task."
+      }
+    ]
+  },
+  {
+    "app": "kmeans",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kmeans_cluster",
+        "description": "Partition points into k clusters using the k-means algorithm."
       }
     ]
   },
@@ -6784,6 +6814,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "resend_list_domains",
         "description": "List domains configured in Resend."
+      }
+    ]
+  },
+  {
+    "app": "reservoir",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "reservoir_sample",
+        "description": "Select k random items from a list with equal probability using reservoir sampling."
       }
     ]
   },

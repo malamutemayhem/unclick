@@ -203,12 +203,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/bandsintown-tool.ts | f56d1929e864 | 4850 |
 | packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
 | packages/mcp-server/src/baseconvert-tool.ts | bbfa716f0f7c | 1246 |
+| packages/mcp-server/src/bellmanford-tool.ts | baef494b3f6a | 2955 |
 | packages/mcp-server/src/bezier-tool.ts | 29ff88e26cbb | 2561 |
 | packages/mcp-server/src/bfs-tool.ts | 6eff2fdbba8b | 2678 |
 | packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
 | packages/mcp-server/src/bgpview-tool.ts | c97cbd66581b | 2523 |
 | packages/mcp-server/src/bible-tool.ts | 94f62f2fa1c1 | 2338 |
-| packages/mcp-server/src/bibleverse-tool.ts | c5c118d0eb27 | 1698 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 560 |
+| Tools | MCP and gateway capabilities available to seats. | 564 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -404,6 +404,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bandsintown-tool.ts |
 | base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
 | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/baseconvert-tool.ts |
+| bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bellmanford-tool.ts |
 | bezier | bezier MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezier-tool.ts |
 | bfs | bfs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bfs-tool.ts |
 | bgg | bgg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bgg-tool.ts |
@@ -543,6 +544,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | finalspace | finalspace MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/finalspace-tool.ts |
 | fishwatch | fishwatch MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fishwatch-tool.ts |
 | flowpass | flowpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flowpass-tool.ts |
+| floydwarshall | floydwarshall MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/floydwarshall-tool.ts |
 | flyio | flyio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flyio-tool.ts |
 | flyover | flyover MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flyover-tool.ts |
 | foodish | foodish MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/foodish-tool.ts |
@@ -625,6 +627,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | keychain | keychain MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/keychain-tool.ts |
 | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/klaviyo-tool.ts |
 | kling | kling MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kling-tool.ts |
+| kmeans | kmeans MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kmeans-tool.ts |
 | knapsack | knapsack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/knapsack-tool.ts |
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
@@ -790,6 +793,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | replicate | replicate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/replicate-tool.ts |
 | reqres | reqres MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reqres-tool.ts |
 | resend | resend MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/resend-tool.ts |
+| reservoir | reservoir MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reservoir-tool.ts |
 | restcountries | restcountries MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/restcountries-tool.ts |
 | reversetext | reversetext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/reversetext-tool.ts |
 | rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rickandmorty-tool.ts |
@@ -1380,6 +1384,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bandsintown-tool.ts |
 | Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
 | Tools | MCP tool | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/baseconvert-tool.ts |
+| Tools | MCP tool | bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bellmanford-tool.ts |
 | Tools | MCP tool | bezier | bezier MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezier-tool.ts |
 | Tools | MCP tool | bfs | bfs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bfs-tool.ts |
 | Tools | MCP tool | bgg | bgg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bgg-tool.ts |
@@ -1519,6 +1524,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | finalspace | finalspace MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/finalspace-tool.ts |
 | Tools | MCP tool | fishwatch | fishwatch MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fishwatch-tool.ts |
 | Tools | MCP tool | flowpass | flowpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flowpass-tool.ts |
+| Tools | MCP tool | floydwarshall | floydwarshall MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/floydwarshall-tool.ts |
 | Tools | MCP tool | flyio | flyio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flyio-tool.ts |
 | Tools | MCP tool | flyover | flyover MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flyover-tool.ts |
 | Tools | MCP tool | foodish | foodish MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/foodish-tool.ts |
@@ -1601,6 +1607,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | keychain | keychain MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/keychain-tool.ts |
 | Tools | MCP tool | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/klaviyo-tool.ts |
 | Tools | MCP tool | kling | kling MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kling-tool.ts |
+| Tools | MCP tool | kmeans | kmeans MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kmeans-tool.ts |
 | Tools | MCP tool | knapsack | knapsack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/knapsack-tool.ts |
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
@@ -1766,6 +1773,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | replicate | replicate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/replicate-tool.ts |
 | Tools | MCP tool | reqres | reqres MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reqres-tool.ts |
 | Tools | MCP tool | resend | resend MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/resend-tool.ts |
+| Tools | MCP tool | reservoir | reservoir MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reservoir-tool.ts |
 | Tools | MCP tool | restcountries | restcountries MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/restcountries-tool.ts |
 | Tools | MCP tool | reversetext | reversetext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/reversetext-tool.ts |
 | Tools | MCP tool | rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rickandmorty-tool.ts |
