@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 535,
-  "toolCount": 1457,
+  "appCount": 539,
+  "toolCount": 1461,
   "categories": [
     "AI",
     "Books",
@@ -708,6 +708,22 @@
         {
           "name": "base64_decode",
           "description": "Decode a Base64 string to text."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bezier",
+      "name": "Bezier Curve",
+      "category": "Utilities",
+      "blurb": "Compute Bezier curves from control points with arc length and evaluation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bezier_curve",
+          "description": "Compute a Bezier curve from control points with arc length and optional evaluation."
         }
       ],
       "level": 5,
@@ -3430,6 +3446,22 @@
       "hardened": true
     },
     {
+      "slug": "fft",
+      "name": "FFT (Fast Fourier Transform)",
+      "category": "Utilities",
+      "blurb": "Fast Fourier Transform (Cooley-Tukey radix-2) for frequency analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fft_transform",
+          "description": "Fast Fourier Transform (Cooley-Tukey radix-2) with optional inverse."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "fibonacci",
       "name": "Fibonacci Generator",
       "category": "Utilities",
@@ -5912,6 +5944,22 @@
         {
           "name": "matrix_decomp",
           "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matinverse",
+      "name": "Matrix Inverse",
+      "category": "Utilities",
+      "blurb": "Compute the inverse and determinant of a square matrix.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_inverse",
+          "description": "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination."
         }
       ],
       "level": 5,
@@ -9032,6 +9080,22 @@
         {
           "name": "roman_convert",
           "description": "Convert between Roman numerals and decimal numbers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "rootfind",
+      "name": "Root Finder",
+      "category": "Utilities",
+      "blurb": "Find roots of expressions using Newton's method or bisection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "root_find",
+          "description": "Find roots of a math expression using Newton's method or bisection."
         }
       ],
       "level": 5,
