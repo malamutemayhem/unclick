@@ -1,6 +1,6 @@
 # LegalPass product brief (condensed)
 
-> Condensed companion to the full ~1700-line brief that lives in Chris's
+> Condensed companion to the full ~1700-line brief that lives in the operator's
 > uploads and in UnClick Memory facts (`b1e44cc5`, `f179fa2b`, `9e1089ae`,
 > `25b1ea77`). When the two disagree, the long brief wins.
 

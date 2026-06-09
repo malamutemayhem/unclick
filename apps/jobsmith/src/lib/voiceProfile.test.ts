@@ -12,7 +12,7 @@ const SAMPLE_BODY_1 =
 const SAMPLE_LOCATION_1 =
   "Based in Victoria, I am open to remote work and willing to travel for collaborative partnership models.";
 const SAMPLE_CLOSER_1 =
-  "Thank you for considering my application.\nI look forward to discussing this further.\nSincerely,\nChristopher Byrne";
+  "Thank you for considering my application.\nI look forward to discussing this further.\nSincerely,\nJane Smith";
 
 const SAMPLE_OPENER_2 =
   "Dear Hiring Manager,\nI am excited to apply for the Digital Designer position at L'Occitane Australia.";
@@ -21,7 +21,7 @@ const SAMPLE_BODY_2 =
 const SAMPLE_LOCATION_2 =
   "Located in Victoria, I offer remote work flexibility and am willing to travel as required.";
 const SAMPLE_CLOSER_2 =
-  "Thank you for considering my application.\nBest regards,\nChristopher Byrne";
+  "Thank you for considering my application.\nBest regards,\nJane Smith";
 
 function makeCorpus(): Corpus {
   return {

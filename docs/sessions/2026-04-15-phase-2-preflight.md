@@ -63,7 +63,7 @@ Phase 2 code should:
 
 **Rationale:** Cleanest DX, free for early volume, five-minute Supabase integration. Postmark / SendGrid are more enterprise-y but heavier lift.
 
-**Chris's action before next session:** Sign up for Resend, verify sending domain for `unclick.world`, drop `RESEND_API_KEY` into Vercel env and into Supabase Auth > SMTP Settings.
+**Operator action before next session:** Sign up for Resend, verify sending domain for `unclick.world`, drop `RESEND_API_KEY` into Vercel env and into Supabase Auth > SMTP Settings.
 
 ### 5. Magic link email copy
 
@@ -73,9 +73,9 @@ Phase 2 code should:
 
 ### 6. Supabase Auth provider toggles
 
-**Decision:** Chris handles the dashboard toggles himself, not via Management API. No `SUPABASE_ACCESS_TOKEN` handed to Claude.
+**Decision:** The operator handles the dashboard toggles directly, not via Management API. No `SUPABASE_ACCESS_TOKEN` handed to Claude.
 
-**Chris's action before next session** (Supabase project `xmooqsylqlknuksiddca`):
+**Operator action before next session** (Supabase project `xmooqsylqlknuksiddca`):
 
 - Auth > Providers > Email: enable, "Confirm email" on, "Secure email change" on
 - Auth > Providers > Google: enable with existing Google client ID and secret
@@ -111,7 +111,7 @@ Not re-deciding, just caching the scope so the next session doesn't have to re-r
 
 ## Non-blocking out-of-session noise
 
-- Glama email hit partway through this session: "The build for UnClick MCP Server has succeeded... to make these changes available to users, you must create a new release." Unrelated to Phase 2. Chris's call whether to cut a release now or wait until after Phase 2 merges. No code action required here.
+- Glama email hit partway through this session: "The build for UnClick MCP Server has succeeded... to make these changes available to users, you must create a new release." Unrelated to Phase 2. The operator's call whether to cut a release now or wait until after Phase 2 merges. No code action required here.
 
 ## Where this doc lives
 

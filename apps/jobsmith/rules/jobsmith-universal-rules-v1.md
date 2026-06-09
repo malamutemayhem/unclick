@@ -1010,7 +1010,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   category: TRUTH
   what: "Every quantified claim traces to a real source: a project, role, dataset, or piece of work the applicant can point to. If the source says \"managed a team\", the draft cannot say \"managed a team of seven\"."
   why: |
-    Chris-locked standing rule. Truth is the floor; specificity is the ceiling. Detectors are not the threat; reference checks are.
+    Operator-locked standing rule. Truth is the floor; specificity is the ceiling. Detectors are not the threat; reference checks are.
   sources:
     - doc: cvchecklists_1.md
       section: C. Bullet craft
@@ -2416,7 +2416,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   decay_period_days: 90
   last_verified_at: 2026-05-18
   volatile: true
-  notes: Chris-locked standing rule; engine blocks publish.
+  notes: Operator-locked standing rule; engine blocks publish.
 ```
 
 ```yaml
@@ -2425,13 +2425,13 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   category: AIDETECT
   what: "No em dashes (U+2014) anywhere. Replace with colon, comma, two sentences, or parentheses."
   why: |
-    Em dash is now the strongest single AI tell in 2024 to 2026 drafts. Both human writers and AI detectors flag it. Chris-locked standing rule.
+    Em dash is now the strongest single AI tell in 2024 to 2026 drafts. Both human writers and AI detectors flag it. Operator-locked standing rule.
   sources:
     - doc: cvchecklists_1.md
       section: C. Punctuation tells
       round: 1
     - doc: cvchecklists_1.md
-      section: L. Chris-specific rules
+      section: L. Operator-specific rules
       round: 1
     - doc: cvchecklists_1a.md
       section: Punctuation AI Tells
@@ -2456,7 +2456,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   decay_period_days: 90
   last_verified_at: 2026-05-18
   volatile: false
-  notes: Chris-locked standing rule.
+  notes: Operator-locked standing rule.
 ```
 
 ```yaml
@@ -4556,7 +4556,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   why: Industry typography standard; Word's widowControl is the engine-level fix.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
     - doc: cvchecklists_2.md
       section: E. Second-pass scrub
@@ -5847,21 +5847,21 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-18
-  name: chris_education_phrasing
+  name: operator_education_phrasing
   category: ROLE_SPECIFIC
-  what: "Chris's education leads with \"University Degree Equivalent (22+ Years Extensive Professional Experience)\" per Chris brand standard."
-  why: Chris-locked personal override; preserves the framing that's in current Jobsmith brand.
+  what: "The operator's education leads with \"University Degree Equivalent (22+ Years Extensive Professional Experience)\" per operator brand standard."
+  why: Operator-locked personal override; preserves the framing that's in current Jobsmith brand.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
-  when_not_applies: Never (for Chris's applications).
+  when_not_applies: Never (for the operator's applications).
   check_method:
     type: regex
     spec: Education section begins with that exact phrasing.
@@ -5874,17 +5874,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-19
-  name: chris_prompt_composition
+  name: operator_prompt_composition
   category: ROLE_SPECIFIC
-  what: "Chris uses \"Prompt composition\" not \"prompt engineering\"."
-  why: Chris-locked brand vocabulary; preserves voice fingerprint.
+  what: "The operator uses \"Prompt composition\" not \"prompt engineering\"."
+  why: Operator-locked brand vocabulary; preserves voice fingerprint.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter, linkedin]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
@@ -5901,17 +5901,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-20
-  name: chris_higgsfield_top_2
+  name: operator_higgsfield_top_2
   category: ROLE_SPECIFIC
   what: "Higgsfield placement is stated as \"top 2%\" (not \"top 2 percent\", not \"top tier\")."
-  why: Chris-locked brand standard.
+  why: Operator-locked brand standard.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
@@ -5928,17 +5928,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-21
-  name: chris_keep_lore_off_cv
+  name: operator_keep_lore_off_cv
   category: ROLE_SPECIFIC
   what: "Bailey, Malamute Mayhem, UnClick lore stays off the CV unless directly role-relevant."
-  why: Chris-locked rule; preserves CV focus and protects brand from leakage.
+  why: Operator-locked rule; preserves CV focus and protects brand from leakage.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any

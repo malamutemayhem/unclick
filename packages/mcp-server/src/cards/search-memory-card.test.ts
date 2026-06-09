@@ -14,12 +14,12 @@ describe("buildSearchMemoryCard - Phase 1 Wizard wrap", () => {
 
   it("renders a results card with truncated previews when matches exist", () => {
     const results = [
-      { id: "1", fact: "Chris prefers TypeScript over JavaScript", confidence: 0.95 },
-      { id: "2", fact: "Chris's timezone is Australia/Melbourne", confidence: 0.9 },
+      { id: "1", fact: "User prefers TypeScript over JavaScript", confidence: 0.95 },
+      { id: "2", fact: "User timezone is Australia/Melbourne", confidence: 0.9 },
       { id: "3", fact: "Bailey reviews and merges Phase 1 wizard PRs", confidence: 0.85 },
     ];
-    const card = buildSearchMemoryCard("Chris", results);
-    expect(card.title).toBe('Found 3 memories matching "Chris"');
+    const card = buildSearchMemoryCard("user", results);
+    expect(card.title).toBe('Found 3 memories matching "user"');
     expect(card.severity).toBe("success");
     expect(card.body?.[0]?.kind).toBe("list");
     if (card.body?.[0]?.kind === "list") {

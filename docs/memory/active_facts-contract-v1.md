@@ -3,7 +3,7 @@
 **Status**: Draft  
 **Last updated**: 2026-05-27
 **Owner**: `🦾`  
-**Purpose**: Pre-work contract draft for Cluster A before Chris's design call
+**Purpose**: Pre-work contract draft for Cluster A before the operator's design call
 
 ## Why this exists
 
