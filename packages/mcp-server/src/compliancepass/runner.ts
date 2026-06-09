@@ -369,7 +369,8 @@ async function checkSecurityPolicy(snapshot: RepoSnapshot): Promise<CompliancePa
 
 async function checkWorkflowEvidence(snapshot: RepoSnapshot): Promise<CompliancePassCheck> {
   const workflows = snapshot.files.filter((file) => file.startsWith(".github/workflows/") && /\.(ya?ml)$/.test(file));
-  const workflowText = (await Promise.all(workflows.map((file) => readText(snapshot, file)))).join("\n");
+  const results = await Promise.allSettled(workflows.map((file) => readText(snapshot, file)));
+  const workflowText = results.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map((r) => r.value).join("\n");
   const hasPullRequest = /pull_request|merge_group/.test(workflowText);
   const hasBuildOrTest = /\bnpm\s+(run\s+)?(test|build)|vitest|node --test|playwright/i.test(workflowText);
 
