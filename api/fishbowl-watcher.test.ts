@@ -1254,7 +1254,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
   });
 
   it("does NOT release the canary even when aged AND owner dormant (protected-by-id)", () => {
-    // Worst case for the canary: aged > 6h with a dormant owner — exactly the
+    // Worst case for the canary: aged > 6h with a dormant owner, exactly the
     // sustained-outage edge. The watcher computes isProtected via the gate, so
     // the open-stale sweep must refuse to plan a release.
     const todo = canaryTodo({ updated_at: agedUpdatedAt, created_at: agedUpdatedAt });

@@ -74,7 +74,7 @@ export default function AdminActivity() {
   const [events, setEvents] = useState<MeteringEvent[]>([]);
   const [sessions, setSessions] = useState<ConversationSession[]>([]);
   const [loading, setLoading] = useState(true);
-  // Admin-only recent signups. Hidden when the API returns 403 — non-admins
+  // Admin-only recent signups. Hidden when the API returns 403; non-admins
   // never see the card exists, admins see a live list from auth.users.
   const [signups, setSignups] = useState<SignupUser[] | null>(null);
   const [signupsLoading, setSignupsLoading] = useState(true);
@@ -334,7 +334,7 @@ export default function AdminActivity() {
                       {signups.slice(0, 50).map((u) => (
                         <tr key={u.id} className="hover:bg-white/[0.02]">
                           <td className="px-3 py-2 font-mono text-[11px] text-white">
-                            {u.email ?? "—"}
+                            {u.email ?? "-"}
                           </td>
                           <td className="px-3 py-2 text-[#888]">{u.provider}</td>
                           <td className="px-3 py-2">

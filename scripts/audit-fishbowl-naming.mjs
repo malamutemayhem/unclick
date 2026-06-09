@@ -8,7 +8,7 @@
 //
 // Scans the working tree for legacy Fishbowl / Popcorn naming and groups
 // matches by layer (api/, lib/, tests, ui, docs). The output is the input to
-// the compat-map doc — it tells reviewers which files still need migration
+// the compat-map doc; it tells reviewers which files still need migration
 // and which legacy names are still load-bearing.
 //
 // Pure stdlib. Always exits 0 (informational).

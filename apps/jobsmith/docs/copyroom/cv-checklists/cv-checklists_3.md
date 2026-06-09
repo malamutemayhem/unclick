@@ -1,4 +1,4 @@
-# CV Checklists — Round 3
+# CV Checklists: Round 3
 
 Companion to `cv-checklists.md` (Round 1) and `cv-checklists-round-2.md` (Round 2). Zero overlap with either. This round covers what happens before, around, and after the CV: the channels, the prep, the long game, and the stuff that determines whether the CV even gets read. No em dashes.
 

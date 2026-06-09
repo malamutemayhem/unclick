@@ -97,7 +97,7 @@ Additional memory operations (manage_decay, store_code, log_conversation, supers
 
 ## Adding a new tool
 
-1. Create `api/*-tool.ts` with the Vercel handler and endpoint logic
+1. Create `packages/mcp-server/src/<slug>-tool.ts` with the connector logic
 2. Wire it in `packages/mcp-server/src/tool-wiring.ts` (add name, description, category, and endpoint mapping)
 3. Add a tile in `src/pages/Tools.tsx`
 4. If it should appear in `ListTools`, add it intentionally to the first-party tool surface in `packages/mcp-server/src/server.ts`

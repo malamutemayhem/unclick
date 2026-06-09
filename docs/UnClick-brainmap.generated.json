@@ -15665,8 +15665,8 @@
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
-      "hash": "48f1919d4056",
-      "bytes": 14795
+      "hash": "6a69546e7223",
+      "bytes": 14794
     },
     {
       "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
@@ -15745,8 +15745,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "825a4928a569",
-      "bytes": 26632
+      "hash": "48525d7a37d1",
+      "bytes": 26608
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -15895,7 +15895,7 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "0cf7c397e1b5",
+      "hash": "5d2ee9cd8690",
       "bytes": 5401
     },
     {
@@ -15945,8 +15945,8 @@
     },
     {
       "source": "src/pages/Dispatch.tsx",
-      "hash": "2cac7e8758d3",
-      "bytes": 15470
+      "hash": "cbe1263c226f",
+      "bytes": 15459
     },
     {
       "source": "src/pages/Docs.tsx",
@@ -15975,8 +15975,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "86f887990094",
-      "bytes": 8440
+      "hash": "c3b16f3ec268",
+      "bytes": 8416
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -16400,7 +16400,7 @@
     },
     {
       "source": ".github/workflows/dirty-branch-hygiene.yml",
-      "hash": "3df7d09eebc7",
+      "hash": "d5ca538bd8a9",
       "bytes": 2190
     },
     {
