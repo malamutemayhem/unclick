@@ -10,7 +10,7 @@ import {
 const long = (prefix: string, size: number) => `${prefix} ${"x".repeat(size)}`;
 
 describe("strict-client memory response bounds", () => {
-  test("load_memory compact mode skips session bodies and keeps payload small", () => {
+  test("load_memory compact mode surfaces session stubs, skips bodies, and keeps payload small", () => {
     const raw = {
       business_context: Array.from({ length: 20 }, (_, i) => ({
         category: "rule",
@@ -45,8 +45,33 @@ describe("strict-client memory response bounds", () => {
 
     const compact = compactStartupContextForStrictClients(raw);
     const text = JSON.stringify(compact);
-    assert.ok(text.length < 8000, `payload was ${text.length} chars`);
-    assert.equal((compact as { recent_sessions: unknown[] }).recent_sessions.length, 0);
+    // Lite stays under the strict-client budget AND stays smaller than the
+    // full-body (non-lite) payload, proving bodies are skipped, not dumped. The
+    // non-session baseline for this extreme synthetic input is already ~8KB, so
+    // the bounded stubs add only a few hundred chars on top.
+    const fullBody = JSON.stringify(compactStartupContextForStrictClients(raw, true));
+    assert.ok(text.length < 9500, `payload was ${text.length} chars`);
+    assert.ok(text.length < fullBody.length, `lite (${text.length}) should be smaller than full bodies (${fullBody.length})`);
+    // Lite mode surfaces compact session stubs (so the latest threads stay
+    // visible) but omits the heavier bodies and keeps the payload small.
+    const recentSessions = (compact as { recent_sessions: Array<Record<string, unknown>> }).recent_sessions;
+    assert.equal(recentSessions.length, 3);
+    for (const stub of recentSessions) {
+      assert.ok(stub.session_id, "stub keeps session_id");
+      assert.ok(stub.created_at, "stub keeps created_at");
+      assert.ok(
+        typeof stub.summary === "string" && (stub.summary as string).length < 200,
+        "stub summary is a short headline, not a full body"
+      );
+      assert.equal("decisions" in stub, false, "lite stub omits decisions body");
+      assert.equal("open_loops" in stub, false, "lite stub omits open_loops body");
+      assert.equal("topics" in stub, false, "lite stub omits topics body");
+    }
+    assert.equal(
+      (compact as { response_bounds: { recent_sessions_bodies_included: boolean } }).response_bounds
+        .recent_sessions_bodies_included,
+      false
+    );
 
     const profileCard = (compact as { profile_card: { source_receipts: Array<{ redaction_state?: string }> } }).profile_card;
     assert.ok(profileCard);

@@ -432,7 +432,9 @@ function buildMemoryProfileCard(params: {
 
   const sessionHealth = params.includeSessionSummaries
     ? `${Math.min(params.sessions.length, 3)} of ${params.sessions.length} recent session summaries returned`
-    : "Recent session bodies omitted in lite mode";
+    : params.sessions.length > 0
+      ? `${Math.min(params.sessions.length, 3)} of ${params.sessions.length} recent session stubs returned; bodies omitted in lite mode (call load_memory lite=false for full bodies)`
+      : "No recent sessions in window";
 
   return {
     profile_summary: profileSummary,
@@ -558,26 +560,39 @@ export function compactStartupContextForStrictClients(
     const r = asRecord(row) ?? {};
     return { slug: r.slug, title: typeof r.title === "string" ? capText(r.title, 60) : r.title, category: r.category, tags: compactStringArray(r.tags, 3, 32), updated_at: r.updated_at };
   });
-  out.recent_sessions = includeSessionSummaries
-    ? sessions.slice(0, 3).map((row) => {
-        const r = asRecord(row) ?? {};
-        return {
-          session_id: r.session_id,
-          platform: r.platform,
-          summary: typeof r.summary === "string" ? capText(r.summary, 350) : r.summary,
-          decisions: compactStringArray(r.decisions),
-          open_loops: compactStringArray(r.open_loops),
-          topics: compactStringArray(r.topics),
-          created_at: r.created_at,
-        };
-      })
-    : [];
+  // Lite mode skips the heavier session *bodies* (decisions/open_loops/topics)
+  // and tightens the summary, but still surfaces a compact stub per recent
+  // session. Returning [] here (the previous behavior) hid even the existence
+  // and headline of the latest cross-session threads from the default load
+  // path, so an agent answering "what is the latest" could not see them or know
+  // to fetch full bodies via load_memory(lite=false) / search_memory.
+  out.recent_sessions = sessions.slice(0, 3).map((row) => {
+    const r = asRecord(row) ?? {};
+    if (includeSessionSummaries) {
+      return {
+        session_id: r.session_id,
+        platform: r.platform,
+        summary: typeof r.summary === "string" ? capText(r.summary, 350) : r.summary,
+        decisions: compactStringArray(r.decisions),
+        open_loops: compactStringArray(r.open_loops),
+        topics: compactStringArray(r.topics),
+        created_at: r.created_at,
+      };
+    }
+    return {
+      session_id: r.session_id,
+      platform: r.platform,
+      summary: typeof r.summary === "string" ? capText(r.summary, 140) : r.summary,
+      created_at: r.created_at,
+    };
+  });
   out.retrieval_plan = buildMemoryRetrievalPlan();
   out.response_bounds = {
     compact: true,
     business_context_returned: compactBusiness.length,
     knowledge_library_returned: Math.min(library.length, 6),
-    recent_sessions_returned: includeSessionSummaries ? Math.min(sessions.length, 3) : 0,
+    recent_sessions_returned: Math.min(sessions.length, 3),
+    recent_sessions_bodies_included: includeSessionSummaries,
     recent_sessions_available_in_loaded_window: sessions.length,
     active_facts_returned: Math.min(startupFacts.length, 12),
     active_facts_available_in_loaded_window: facts.length,
