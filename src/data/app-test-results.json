@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T02:43:00.000Z",
+  "updatedAt": "2026-06-09T02:55:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4546,6 +4546,30 @@
       "note": "persistent_array provides version-controlled array via persistent segment tree. Local computation, all tests pass.",
       "testedAt": "2026-06-09T02:43:00.000Z",
       "toolsTested": ["persistent_array"]
+    },
+    "suffixtree": {
+      "status": "pass",
+      "note": "suffix_tree builds Ukkonen suffix tree, counts distinct substrings and finds LRS. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": ["suffix_tree"]
+    },
+    "linkcut": {
+      "status": "pass",
+      "note": "link_cut_tree provides dynamic forest connectivity with link/cut/path queries. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": ["link_cut_tree"]
+    },
+    "condensation": {
+      "status": "pass",
+      "note": "graph_condensation computes SCC condensation into DAG via Kosaraju. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": ["graph_condensation"]
+    },
+    "mosalgo": {
+      "status": "pass",
+      "note": "mos_algorithm processes offline range queries with sqrt decomposition. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": ["mos_algorithm"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
