@@ -818,6 +818,10 @@ import { moebiusFunction } from "./moebius-tool.js";
 import { zFunction } from "./zfunction-tool.js";
 import { chineseRemainder } from "./chineseremainder-tool.js";
 import { lucasTheorem } from "./lucas-tool.js";
+import { duvalFactorize } from "./duval-tool.js";
+import { goertzel } from "./goertzel-tool.js";
+import { burrowsWheeler } from "./bwt-tool.js";
+import { ackermannFunction } from "./ackermann-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12115,6 +12119,58 @@ export const ADDITIONAL_TOOLS = [
         k: { type: "number", description: "Non-negative integer k (k <= n)" },
         p: { type: "number", description: "Prime modulus" },
       }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── duval-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "duval_factorize",
+    description: "Compute the Lyndon factorization of a string using Duval's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to factorize (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── goertzel-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "goertzel",
+    description: "Compute a single DFT frequency bin using the Goertzel algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        samples: { type: "array", items: { type: "number" }, description: "Array of real-valued samples" },
+        bin: { type: "number", description: "Target frequency bin index (0 to N-1)" },
+      }, required: ["samples", "bin"],
+    },
+  },
+
+  // ── bwt-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "burrows_wheeler",
+    description: "Compute the Burrows-Wheeler Transform (forward or inverse).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (or BWT output for inverse mode)" },
+        inverse: { type: "boolean", description: "If true, perform inverse BWT" },
+        original_index: { type: "number", description: "Original index (required for inverse mode)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ackermann-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ackermann",
+    description: "Compute the Ackermann function A(m, n).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        m: { type: "number", description: "Non-negative integer m (max 4)" },
+        n: { type: "number", description: "Non-negative integer n" },
+      }, required: ["m", "n"],
     },
   },
 
@@ -23995,6 +24051,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   z_function:                    (args) => zFunction(args),
   chinese_remainder:             (args) => chineseRemainder(args),
   lucas_theorem:                 (args) => lucasTheorem(args),
+
+  // batch 86: Duval, Goertzel, Burrows-Wheeler, Ackermann
+  duval_factorize:               (args) => duvalFactorize(args),
+  goertzel:                      (args) => goertzel(args),
+  burrows_wheeler:               (args) => burrowsWheeler(args),
+  ackermann:                     (args) => ackermannFunction(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (614 external connectors)
+## Distribution (618 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 575 | 94% |
+| L5 | Agentic | 579 | 94% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 6% |
 | L1 | Wrapper | 3 | 0% |
 
-**Hardened (reliability bar met): 241 of 614 (39%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 618 (39%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,13 +34,14 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 575 of 578 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 579 of 582 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
 These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
 
 - `abstract-holidays` (L5 Agentic): not-hardened, no-rate-limit, no-memory
+- `ackermann` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `acnhapi` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `acronymgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `ahocorasick` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -74,6 +75,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `braille` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `breakingbad` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `bucketsort` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `bwt` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `camelsnake` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `carbonintensity` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `cartesiantree` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -134,6 +136,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `dotproduct` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `dummyimage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `dummyjson` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `duval` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `edmondskarp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `eertree` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `emojihub` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -172,6 +175,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `geojs` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `geomseries` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `ghibli` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `goertzel` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `graph` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `graphcolor` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `gutendex` (L5 Agentic): not-hardened, no-rate-limit, no-memory
@@ -418,6 +422,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `abn` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `abstract-holidays` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `abuseipdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ackermann` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `acnhapi` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `acronymgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `adviceslip` | Yes | - | - | Yes | Yes | no-memory |
@@ -473,6 +478,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `brewery` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `bucketsort` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `bungie` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `bwt` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `calcom` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calendly` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `camelsnake` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -564,6 +570,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `dropbox` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `dummyimage` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `dummyjson` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
+| L5 Agentic | `duval` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebird` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `edmondskarp` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -621,6 +628,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ghost` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `giphy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `github-emoji` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `goertzel` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `graph` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `graphcolor` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `groq` | Yes | - | - | Yes | Yes | no-memory |

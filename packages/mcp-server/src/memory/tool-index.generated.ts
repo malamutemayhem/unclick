@@ -60,6 +60,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ackermann",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ackermann",
+        "description": "Compute the Ackermann function A(m, n)."
+      }
+    ]
+  },
+  {
     "app": "acnhapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -906,6 +916,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bungie_search_entities",
         "description": "Search Destiny 2 manifest entities."
+      }
+    ]
+  },
+  {
+    "app": "bwt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "burrows_wheeler",
+        "description": "Compute the Burrows-Wheeler Transform (forward or inverse)."
       }
     ]
   },
@@ -2522,6 +2542,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "duval",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "duval_factorize",
+        "description": "Compute the Lyndon factorization of a string using Duval's algorithm."
+      }
+    ]
+  },
+  {
     "app": "ebay",
     "category": "AI",
     "tools": [
@@ -3514,6 +3544,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "gitlab_action",
         "description": "Interact with the GitLab REST API: search projects, get project details, list issues and merge requests, and look up users. Supports self-hosted GitLab instances."
+      }
+    ]
+  },
+  {
+    "app": "goertzel",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "goertzel",
+        "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
       }
     ]
   },

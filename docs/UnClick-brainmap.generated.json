@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1065,
+    "inventory": 1069,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 640,
+    "tools": 644,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 640
+      "count": 644
     },
     {
       "id": "rooms",
@@ -4232,6 +4232,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ackermann-packages-mcp-server-src-ackermann-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ackermann",
+      "kind": "MCP tool",
+      "meaning": "ackermann MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ackermann-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-acnhapi-packages-mcp-server-src-acnhapi-tool-ts-no-route",
       "division": "Tools",
       "name": "acnhapi",
@@ -4798,6 +4808,16 @@
       "kind": "MCP tool",
       "meaning": "bungie MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/bungie-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-bwt-packages-mcp-server-src-bwt-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bwt",
+      "kind": "MCP tool",
+      "meaning": "bwt MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bwt-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5822,6 +5842,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-duval-packages-mcp-server-src-duval-tool-ts-no-route",
+      "division": "Tools",
+      "name": "duval",
+      "kind": "MCP tool",
+      "meaning": "duval MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/duval-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-ebay-packages-mcp-server-src-ebay-tool-ts-no-route",
       "division": "Tools",
       "name": "ebay",
@@ -6458,6 +6488,16 @@
       "kind": "MCP tool",
       "meaning": "gitlab MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gitlab-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-goertzel-packages-mcp-server-src-goertzel-tool-ts-no-route",
+      "division": "Tools",
+      "name": "goertzel",
+      "kind": "MCP tool",
+      "meaning": "goertzel MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/goertzel-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11361,6 +11401,11 @@
       "packages/mcp-server/src/abuseipdb-tool.ts"
     ],
     [
+      "ackermann",
+      "ackermann MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ackermann-tool.ts"
+    ],
+    [
       "acnhapi",
       "acnhapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/acnhapi-tool.ts"
@@ -11644,6 +11689,11 @@
       "bungie",
       "bungie MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bungie-tool.ts"
+    ],
+    [
+      "bwt",
+      "bwt MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bwt-tool.ts"
     ],
     [
       "calcom",
@@ -12156,6 +12206,11 @@
       "packages/mcp-server/src/dummyjson-tool.ts"
     ],
     [
+      "duval",
+      "duval MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/duval-tool.ts"
+    ],
+    [
       "ebay",
       "ebay MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ebay-tool.ts"
@@ -12474,6 +12529,11 @@
       "gitlab",
       "gitlab MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gitlab-tool.ts"
+    ],
+    [
+      "goertzel",
+      "goertzel MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/goertzel-tool.ts"
     ],
     [
       "graph",
@@ -15609,6 +15669,11 @@
       "bytes": 6263
     },
     {
+      "source": "packages/mcp-server/src/ackermann-tool.ts",
+      "hash": "8b8cf5a1062e",
+      "bytes": 2700
+    },
+    {
       "source": "packages/mcp-server/src/acnhapi-tool.ts",
       "hash": "45c37b0289ed",
       "bytes": 2427
@@ -15787,11 +15852,6 @@
       "source": "packages/mcp-server/src/berlekamp-tool.ts",
       "hash": "5ac75aee3d2e",
       "bytes": 2512
-    },
-    {
-      "source": "packages/mcp-server/src/bezier-tool.ts",
-      "hash": "29ff88e26cbb",
-      "bytes": 2561
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T03:51:16.832Z",
+  "updatedAt": "2026-06-09T03:59:14.087Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5273,6 +5273,38 @@
       "testedAt": "2026-06-09T03:51:16.832Z",
       "toolsTested": [
         "lucas_theorem"
+      ]
+    },
+    "duval": {
+      "status": "pass",
+      "note": "duval_factorize({text:\"abbaabba\"}) returned correct Lyndon factorization",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "duval_factorize"
+      ]
+    },
+    "goertzel": {
+      "status": "pass",
+      "note": "goertzel({samples:[1,1,1,1],bin:0}) returned correct DC magnitude",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "goertzel"
+      ]
+    },
+    "bwt": {
+      "status": "pass",
+      "note": "burrows_wheeler({text:\"banana\"}) returned correct BWT and original_index",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "burrows_wheeler"
+      ]
+    },
+    "ackermann": {
+      "status": "pass",
+      "note": "ackermann({m:3,n:4}) returned 125",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "ackermann"
       ]
     }
   },
