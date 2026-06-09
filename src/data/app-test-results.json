@@ -4138,6 +4138,30 @@
       "note": "bfs_search does breadth-first search for shortest paths and reachability. Local computation.",
       "testedAt": "2026-06-09T18:00:00.000Z",
       "toolsTested": ["bfs_search"]
+    },
+    "montecarlo": {
+      "status": "pass",
+      "note": "monte_carlo_estimate estimates pi or integrals via random sampling. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": ["monte_carlo_estimate"]
+    },
+    "dfs": {
+      "status": "pass",
+      "note": "dfs_search does depth-first search with cycle detection. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": ["dfs_search"]
+    },
+    "percentile": {
+      "status": "pass",
+      "note": "percentile_calc computes p5-p99 and percentile rank of values. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": ["percentile_calc"]
+    },
+    "mst": {
+      "status": "pass",
+      "note": "mst_find computes minimum spanning tree via Kruskal's algorithm. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": ["mst_find"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

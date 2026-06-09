@@ -722,6 +722,10 @@ import { convolution } from "./convolution-tool.js";
 import { rleEncodeDecode } from "./rle2-tool.js";
 import { descriptiveStats } from "./descriptive-tool.js";
 import { bfsSearch } from "./bfs-tool.js";
+import { monteCarloEstimate } from "./montecarlo-tool.js";
+import { dfsSearch } from "./dfs-tool.js";
+import { percentileCalc } from "./percentile-tool.js";
+import { mstFind } from "./mst-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10851,6 +10855,64 @@ export const ADDITIONAL_TOOLS = [
         target: { type: "string", description: "Optional target node to find path to" },
         directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
       }, required: ["edges", "start"],
+    },
+  },
+
+  // ── montecarlo-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "monte_carlo_estimate",
+    description: "Monte Carlo estimation: estimate pi or compute a definite integral via random sampling.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        method: { type: "string", enum: ["pi", "integral"], description: "Estimation method (default pi)" },
+        samples: { type: "integer", description: "Number of random samples (default 10000, max 10000000)" },
+        expression: { type: "string", description: "JS expression in x for integral method" },
+        a: { type: "number", description: "Lower bound for integral" },
+        b: { type: "number", description: "Upper bound for integral" },
+        seed: { type: "integer", description: "Random seed for reproducibility" },
+      }, required: [],
+    },
+  },
+
+  // ── dfs-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "dfs_search",
+    description: "Depth-first search on a graph. Finds a path, visit order, reachable count, and detects cycles.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges", "start"],
+    },
+  },
+
+  // ── percentile-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "percentile_calc",
+    description: "Compute percentiles of a dataset (default p5-p99) and optionally find the percentile rank of a given value.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+        percentiles: { type: "array", items: { type: "number" }, description: "Percentiles to compute (default [5,10,25,50,75,90,95,99])" },
+        value: { type: "number", description: "Optional value to find its percentile rank" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── mst-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "mst_find",
+    description: "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted edges" },
+      }, required: ["edges"],
     },
   },
 
@@ -22599,6 +22661,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   rle_encode_decode:         (args) => rleEncodeDecode(args),
   descriptive_stats:         (args) => descriptiveStats(args),
   bfs_search:                (args) => bfsSearch(args),
+
+  // batch 64: Monte Carlo, DFS, percentile, MST
+  monte_carlo_estimate:      (args) => monteCarloEstimate(args),
+  dfs_search:                (args) => dfsSearch(args),
+  percentile_calc:           (args) => percentileCalc(args),
+  mst_find:                  (args) => mstFind(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

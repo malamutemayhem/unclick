@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (526 external connectors)
+## Distribution (530 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 487 | 93% |
+| L5 | Agentic | 491 | 93% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 7% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 526 (46%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 530 (45%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 487 of 490 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 491 of 494 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -103,6 +103,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `datamuse` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `dblp` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `descriptive` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `dfs` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `diceware` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `difftext` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `digimon` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -196,7 +197,9 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `mhwdb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `midpoint` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `modpow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `montecarlo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `morse` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mst` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mtg` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `multiavatar` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mymemory` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -233,6 +236,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `pascaltri` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `passwordgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `percentage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `percentile` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `permutation` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `phonetic` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `piapprox` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -437,6 +441,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `descriptive` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `dfs` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `diceware` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `dictionary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `difftext` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -594,7 +599,9 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mixpanel` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `modpow` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `montecarlo` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `morse` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `mst` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `mtg` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `multiavatar` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `musicbrainz` | Yes | - | - | Yes | Yes | no-memory |
@@ -648,6 +655,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pascaltri` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `passwordgen` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `percentage` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `percentile` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `permutation` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `phonetic` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `piapprox` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |

@@ -1974,6 +1974,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dfs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dfs_search",
+        "description": "Depth-first search on a graph. Finds a path, visit order, reachable count, and detects cycles."
+      }
+    ]
+  },
+  {
     "app": "diceware",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4796,12 +4806,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "montecarlo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "monte_carlo_estimate",
+        "description": "Monte Carlo estimation: estimate pi or compute a definite integral via random sampling."
+      }
+    ]
+  },
+  {
     "app": "morse",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "morse_convert",
         "description": "Encode text to Morse code or decode Morse code to text."
+      }
+    ]
+  },
+  {
+    "app": "mst",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mst_find",
+        "description": "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm."
       }
     ]
   },
@@ -5696,6 +5726,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "percentage_calc",
         "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+      }
+    ]
+  },
+  {
+    "app": "percentile",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "percentile_calc",
+        "description": "Compute percentiles of a dataset (default p5-p99) and optionally find the percentile rank of a given value."
       }
     ]
   },
