@@ -680,6 +680,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitcount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bit_count",
+        "description": "Count set bits (popcount), total bits, and convert between decimal, binary, hex, and octal. Detects powers of two."
+      }
+    ]
+  },
+  {
     "app": "bitwise",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1580,6 +1590,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "corporate_bs_phrase",
         "description": "Generate a random corporate buzzword phrase."
+      }
+    ]
+  },
+  {
+    "app": "correlation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "correlation_calc",
+        "description": "Compute Pearson correlation coefficient, r-squared, covariance, and linear regression between two numeric arrays."
       }
     ]
   },
@@ -3174,6 +3194,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "gitlab_action",
         "description": "Interact with the GitLab REST API: search projects, get project details, list issues and merge requests, and look up users. Supports self-hosted GitLab instances."
+      }
+    ]
+  },
+  {
+    "app": "graph",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "graph_analyze",
+        "description": "Analyze a graph: count nodes, edges, connected components, density, degrees, and detect self-loops."
       }
     ]
   },
@@ -6810,6 +6840,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "runlength_process",
         "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
+      }
+    ]
+  },
+  {
+    "app": "runstats",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "running_stats",
+        "description": "Compute running (sliding window) mean, standard deviation, min, and max over a numeric array."
       }
     ]
   },

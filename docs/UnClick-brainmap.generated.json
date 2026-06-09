@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 969,
+    "inventory": 973,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 544,
+    "tools": 548,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 544
+      "count": 548
     },
     {
       "id": "rooms",
@@ -4612,6 +4612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bitcount-packages-mcp-server-src-bitcount-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bitcount",
+      "kind": "MCP tool",
+      "meaning": "bitcount MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bitcount-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bitwise-packages-mcp-server-src-bitwise-tool-ts-no-route",
       "division": "Tools",
       "name": "bitwise",
@@ -5148,6 +5158,16 @@
       "kind": "MCP tool",
       "meaning": "corporatebs MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/corporatebs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-correlation-packages-mcp-server-src-correlation-tool-ts-no-route",
+      "division": "Tools",
+      "name": "correlation",
+      "kind": "MCP tool",
+      "meaning": "correlation MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/correlation-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6118,6 +6138,16 @@
       "kind": "MCP tool",
       "meaning": "gitlab MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gitlab-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-graph-packages-mcp-server-src-graph-tool-ts-no-route",
+      "division": "Tools",
+      "name": "graph",
+      "kind": "MCP tool",
+      "meaning": "graph MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/graph-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8372,6 +8402,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-runstats-packages-mcp-server-src-runstats-tool-ts-no-route",
+      "division": "Tools",
+      "name": "runstats",
+      "kind": "MCP tool",
+      "meaning": "runstats MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/runstats-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-runway-packages-mcp-server-src-runway-tool-ts-no-route",
       "division": "Tools",
       "name": "runway",
@@ -10591,6 +10631,11 @@
       "packages/mcp-server/src/bitbucket-tool.ts"
     ],
     [
+      "bitcount",
+      "bitcount MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bitcount-tool.ts"
+    ],
+    [
       "bitwise",
       "bitwise MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bitwise-tool.ts"
@@ -10859,6 +10904,11 @@
       "corporatebs",
       "corporatebs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/corporatebs-tool.ts"
+    ],
+    [
+      "correlation",
+      "correlation MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/correlation-tool.ts"
     ],
     [
       "cosinesim",
@@ -11344,6 +11394,11 @@
       "gitlab",
       "gitlab MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gitlab-tool.ts"
+    ],
+    [
+      "graph",
+      "graph MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/graph-tool.ts"
     ],
     [
       "groq",
@@ -12469,6 +12524,11 @@
       "runlength",
       "runlength MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/runlength-tool.ts"
+    ],
+    [
+      "runstats",
+      "runstats MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/runstats-tool.ts"
     ],
     [
       "runway",

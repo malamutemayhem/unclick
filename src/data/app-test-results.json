@@ -4090,6 +4090,30 @@
       "note": "huffman_code builds Huffman tree and returns codes, compression ratio, entropy. Local computation.",
       "testedAt": "2026-06-09T16:00:00.000Z",
       "toolsTested": ["huffman_code"]
+    },
+    "correlation": {
+      "status": "pass",
+      "note": "correlation_calc computes Pearson r, r-squared, covariance, regression line. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": ["correlation_calc"]
+    },
+    "bitcount": {
+      "status": "pass",
+      "note": "bit_count counts set bits, converts decimal/binary/hex/octal, detects powers of two. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": ["bit_count"]
+    },
+    "runstats": {
+      "status": "pass",
+      "note": "running_stats computes sliding-window mean, std, min, max. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": ["running_stats"]
+    },
+    "graph": {
+      "status": "pass",
+      "note": "graph_analyze counts nodes, edges, components, density, degrees. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": ["graph_analyze"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

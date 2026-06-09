@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 543,
-  "toolCount": 1465,
+  "appCount": 547,
+  "toolCount": 1469,
   "categories": [
     "AI",
     "Books",
@@ -784,6 +784,22 @@
         {
           "name": "binomial_probability",
           "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bitcount",
+      "name": "Bit Count",
+      "category": "Utilities",
+      "blurb": "Count set bits, convert between decimal/binary/hex/octal, detect powers of two.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bit_count",
+          "description": "Count set bits (popcount), total bits, and convert between decimal, binary, hex, and octal. Detects powers of two."
         }
       ],
       "level": 5,
@@ -2024,6 +2040,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "correlation",
+      "name": "Correlation",
+      "category": "Utilities",
+      "blurb": "Compute Pearson correlation, r-squared, covariance, and regression line.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "correlation_calc",
+          "description": "Compute Pearson correlation coefficient, r-squared, covariance, and linear regression between two numeric arrays."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "cosinesim",
@@ -4092,6 +4124,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "graph",
+      "name": "Graph Analyze",
+      "category": "Utilities",
+      "blurb": "Analyze graph structure: nodes, edges, components, density, and degrees.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "graph_analyze",
+          "description": "Analyze a graph: count nodes, edges, connected components, density, degrees, and detect self-loops."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "groq",
@@ -9192,6 +9240,22 @@
         {
           "name": "runlength_process",
           "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "runstats",
+      "name": "Running Stats",
+      "category": "Utilities",
+      "blurb": "Compute sliding-window running mean, std, min, and max over numeric data.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "running_stats",
+          "description": "Compute running (sliding window) mean, standard deviation, min, and max over a numeric array."
         }
       ],
       "level": 5,

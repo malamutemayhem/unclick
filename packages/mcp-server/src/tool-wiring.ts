@@ -714,6 +714,10 @@ import { odeSolve } from "./ode-tool.js";
 import { polynomialOps } from "./polynomial-tool.js";
 import { hypothesisTest } from "./hypothesis-tool.js";
 import { huffmanCode } from "./huffman-tool.js";
+import { correlationCalc } from "./correlation-tool.js";
+import { bitCount } from "./bitcount-tool.js";
+import { runningStats } from "./runstats-tool.js";
+import { graphAnalyze } from "./graph-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10737,6 +10741,57 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         text: { type: "string", description: "Text to encode (max 100000 chars)" },
       }, required: ["text"],
+    },
+  },
+
+  // ── correlation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "correlation_calc",
+    description: "Compute Pearson correlation coefficient, r-squared, covariance, and linear regression between two numeric arrays.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        x: { type: "array", items: { type: "number" }, description: "First data array" },
+        y: { type: "array", items: { type: "number" }, description: "Second data array" },
+      }, required: ["x", "y"],
+    },
+  },
+
+  // ── bitcount-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bit_count",
+    description: "Count set bits (popcount), total bits, and convert between decimal, binary, hex, and octal. Detects powers of two.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        value: { type: "string", description: "Integer or binary/hex string (e.g. 42, 0xFF, 0b1010)" },
+      }, required: ["value"],
+    },
+  },
+
+  // ── runstats-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "running_stats",
+    description: "Compute running (sliding window) mean, standard deviation, min, and max over a numeric array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+        window: { type: "integer", description: "Window size (default 5)" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── graph-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "graph_analyze",
+    description: "Analyze a graph: count nodes, edges, connected components, density, degrees, and detect self-loops.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to"] }, description: "Array of edges" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges"],
     },
   },
 
@@ -22473,6 +22528,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   polynomial_ops:            (args) => polynomialOps(args),
   hypothesis_test:           (args) => hypothesisTest(args),
   huffman_code:              (args) => huffmanCode(args),
+
+  // batch 62: correlation, bit count, running stats, graph analysis
+  correlation_calc:          (args) => correlationCalc(args),
+  bit_count:                 (args) => bitCount(args),
+  running_stats:             (args) => runningStats(args),
+  graph_analyze:             (args) => graphAnalyze(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
