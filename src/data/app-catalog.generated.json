@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 639,
-  "toolCount": 1561,
+  "appCount": 643,
+  "toolCount": 1565,
   "categories": [
     "AI",
     "Books",
@@ -100,6 +100,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ackermann",
+      "name": "Ackermann Function",
+      "category": "Utilities",
+      "blurb": "Compute the Ackermann function A(m,n) with closed-form optimization.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ackermann",
+          "description": "Compute the Ackermann function A(m, n)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "acronymgen",
@@ -1176,6 +1192,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bwt",
+      "name": "Burrows-Wheeler",
+      "category": "Utilities",
+      "blurb": "Burrows-Wheeler Transform for text compression preprocessing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "burrows_wheeler",
+          "description": "Compute the Burrows-Wheeler Transform (forward or inverse)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "csuite",
@@ -3314,6 +3346,22 @@
       "hardened": false
     },
     {
+      "slug": "duval",
+      "name": "Duval / Lyndon",
+      "category": "Utilities",
+      "blurb": "Lyndon factorization of a string using Duval's O(n) algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "duval_factorize",
+          "description": "Compute the Lyndon factorization of a string using Duval's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ebay",
       "name": "eBay",
       "category": "Shopping",
@@ -4636,6 +4684,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "goertzel",
+      "name": "Goertzel DFT",
+      "category": "Utilities",
+      "blurb": "Compute a single DFT frequency bin efficiently without a full FFT.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "goertzel",
+          "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "graph",
