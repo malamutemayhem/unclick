@@ -15475,8 +15475,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "a4bc878e2ed7",
-      "bytes": 27974
+      "hash": "0c8b770b718b",
+      "bytes": 28453
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15890,8 +15890,8 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "787aa7be4fb9",
+      "bytes": 94930
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
