@@ -830,6 +830,10 @@ import { grayCode } from "./graycode-tool.js";
 import { catmullRom } from "./catmullrom-tool.js";
 import { rlEncode } from "./rlencode-tool.js";
 import { topoCount } from "./topocount-tool.js";
+import { boothRotation } from "./booth-tool.js";
+import { prefixFunction } from "./prefixfn-tool.js";
+import { matrixRank } from "./matrank-tool.js";
+import { fenwick2D } from "./fenwick2d-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12285,6 +12289,57 @@ export const ADDITIONAL_TOOLS = [
         num_nodes: { type: "number", description: "Number of nodes (max 20)" },
         edges: { type: "array", items: { type: "array" }, description: "Directed edges as [from, to] pairs" },
       }, required: ["num_nodes", "edges"],
+    },
+  },
+
+  // ── booth-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "booth_rotation",
+    description: "Find the lexicographically smallest rotation of a string using Booth's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── prefixfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "prefix_function",
+    description: "Compute the KMP prefix/failure function array, with optional pattern occurrence counting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+        pattern: { type: "string", description: "Optional pattern to count occurrences of" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matrank-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "matrix_rank",
+    description: "Compute the rank of a matrix using Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array" }, description: "2D number array (max 100x100)" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── fenwick2d-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "fenwick_2d",
+    description: "2D Fenwick tree for point updates and rectangle sum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        rows: { type: "number", description: "Number of rows" },
+        cols: { type: "number", description: "Number of columns" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, row, col, row2?, col2?, value?} operations" },
+      }, required: ["rows", "cols", "operations"],
     },
   },
 
@@ -24183,6 +24238,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   catmull_rom:                   (args) => catmullRom(args),
   rl_encode:                     (args) => rlEncode(args),
   topo_count:                    (args) => topoCount(args),
+
+  // batch 89: Booth, Prefix Function, Matrix Rank, Fenwick 2D
+  booth_rotation:                (args) => boothRotation(args),
+  prefix_function:               (args) => prefixFunction(args),
+  matrix_rank:                   (args) => matrixRank(args),
+  fenwick_2d:                    (args) => fenwick2D(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
