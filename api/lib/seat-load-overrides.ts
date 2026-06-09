@@ -1,4 +1,4 @@
-import { classifySeatTier, type ComputeTier } from "../../src/lib/seats/compute-tiers";
+import { classifySeatTier, type ComputeTier } from "../../src/lib/seats/compute-tiers.js";
 
 export type SeatProfileKind = "physical" | "virtual" | "pc_tether";
 export type SeatWorkKind = "brain" | "review" | "fallback";
