@@ -213,6 +213,7 @@ function clamp01(value: number): number {
 }
 
 function round4(value: number): number {
+  if (!Number.isFinite(value)) return 0;
   return Math.round(value * 10_000) / 10_000;
 }
 
@@ -416,7 +417,7 @@ function canonicalScore(row: MemoryDecayFactRow): number {
     clamp01(row.rrf_score ?? 0) +
     clamp01(row.kw_score ?? 0) * 0.1 +
     clamp01(row.cosine_score ?? 0) * 0.25;
-  const access = Math.log1p(Math.max(0, row.access_count ?? 0)) / Math.log(11);
+  const access = clamp01(Math.log1p(Math.max(0, row.access_count ?? 0)) / Math.log(11));
   const updated = parseMs(row.updated_at ?? row.created_at, 0) / 1_000_000_000_000;
   return confidence + effectiveScore + workerSixRankScore + access + updated;
 }

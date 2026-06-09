@@ -74,6 +74,22 @@ describe("selectArm: thompson", () => {
     const sel = selectArm(arms, { strategy: "thompson", random: () => 0.5 });
     expect(sel.arm).toBe("strong");
   });
+
+  it("returns a finite selection when RNG produces degenerate gamma samples", () => {
+    const arms: ArmStats[] = [
+      { arm: "a", pulls: 3, rewardSum: 2, verified: 2 },
+      { arm: "b", pulls: 3, rewardSum: 1, verified: 1 },
+    ];
+    // random()=0 makes every -Math.log(1-0)=0, so both gamma samples are 0.
+    const zeroSel = selectArm(arms, { strategy: "thompson", random: () => 0 });
+    expect(zeroSel.arm).toBeDefined();
+    expect(Number.isFinite(zeroSel.value)).toBe(true);
+
+    // random() near 1 makes -Math.log(~0)=Infinity, so gamma samples overflow.
+    const nearOneSel = selectArm(arms, { strategy: "thompson", random: () => 1 - Number.MIN_VALUE });
+    expect(nearOneSel.arm).toBeDefined();
+    expect(Number.isFinite(nearOneSel.value)).toBe(true);
+  });
 });
 
 describe("arm table + leaderboard", () => {

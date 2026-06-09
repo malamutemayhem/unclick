@@ -46,6 +46,16 @@ describe("memory passport", () => {
       category: "credential",
       confidence: 1,
     });
+    await backend.addFact({
+      fact: "Stripe key sk_live_0000000000fakefake should never export.",
+      category: "credential",
+      confidence: 1,
+    });
+    await backend.addFact({
+      fact: "Webhook secret whsec_0000000000fakefake should never export.",
+      category: "credential",
+      confidence: 1,
+    });
     await backend.writeSessionSummary({
       session_id: "passport-source-session",
       summary: "Passport export keeps non-secret session summaries.",
@@ -65,8 +75,10 @@ describe("memory passport", () => {
     assert.equal(result.bundle.subject_id, "test-subject");
     assert.equal(result.metrics.passport_credential_leakage, 0);
     assert.equal(serialized.includes("sk-test-secret"), false);
+    assert.equal(serialized.includes("sk_live_"), false);
+    assert.equal(serialized.includes("whsec_"), false);
     assert.equal(serialized.includes("lane-ten-silver"), true);
-    assert.equal(result.bundle.summary.redacted_records, 1);
+    assert.equal(result.bundle.summary.redacted_records, 3);
     assert.deepEqual(auditMemoryPassportCredentialLeakage(result.bundle).leak_paths, []);
     assert.deepEqual(verifyMemoryPassportBundle(result.bundle, SIGNING_SECRET), { verified: true });
 
