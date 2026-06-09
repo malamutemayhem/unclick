@@ -218,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
 | packages/mcp-server/src/baseconvert-tool.ts | bbfa716f0f7c | 1246 |
 | packages/mcp-server/src/bellmanford-tool.ts | baef494b3f6a | 2955 |
-| packages/mcp-server/src/bellnum-tool.ts | cc34db6fd7cd | 2382 |
+| packages/mcp-server/src/berlekamp-tool.ts | 5ac75aee3d2e | 2512 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -245,7 +245,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 57 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 676 |
+| Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -424,7 +424,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
 | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/baseconvert-tool.ts |
 | bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bellmanford-tool.ts |
-| bellnum | bellnum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bellnum-tool.ts |
 | berlekamp | berlekamp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/berlekamp-tool.ts |
 | bezier | bezier MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezier-tool.ts |
 | bezierclip | bezierclip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezierclip-tool.ts |
@@ -699,7 +698,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kosaraju-tool.ts |
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
-| latinsquare | latinsquare MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/latinsquare-tool.ts |
 | lca | lca MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lca-tool.ts |
 | lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcprefix-tool.ts |
 | lcs | lcs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcs-tool.ts |
@@ -720,7 +718,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem2-tool.ts |
 | loremname | loremname MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/loremname-tool.ts |
 | lotr | lotr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lotr-tool.ts |
-| lpnorm | lpnorm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lpnorm-tool.ts |
 | lrucache | lrucache MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lrucache-tool.ts |
 | lucas | lucas MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lucas-tool.ts |
 | luhn | luhn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/luhn-tool.ts |
@@ -856,7 +853,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/prefixfn-tool.ts |
 | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primecheck-tool.ts |
 | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primefactor-tool.ts |
-| primepi | primepi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primepi-tool.ts |
 | proportion | proportion MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/proportion-tool.ts |
 | ptv | ptv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ptv-tool.ts |
 | pubchem | pubchem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pubchem-tool.ts |
@@ -1526,7 +1522,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
 | Tools | MCP tool | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/baseconvert-tool.ts |
 | Tools | MCP tool | bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bellmanford-tool.ts |
-| Tools | MCP tool | bellnum | bellnum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bellnum-tool.ts |
 | Tools | MCP tool | berlekamp | berlekamp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/berlekamp-tool.ts |
 | Tools | MCP tool | bezier | bezier MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezier-tool.ts |
 | Tools | MCP tool | bezierclip | bezierclip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezierclip-tool.ts |
@@ -1801,7 +1796,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kosaraju-tool.ts |
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
-| Tools | MCP tool | latinsquare | latinsquare MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/latinsquare-tool.ts |
 | Tools | MCP tool | lca | lca MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lca-tool.ts |
 | Tools | MCP tool | lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcprefix-tool.ts |
 | Tools | MCP tool | lcs | lcs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcs-tool.ts |
@@ -1822,7 +1816,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem2-tool.ts |
 | Tools | MCP tool | loremname | loremname MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/loremname-tool.ts |
 | Tools | MCP tool | lotr | lotr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lotr-tool.ts |
-| Tools | MCP tool | lpnorm | lpnorm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lpnorm-tool.ts |
 | Tools | MCP tool | lrucache | lrucache MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lrucache-tool.ts |
 | Tools | MCP tool | lucas | lucas MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lucas-tool.ts |
 | Tools | MCP tool | luhn | luhn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/luhn-tool.ts |
@@ -1958,7 +1951,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/prefixfn-tool.ts |
 | Tools | MCP tool | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primecheck-tool.ts |
 | Tools | MCP tool | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primefactor-tool.ts |
-| Tools | MCP tool | primepi | primepi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primepi-tool.ts |
 | Tools | MCP tool | proportion | proportion MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/proportion-tool.ts |
 | Tools | MCP tool | ptv | ptv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ptv-tool.ts |
 | Tools | MCP tool | pubchem | pubchem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pubchem-tool.ts |

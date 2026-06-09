@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1111,
+    "inventory": 1107,
     "source_manifest": 225,
     "pages": 93,
-    "tools": 676,
+    "tools": 672,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 676
+      "count": 672
     },
     {
       "id": "rooms",
@@ -4692,16 +4692,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-bellnum-packages-mcp-server-src-bellnum-tool-ts-no-route",
-      "division": "Tools",
-      "name": "bellnum",
-      "kind": "MCP tool",
-      "meaning": "bellnum MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/bellnum-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-berlekamp-packages-mcp-server-src-berlekamp-tool-ts-no-route",
       "division": "Tools",
       "name": "berlekamp",
@@ -7442,16 +7432,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-latinsquare-packages-mcp-server-src-latinsquare-tool-ts-no-route",
-      "division": "Tools",
-      "name": "latinsquare",
-      "kind": "MCP tool",
-      "meaning": "latinsquare MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/latinsquare-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-lca-packages-mcp-server-src-lca-tool-ts-no-route",
       "division": "Tools",
       "name": "lca",
@@ -7648,16 +7628,6 @@
       "kind": "MCP tool",
       "meaning": "lotr MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/lotr-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "tools-mcp-tool-lpnorm-packages-mcp-server-src-lpnorm-tool-ts-no-route",
-      "division": "Tools",
-      "name": "lpnorm",
-      "kind": "MCP tool",
-      "meaning": "lpnorm MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/lpnorm-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9008,16 +8978,6 @@
       "kind": "MCP tool",
       "meaning": "primefactor MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/primefactor-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "tools-mcp-tool-primepi-packages-mcp-server-src-primepi-tool-ts-no-route",
-      "division": "Tools",
-      "name": "primepi",
-      "kind": "MCP tool",
-      "meaning": "primepi MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/primepi-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12031,11 +11991,6 @@
       "packages/mcp-server/src/bellmanford-tool.ts"
     ],
     [
-      "bellnum",
-      "bellnum MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/bellnum-tool.ts"
-    ],
-    [
       "berlekamp",
       "berlekamp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/berlekamp-tool.ts"
@@ -13406,11 +13361,6 @@
       "packages/mcp-server/src/lastfm-tool.ts"
     ],
     [
-      "latinsquare",
-      "latinsquare MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/latinsquare-tool.ts"
-    ],
-    [
       "lca",
       "lca MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lca-tool.ts"
@@ -13509,11 +13459,6 @@
       "lotr",
       "lotr MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lotr-tool.ts"
-    ],
-    [
-      "lpnorm",
-      "lpnorm MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/lpnorm-tool.ts"
     ],
     [
       "lrucache",
@@ -14189,11 +14134,6 @@
       "primefactor",
       "primefactor MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/primefactor-tool.ts"
-    ],
-    [
-      "primepi",
-      "primepi MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/primepi-tool.ts"
     ],
     [
       "proportion",
@@ -16509,9 +16449,9 @@
       "bytes": 2955
     },
     {
-      "source": "packages/mcp-server/src/bellnum-tool.ts",
-      "hash": "cc34db6fd7cd",
-      "bytes": 2382
+      "source": "packages/mcp-server/src/berlekamp-tool.ts",
+      "hash": "5ac75aee3d2e",
+      "bytes": 2512
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
