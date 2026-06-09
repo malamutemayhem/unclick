@@ -780,6 +780,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitmask",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bitmask_ops",
+        "description": "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits."
+      }
+    ]
+  },
+  {
     "app": "bitwise",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2084,6 +2094,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "debruijn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "de_bruijn",
+        "description": "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once."
+      }
+    ]
+  },
+  {
     "app": "deckofcards",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2988,6 +3008,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "fenwick_tree",
         "description": "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries."
+      }
+    ]
+  },
+  {
+    "app": "fenwickrange",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fenwick_range",
+        "description": "Fenwick tree with range update and range query support using two BITs."
       }
     ]
   },
@@ -7928,6 +7958,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "shortcut_list_epics",
         "description": "List Shortcut epics."
+      }
+    ]
+  },
+  {
+    "app": "shunting",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "shunting_yard",
+        "description": "Convert an infix math expression to postfix (RPN) and evaluate it."
       }
     ]
   },

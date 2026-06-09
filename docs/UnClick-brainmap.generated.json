@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1069,
+    "inventory": 1073,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 644,
+    "tools": 648,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 644
+      "count": 648
     },
     {
       "id": "rooms",
@@ -4712,6 +4712,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bitmask-packages-mcp-server-src-bitmask-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bitmask",
+      "kind": "MCP tool",
+      "meaning": "bitmask MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bitmask-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bitwise-packages-mcp-server-src-bitwise-tool-ts-no-route",
       "division": "Tools",
       "name": "bitwise",
@@ -5572,6 +5582,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-debruijn-packages-mcp-server-src-debruijn-tool-ts-no-route",
+      "division": "Tools",
+      "name": "debruijn",
+      "kind": "MCP tool",
+      "meaning": "debruijn MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/debruijn-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-deckofcards-packages-mcp-server-src-deckofcards-tool-ts-no-route",
       "division": "Tools",
       "name": "deckofcards",
@@ -6128,6 +6148,16 @@
       "kind": "MCP tool",
       "meaning": "fenwick MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/fenwick-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-fenwickrange-packages-mcp-server-src-fenwickrange-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fenwickrange",
+      "kind": "MCP tool",
+      "meaning": "fenwickrange MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fenwickrange-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9322,6 +9352,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-shunting-packages-mcp-server-src-shunting-tool-ts-no-route",
+      "division": "Tools",
+      "name": "shunting",
+      "kind": "MCP tool",
+      "meaning": "shunting MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/shunting-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-sieve-packages-mcp-server-src-sieve-tool-ts-no-route",
       "division": "Tools",
       "name": "sieve",
@@ -11641,6 +11681,11 @@
       "packages/mcp-server/src/bitcount-tool.ts"
     ],
     [
+      "bitmask",
+      "bitmask MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bitmask-tool.ts"
+    ],
+    [
       "bitwise",
       "bitwise MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bitwise-tool.ts"
@@ -12071,6 +12116,11 @@
       "packages/mcp-server/src/dblp-tool.ts"
     ],
     [
+      "debruijn",
+      "debruijn MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/debruijn-tool.ts"
+    ],
+    [
       "deckofcards",
       "deckofcards MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/deckofcards-tool.ts"
@@ -12349,6 +12399,11 @@
       "fenwick",
       "fenwick MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/fenwick-tool.ts"
+    ],
+    [
+      "fenwickrange",
+      "fenwickrange MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fenwickrange-tool.ts"
     ],
     [
       "fft",
@@ -13944,6 +13999,11 @@
       "shortcut",
       "shortcut MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/shortcut-tool.ts"
+    ],
+    [
+      "shunting",
+      "shunting MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/shunting-tool.ts"
     ],
     [
       "sieve",

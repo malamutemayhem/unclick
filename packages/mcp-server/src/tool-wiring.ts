@@ -822,6 +822,10 @@ import { duvalFactorize } from "./duval-tool.js";
 import { goertzel } from "./goertzel-tool.js";
 import { burrowsWheeler } from "./bwt-tool.js";
 import { ackermannFunction } from "./ackermann-tool.js";
+import { deBruijn } from "./debruijn-tool.js";
+import { shuntingYard } from "./shunting-tool.js";
+import { fenwickRange } from "./fenwickrange-tool.js";
+import { bitmaskOps } from "./bitmask-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12171,6 +12175,58 @@ export const ADDITIONAL_TOOLS = [
         m: { type: "number", description: "Non-negative integer m (max 4)" },
         n: { type: "number", description: "Non-negative integer n" },
       }, required: ["m", "n"],
+    },
+  },
+
+  // ── debruijn-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "de_bruijn",
+    description: "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        k: { type: "number", description: "Alphabet size (2-10)" },
+        n: { type: "number", description: "Substring length (1-10)" },
+      }, required: ["k", "n"],
+    },
+  },
+
+  // ── shunting-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "shunting_yard",
+    description: "Convert an infix math expression to postfix (RPN) and evaluate it.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        expression: { type: "string", description: "Infix math expression (e.g. '3 + 4 * 2')" },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── fenwickrange-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "fenwick_range",
+    description: "Fenwick tree with range update and range query support using two BITs.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, left, right, value?} operations" },
+      }, required: ["values", "operations"],
+    },
+  },
+
+  // ── bitmask-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bitmask_ops",
+    description: "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mask: { type: "number", description: "Non-negative integer bitmask" },
+        operation: { type: "string", description: "Operation: info, submasks, supersets, next_permutation, or enumerate" },
+        universe: { type: "number", description: "Universe mask for supersets operation" },
+      }, required: ["mask", "operation"],
     },
   },
 
@@ -24057,6 +24113,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   goertzel:                      (args) => goertzel(args),
   burrows_wheeler:               (args) => burrowsWheeler(args),
   ackermann:                     (args) => ackermannFunction(args),
+
+  // batch 87: de Bruijn, Shunting-Yard, Fenwick Range, Bitmask Ops
+  de_bruijn:                     (args) => deBruijn(args),
+  shunting_yard:                 (args) => shuntingYard(args),
+  fenwick_range:                 (args) => fenwickRange(args),
+  bitmask_ops:                   (args) => bitmaskOps(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

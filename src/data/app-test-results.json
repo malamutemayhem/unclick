@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T03:59:14.087Z",
+  "updatedAt": "2026-06-09T04:06:18.237Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5305,6 +5305,38 @@
       "testedAt": "2026-06-09T03:59:14.087Z",
       "toolsTested": [
         "ackermann"
+      ]
+    },
+    "debruijn": {
+      "status": "pass",
+      "note": "de_bruijn({k:2,n:3}) returned valid 8-char sequence with all binary triples",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "de_bruijn"
+      ]
+    },
+    "shunting": {
+      "status": "pass",
+      "note": "shunting_yard({expression:\"3+4*2\"}) returned postfix and result=11",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "shunting_yard"
+      ]
+    },
+    "fenwickrange": {
+      "status": "pass",
+      "note": "fenwick_range with range update/query returned correct sums",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "fenwick_range"
+      ]
+    },
+    "bitmask": {
+      "status": "pass",
+      "note": "bitmask_ops({mask:5,operation:\"info\"}) returned popcount=2, bits=[0,2]",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "bitmask_ops"
       ]
     }
   },
