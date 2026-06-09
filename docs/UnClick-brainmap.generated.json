@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1041,
-    "source_manifest": 215,
-    "pages": 88,
+    "inventory": 1042,
+    "source_manifest": 216,
+    "pages": 89,
     "tools": 616,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 52
+      "count": 53
     },
     {
       "id": "public-surfaces",
@@ -349,6 +349,16 @@
       "meaning": "Master heartbeat copy policy for scheduled AI seats.",
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "route": "/admin/agents/heartbeat",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-api-src-pages-admin-adminseatsapi-tsx-admin-agents-api",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Api",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Api.",
+      "source": "src/pages/admin/AdminSeatsApi.tsx",
+      "route": "/admin/agents/api",
       "tags": []
     },
     {
@@ -10516,6 +10526,12 @@
       "src/pages/admin/AdminActivity.tsx"
     ],
     [
+      "/admin/agents/api",
+      "Admin Seats Api",
+      "Admin surface for Admin Seats Api.",
+      "src/pages/admin/AdminSeatsApi.tsx"
+    ],
+    [
       "/admin/agents/heartbeat",
       "Admin Seat Heartbeat",
       "Master heartbeat copy policy for scheduled AI seats.",
@@ -14500,13 +14516,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ead5f39c080b",
-      "bytes": 16499
+      "hash": "ddb17c641cf6",
+      "bytes": 16628
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "2c6ec8581d6c",
-      "bytes": 25721
+      "hash": "31a1bb5406a6",
+      "bytes": 26047
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -14747,6 +14763,11 @@
       "source": "src/pages/admin/AdminActivity.tsx",
       "hash": "48f1919d4056",
       "bytes": 14795
+    },
+    {
+      "source": "src/pages/admin/AdminSeatsApi.tsx",
+      "hash": "8852181e8d5a",
+      "bytes": 22139
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
