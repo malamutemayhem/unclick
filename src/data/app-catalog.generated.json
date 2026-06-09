@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 575,
-  "toolCount": 1497,
+  "appCount": 579,
+  "toolCount": 1501,
   "categories": [
     "AI",
     "Books",
@@ -188,6 +188,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ahocorasick",
+      "name": "Aho-Corasick",
+      "category": "Utilities",
+      "blurb": "Multi-pattern string search using the Aho-Corasick automaton.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "aho_corasick_search",
+          "description": "Find all occurrences of multiple patterns in text simultaneously using the Aho-Corasick algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "airtable",
@@ -5506,6 +5522,22 @@
       "hardened": true
     },
     {
+      "slug": "kmp",
+      "name": "KMP Search",
+      "category": "Utilities",
+      "blurb": "Single-pattern string search using Knuth-Morris-Pratt algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmp_search",
+          "description": "Find all occurrences of a pattern in text using Knuth-Morris-Pratt algorithm with failure function."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "knapsack",
       "name": "Knapsack Solver",
       "category": "Utilities",
@@ -9762,6 +9794,22 @@
       "hardened": true
     },
     {
+      "slug": "segtree",
+      "name": "Segment Tree",
+      "category": "Utilities",
+      "blurb": "Segment tree for range queries (sum/min/max) with point updates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "segment_tree",
+          "description": "Build a segment tree for range queries (sum/min/max) with point updates on a mutable array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "semver",
       "name": "Semver Tools",
       "category": "Developer & infra",
@@ -12824,6 +12872,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "zalgo",
+      "name": "Z-Algorithm",
+      "category": "Utilities",
+      "blurb": "Z-array computation and linear-time pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "z_algorithm",
+          "description": "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "zscore",

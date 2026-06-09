@@ -752,6 +752,11 @@ import { suffixArrayBuild } from "./suffixarray-tool.js";
 import { matChainOrder } from "./matchain-tool.js";
 import { fenwickTree } from "./fenwick-tool.js";
 
+import { segTree } from "./segtree-tool.js";
+import { kmpSearch } from "./kmp-tool.js";
+import { ahoCorasickSearch } from "./ahocorasick-tool.js";
+import { zAlgorithm } from "./zalgo-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11211,6 +11216,63 @@ export const ADDITIONAL_TOOLS = [
           items: { type: "object" },
         },
       }, required: ["values"],
+    },
+  },
+
+  // ── segtree-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "segment_tree",
+    description: "Build a segment tree for range queries (sum/min/max) with point updates on a mutable array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array of numbers" },
+        operation: { type: "string", enum: ["sum", "min", "max"], description: "Aggregate operation (default sum)" },
+        operations: {
+          type: "array",
+          description: "Operations: {type:'update',index,value} or {type:'query',left,right}",
+          items: { type: "object" },
+        },
+      }, required: ["values"],
+    },
+  },
+
+  // ── kmp-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "kmp_search",
+    description: "Find all occurrences of a pattern in text using Knuth-Morris-Pratt algorithm with failure function.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        pattern: { type: "string", description: "Pattern to find" },
+      }, required: ["text", "pattern"],
+    },
+  },
+
+  // ── ahocorasick-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "aho_corasick_search",
+    description: "Find all occurrences of multiple patterns in text simultaneously using the Aho-Corasick algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        patterns: { type: "array", items: { type: "string" }, description: "Patterns to search for" },
+      }, required: ["text", "patterns"],
+    },
+  },
+
+  // ── zalgo-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "z_algorithm",
+    description: "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input text" },
+        pattern: { type: "string", description: "Optional pattern to search for" },
+      }, required: ["text"],
     },
   },
 
@@ -22995,6 +23057,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   suffix_array_build:        (args) => suffixArrayBuild(args),
   matrix_chain_order:        (args) => matChainOrder(args),
   fenwick_tree:              (args) => fenwickTree(args),
+
+  // batch 70: Segment Tree, KMP, Aho-Corasick, Z-Algorithm
+  segment_tree:              (args) => segTree(args),
+  kmp_search:                (args) => kmpSearch(args),
+  aho_corasick_search:       (args) => ahoCorasickSearch(args),
+  z_algorithm:               (args) => zAlgorithm(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
