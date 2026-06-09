@@ -63,6 +63,7 @@ import AdminSkills from "./pages/admin/AdminSkills.tsx";
 import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
+import AdminSeatsLocal from "./pages/admin/AdminSeatsLocal.tsx";
 import AdminSeatHeartbeatPage from "./pages/admin/AdminSeatHeartbeat.tsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
 import AdminCodebase from "./pages/admin/AdminCodebase.tsx";
@@ -201,6 +202,7 @@ const App = () => (
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
+            <Route path="agents/local" element={<AdminSeatsLocal />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
             <Route path="jobs" element={<AdminJobs />} />
