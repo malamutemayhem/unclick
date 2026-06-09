@@ -737,7 +737,7 @@ export default function AdminSeatsLocal() {
       {status === "disconnected" && (
         <div className="rounded-lg border border-border/40 bg-card/30 p-8 text-center">
           <Server className="mx-auto h-10 w-10 text-muted-foreground/40" />
-          <h2 className="mt-4 text-sm font-medium">Connect to local models</h2>
+          <h2 className="mt-4 text-sm font-medium text-foreground">Connect to local models</h2>
           <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
             This page detects AI models running on your machine (Ollama, LM Studio, etc).
             Your browser will ask permission to access local network services - this is normal
