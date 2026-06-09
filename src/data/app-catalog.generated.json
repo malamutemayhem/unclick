@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 547,
-  "toolCount": 1469,
+  "appCount": 551,
+  "toolCount": 1473,
   "categories": [
     "AI",
     "Books",
@@ -724,6 +724,22 @@
         {
           "name": "bezier_curve",
           "description": "Compute a Bezier curve from control points with arc length and optional evaluation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bfs",
+      "name": "BFS Search",
+      "category": "Utilities",
+      "blurb": "Breadth-first search for shortest unweighted paths and reachability.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bfs_search",
+          "description": "Breadth-first search on a graph. Finds shortest unweighted path, visit order, and reachable node count."
         }
       ],
       "level": 5,
@@ -2006,6 +2022,22 @@
       "hardened": false
     },
     {
+      "slug": "convolution",
+      "name": "Convolution",
+      "category": "Utilities",
+      "blurb": "Compute discrete convolution of a signal with a kernel (full/same/valid).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convolution",
+          "description": "Compute discrete convolution of a signal with a kernel. Supports full, same, and valid modes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "copypass",
       "name": "CopyPass",
       "category": "Quality (XPass)",
@@ -2548,6 +2580,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "descriptive",
+      "name": "Descriptive Stats",
+      "category": "Utilities",
+      "blurb": "Full descriptive statistics: mean, median, mode, std, skewness, kurtosis, IQR.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "descriptive_stats",
+          "description": "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "diceware",
@@ -9160,6 +9208,22 @@
         {
           "name": "ripe_asn_neighbours",
           "description": "Get peering neighbours for an ASN from RIPE NCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "rle2",
+      "name": "RLE Numeric",
+      "category": "Utilities",
+      "blurb": "Run-length encode or decode numeric arrays for compression analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rle_encode_decode",
+          "description": "Run-length encode a numeric array into runs, or decode runs back to a numeric array."
         }
       ],
       "level": 5,
