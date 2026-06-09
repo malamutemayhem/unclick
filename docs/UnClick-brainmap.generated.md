@@ -36,9 +36,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | package.json | adbb13d02beb | 7084 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
+| seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
 | seed/skills/brand-voice-guidelines.skill.md | 9580d2788e27 | 1248 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
+| seed/skills/codebase-archaeologist.skill.md | 6ecdf38b0aa4 | 3089 |
 | seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
 | seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
 | seed/skills/data-analyst.skill.md | ef28e22c114e | 1233 |
@@ -48,9 +50,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
 | seed/skills/frontend-design-review.skill.md | 149d13cb68d0 | 1377 |
 | seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/incident-responder.skill.md | d9c3d95e5c96 | 3001 |
 | seed/skills/mcp-server-builder.skill.md | a4493b9ae2d7 | 1304 |
 | seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
+| seed/skills/migration-planner.skill.md | e947613042ca | 3240 |
 | seed/skills/pdf-toolkit.skill.md | 918db2b218b2 | 1248 |
+| seed/skills/performance-investigator.skill.md | 20e3abeb7c1c | 3776 |
 | seed/skills/presentation-builder.skill.md | fea5b75a0ec7 | 1250 |
 | seed/skills/react-nextjs-best-practices.skill.md | 3e095e354af9 | 1369 |
 | seed/skills/research-brief-generator.skill.md | 849b249b5f2a | 915 |
@@ -213,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
 | packages/mcp-server/src/baseconvert-tool.ts | bbfa716f0f7c | 1246 |
 | packages/mcp-server/src/bellmanford-tool.ts | baef494b3f6a | 2955 |
-| packages/mcp-server/src/berlekamp-tool.ts | 5ac75aee3d2e | 2512 |
+| packages/mcp-server/src/bellnum-tool.ts | cc34db6fd7cd | 2382 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -240,7 +245,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 57 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 672 |
+| Tools | MCP and gateway capabilities available to seats. | 676 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -248,7 +253,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 138 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -419,6 +424,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
 | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/baseconvert-tool.ts |
 | bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bellmanford-tool.ts |
+| bellnum | bellnum MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bellnum-tool.ts |
 | berlekamp | berlekamp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/berlekamp-tool.ts |
 | bezier | bezier MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezier-tool.ts |
 | bezierclip | bezierclip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezierclip-tool.ts |
@@ -693,6 +699,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kosaraju-tool.ts |
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
+| latinsquare | latinsquare MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/latinsquare-tool.ts |
 | lca | lca MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lca-tool.ts |
 | lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcprefix-tool.ts |
 | lcs | lcs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcs-tool.ts |
@@ -713,6 +720,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lorem2-tool.ts |
 | loremname | loremname MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/loremname-tool.ts |
 | lotr | lotr MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lotr-tool.ts |
+| lpnorm | lpnorm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lpnorm-tool.ts |
 | lrucache | lrucache MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lrucache-tool.ts |
 | lucas | lucas MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lucas-tool.ts |
 | luhn | luhn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/luhn-tool.ts |
@@ -848,6 +856,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/prefixfn-tool.ts |
 | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primecheck-tool.ts |
 | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primefactor-tool.ts |
+| primepi | primepi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primepi-tool.ts |
 | proportion | proportion MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/proportion-tool.ts |
 | ptv | ptv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ptv-tool.ts |
 | pubchem | pubchem MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/pubchem-tool.ts |
@@ -1350,9 +1359,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Modules and apps | skill package | accessibility audit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/accessibility-audit.skill.md |
 | Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |
+| Modules and apps | skill package | api design reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/api-design-reviewer.skill.md |
 | Modules and apps | skill package | brand voice guidelines | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/brand-voice-guidelines.skill.md |
 | Modules and apps | skill package | browser qa tester | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/browser-qa-tester.skill.md |
 | Modules and apps | skill package | builder implementation packet | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/builder-implementation-packet.skill.md |
+| Modules and apps | skill package | codebase archaeologist | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/codebase-archaeologist.skill.md |
 | Modules and apps | skill package | coordinator router | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/coordinator-router.skill.md |
 | Modules and apps | skill package | cross pc context summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/cross-pc-context-summariser.skill.md |
 | Modules and apps | skill package | data analyst | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/data-analyst.skill.md |
@@ -1362,9 +1373,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill package | fix failing ci | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/fix-failing-ci.skill.md |
 | Modules and apps | skill package | frontend design review | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/frontend-design-review.skill.md |
 | Modules and apps | skill package | github pr summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/github-pr-summariser.skill.md |
+| Modules and apps | skill package | incident responder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/incident-responder.skill.md |
 | Modules and apps | skill package | mcp server builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/mcp-server-builder.skill.md |
 | Modules and apps | skill package | memory distiller | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/memory-distiller.skill.md |
+| Modules and apps | skill package | migration planner | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/migration-planner.skill.md |
 | Modules and apps | skill package | pdf toolkit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/pdf-toolkit.skill.md |
+| Modules and apps | skill package | performance investigator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/performance-investigator.skill.md |
 | Modules and apps | skill package | presentation builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/presentation-builder.skill.md |
 | Modules and apps | skill package | react nextjs best practices | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/react-nextjs-best-practices.skill.md |
 | Modules and apps | skill package | research brief generator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/research-brief-generator.skill.md |
@@ -1512,6 +1526,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
 | Tools | MCP tool | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/baseconvert-tool.ts |
 | Tools | MCP tool | bellmanford | bellmanford MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bellmanford-tool.ts |
+| Tools | MCP tool | bellnum | bellnum MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bellnum-tool.ts |
 | Tools | MCP tool | berlekamp | berlekamp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/berlekamp-tool.ts |
 | Tools | MCP tool | bezier | bezier MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezier-tool.ts |
 | Tools | MCP tool | bezierclip | bezierclip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezierclip-tool.ts |
@@ -1786,6 +1801,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kosaraju-tool.ts |
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
+| Tools | MCP tool | latinsquare | latinsquare MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/latinsquare-tool.ts |
 | Tools | MCP tool | lca | lca MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lca-tool.ts |
 | Tools | MCP tool | lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcprefix-tool.ts |
 | Tools | MCP tool | lcs | lcs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcs-tool.ts |
@@ -1806,6 +1822,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | lorem2 | lorem2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lorem2-tool.ts |
 | Tools | MCP tool | loremname | loremname MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/loremname-tool.ts |
 | Tools | MCP tool | lotr | lotr MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lotr-tool.ts |
+| Tools | MCP tool | lpnorm | lpnorm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lpnorm-tool.ts |
 | Tools | MCP tool | lrucache | lrucache MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lrucache-tool.ts |
 | Tools | MCP tool | lucas | lucas MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lucas-tool.ts |
 | Tools | MCP tool | luhn | luhn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/luhn-tool.ts |
@@ -1941,6 +1958,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/prefixfn-tool.ts |
 | Tools | MCP tool | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primecheck-tool.ts |
 | Tools | MCP tool | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primefactor-tool.ts |
+| Tools | MCP tool | primepi | primepi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primepi-tool.ts |
 | Tools | MCP tool | proportion | proportion MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/proportion-tool.ts |
 | Tools | MCP tool | ptv | ptv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ptv-tool.ts |
 | Tools | MCP tool | pubchem | pubchem MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/pubchem-tool.ts |
