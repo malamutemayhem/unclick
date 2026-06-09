@@ -610,6 +610,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "berlekamp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "berlekamp_massey",
+        "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+      }
+    ]
+  },
+  {
     "app": "bezier",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4282,6 +4292,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "joke_categories",
         "description": "List available joke categories from JokeAPI."
+      }
+    ]
+  },
+  {
+    "app": "josephus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "josephus",
+        "description": "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th."
       }
     ]
   },
@@ -7976,6 +7996,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sos",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sos_dp",
+        "description": "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks."
+      }
+    ]
+  },
+  {
     "app": "soundex",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -9858,6 +9888,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "xkcd_random",
         "description": "Get a random xkcd comic."
+      }
+    ]
+  },
+  {
+    "app": "xorbase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "xor_basis",
+        "description": "Compute a linear basis over GF(2) (XOR basis) for a set of integers."
       }
     ]
   },

@@ -810,6 +810,10 @@ import { gaussianElimination } from "./gausselim-tool.js";
 import { eertree } from "./eertree-tool.js";
 import { pollardRho } from "./pollardrho-tool.js";
 import { ntt } from "./ntt-tool.js";
+import { josephus } from "./josephus-tool.js";
+import { berlekampMassey } from "./berlekamp-tool.js";
+import { sosDp } from "./sos-tool.js";
+import { xorBasis } from "./xorbase-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12005,6 +12009,56 @@ export const ADDITIONAL_TOOLS = [
         poly_a: { type: "array", items: { type: "number" }, description: "First polynomial coefficients" },
         poly_b: { type: "array", items: { type: "number" }, description: "Second polynomial coefficients" },
       }, required: ["poly_a", "poly_b"],
+    },
+  },
+
+  // ── josephus-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "josephus",
+    description: "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Number of people in the circle" },
+        k: { type: "number", description: "Every k-th person is eliminated" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── berlekamp-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "berlekamp_massey",
+    description: "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        sequence: { type: "array", items: { type: "number" }, description: "Input sequence of integers" },
+      }, required: ["sequence"],
+    },
+  },
+
+  // ── sos-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "sos_dp",
+    description: "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of values indexed by bitmask (length must be power of 2)" },
+        direction: { type: "string", description: "subset_sum or superset_sum (default: superset_sum)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── xorbase-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "xor_basis",
+    description: "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of non-negative integers" },
+      }, required: ["values"],
     },
   },
 
@@ -23873,6 +23927,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   eertree:                       (args) => eertree(args),
   pollard_rho:                   (args) => pollardRho(args),
   ntt:                           (args) => ntt(args),
+
+  // batch 84: Josephus, Berlekamp-Massey, SOS DP, XOR Basis
+  josephus:                      (args) => josephus(args),
+  berlekamp_massey:              (args) => berlekampMassey(args),
+  sos_dp:                        (args) => sosDp(args),
+  xor_basis:                     (args) => xorBasis(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
