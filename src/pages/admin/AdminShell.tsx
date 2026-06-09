@@ -152,6 +152,7 @@ const XPASS_LINKS = [
   { path: "/admin/checks/rotatepass", label: "RotatePass" },
   { path: "/admin/checks/wakepass", label: "WakePass" },
   { path: "/admin/checks/compliancepass", label: "CompliancePass" },
+  { path: "/admin/checks/contextpass", label: "ContextPass" },
 ] as const;
 
 // XGate is the pre-execution bookend twin of XPass: XPass proves what happened
