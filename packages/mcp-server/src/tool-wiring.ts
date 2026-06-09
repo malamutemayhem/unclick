@@ -842,6 +842,14 @@ import { coinChange } from "./coinchange-tool.js";
 import { editDistance } from "./editdist-tool.js";
 import { powerSet } from "./powerset-tool.js";
 import { necklaceCount } from "./necklace-tool.js";
+import { derangementCalc } from "./derangement-tool.js";
+import { kmpAutomaton } from "./kmpautomaton-tool.js";
+import { rmqSparse } from "./rmqsparse-tool.js";
+import { partitionCount } from "./partition-tool.js";
+import { stirlingNumbers } from "./stirling-tool.js";
+import { haarWavelet } from "./waveletfn-tool.js";
+import { convexHull3D } from "./convexhull3d-tool.js";
+import { bezierClip } from "./bezierclip-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12452,6 +12460,113 @@ export const ADDITIONAL_TOOLS = [
         n: { type: "number", description: "Length (1-1000)" },
         k: { type: "number", description: "Number of colors (1-1000)" },
       }, required: ["n", "k"],
+    },
+  },
+
+  // ── derangement-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "derangement_calc",
+    description: "Count and optionally enumerate derangements (permutations with no fixed points).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Size of permutation (1-20)" },
+        enumerate: { type: "boolean", description: "List all derangements (n <= 8)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── kmpautomaton-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "kmp_automaton",
+    description: "Build a full KMP DFA transition table for streaming pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pattern: { type: "string", description: "Pattern string (max 1000 chars)" },
+        alphabet: { type: "string", description: "Alphabet characters (default a-z)" },
+      }, required: ["pattern"],
+    },
+  },
+
+  // ── rmqsparse-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "rmq_sparse",
+    description: "Build a sparse table for O(1) range minimum/maximum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input array" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [left, right] pairs" },
+        mode: { type: "string", description: "\"min\" or \"max\" (default min)" },
+      }, required: ["values", "queries"],
+    },
+  },
+
+  // ── partition-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "partition_count",
+    description: "Count integer partitions of n with optional max part size and part count constraints.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer to partition (0-10000)" },
+        max_part: { type: "number", description: "Maximum part size" },
+        num_parts: { type: "number", description: "Exact number of parts" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── stirling-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "stirling_numbers",
+    description: "Compute Stirling numbers of the first or second kind via DP.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "n (0-200)" },
+        k: { type: "number", description: "k (0-n)" },
+        kind: { type: "number", description: "1 or 2 (default 2)" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── waveletfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "haar_wavelet",
+    description: "Haar wavelet transform (forward and inverse) on a power-of-2 length array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input values (length must be power of 2)" },
+        inverse: { type: "boolean", description: "Inverse transform (default false)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── convexhull3d-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "convex_hull_3d",
+    description: "Compute the 3D convex hull of a point set, returning triangular faces.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y,z] points (at least 4)" },
+      }, required: ["points"],
+    },
+  },
+
+  // ── bezierclip-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "bezier_clip",
+    description: "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        control_points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y] control points" },
+        t_start: { type: "number", description: "Start parameter (0-1)" },
+        t_end: { type: "number", description: "End parameter (0-1)" },
+      }, required: ["control_points", "t_start", "t_end"],
     },
   },
 
@@ -24368,6 +24483,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   edit_distance:                 (args) => editDistance(args),
   power_set:                     (args) => powerSet(args),
   necklace_count:                (args) => necklaceCount(args),
+
+  // batch 92: Derangement, KMP Automaton, RMQ Sparse, Partition
+  derangement_calc:              (args) => derangementCalc(args),
+  kmp_automaton:                 (args) => kmpAutomaton(args),
+  rmq_sparse:                    (args) => rmqSparse(args),
+  partition_count:               (args) => partitionCount(args),
+
+  // batch 93: Stirling Numbers, Haar Wavelet, 3D Convex Hull, Bezier Clip
+  stirling_numbers:              (args) => stirlingNumbers(args),
+  haar_wavelet:                  (args) => haarWavelet(args),
+  convex_hull_3d:                (args) => convexHull3D(args),
+  bezier_clip:                   (args) => bezierClip(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

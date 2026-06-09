@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 663,
-  "toolCount": 1585,
+  "appCount": 671,
+  "toolCount": 1593,
   "categories": [
     "AI",
     "Books",
@@ -36,6 +36,22 @@
         {
           "name": "two_sat",
           "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "convexhull3d",
+      "name": "3D Convex Hull",
+      "category": "Utilities",
+      "blurb": "Compute the 3D convex hull of a point set returning triangular faces.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convex_hull_3d",
+          "description": "Compute the 3D convex hull of a point set, returning triangular faces."
         }
       ],
       "level": 5,
@@ -836,6 +852,22 @@
         {
           "name": "berlekamp_massey",
           "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bezierclip",
+      "name": "Bezier Clip",
+      "category": "Utilities",
+      "blurb": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bezier_clip",
+          "description": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision."
         }
       ],
       "level": 5,
@@ -2982,6 +3014,22 @@
       "hardened": true
     },
     {
+      "slug": "derangement",
+      "name": "Derangement",
+      "category": "Utilities",
+      "blurb": "Count and enumerate derangements (permutations with no fixed points).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "derangement_calc",
+          "description": "Count and optionally enumerate derangements (permutations with no fixed points)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "descriptive",
       "name": "Descriptive Stats",
       "category": "Utilities",
@@ -5030,6 +5078,22 @@
       "hardened": false
     },
     {
+      "slug": "waveletfn",
+      "name": "Haar Wavelet",
+      "category": "Utilities",
+      "blurb": "Haar wavelet transform (forward and inverse) on power-of-2 length arrays.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "haar_wavelet",
+          "description": "Haar wavelet transform (forward and inverse) on a power-of-2 length array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "hackernews",
       "name": "Hacker News",
       "category": "Social",
@@ -5592,6 +5656,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "partition",
+      "name": "Integer Partition",
+      "category": "Utilities",
+      "blurb": "Count integer partitions with optional part size and count constraints.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "partition_count",
+          "description": "Count integer partitions of n with optional max part size and part count constraints."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "intercom",
@@ -6208,6 +6288,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "kmpautomaton",
+      "name": "KMP Automaton",
+      "category": "Utilities",
+      "blurb": "Build a full KMP DFA transition table for streaming pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmp_automaton",
+          "description": "Build a full KMP DFA transition table for streaming pattern matching."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "kmp",
@@ -10622,6 +10718,22 @@
       "hardened": false
     },
     {
+      "slug": "rmqsparse",
+      "name": "RMQ Sparse Table",
+      "category": "Utilities",
+      "blurb": "Build a sparse table for O(1) range minimum/maximum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rmq_sparse",
+          "description": "Build a sparse table for O(1) range minimum/maximum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "robohash",
       "name": "RoboHash",
       "category": "Images",
@@ -11768,6 +11880,22 @@
         {
           "name": "stern_brocot_tree",
           "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "stirling",
+      "name": "Stirling Numbers",
+      "category": "Utilities",
+      "blurb": "Compute Stirling numbers of the first or second kind via dynamic programming.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stirling_numbers",
+          "description": "Compute Stirling numbers of the first or second kind via DP."
         }
       ],
       "level": 5,

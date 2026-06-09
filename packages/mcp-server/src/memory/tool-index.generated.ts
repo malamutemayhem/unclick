@@ -640,6 +640,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bezierclip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bezier_clip",
+        "description": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision."
+      }
+    ]
+  },
+  {
     "app": "bfs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1800,6 +1810,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "convexhull3d",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "convex_hull_3d",
+        "description": "Compute the 3D convex hull of a point set, returning triangular faces."
+      }
+    ]
+  },
+  {
     "app": "convolution",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2210,6 +2230,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "derangement",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "derangement_calc",
+        "description": "Count and optionally enumerate derangements (permutations with no fixed points)."
       }
     ]
   },
@@ -4610,6 +4640,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "kmpautomaton",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kmp_automaton",
+        "description": "Build a full KMP DFA transition table for streaming pattern matching."
+      }
+    ]
+  },
+  {
     "app": "knapsack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6416,6 +6456,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "partition",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "partition_count",
+        "description": "Count integer partitions of n with optional max part size and part count constraints."
+      }
+    ]
+  },
+  {
     "app": "pascaltri",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7704,6 +7754,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rmqsparse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rmq_sparse",
+        "description": "Build a sparse table for O(1) range minimum/maximum queries."
+      }
+    ]
+  },
+  {
     "app": "robohash",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8530,6 +8590,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stern_brocot_tree",
         "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+      }
+    ]
+  },
+  {
+    "app": "stirling",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stirling_numbers",
+        "description": "Compute Stirling numbers of the first or second kind via DP."
       }
     ]
   },
@@ -9842,6 +9912,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wavelet_tree",
         "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
+      }
+    ]
+  },
+  {
+    "app": "waveletfn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "haar_wavelet",
+        "description": "Haar wavelet transform (forward and inverse) on a power-of-2 length array."
       }
     ]
   },
