@@ -802,6 +802,10 @@ import { suffixTree } from "./suffixtree-tool.js";
 import { linkCutTree } from "./linkcut-tool.js";
 import { graphCondensation } from "./condensation-tool.js";
 import { mosAlgorithm } from "./mosalgo-tool.js";
+import { cartesianTree } from "./cartesiantree-tool.js";
+import { sternBrocotTree } from "./sternbrocot-tool.js";
+import { chromaticNumber } from "./chromatic-tool.js";
+import { eulerTour } from "./eulertour-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11896,6 +11900,58 @@ export const ADDITIONAL_TOOLS = [
         array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
         queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [l, r] pairs (0-indexed, inclusive)" },
       }, required: ["array", "queries"],
+    },
+  },
+
+  // ── cartesiantree-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "cartesian_tree",
+    description: "Build a Cartesian tree from an array (min-heap ordered with BST on indices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── sternbrocot-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "stern_brocot_tree",
+    description: "Find best rational approximation using the Stern-Brocot tree and continued fractions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        target: { type: "number", description: "Positive number to approximate" },
+        max_denominator: { type: "number", description: "Maximum denominator allowed (default 1000)" },
+      }, required: ["target"],
+    },
+  },
+
+  // ── chromatic-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "chromatic_number",
+    description: "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── eulertour-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "euler_tour",
+    description: "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
     },
   },
 
@@ -23752,6 +23808,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   link_cut_tree:                 (args) => linkCutTree(args),
   graph_condensation:            (args) => graphCondensation(args),
   mos_algorithm:                 (args) => mosAlgorithm(args),
+
+  // batch 82: Cartesian Tree, Stern-Brocot Tree, Chromatic Number, Euler Tour
+  cartesian_tree:                (args) => cartesianTree(args),
+  stern_brocot_tree:             (args) => sternBrocotTree(args),
+  chromatic_number:              (args) => chromaticNumber(args),
+  euler_tour:                    (args) => eulerTour(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
