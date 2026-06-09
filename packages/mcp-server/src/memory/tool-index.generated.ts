@@ -820,6 +820,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "booth",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "booth_rotation",
+        "description": "Find the lexicographically smallest rotation of a string using Booth's algorithm."
+      }
+    ]
+  },
+  {
     "app": "bored",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3022,6 +3032,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "fenwick2d",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fenwick_2d",
+        "description": "2D Fenwick tree for point updates and rectangle sum queries."
+      }
+    ]
+  },
+  {
     "app": "fenwickrange",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5104,6 +5124,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "matrank",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_rank",
+        "description": "Compute the rank of a matrix using Gaussian elimination with partial pivoting."
+      }
+    ]
+  },
+  {
     "app": "matrix",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6814,6 +6844,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "power_iteration",
         "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+      }
+    ]
+  },
+  {
+    "app": "prefixfn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prefix_function",
+        "description": "Compute the KMP prefix/failure function array, with optional pattern occurrence counting."
       }
     ]
   },

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:13:14.559Z",
+  "updatedAt": "2026-06-09T04:20:07.751Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5369,6 +5369,38 @@
       "testedAt": "2026-06-09T04:13:14.559Z",
       "toolsTested": [
         "topo_count"
+      ]
+    },
+    "booth": {
+      "status": "pass",
+      "note": "booth_rotation({text:\"cab\"}) returned rotated=\"abc\", rotation_index=2",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "booth_rotation"
+      ]
+    },
+    "prefixfn": {
+      "status": "pass",
+      "note": "prefix_function({text:\"abcabc\"}) returned correct prefix values",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "prefix_function"
+      ]
+    },
+    "matrank": {
+      "status": "pass",
+      "note": "matrix_rank({matrix:[[1,0],[0,1]]}) returned rank=2, is_full_rank=true",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "matrix_rank"
+      ]
+    },
+    "fenwick2d": {
+      "status": "pass",
+      "note": "fenwick_2d with point updates and rectangle queries returned correct sums",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "fenwick_2d"
       ]
     }
   },

@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 652 |
+| Tools | MCP and gateway capabilities available to seats. | 656 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -425,6 +425,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | bitwise | bitwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitwise-tool.ts |
 | bloomfilter | bloomfilter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bloomfilter-tool.ts |
 | bluesky | bluesky MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bluesky-tool.ts |
+| booth | booth MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/booth-tool.ts |
 | bored | bored MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bored-tool.ts |
 | braille | braille MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/braille-tool.ts |
 | breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/breakingbad-tool.ts |
@@ -566,6 +567,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fakestoreapi-tool.ts |
 | feedly | feedly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/feedly-tool.ts |
 | fenwick | fenwick MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fenwick-tool.ts |
+| fenwick2d | fenwick2d MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fenwick2d-tool.ts |
 | fenwickrange | fenwickrange MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fenwickrange-tool.ts |
 | fft | fft MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fft-tool.ts |
 | fibonacci | fibonacci MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fibonacci-tool.ts |
@@ -706,6 +708,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | matchain | matchain MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matchain-tool.ts |
 | matexp | matexp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matexp-tool.ts |
 | matinverse | matinverse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matinverse-tool.ts |
+| matrank | matrank MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrank-tool.ts |
 | matrix | matrix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrix-tool.ts |
 | matrixdecomp | matrixdecomp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrixdecomp-tool.ts |
 | maxindepset | maxindepset MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/maxindepset-tool.ts |
@@ -819,6 +822,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | postman | postman MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/postman-tool.ts |
 | postmark | postmark MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/postmark-tool.ts |
 | poweriter | poweriter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/poweriter-tool.ts |
+| prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/prefixfn-tool.ts |
 | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primecheck-tool.ts |
 | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/primefactor-tool.ts |
 | proportion | proportion MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/proportion-tool.ts |
@@ -1493,6 +1497,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | bitwise | bitwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitwise-tool.ts |
 | Tools | MCP tool | bloomfilter | bloomfilter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bloomfilter-tool.ts |
 | Tools | MCP tool | bluesky | bluesky MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bluesky-tool.ts |
+| Tools | MCP tool | booth | booth MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/booth-tool.ts |
 | Tools | MCP tool | bored | bored MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bored-tool.ts |
 | Tools | MCP tool | braille | braille MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/braille-tool.ts |
 | Tools | MCP tool | breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/breakingbad-tool.ts |
@@ -1634,6 +1639,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fakestoreapi-tool.ts |
 | Tools | MCP tool | feedly | feedly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/feedly-tool.ts |
 | Tools | MCP tool | fenwick | fenwick MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fenwick-tool.ts |
+| Tools | MCP tool | fenwick2d | fenwick2d MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fenwick2d-tool.ts |
 | Tools | MCP tool | fenwickrange | fenwickrange MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fenwickrange-tool.ts |
 | Tools | MCP tool | fft | fft MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fft-tool.ts |
 | Tools | MCP tool | fibonacci | fibonacci MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fibonacci-tool.ts |
@@ -1774,6 +1780,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | matchain | matchain MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matchain-tool.ts |
 | Tools | MCP tool | matexp | matexp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matexp-tool.ts |
 | Tools | MCP tool | matinverse | matinverse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matinverse-tool.ts |
+| Tools | MCP tool | matrank | matrank MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrank-tool.ts |
 | Tools | MCP tool | matrix | matrix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrix-tool.ts |
 | Tools | MCP tool | matrixdecomp | matrixdecomp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrixdecomp-tool.ts |
 | Tools | MCP tool | maxindepset | maxindepset MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/maxindepset-tool.ts |
@@ -1887,6 +1894,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | postman | postman MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/postman-tool.ts |
 | Tools | MCP tool | postmark | postmark MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/postmark-tool.ts |
 | Tools | MCP tool | poweriter | poweriter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/poweriter-tool.ts |
+| Tools | MCP tool | prefixfn | prefixfn MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/prefixfn-tool.ts |
 | Tools | MCP tool | primecheck | primecheck MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primecheck-tool.ts |
 | Tools | MCP tool | primefactor | primefactor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/primefactor-tool.ts |
 | Tools | MCP tool | proportion | proportion MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/proportion-tool.ts |

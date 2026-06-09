@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 651,
-  "toolCount": 1573,
+  "appCount": 655,
+  "toolCount": 1577,
   "categories": [
     "AI",
     "Books",
@@ -1084,6 +1084,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "booth",
+      "name": "Booth's Rotation",
+      "category": "Utilities",
+      "blurb": "Find the lexicographically smallest rotation of a string in O(n).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "booth_rotation",
+          "description": "Find the lexicographically smallest rotation of a string using Booth's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bored",
@@ -4020,6 +4036,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "fenwick2d",
+      "name": "Fenwick 2D",
+      "category": "Utilities",
+      "blurb": "2D Fenwick tree for point updates and rectangle sum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_2d",
+          "description": "2D Fenwick tree for point updates and rectangle sum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fenwickrange",
@@ -7006,6 +7038,22 @@
       "hardened": false
     },
     {
+      "slug": "matrank",
+      "name": "Matrix Rank",
+      "category": "Utilities",
+      "blurb": "Compute matrix rank using Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_rank",
+          "description": "Compute the rank of a matrix using Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "maxindepset",
       "name": "Max Independent Set",
       "category": "Utilities",
@@ -9340,6 +9388,22 @@
         {
           "name": "power_iteration",
           "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "prefixfn",
+      "name": "Prefix Function",
+      "category": "Utilities",
+      "blurb": "Compute the KMP prefix/failure function with optional pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prefix_function",
+          "description": "Compute the KMP prefix/failure function array, with optional pattern occurrence counting."
         }
       ],
       "level": 5,

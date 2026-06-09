@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1077,
+    "inventory": 1081,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 652,
+    "tools": 656,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 652
+      "count": 656
     },
     {
       "id": "rooms",
@@ -4752,6 +4752,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-booth-packages-mcp-server-src-booth-tool-ts-no-route",
+      "division": "Tools",
+      "name": "booth",
+      "kind": "MCP tool",
+      "meaning": "booth MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/booth-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bored-packages-mcp-server-src-bored-tool-ts-no-route",
       "division": "Tools",
       "name": "bored",
@@ -6162,6 +6172,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-fenwick2d-packages-mcp-server-src-fenwick2d-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fenwick2d",
+      "kind": "MCP tool",
+      "meaning": "fenwick2d MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fenwick2d-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-fenwickrange-packages-mcp-server-src-fenwickrange-tool-ts-no-route",
       "division": "Tools",
       "name": "fenwickrange",
@@ -7562,6 +7582,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-matrank-packages-mcp-server-src-matrank-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matrank",
+      "kind": "MCP tool",
+      "meaning": "matrank MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matrank-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-matrix-packages-mcp-server-src-matrix-tool-ts-no-route",
       "division": "Tools",
       "name": "matrix",
@@ -8688,6 +8718,16 @@
       "kind": "MCP tool",
       "meaning": "poweriter MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/poweriter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-prefixfn-packages-mcp-server-src-prefixfn-tool-ts-no-route",
+      "division": "Tools",
+      "name": "prefixfn",
+      "kind": "MCP tool",
+      "meaning": "prefixfn MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/prefixfn-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11741,6 +11781,11 @@
       "packages/mcp-server/src/bluesky-tool.ts"
     ],
     [
+      "booth",
+      "booth MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/booth-tool.ts"
+    ],
+    [
       "bored",
       "bored MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bored-tool.ts"
@@ -12446,6 +12491,11 @@
       "packages/mcp-server/src/fenwick-tool.ts"
     ],
     [
+      "fenwick2d",
+      "fenwick2d MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fenwick2d-tool.ts"
+    ],
+    [
       "fenwickrange",
       "fenwickrange MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/fenwickrange-tool.ts"
@@ -13146,6 +13196,11 @@
       "packages/mcp-server/src/matinverse-tool.ts"
     ],
     [
+      "matrank",
+      "matrank MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matrank-tool.ts"
+    ],
+    [
       "matrix",
       "matrix MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/matrix-tool.ts"
@@ -13709,6 +13764,11 @@
       "poweriter",
       "poweriter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/poweriter-tool.ts"
+    ],
+    [
+      "prefixfn",
+      "prefixfn MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/prefixfn-tool.ts"
     ],
     [
       "primecheck",
