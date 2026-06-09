@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 656 |
+| Tools | MCP and gateway capabilities available to seats. | 660 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -483,6 +483,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | condensation | condensation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/condensation-tool.ts |
 | confluence | confluence MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/confluence-tool.ts |
 | contentful | contentful MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/contentful-tool.ts |
+| contfrac | contfrac MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/contfrac-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | convexhull | convexhull MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convexhull-tool.ts |
 | convolution | convolution MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convolution-tool.ts |
@@ -521,6 +522,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | difftext | difftext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/difftext-tool.ts |
 | digimon | digimon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digimon-tool.ts |
 | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digitalocean-tool.ts |
+| digitdp | digitdp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digitdp-tool.ts |
 | dijkstra | dijkstra MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dijkstra-tool.ts |
 | dinic | dinic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dinic-tool.ts |
 | discogs | discogs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/discogs-tool.ts |
@@ -676,9 +678,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
 | lca | lca MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lca-tool.ts |
+| lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcprefix-tool.ts |
 | lcs | lcs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcs-tool.ts |
 | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/legalpass-tool.ts |
 | lego | lego MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lego-tool.ts |
+| lehmer | lehmer MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lehmer-tool.ts |
 | lemonsqueezy | lemonsqueezy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lemonsqueezy-tool.ts |
 | levenshtein | levenshtein MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/levenshtein-tool.ts |
 | libretranslate | libretranslate MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/libretranslate-tool.ts |
@@ -1555,6 +1559,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | condensation | condensation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/condensation-tool.ts |
 | Tools | MCP tool | confluence | confluence MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/confluence-tool.ts |
 | Tools | MCP tool | contentful | contentful MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/contentful-tool.ts |
+| Tools | MCP tool | contfrac | contfrac MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/contfrac-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | convexhull | convexhull MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convexhull-tool.ts |
 | Tools | MCP tool | convolution | convolution MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convolution-tool.ts |
@@ -1593,6 +1598,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | difftext | difftext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/difftext-tool.ts |
 | Tools | MCP tool | digimon | digimon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digimon-tool.ts |
 | Tools | MCP tool | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digitalocean-tool.ts |
+| Tools | MCP tool | digitdp | digitdp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digitdp-tool.ts |
 | Tools | MCP tool | dijkstra | dijkstra MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dijkstra-tool.ts |
 | Tools | MCP tool | dinic | dinic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dinic-tool.ts |
 | Tools | MCP tool | discogs | discogs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/discogs-tool.ts |
@@ -1748,9 +1754,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
 | Tools | MCP tool | lca | lca MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lca-tool.ts |
+| Tools | MCP tool | lcprefix | lcprefix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcprefix-tool.ts |
 | Tools | MCP tool | lcs | lcs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcs-tool.ts |
 | Tools | MCP tool | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/legalpass-tool.ts |
 | Tools | MCP tool | lego | lego MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lego-tool.ts |
+| Tools | MCP tool | lehmer | lehmer MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lehmer-tool.ts |
 | Tools | MCP tool | lemonsqueezy | lemonsqueezy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lemonsqueezy-tool.ts |
 | Tools | MCP tool | levenshtein | levenshtein MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/levenshtein-tool.ts |
 | Tools | MCP tool | libretranslate | libretranslate MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/libretranslate-tool.ts |
