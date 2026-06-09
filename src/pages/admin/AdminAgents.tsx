@@ -11,6 +11,11 @@ import {
   Check,
   AlertTriangle,
   Save,
+  ArrowRight,
+  Cpu,
+  CreditCard,
+  KeyRound,
+  type LucideIcon,
 } from "lucide-react";
 import {
   AGENT_TEMPLATES,
@@ -64,6 +69,50 @@ interface AgentDetail {
   tools: Array<{ connector_id: string; is_enabled: boolean }>;
   memory_scope: Array<{ memory_layer: string; is_enabled: boolean }>;
 }
+
+interface ComputeTierSummary {
+  id: string;
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  count: string;
+  metric: string;
+  status: string;
+  accent: string;
+}
+
+const COMPUTE_TIER_SUMMARIES: ComputeTierSummary[] = [
+  {
+    id: "api",
+    label: "API",
+    href: "/admin/agents/api",
+    icon: KeyRound,
+    count: "0 active providers",
+    metric: "$0 this month",
+    status: "Not configured",
+    accent: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  },
+  {
+    id: "local",
+    label: "Local",
+    href: "/admin/agents/local",
+    icon: Cpu,
+    count: "0 local models",
+    metric: "No endpoint detected",
+    status: "Not configured",
+    accent: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+  },
+  {
+    id: "subscription",
+    label: "Subscription",
+    href: "/admin/agents/subscription",
+    icon: CreditCard,
+    count: "0 platforms",
+    metric: "No subscription linked",
+    status: "Not configured",
+    accent: "border-violet-400/30 bg-violet-400/10 text-violet-300",
+  },
+];
 
 const ROLE_OPTIONS = [
   { value: "researcher", label: "Researcher" },
@@ -226,8 +275,56 @@ export default function AdminAgentsPage() {
         </p>
       </header>
 
+      <ComputeTierSummaryStrip />
+
       <AISeatsPanel />
     </div>
+  );
+}
+
+function ComputeTierSummaryStrip() {
+  return (
+    <section aria-label="Compute tier overview" className="space-y-3">
+      <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-heading">Compute tiers</h2>
+          <p className="text-xs text-muted-foreground">
+            Route work across API keys, local hardware, and existing subscriptions.
+          </p>
+        </div>
+        <span className="text-[11px] text-muted-foreground">Summary data lands with the tier pages.</span>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {COMPUTE_TIER_SUMMARIES.map((tier) => {
+          const Icon = tier.icon;
+          return (
+            <a
+              key={tier.id}
+              href={tier.href}
+              className="group flex min-h-[136px] flex-col justify-between rounded-lg border border-border/40 bg-card/20 p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+              aria-label={`Open ${tier.label} compute tier`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${tier.accent}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-semibold text-heading">{tier.label}</h3>
+                    <p className="truncate text-xs text-muted-foreground">{tier.count}</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-heading" />
+              </div>
+              <div className="pt-4">
+                <p className="text-lg font-semibold text-heading">{tier.metric}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{tier.status}</p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

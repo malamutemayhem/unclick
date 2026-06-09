@@ -73,7 +73,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
-| src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
+| src/pages/admin/AdminAgents.tsx | f35f07da7bc1 | 48860 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |

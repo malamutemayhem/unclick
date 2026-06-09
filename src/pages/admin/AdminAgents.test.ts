@@ -59,6 +59,10 @@ describe("AdminAgents seat check-ins", () => {
 
     expect(screen.getByRole("heading", { name: "Seats" })).toBeInTheDocument();
     expect(screen.getByText("AI Seats")).toBeInTheDocument();
+    expect(screen.getByText("Compute tiers")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open API compute tier" })).toHaveAttribute("href", "/admin/agents/api");
+    expect(screen.getByRole("link", { name: "Open Local compute tier" })).toHaveAttribute("href", "/admin/agents/local");
+    expect(screen.getByRole("link", { name: "Open Subscription compute tier" })).toHaveAttribute("href", "/admin/agents/subscription");
     expect(screen.getByText("Performance monitor")).toBeInTheDocument();
     expect(screen.getByText("Cycle share")).toBeInTheDocument();
     expect(screen.getByText("Fungible mode")).toBeInTheDocument();
