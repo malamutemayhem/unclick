@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 647,
-  "toolCount": 1569,
+  "appCount": 651,
+  "toolCount": 1573,
   "categories": [
     "AI",
     "Books",
@@ -1464,6 +1464,22 @@
         {
           "name": "catalan_calc",
           "description": "Compute the nth Catalan number and its combinatorial interpretations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "catmullrom",
+      "name": "Catmull-Rom Spline",
+      "category": "Utilities",
+      "blurb": "Evaluate Catmull-Rom splines through control points with configurable alpha.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "catmull_rom",
+          "description": "Evaluate a Catmull-Rom spline through control points at given parameter values."
         }
       ],
       "level": 5,
@@ -4792,6 +4808,22 @@
         {
           "name": "graph_condensation",
           "description": "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "graycode",
+      "name": "Gray Code",
+      "category": "Utilities",
+      "blurb": "Convert between binary and Gray code or generate full n-bit Gray code sequences.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gray_code",
+          "description": "Convert between binary and Gray code, or generate n-bit Gray code sequences."
         }
       ],
       "level": 5,
@@ -10462,6 +10494,22 @@
       "hardened": false
     },
     {
+      "slug": "rlencode",
+      "name": "Run-Length Encoding",
+      "category": "Utilities",
+      "blurb": "Run-length encode and decode strings for compression analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rl_encode",
+          "description": "Run-length encode or decode a string."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runlength",
       "name": "Run-Length Encoding",
       "category": "Utilities",
@@ -12492,6 +12540,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "topocount",
+      "name": "Topo Order Count",
+      "category": "Utilities",
+      "blurb": "Count distinct topological orderings of a directed acyclic graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "topo_count",
+          "description": "Count the number of distinct topological orderings of a DAG."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "toposort",

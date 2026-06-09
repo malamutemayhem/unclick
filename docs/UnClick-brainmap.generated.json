@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1073,
+    "inventory": 1077,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 648,
+    "tools": 652,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 648
+      "count": 652
     },
     {
       "id": "rooms",
@@ -4942,6 +4942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-catmullrom-packages-mcp-server-src-catmullrom-tool-ts-no-route",
+      "division": "Tools",
+      "name": "catmullrom",
+      "kind": "MCP tool",
+      "meaning": "catmullrom MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/catmullrom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-centroid-packages-mcp-server-src-centroid-tool-ts-no-route",
       "division": "Tools",
       "name": "centroid",
@@ -6548,6 +6558,16 @@
       "kind": "MCP tool",
       "meaning": "graphcolor MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/graphcolor-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-graycode-packages-mcp-server-src-graycode-tool-ts-no-route",
+      "division": "Tools",
+      "name": "graycode",
+      "kind": "MCP tool",
+      "meaning": "graycode MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/graycode-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9112,6 +9132,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rlencode-packages-mcp-server-src-rlencode-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rlencode",
+      "kind": "MCP tool",
+      "meaning": "rlencode MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rlencode-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-robohash-packages-mcp-server-src-robohash-tool-ts-no-route",
       "division": "Tools",
       "name": "robohash",
@@ -9988,6 +10018,16 @@
       "kind": "MCP tool",
       "meaning": "tomorrowio MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/tomorrowio-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-topocount-packages-mcp-server-src-topocount-tool-ts-no-route",
+      "division": "Tools",
+      "name": "topocount",
+      "kind": "MCP tool",
+      "meaning": "topocount MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/topocount-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11796,6 +11836,11 @@
       "packages/mcp-server/src/catfacts-tool.ts"
     ],
     [
+      "catmullrom",
+      "catmullrom MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/catmullrom-tool.ts"
+    ],
+    [
       "centroid",
       "centroid MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/centroid-tool.ts"
@@ -12599,6 +12644,11 @@
       "graphcolor",
       "graphcolor MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/graphcolor-tool.ts"
+    ],
+    [
+      "graycode",
+      "graycode MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/graycode-tool.ts"
     ],
     [
       "groq",
@@ -13881,6 +13931,11 @@
       "packages/mcp-server/src/rle2-tool.ts"
     ],
     [
+      "rlencode",
+      "rlencode MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rlencode-tool.ts"
+    ],
+    [
       "robohash",
       "robohash MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/robohash-tool.ts"
@@ -14319,6 +14374,11 @@
       "tomorrowio",
       "tomorrowio MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/tomorrowio-tool.ts"
+    ],
+    [
+      "topocount",
+      "topocount MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/topocount-tool.ts"
     ],
     [
       "toposort",
