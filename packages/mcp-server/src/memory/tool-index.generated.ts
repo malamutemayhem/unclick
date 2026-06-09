@@ -1740,6 +1740,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "contfrac",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "continued_fraction",
+        "description": "Convert a rational number to its continued fraction representation with convergents."
+      }
+    ]
+  },
+  {
     "app": "convertkit",
     "category": "Commerce / Creator",
     "tools": [
@@ -2284,6 +2294,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "do_account",
         "description": "Get the DigitalOcean account profile and limits."
+      }
+    ]
+  },
+  {
+    "app": "digitdp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "digit_dp",
+        "description": "Count integers from 1 to N whose digit sum equals a target value using digit DP."
       }
     ]
   },
@@ -4648,6 +4668,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lcprefix",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "longest_common_prefix",
+        "description": "Find the longest common prefix among an array of strings."
+      }
+    ]
+  },
+  {
     "app": "lcs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4714,6 +4744,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "brickset_get_set",
         "description": "Get a specific LEGO set from Brickset by set number."
+      }
+    ]
+  },
+  {
+    "app": "lehmer",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lehmer_code",
+        "description": "Convert between permutations and Lehmer codes, compute permutation rank and unrank."
       }
     ]
   },

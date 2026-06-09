@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:20:07.751Z",
+  "updatedAt": "2026-06-09T04:26:59.363Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5401,6 +5401,38 @@
       "testedAt": "2026-06-09T04:20:07.751Z",
       "toolsTested": [
         "fenwick_2d"
+      ]
+    },
+    "contfrac": {
+      "status": "pass",
+      "note": "continued_fraction({numerator:355,denominator:113}) returned [3,7,16] terms",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "continued_fraction"
+      ]
+    },
+    "lcprefix": {
+      "status": "pass",
+      "note": "longest_common_prefix({strings:[\"flower\",\"flow\",\"flight\"]}) returned prefix=\"fl\"",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "longest_common_prefix"
+      ]
+    },
+    "lehmer": {
+      "status": "pass",
+      "note": "lehmer_code({permutation:[2,0,1]}) returned rank=4",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "lehmer_code"
+      ]
+    },
+    "digitdp": {
+      "status": "pass",
+      "note": "digit_dp({n:100,target_digit_sum:5}) returned correct count",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "digit_dp"
       ]
     }
   },

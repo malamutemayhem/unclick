@@ -834,6 +834,10 @@ import { boothRotation } from "./booth-tool.js";
 import { prefixFunction } from "./prefixfn-tool.js";
 import { matrixRank } from "./matrank-tool.js";
 import { fenwick2D } from "./fenwick2d-tool.js";
+import { continuedFraction } from "./contfrac-tool.js";
+import { longestCommonPrefix } from "./lcprefix-tool.js";
+import { lehmerCode } from "./lehmer-tool.js";
+import { digitDp } from "./digitdp-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12340,6 +12344,59 @@ export const ADDITIONAL_TOOLS = [
         cols: { type: "number", description: "Number of columns" },
         operations: { type: "array", items: { type: "object" }, description: "Array of {type, row, col, row2?, col2?, value?} operations" },
       }, required: ["rows", "cols", "operations"],
+    },
+  },
+
+  // ── contfrac-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "continued_fraction",
+    description: "Convert a rational number to its continued fraction representation with convergents.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        numerator: { type: "number", description: "Numerator of the rational number" },
+        denominator: { type: "number", description: "Denominator of the rational number" },
+        max_terms: { type: "number", description: "Maximum number of terms (default 50)" },
+      }, required: ["numerator", "denominator"],
+    },
+  },
+
+  // ── lcprefix-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "longest_common_prefix",
+    description: "Find the longest common prefix among an array of strings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        strings: { type: "array", items: { type: "string" }, description: "Array of strings (max 10,000)" },
+      }, required: ["strings"],
+    },
+  },
+
+  // ── lehmer-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "lehmer_code",
+    description: "Convert between permutations and Lehmer codes, compute permutation rank and unrank.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        permutation: { type: "array", items: { type: "number" }, description: "Permutation of [0..n-1] to encode" },
+        rank: { type: "number", description: "Lexicographic rank to decode (use with n)" },
+        n: { type: "number", description: "Permutation size for unranking (use with rank)" },
+      }, required: [],
+    },
+  },
+
+  // ── digitdp-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "digit_dp",
+    description: "Count integers from 1 to N whose digit sum equals a target value using digit DP.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Upper bound (positive integer, max 1e15)" },
+        target_digit_sum: { type: "number", description: "Target digit sum (0-135)" },
+      }, required: ["n", "target_digit_sum"],
     },
   },
 
@@ -24244,6 +24301,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   prefix_function:               (args) => prefixFunction(args),
   matrix_rank:                   (args) => matrixRank(args),
   fenwick_2d:                    (args) => fenwick2D(args),
+
+  // batch 90: Continued Fractions, Longest Common Prefix, Lehmer Code, Digit DP
+  continued_fraction:            (args) => continuedFraction(args),
+  longest_common_prefix:         (args) => longestCommonPrefix(args),
+  lehmer_code:                   (args) => lehmerCode(args),
+  digit_dp:                      (args) => digitDp(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
