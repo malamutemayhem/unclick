@@ -68,8 +68,8 @@ describe("isAiSeatId", () => {
   });
 
   test("rejects human seats and garbage", () => {
-    assert.equal(isAiSeatId("human-chris"), false);
-    assert.equal(isAiSeatId("human-byrneck"), false);
+    assert.equal(isAiSeatId("human-alice"), false);
+    assert.equal(isAiSeatId("human-operator"), false);
     assert.equal(isAiSeatId(""), false);
     assert.equal(isAiSeatId(null), false);
     assert.equal(isAiSeatId(undefined), false);
