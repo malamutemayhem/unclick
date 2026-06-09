@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T01:12:00.000Z",
+  "updatedAt": "2026-06-09T01:18:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4282,6 +4282,30 @@
       "note": "fenwick_tree builds BIT for prefix sums and point updates. Local computation.",
       "testedAt": "2026-06-09T01:12:00.000Z",
       "toolsTested": ["fenwick_tree"]
+    },
+    "segtree": {
+      "status": "pass",
+      "note": "segment_tree handles range queries (sum/min/max) with point updates. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": ["segment_tree"]
+    },
+    "kmp": {
+      "status": "pass",
+      "note": "kmp_search finds pattern matches using Knuth-Morris-Pratt. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": ["kmp_search"]
+    },
+    "ahocorasick": {
+      "status": "pass",
+      "note": "aho_corasick_search finds multiple patterns simultaneously. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": ["aho_corasick_search"]
+    },
+    "zalgo": {
+      "status": "pass",
+      "note": "z_algorithm computes Z-array and finds pattern matches in linear time. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": ["z_algorithm"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

@@ -134,6 +134,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ahocorasick",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "aho_corasick_search",
+        "description": "Find all occurrences of multiple patterns in text simultaneously using the Aho-Corasick algorithm."
+      }
+    ]
+  },
+  {
     "app": "airtable",
     "category": "Developer / Productivity",
     "tools": [
@@ -4170,6 +4180,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "kmp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kmp_search",
+        "description": "Find all occurrences of a pattern in text using Knuth-Morris-Pratt algorithm with failure function."
+      }
+    ]
+  },
+  {
     "app": "knapsack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7182,6 +7202,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "segtree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "segment_tree",
+        "description": "Build a segment tree for range queries (sum/min/max) with point updates on a mutable array."
+      }
+    ]
+  },
+  {
     "app": "semver",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -9384,6 +9414,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "youtube_get_captions",
         "description": "List available caption tracks for a YouTube video."
+      }
+    ]
+  },
+  {
+    "app": "zalgo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "z_algorithm",
+        "description": "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time."
       }
     ]
   },

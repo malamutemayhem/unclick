@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1001,
+    "inventory": 1005,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 576,
+    "tools": 580,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 576
+      "count": 580
     },
     {
       "id": "rooms",
@@ -4282,6 +4282,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ahocorasick-packages-mcp-server-src-ahocorasick-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ahocorasick",
+      "kind": "MCP tool",
+      "meaning": "ahocorasick MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ahocorasick-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-airtable-packages-mcp-server-src-airtable-tool-ts-no-route",
       "division": "Tools",
       "name": "airtable",
@@ -6812,6 +6822,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-kmp-packages-mcp-server-src-kmp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "kmp",
+      "kind": "MCP tool",
+      "meaning": "kmp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/kmp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-knapsack-packages-mcp-server-src-knapsack-tool-ts-no-route",
       "division": "Tools",
       "name": "knapsack",
@@ -8672,6 +8692,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-segtree-packages-mcp-server-src-segtree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "segtree",
+      "kind": "MCP tool",
+      "meaning": "segtree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/segtree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-semver-packages-mcp-server-src-semver-tool-ts-no-route",
       "division": "Tools",
       "name": "semver",
@@ -9922,6 +9952,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-zalgo-packages-mcp-server-src-zalgo-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zalgo",
+      "kind": "MCP tool",
+      "meaning": "zalgo MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zalgo-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-zendesk-packages-mcp-server-src-zendesk-tool-ts-no-route",
       "division": "Tools",
       "name": "zendesk",
@@ -10744,6 +10784,11 @@
       "agify",
       "agify MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/agify-tool.ts"
+    ],
+    [
+      "ahocorasick",
+      "ahocorasick MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ahocorasick-tool.ts"
     ],
     [
       "airtable",
@@ -12011,6 +12056,11 @@
       "packages/mcp-server/src/kmeans-tool.ts"
     ],
     [
+      "kmp",
+      "kmp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/kmp-tool.ts"
+    ],
+    [
       "knapsack",
       "knapsack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/knapsack-tool.ts"
@@ -12941,6 +12991,11 @@
       "packages/mcp-server/src/segment-tool.ts"
     ],
     [
+      "segtree",
+      "segtree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/segtree-tool.ts"
+    ],
+    [
       "semver",
       "semver MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/semver-tool.ts"
@@ -13564,6 +13619,11 @@
       "youtube",
       "youtube MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/youtube-tool.ts"
+    ],
+    [
+      "zalgo",
+      "zalgo MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zalgo-tool.ts"
     ],
     [
       "zendesk",
@@ -14674,6 +14734,11 @@
       "bytes": 3309
     },
     {
+      "source": "packages/mcp-server/src/ahocorasick-tool.ts",
+      "hash": "863109191ef4",
+      "bytes": 2640
+    },
+    {
       "source": "packages/mcp-server/src/airtable-tool.ts",
       "hash": "917c11a6f79e",
       "bytes": 7602
@@ -14827,11 +14892,6 @@
       "source": "packages/mcp-server/src/bgpview-tool.ts",
       "hash": "c97cbd66581b",
       "bytes": 2523
-    },
-    {
-      "source": "packages/mcp-server/src/bible-tool.ts",
-      "hash": "94f62f2fa1c1",
-      "bytes": 2338
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

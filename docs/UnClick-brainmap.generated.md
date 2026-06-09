@@ -177,6 +177,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/adviceslip-tool.ts | 76262ae15005 | 2878 |
 | packages/mcp-server/src/affirmation-tool.ts | b085a34edff5 | 1777 |
 | packages/mcp-server/src/agify-tool.ts | fe1e0fcf3274 | 3309 |
+| packages/mcp-server/src/ahocorasick-tool.ts | 863109191ef4 | 2640 |
 | packages/mcp-server/src/airtable-tool.ts | 917c11a6f79e | 7602 |
 | packages/mcp-server/src/algolia-tool.ts | aa95d5b77b4c | 7208 |
 | packages/mcp-server/src/alphavantage-tool.ts | 2792412e3c61 | 9254 |
@@ -208,7 +209,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/bfs-tool.ts | 6eff2fdbba8b | 2678 |
 | packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
 | packages/mcp-server/src/bgpview-tool.ts | c97cbd66581b | 2523 |
-| packages/mcp-server/src/bible-tool.ts | 94f62f2fa1c1 | 2338 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 576 |
+| Tools | MCP and gateway capabilities available to seats. | 580 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -378,6 +378,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | adviceslip | adviceslip MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/adviceslip-tool.ts |
 | affirmation | affirmation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/affirmation-tool.ts |
 | agify | agify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/agify-tool.ts |
+| ahocorasick | ahocorasick MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ahocorasick-tool.ts |
 | airtable | airtable MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/airtable-tool.ts |
 | algolia | algolia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/algolia-tool.ts |
 | alphavantage | alphavantage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/alphavantage-tool.ts |
@@ -631,6 +632,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/klaviyo-tool.ts |
 | kling | kling MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kling-tool.ts |
 | kmeans | kmeans MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kmeans-tool.ts |
+| kmp | kmp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kmp-tool.ts |
 | knapsack | knapsack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/knapsack-tool.ts |
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
@@ -817,6 +819,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/seatgeek-tool.ts |
 | securitypass | securitypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/securitypass-tool.ts |
 | segment | segment MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/segment-tool.ts |
+| segtree | segtree MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/segtree-tool.ts |
 | semver | semver MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/semver-tool.ts |
 | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendgrid-tool.ts |
 | sendle | sendle MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendle-tool.ts |
@@ -942,6 +945,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | yelp | yelp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/yelp-tool.ts |
 | yesno | yesno MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/yesno-tool.ts |
 | youtube | youtube MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/youtube-tool.ts |
+| zalgo | zalgo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zalgo-tool.ts |
 | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zendesk-tool.ts |
 | zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zenquotes-tool.ts |
 | zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zippopotamus-tool.ts |
@@ -1370,6 +1374,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | adviceslip | adviceslip MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/adviceslip-tool.ts |
 | Tools | MCP tool | affirmation | affirmation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/affirmation-tool.ts |
 | Tools | MCP tool | agify | agify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/agify-tool.ts |
+| Tools | MCP tool | ahocorasick | ahocorasick MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ahocorasick-tool.ts |
 | Tools | MCP tool | airtable | airtable MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/airtable-tool.ts |
 | Tools | MCP tool | algolia | algolia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/algolia-tool.ts |
 | Tools | MCP tool | alphavantage | alphavantage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/alphavantage-tool.ts |
@@ -1623,6 +1628,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | klaviyo | klaviyo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/klaviyo-tool.ts |
 | Tools | MCP tool | kling | kling MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kling-tool.ts |
 | Tools | MCP tool | kmeans | kmeans MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kmeans-tool.ts |
+| Tools | MCP tool | kmp | kmp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kmp-tool.ts |
 | Tools | MCP tool | knapsack | knapsack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/knapsack-tool.ts |
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
@@ -1809,6 +1815,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/seatgeek-tool.ts |
 | Tools | MCP tool | securitypass | securitypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/securitypass-tool.ts |
 | Tools | MCP tool | segment | segment MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/segment-tool.ts |
+| Tools | MCP tool | segtree | segtree MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/segtree-tool.ts |
 | Tools | MCP tool | semver | semver MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/semver-tool.ts |
 | Tools | MCP tool | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendgrid-tool.ts |
 | Tools | MCP tool | sendle | sendle MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendle-tool.ts |
@@ -1934,6 +1941,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | yelp | yelp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/yelp-tool.ts |
 | Tools | MCP tool | yesno | yesno MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/yesno-tool.ts |
 | Tools | MCP tool | youtube | youtube MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/youtube-tool.ts |
+| Tools | MCP tool | zalgo | zalgo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zalgo-tool.ts |
 | Tools | MCP tool | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zendesk-tool.ts |
 | Tools | MCP tool | zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zenquotes-tool.ts |
 | Tools | MCP tool | zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zippopotamus-tool.ts |
