@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T12:28:00.000Z",
+  "updatedAt": "2026-06-09T04:56:04.429Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -161,7 +161,9 @@
       "status": "pass",
       "note": "avatar_url generates text avatar URLs with initials. No fetch needed.",
       "testedAt": "2026-06-08T07:00:00.000Z",
-      "toolsTested": ["avatar_url"]
+      "toolsTested": [
+        "avatar_url"
+      ]
     },
     "bandsintown": {
       "status": "attention",
@@ -2991,997 +2993,2543 @@
       "status": "pass",
       "note": "historical_weather returns daily archive weather data via Open-Meteo. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["historical_weather"]
+      "toolsTested": [
+        "historical_weather"
+      ]
     },
     "ukpolice": {
       "status": "pass",
       "note": "uk_police_forces returns UK police force list from data.police.uk. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["uk_police_forces", "uk_police_crimes"]
+      "toolsTested": [
+        "uk_police_forces",
+        "uk_police_crimes"
+      ]
     },
     "memegen": {
       "status": "pass",
       "note": "memegen_templates lists meme templates; memegen_create builds image URL locally. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["memegen_templates", "memegen_create"]
+      "toolsTested": [
+        "memegen_templates",
+        "memegen_create"
+      ]
     },
     "timeapi": {
       "status": "pass",
       "note": "time_api_current_by_zone returns current time for a timezone via timeapi.io. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["time_api_current_by_zone", "time_api_timezones"]
+      "toolsTested": [
+        "time_api_current_by_zone",
+        "time_api_timezones"
+      ]
     },
     "postcodes": {
       "status": "pass",
       "note": "postcode_lookup returns UK postcode details from postcodes.io. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["postcode_lookup", "postcode_random"]
+      "toolsTested": [
+        "postcode_lookup",
+        "postcode_random"
+      ]
     },
     "openmeteo-climate": {
       "status": "pass",
       "note": "climate_normals returns climate projection data via Open-Meteo. Free, no key needed.",
       "testedAt": "2026-06-08T14:00:00.000Z",
-      "toolsTested": ["climate_normals"]
+      "toolsTested": [
+        "climate_normals"
+      ]
     },
     "gbif": {
       "status": "pass",
       "note": "gbif_search_species returns biodiversity species data from GBIF. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["gbif_search_species", "gbif_species_detail", "gbif_occurrences"]
+      "toolsTested": [
+        "gbif_search_species",
+        "gbif_species_detail",
+        "gbif_occurrences"
+      ]
     },
     "crossref": {
       "status": "pass",
       "note": "crossref_search_works returns academic paper metadata from Crossref. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["crossref_search_works", "crossref_get_work"]
+      "toolsTested": [
+        "crossref_search_works",
+        "crossref_get_work"
+      ]
     },
     "nominatim": {
       "status": "pass",
       "note": "nominatim_search geocodes place names via OpenStreetMap. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["nominatim_search", "nominatim_reverse"]
+      "toolsTested": [
+        "nominatim_search",
+        "nominatim_reverse"
+      ]
     },
     "coincap": {
       "status": "pass",
       "note": "coincap_assets returns crypto market data from CoinCap. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["coincap_assets", "coincap_asset_detail", "coincap_rates"]
+      "toolsTested": [
+        "coincap_assets",
+        "coincap_asset_detail",
+        "coincap_rates"
+      ]
     },
     "open-elevation": {
       "status": "pass",
       "note": "open_elevation_lookup returns elevation data for coordinates. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["open_elevation_lookup"]
+      "toolsTested": [
+        "open_elevation_lookup"
+      ]
     },
     "itis": {
       "status": "pass",
       "note": "itis_search_by_name returns USDA taxonomic species data. Free, no key needed.",
       "testedAt": "2026-06-08T14:30:00.000Z",
-      "toolsTested": ["itis_search_by_name", "itis_get_full_record"]
+      "toolsTested": [
+        "itis_search_by_name",
+        "itis_get_full_record"
+      ]
     },
     "arxiv": {
       "status": "pass",
       "note": "arxiv_search returns scientific preprints with parsed XML metadata. Free, no key needed.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["arxiv_search"]
+      "toolsTested": [
+        "arxiv_search"
+      ]
     },
     "openalex": {
       "status": "pass",
       "note": "openalex_search_works returns scholarly works from OpenAlex. Free, no key needed.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["openalex_search_works", "openalex_get_work", "openalex_search_authors"]
+      "toolsTested": [
+        "openalex_search_works",
+        "openalex_get_work",
+        "openalex_search_authors"
+      ]
     },
     "dblp": {
       "status": "pass",
       "note": "dblp_search_publications returns CS publications from DBLP. Free, no key needed.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["dblp_search_publications", "dblp_search_authors"]
+      "toolsTested": [
+        "dblp_search_publications",
+        "dblp_search_authors"
+      ]
     },
     "wikidata": {
       "status": "pass",
       "note": "wikidata_search returns structured entity data from Wikidata. Free, no key needed.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["wikidata_search", "wikidata_get_entity"]
+      "toolsTested": [
+        "wikidata_search",
+        "wikidata_get_entity"
+      ]
     },
     "randomduck": {
       "status": "pass",
       "note": "random_duck_image returns random duck image URL. Free, no key needed.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["random_duck_image", "random_duck_list"]
+      "toolsTested": [
+        "random_duck_image",
+        "random_duck_list"
+      ]
     },
     "httpdog": {
       "status": "pass",
       "note": "http_dog_image builds dog image URL for HTTP status codes locally. No network call.",
       "testedAt": "2026-06-08T15:00:00.000Z",
-      "toolsTested": ["http_dog_image"]
+      "toolsTested": [
+        "http_dog_image"
+      ]
     },
     "opensky": {
       "status": "pass",
       "note": "opensky_states returns live aircraft positions from OpenSky Network. Free, no key for anonymous.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["opensky_states", "opensky_flights"]
+      "toolsTested": [
+        "opensky_states",
+        "opensky_flights"
+      ]
     },
     "cvecircl": {
       "status": "pass",
       "note": "circl_cve_lookup returns CVE vulnerability data from cve.circl.lu. Free, no key needed.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["circl_cve_lookup", "circl_cve_recent"]
+      "toolsTested": [
+        "circl_cve_lookup",
+        "circl_cve_recent"
+      ]
     },
     "vatcomply": {
       "status": "pass",
       "note": "vatcomply_rates returns EU VAT rates. Free, no key needed.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["vatcomply_rates", "vatcomply_countries"]
+      "toolsTested": [
+        "vatcomply_rates",
+        "vatcomply_countries"
+      ]
     },
     "thecolorapi": {
       "status": "pass",
       "note": "thecolorapi_id returns detailed color info for a hex value. Free, no key needed.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["thecolorapi_id", "thecolorapi_scheme"]
+      "toolsTested": [
+        "thecolorapi_id",
+        "thecolorapi_scheme"
+      ]
     },
     "placehold": {
       "status": "pass",
       "note": "placehold_image builds placeholder image URL locally. No network call.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["placehold_image"]
+      "toolsTested": [
+        "placehold_image"
+      ]
     },
     "languagetool": {
       "status": "pass",
       "note": "languagetool_check returns grammar/spelling issues. Free public API, no key needed.",
       "testedAt": "2026-06-08T15:30:00.000Z",
-      "toolsTested": ["languagetool_check", "languagetool_languages"]
+      "toolsTested": [
+        "languagetool_check",
+        "languagetool_languages"
+      ]
     },
     "bgpview": {
       "status": "pass",
       "note": "bgpview_asn returns ASN/BGP network data from bgpview.io. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["bgpview_asn", "bgpview_asn_prefixes", "bgpview_ip"]
+      "toolsTested": [
+        "bgpview_asn",
+        "bgpview_asn_prefixes",
+        "bgpview_ip"
+      ]
     },
     "mymemory": {
       "status": "pass",
       "note": "mymemory_translate returns text translations. Free, no key needed for small usage.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["mymemory_translate"]
+      "toolsTested": [
+        "mymemory_translate"
+      ]
     },
     "openchargemap": {
       "status": "pass",
       "note": "openchargemap_search returns EV charging stations near a location. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["openchargemap_search"]
+      "toolsTested": [
+        "openchargemap_search"
+      ]
     },
     "crates": {
       "status": "pass",
       "note": "crates_search returns Rust crate listings from crates.io. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["crates_search", "crates_get"]
+      "toolsTested": [
+        "crates_search",
+        "crates_get"
+      ]
     },
     "npm-registry": {
       "status": "pass",
       "note": "npm_search returns npm package listings. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["npm_search", "npm_get_package"]
+      "toolsTested": [
+        "npm_search",
+        "npm_get_package"
+      ]
     },
     "pypi": {
       "status": "pass",
       "note": "pypi_get_package returns Python package metadata from PyPI. Free, no key needed.",
       "testedAt": "2026-06-08T16:00:00.000Z",
-      "toolsTested": ["pypi_get_package", "pypi_get_version"]
+      "toolsTested": [
+        "pypi_get_package",
+        "pypi_get_version"
+      ]
     },
     "rdap": {
       "status": "pass",
       "note": "rdap_domain returns domain registration data via RDAP protocol. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["rdap_domain", "rdap_ip"]
+      "toolsTested": [
+        "rdap_domain",
+        "rdap_ip"
+      ]
     },
     "iban": {
       "status": "pass",
       "note": "iban_validate validates IBANs and returns BIC/bank data via OpenIBAN. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["iban_validate"]
+      "toolsTested": [
+        "iban_validate"
+      ]
     },
     "stackexchange": {
       "status": "pass",
       "note": "stackexchange_search returns Stack Overflow questions. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["stackexchange_search", "stackexchange_question"]
+      "toolsTested": [
+        "stackexchange_search",
+        "stackexchange_question"
+      ]
     },
     "ripe": {
       "status": "pass",
       "note": "ripe_network_info returns IP/prefix network data from RIPE NCC. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["ripe_network_info", "ripe_asn_neighbours"]
+      "toolsTested": [
+        "ripe_network_info",
+        "ripe_asn_neighbours"
+      ]
     },
     "gutendex": {
       "status": "pass",
       "note": "gutendex_search returns Project Gutenberg free ebooks. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["gutendex_search", "gutendex_book"]
+      "toolsTested": [
+        "gutendex_search",
+        "gutendex_book"
+      ]
     },
     "dohdns": {
       "status": "pass",
       "note": "dohdns_resolve returns DNS records via Google DNS-over-HTTPS. Free, no key needed.",
       "testedAt": "2026-06-08T17:00:00.000Z",
-      "toolsTested": ["dohdns_resolve"]
+      "toolsTested": [
+        "dohdns_resolve"
+      ]
     },
     "nhtsa": {
       "status": "pass",
       "note": "nhtsa_decode_vin decodes vehicle VINs and nhtsa_recalls finds safety recalls. Free, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["nhtsa_decode_vin", "nhtsa_recalls"]
+      "toolsTested": [
+        "nhtsa_decode_vin",
+        "nhtsa_recalls"
+      ]
     },
     "geojs": {
       "status": "pass",
       "note": "geojs_lookup returns IP geolocation data from GeoJS. Free, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["geojs_lookup"]
+      "toolsTested": [
+        "geojs_lookup"
+      ]
     },
     "isup": {
       "status": "pass",
       "note": "isup_check reports whether a domain is up or down via isitup.org. Free, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["isup_check"]
+      "toolsTested": [
+        "isup_check"
+      ]
     },
     "wayback": {
       "status": "pass",
       "note": "wayback_check finds archived snapshots in the Wayback Machine. Free, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["wayback_check"]
+      "toolsTested": [
+        "wayback_check"
+      ]
     },
     "oeis": {
       "status": "pass",
       "note": "oeis_search finds integer sequences from the OEIS encyclopedia. Free, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["oeis_search"]
+      "toolsTested": [
+        "oeis_search"
+      ]
     },
     "upcitemdb": {
       "status": "pass",
       "note": "upc_lookup finds products by barcode number. Free trial tier, no key needed.",
       "testedAt": "2026-06-08T17:30:00.000Z",
-      "toolsTested": ["upc_lookup", "upc_search"]
+      "toolsTested": [
+        "upc_lookup",
+        "upc_search"
+      ]
     },
     "fakerapi": {
       "status": "pass",
       "note": "faker_persons generates realistic fake data for testing. Free, no key needed.",
       "testedAt": "2026-06-08T18:00:00.000Z",
-      "toolsTested": ["faker_persons", "faker_companies", "faker_texts"]
+      "toolsTested": [
+        "faker_persons",
+        "faker_companies",
+        "faker_texts"
+      ]
     },
     "openfigi": {
       "status": "pass",
       "note": "openfigi_mapping maps tickers to FIGI financial instrument IDs. Free, no key needed.",
       "testedAt": "2026-06-08T18:00:00.000Z",
-      "toolsTested": ["openfigi_mapping", "openfigi_search"]
+      "toolsTested": [
+        "openfigi_mapping",
+        "openfigi_search"
+      ]
     },
     "libretranslate": {
       "status": "pass",
       "note": "libretranslate_translate provides open-source text translation. Free public instance.",
       "testedAt": "2026-06-08T18:00:00.000Z",
-      "toolsTested": ["libretranslate_translate", "libretranslate_languages", "libretranslate_detect"]
+      "toolsTested": [
+        "libretranslate_translate",
+        "libretranslate_languages",
+        "libretranslate_detect"
+      ]
     },
     "europeana": {
       "status": "pass",
       "note": "europeana_search finds European cultural heritage objects. Free, no key for basic search.",
       "testedAt": "2026-06-08T18:00:00.000Z",
-      "toolsTested": ["europeana_search", "europeana_record"]
+      "toolsTested": [
+        "europeana_search",
+        "europeana_record"
+      ]
     },
     "flyover": {
       "status": "pass",
       "note": "iss_flyover returns upcoming ISS pass times for a location. Free, no key needed.",
       "testedAt": "2026-06-08T18:00:00.000Z",
-      "toolsTested": ["iss_flyover"]
+      "toolsTested": [
+        "iss_flyover"
+      ]
     },
     "jsoncrack": {
       "status": "pass",
       "note": "json_format parses, pretty-prints, and analyzes JSON locally. No API needed.",
       "testedAt": "2026-06-08T18:30:00.000Z",
-      "toolsTested": ["json_format"]
+      "toolsTested": [
+        "json_format"
+      ]
     },
     "abstract-holidays": {
       "status": "pass",
       "note": "country_info_detail and long_weekends return country/holiday data from Nager.Date. Free, no key.",
       "testedAt": "2026-06-08T18:30:00.000Z",
-      "toolsTested": ["country_info_detail", "long_weekends"]
+      "toolsTested": [
+        "country_info_detail",
+        "long_weekends"
+      ]
     },
     "cocktaildb2": {
       "status": "pass",
       "note": "cocktail_by_ingredient filters cocktails and gets ingredient info from TheCocktailDB. Free, no key.",
       "testedAt": "2026-06-08T18:30:00.000Z",
-      "toolsTested": ["cocktail_by_ingredient", "cocktail_ingredient_info"]
+      "toolsTested": [
+        "cocktail_by_ingredient",
+        "cocktail_ingredient_info"
+      ]
     },
     "regexr": {
       "status": "pass",
       "note": "regex_test matches regex patterns against text locally. No API needed.",
       "testedAt": "2026-06-08T18:30:00.000Z",
-      "toolsTested": ["regex_test"]
+      "toolsTested": [
+        "regex_test"
+      ]
     },
     "hashgen": {
       "status": "pass",
       "note": "hash_generate and hash_compare compute crypto hashes locally. No API needed.",
       "testedAt": "2026-06-08T18:30:00.000Z",
-      "toolsTested": ["hash_generate", "hash_compare"]
+      "toolsTested": [
+        "hash_generate",
+        "hash_compare"
+      ]
     },
     "base64": {
       "status": "pass",
       "note": "base64_encode and base64_decode convert text to/from Base64 locally. No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
-      "toolsTested": ["base64_encode", "base64_decode"]
+      "toolsTested": [
+        "base64_encode",
+        "base64_decode"
+      ]
     },
     "urlencode": {
       "status": "pass",
       "note": "url_encode and url_decode handle URL percent-encoding locally. No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
-      "toolsTested": ["url_encode", "url_decode"]
+      "toolsTested": [
+        "url_encode",
+        "url_decode"
+      ]
     },
     "crontab": {
       "status": "pass",
       "note": "crontab_explain parses cron expressions locally. No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
-      "toolsTested": ["crontab_explain"]
+      "toolsTested": [
+        "crontab_explain"
+      ]
     },
     "jwt": {
       "status": "pass",
       "note": "jwt_decode decodes JWT tokens locally (no signature verification). No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
-      "toolsTested": ["jwt_decode"]
+      "toolsTested": [
+        "jwt_decode"
+      ]
     },
     "markdown": {
       "status": "pass",
       "note": "markdown_to_html and markdown_stats convert and analyze Markdown locally. No API needed.",
       "testedAt": "2026-06-08T19:00:00.000Z",
-      "toolsTested": ["markdown_to_html", "markdown_stats"]
+      "toolsTested": [
+        "markdown_to_html",
+        "markdown_stats"
+      ]
     },
     "cidr": {
       "status": "pass",
       "note": "cidr_calculate computes subnet details from CIDR notation locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
-      "toolsTested": ["cidr_calculate"]
+      "toolsTested": [
+        "cidr_calculate"
+      ]
     },
     "semver": {
       "status": "pass",
       "note": "semver_parse and semver_compare handle semantic versions locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
-      "toolsTested": ["semver_parse", "semver_compare"]
+      "toolsTested": [
+        "semver_parse",
+        "semver_compare"
+      ]
     },
     "colorconvert": {
       "status": "pass",
       "note": "color_hex_convert converts hex to RGB and HSL locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
-      "toolsTested": ["color_hex_convert"]
+      "toolsTested": [
+        "color_hex_convert"
+      ]
     },
     "epoch": {
       "status": "pass",
       "note": "epoch_convert and epoch_now handle Unix timestamps locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
-      "toolsTested": ["epoch_convert", "epoch_now"]
+      "toolsTested": [
+        "epoch_convert",
+        "epoch_now"
+      ]
     },
     "difftext": {
       "status": "pass",
       "note": "diff_text compares two texts line by line locally. No API needed.",
       "testedAt": "2026-06-08T19:30:00.000Z",
-      "toolsTested": ["diff_text"]
+      "toolsTested": [
+        "diff_text"
+      ]
     },
     "passwordgen": {
       "status": "pass",
       "note": "password_generate creates secure random passwords locally using crypto.randomBytes. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
-      "toolsTested": ["password_generate"]
+      "toolsTested": [
+        "password_generate"
+      ]
     },
     "slug": {
       "status": "pass",
       "note": "text_slugify converts text to URL-safe slugs locally. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
-      "toolsTested": ["text_slugify"]
+      "toolsTested": [
+        "text_slugify"
+      ]
     },
     "lorem2": {
       "status": "pass",
       "note": "lorem_generate creates lorem ipsum placeholder text locally. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
-      "toolsTested": ["lorem_generate"]
+      "toolsTested": [
+        "lorem_generate"
+      ]
     },
     "csvparse": {
       "status": "pass",
       "note": "csv_parse parses CSV text into structured JSON locally. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
-      "toolsTested": ["csv_parse"]
+      "toolsTested": [
+        "csv_parse"
+      ]
     },
     "wordcount": {
       "status": "pass",
       "note": "word_count counts words, characters, sentences locally. No API needed.",
       "testedAt": "2026-06-08T20:00:00.000Z",
-      "toolsTested": ["word_count"]
+      "toolsTested": [
+        "word_count"
+      ]
     },
     "jsonformat": {
       "status": "pass",
       "note": "json_prettify prettifies and minifies JSON locally. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
-      "toolsTested": ["json_prettify"]
+      "toolsTested": [
+        "json_prettify"
+      ]
     },
     "htmlstrip": {
       "status": "pass",
       "note": "html_strip removes HTML tags and decodes entities locally. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
-      "toolsTested": ["html_strip"]
+      "toolsTested": [
+        "html_strip"
+      ]
     },
     "uuidgen": {
       "status": "pass",
       "note": "uuid_generate creates UUID v4 strings locally via crypto.randomBytes. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
-      "toolsTested": ["uuid_generate"]
+      "toolsTested": [
+        "uuid_generate"
+      ]
     },
     "charcount": {
       "status": "pass",
       "note": "char_frequency analyzes character frequency locally. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
-      "toolsTested": ["char_frequency"]
+      "toolsTested": [
+        "char_frequency"
+      ]
     },
     "ipvalidate": {
       "status": "pass",
       "note": "ip_validate validates and classifies IP addresses locally. No API needed.",
       "testedAt": "2026-06-08T20:15:00.000Z",
-      "toolsTested": ["ip_validate"]
+      "toolsTested": [
+        "ip_validate"
+      ]
     },
     "stringcase": {
       "status": "pass",
       "note": "string_case converts between camelCase, snake_case, kebab-case locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
-      "toolsTested": ["string_case"]
+      "toolsTested": [
+        "string_case"
+      ]
     },
     "aspectratio": {
       "status": "pass",
       "note": "aspect_ratio calculates simplified ratios locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
-      "toolsTested": ["aspect_ratio"]
+      "toolsTested": [
+        "aspect_ratio"
+      ]
     },
     "percentage": {
       "status": "pass",
       "note": "percentage_calc performs percentage calculations locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
-      "toolsTested": ["percentage_calc"]
+      "toolsTested": [
+        "percentage_calc"
+      ]
     },
     "roman": {
       "status": "pass",
       "note": "roman_convert converts Roman numerals and decimal numbers locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
-      "toolsTested": ["roman_convert"]
+      "toolsTested": [
+        "roman_convert"
+      ]
     },
     "morse": {
       "status": "pass",
       "note": "morse_convert encodes/decodes Morse code locally. No API needed.",
       "testedAt": "2026-06-08T20:30:00.000Z",
-      "toolsTested": ["morse_convert"]
+      "toolsTested": [
+        "morse_convert"
+      ]
     },
     "binaryconv": {
       "status": "pass",
       "note": "number_base_convert converts between binary/octal/decimal/hex locally. No API needed.",
       "testedAt": "2026-06-08T20:45:00.000Z",
-      "toolsTested": ["number_base_convert"]
+      "toolsTested": [
+        "number_base_convert"
+      ]
     },
     "levenshtein": {
       "status": "pass",
       "note": "string_distance calculates Levenshtein edit distance locally. No API needed.",
       "testedAt": "2026-06-08T20:45:00.000Z",
-      "toolsTested": ["string_distance"]
+      "toolsTested": [
+        "string_distance"
+      ]
     },
     "loremname": {
       "status": "pass",
       "note": "lorem_name_generate creates random placeholder names locally. No API needed.",
       "testedAt": "2026-06-08T20:45:00.000Z",
-      "toolsTested": ["lorem_name_generate"]
+      "toolsTested": [
+        "lorem_name_generate"
+      ]
     },
     "textstats": {
       "status": "pass",
       "note": "text_readability analyzes Flesch-Kincaid readability locally. No API needed.",
       "testedAt": "2026-06-08T20:45:00.000Z",
-      "toolsTested": ["text_readability"]
+      "toolsTested": [
+        "text_readability"
+      ]
     },
     "timezone": {
       "status": "pass",
       "note": "timezone_info looks up timezone offsets locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
-      "toolsTested": ["timezone_info"]
+      "toolsTested": [
+        "timezone_info"
+      ]
     },
     "colorblend": {
       "status": "pass",
       "note": "color_blend blends hex colors locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
-      "toolsTested": ["color_blend"]
+      "toolsTested": [
+        "color_blend"
+      ]
     },
     "fibonacci": {
       "status": "pass",
       "note": "fibonacci_sequence generates Fibonacci numbers locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
-      "toolsTested": ["fibonacci_sequence"]
+      "toolsTested": [
+        "fibonacci_sequence"
+      ]
     },
     "primecheck": {
       "status": "pass",
       "note": "prime_check tests primality and factors numbers locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
-      "toolsTested": ["prime_check"]
+      "toolsTested": [
+        "prime_check"
+      ]
     },
     "sortlines": {
       "status": "pass",
       "note": "sort_lines sorts and deduplicates text lines locally. No API needed.",
       "testedAt": "2026-06-08T21:00:00.000Z",
-      "toolsTested": ["sort_lines"]
+      "toolsTested": [
+        "sort_lines"
+      ]
     },
     "countdowncalc": {
       "status": "pass",
       "note": "countdown_calc calculates days until/since a date locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
-      "toolsTested": ["countdown_calc"]
+      "toolsTested": [
+        "countdown_calc"
+      ]
     },
     "unitpressure": {
       "status": "pass",
       "note": "pressure_convert converts pressure units locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
-      "toolsTested": ["pressure_convert"]
+      "toolsTested": [
+        "pressure_convert"
+      ]
     },
     "emojilookup": {
       "status": "pass",
       "note": "emoji_lookup searches emojis by keyword locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
-      "toolsTested": ["emoji_lookup"]
+      "toolsTested": [
+        "emoji_lookup"
+      ]
     },
     "natoalphabet": {
       "status": "pass",
       "note": "nato_convert encodes/decodes NATO phonetic alphabet locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
-      "toolsTested": ["nato_convert"]
+      "toolsTested": [
+        "nato_convert"
+      ]
     },
     "bitwise": {
       "status": "pass",
       "note": "bitwise_calc performs bitwise operations locally. No API needed.",
       "testedAt": "2026-06-08T21:15:00.000Z",
-      "toolsTested": ["bitwise_calc"]
+      "toolsTested": [
+        "bitwise_calc"
+      ]
     },
     "gcdlcm": {
       "status": "pass",
       "note": "gcd_lcm_calc computes GCD and LCM locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
-      "toolsTested": ["gcd_lcm_calc"]
+      "toolsTested": [
+        "gcd_lcm_calc"
+      ]
     },
     "tempconvert": {
       "status": "pass",
       "note": "temperature_convert converts C/F/K/R locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
-      "toolsTested": ["temperature_convert"]
+      "toolsTested": [
+        "temperature_convert"
+      ]
     },
     "statistics": {
       "status": "pass",
       "note": "statistics_calc computes mean/median/mode/stddev locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
-      "toolsTested": ["statistics_calc"]
+      "toolsTested": [
+        "statistics_calc"
+      ]
     },
     "textwrap": {
       "status": "pass",
       "note": "text_wrap hard-wraps text to column width locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
-      "toolsTested": ["text_wrap"]
+      "toolsTested": [
+        "text_wrap"
+      ]
     },
     "braille": {
       "status": "pass",
       "note": "braille_convert encodes/decodes Braille Unicode locally. No API needed.",
       "testedAt": "2026-06-08T21:30:00.000Z",
-      "toolsTested": ["braille_convert"]
+      "toolsTested": [
+        "braille_convert"
+      ]
     },
     "piglatin": {
       "status": "pass",
       "note": "pig_latin_convert translates text to/from Pig Latin locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
-      "toolsTested": ["pig_latin_convert"]
+      "toolsTested": [
+        "pig_latin_convert"
+      ]
     },
     "rot13": {
       "status": "pass",
       "note": "rot13_convert applies ROT13/ROT-N cipher locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
-      "toolsTested": ["rot13_convert"]
+      "toolsTested": [
+        "rot13_convert"
+      ]
     },
     "reversetext": {
       "status": "pass",
       "note": "reverse_text reverses text by chars/words/lines locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
-      "toolsTested": ["reverse_text"]
+      "toolsTested": [
+        "reverse_text"
+      ]
     },
     "palindrome": {
       "status": "pass",
       "note": "palindrome_check detects palindromes locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
-      "toolsTested": ["palindrome_check"]
+      "toolsTested": [
+        "palindrome_check"
+      ]
     },
     "acronymgen": {
       "status": "pass",
       "note": "acronym_generate creates acronyms from phrases locally. No API needed.",
       "testedAt": "2026-06-08T21:45:00.000Z",
-      "toolsTested": ["acronym_generate"]
+      "toolsTested": [
+        "acronym_generate"
+      ]
     },
     "wordfreq": {
       "status": "pass",
       "note": "wordfreq_analyse counts word frequencies locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
-      "toolsTested": ["wordfreq_analyse"]
+      "toolsTested": [
+        "wordfreq_analyse"
+      ]
     },
     "markdowntable": {
       "status": "pass",
       "note": "markdowntable_convert turns CSV/TSV into Markdown tables locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
-      "toolsTested": ["markdowntable_convert"]
+      "toolsTested": [
+        "markdowntable_convert"
+      ]
     },
     "runlength": {
       "status": "pass",
       "note": "runlength_process encodes/decodes run-length encoding locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
-      "toolsTested": ["runlength_process"]
+      "toolsTested": [
+        "runlength_process"
+      ]
     },
     "luhn": {
       "status": "pass",
       "note": "luhn_validate validates/generates Luhn check digits locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
-      "toolsTested": ["luhn_validate"]
+      "toolsTested": [
+        "luhn_validate"
+      ]
     },
     "charcodes": {
       "status": "pass",
       "note": "charcodes_convert returns Unicode code points locally. No API needed.",
       "testedAt": "2026-06-08T21:50:00.000Z",
-      "toolsTested": ["charcodes_convert"]
+      "toolsTested": [
+        "charcodes_convert"
+      ]
     },
     "soundex": {
       "status": "pass",
       "note": "soundex_encode computes Soundex codes locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
-      "toolsTested": ["soundex_encode"]
+      "toolsTested": [
+        "soundex_encode"
+      ]
     },
     "frequency": {
       "status": "pass",
       "note": "frequency_analyse counts char/bigram frequencies locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
-      "toolsTested": ["frequency_analyse"]
+      "toolsTested": [
+        "frequency_analyse"
+      ]
     },
     "entropy": {
       "status": "pass",
       "note": "entropy_calculate computes Shannon entropy locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
-      "toolsTested": ["entropy_calculate"]
+      "toolsTested": [
+        "entropy_calculate"
+      ]
     },
     "ngram": {
       "status": "pass",
       "note": "ngram_extract extracts n-grams locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
-      "toolsTested": ["ngram_extract"]
+      "toolsTested": [
+        "ngram_extract"
+      ]
     },
     "camelsnake": {
       "status": "pass",
       "note": "camelsnake_convert converts between naming conventions locally. No API needed.",
       "testedAt": "2026-06-08T21:55:00.000Z",
-      "toolsTested": ["camelsnake_convert"]
+      "toolsTested": [
+        "camelsnake_convert"
+      ]
     },
     "metaphone": {
       "status": "pass",
       "note": "metaphone_encode computes Metaphone phonetic codes locally. No API needed.",
       "testedAt": "2026-06-08T22:00:00.000Z",
-      "toolsTested": ["metaphone_encode"]
+      "toolsTested": [
+        "metaphone_encode"
+      ]
     },
     "tfidf": {
       "status": "pass",
       "note": "tfidf_calculate ranks documents by TF-IDF relevance locally. No API needed.",
       "testedAt": "2026-06-08T22:00:00.000Z",
-      "toolsTested": ["tfidf_calculate"]
+      "toolsTested": [
+        "tfidf_calculate"
+      ]
     },
     "readability": {
       "status": "pass",
       "note": "readability_score calculates Flesch-Kincaid scores locally. No API needed.",
       "testedAt": "2026-06-08T22:00:00.000Z",
-      "toolsTested": ["readability_score"]
+      "toolsTested": [
+        "readability_score"
+      ]
     },
     "tokencount": {
       "status": "pass",
       "note": "tokencount_estimate estimates LLM token counts locally. No API needed.",
       "testedAt": "2026-06-08T22:00:00.000Z",
-      "toolsTested": ["tokencount_estimate"]
+      "toolsTested": [
+        "tokencount_estimate"
+      ]
     },
     "crc32": {
       "status": "pass",
       "note": "crc32_calculate computes CRC32 checksums locally. No API needed.",
       "testedAt": "2026-06-08T22:05:00.000Z",
-      "toolsTested": ["crc32_calculate"]
+      "toolsTested": [
+        "crc32_calculate"
+      ]
     },
     "jaccard": {
       "status": "pass",
       "note": "jaccard_similarity computes set overlap locally. No API needed.",
       "testedAt": "2026-06-08T22:05:00.000Z",
-      "toolsTested": ["jaccard_similarity"]
+      "toolsTested": [
+        "jaccard_similarity"
+      ]
     },
     "hamming": {
       "status": "pass",
       "note": "hamming_distance computes positional differences locally. No API needed.",
       "testedAt": "2026-06-08T22:05:00.000Z",
-      "toolsTested": ["hamming_distance"]
+      "toolsTested": [
+        "hamming_distance"
+      ]
     },
     "cosinesim": {
       "status": "pass",
       "note": "cosinesim_compare computes cosine similarity locally. No API needed.",
       "testedAt": "2026-06-08T22:05:00.000Z",
-      "toolsTested": ["cosinesim_compare"]
+      "toolsTested": [
+        "cosinesim_compare"
+      ]
     },
     "damerau": {
       "status": "pass",
       "note": "damerau_distance computes edit+transposition distance locally. No API needed.",
       "testedAt": "2026-06-08T22:10:00.000Z",
-      "toolsTested": ["damerau_distance"]
+      "toolsTested": [
+        "damerau_distance"
+      ]
     },
     "markov": {
       "status": "pass",
       "note": "markov_generate builds and samples a Markov chain locally. No API needed.",
       "testedAt": "2026-06-08T22:10:00.000Z",
-      "toolsTested": ["markov_generate"]
+      "toolsTested": [
+        "markov_generate"
+      ]
     },
     "vigenere": {
       "status": "pass",
       "note": "vigenere_process encrypts/decrypts with Vigenere cipher locally. No API needed.",
       "testedAt": "2026-06-08T22:10:00.000Z",
-      "toolsTested": ["vigenere_process"]
+      "toolsTested": [
+        "vigenere_process"
+      ]
     },
     "atbash": {
       "status": "pass",
       "note": "atbash_process applies Atbash cipher locally. No API needed.",
       "testedAt": "2026-06-08T22:10:00.000Z",
-      "toolsTested": ["atbash_process"]
+      "toolsTested": [
+        "atbash_process"
+      ]
     },
     "railfence": {
       "status": "pass",
       "note": "railfence_process encrypts/decrypts with rail fence cipher locally. No API needed.",
       "testedAt": "2026-06-08T22:15:00.000Z",
-      "toolsTested": ["railfence_process"]
+      "toolsTested": [
+        "railfence_process"
+      ]
     },
     "phonetic": {
       "status": "pass",
       "note": "phonetic_spell spells text with NATO/IPA alphabet locally. No API needed.",
       "testedAt": "2026-06-08T22:15:00.000Z",
-      "toolsTested": ["phonetic_spell"]
+      "toolsTested": [
+        "phonetic_spell"
+      ]
     },
     "matrix": {
       "status": "pass",
       "note": "matrix_operate performs matrix math locally. No API needed.",
       "testedAt": "2026-06-08T22:15:00.000Z",
-      "toolsTested": ["matrix_operate"]
+      "toolsTested": [
+        "matrix_operate"
+      ]
     },
     "setops": {
       "status": "pass",
       "note": "setops_calculate performs set union/intersection/difference locally. No API needed.",
       "testedAt": "2026-06-08T22:15:00.000Z",
-      "toolsTested": ["setops_calculate"]
+      "toolsTested": [
+        "setops_calculate"
+      ]
     },
     "collatz": {
       "status": "pass",
       "note": "collatz_sequence computes 3n+1 sequences locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["collatz_sequence"]
+      "toolsTested": [
+        "collatz_sequence"
+      ]
     },
     "pascaltri": {
       "status": "pass",
       "note": "pascaltri_generate builds Pascal's triangle locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["pascaltri_generate"]
+      "toolsTested": [
+        "pascaltri_generate"
+      ]
     },
     "histogram": {
       "status": "pass",
       "note": "histogram_create bins numeric data with ASCII chart locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["histogram_create"]
+      "toolsTested": [
+        "histogram_create"
+      ]
     },
     "regression": {
       "status": "pass",
       "note": "regression_fit performs linear regression locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["regression_fit"]
+      "toolsTested": [
+        "regression_fit"
+      ]
     },
     "baseconvert": {
       "status": "pass",
       "note": "base_convert converts between number bases locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["base_convert"]
+      "toolsTested": [
+        "base_convert"
+      ]
     },
     "gcd": {
       "status": "pass",
       "note": "gcd_calculate computes GCD and LCM locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["gcd_calculate"]
+      "toolsTested": [
+        "gcd_calculate"
+      ]
     },
     "permutation": {
       "status": "pass",
       "note": "permutation_calc computes P(n,r) locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["permutation_calc"]
+      "toolsTested": [
+        "permutation_calc"
+      ]
     },
     "combination": {
       "status": "pass",
       "note": "combination_calc computes C(n,r) locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["combination_calc"]
+      "toolsTested": [
+        "combination_calc"
+      ]
     },
     "proportion": {
       "status": "pass",
       "note": "proportion_solve solves a/b = c/d locally. No API needed.",
       "testedAt": "2026-06-09T12:28:00.000Z",
-      "toolsTested": ["proportion_solve"]
+      "toolsTested": [
+        "proportion_solve"
+      ]
     },
     "quadratic": {
       "status": "pass",
       "note": "quadratic_solve returns roots, discriminant, and vertex. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["quadratic_solve"]
+      "toolsTested": [
+        "quadratic_solve"
+      ]
     },
     "primefactor": {
       "status": "pass",
       "note": "prime_factor returns prime factorization up to 1 trillion. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["prime_factor"]
+      "toolsTested": [
+        "prime_factor"
+      ]
     },
     "zscore": {
       "status": "pass",
       "note": "zscore_calculate returns z-score, cumulative probability, percentile. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["zscore_calculate"]
+      "toolsTested": [
+        "zscore_calculate"
+      ]
     },
     "angleconv": {
       "status": "pass",
       "note": "angle_convert converts degrees/radians/gradians/turns with trig values. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["angle_convert"]
+      "toolsTested": [
+        "angle_convert"
+      ]
     },
     "polygon": {
       "status": "pass",
       "note": "polygon_calculate returns area, perimeter, angles for regular polygons. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["polygon_calculate"]
+      "toolsTested": [
+        "polygon_calculate"
+      ]
     },
     "sigmoid": {
       "status": "pass",
       "note": "sigmoid_calculate computes activation functions and derivatives. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["sigmoid_calculate"]
+      "toolsTested": [
+        "sigmoid_calculate"
+      ]
     },
     "interpolate": {
       "status": "pass",
       "note": "interpolate_calc performs linear interpolation/extrapolation. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["interpolate_calc"]
+      "toolsTested": [
+        "interpolate_calc"
+      ]
     },
     "modpow": {
       "status": "pass",
       "note": "modular_arithmetic computes modpow, modinverse, mod. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["modular_arithmetic"]
+      "toolsTested": [
+        "modular_arithmetic"
+      ]
     },
     "ratiosimplify": {
       "status": "pass",
       "note": "ratio_simplify reduces ratios to lowest terms. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["ratio_simplify"]
+      "toolsTested": [
+        "ratio_simplify"
+      ]
     },
     "binomprob": {
       "status": "pass",
       "note": "binomial_probability computes PMF and CDF for binomial distribution. Local computation.",
       "testedAt": "2026-06-09T12:56:00.000Z",
-      "toolsTested": ["binomial_probability"]
+      "toolsTested": [
+        "binomial_probability"
+      ]
     },
     "normaldistr": {
       "status": "pass",
       "note": "normal_distribution computes PDF, CDF, percentile for Gaussian distribution. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["normal_distribution"]
+      "toolsTested": [
+        "normal_distribution"
+      ]
     },
     "trianglesolve": {
       "status": "pass",
       "note": "triangle_solve returns angles, area, inradius, circumradius from three sides. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["triangle_solve"]
+      "toolsTested": [
+        "triangle_solve"
+      ]
     },
     "standardform": {
       "status": "pass",
       "note": "standard_form converts numbers to scientific and engineering notation. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["standard_form"]
+      "toolsTested": [
+        "standard_form"
+      ]
     },
     "complexnum": {
       "status": "pass",
       "note": "complex_calc performs complex number arithmetic and polar conversion. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["complex_calc"]
+      "toolsTested": [
+        "complex_calc"
+      ]
     },
     "wavelength": {
       "status": "pass",
       "note": "wavelength_convert converts wavelength/frequency with energy and spectrum band. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["wavelength_convert"]
+      "toolsTested": [
+        "wavelength_convert"
+      ]
     },
     "midpoint": {
       "status": "pass",
       "note": "midpoint_calc computes midpoint, distance, slope between 2D points. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["midpoint_calc"]
+      "toolsTested": [
+        "midpoint_calc"
+      ]
     },
     "slopeintercept": {
       "status": "pass",
       "note": "slope_intercept finds line equation from two points. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["slope_intercept"]
+      "toolsTested": [
+        "slope_intercept"
+      ]
     },
     "logbase": {
       "status": "pass",
       "note": "log_base computes logarithm with any base plus ln, log10, log2. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["log_base"]
+      "toolsTested": [
+        "log_base"
+      ]
     },
     "nthroot": {
       "status": "pass",
       "note": "nth_root calculates nth root with verification. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["nth_root"]
+      "toolsTested": [
+        "nth_root"
+      ]
     },
     "areacalc": {
       "status": "pass",
       "note": "area_calculate computes area/perimeter for circles, rectangles, triangles, etc. Local computation.",
       "testedAt": "2026-06-09T13:05:00.000Z",
-      "toolsTested": ["area_calculate"]
+      "toolsTested": [
+        "area_calculate"
+      ]
     },
     "dotproduct": {
       "status": "pass",
       "note": "dot_product computes dot product with angle and orthogonality. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["dot_product"]
+      "toolsTested": [
+        "dot_product"
+      ]
     },
     "crossproduct": {
       "status": "pass",
       "note": "cross_product computes 3D cross product with parallelism check. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["cross_product"]
+      "toolsTested": [
+        "cross_product"
+      ]
     },
     "weightedmean": {
       "status": "pass",
       "note": "weighted_mean computes weighted, arithmetic, geometric, harmonic means. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["weighted_mean"]
+      "toolsTested": [
+        "weighted_mean"
+      ]
     },
     "variancecalc": {
       "status": "pass",
       "note": "variance_calc computes variance, stddev, median, range. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["variance_calc"]
+      "toolsTested": [
+        "variance_calc"
+      ]
     },
     "poisson": {
       "status": "pass",
       "note": "poisson_probability computes PMF and CDF for Poisson distribution. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["poisson_probability"]
+      "toolsTested": [
+        "poisson_probability"
+      ]
     },
     "expgrowth": {
       "status": "pass",
       "note": "exponential_growth models growth/decay with doubling time. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["exponential_growth"]
+      "toolsTested": [
+        "exponential_growth"
+      ]
     },
     "geomseries": {
       "status": "pass",
       "note": "geometric_series computes finite/infinite sums. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["geometric_series"]
+      "toolsTested": [
+        "geometric_series"
+      ]
     },
     "harmonicseries": {
       "status": "pass",
       "note": "harmonic_series computes partial sums with ln approximation. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["harmonic_series"]
+      "toolsTested": [
+        "harmonic_series"
+      ]
     },
     "piapprox": {
       "status": "pass",
       "note": "pi_approx approximates pi using Leibniz, Nilakantha, Wallis. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["pi_approx"]
+      "toolsTested": [
+        "pi_approx"
+      ]
     },
     "taylor": {
       "status": "pass",
       "note": "taylor_expand computes Taylor series for exp, sin, cos, ln1p, atan. Local computation.",
       "testedAt": "2026-06-09T13:11:00.000Z",
-      "toolsTested": ["taylor_expand"]
+      "toolsTested": [
+        "taylor_expand"
+      ]
+    },
+    "lcs": {
+      "status": "pass",
+      "note": "string_lcs finds longest common subsequence with similarity score. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": [
+        "string_lcs"
+      ]
+    },
+    "toposort": {
+      "status": "pass",
+      "note": "topo_sort performs topological sorting with cycle detection. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": [
+        "topo_sort"
+      ]
+    },
+    "convexhull": {
+      "status": "pass",
+      "note": "convex_hull computes convex hull of 2D points with area and perimeter. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": [
+        "convex_hull"
+      ]
+    },
+    "knapsack": {
+      "status": "pass",
+      "note": "knapsack_solve solves 0-1 knapsack optimization with backtracking. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": [
+        "knapsack_solve"
+      ]
+    },
+    "spline": {
+      "status": "pass",
+      "note": "spline_interpolate builds natural cubic spline with evaluation. Local computation.",
+      "testedAt": "2026-06-09T14:00:00.000Z",
+      "toolsTested": [
+        "spline_interpolate"
+      ]
+    },
+    "dijkstra": {
+      "status": "pass",
+      "note": "dijkstra_path finds shortest path in weighted graph. Local computation.",
+      "testedAt": "2026-06-09T14:30:00.000Z",
+      "toolsTested": [
+        "dijkstra_path"
+      ]
+    },
+    "matrixdecomp": {
+      "status": "pass",
+      "note": "matrix_decomp performs LU, transpose, trace, rank operations. Local computation.",
+      "testedAt": "2026-06-09T14:30:00.000Z",
+      "toolsTested": [
+        "matrix_decomp"
+      ]
+    },
+    "linearsolve": {
+      "status": "pass",
+      "note": "linear_solve solves Ax=b via Gaussian elimination with partial pivoting. Local computation.",
+      "testedAt": "2026-06-09T14:30:00.000Z",
+      "toolsTested": [
+        "linear_solve"
+      ]
+    },
+    "numdiff": {
+      "status": "pass",
+      "note": "numerical_diff computes derivatives using five-point stencil. Local computation.",
+      "testedAt": "2026-06-09T14:30:00.000Z",
+      "toolsTested": [
+        "numerical_diff"
+      ]
+    },
+    "numintegrate": {
+      "status": "pass",
+      "note": "numerical_integrate computes definite integrals (Simpson/trapezoid/midpoint). Local computation.",
+      "testedAt": "2026-06-09T14:30:00.000Z",
+      "toolsTested": [
+        "numerical_integrate"
+      ]
+    },
+    "fft": {
+      "status": "pass",
+      "note": "fft_transform computes FFT via Cooley-Tukey radix-2 with inverse support. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": [
+        "fft_transform"
+      ]
+    },
+    "bezier": {
+      "status": "pass",
+      "note": "bezier_curve computes Bezier curves with arc length and evaluation. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": [
+        "bezier_curve"
+      ]
+    },
+    "rootfind": {
+      "status": "pass",
+      "note": "root_find solves f(x)=0 via Newton or bisection method. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": [
+        "root_find"
+      ]
+    },
+    "matinverse": {
+      "status": "pass",
+      "note": "matrix_inverse computes inverse and determinant via Gauss-Jordan. Local computation.",
+      "testedAt": "2026-06-09T15:00:00.000Z",
+      "toolsTested": [
+        "matrix_inverse"
+      ]
+    },
+    "ode": {
+      "status": "pass",
+      "note": "ode_solve solves dy/dt numerically via Euler or RK4. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": [
+        "ode_solve"
+      ]
+    },
+    "polynomial": {
+      "status": "pass",
+      "note": "polynomial_ops evaluates, differentiates, integrates, adds, and multiplies polynomials. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": [
+        "polynomial_ops"
+      ]
+    },
+    "hypothesis": {
+      "status": "pass",
+      "note": "hypothesis_test runs z-test, t-test, and chi-squared tests with p-values. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": [
+        "hypothesis_test"
+      ]
+    },
+    "huffman": {
+      "status": "pass",
+      "note": "huffman_code builds Huffman tree and returns codes, compression ratio, entropy. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": [
+        "huffman_code"
+      ]
+    },
+    "correlation": {
+      "status": "pass",
+      "note": "correlation_calc computes Pearson r, r-squared, covariance, regression line. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": [
+        "correlation_calc"
+      ]
+    },
+    "bitcount": {
+      "status": "pass",
+      "note": "bit_count counts set bits, converts decimal/binary/hex/octal, detects powers of two. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": [
+        "bit_count"
+      ]
+    },
+    "runstats": {
+      "status": "pass",
+      "note": "running_stats computes sliding-window mean, std, min, max. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": [
+        "running_stats"
+      ]
+    },
+    "graph": {
+      "status": "pass",
+      "note": "graph_analyze counts nodes, edges, components, density, degrees. Local computation.",
+      "testedAt": "2026-06-09T17:00:00.000Z",
+      "toolsTested": [
+        "graph_analyze"
+      ]
+    },
+    "convolution": {
+      "status": "pass",
+      "note": "convolution computes discrete signal convolution (full/same/valid modes). Local computation.",
+      "testedAt": "2026-06-09T18:00:00.000Z",
+      "toolsTested": [
+        "convolution"
+      ]
+    },
+    "rle2": {
+      "status": "pass",
+      "note": "rle_encode_decode run-length encodes/decodes numeric arrays. Local computation.",
+      "testedAt": "2026-06-09T18:00:00.000Z",
+      "toolsTested": [
+        "rle_encode_decode"
+      ]
+    },
+    "descriptive": {
+      "status": "pass",
+      "note": "descriptive_stats computes mean, median, mode, std, skewness, kurtosis, IQR. Local computation.",
+      "testedAt": "2026-06-09T18:00:00.000Z",
+      "toolsTested": [
+        "descriptive_stats"
+      ]
+    },
+    "bfs": {
+      "status": "pass",
+      "note": "bfs_search does breadth-first search for shortest paths and reachability. Local computation.",
+      "testedAt": "2026-06-09T18:00:00.000Z",
+      "toolsTested": [
+        "bfs_search"
+      ]
+    },
+    "montecarlo": {
+      "status": "pass",
+      "note": "monte_carlo_estimate estimates pi or integrals via random sampling. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": [
+        "monte_carlo_estimate"
+      ]
+    },
+    "dfs": {
+      "status": "pass",
+      "note": "dfs_search does depth-first search with cycle detection. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": [
+        "dfs_search"
+      ]
+    },
+    "percentile": {
+      "status": "pass",
+      "note": "percentile_calc computes p5-p99 and percentile rank of values. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": [
+        "percentile_calc"
+      ]
+    },
+    "mst": {
+      "status": "pass",
+      "note": "mst_find computes minimum spanning tree via Kruskal's algorithm. Local computation.",
+      "testedAt": "2026-06-09T19:00:00.000Z",
+      "toolsTested": [
+        "mst_find"
+      ]
+    },
+    "pagerank": {
+      "status": "pass",
+      "note": "page_rank computes PageRank scores for directed graphs. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": [
+        "page_rank"
+      ]
+    },
+    "astar": {
+      "status": "pass",
+      "note": "astar_path finds shortest path on a 2D grid via A* algorithm. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": [
+        "astar_path"
+      ]
+    },
+    "simplex": {
+      "status": "pass",
+      "note": "simplex_solve solves linear programming problems via simplex method. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": [
+        "simplex_solve"
+      ]
+    },
+    "hungarian": {
+      "status": "pass",
+      "note": "hungarian_assign optimally assigns workers to tasks. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": [
+        "hungarian_assign"
+      ]
+    },
+    "kmeans": {
+      "status": "pass",
+      "note": "kmeans_cluster partitions points into k clusters. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": [
+        "kmeans_cluster"
+      ]
+    },
+    "bellmanford": {
+      "status": "pass",
+      "note": "bellman_ford finds shortest paths with negative weight support. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": [
+        "bellman_ford"
+      ]
+    },
+    "floydwarshall": {
+      "status": "pass",
+      "note": "floyd_warshall computes all-pairs shortest paths. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": [
+        "floyd_warshall"
+      ]
+    },
+    "reservoir": {
+      "status": "pass",
+      "note": "reservoir_sample selects k random items with equal probability. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": [
+        "reservoir_sample"
+      ]
+    },
+    "bloomfilter": {
+      "status": "pass",
+      "note": "bloom_filter tests probabilistic set membership. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": [
+        "bloom_filter"
+      ]
+    },
+    "poweriter": {
+      "status": "pass",
+      "note": "power_iteration finds dominant eigenvalue and eigenvector. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": [
+        "power_iteration"
+      ]
+    },
+    "tsp": {
+      "status": "pass",
+      "note": "tsp_solve finds short tour via nearest-neighbor heuristic. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": [
+        "tsp_solve"
+      ]
+    },
+    "lrucache": {
+      "status": "pass",
+      "note": "lru_simulate analyzes cache hit/miss rates. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": [
+        "lru_simulate"
+      ]
+    },
+    "unionfind": {
+      "status": "pass",
+      "note": "union_find merges elements and queries connectivity. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": [
+        "union_find"
+      ]
+    },
+    "tarjan": {
+      "status": "pass",
+      "note": "tarjan_scc finds strongly connected components. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": [
+        "tarjan_scc"
+      ]
+    },
+    "catalan": {
+      "status": "pass",
+      "note": "catalan_calc computes Catalan numbers. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": [
+        "catalan_calc"
+      ]
+    },
+    "rabinkarp": {
+      "status": "pass",
+      "note": "rabin_karp_search finds pattern matches via rolling hash. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": [
+        "rabin_karp_search"
+      ]
+    },
+    "sieve": {
+      "status": "pass",
+      "note": "sieve_of_eratosthenes generates all primes up to N. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": [
+        "sieve_of_eratosthenes"
+      ]
+    },
+    "suffixarray": {
+      "status": "pass",
+      "note": "suffix_array_build constructs suffix array with optional LCP. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": [
+        "suffix_array_build"
+      ]
+    },
+    "matchain": {
+      "status": "pass",
+      "note": "matrix_chain_order finds optimal parenthesization for matrix multiplication. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": [
+        "matrix_chain_order"
+      ]
+    },
+    "fenwick": {
+      "status": "pass",
+      "note": "fenwick_tree builds BIT for prefix sums and point updates. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": [
+        "fenwick_tree"
+      ]
+    },
+    "segtree": {
+      "status": "pass",
+      "note": "segment_tree handles range queries (sum/min/max) with point updates. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": [
+        "segment_tree"
+      ]
+    },
+    "kmp": {
+      "status": "pass",
+      "note": "kmp_search finds pattern matches using Knuth-Morris-Pratt. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": [
+        "kmp_search"
+      ]
+    },
+    "ahocorasick": {
+      "status": "pass",
+      "note": "aho_corasick_search finds multiple patterns simultaneously. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": [
+        "aho_corasick_search"
+      ]
+    },
+    "zalgo": {
+      "status": "pass",
+      "note": "z_algorithm computes Z-array and finds pattern matches in linear time. Local computation.",
+      "testedAt": "2026-06-09T01:18:00.000Z",
+      "toolsTested": [
+        "z_algorithm"
+      ]
+    },
+    "trie": {
+      "status": "pass",
+      "note": "trie_ops builds prefix tree for search, prefix count, and autocomplete. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": [
+        "trie_ops"
+      ]
+    },
+    "skiplist": {
+      "status": "pass",
+      "note": "skip_list_sim builds probabilistic sorted structure with search. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": [
+        "skip_list_sim"
+      ]
+    },
+    "manacher": {
+      "status": "pass",
+      "note": "manacher_palindrome finds longest palindromic substring in linear time. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": [
+        "manacher_palindrome"
+      ]
+    },
+    "countingsort": {
+      "status": "pass",
+      "note": "counting_sort sorts integers in O(n+k) with frequency analysis. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": [
+        "counting_sort"
+      ]
+    },
+    "radixsort": {
+      "status": "pass",
+      "note": "radix_sort sorts non-negative integers using digit-by-digit bucketing. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": [
+        "radix_sort"
+      ]
+    },
+    "treap": {
+      "status": "pass",
+      "note": "treap_sim builds randomized BST with search capability. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": [
+        "treap_sim"
+      ]
+    },
+    "lis": {
+      "status": "pass",
+      "note": "longest_increasing_subsequence finds LIS in O(n log n). Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": [
+        "longest_increasing_subsequence"
+      ]
+    },
+    "kosaraju": {
+      "status": "pass",
+      "note": "kosaraju_scc finds SCCs using two-pass DFS. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": [
+        "kosaraju_scc"
+      ]
+    },
+    "bucketsort": {
+      "status": "pass",
+      "note": "bucket_sort distributes elements into buckets and sorts each. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": [
+        "bucket_sort"
+      ]
+    },
+    "edmondskarp": {
+      "status": "pass",
+      "note": "edmonds_karp computes max flow via BFS augmenting paths. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": [
+        "edmonds_karp"
+      ]
+    },
+    "avltree": {
+      "status": "pass",
+      "note": "avl_tree builds self-balancing BST with inorder traversal and search. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": [
+        "avl_tree"
+      ]
+    },
+    "bipartite": {
+      "status": "pass",
+      "note": "bipartite_check tests 2-colorability via BFS coloring. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": [
+        "bipartite_check"
+      ]
+    },
+    "eulerpath": {
+      "status": "pass",
+      "note": "euler_path checks Eulerian path/circuit via degree analysis. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": [
+        "euler_path"
+      ]
+    },
+    "sparsetable": {
+      "status": "pass",
+      "note": "sparse_table builds O(1) RMQ structure from static array. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": [
+        "sparse_table"
+      ]
+    },
+    "millerrabin": {
+      "status": "pass",
+      "note": "miller_rabin_test performs deterministic primality testing. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": [
+        "miller_rabin_test"
+      ]
+    },
+    "rbtree": {
+      "status": "pass",
+      "note": "rb_tree_sim builds red-black tree with validity checking. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": [
+        "rb_tree_sim"
+      ]
+    },
+    "heapsort": {
+      "status": "pass",
+      "note": "heap_sort performs in-place O(n log n) sorting with swap tracking. Local computation.",
+      "testedAt": "2026-06-09T02:02:00.000Z",
+      "toolsTested": [
+        "heap_sort"
+      ]
+    },
+    "crt": {
+      "status": "pass",
+      "note": "chinese_remainder_theorem solves simultaneous congruences. Local computation.",
+      "testedAt": "2026-06-09T02:02:00.000Z",
+      "toolsTested": [
+        "chinese_remainder_theorem"
+      ]
+    },
+    "graphcolor": {
+      "status": "pass",
+      "note": "graph_coloring applies greedy vertex coloring. Local computation.",
+      "testedAt": "2026-06-09T02:02:00.000Z",
+      "toolsTested": [
+        "graph_coloring"
+      ]
+    },
+    "extgcd": {
+      "status": "pass",
+      "note": "extended_gcd computes Bezout coefficients and modular inverse. Local computation.",
+      "testedAt": "2026-06-09T02:02:00.000Z",
+      "toolsTested": [
+        "extended_gcd"
+      ]
+    },
+    "eulertotient": {
+      "status": "pass",
+      "note": "euler_totient computes phi(n) via prime factorization. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": [
+        "euler_totient"
+      ]
+    },
+    "hopcroftcarp": {
+      "status": "pass",
+      "note": "hopcroft_karp finds maximum bipartite matching. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": [
+        "hopcroft_karp"
+      ]
+    },
+    "intervalmerge": {
+      "status": "pass",
+      "note": "interval_merge consolidates overlapping intervals. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": [
+        "interval_merge"
+      ]
+    },
+    "ternarysearch": {
+      "status": "pass",
+      "note": "ternary_search performs ternary search on sorted/unimodal arrays. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": [
+        "ternary_search"
+      ]
+    },
+    "shellsort": {
+      "status": "pass",
+      "note": "shell_sort sorts arrays with gap sequence tracking. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": [
+        "shell_sort"
+      ]
+    },
+    "matexp": {
+      "status": "pass",
+      "note": "matrix_exponentiation raises matrices to integer powers via fast exponentiation. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": [
+        "matrix_exponentiation"
+      ]
+    },
+    "segmentintersect": {
+      "status": "pass",
+      "note": "segment_intersection finds pairwise 2D segment intersections. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": [
+        "segment_intersection"
+      ]
+    },
+    "minvertexcover": {
+      "status": "pass",
+      "note": "min_vertex_cover finds exact minimum vertex cover via bitmask. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": [
+        "min_vertex_cover"
+      ]
+    },
+    "suffixauto": {
+      "status": "pass",
+      "note": "suffix_automaton builds suffix automaton and counts distinct substrings. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": [
+        "suffix_automaton"
+      ]
+    },
+    "gabow": {
+      "status": "pass",
+      "note": "gabow_scc finds strongly connected components via Gabow's algorithm. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": [
+        "gabow_scc"
+      ]
+    },
+    "babygiant": {
+      "status": "pass",
+      "note": "baby_giant_step solves discrete logarithm via baby-step giant-step. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": [
+        "baby_giant_step"
+      ]
+    },
+    "centroid": {
+      "status": "pass",
+      "note": "centroid_decomposition computes centroid decomposition of trees. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": [
+        "centroid_decomposition"
+      ]
+    },
+    "wavelet": {
+      "status": "pass",
+      "note": "wavelet_tree builds wavelet tree and answers range kth-smallest queries. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:32:00.000Z",
+      "toolsTested": [
+        "wavelet_tree"
+      ]
+    },
+    "dinic": {
+      "status": "pass",
+      "note": "dinic_max_flow computes maximum flow using Dinic's algorithm. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:32:00.000Z",
+      "toolsTested": [
+        "dinic_max_flow"
+      ]
+    },
+    "lca": {
+      "status": "pass",
+      "note": "lowest_common_ancestor finds LCA and distances in trees via binary lifting. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:32:00.000Z",
+      "toolsTested": [
+        "lowest_common_ancestor"
+      ]
+    },
+    "maxindepset": {
+      "status": "pass",
+      "note": "max_independent_set finds exact MIS via bitmask enumeration. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:32:00.000Z",
+      "toolsTested": [
+        "max_independent_set"
+      ]
+    },
+    "twosat": {
+      "status": "pass",
+      "note": "two_sat solves 2-SAT via implication graph and Kosaraju SCC. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:43:00.000Z",
+      "toolsTested": [
+        "two_sat"
+      ]
+    },
+    "hld": {
+      "status": "pass",
+      "note": "heavy_light_decomposition decomposes trees into heavy/light chains. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:43:00.000Z",
+      "toolsTested": [
+        "heavy_light_decomposition"
+      ]
+    },
+    "mincostflow": {
+      "status": "pass",
+      "note": "min_cost_max_flow computes MCMF via SPFA successive shortest paths. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:43:00.000Z",
+      "toolsTested": [
+        "min_cost_max_flow"
+      ]
+    },
+    "persistarray": {
+      "status": "pass",
+      "note": "persistent_array provides version-controlled array via persistent segment tree. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:43:00.000Z",
+      "toolsTested": [
+        "persistent_array"
+      ]
+    },
+    "suffixtree": {
+      "status": "pass",
+      "note": "suffix_tree builds Ukkonen suffix tree, counts distinct substrings and finds LRS. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": [
+        "suffix_tree"
+      ]
+    },
+    "linkcut": {
+      "status": "pass",
+      "note": "link_cut_tree provides dynamic forest connectivity with link/cut/path queries. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": [
+        "link_cut_tree"
+      ]
+    },
+    "condensation": {
+      "status": "pass",
+      "note": "graph_condensation computes SCC condensation into DAG via Kosaraju. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": [
+        "graph_condensation"
+      ]
+    },
+    "mosalgo": {
+      "status": "pass",
+      "note": "mos_algorithm processes offline range queries with sqrt decomposition. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:55:00.000Z",
+      "toolsTested": [
+        "mos_algorithm"
+      ]
+    },
+    "cartesiantree": {
+      "status": "pass",
+      "note": "cartesian_tree({array:[3,2,6,1,9]}) returned correct root=3, parent array, inorder matches input",
+      "testedAt": "2026-06-09T03:03:50.401Z",
+      "toolsTested": [
+        "cartesian_tree"
+      ]
+    },
+    "sternbrocot": {
+      "status": "pass",
+      "note": "stern_brocot_tree({value:3.14159,max_denominator:100}) returned 22/7 and 355/113 convergents",
+      "testedAt": "2026-06-09T03:03:50.401Z",
+      "toolsTested": [
+        "stern_brocot_tree"
+      ]
+    },
+    "chromatic": {
+      "status": "pass",
+      "note": "chromatic_number({vertex_count:3,edges:[[0,1],[1,2],[0,2]]}) returned chromatic_number=3 with valid coloring",
+      "testedAt": "2026-06-09T03:03:50.401Z",
+      "toolsTested": [
+        "chromatic_number"
+      ]
+    },
+    "eulertour": {
+      "status": "pass",
+      "note": "euler_tour({vertex_count:5,edges:[[0,1],[0,2],[1,3],[1,4]],root:0}) returned correct tin/tout/depth/subtree_size arrays",
+      "testedAt": "2026-06-09T03:03:50.401Z",
+      "toolsTested": [
+        "euler_tour"
+      ]
+    },
+    "gausselim": {
+      "status": "pass",
+      "note": "gaussian_elimination: solved 2x2 system correctly",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "gaussian_elimination"
+      ]
+    },
+    "eertree": {
+      "status": "pass",
+      "note": "eertree: found distinct palindromic substrings in test string",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "eertree"
+      ]
+    },
+    "pollardrho": {
+      "status": "pass",
+      "note": "pollard_rho: factored composite correctly with prime factors",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "pollard_rho"
+      ]
+    },
+    "ntt": {
+      "status": "pass",
+      "note": "ntt: multiplied polynomials correctly mod 998244353",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "ntt"
+      ]
+    },
+    "josephus": {
+      "status": "pass",
+      "note": "josephus: solved n=7 k=3 survivor correctly",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "josephus"
+      ]
+    },
+    "berlekamp": {
+      "status": "pass",
+      "note": "berlekamp_massey: found Fibonacci recurrence [1,1]",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "berlekamp_massey"
+      ]
+    },
+    "sos": {
+      "status": "pass",
+      "note": "sos_dp: computed subset sums correctly for 4 elements",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "sos_dp"
+      ]
+    },
+    "xorbase": {
+      "status": "pass",
+      "note": "xor_basis: computed linear basis and max XOR correctly",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "xor_basis"
+      ]
+    },
+    "moebius": {
+      "status": "pass",
+      "note": "moebius_function({n:10}) returned mu values and Mertens function",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "moebius_function"
+      ]
+    },
+    "zfunction": {
+      "status": "pass",
+      "note": "z_function({text:\"aabxaa\"}) returned correct Z-array",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "z_function"
+      ]
+    },
+    "chineseremainder": {
+      "status": "pass",
+      "note": "chinese_remainder({remainders:[2,3],moduli:[3,5]}) returned solution=8, modulus=15",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "chinese_remainder"
+      ]
+    },
+    "lucas": {
+      "status": "pass",
+      "note": "lucas_theorem({n:10,k:3,p:7}) returned correct binomial mod prime",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "lucas_theorem"
+      ]
+    },
+    "duval": {
+      "status": "pass",
+      "note": "duval_factorize({text:\"abbaabba\"}) returned correct Lyndon factorization",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "duval_factorize"
+      ]
+    },
+    "goertzel": {
+      "status": "pass",
+      "note": "goertzel({samples:[1,1,1,1],bin:0}) returned correct DC magnitude",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "goertzel"
+      ]
+    },
+    "bwt": {
+      "status": "pass",
+      "note": "burrows_wheeler({text:\"banana\"}) returned correct BWT and original_index",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "burrows_wheeler"
+      ]
+    },
+    "ackermann": {
+      "status": "pass",
+      "note": "ackermann({m:3,n:4}) returned 125",
+      "testedAt": "2026-06-09T03:59:14.087Z",
+      "toolsTested": [
+        "ackermann"
+      ]
+    },
+    "debruijn": {
+      "status": "pass",
+      "note": "de_bruijn({k:2,n:3}) returned valid 8-char sequence with all binary triples",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "de_bruijn"
+      ]
+    },
+    "shunting": {
+      "status": "pass",
+      "note": "shunting_yard({expression:\"3+4*2\"}) returned postfix and result=11",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "shunting_yard"
+      ]
+    },
+    "fenwickrange": {
+      "status": "pass",
+      "note": "fenwick_range with range update/query returned correct sums",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "fenwick_range"
+      ]
+    },
+    "bitmask": {
+      "status": "pass",
+      "note": "bitmask_ops({mask:5,operation:\"info\"}) returned popcount=2, bits=[0,2]",
+      "testedAt": "2026-06-09T04:06:18.237Z",
+      "toolsTested": [
+        "bitmask_ops"
+      ]
+    },
+    "graycode": {
+      "status": "pass",
+      "note": "gray_code({n:3}) returned 8-element Gray code sequence",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "gray_code"
+      ]
+    },
+    "catmullrom": {
+      "status": "pass",
+      "note": "catmull_rom with 4 points evaluated correctly at t=0.5",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "catmull_rom"
+      ]
+    },
+    "rlencode": {
+      "status": "pass",
+      "note": "rl_encode({text:\"aaabbc\"}) returned encoded=\"3a2b1c\"",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "rl_encode"
+      ]
+    },
+    "topocount": {
+      "status": "pass",
+      "note": "topo_count({num_nodes:3,edges:[[0,1],[0,2]]}) returned count=2",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "topo_count"
+      ]
+    },
+    "booth": {
+      "status": "pass",
+      "note": "booth_rotation({text:\"cab\"}) returned rotated=\"abc\", rotation_index=2",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "booth_rotation"
+      ]
+    },
+    "prefixfn": {
+      "status": "pass",
+      "note": "prefix_function({text:\"abcabc\"}) returned correct prefix values",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "prefix_function"
+      ]
+    },
+    "matrank": {
+      "status": "pass",
+      "note": "matrix_rank({matrix:[[1,0],[0,1]]}) returned rank=2, is_full_rank=true",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "matrix_rank"
+      ]
+    },
+    "fenwick2d": {
+      "status": "pass",
+      "note": "fenwick_2d with point updates and rectangle queries returned correct sums",
+      "testedAt": "2026-06-09T04:20:07.751Z",
+      "toolsTested": [
+        "fenwick_2d"
+      ]
+    },
+    "contfrac": {
+      "status": "pass",
+      "note": "continued_fraction({numerator:355,denominator:113}) returned [3,7,16] terms",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "continued_fraction"
+      ]
+    },
+    "lcprefix": {
+      "status": "pass",
+      "note": "longest_common_prefix({strings:[\"flower\",\"flow\",\"flight\"]}) returned prefix=\"fl\"",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "longest_common_prefix"
+      ]
+    },
+    "lehmer": {
+      "status": "pass",
+      "note": "lehmer_code({permutation:[2,0,1]}) returned rank=4",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "lehmer_code"
+      ]
+    },
+    "digitdp": {
+      "status": "pass",
+      "note": "digit_dp({n:100,target_digit_sum:5}) returned correct count",
+      "testedAt": "2026-06-09T04:26:59.363Z",
+      "toolsTested": [
+        "digit_dp"
+      ]
+    },
+    "coinchange": {
+      "status": "pass",
+      "note": "coin_change({coins:[1,5,10,25],amount:36}) returned min_coins=3",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "coin_change"
+      ]
+    },
+    "editdist": {
+      "status": "pass",
+      "note": "edit_distance({source:\"kitten\",target:\"sitting\"}) returned distance=3",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "edit_distance"
+      ]
+    },
+    "powerset": {
+      "status": "pass",
+      "note": "power_set({elements:[1,2,3]}) returned 8 subsets",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "power_set"
+      ]
+    },
+    "necklace": {
+      "status": "pass",
+      "note": "necklace_count({n:4,k:2}) returned necklace_count=6, bracelet_count=6",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "necklace_count"
+      ]
+    },
+    "derangement": {
+      "status": "pass",
+      "note": "derangement_calc({n:5}) returned count=44",
+      "testedAt": "2026-06-09T04:43:50.756Z",
+      "toolsTested": [
+        "derangement_calc"
+      ]
+    },
+    "kmpautomaton": {
+      "status": "pass",
+      "note": "kmp_automaton({pattern:\"ab\",alphabet:\"ab\"}) returned 3 states with transition table",
+      "testedAt": "2026-06-09T04:43:50.756Z",
+      "toolsTested": [
+        "kmp_automaton"
+      ]
+    },
+    "rmqsparse": {
+      "status": "pass",
+      "note": "rmq_sparse({values:[3,1,4,1,5],queries:[[0,3]]}) returned min=1 at index 1",
+      "testedAt": "2026-06-09T04:43:50.756Z",
+      "toolsTested": [
+        "rmq_sparse"
+      ]
+    },
+    "partition": {
+      "status": "pass",
+      "note": "partition_count({n:5}) returned count=7",
+      "testedAt": "2026-06-09T04:43:50.756Z",
+      "toolsTested": [
+        "partition_count"
+      ]
+    },
+    "stirling": {
+      "status": "pass",
+      "note": "stirling_numbers({n:5,k:2}) returned correct Stirling number",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "stirling_numbers"
+      ]
+    },
+    "waveletfn": {
+      "status": "pass",
+      "note": "haar_wavelet({values:[1,2,3,4]}) returned wavelet coefficients",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "haar_wavelet"
+      ]
+    },
+    "convexhull3d": {
+      "status": "pass",
+      "note": "convex_hull_3d with tetrahedron returned 4 faces",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "convex_hull_3d"
+      ]
+    },
+    "bezierclip": {
+      "status": "pass",
+      "note": "bezier_clip({control_points:...,t_start:0,t_end:0.5}) returned sub-curve",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "bezier_clip"
+      ]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
