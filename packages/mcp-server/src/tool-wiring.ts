@@ -737,6 +737,11 @@ import { bellmanFord } from "./bellmanford-tool.js";
 import { floydWarshall } from "./floydwarshall-tool.js";
 import { reservoirSample } from "./reservoir-tool.js";
 
+import { bloomFilter } from "./bloomfilter-tool.js";
+import { powerIteration } from "./poweriter-tool.js";
+import { tspSolve } from "./tsp-tool.js";
+import { lruSimulate } from "./lrucache-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11034,6 +11039,59 @@ export const ADDITIONAL_TOOLS = [
         k: { type: "number", description: "Number of items to sample (default 1)" },
         seed: { type: "number", description: "Optional seed for reproducible results" },
       }, required: ["items"],
+    },
+  },
+
+  // ── bloomfilter-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "bloom_filter",
+    description: "Build a Bloom filter from items and test membership of query items (probabilistic, no false negatives).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        items: { type: "array", items: { type: "string" }, description: "Strings to insert into the filter" },
+        query: { type: "array", items: { type: "string" }, description: "Strings to check for membership" },
+        fp_rate: { type: "number", description: "Target false positive rate (default 0.01)" },
+      }, required: ["items", "query"],
+    },
+  },
+
+  // ── poweriter-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "power_iteration",
+    description: "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Square NxN matrix" },
+        max_iterations: { type: "number", description: "Max iterations (default 1000)" },
+        tolerance: { type: "number", description: "Convergence tolerance (default 1e-10)" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── tsp-tool.ts ────────────────────────────────────────────────────────────────
+  {
+    name: "tsp_solve",
+    description: "Find a short tour visiting all cities and returning to start (traveling salesman, nearest-neighbor heuristic).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        cities: { type: "array", items: { type: "object", properties: { name: { type: "string" }, x: { type: "number" }, y: { type: "number" } }, required: ["name", "x", "y"] }, description: "Array of {name, x, y} city locations" },
+      }, required: ["cities"],
+    },
+  },
+
+  // ── lrucache-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "lru_simulate",
+    description: "Simulate an LRU cache over a sequence of key accesses and report hit/miss rates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        accesses: { type: "array", items: {}, description: "Sequence of key accesses" },
+        capacity: { type: "number", description: "Cache capacity (default 4)" },
+      }, required: ["accesses"],
     },
   },
 
@@ -22800,6 +22858,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   bellman_ford:              (args) => bellmanFord(args),
   floyd_warshall:            (args) => floydWarshall(args),
   reservoir_sample:          (args) => reservoirSample(args),
+
+  // batch 67: Bloom filter, power iteration, TSP, LRU cache
+  bloom_filter:              (args) => bloomFilter(args),
+  power_iteration:           (args) => powerIteration(args),
+  tsp_solve:                 (args) => tspSolve(args),
+  lru_simulate:              (args) => lruSimulate(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

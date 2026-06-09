@@ -730,6 +730,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bloomfilter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bloom_filter",
+        "description": "Build a Bloom filter from items and test membership of query items (probabilistic, no false negatives)."
+      }
+    ]
+  },
+  {
     "app": "bluesky",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4460,6 +4470,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lrucache",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lru_simulate",
+        "description": "Simulate an LRU cache over a sequence of key accesses and report hit/miss rates."
+      }
+    ]
+  },
+  {
     "app": "luhn",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6214,6 +6234,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "postmark_search_messages",
         "description": "Search sent messages in Postmark by recipient, sender, tag, or status."
+      }
+    ]
+  },
+  {
+    "app": "poweriter",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "power_iteration",
+        "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
       }
     ]
   },
@@ -8322,6 +8352,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "trove_newspaper_article",
         "description": "Get a specific Trove newspaper article by ID."
+      }
+    ]
+  },
+  {
+    "app": "tsp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tsp_solve",
+        "description": "Find a short tour visiting all cities and returning to start (traveling salesman, nearest-neighbor heuristic)."
       }
     ]
   },

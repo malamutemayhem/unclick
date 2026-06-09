@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 563,
-  "toolCount": 1485,
+  "appCount": 567,
+  "toolCount": 1489,
   "categories": [
     "AI",
     "Books",
@@ -888,6 +888,22 @@
         {
           "name": "bitwise_calc",
           "description": "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bloomfilter",
+      "name": "Bloom Filter",
+      "category": "Utilities",
+      "blurb": "Probabilistic set membership testing with configurable false positive rate.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bloom_filter",
+          "description": "Build a Bloom filter from items and test membership of query items (probabilistic, no false negatives)."
         }
       ],
       "level": 5,
@@ -5930,6 +5946,22 @@
       "hardened": true
     },
     {
+      "slug": "lrucache",
+      "name": "LRU Cache Sim",
+      "category": "Utilities",
+      "blurb": "Simulate an LRU cache over access sequences and analyze hit/miss rates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lru_simulate",
+          "description": "Simulate an LRU cache over a sequence of key accesses and report hit/miss rates."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "luhn",
       "name": "Luhn Validator",
       "category": "Utilities",
@@ -8368,6 +8400,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "poweriter",
+      "name": "Power Iteration",
+      "category": "Utilities",
+      "blurb": "Find the dominant eigenvalue and eigenvector of a square matrix.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "power_iteration",
+          "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "unitpressure",
@@ -11368,6 +11416,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "tsp",
+      "name": "TSP Solver",
+      "category": "Utilities",
+      "blurb": "Find a short tour visiting all cities (traveling salesman, nearest-neighbor heuristic).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tsp_solve",
+          "description": "Find a short tour visiting all cities and returning to start (traveling salesman, nearest-neighbor heuristic)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "turso",
