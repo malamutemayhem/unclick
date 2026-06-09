@@ -52,7 +52,7 @@ function unpadBlock(data: Uint8Array): Uint8Array {
 }
 
 function incrementCounter(counter: Uint8Array): Uint8Array {
-  const result = new Uint8Array(counter);
+  const result = counter.slice();
   for (let i = result.length - 1; i >= 0; i--) {
     result[i]++;
     if (result[i] !== 0) break;
@@ -143,14 +143,18 @@ export class BlockCipher {
 
   private encryptCTR(data: Uint8Array, nonce: Uint8Array): Uint8Array {
     const result = new Uint8Array(data.length);
-    let counter = new Uint8Array(nonce);
+    const counter = new Uint8Array(nonce.length);
+    counter.set(nonce);
     for (let i = 0; i < data.length; i += this.blockSize) {
       const keystream = simpleBlockEncrypt(counter, this.key);
       const chunkLen = Math.min(this.blockSize, data.length - i);
       for (let j = 0; j < chunkLen; j++) {
         result[i + j] = data[i + j] ^ keystream[j];
       }
-      counter = incrementCounter(counter);
+      for (let k = counter.length - 1; k >= 0; k--) {
+        counter[k]++;
+        if (counter[k] !== 0) break;
+      }
     }
     return result;
   }
