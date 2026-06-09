@@ -1,97 +1,99 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import AdminSeatsLocal from "./AdminSeatsLocal";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import AdminSeatsLocalPage from "./AdminSeatsLocal";
 import {
-  getEndpointModelsUrl,
-  normalizeEndpointUrl,
-} from "./AdminSeatsLocalUtils";
+  buildLocalHealthUrl,
+  buildLocalRoutingSummary,
+  DEFAULT_LOCAL_ROUTING_CONFIG,
+  LOCAL_ROUTING_SETTINGS_KEY,
+  LOCAL_ROUTING_STORAGE_KEY,
+  normalizeLocalRoutingConfig,
+} from "./AdminSeatsLocalRouting";
 
-function jsonResponse(body: unknown) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+vi.mock("@/lib/auth", () => ({
+  useSession: () => ({
+    session: { access_token: "session-token" },
+    user: { id: "user-1" },
+    loading: false,
+  }),
+}));
 
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-  vi.unstubAllGlobals();
-});
+vi.mock("@/hooks/use-toast", () => ({
+  useToast: () => ({ toast: vi.fn() }),
+}));
 
-describe("AdminSeatsLocal", () => {
-  it("normalizes OpenAI-compatible model endpoints", () => {
-    expect(normalizeEndpointUrl(" http://localhost:1234/v1/ ")).toBe("http://localhost:1234/v1");
-    expect(getEndpointModelsUrl("openai-compat", "http://localhost:1234")).toBe(
-      "http://localhost:1234/v1/models",
+describe("AdminSeatsLocalPage routing defaults", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    vi.restoreAllMocks();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("tenant_settings_get")) {
+          return new Response(JSON.stringify({ data: {} }), { status: 200 });
+        }
+        if (url.includes("tenant_settings_set")) {
+          return new Response(JSON.stringify({ success: true }), { status: 200 });
+        }
+        if (url.includes("localhost:11434")) {
+          return new Response(JSON.stringify({ models: [] }), { status: 200 });
+        }
+        return new Response(JSON.stringify({ ok: true, init }), { status: 200 });
+      }),
     );
-    expect(getEndpointModelsUrl("openai-compat", "http://localhost:1234/v1")).toBe(
-      "http://localhost:1234/v1/models",
-    );
-    expect(getEndpointModelsUrl("ollama", "http://localhost:11434")).toBe(
-      "http://localhost:11434/api/tags",
-    );
   });
 
-  it("shows a clear browser-direct empty state when Ollama is unavailable", async () => {
-    const fetchMock = vi.fn().mockRejectedValue(new Error("connection refused"));
-    vi.stubGlobal("fetch", fetchMock);
+  it("defaults embeddings to local and complex reasoning to API", () => {
+    const config = normalizeLocalRoutingConfig({});
+    const embeddings = config.rules.find((rule) => rule.id === "embeddings");
+    const complexReasoning = config.rules.find((rule) => rule.id === "complex_reasoning");
 
-    render(React.createElement(AdminSeatsLocal));
-
-    expect(await screen.findByText("No local runtime detected")).toBeInTheDocument();
-    expect(screen.getByText(/Local detection uses browser-direct calls/i)).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:11434/api/tags", expect.any(Object));
+    expect(embeddings?.route).toBe("local");
+    expect(embeddings?.modelHint).toContain("nomic");
+    expect(complexReasoning?.route).toBe("api");
+    expect(complexReasoning?.fallback).toBe("block");
   });
 
-  it("lists installed Ollama models with status and capabilities", async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.endsWith("/api/tags")) {
-        return jsonResponse({
-          models: [
-            {
-              name: "llava:7b",
-              model: "llava:7b",
-              modified_at: new Date(Date.now() - 3_600_000).toISOString(),
-              size: 4 * 1024 * 1024 * 1024,
-              digest: "sha256:llava",
-              details: {
-                family: "llava",
-                families: ["clip"],
-                parameter_size: "7B",
-                quantization_level: "Q4_K_M",
-              },
-            },
-          ],
-        });
-      }
+  it("builds health URLs for Ollama and OpenAI-compatible endpoints", () => {
+    expect(buildLocalHealthUrl("http://localhost:11434/", "ollama")).toBe("http://localhost:11434/api/tags");
+    expect(buildLocalHealthUrl("http://localhost:1234/v1", "openai-compatible")).toBe("http://localhost:1234/v1/models");
+    expect(buildLocalHealthUrl("http://localhost:1234", "openai-compatible")).toBe("http://localhost:1234/v1/models");
+  });
 
-      if (url.endsWith("/api/ps")) {
-        return jsonResponse({
-          models: [
-            {
-              name: "llava:7b",
-              model: "llava:7b",
-              size: 4 * 1024 * 1024 * 1024,
-              digest: "sha256:llava",
-              expires_at: new Date(Date.now() + 3_600_000).toISOString(),
-            },
-          ],
-        });
-      }
-
-      return new Response(null, { status: 404 });
+  it("summarizes route and fallback counts", () => {
+    expect(buildLocalRoutingSummary(DEFAULT_LOCAL_ROUTING_CONFIG)).toEqual({
+      local: 2,
+      api: 1,
+      auto: 2,
+      apiFallbacks: 3,
+      queuedFallbacks: 1,
+      blockedFallbacks: 1,
     });
-    vi.stubGlobal("fetch", fetchMock);
+  });
 
-    render(React.createElement(AdminSeatsLocal));
+  it("lets users change fallback behavior and persist to tenant settings", async () => {
+    render(React.createElement(AdminSeatsLocalPage));
 
-    expect(await screen.findByText("llava:7b")).toBeInTheDocument();
-    expect(screen.getByText("4.0 GB")).toBeInTheDocument();
-    expect(screen.getByText("7B")).toBeInTheDocument();
-    expect(screen.getByText("Vision")).toBeInTheDocument();
-    expect(screen.getByText("Running")).toBeInTheDocument();
+    const embeddingsFallback = await screen.findByLabelText("Fallback", { selector: "#embeddings-fallback" });
+    fireEvent.change(embeddingsFallback, { target: { value: "queue" } });
+
+    fireEvent.click(screen.getByRole("button", { name: /Save/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/memory-admin?action=tenant_settings_set",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining(LOCAL_ROUTING_SETTINGS_KEY),
+        }),
+      );
+    });
+
+    const savedRaw = window.localStorage.getItem(LOCAL_ROUTING_STORAGE_KEY);
+    expect(savedRaw).not.toBeNull();
+    const saved = normalizeLocalRoutingConfig(JSON.parse(savedRaw ?? "{}"));
+    expect(saved.rules.find((rule) => rule.id === "embeddings")?.fallback).toBe("queue");
   });
 });
