@@ -710,6 +710,10 @@ import { fftTransform } from "./fft-tool.js";
 import { bezierCurve } from "./bezier-tool.js";
 import { rootFind } from "./rootfind-tool.js";
 import { matrixInverse } from "./matinverse-tool.js";
+import { odeSolve } from "./ode-tool.js";
+import { polynomialOps } from "./polynomial-tool.js";
+import { hypothesisTest } from "./hypothesis-tool.js";
+import { huffmanCode } from "./huffman-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10668,6 +10672,71 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const, additionalProperties: false, properties: {
         matrix: { type: "array" as const, description: "Square 2D array of numbers.", items: { type: "array" as const, items: { type: "number" as const } } },
       }, required: ["matrix"],
+    },
+  },
+
+  // ── ode-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "ode_solve",
+    description: "Solve an ordinary differential equation numerically using Euler or RK4 method. Provide the ODE as a JS expression in terms of t and y.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        expression: { type: "string", description: "JS expression for dy/dt in terms of t and y, e.g. 't + y'" },
+        t0: { type: "number", description: "Initial time (default 0)" },
+        y0: { type: "number", description: "Initial value y(t0) (default 1)" },
+        t_end: { type: "number", description: "End time (default 1)" },
+        steps: { type: "integer", description: "Number of steps (default 100, max 10000)" },
+        method: { type: "string", enum: ["euler", "rk4"], description: "Integration method (default rk4)" },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── polynomial-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "polynomial_ops",
+    description: "Perform polynomial operations: evaluate, derivative, integral, add, or multiply. Coefficients are highest degree first.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        operation: { type: "string", enum: ["evaluate", "derivative", "integral", "add", "multiply"], description: "Operation to perform" },
+        coefficients: { type: "array", items: { type: "number" }, description: "Polynomial coefficients, highest degree first" },
+        coefficients2: { type: "array", items: { type: "number" }, description: "Second polynomial for add/multiply" },
+        x: { type: "number", description: "Point to evaluate at (for evaluate operation)" },
+      }, required: ["operation", "coefficients"],
+    },
+  },
+
+  // ── hypothesis-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "hypothesis_test",
+    description: "Perform statistical hypothesis tests: z-test, t-test, or chi-squared test. Returns test statistic, p-value, and rejection decision.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        test: { type: "string", enum: ["z", "t", "chi2"], description: "Type of test" },
+        sample_mean: { type: "number", description: "Sample mean (for z/t tests)" },
+        population_mean: { type: "number", description: "Population mean / null hypothesis value" },
+        population_std: { type: "number", description: "Population standard deviation (for z-test)" },
+        sample_std: { type: "number", description: "Sample standard deviation (for t-test)" },
+        sample_size: { type: "integer", description: "Sample size (for z/t tests)" },
+        alpha: { type: "number", description: "Significance level (default 0.05)" },
+        tail: { type: "string", enum: ["two", "left", "right"], description: "Tail type (default two)" },
+        observed: { type: "array", items: { type: "number" }, description: "Observed frequencies (for chi2)" },
+        expected: { type: "array", items: { type: "number" }, description: "Expected frequencies (for chi2)" },
+      }, required: ["test"],
+    },
+  },
+
+  // ── huffman-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "huffman_code",
+    description: "Build a Huffman coding tree for the given text and return the code table, encoded bit count, compression ratio, and entropy.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to encode (max 100000 chars)" },
+      }, required: ["text"],
     },
   },
 
@@ -22398,6 +22467,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   bezier_curve:              (args) => bezierCurve(args),
   root_find:                 (args) => rootFind(args),
   matrix_inverse:            (args) => matrixInverse(args),
+
+  // batch 61: ODE solver, polynomial ops, hypothesis testing, Huffman coding
+  ode_solve:                 (args) => odeSolve(args),
+  polynomial_ops:            (args) => polynomialOps(args),
+  hypothesis_test:           (args) => hypothesisTest(args),
+  huffman_code:              (args) => huffmanCode(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -4066,6 +4066,30 @@
       "note": "matrix_inverse computes inverse and determinant via Gauss-Jordan. Local computation.",
       "testedAt": "2026-06-09T15:00:00.000Z",
       "toolsTested": ["matrix_inverse"]
+    },
+    "ode": {
+      "status": "pass",
+      "note": "ode_solve solves dy/dt numerically via Euler or RK4. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": ["ode_solve"]
+    },
+    "polynomial": {
+      "status": "pass",
+      "note": "polynomial_ops evaluates, differentiates, integrates, adds, and multiplies polynomials. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": ["polynomial_ops"]
+    },
+    "hypothesis": {
+      "status": "pass",
+      "note": "hypothesis_test runs z-test, t-test, and chi-squared tests with p-values. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": ["hypothesis_test"]
+    },
+    "huffman": {
+      "status": "pass",
+      "note": "huffman_code builds Huffman tree and returns codes, compression ratio, entropy. Local computation.",
+      "testedAt": "2026-06-09T16:00:00.000Z",
+      "toolsTested": ["huffman_code"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

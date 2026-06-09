@@ -3528,6 +3528,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "huffman",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "huffman_code",
+        "description": "Build a Huffman coding tree for the given text and return the code table, encoded bit count, compression ratio, and entropy."
+      }
+    ]
+  },
+  {
     "app": "hunter",
     "category": "Security",
     "tools": [
@@ -3542,6 +3552,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hunter_domain_info",
         "description": "Get email information for a domain from Hunter.io."
+      }
+    ]
+  },
+  {
+    "app": "hypothesis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hypothesis_test",
+        "description": "Perform statistical hypothesis tests: z-test, t-test, or chi-squared test. Returns test statistic, p-value, and rejection decision."
       }
     ]
   },
@@ -5082,6 +5102,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ode_solve",
+        "description": "Solve an ordinary differential equation numerically using Euler or RK4 method. Provide the ODE as a JS expression in terms of t and y."
+      }
+    ]
+  },
+  {
     "app": "oeis",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5938,6 +5968,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "polygon_calculate",
         "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+      }
+    ]
+  },
+  {
+    "app": "polynomial",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "polynomial_ops",
+        "description": "Perform polynomial operations: evaluate, derivative, integral, add, or multiply. Coefficients are highest degree first."
       }
     ]
   },

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 539,
-  "toolCount": 1461,
+  "appCount": 543,
+  "toolCount": 1465,
   "categories": [
     "AI",
     "Books",
@@ -4530,6 +4530,22 @@
       "hardened": true
     },
     {
+      "slug": "huffman",
+      "name": "Huffman Coding",
+      "category": "Utilities",
+      "blurb": "Build Huffman codes and analyze compression ratio and entropy.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "huffman_code",
+          "description": "Build a Huffman coding tree for the given text and return the code table, encoded bit count, compression ratio, and entropy."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "hunter",
       "name": "Hunter",
       "category": "Security",
@@ -4552,6 +4568,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "hypothesis",
+      "name": "Hypothesis Test",
+      "category": "Utilities",
+      "blurb": "Run z-test, t-test, or chi-squared hypothesis tests with p-values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hypothesis_test",
+          "description": "Perform statistical hypothesis tests: z-test, t-test, or chi-squared test. Returns test statistic, p-value, and rejection decision."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "iceandfire",
@@ -6798,6 +6830,22 @@
       "hardened": true
     },
     {
+      "slug": "ode",
+      "name": "ODE Solver",
+      "category": "Utilities",
+      "blurb": "Solve ordinary differential equations numerically via Euler or RK4.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ode_solve",
+          "description": "Solve an ordinary differential equation numerically using Euler or RK4 method. Provide the ODE as a JS expression in terms of t and y."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "oeis",
       "name": "OEIS",
       "category": "Weather & science",
@@ -7944,6 +7992,22 @@
         {
           "name": "polygon_calculate",
           "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "polynomial",
+      "name": "Polynomial Ops",
+      "category": "Utilities",
+      "blurb": "Evaluate, differentiate, integrate, add, or multiply polynomials.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "polynomial_ops",
+          "description": "Perform polynomial operations: evaluate, derivative, integral, add, or multiply. Coefficients are highest degree first."
         }
       ],
       "level": 5,
