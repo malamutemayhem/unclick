@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:26:59.363Z",
+  "updatedAt": "2026-06-09T04:33:43.561Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5433,6 +5433,38 @@
       "testedAt": "2026-06-09T04:26:59.363Z",
       "toolsTested": [
         "digit_dp"
+      ]
+    },
+    "coinchange": {
+      "status": "pass",
+      "note": "coin_change({coins:[1,5,10,25],amount:36}) returned min_coins=3",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "coin_change"
+      ]
+    },
+    "editdist": {
+      "status": "pass",
+      "note": "edit_distance({source:\"kitten\",target:\"sitting\"}) returned distance=3",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "edit_distance"
+      ]
+    },
+    "powerset": {
+      "status": "pass",
+      "note": "power_set({elements:[1,2,3]}) returned 8 subsets",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "power_set"
+      ]
+    },
+    "necklace": {
+      "status": "pass",
+      "note": "necklace_count({n:4,k:2}) returned necklace_count=6, bracelet_count=6",
+      "testedAt": "2026-06-09T04:33:43.561Z",
+      "toolsTested": [
+        "necklace_count"
       ]
     }
   },
