@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1013,
+    "inventory": 1017,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 588,
+    "tools": 592,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 588
+      "count": 592
     },
     {
       "id": "rooms",
@@ -4512,6 +4512,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-avltree-packages-mcp-server-src-avltree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "avltree",
+      "kind": "MCP tool",
+      "meaning": "avltree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/avltree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-balldontlie-packages-mcp-server-src-balldontlie-tool-ts-no-route",
       "division": "Tools",
       "name": "balldontlie",
@@ -4642,6 +4652,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bipartite-packages-mcp-server-src-bipartite-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bipartite",
+      "kind": "MCP tool",
+      "meaning": "bipartite MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bipartite-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bitbucket-packages-mcp-server-src-bitbucket-tool-ts-no-route",
       "division": "Tools",
       "name": "bitbucket",
@@ -4738,6 +4758,16 @@
       "kind": "MCP tool",
       "meaning": "brewery MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/brewery-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-bucketsort-packages-mcp-server-src-bucketsort-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bucketsort",
+      "kind": "MCP tool",
+      "meaning": "bucketsort MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bucketsort-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5718,6 +5748,16 @@
       "kind": "MCP tool",
       "meaning": "ebird MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/ebird-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-edmondskarp-packages-mcp-server-src-edmondskarp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "edmondskarp",
+      "kind": "MCP tool",
+      "meaning": "edmondskarp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/edmondskarp-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10981,6 +11021,11 @@
       "packages/mcp-server/src/avatarapi-tool.ts"
     ],
     [
+      "avltree",
+      "avltree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/avltree-tool.ts"
+    ],
+    [
       "balldontlie",
       "balldontlie MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/balldontlie-tool.ts"
@@ -11046,6 +11091,11 @@
       "packages/mcp-server/src/binomprob-tool.ts"
     ],
     [
+      "bipartite",
+      "bipartite MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bipartite-tool.ts"
+    ],
+    [
       "bitbucket",
       "bitbucket MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bitbucket-tool.ts"
@@ -11094,6 +11144,11 @@
       "brewery",
       "brewery MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/brewery-tool.ts"
+    ],
+    [
+      "bucketsort",
+      "bucketsort MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bucketsort-tool.ts"
     ],
     [
       "bungie",
@@ -11584,6 +11639,11 @@
       "ebird",
       "ebird MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ebird-tool.ts"
+    ],
+    [
+      "edmondskarp",
+      "edmondskarp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/edmondskarp-tool.ts"
     ],
     [
       "elevenlabs",
@@ -14969,6 +15029,11 @@
       "bytes": 730
     },
     {
+      "source": "packages/mcp-server/src/avltree-tool.ts",
+      "hash": "cf7d59325cda",
+      "bytes": 3173
+    },
+    {
       "source": "packages/mcp-server/src/balldontlie-tool.ts",
       "hash": "cecae71c883d",
       "bytes": 2403
@@ -15007,11 +15072,6 @@
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
-    },
-    {
-      "source": "packages/mcp-server/src/bgpview-tool.ts",
-      "hash": "c97cbd66581b",
-      "bytes": 2523
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 587,
-  "toolCount": 1509,
+  "appCount": 591,
+  "toolCount": 1513,
   "categories": [
     "AI",
     "Books",
@@ -646,6 +646,22 @@
       "hardened": true
     },
     {
+      "slug": "avltree",
+      "name": "AVL Tree",
+      "category": "Utilities",
+      "blurb": "Self-balancing BST with O(log n) insert, search, and height guarantees.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "avl_tree",
+          "description": "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lorem",
       "name": "Bacon Ipsum",
       "category": "Utilities",
@@ -854,6 +870,22 @@
       "hardened": false
     },
     {
+      "slug": "bipartite",
+      "name": "Bipartite Check",
+      "category": "Utilities",
+      "blurb": "Check if a graph is bipartite and return the vertex partition or odd cycle.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bipartite_check",
+          "description": "Check whether an undirected graph is bipartite (2-colorable). Returns the two vertex sets if bipartite, or an odd cycle if not."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bitcount",
       "name": "Bit Count",
       "category": "Utilities",
@@ -1052,6 +1084,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bucketsort",
+      "name": "Bucket Sort",
+      "category": "Utilities",
+      "blurb": "Distribution-based sort dividing elements into buckets then merging.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bucket_sort",
+          "description": "Sort numbers using the bucket sort algorithm. Distributes elements into buckets, sorts each, then concatenates."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bungie",
@@ -3172,6 +3220,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "edmondskarp",
+      "name": "Edmonds-Karp",
+      "category": "Utilities",
+      "blurb": "Compute maximum flow and minimum cut via BFS-augmenting paths.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "edmonds_karp",
+          "description": "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "elevenlabs",

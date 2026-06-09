@@ -200,6 +200,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/atbash-tool.ts | 90f7681ac6a5 | 863 |
 | packages/mcp-server/src/australiapost-tool.ts | ed627c360433 | 6185 |
 | packages/mcp-server/src/avatarapi-tool.ts | e3d94dc7e01e | 730 |
+| packages/mcp-server/src/avltree-tool.ts | cf7d59325cda | 3173 |
 | packages/mcp-server/src/balldontlie-tool.ts | cecae71c883d | 2403 |
 | packages/mcp-server/src/bandsintown-tool.ts | f56d1929e864 | 4850 |
 | packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
@@ -208,7 +209,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/bezier-tool.ts | 29ff88e26cbb | 2561 |
 | packages/mcp-server/src/bfs-tool.ts | 6eff2fdbba8b | 2678 |
 | packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
-| packages/mcp-server/src/bgpview-tool.ts | c97cbd66581b | 2523 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 588 |
+| Tools | MCP and gateway capabilities available to seats. | 592 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -401,6 +401,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | atbash | atbash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/atbash-tool.ts |
 | australiapost | australiapost MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/australiapost-tool.ts |
 | avatarapi | avatarapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/avatarapi-tool.ts |
+| avltree | avltree MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/avltree-tool.ts |
 | balldontlie | balldontlie MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/balldontlie-tool.ts |
 | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bandsintown-tool.ts |
 | base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
@@ -414,6 +415,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | bibleverse | bibleverse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bibleverse-tool.ts |
 | binaryconv | binaryconv MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/binaryconv-tool.ts |
 | binomprob | binomprob MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/binomprob-tool.ts |
+| bipartite | bipartite MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bipartite-tool.ts |
 | bitbucket | bitbucket MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitbucket-tool.ts |
 | bitcount | bitcount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitcount-tool.ts |
 | bitwise | bitwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bitwise-tool.ts |
@@ -424,6 +426,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/breakingbad-tool.ts |
 | brevo | brevo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/brevo-tool.ts |
 | brewery | brewery MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/brewery-tool.ts |
+| bucketsort | bucketsort MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bucketsort-tool.ts |
 | bungie | bungie MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bungie-tool.ts |
 | calcom | calcom MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/calcom-tool.ts |
 | calculator | calculator MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/calculator-tool.ts |
@@ -522,6 +525,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | dummyjson | dummyjson MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dummyjson-tool.ts |
 | ebay | ebay MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ebay-tool.ts |
 | ebird | ebird MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ebird-tool.ts |
+| edmondskarp | edmondskarp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/edmondskarp-tool.ts |
 | elevenlabs | elevenlabs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/elevenlabs-tool.ts |
 | email | email MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/email-tool.ts |
 | emojihub | emojihub MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/emojihub-tool.ts |
@@ -1405,6 +1409,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | atbash | atbash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/atbash-tool.ts |
 | Tools | MCP tool | australiapost | australiapost MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/australiapost-tool.ts |
 | Tools | MCP tool | avatarapi | avatarapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/avatarapi-tool.ts |
+| Tools | MCP tool | avltree | avltree MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/avltree-tool.ts |
 | Tools | MCP tool | balldontlie | balldontlie MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/balldontlie-tool.ts |
 | Tools | MCP tool | bandsintown | bandsintown MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bandsintown-tool.ts |
 | Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
@@ -1418,6 +1423,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | bibleverse | bibleverse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bibleverse-tool.ts |
 | Tools | MCP tool | binaryconv | binaryconv MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/binaryconv-tool.ts |
 | Tools | MCP tool | binomprob | binomprob MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/binomprob-tool.ts |
+| Tools | MCP tool | bipartite | bipartite MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bipartite-tool.ts |
 | Tools | MCP tool | bitbucket | bitbucket MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitbucket-tool.ts |
 | Tools | MCP tool | bitcount | bitcount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitcount-tool.ts |
 | Tools | MCP tool | bitwise | bitwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bitwise-tool.ts |
@@ -1428,6 +1434,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | breakingbad | breakingbad MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/breakingbad-tool.ts |
 | Tools | MCP tool | brevo | brevo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/brevo-tool.ts |
 | Tools | MCP tool | brewery | brewery MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/brewery-tool.ts |
+| Tools | MCP tool | bucketsort | bucketsort MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bucketsort-tool.ts |
 | Tools | MCP tool | bungie | bungie MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bungie-tool.ts |
 | Tools | MCP tool | calcom | calcom MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/calcom-tool.ts |
 | Tools | MCP tool | calculator | calculator MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/calculator-tool.ts |
@@ -1526,6 +1533,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | dummyjson | dummyjson MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dummyjson-tool.ts |
 | Tools | MCP tool | ebay | ebay MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ebay-tool.ts |
 | Tools | MCP tool | ebird | ebird MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ebird-tool.ts |
+| Tools | MCP tool | edmondskarp | edmondskarp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/edmondskarp-tool.ts |
 | Tools | MCP tool | elevenlabs | elevenlabs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/elevenlabs-tool.ts |
 | Tools | MCP tool | email | email MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/email-tool.ts |
 | Tools | MCP tool | emojihub | emojihub MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/emojihub-tool.ts |

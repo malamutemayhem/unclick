@@ -766,6 +766,10 @@ import { radixSort } from "./radixsort-tool.js";
 import { treapSim } from "./treap-tool.js";
 import { longestIncreasingSubseq } from "./lis-tool.js";
 import { kosarajuScc } from "./kosaraju-tool.js";
+import { bucketSort } from "./bucketsort-tool.js";
+import { edmondsKarp } from "./edmondskarp-tool.js";
+import { avlTree } from "./avltree-tool.js";
+import { bipartiteCheck } from "./bipartite-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11385,6 +11389,60 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         vertices: { type: "number", description: "Number of vertices (0-indexed)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── bucketsort-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bucket_sort",
+    description: "Sort numbers using the bucket sort algorithm. Distributes elements into buckets, sorts each, then concatenates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort" },
+        bucket_count: { type: "number", description: "Number of buckets (default: sqrt of array length)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── edmondskarp-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "edmonds_karp",
+    description: "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [from, to, capacity] triples" },
+        source: { type: "number", description: "Source vertex (default: 0)" },
+        sink: { type: "number", description: "Sink vertex (default: vertices - 1)" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── avltree-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "avl_tree",
+    description: "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        keys: { type: "array", items: { type: "number" }, description: "Keys to insert into the AVL tree" },
+        search_keys: { type: "array", items: { type: "number" }, description: "Optional keys to search for in the tree" },
+      }, required: ["keys"],
+    },
+  },
+
+  // ── bipartite-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bipartite_check",
+    description: "Check whether an undirected graph is bipartite (2-colorable). Returns the two vertex sets if bipartite, or an odd cycle if not.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Undirected edges as [u, v] pairs" },
       }, required: ["vertices", "edges"],
     },
   },
@@ -23188,6 +23246,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   treap_sim:                 (args) => treapSim(args),
   longest_increasing_subsequence: (args) => longestIncreasingSubseq(args),
   kosaraju_scc:              (args) => kosarajuScc(args),
+
+  // batch 73: Bucket Sort, Edmonds-Karp, AVL Tree, Bipartite Check
+  bucket_sort:               (args) => bucketSort(args),
+  edmonds_karp:              (args) => edmondsKarp(args),
+  avl_tree:                  (args) => avlTree(args),
+  bipartite_check:           (args) => bipartiteCheck(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
