@@ -1694,6 +1694,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "countingsort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "counting_sort",
+        "description": "Sort an array of integers in O(n+k) time using counting sort, with frequency analysis."
+      }
+    ]
+  },
+  {
     "app": "countryflag",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4584,6 +4594,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "manacher",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "manacher_palindrome",
+        "description": "Find the longest palindromic substring in linear time using Manacher's algorithm."
+      }
+    ]
+  },
+  {
     "app": "mapbox",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -7452,6 +7472,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "skiplist",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "skip_list_sim",
+        "description": "Simulate a skip list: insert values, get sorted output, and search for elements in O(log n) expected time."
+      }
+    ]
+  },
+  {
     "app": "slack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8420,6 +8450,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "triangle_solve",
         "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
+      }
+    ]
+  },
+  {
+    "app": "trie",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "trie_ops",
+        "description": "Build a trie (prefix tree) from words and perform search, prefix count, and autocomplete queries."
       }
     ]
   },

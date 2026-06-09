@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 580 |
+| Tools | MCP and gateway capabilities available to seats. | 584 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -476,6 +476,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | correlation | correlation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/correlation-tool.ts |
 | cosinesim | cosinesim MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cosinesim-tool.ts |
 | countdowncalc | countdowncalc MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countdowncalc-tool.ts |
+| countingsort | countingsort MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countingsort-tool.ts |
 | countryflag | countryflag MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countryflag-tool.ts |
 | countryis | countryis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/countryis-tool.ts |
 | crates | crates MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crates-tool.ts |
@@ -656,6 +657,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | lyrics | lyrics MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lyrics-tool.ts |
 | mailchimp | mailchimp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mailchimp-tool.ts |
 | makeup | makeup MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/makeup-tool.ts |
+| manacher | manacher MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/manacher-tool.ts |
 | mapbox | mapbox MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mapbox-tool.ts |
 | markdown | markdown MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/markdown-tool.ts |
 | markdowntable | markdowntable MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/markdowntable-tool.ts |
@@ -834,6 +836,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | sieve | sieve MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sieve-tool.ts |
 | sigmoid | sigmoid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sigmoid-tool.ts |
 | simplex | simplex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/simplex-tool.ts |
+| skiplist | skiplist MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/skiplist-tool.ts |
 | slack | slack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slack-tool.ts |
 | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sleeper-tool.ts |
 | slopeintercept | slopeintercept MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slopeintercept-tool.ts |
@@ -890,6 +893,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | toposort | toposort MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toposort-tool.ts |
 | trello | trello MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trello-tool.ts |
 | trianglesolve | trianglesolve MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trianglesolve-tool.ts |
+| trie | trie MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trie-tool.ts |
 | trivia | trivia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trivia-tool.ts |
 | trove | trove MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/trove-tool.ts |
 | tsp | tsp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tsp-tool.ts |
@@ -1472,6 +1476,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | correlation | correlation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/correlation-tool.ts |
 | Tools | MCP tool | cosinesim | cosinesim MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cosinesim-tool.ts |
 | Tools | MCP tool | countdowncalc | countdowncalc MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countdowncalc-tool.ts |
+| Tools | MCP tool | countingsort | countingsort MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countingsort-tool.ts |
 | Tools | MCP tool | countryflag | countryflag MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countryflag-tool.ts |
 | Tools | MCP tool | countryis | countryis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/countryis-tool.ts |
 | Tools | MCP tool | crates | crates MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crates-tool.ts |
@@ -1652,6 +1657,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | lyrics | lyrics MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lyrics-tool.ts |
 | Tools | MCP tool | mailchimp | mailchimp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mailchimp-tool.ts |
 | Tools | MCP tool | makeup | makeup MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/makeup-tool.ts |
+| Tools | MCP tool | manacher | manacher MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/manacher-tool.ts |
 | Tools | MCP tool | mapbox | mapbox MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mapbox-tool.ts |
 | Tools | MCP tool | markdown | markdown MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/markdown-tool.ts |
 | Tools | MCP tool | markdowntable | markdowntable MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/markdowntable-tool.ts |
@@ -1830,6 +1836,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | sieve | sieve MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sieve-tool.ts |
 | Tools | MCP tool | sigmoid | sigmoid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sigmoid-tool.ts |
 | Tools | MCP tool | simplex | simplex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/simplex-tool.ts |
+| Tools | MCP tool | skiplist | skiplist MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/skiplist-tool.ts |
 | Tools | MCP tool | slack | slack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slack-tool.ts |
 | Tools | MCP tool | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sleeper-tool.ts |
 | Tools | MCP tool | slopeintercept | slopeintercept MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slopeintercept-tool.ts |
@@ -1886,6 +1893,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | toposort | toposort MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toposort-tool.ts |
 | Tools | MCP tool | trello | trello MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trello-tool.ts |
 | Tools | MCP tool | trianglesolve | trianglesolve MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trianglesolve-tool.ts |
+| Tools | MCP tool | trie | trie MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trie-tool.ts |
 | Tools | MCP tool | trivia | trivia MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trivia-tool.ts |
 | Tools | MCP tool | trove | trove MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/trove-tool.ts |
 | Tools | MCP tool | tsp | tsp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tsp-tool.ts |

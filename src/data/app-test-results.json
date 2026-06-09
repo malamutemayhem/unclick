@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T01:18:00.000Z",
+  "updatedAt": "2026-06-09T01:23:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4306,6 +4306,30 @@
       "note": "z_algorithm computes Z-array and finds pattern matches in linear time. Local computation.",
       "testedAt": "2026-06-09T01:18:00.000Z",
       "toolsTested": ["z_algorithm"]
+    },
+    "trie": {
+      "status": "pass",
+      "note": "trie_ops builds prefix tree for search, prefix count, and autocomplete. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": ["trie_ops"]
+    },
+    "skiplist": {
+      "status": "pass",
+      "note": "skip_list_sim builds probabilistic sorted structure with search. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": ["skip_list_sim"]
+    },
+    "manacher": {
+      "status": "pass",
+      "note": "manacher_palindrome finds longest palindromic substring in linear time. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": ["manacher_palindrome"]
+    },
+    "countingsort": {
+      "status": "pass",
+      "note": "counting_sort sorts integers in O(n+k) with frequency analysis. Local computation.",
+      "testedAt": "2026-06-09T01:23:00.000Z",
+      "toolsTested": ["counting_sort"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
