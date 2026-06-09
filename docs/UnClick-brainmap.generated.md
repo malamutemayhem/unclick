@@ -71,7 +71,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
+| src/pages/admin/AdminActivity.tsx | 0062b6386e94 | 14795 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | fe9d0fede6a8 | 39375 |
@@ -117,7 +117,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
+| src/pages/AppDetail.tsx | 5d2ee9cd8690 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |

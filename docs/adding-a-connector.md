@@ -1,4 +1,4 @@
-# Adding a connector (an "App") — playbook for a new AI seat
+# Adding a connector (an "App") - playbook for a new AI seat
 
 Read this end to end before adding an integration. It is the hard-coded memory
 of how the connector library is built so you can continue the trend exactly.
@@ -18,7 +18,7 @@ Pair it with `docs/connector-standard.md` (the quality-ladder definitions).
 
 ---
 
-## 1. The mental model — connectors are the "ant mound"
+## 1. The mental model - connectors are the "ant mound"
 
 Each connector is one small, hardened REST wrapper. Together they are the ant
 mound everyone builds on:
@@ -51,7 +51,7 @@ See `docs/connector-standard.md` for the full definitions. Summary:
 - **L2-capped by design** for write/send, generation, and single-tool
   action-multiplexers (nothing to stamp). The grader's `L2_CAPPED_BY_DESIGN` map
   records these so they are not counted as unfinished.
-- **L3 and L4 are opt-in by nature** — only add them when the connector has a
+- **L3 and L4 are opt-in by nature** - only add them when the connector has a
   stable per-user default (L3) or reads a changeable, user-actionable quantity (L4).
 
 ---
@@ -120,24 +120,24 @@ bare `` `HTTP ${status}` `` (the grader counts those and blocks hardening).
 
 ---
 
-## 4. Wiring — the files you touch every time
+## 4. Wiring - the files you touch every time
 
-1. `packages/mcp-server/src/<slug>-tool.ts` — the connector (template above).
-2. `packages/mcp-server/src/<slug>-tool.test.ts` — colocated test (see §6). **Required for L2.**
-3. `packages/mcp-server/src/tool-wiring.ts` — three edits:
+1. `packages/mcp-server/src/<slug>-tool.ts` - the connector (template above).
+2. `packages/mcp-server/src/<slug>-tool.test.ts` - colocated test (see §6). **Required for L2.**
+3. `packages/mcp-server/src/tool-wiring.ts` - three edits:
    - the `import { ... } from "./<slug>-tool.js";` block,
    - the `ADDITIONAL_TOOLS` array: one `{ name, description, inputSchema }` per tool
      (`additionalProperties: false`, list `required`),
    - the `ADDITIONAL_HANDLERS` map: `<tool_name>: (args) => fn(args),`.
-4. `packages/mcp-server/src/connector-setup.ts` — one `CONNECTOR_SETUP` row:
+4. `packages/mcp-server/src/connector-setup.ts` - one `CONNECTOR_SETUP` row:
    `{ displayName, credential, arg, envVar, setupUrl, note? }`. This drives the
    `requireCredential` lookup and the not-connected card.
-5. `scripts/generate-app-catalog.mjs` — put the slug in a category `bucket(...)`
+5. `scripts/generate-app-catalog.mjs` - put the slug in a category `bucket(...)`
    (never leave it to "Other"; the integrity test fails). Optionally add
    `NAME_OF` (brand casing), `BLURB_OF` (a short, simple-English one-liner,
    <=120 chars, ends like a sentence), and `DOMAIN_OF` (brand domain for the favicon).
 
-No website tile edit is needed — the Apps pages render from the generated catalog.
+No website tile edit is needed - the Apps pages render from the generated catalog.
 
 ---
 
@@ -176,12 +176,12 @@ describe("acme connector (L2/L5)", () => {
 ```
 
 **Do not** write a full-page render integration test that mounts the whole
-admin Apps catalog (~200 rows) and clicks around — jsdom is so slow it stalls
+admin Apps catalog (~200 rows) and clicks around - jsdom is so slow it stalls
 the suite and hangs CI. Cover behaviour with focused unit tests.
 
 ---
 
-## 7. Regenerate — ORDER MATTERS (this has bitten us)
+## 7. Regenerate - ORDER MATTERS (this has bitten us)
 
 Only after the connector file **and its test** exist, regenerate in this order:
 

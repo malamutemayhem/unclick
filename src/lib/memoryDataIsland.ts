@@ -1,6 +1,6 @@
 // src/lib/memoryDataIsland.ts
 //
-// Memory Data Island export v1 — bundle Memory artifacts (profile-card,
+// Memory Data Island export v1 - bundle Memory artifacts (profile-card,
 // facts, sessions, etc.) into one portable JSON package with a manifest.
 //
 // Closes UnClick todo "Memory Data Island Export v1: portable package"

@@ -13,7 +13,7 @@
  *   Body: { platform: string, credentials: Record<string, string>,
  *           api_key: string, label?: string }
  *   Encrypts and stores credentials in Supabase user_credentials table.
- *   Upserts on (api_key_hash, platform_slug, label) — pass different
+ *   Upserts on (api_key_hash, platform_slug, label) - pass different
  *   labels to store multiple credentials for the same platform.
  *   Used by Connect.tsx for bot_token / api_key flows (no OAuth exchange needed).
  *
@@ -210,7 +210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // constraint to merge on; without it, Prefer=merge-duplicates falls back
     // to the PK and every insert 409s (the bug that blocked the original
     // vault seed). The index is declared NULLS NOT DISTINCT so a NULL label
-    // behaves as a single distinct "default" value — see migration
+    // behaves as a single distinct "default" value - see migration
     // 20260420040000_user_credentials_label.sql.
     const tableUrl = `${supabaseUrl}/rest/v1/user_credentials?on_conflict=api_key_hash,platform_slug,label`;
     const headers  = {
