@@ -23,7 +23,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 5009beb107c4 | 17238 |
-| src/pages/admin/AdminShell.tsx | cfba67a61b3f | 26450 |
+| src/pages/admin/AdminShell.tsx | a4bc878e2ed7 | 27974 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -81,7 +81,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | fe9d0fede6a8 | 39375 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
-| src/pages/admin/AdminSeatsLocal.tsx | e48fb3565853 | 35934 |
+| src/pages/admin/AdminSeatsLocal.tsx | a201c1e119a8 | 37417 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 57262eb562b5 | 25229 |
 | src/pages/admin/AdminAgents.tsx | 681342e77f86 | 49250 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |

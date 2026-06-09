@@ -15475,8 +15475,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "cfba67a61b3f",
-      "bytes": 26450
+      "hash": "a4bc878e2ed7",
+      "bytes": 27974
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15765,8 +15765,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "e48fb3565853",
-      "bytes": 35934
+      "hash": "a201c1e119a8",
+      "bytes": 37417
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
