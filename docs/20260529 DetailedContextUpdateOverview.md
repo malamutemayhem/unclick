@@ -163,7 +163,7 @@ This repo's `main` requires every PR to (a) be **up to date with main** and (b) 
 
 ---
 
-## 8. Open decisions waiting on Chris
+## 8. Open decisions waiting on the operator
 
 1. **#996 log-read gate:** park it (recommended) or enforce it later with babysat live wakes.
 2. **AutopilotIQ database table:** OK to add the new `mc_autopilot_outcomes` table to the live Supabase project? (Merging the code file is separate from applying the migration to production.)

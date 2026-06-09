@@ -37,7 +37,7 @@ Proof test:
 5. `cv-checklists_3.md`
 6. FYI JobSmith handoff comment `0bad9e59-03cf-44e9-83e2-33f4473a9209`
 7. Expanded rule-pack feed comment `4438301e-bdd7-4573-98f6-289ffe40941b`
-8. Chris-specified ScopePack addendum comment `b1b49c8f-c3af-44bb-a2d4-363148b4d763`
+8. Operator-specified ScopePack addendum comment `b1b49c8f-c3af-44bb-a2d4-363148b4d763`
 
 ## Deduped Rule Categories
 

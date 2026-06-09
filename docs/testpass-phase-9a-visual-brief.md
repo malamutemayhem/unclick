@@ -307,7 +307,7 @@ Phase 9A is complete when ALL of these are true:
 - **Unit tests:** ScoreBadge severity logic, RunButton state transitions, CheckCard expanded/collapsed states, PackPicker selection
 - **Integration tests:** End-to-end run flow on a mock server, shareable URL accessibility
 - **Visual tests:** Storybook stories for each component, all four CheckCard states, ScoreBadge in all severity buckets
-- **Manual QA:** Mobile layout at 375 px, copy review by Bailey/Chris before merge
+- **Manual QA:** Mobile layout at 375 px, copy review by Bailey/the operator before merge
 
 ## 10. Estimated effort
 
@@ -318,7 +318,7 @@ Phase 9A is complete when ALL of these are true:
 
 ## 11. Open decisions
 
-None blocking. The pack picker behaviour for a single pack (lock as label, no dropdown) is the only call worth flagging. If you (Chris) prefer "always show dropdown for consistency," call it. Default in this brief is single-pack-as-label.
+None blocking. The pack picker behaviour for a single pack (lock as label, no dropdown) is the only call worth flagging. If the operator prefers "always show dropdown for consistency," call it. Default in this brief is single-pack-as-label.
 
 ## 12. Phase 9B / 9C preview
 

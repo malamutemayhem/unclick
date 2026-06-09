@@ -192,14 +192,14 @@ describe("local memory scoring", () => {
     const phrase = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris wants semantic memory search to work locally",
+      text: "User wants semantic memory search to work locally",
       confidence: 1,
       source: "fact",
     });
     const split = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris wants semantic retrieval so memory works locally",
+      text: "User wants semantic retrieval so memory works locally",
       confidence: 1,
       source: "fact",
     });
@@ -229,19 +229,19 @@ describe("local memory scoring", () => {
 
   test("length normalization keeps concise identity facts above verbose logs", async () => {
     const { tokenizeLocalMemoryQuery, scoreLocalMemoryContent } = await import("../supabase.js");
-    const query = "Chris timezone";
+    const query = "User timezone";
     const tokens = tokenizeLocalMemoryQuery(query);
     const concise = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris timezone is Australia Sydney.",
+      text: "User timezone is Australia Sydney.",
       confidence: 1,
       source: "fact",
     });
     const verbose = scoreLocalMemoryContent({
       query,
       tokens,
-      text: `Chris timezone appears in this long operational log. ${"heartbeat memory status ".repeat(80)}`,
+      text: `User timezone appears in this long operational log. ${"heartbeat memory status ".repeat(80)}`,
       confidence: 1,
       source: "fact",
     });
@@ -256,19 +256,19 @@ describe("local memory scoring", () => {
       scoreLocalMemoryContent,
       tokenizeLocalMemoryQuery,
     } = await import("../supabase.js");
-    const query = "Chris timezone";
+    const query = "User timezone";
     const tokens = tokenizeLocalMemoryQuery(query);
     const shortScore = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris timezone is Australia Sydney.",
+      text: "User timezone is Australia Sydney.",
       confidence: 1,
       source: "fact",
     });
     const longScore = scoreLocalMemoryContent({
       query,
       tokens,
-      text: `Chris timezone was mentioned during a noisy status update. ${"routing status ".repeat(60)}`,
+      text: `User timezone was mentioned during a noisy status update. ${"routing status ".repeat(60)}`,
       confidence: 1,
       source: "fact",
     });
@@ -618,7 +618,7 @@ describe("searchMemory local-first behavior", () => {
       extracted_facts: [
         {
           id: "fact-local-default",
-          fact: "Chris wants open source semantic search as the memory default",
+          fact: "User wants open source semantic search as the memory default",
           category: "decision",
           confidence: 0.95,
           created_at: "2026-05-10T00:00:00Z",
@@ -701,7 +701,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
           serviceRoleKey: key,
           tenancy: { mode: "byod" },
         });
-        const results = (await backend.searchMemory("Chris", 10)) as Array<{ id: string }>;
+        const results = (await backend.searchMemory("User", 10)) as Array<{ id: string }>;
         assert.ok(Array.isArray(results), "fallback should return an array");
         const ids = results.map((r) => r.id);
         assert.ok(

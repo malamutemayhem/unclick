@@ -34,14 +34,14 @@ These are moving now or recently active:
 
 ## Locked Business And Brand Decisions
 
-Treat these as standing context unless Chris changes them:
+Treat these as standing context unless the operator changes them:
 
 - UnClick is closer to the agent-native equivalent of Stripe than an app store or operating system.
 - Market to end users and businesses first. Developers follow when the front door proves demand.
 - Subscription-only billing is preferred. UnClick should pay AI providers directly where possible instead of asking users to manage API credits.
 - Do not make normal users think about raw keys, model billing, or provider setup if the product can absorb that complexity.
 - Brand direction includes plain English, low-friction action, and strong anti-slop copy discipline.
-- Chris is operating with sole-trader risk context, so Connectors and credential handling must reduce liability and avoid holding raw key data unnecessarily.
+- The operator is working with sole-trader risk context, so Connectors and credential handling must reduce liability and avoid holding raw key data unnecessarily.
 
 ## Early Foundations
 
@@ -146,6 +146,6 @@ Both views are incomplete. Workers should combine:
 
 If a summary of UnClick ignores the earlier MCP, Memory, business, brand, infrastructure, and strategy layers, say that it is a recent-work summary, not a full UnClick summary.
 
-If a parked idea appears in old notes, do not assume it is active. Label it as parked unless Fishbowl, an open PR, or Chris says otherwise.
+If a parked idea appears in old notes, do not assume it is active. Label it as parked unless Fishbowl, an open PR, or the operator says otherwise.
 
 If an old product name conflicts with a newer decision, prefer the newer decision and note the older name as historical context.

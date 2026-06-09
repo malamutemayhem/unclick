@@ -280,7 +280,7 @@ The first implementation is acceptable when:
 - Failing credential state points at the dependent workflow or probe evidence.
 - Rotation copy explains what breaks if rotated.
 - BackstagePass remains the secure substrate.
-- No migration is required for the first static/read-only slice unless Chris explicitly approves one.
+- No migration is required for the first static/read-only slice unless the operator explicitly approves one.
 
 ## Test plan
 

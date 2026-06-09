@@ -4,7 +4,7 @@ AutopilotIQ is the learning and improvement layer for UnClick AutoPilot.
 It records what AutoPilot tried, scores what worked, replays failures, and
 recommends safer future policy. It starts as logging, scoring, replay, and
 shadow recommendations. It must not make risky production decisions until
-explicit gates exist and Chris has approved the chip class.
+explicit gates exist and the operator has approved the chip class.
 
 Canonical links:
 
@@ -38,7 +38,7 @@ Good rewards:
 - screenshot proof captured
 - stale job rescued
 - correct worker or tool chosen
-- Chris not bothered unnecessarily
+- the operator not bothered unnecessarily
 - job finished cleanly
 
 Penalties:
@@ -49,7 +49,7 @@ Penalties:
 - stale owner
 - wrong tool
 - failed CI
-- unnecessary Chris interruption
+- unnecessary operator interruption
 - unclear handoff
 
 ## Safety Shape
@@ -72,7 +72,7 @@ Hard stop conditions:
 - Any unapproved chip class receives an acting recommendation.
 - Any false DONE rate regression appears.
 - Any AutoPilot action bypasses the recorder.
-- Any Chris correction is lost or applied without a feedback receipt.
+- Any operator correction is lost or applied without a feedback receipt.
 - Any secret, token, billing, credential, or private payload is written to learning logs.
 
 ## Data Model v0
@@ -171,7 +171,7 @@ Required fields:
 
 ### `autopilotiq_feedback_label`
 
-Purpose: Chris corrections and reviewer labels as training signals.
+Purpose: Operator corrections and reviewer labels as training signals.
 
 Required fields:
 
@@ -193,7 +193,7 @@ Required fields:
 | 3 | ReplayRoom | Closed jobs can replay actions, outcomes, proof, and lessons. | PR, replay tests, at least three replay fixtures. |
 | 4 | Shadow learner | Recommendations are logged but cannot act. | PR, non-acting tests, shadow diff report. |
 | 5 | Gated learner | Acts only on pre-approved low-risk chip classes with kill switch. | PR, gate audit, rollback test, kill-switch test. |
-| 6 | Human feedback loop | Chris corrections become labeled signals visible in score and replay. | PR, sample feedback round trip, ingestion tests. |
+| 6 | Human feedback loop | Operator corrections become labeled signals visible in score and replay. | PR, sample feedback round trip, ingestion tests. |
 
 ## Phase 1 Scope
 
@@ -236,7 +236,7 @@ Suggested reward points:
 - `+4` stale job rescued
 - `+3` correct worker or tool chosen
 - `+3` job finished cleanly
-- `+2` Chris not bothered unnecessarily
+- `+2` the operator not bothered unnecessarily
 - `+2` clear handoff with source links
 
 Suggested penalties:
@@ -247,11 +247,11 @@ Suggested penalties:
 - `-6` stale owner left unhandled
 - `-5` wrong tool or wrong worker route
 - `-5` failed CI caused by avoidable miss
-- `-4` unnecessary Chris interruption
+- `-4` unnecessary operator interruption
 - `-4` unclear handoff
 
 The score is advisory until the gated learner phase. It should never override
-ProofTruth, Boardroom truth, or an explicit Chris decision.
+ProofTruth, Boardroom truth, or an explicit operator decision.
 
 ## ReplayRoom Requirements
 
@@ -283,7 +283,7 @@ Required proof:
 - reason not acted
 
 Shadow recommendations expire after 30 days unless confirmed by outcome data
-or Chris feedback.
+or the operator feedback.
 
 ## Gated Learner Requirements
 
@@ -309,9 +309,9 @@ Never allow in early gated phases:
 - PR merge
 - job DONE mark without independent proof
 
-## Chris Feedback Loop
+## Operator Feedback Loop
 
-Chris corrections are high-signal training events. They must become structured
+Operator corrections are high-signal training events. They must become structured
 labels, not vanish into chat.
 
 Feedback labels:
@@ -332,7 +332,7 @@ Every label needs:
 - affected action or job
 - severity
 - whether it changes a future policy
-- reviewer or Chris source
+- reviewer or the operator source
 
 ## Build Order
 

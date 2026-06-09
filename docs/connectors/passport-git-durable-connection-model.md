@@ -6,7 +6,7 @@
 
 ## Intent
 
-Passport Git should let Chris connect GitHub once, then use that same connection from every UnClick seat and every trusted device without making a new key per machine.
+Passport Git should let the operator connect GitHub once, then use that same connection from every UnClick seat and every trusted device without making a new key per machine.
 
 The user-facing promise is simple:
 
@@ -39,7 +39,7 @@ A new device should not generate a new GitHub credential by default.
 
 Expected flow:
 
-1. Chris signs into UnClick on a second device.
+1. The operator signs into UnClick on a second device.
 2. UnClick shows that GitHub is already connected.
 3. The device can request agent work that uses GitHub through the existing user-level connection.
 4. If extra trust is needed later, UnClick can add a local approval step, but it should still reuse the same GitHub connection record.
@@ -54,7 +54,7 @@ Expected flow:
 
 1. GitHub access fails, expires, or loses required scopes.
 2. UnClick marks the connection as needs attention.
-3. Chris chooses Reconnect.
+3. The operator chooses Reconnect.
 4. GitHub OAuth runs again.
 5. The existing connection record is updated with the new token material and scope metadata.
 6. Jobs that were blocked on GitHub can retry after the connection passes a health check.
@@ -67,7 +67,7 @@ Revoke should stop every seat and device from using GitHub through UnClick.
 
 Expected flow:
 
-1. Chris chooses Disconnect or Revoke in UnClick.
+1. The operator chooses Disconnect or Revoke in UnClick.
 2. UnClick marks the GitHub connection revoked locally.
 3. UnClick attempts provider-side revocation when the provider supports it.
 4. Any cached access token is deleted or made unusable.
@@ -98,7 +98,7 @@ Use manual token fallback when:
 
 - OAuth is not available yet in the current environment
 - a GitHub app setup is temporarily blocked
-- a narrow maintenance task needs a scoped token that Chris explicitly provided
+- a narrow maintenance task needs a scoped token that the operator explicitly provided
 
 Fallback rules:
 
@@ -133,7 +133,7 @@ This chip does not:
 
 ## Done Condition
 
-The next builder should be able to create the UI, API, and MCP chips from this model without asking Chris what Passport Git means.
+The next builder should be able to create the UI, API, and MCP chips from this model without asking the operator what Passport Git means.
 
 The correct direction is:
 
@@ -141,5 +141,5 @@ The correct direction is:
 - OAuth-first
 - manual token fallback only when needed
 - shared safely across trusted seats and devices
-- revoked everywhere when Chris disconnects it
+- revoked everywhere when the operator disconnects it
 - no raw token copied into worker prompts or logs

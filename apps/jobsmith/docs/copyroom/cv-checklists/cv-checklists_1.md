@@ -370,7 +370,7 @@ For every line on the CV or cover letter, ask:
 - If a recruiter asks "tell me more about this", do I have a 2-minute story?
 - If the answer to any of these is no, rewrite or cut.
 
-### L. The Chris-specific rules (from existing brand standards)
+### L. The operator-specific rules (from existing brand standards)
 
 - No em dashes anywhere. Period. (Brand standard.)
 - No typographic hangers or orphans (single words on their own line).

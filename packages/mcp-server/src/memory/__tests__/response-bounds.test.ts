@@ -142,7 +142,7 @@ describe("strict-client memory response bounds", () => {
           id: "guardrail",
           category: "workflow",
           key: "user_decision_rule",
-          value: "Do not ask Chris unless there is a real access decision.",
+          value: "Do not ask User unless there is a real access decision.",
           priority: 2,
         },
       ],
@@ -192,7 +192,7 @@ describe("strict-client memory response bounds", () => {
     assert.match(profileCard.timezone_context ?? "", /Australia\/Sydney/);
     assert.doesNotMatch(profileCard.timezone_context ?? "", /America\/New_York/);
     assert.ok(profileCard.working_now.some((line) => line.includes("Memory Profile Card job")));
-    assert.ok(profileCard.do_not_repeat.some((line) => line.includes("Do not ask Chris")));
+    assert.ok(profileCard.do_not_repeat.some((line) => line.includes("Do not ask User")));
 
     const profileText = JSON.stringify(profileCard);
     assert.doesNotMatch(profileText, /stale active job/);
@@ -291,7 +291,7 @@ describe("strict-client memory response bounds", () => {
           created_at: "2026-04-27T10:01:00Z",
         },
         {
-          fact: "Chris prefers compact memory first.",
+          fact: "User prefers compact memory first.",
           category: "preference",
           confidence: 0.9,
           created_at: "2026-04-29T00:00:00Z",
@@ -310,7 +310,7 @@ describe("strict-client memory response bounds", () => {
 
     const payload = JSON.stringify(compact);
     assert.equal(compact.active_facts.length, 1);
-    assert.equal(compact.active_facts[0].fact, "Chris prefers compact memory first.");
+    assert.equal(compact.active_facts[0].fact, "User prefers compact memory first.");
     assert.equal(payload.includes("No Fishbowl write tools"), false);
     assert.equal(payload.includes("Heartbeat resolved after scheduled cron"), false);
     assert.equal(compact.response_bounds.active_facts_returned, 1);

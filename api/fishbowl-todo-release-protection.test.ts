@@ -38,7 +38,7 @@ describe("fishbowlTodoReleaseProtectedReason", () => {
       fishbowlTodoReleaseProtectedReason({
         id: "t",
         status: "open",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
       }),
     ).toBe("human_owned_work_protected");
 

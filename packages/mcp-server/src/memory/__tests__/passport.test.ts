@@ -33,7 +33,7 @@ describe("memory passport", () => {
     } = await import("../passport.js");
     const backend = new LocalBackend();
 
-    await backend.setBusinessContext("identity", "preferred_name", "Chris", 100);
+    await backend.setBusinessContext("identity", "preferred_name", "Alex", 100);
     await backend.addFact({
       fact: "Portable memory marker lane-ten-silver should roundtrip.",
       category: "technical",
@@ -91,7 +91,7 @@ describe("memory passport", () => {
   test("imports a verified bundle and preserves searchable memory", async () => {
     const { LocalBackend } = await import("../local.js");
     const source = new LocalBackend();
-    await source.setBusinessContext("identity", "preferred_name", "Chris", 100);
+    await source.setBusinessContext("identity", "preferred_name", "Alex", 100);
     await source.addFact({
       fact: "Passport import marker lane-ten-teal should be searchable.",
       category: "technical",

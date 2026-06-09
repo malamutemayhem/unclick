@@ -209,7 +209,7 @@ describe("LocalBackend provenance round-trip", () => {
     const backend = new LocalBackend();
 
     const { id } = await backend.addFact({
-      fact: "Chris ships memory provenance receipts.",
+      fact: "User ships memory provenance receipts.",
       category: "decision",
       confidence: 0.95,
       source_agent_id: "claude-worker-03-provenance",

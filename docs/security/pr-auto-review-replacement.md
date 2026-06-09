@@ -62,7 +62,7 @@ optional-pending entry first would let that orphan block every auto-merge.
 
 Order of operations:
 1. Human uninstalls the Cursor Bugbot GitHub App (record `00e07cb5`; external,
-   Chris-gated).
+   operator-gated).
 2. Confirm no PR shows a `Cursor Bugbot` check anymore.
 3. Then drop the `"Cursor Bugbot"` default and its test references in
    `scripts/tier2-auto-merge-queue-check.{mjs,test.mjs}` (a follow-up chip).
