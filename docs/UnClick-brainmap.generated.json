@@ -14985,7 +14985,7 @@
     ],
     [
       "build",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build && node scripts/prerender-routes.mjs"
     ],
     [
       "build:dev",
@@ -15155,8 +15155,8 @@
     },
     {
       "source": "package.json",
-      "hash": "ba1c1aa52c7d",
-      "bytes": 7047
+      "hash": "adbb13d02beb",
+      "bytes": 7084
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
