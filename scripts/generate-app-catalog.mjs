@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate", "fft", "bezier", "rootfind", "matinverse", "ode", "polynomial", "hypothesis", "huffman", "correlation", "bitcount", "runstats", "graph", "convolution", "rle2", "descriptive", "bfs", "montecarlo", "dfs", "percentile", "mst", "pagerank", "astar", "simplex", "hungarian", "kmeans", "bellmanford", "floydwarshall", "reservoir", "bloomfilter", "poweriter", "tsp", "lrucache", "unionfind", "tarjan", "catalan", "rabinkarp", "sieve", "suffixarray", "matchain", "fenwick", "segtree", "kmp", "ahocorasick", "zalgo", "trie", "skiplist", "manacher", "countingsort", "radixsort", "treap", "lis", "kosaraju", "bucketsort", "edmondskarp", "avltree", "bipartite", "eulerpath", "sparsetable", "millerrabin", "rbtree", "heapsort", "crt", "graphcolor", "extgcd", "eulertotient", "hopcroftcarp", "intervalmerge", "ternarysearch", "shellsort", "matexp", "segmentintersect", "minvertexcover", "suffixauto", "gabow", "babygiant", "centroid", "wavelet", "dinic", "lca", "maxindepset", "twosat", "hld", "mincostflow", "persistarray", "suffixtree", "linkcut", "condensation", "mosalgo"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate", "fft", "bezier", "rootfind", "matinverse", "ode", "polynomial", "hypothesis", "huffman", "correlation", "bitcount", "runstats", "graph", "convolution", "rle2", "descriptive", "bfs", "montecarlo", "dfs", "percentile", "mst", "pagerank", "astar", "simplex", "hungarian", "kmeans", "bellmanford", "floydwarshall", "reservoir", "bloomfilter", "poweriter", "tsp", "lrucache", "unionfind", "tarjan", "catalan", "rabinkarp", "sieve", "suffixarray", "matchain", "fenwick", "segtree", "kmp", "ahocorasick", "zalgo", "trie", "skiplist", "manacher", "countingsort", "radixsort", "treap", "lis", "kosaraju", "bucketsort", "edmondskarp", "avltree", "bipartite", "eulerpath", "sparsetable", "millerrabin", "rbtree", "heapsort", "crt", "graphcolor", "extgcd", "eulertotient", "hopcroftcarp", "intervalmerge", "ternarysearch", "shellsort", "matexp", "segmentintersect", "minvertexcover", "suffixauto", "gabow", "babygiant", "centroid", "wavelet", "dinic", "lca", "maxindepset", "twosat", "hld", "mincostflow", "persistarray", "suffixtree", "linkcut", "condensation", "mosalgo", "cartesiantree", "sternbrocot", "chromatic", "eulertour", "gausselim", "eertree", "pollardrho", "ntt", "josephus", "berlekamp", "sos", "xorbase", "moebius", "zfunction", "chineseremainder", "lucas", "duval", "goertzel", "bwt", "ackermann", "debruijn", "shunting", "fenwickrange", "bitmask", "graycode", "catmullrom", "rlencode", "topocount", "booth", "prefixfn", "matrank", "fenwick2d"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -217,6 +217,14 @@ const NAME_OF = {
   wavelet: "Wavelet Tree", dinic: "Dinic Max Flow", lca: "Lowest Common Ancestor", maxindepset: "Max Independent Set",
   twosat: "2-SAT Solver", hld: "Heavy-Light Decomposition", mincostflow: "Min Cost Max Flow", persistarray: "Persistent Array",
   suffixtree: "Suffix Tree", linkcut: "Link-Cut Tree", condensation: "Graph Condensation", mosalgo: "Mo's Algorithm",
+  cartesiantree: "Cartesian Tree", sternbrocot: "Stern-Brocot Tree", chromatic: "Chromatic Number", eulertour: "Euler Tour",
+  gausselim: "Gaussian Elimination", eertree: "Eertree", pollardrho: "Pollard's Rho", ntt: "NTT",
+  josephus: "Josephus Problem", berlekamp: "Berlekamp-Massey", sos: "SOS DP", xorbase: "XOR Basis",
+  moebius: "Moebius Function", zfunction: "Z-Function", chineseremainder: "Chinese Remainder", lucas: "Lucas' Theorem",
+  duval: "Duval / Lyndon", goertzel: "Goertzel DFT", bwt: "Burrows-Wheeler", ackermann: "Ackermann Function",
+  debruijn: "de Bruijn Sequence", shunting: "Shunting-Yard", fenwickrange: "Fenwick Range", bitmask: "Bitmask Ops",
+  graycode: "Gray Code", catmullrom: "Catmull-Rom Spline", rlencode: "Run-Length Encoding", topocount: "Topo Order Count",
+  booth: "Booth's Rotation", prefixfn: "Prefix Function", matrank: "Matrix Rank", fenwick2d: "Fenwick 2D",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -687,6 +695,38 @@ const BLURB_OF = {
   linkcut: "Dynamic forest connectivity with link, cut, and path queries via splay trees.",
   condensation: "SCC condensation of directed graphs into a DAG using Kosaraju's algorithm.",
   mosalgo: "Offline range query processing with sqrt decomposition (sum and distinct count).",
+  cartesiantree: "Cartesian tree construction from an array for range minimum queries.",
+  sternbrocot: "Best rational approximation via the Stern-Brocot tree and continued fractions.",
+  chromatic: "Exact chromatic number computation using inclusion-exclusion (up to 20 vertices).",
+  eulertour: "Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+  gausselim: "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
+  eertree: "Palindromic tree (eertree) for counting distinct palindromic substrings.",
+  pollardrho: "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
+  ntt: "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
+  josephus: "Solve the Josephus problem - find the survivor in a circle elimination game.",
+  berlekamp: "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+  sos: "Sum over Subsets (SOS) dynamic programming and zeta transform on bitmasks.",
+  xorbase: "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+  moebius: "Compute Moebius function values and Mertens function using linear sieve.",
+  zfunction: "Z-function string algorithm for pattern matching and prefix analysis.",
+  chineseremainder: "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+  lucas: "Compute large binomial coefficients mod prime using Lucas' theorem.",
+  duval: "Lyndon factorization of a string using Duval's O(n) algorithm.",
+  goertzel: "Compute a single DFT frequency bin efficiently without a full FFT.",
+  bwt: "Burrows-Wheeler Transform for text compression preprocessing.",
+  ackermann: "Compute the Ackermann function A(m,n) with closed-form optimization.",
+  debruijn: "Generate de Bruijn sequences containing every k-ary substring of length n.",
+  shunting: "Convert infix math expressions to postfix (RPN) and evaluate using the shunting-yard algorithm.",
+  fenwickrange: "Fenwick tree supporting both range update and range query operations.",
+  bitmask: "Bitmask operations: submasks, supersets, next permutation, and bit info.",
+  graycode: "Convert between binary and Gray code or generate full n-bit Gray code sequences.",
+  catmullrom: "Evaluate Catmull-Rom splines through control points with configurable alpha.",
+  rlencode: "Run-length encode and decode strings for compression analysis.",
+  topocount: "Count distinct topological orderings of a directed acyclic graph.",
+  booth: "Find the lexicographically smallest rotation of a string in O(n).",
+  prefixfn: "Compute the KMP prefix/failure function with optional pattern matching.",
+  matrank: "Compute matrix rank using Gaussian elimination with partial pivoting.",
+  fenwick2d: "2D Fenwick tree for point updates and rectangle sum queries.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -880,6 +920,14 @@ const DOMAIN_OF = {
   wavelet: "local", dinic: "local", lca: "local", maxindepset: "local",
   twosat: "local", hld: "local", mincostflow: "local", persistarray: "local",
   suffixtree: "local", linkcut: "local", condensation: "local", mosalgo: "local",
+  cartesiantree: "local", sternbrocot: "local", chromatic: "local", eulertour: "local",
+  gausselim: "local", eertree: "local", pollardrho: "local", ntt: "local",
+  josephus: "local", berlekamp: "local", sos: "local", xorbase: "local",
+  moebius: "local", zfunction: "local", chineseremainder: "local", lucas: "local",
+  duval: "local", goertzel: "local", bwt: "local", ackermann: "local",
+  debruijn: "local", shunting: "local", fenwickrange: "local", bitmask: "local",
+  graycode: "local", catmullrom: "local", rlencode: "local", topocount: "local",
+  booth: "local", prefixfn: "local", matrank: "local", fenwick2d: "local",
 };
 
 function titleCase(slug) {

@@ -802,6 +802,38 @@ import { suffixTree } from "./suffixtree-tool.js";
 import { linkCutTree } from "./linkcut-tool.js";
 import { graphCondensation } from "./condensation-tool.js";
 import { mosAlgorithm } from "./mosalgo-tool.js";
+import { cartesianTree } from "./cartesiantree-tool.js";
+import { sternBrocotTree } from "./sternbrocot-tool.js";
+import { chromaticNumber } from "./chromatic-tool.js";
+import { eulerTour } from "./eulertour-tool.js";
+import { gaussianElimination } from "./gausselim-tool.js";
+import { eertree } from "./eertree-tool.js";
+import { pollardRho } from "./pollardrho-tool.js";
+import { ntt } from "./ntt-tool.js";
+import { josephus } from "./josephus-tool.js";
+import { berlekampMassey } from "./berlekamp-tool.js";
+import { sosDp } from "./sos-tool.js";
+import { xorBasis } from "./xorbase-tool.js";
+import { moebiusFunction } from "./moebius-tool.js";
+import { zFunction } from "./zfunction-tool.js";
+import { chineseRemainder } from "./chineseremainder-tool.js";
+import { lucasTheorem } from "./lucas-tool.js";
+import { duvalFactorize } from "./duval-tool.js";
+import { goertzel } from "./goertzel-tool.js";
+import { burrowsWheeler } from "./bwt-tool.js";
+import { ackermannFunction } from "./ackermann-tool.js";
+import { deBruijn } from "./debruijn-tool.js";
+import { shuntingYard } from "./shunting-tool.js";
+import { fenwickRange } from "./fenwickrange-tool.js";
+import { bitmaskOps } from "./bitmask-tool.js";
+import { grayCode } from "./graycode-tool.js";
+import { catmullRom } from "./catmullrom-tool.js";
+import { rlEncode } from "./rlencode-tool.js";
+import { topoCount } from "./topocount-tool.js";
+import { boothRotation } from "./booth-tool.js";
+import { prefixFunction } from "./prefixfn-tool.js";
+import { matrixRank } from "./matrank-tool.js";
+import { fenwick2D } from "./fenwick2d-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11896,6 +11928,418 @@ export const ADDITIONAL_TOOLS = [
         array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
         queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [l, r] pairs (0-indexed, inclusive)" },
       }, required: ["array", "queries"],
+    },
+  },
+
+  // ── cartesiantree-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "cartesian_tree",
+    description: "Build a Cartesian tree from an array (min-heap ordered with BST on indices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── sternbrocot-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "stern_brocot_tree",
+    description: "Find best rational approximation using the Stern-Brocot tree and continued fractions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        target: { type: "number", description: "Positive number to approximate" },
+        max_denominator: { type: "number", description: "Maximum denominator allowed (default 1000)" },
+      }, required: ["target"],
+    },
+  },
+
+  // ── chromatic-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "chromatic_number",
+    description: "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── eulertour-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "euler_tour",
+    description: "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── gausselim-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "gaussian_elimination",
+    description: "Solve a system of linear equations via Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Augmented matrix rows [a1, a2, ..., an, b]" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── eertree-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "eertree",
+    description: "Build a palindromic tree (eertree) to count distinct palindromic substrings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to analyse" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── pollardrho-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "pollard_rho",
+    description: "Factor an integer using Pollard's rho with Miller-Rabin primality testing.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        value: { type: "number", description: "Positive integer to factor" },
+      }, required: ["value"],
+    },
+  },
+
+  // ── ntt-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "ntt",
+    description: "Multiply two polynomials using Number Theoretic Transform (mod 998244353).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        poly_a: { type: "array", items: { type: "number" }, description: "First polynomial coefficients" },
+        poly_b: { type: "array", items: { type: "number" }, description: "Second polynomial coefficients" },
+      }, required: ["poly_a", "poly_b"],
+    },
+  },
+
+  // ── josephus-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "josephus",
+    description: "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Number of people in the circle" },
+        k: { type: "number", description: "Every k-th person is eliminated" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── berlekamp-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "berlekamp_massey",
+    description: "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        sequence: { type: "array", items: { type: "number" }, description: "Input sequence of integers" },
+      }, required: ["sequence"],
+    },
+  },
+
+  // ── sos-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "sos_dp",
+    description: "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of values indexed by bitmask (length must be power of 2)" },
+        direction: { type: "string", description: "subset_sum or superset_sum (default: superset_sum)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── xorbase-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "xor_basis",
+    description: "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of non-negative integers" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── moebius-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "moebius_function",
+    description: "Compute Moebius function values and Mertens function using linear sieve.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Positive integer upper bound (max 10,000,000)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zfunction-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "z_function",
+    description: "Compute Z-function of a string with optional pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to compute Z-function for" },
+        pattern: { type: "string", description: "Optional pattern to search for in text" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── chineseremainder-tool.ts ──────────────────────────────────────────────
+  {
+    name: "chinese_remainder",
+    description: "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        remainders: { type: "array", items: { type: "number" }, description: "Array of remainders" },
+        moduli: { type: "array", items: { type: "number" }, description: "Array of moduli (positive integers)" },
+      }, required: ["remainders", "moduli"],
+    },
+  },
+
+  // ── lucas-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "lucas_theorem",
+    description: "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer n" },
+        k: { type: "number", description: "Non-negative integer k (k <= n)" },
+        p: { type: "number", description: "Prime modulus" },
+      }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── duval-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "duval_factorize",
+    description: "Compute the Lyndon factorization of a string using Duval's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to factorize (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── goertzel-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "goertzel",
+    description: "Compute a single DFT frequency bin using the Goertzel algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        samples: { type: "array", items: { type: "number" }, description: "Array of real-valued samples" },
+        bin: { type: "number", description: "Target frequency bin index (0 to N-1)" },
+      }, required: ["samples", "bin"],
+    },
+  },
+
+  // ── bwt-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "burrows_wheeler",
+    description: "Compute the Burrows-Wheeler Transform (forward or inverse).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (or BWT output for inverse mode)" },
+        inverse: { type: "boolean", description: "If true, perform inverse BWT" },
+        original_index: { type: "number", description: "Original index (required for inverse mode)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ackermann-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ackermann",
+    description: "Compute the Ackermann function A(m, n).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        m: { type: "number", description: "Non-negative integer m (max 4)" },
+        n: { type: "number", description: "Non-negative integer n" },
+      }, required: ["m", "n"],
+    },
+  },
+
+  // ── debruijn-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "de_bruijn",
+    description: "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        k: { type: "number", description: "Alphabet size (2-10)" },
+        n: { type: "number", description: "Substring length (1-10)" },
+      }, required: ["k", "n"],
+    },
+  },
+
+  // ── shunting-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "shunting_yard",
+    description: "Convert an infix math expression to postfix (RPN) and evaluate it.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        expression: { type: "string", description: "Infix math expression (e.g. '3 + 4 * 2')" },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── fenwickrange-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "fenwick_range",
+    description: "Fenwick tree with range update and range query support using two BITs.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, left, right, value?} operations" },
+      }, required: ["values", "operations"],
+    },
+  },
+
+  // ── bitmask-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bitmask_ops",
+    description: "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mask: { type: "number", description: "Non-negative integer bitmask" },
+        operation: { type: "string", description: "Operation: info, submasks, supersets, next_permutation, or enumerate" },
+        universe: { type: "number", description: "Universe mask for supersets operation" },
+      }, required: ["mask", "operation"],
+    },
+  },
+
+  // ── graycode-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "gray_code",
+    description: "Convert between binary and Gray code, or generate n-bit Gray code sequences.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Bit width (1-20)" },
+        value: { type: "number", description: "Optional value to convert (omit for full sequence)" },
+        to_gray: { type: "boolean", description: "If true convert binary to Gray; if false convert Gray to binary (default true)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── catmullrom-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "catmull_rom",
+    description: "Evaluate a Catmull-Rom spline through control points at given parameter values.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array" }, description: "Control points as [x,y] pairs (min 4)" },
+        t_values: { type: "array", items: { type: "number" }, description: "Parameter values 0-1 to evaluate" },
+        alpha: { type: "number", description: "Alpha parameter (0=uniform, 0.5=centripetal, 1=chordal; default 0.5)" },
+      }, required: ["points", "t_values"],
+    },
+  },
+
+  // ── rlencode-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "rl_encode",
+    description: "Run-length encode or decode a string.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to encode or RLE-encoded string to decode" },
+        decode: { type: "boolean", description: "If true, decode RLE input (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── topocount-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "topo_count",
+    description: "Count the number of distinct topological orderings of a DAG.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        num_nodes: { type: "number", description: "Number of nodes (max 20)" },
+        edges: { type: "array", items: { type: "array" }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["num_nodes", "edges"],
+    },
+  },
+
+  // ── booth-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "booth_rotation",
+    description: "Find the lexicographically smallest rotation of a string using Booth's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── prefixfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "prefix_function",
+    description: "Compute the KMP prefix/failure function array, with optional pattern occurrence counting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+        pattern: { type: "string", description: "Optional pattern to count occurrences of" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matrank-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "matrix_rank",
+    description: "Compute the rank of a matrix using Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array" }, description: "2D number array (max 100x100)" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── fenwick2d-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "fenwick_2d",
+    description: "2D Fenwick tree for point updates and rectangle sum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        rows: { type: "number", description: "Number of rows" },
+        cols: { type: "number", description: "Number of columns" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, row, col, row2?, col2?, value?} operations" },
+      }, required: ["rows", "cols", "operations"],
     },
   },
 
@@ -23752,6 +24196,54 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   link_cut_tree:                 (args) => linkCutTree(args),
   graph_condensation:            (args) => graphCondensation(args),
   mos_algorithm:                 (args) => mosAlgorithm(args),
+
+  // batch 82: Cartesian Tree, Stern-Brocot Tree, Chromatic Number, Euler Tour
+  cartesian_tree:                (args) => cartesianTree(args),
+  stern_brocot_tree:             (args) => sternBrocotTree(args),
+  chromatic_number:              (args) => chromaticNumber(args),
+  euler_tour:                    (args) => eulerTour(args),
+
+  // batch 83: Gaussian Elimination, Eertree, Pollard's Rho, NTT
+  gaussian_elimination:          (args) => gaussianElimination(args),
+  eertree:                       (args) => eertree(args),
+  pollard_rho:                   (args) => pollardRho(args),
+  ntt:                           (args) => ntt(args),
+
+  // batch 84: Josephus, Berlekamp-Massey, SOS DP, XOR Basis
+  josephus:                      (args) => josephus(args),
+  berlekamp_massey:              (args) => berlekampMassey(args),
+  sos_dp:                        (args) => sosDp(args),
+  xor_basis:                     (args) => xorBasis(args),
+
+  // batch 85: Moebius Function, Z-Function, Chinese Remainder, Lucas' Theorem
+  moebius_function:              (args) => moebiusFunction(args),
+  z_function:                    (args) => zFunction(args),
+  chinese_remainder:             (args) => chineseRemainder(args),
+  lucas_theorem:                 (args) => lucasTheorem(args),
+
+  // batch 86: Duval, Goertzel, Burrows-Wheeler, Ackermann
+  duval_factorize:               (args) => duvalFactorize(args),
+  goertzel:                      (args) => goertzel(args),
+  burrows_wheeler:               (args) => burrowsWheeler(args),
+  ackermann:                     (args) => ackermannFunction(args),
+
+  // batch 87: de Bruijn, Shunting-Yard, Fenwick Range, Bitmask Ops
+  de_bruijn:                     (args) => deBruijn(args),
+  shunting_yard:                 (args) => shuntingYard(args),
+  fenwick_range:                 (args) => fenwickRange(args),
+  bitmask_ops:                   (args) => bitmaskOps(args),
+
+  // batch 88: Gray Code, Catmull-Rom, Run-Length Encoding, Topo Count
+  gray_code:                     (args) => grayCode(args),
+  catmull_rom:                   (args) => catmullRom(args),
+  rl_encode:                     (args) => rlEncode(args),
+  topo_count:                    (args) => topoCount(args),
+
+  // batch 89: Booth, Prefix Function, Matrix Rank, Fenwick 2D
+  booth_rotation:                (args) => boothRotation(args),
+  prefix_function:               (args) => prefixFunction(args),
+  matrix_rank:                   (args) => matrixRank(args),
+  fenwick_2d:                    (args) => fenwick2D(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

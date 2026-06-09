@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 623,
-  "toolCount": 1545,
+  "appCount": 655,
+  "toolCount": 1577,
   "categories": [
     "AI",
     "Books",
@@ -100,6 +100,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ackermann",
+      "name": "Ackermann Function",
+      "category": "Utilities",
+      "blurb": "Compute the Ackermann function A(m,n) with closed-form optimization.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ackermann",
+          "description": "Compute the Ackermann function A(m, n)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "acronymgen",
@@ -810,6 +826,22 @@
       "hardened": false
     },
     {
+      "slug": "berlekamp",
+      "name": "Berlekamp-Massey",
+      "category": "Utilities",
+      "blurb": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "berlekamp_massey",
+          "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bezier",
       "name": "Bezier Curve",
       "category": "Utilities",
@@ -958,6 +990,22 @@
       "hardened": true
     },
     {
+      "slug": "bitmask",
+      "name": "Bitmask Ops",
+      "category": "Utilities",
+      "blurb": "Bitmask operations: submasks, supersets, next permutation, and bit info.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bitmask_ops",
+          "description": "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bitwise",
       "name": "Bitwise Calculator",
       "category": "Developer & infra",
@@ -1036,6 +1084,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "booth",
+      "name": "Booth's Rotation",
+      "category": "Utilities",
+      "blurb": "Find the lexicographically smallest rotation of a string in O(n).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "booth_rotation",
+          "description": "Find the lexicographically smallest rotation of a string using Booth's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bored",
@@ -1160,6 +1224,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bwt",
+      "name": "Burrows-Wheeler",
+      "category": "Utilities",
+      "blurb": "Burrows-Wheeler Transform for text compression preprocessing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "burrows_wheeler",
+          "description": "Compute the Burrows-Wheeler Transform (forward or inverse)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "csuite",
@@ -1314,6 +1394,22 @@
       "hardened": true
     },
     {
+      "slug": "cartesiantree",
+      "name": "Cartesian Tree",
+      "category": "Utilities",
+      "blurb": "Cartesian tree construction from an array for range minimum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cartesian_tree",
+          "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "camelsnake",
       "name": "Case Converter",
       "category": "Utilities",
@@ -1384,6 +1480,22 @@
         {
           "name": "catalan_calc",
           "description": "Compute the nth Catalan number and its combinatorial interpretations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "catmullrom",
+      "name": "Catmull-Rom Spline",
+      "category": "Utilities",
+      "blurb": "Evaluate Catmull-Rom splines through control points with configurable alpha.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "catmull_rom",
+          "description": "Evaluate a Catmull-Rom spline through control points at given parameter values."
         }
       ],
       "level": 5,
@@ -1490,6 +1602,22 @@
       "hardened": true
     },
     {
+      "slug": "chineseremainder",
+      "name": "Chinese Remainder",
+      "category": "Utilities",
+      "blurb": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chinese_remainder",
+          "description": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "crt",
       "name": "Chinese Remainder Theorem",
       "category": "Utilities",
@@ -1500,6 +1628,22 @@
         {
           "name": "chinese_remainder_theorem",
           "description": "Solve a system of simultaneous congruences using the Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "chromatic",
+      "name": "Chromatic Number",
+      "category": "Utilities",
+      "blurb": "Exact chromatic number computation using inclusion-exclusion (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chromatic_number",
+          "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
         }
       ],
       "level": 5,
@@ -2702,6 +2846,22 @@
       "hardened": false
     },
     {
+      "slug": "debruijn",
+      "name": "de Bruijn Sequence",
+      "category": "Utilities",
+      "blurb": "Generate de Bruijn sequences containing every k-ary substring of length n.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "de_bruijn",
+          "description": "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "deckofcards",
       "name": "Deck of Cards",
       "category": "Utilities",
@@ -3250,6 +3410,22 @@
       "hardened": false
     },
     {
+      "slug": "duval",
+      "name": "Duval / Lyndon",
+      "category": "Utilities",
+      "blurb": "Lyndon factorization of a string using Duval's O(n) algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "duval_factorize",
+          "description": "Compute the Lyndon factorization of a string using Duval's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ebay",
       "name": "eBay",
       "category": "Shopping",
@@ -3312,6 +3488,22 @@
         {
           "name": "edmonds_karp",
           "description": "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eertree",
+      "name": "Eertree",
+      "category": "Utilities",
+      "blurb": "Palindromic tree (eertree) for counting distinct palindromic substrings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "eertree",
+          "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
         }
       ],
       "level": 5,
@@ -3556,6 +3748,22 @@
         {
           "name": "euler_totient",
           "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eulertour",
+      "name": "Euler Tour",
+      "category": "Utilities",
+      "blurb": "Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_tour",
+          "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
         }
       ],
       "level": 5,
@@ -3828,6 +4036,38 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "fenwick2d",
+      "name": "Fenwick 2D",
+      "category": "Utilities",
+      "blurb": "2D Fenwick tree for point updates and rectangle sum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_2d",
+          "description": "2D Fenwick tree for point updates and rectangle sum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fenwickrange",
+      "name": "Fenwick Range",
+      "category": "Utilities",
+      "blurb": "Fenwick tree supporting both range update and range query operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_range",
+          "description": "Fenwick tree with range update and range query support using two BITs."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fenwick",
@@ -4250,6 +4490,22 @@
       "hardened": false
     },
     {
+      "slug": "gausselim",
+      "name": "Gaussian Elimination",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gaussian_elimination",
+          "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gbif",
       "name": "GBIF",
       "category": "Weather & science",
@@ -4526,6 +4782,22 @@
       "hardened": true
     },
     {
+      "slug": "goertzel",
+      "name": "Goertzel DFT",
+      "category": "Utilities",
+      "blurb": "Compute a single DFT frequency bin efficiently without a full FFT.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "goertzel",
+          "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "graph",
       "name": "Graph Analyze",
       "category": "Utilities",
@@ -4568,6 +4840,22 @@
         {
           "name": "graph_condensation",
           "description": "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "graycode",
+      "name": "Gray Code",
+      "category": "Utilities",
+      "blurb": "Convert between binary and Gray code or generate full n-bit Gray code sequences.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gray_code",
+          "description": "Convert between binary and Gray code, or generate n-bit Gray code sequences."
         }
       ],
       "level": 5,
@@ -5654,6 +5942,22 @@
       "hardened": true
     },
     {
+      "slug": "josephus",
+      "name": "Josephus Problem",
+      "category": "Utilities",
+      "blurb": "Solve the Josephus problem - find the survivor in a circle elimination game.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "josephus",
+          "description": "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "jsoncrack",
       "name": "JSON Format",
       "category": "Developer & infra",
@@ -6410,6 +6714,22 @@
       "hardened": false
     },
     {
+      "slug": "lucas",
+      "name": "Lucas' Theorem",
+      "category": "Utilities",
+      "blurb": "Compute large binomial coefficients mod prime using Lucas' theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lucas_theorem",
+          "description": "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "luhn",
       "name": "Luhn Validator",
       "category": "Utilities",
@@ -6712,6 +7032,22 @@
         {
           "name": "matrix_inverse",
           "description": "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matrank",
+      "name": "Matrix Rank",
+      "category": "Utilities",
+      "blurb": "Compute matrix rank using Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_rank",
+          "description": "Compute the rank of a matrix using Gaussian elimination with partial pivoting."
         }
       ],
       "level": 5,
@@ -7036,6 +7372,22 @@
         {
           "name": "modular_arithmetic",
           "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "moebius",
+      "name": "Moebius Function",
+      "category": "Utilities",
+      "blurb": "Compute Moebius function values and Mertens function using linear sieve.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "moebius_function",
+          "description": "Compute Moebius function values and Mertens function using linear sieve."
         }
       ],
       "level": 5,
@@ -7540,6 +7892,22 @@
         {
           "name": "nth_root",
           "description": "Calculate the nth root of a number. Default is square root (n=2)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ntt",
+      "name": "NTT",
+      "category": "Utilities",
+      "blurb": "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ntt",
+          "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
         }
       ],
       "level": 5,
@@ -8862,6 +9230,22 @@
       "hardened": false
     },
     {
+      "slug": "pollardrho",
+      "name": "Pollard's Rho",
+      "category": "Utilities",
+      "blurb": "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pollard_rho",
+          "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "polygon",
       "name": "Polygon Calculator",
       "category": "Utilities",
@@ -9004,6 +9388,22 @@
         {
           "name": "power_iteration",
           "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "prefixfn",
+      "name": "Prefix Function",
+      "category": "Utilities",
+      "blurb": "Compute the KMP prefix/failure function with optional pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prefix_function",
+          "description": "Compute the KMP prefix/failure function array, with optional pattern occurrence counting."
         }
       ],
       "level": 5,
@@ -10158,6 +10558,22 @@
       "hardened": false
     },
     {
+      "slug": "rlencode",
+      "name": "Run-Length Encoding",
+      "category": "Utilities",
+      "blurb": "Run-length encode and decode strings for compression analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rl_encode",
+          "description": "Run-length encode or decode a string."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runlength",
       "name": "Run-Length Encoding",
       "category": "Utilities",
@@ -10662,6 +11078,22 @@
       "hardened": true
     },
     {
+      "slug": "shunting",
+      "name": "Shunting-Yard",
+      "category": "Utilities",
+      "blurb": "Convert infix math expressions to postfix (RPN) and evaluate using the shunting-yard algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shunting_yard",
+          "description": "Convert an infix math expression to postfix (RPN) and evaluate it."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "sieve",
       "name": "Sieve of Eratosthenes",
       "category": "Utilities",
@@ -10808,6 +11240,22 @@
         {
           "name": "solarsystem_body",
           "description": "Get detailed info about a specific solar system body."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sos",
+      "name": "SOS DP",
+      "category": "Utilities",
+      "blurb": "Sum over Subsets (SOS) dynamic programming and zeta transform on bitmasks.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sos_dp",
+          "description": "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks."
         }
       ],
       "level": 5,
@@ -11180,6 +11628,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "sternbrocot",
+      "name": "Stern-Brocot Tree",
+      "category": "Utilities",
+      "blurb": "Best rational approximation via the Stern-Brocot tree and continued fractions.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stern_brocot_tree",
+          "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "stringcase",
@@ -12140,6 +12604,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "topocount",
+      "name": "Topo Order Count",
+      "category": "Utilities",
+      "blurb": "Count distinct topological orderings of a directed acyclic graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "topo_count",
+          "description": "Count the number of distinct topological orderings of a DAG."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "toposort",
@@ -13478,6 +13958,22 @@
       "hardened": true
     },
     {
+      "slug": "xorbase",
+      "name": "XOR Basis",
+      "category": "Utilities",
+      "blurb": "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "xor_basis",
+          "description": "Compute a linear basis over GF(2) (XOR basis) for a set of integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "xpass-aggregated-verdict",
       "name": "XPass Verdict",
       "category": "Quality (XPass)",
@@ -13588,6 +14084,22 @@
         {
           "name": "z_algorithm",
           "description": "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "zfunction",
+      "name": "Z-Function",
+      "category": "Utilities",
+      "blurb": "Z-function string algorithm for pattern matching and prefix analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "z_function",
+          "description": "Compute Z-function of a string with optional pattern matching."
         }
       ],
       "level": 5,

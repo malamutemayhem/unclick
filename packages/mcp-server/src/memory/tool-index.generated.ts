@@ -60,6 +60,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ackermann",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ackermann",
+        "description": "Compute the Ackermann function A(m, n)."
+      }
+    ]
+  },
+  {
     "app": "acnhapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -610,6 +620,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "berlekamp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "berlekamp_massey",
+        "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+      }
+    ]
+  },
+  {
     "app": "bezier",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -760,6 +780,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitmask",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bitmask_ops",
+        "description": "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits."
+      }
+    ]
+  },
+  {
     "app": "bitwise",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -786,6 +816,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bluesky_action",
         "description": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow."
+      }
+    ]
+  },
+  {
+    "app": "booth",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "booth_rotation",
+        "description": "Find the lexicographically smallest rotation of a string using Booth's algorithm."
       }
     ]
   },
@@ -896,6 +936,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bungie_search_entities",
         "description": "Search Destiny 2 manifest entities."
+      }
+    ]
+  },
+  {
+    "app": "bwt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "burrows_wheeler",
+        "description": "Compute the Burrows-Wheeler Transform (forward or inverse)."
       }
     ]
   },
@@ -1016,6 +1066,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cartesiantree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cartesian_tree",
+        "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+      }
+    ]
+  },
+  {
     "app": "cataas",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1068,6 +1128,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cat_breeds",
         "description": "List cat breeds with details."
+      }
+    ]
+  },
+  {
+    "app": "catmullrom",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "catmull_rom",
+        "description": "Evaluate a Catmull-Rom spline through control points at given parameter values."
       }
     ]
   },
@@ -1138,6 +1208,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "chess_leaderboards",
         "description": "Get Chess.com leaderboards."
+      }
+    ]
+  },
+  {
+    "app": "chineseremainder",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chinese_remainder",
+        "description": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem."
+      }
+    ]
+  },
+  {
+    "app": "chromatic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chromatic_number",
+        "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
       }
     ]
   },
@@ -2024,6 +2114,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "debruijn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "de_bruijn",
+        "description": "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once."
+      }
+    ]
+  },
+  {
     "app": "deckofcards",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2482,6 +2582,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "duval",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "duval_factorize",
+        "description": "Compute the Lyndon factorization of a string using Duval's algorithm."
+      }
+    ]
+  },
+  {
     "app": "ebay",
     "category": "AI",
     "tools": [
@@ -2528,6 +2638,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "edmonds_karp",
         "description": "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm."
+      }
+    ]
+  },
+  {
+    "app": "eertree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "eertree",
+        "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
       }
     ]
   },
@@ -2716,6 +2836,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "eulertour",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "euler_tour",
+        "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
+      }
+    ]
+  },
+  {
     "app": "europeana",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2898,6 +3028,26 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "fenwick_tree",
         "description": "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries."
+      }
+    ]
+  },
+  {
+    "app": "fenwick2d",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fenwick_2d",
+        "description": "2D Fenwick tree for point updates and rectangle sum queries."
+      }
+    ]
+  },
+  {
+    "app": "fenwickrange",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fenwick_range",
+        "description": "Fenwick tree with range update and range query support using two BITs."
       }
     ]
   },
@@ -3242,6 +3392,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gausselim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gaussian_elimination",
+        "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
+      }
+    ]
+  },
+  {
     "app": "gbif",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3448,6 +3608,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "goertzel",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "goertzel",
+        "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+      }
+    ]
+  },
+  {
     "app": "graph",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3464,6 +3634,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "graph_coloring",
         "description": "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color."
+      }
+    ]
+  },
+  {
+    "app": "graycode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gray_code",
+        "description": "Convert between binary and Gray code, or generate n-bit Gray code sequences."
       }
     ]
   },
@@ -4236,6 +4416,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "josephus",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "josephus",
+        "description": "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th."
+      }
+    ]
+  },
+  {
     "app": "jsoncrack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4750,6 +4940,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lucas",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lucas_theorem",
+        "description": "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem."
+      }
+    ]
+  },
+  {
     "app": "luhn",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4920,6 +5120,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "matrix_inverse",
         "description": "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination."
+      }
+    ]
+  },
+  {
+    "app": "matrank",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_rank",
+        "description": "Compute the rank of a matrix using Gaussian elimination with partial pivoting."
       }
     ]
   },
@@ -5172,6 +5382,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "modular_arithmetic",
         "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+      }
+    ]
+  },
+  {
+    "app": "moebius",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "moebius_function",
+        "description": "Compute Moebius function values and Mertens function using linear sieve."
       }
     ]
   },
@@ -5538,6 +5758,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "nth_root",
         "description": "Calculate the nth root of a number. Default is square root (n=2)."
+      }
+    ]
+  },
+  {
+    "app": "ntt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ntt",
+        "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
       }
     ]
   },
@@ -6502,6 +6732,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pollardrho",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pollard_rho",
+        "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
+      }
+    ]
+  },
+  {
     "app": "polygon",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6604,6 +6844,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "power_iteration",
         "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+      }
+    ]
+  },
+  {
+    "app": "prefixfn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "prefix_function",
+        "description": "Compute the KMP prefix/failure function array, with optional pattern occurrence counting."
       }
     ]
   },
@@ -7364,6 +7614,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rlencode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rl_encode",
+        "description": "Run-length encode or decode a string."
+      }
+    ]
+  },
+  {
     "app": "robohash",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7772,6 +8032,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "shunting",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "shunting_yard",
+        "description": "Convert an infix math expression to postfix (RPN) and evaluate it."
+      }
+    ]
+  },
+  {
     "app": "sieve",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7902,6 +8172,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sort_lines",
         "description": "Sort, deduplicate, or reverse lines of text."
+      }
+    ]
+  },
+  {
+    "app": "sos",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sos_dp",
+        "description": "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks."
       }
     ]
   },
@@ -8160,6 +8440,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_steam_store",
         "description": "Search the Steam store for games by name."
+      }
+    ]
+  },
+  {
+    "app": "sternbrocot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stern_brocot_tree",
+        "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
       }
     ]
   },
@@ -8790,6 +9080,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tomorrow_history",
         "description": "Get historical weather data from Tomorrow.io."
+      }
+    ]
+  },
+  {
+    "app": "topocount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "topo_count",
+        "description": "Count the number of distinct topological orderings of a DAG."
       }
     ]
   },
@@ -9782,6 +10082,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "xorbase",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "xor_basis",
+        "description": "Compute a linear basis over GF(2) (XOR basis) for a set of integers."
+      }
+    ]
+  },
+  {
     "app": "xpass-aggregated-verdict",
     "category": "XPass (conductor receipt across product checks)",
     "tools": [
@@ -9904,6 +10214,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zen_quotes",
         "description": "Get a batch of inspirational quotes from Zen Quotes (returns up to 20)."
+      }
+    ]
+  },
+  {
+    "app": "zfunction",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "z_function",
+        "description": "Compute Z-function of a string with optional pattern matching."
       }
     ]
   },
