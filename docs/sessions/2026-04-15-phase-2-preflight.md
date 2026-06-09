@@ -30,13 +30,13 @@ Phase 2's file surface overlaps Phase 1 in several places, so starting Phase 2 b
 - `supabase/migrations/` - Phase 1 adds `20260415000000_memory_managed_cloud.sql`. Phase 2 needs a new migration for the `api_keys.user_id` FK, the `auth_devices` table, and the localStorage-to-auth backfill. Migration ordering matters and both branches would have been adding ordered files in the same directory.
 - `packages/mcp-server/src/memory/supabase.ts` and `db.ts` - Phase 1 rewrote both as a per-tenant factory. Any Phase 2 tenancy change (attaching session `user_id` to the tenancy context) rebases into pain.
 
-## Decisions recorded (Chris answered these before session close)
+## Decisions recorded (the operator answered these before session close)
 
 These are the four open questions I raised at the start of the session. Answers below. The next Phase 2 session should treat these as settled and not re-ask.
 
 ### 1. PR #14 handling
 
-**Decision:** Option (a). Stop this session entirely. Chris will verify Phase 1 against live Supabase and merge PR #14 in separate sessions before resuming Phase 2.
+**Decision:** Option (a). Stop this session entirely. The operator will verify Phase 1 against live Supabase and merge PR #14 in separate sessions before resuming Phase 2.
 
 **Rationale:** Analysis of collision risk (above) is right. Not eating merge pain on unverified code.
 
@@ -86,12 +86,12 @@ Phase 2 code should:
   - `http://localhost:5173/auth/callback`
 - Auth > SMTP Settings: paste Resend credentials once Resend is signed up
 
-Chris will confirm all of these are done before pasting the Phase 2 prompt into the next session.
+The operator will confirm all of these are done before pasting the Phase 2 prompt into the next session.
 
 ## Explicit plan
 
 1. **Separate session(s):** Verify PR #14 against a live Supabase instance per the verification checklist in the PR body. Fix any issues surfaced by verification. Mark PR #14 ready for review, then merge into `claude/setup-malamute-mayhem-zkquO`.
-2. **Chris prep work** (in parallel or before step 3):
+2. **Operator prep work** (in parallel or before step 3):
    - Sign up for Resend, verify `unclick.world` sending domain, get `RESEND_API_KEY`
    - Toggle Supabase Auth providers and URL config per section 6 above
    - Drop `RESEND_API_KEY` into Vercel env
@@ -120,4 +120,4 @@ Committed and pushed to `claude/unclick-admin-phase-2-AcJy3` (the harness-pinned
 1. `git show origin/claude/unclick-admin-phase-2-AcJy3:docs/sessions/2026-04-15-phase-2-preflight.md` - read-only access from any branch
 2. `git checkout origin/claude/unclick-admin-phase-2-AcJy3 -- docs/sessions/2026-04-15-phase-2-preflight.md` then commit onto the Phase 2 branch so it lives alongside the Phase 2 session summary
 
-Option 2 is cleaner and Chris should include that as the first command in the next Phase 2 prompt.
+Option 2 is cleaner and the operator should include that as the first command in the next Phase 2 prompt.

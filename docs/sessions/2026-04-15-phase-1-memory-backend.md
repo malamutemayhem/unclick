@@ -14,14 +14,14 @@ verification pass before merging back to `claude/setup-malamute-mayhem-zkquO`.
 
 ## Decisions logged this session
 
-1. **Item 6 deferred.** Chris elected to skip the npm publish target decision
+1. **Item 6 deferred.** The operator elected to skip the npm publish target decision
    this session. Re-raise next time before any code that touches `packages/`
    layout.
 2. **Cap enforcement scoped to managed cloud + free tier only.** BYOD users
    own their database, so caps don't apply to them. Pro tier (or any non-free
    tier) bypasses the check entirely.
 3. **Nightly extraction (LLM fact distillation) deferred.** The cron landed
-   for decay-only. Extraction needs Chris to pick a model first (see open
+   for decay-only. Extraction needs the operator to pick a model first (see open
    loops).
 4. **MCP-tools gap.** The UnClick MCP server was not connected to this
    Claude Code session, so `get_startup_context` and `write_session_summary`
@@ -191,11 +191,11 @@ The action:
 
 `vercel.json` got a `crons` section pointing at
 `/api/memory-admin?action=nightly_decay` on a `0 4 * * *` schedule. **This
-requires Vercel Pro plan to actually trigger.** If Chris is still on Hobby,
+requires Vercel Pro plan to actually trigger.** If the operator is still on Hobby,
 the schedule will be ignored at deploy time and the action can be invoked
 manually (or from a GitHub Actions cron) instead. Flagged in open loops.
 
-### Item 6: deferred per Chris
+### Item 6: deferred per the operator
 
 Skipped this session.
 
@@ -220,7 +220,7 @@ Skipped this session.
 
 The acceptance criteria in the build plan call for end-to-end runs against a
 real Supabase. None of those have been executed yet because this session has
-no Supabase credentials and no deployed environment to point at. Chris (or
+no Supabase credentials and no deployed environment to point at. The operator (or
 the next session with secrets) needs to run:
 
 1. **Migration**: Apply
@@ -247,7 +247,7 @@ namespace (e.g., `unclick_memory.business_context`) and update the
 `MANAGED_TABLES` map plus the migration. This was not necessary on
 inspection of the existing migrations but is a known fallback.
 
-## Open questions for Chris (raise these before merging)
+## Open questions for the operator (raise these before merging)
 
 1. **Npm publish target (deferred this session).** Ship from
    `packages/mcp-server/` as-is, or extract `src/memory/` into a new
@@ -258,14 +258,14 @@ inspection of the existing migrations but is a known fallback.
    agent, or a cheaper Haiku tier for cost? This is the "Pro tier" half of
    item 5 that I left unimplemented.
 3. **Vercel plan.** The cron block in `vercel.json` requires Vercel Pro to
-   actually fire. If Chris is still on Hobby, the schedule is a no-op at
+   actually fire. If the operator is still on Hobby, the schedule is a no-op at
    deploy time, and we need a different scheduler (GitHub Actions cron,
    Supabase pg_cron, or external) for the same `nightly_decay` endpoint.
 4. **CRON_SECRET env var.** Needs to be set in Vercel project env before
    the cron action will accept any caller. The action fails closed if the
    var is unset.
 5. **Free-tier caps.** Starting at 50 MB / 5000 facts per the build plan.
-   Is that comfortable for launch, or does Chris want different numbers?
+   Is that comfortable for launch, or does the operator want different numbers?
    They live in `FREE_TIER_CAPS` in `supabase.ts`, easy to tune.
 6. **Drift in `api/memory-admin.ts:99`.** The BYOD setup wizard still loads
    schema SQL from `packages/memory-mcp/schema.sql`. That package is
@@ -284,7 +284,7 @@ inspection of the existing migrations but is a known fallback.
   `vercel.json` will work.
 - **Confirm Vercel plan** is Pro before relying on the cron schedule.
 - **Implement nightly extraction** (LLM-driven fact distillation) once
-  Chris picks a model.
+  the operator picks a model.
 - **Resolve npm publish target** (deferred item 6).
 - **Tune free-tier caps** based on real data once there is any.
 

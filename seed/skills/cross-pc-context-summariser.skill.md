@@ -2,7 +2,7 @@
 name: Cross-PC context summariser
 slug: cross-pc-context-summariser
 version: 1.0.0
-description: "Summarises work so another UnClick seat or computer can resume without asking Chris to repeat context."
+description: "Summarises work so another UnClick seat or computer can resume without asking the operator to repeat context."
 category: memory-km
 tags: [handover, cross-pc, resume, continuity, summary]
 safety_level: safe

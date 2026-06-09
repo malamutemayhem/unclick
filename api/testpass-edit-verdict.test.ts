@@ -19,7 +19,7 @@ describe("TestPass API helpers", () => {
   });
 
   it("requires reviewer notes for manual verdict edits", () => {
-    expect(normalizeTestPassEditNotes("Reviewed by Chris")).toBe("Reviewed by Chris");
+    expect(normalizeTestPassEditNotes("Reviewed by QA lead")).toBe("Reviewed by QA lead");
     expect(normalizeTestPassEditNotes("  keep evidence scoped  ")).toBe("keep evidence scoped");
     expect(normalizeTestPassEditNotes("")).toBeNull();
     expect(normalizeTestPassEditNotes("ok")).toBeNull();

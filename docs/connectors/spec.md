@@ -158,11 +158,11 @@ Phases gate on the prior phase shipping plus any external prerequisites listed b
 - **Phase 0:** none. Ships with this PR.
 - **Phase 1:** Phase 0 merged.
 - **Phase 2:** Phase 1 deployed; GitHub OAuth app registered under the malamutemayhem account.
-- **Phase 3:** Phase 2 in production for at least 72 hours with one paying user actively using it (or Chris using it himself, equivalent).
+- **Phase 3:** Phase 2 in production for at least 72 hours with one paying user actively using it (or the operator using it, equivalent).
 - **Phase 4:** Phase 3 with at least three platforms live.
 - **Phase 5:** Phase 4 deployed; Stripe subscription billing infrastructure ready for LLM cost pass-through (existing).
 - **Phase 6:** Privacy Policy + ToS drafted (already complete as of 2026-04-27); lawyer review commissioned.
-- **Phase 7:** Connectors V1 in production; first publicly-shareable customer screenshot. Browser extension build can also pre-empt this if Chris greenlights parallel track.
+- **Phase 7:** Connectors V1 in production; first publicly-shareable customer screenshot. Browser extension build can also pre-empt this if the operator greenlights parallel track.
 - **Phase 8-12:** sequential after Phase 7, scope per the phase descriptions above.
 
 ## 9. Cross-references

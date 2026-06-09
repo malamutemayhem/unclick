@@ -50,16 +50,16 @@ function fakeSupabaseClient(rows: unknown[]) {
 describe("write-gate policy", () => {
   const existing: MemoryWriteGateCandidate = {
     id: "fact-1",
-    fact: "Chris prefers TypeScript for UnClick agents.",
+    fact: "User prefers TypeScript for UnClick agents.",
     category: "preference",
     confidence: 0.95,
-    content_hash: memoryWriteGateContentHash("Chris prefers TypeScript for UnClick agents."),
+    content_hash: memoryWriteGateContentHash("User prefers TypeScript for UnClick agents."),
     created_at: "2026-06-04T00:00:00.000Z",
   };
 
   test("scores near duplicate memories above the no-op threshold", () => {
     const score = scoreMemoryWriteSimilarity(
-      "Chris prefers TypeScript for UnClick agent work.",
+      "User prefers TypeScript for UnClick agent work.",
       existing.fact
     );
     assert.ok(score >= WRITE_GATE_DUPLICATE_SIMILARITY);
@@ -70,7 +70,7 @@ describe("write-gate policy", () => {
     assert.equal(WRITE_GATE_DUPLICATE_SIMILARITY, 0.92);
     assert.equal(
       scoreMemoryWriteSubjectOverlap(
-        "Chris prefers TypeScript for UnClick agent work.",
+        "User prefers TypeScript for UnClick agent work.",
         existing.fact
       ),
       1
@@ -88,7 +88,7 @@ describe("write-gate policy", () => {
     assert.equal(exact.metrics.duplicate_rate, 0);
 
     const semantic = selectAdmissionDecision({
-      fact: "Chris prefers TypeScript for UnClick agent work.",
+      fact: "User prefers TypeScript for UnClick agent work.",
       category: "preference",
       confidence: 0.95,
     }, [existing]);
@@ -101,7 +101,7 @@ describe("write-gate policy", () => {
     const candidate = writeGateCandidateFromRankedSearchRow({
       id: "ranked-fact-1",
       source: "fact",
-      content: "Chris prefers durable memory deduplication.",
+      content: "User prefers durable memory deduplication.",
       category: "technical",
       confidence: 0.91,
       created_at: "2026-06-04T00:00:00.000Z",
@@ -125,7 +125,7 @@ describe("write-gate policy", () => {
 
   test("uses Worker 6 cosine score for semantic duplicate admission", () => {
     const decision = selectAdmissionDecision({
-      fact: "Chris wants memory writes collapsed.",
+      fact: "User wants memory writes collapsed.",
       category: "technical",
       confidence: 0.95,
     }, [{
@@ -146,12 +146,12 @@ describe("write-gate policy", () => {
 
   test("returns UPDATE only for a compatible expansion", () => {
     const decision = selectAdmissionDecision({
-      fact: "Chris prefers TypeScript for UnClick memory work.",
+      fact: "User prefers TypeScript for UnClick memory work.",
       category: "preference",
       confidence: 0.95,
     }, [{
       id: "fact-2",
-      fact: "Chris prefers TypeScript.",
+      fact: "User prefers TypeScript.",
       category: "preference",
       confidence: 0.95,
       created_at: "2026-06-04T00:00:00.000Z",
@@ -163,7 +163,7 @@ describe("write-gate policy", () => {
 
   test("rejects low-confidence writes with no provenance", () => {
     const decision = selectAdmissionDecision({
-      fact: "Maybe Chris likes blue dashboards.",
+      fact: "Maybe User likes blue dashboards.",
       category: "preference",
       confidence: 0.2,
     }, []);
@@ -179,7 +179,7 @@ describe("write-gate policy", () => {
       source_ref?: string;
       receipt_id?: string;
     } = {
-      fact: "Maybe Chris prefers receipt-backed memory admission.",
+      fact: "Maybe User prefers receipt-backed memory admission.",
       category: "preference",
       confidence: 0.2,
       source_agent_id: "worker-3",
@@ -224,7 +224,7 @@ describe("write-gate local backend parity", () => {
   test("collapses a duplicate storm to one canonical local fact", async () => {
     const backend = new LocalBackend();
     const input: FactInput = {
-      fact: "Chris wants UnClick memory writes to deduplicate repeated facts.",
+      fact: "User wants UnClick memory writes to deduplicate repeated facts.",
       category: "technical",
       confidence: 0.95,
       source_session_id: "write-gate-test",
@@ -244,7 +244,7 @@ describe("write-gate local backend parity", () => {
   test("does not write rejected low-confidence local facts", async () => {
     const backend = new LocalBackend();
     const result = await backend.addFact({
-      fact: "Maybe Chris wants a vague memory with no source.",
+      fact: "Maybe User wants a vague memory with no source.",
       category: "preference",
       confidence: 0.2,
     }) as { id: string; write_gate?: { action: string }; source_kind?: string };
@@ -312,13 +312,13 @@ describe("write-gate local backend parity", () => {
   test("supersedes a local fact for compatible expansions", async () => {
     const backend = new LocalBackend();
     const first = await backend.addFact({
-      fact: "Chris prefers TypeScript.",
+      fact: "User prefers TypeScript.",
       category: "preference",
       confidence: 0.95,
       source_session_id: "write-gate-test",
     });
     const second = await backend.addFact({
-      fact: "Chris prefers TypeScript for UnClick memory work.",
+      fact: "User prefers TypeScript for UnClick memory work.",
       category: "preference",
       confidence: 0.95,
       source_session_id: "write-gate-test",
@@ -373,10 +373,10 @@ describe("write-gate Supabase admission adapter", () => {
   test("uses Supabase candidates with the shared admission policy", async () => {
     const row = {
       id: "supabase-fact-1",
-      fact: "Chris prefers TypeScript for UnClick agents.",
+      fact: "User prefers TypeScript for UnClick agents.",
       category: "preference",
       confidence: 0.95,
-      content_hash: memoryWriteGateContentHash("Chris prefers TypeScript for UnClick agents."),
+      content_hash: memoryWriteGateContentHash("User prefers TypeScript for UnClick agents."),
       created_at: "2026-06-04T00:00:00.000Z",
     };
     const backend = Object.create(SupabaseBackend.prototype) as SupabaseBackend;
@@ -388,7 +388,7 @@ describe("write-gate Supabase admission adapter", () => {
     };
 
     const decision = await backend.admitWrite({
-      fact: "Chris prefers TypeScript for UnClick agent work.",
+      fact: "User prefers TypeScript for UnClick agent work.",
       category: "preference",
       confidence: 0.95,
     });

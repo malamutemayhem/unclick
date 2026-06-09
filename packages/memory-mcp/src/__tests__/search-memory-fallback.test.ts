@@ -398,7 +398,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
       try {
         const { SupabaseBackend } = await import("../supabase.js");
         const backend = new SupabaseBackend({ url, serviceRoleKey: key, tenancy: { mode: "byod" } });
-        const results = (await backend.searchMemory("Chris", 10)) as Array<{ id: string }>;
+        const results = (await backend.searchMemory("User", 10)) as Array<{ id: string }>;
         expect(Array.isArray(results)).toBe(true);
         const ids = results.map((r) => r.id);
         expect(

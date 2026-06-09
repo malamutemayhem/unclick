@@ -74,7 +74,7 @@ These policies codify the operating rules. Every engineer and agent working on U
 
 - `npm audit` runs weekly (nightly pipeline, see target-state section 8.1). High/Critical findings are triaged within 72 hours.
 - Triage outcomes: (a) apply `npm audit fix` and merge, (b) pin to a safe version with a rationale, (c) file a tracking issue if no fix exists and document the residual risk in `docs/security/current-posture.md`.
-- Major-version dependency bumps require an approving review from Chris. Example: the remaining Drizzle Kit development-tooling chain must be reviewed deliberately because the package manager's forced fix is a risky downgrade, and the tested `1.0.0-rc.3` path failed CLI/API compatibility checks.
+- Major-version dependency bumps require an approving review from the operator. Example: the remaining Drizzle Kit development-tooling chain must be reviewed deliberately because the package manager's forced fix is a risky downgrade, and the tested `1.0.0-rc.3` path failed CLI/API compatibility checks.
 - Transitive dependency risk is monitored via the lockfile. Lockfile diffs on PRs are reviewed as part of the security pass.
 - Dependencies that carry High CVEs known at install time are not added. The exception is a written rationale in the PR description.
 

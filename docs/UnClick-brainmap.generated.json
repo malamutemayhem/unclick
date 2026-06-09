@@ -15425,18 +15425,18 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "790b43137907",
-      "bytes": 17556
+      "hash": "190d9db14287",
+      "bytes": 17607
     },
     {
       "source": "FLEET_SYNC.md",
-      "hash": "83bbf1598b48",
-      "bytes": 14705
+      "hash": "0768614dd1ed",
+      "bytes": 14732
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "8af9b8fedfc4",
-      "bytes": 11213
+      "hash": "d02028751751",
+      "bytes": 11234
     },
     {
       "source": "docs/agent-observability.md",
@@ -15445,8 +15445,8 @@
     },
     {
       "source": "docs/pinballwake-nudgeonly-api.md",
-      "hash": "e056b727ce53",
-      "bytes": 7559
+      "hash": "d3a3b2c544e4",
+      "bytes": 7566
     },
     {
       "source": "docs/pinballwake-igniteonly-api.md",
@@ -15455,8 +15455,8 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "de9f41b265f3",
-      "bytes": 4881
+      "hash": "760883150b3f",
+      "bytes": 4888
     },
     {
       "source": "docs/adr/0005-two-layer-admin-gating.md",
@@ -15570,8 +15570,8 @@
     },
     {
       "source": "seed/skills/cross-pc-context-summariser.skill.md",
-      "hash": "a3ed67bc460c",
-      "bytes": 932
+      "hash": "cd641e5caeb7",
+      "bytes": 939
     },
     {
       "source": "seed/skills/data-analyst.skill.md",
@@ -15605,8 +15605,8 @@
     },
     {
       "source": "seed/skills/github-pr-summariser.skill.md",
-      "hash": "1fd84b27d797",
-      "bytes": 987
+      "hash": "f45192c5c9ca",
+      "bytes": 994
     },
     {
       "source": "seed/skills/incident-responder.skill.md",
@@ -16180,8 +16180,8 @@
     },
     {
       "source": "scripts/pinballwake-launchpad-room.mjs",
-      "hash": "9ee3556460d0",
-      "bytes": 20544
+      "hash": "966a89e4e00a",
+      "bytes": 20554
     },
     {
       "source": "scripts/pinballwake-merge-room.mjs",

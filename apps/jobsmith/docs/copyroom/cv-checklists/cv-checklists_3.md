@@ -190,7 +190,7 @@ If you're going to use AI for parts of the CV, the prompts that produce the leas
 
 - Collect samples: 3 to 5 of your own emails, Slack messages, posts, blog drafts. 500 to 1000 words total.
 - Identify markers: 5 to 10 words/phrases you use that AI doesn't. 3 to 5 sentence patterns. Your punctuation defaults.
-- Identify negatives: 5 to 10 words you'd never use. (For Chris: em dashes, "delve", "tapestry", anything with "leveraging".)
+- Identify negatives: 5 to 10 words you'd never use. (For the operator: em dashes, "delve", "tapestry", anything with "leveraging".)
 - After AI assistance, run a diff on draft vs sample. Mismatches are AI residue.
 - Build a 1-page reference doc: "Words I use", "Words I don't", "Sentence shapes I prefer", "Punctuation I use".
 - Re-check every cover letter against this doc before sending.
