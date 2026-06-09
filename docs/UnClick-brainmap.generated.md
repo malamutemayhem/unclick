@@ -243,7 +243,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 134 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1196,6 +1196,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
+| Modules and apps | component | Admin Seats Local | Admin surface for Admin Seats Local. | - | src/pages/admin/AdminSeatsLocal.tsx |
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |

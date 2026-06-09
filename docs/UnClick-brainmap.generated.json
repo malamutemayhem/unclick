@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1049,
+    "inventory": 1050,
     "source_manifest": 215,
     "pages": 88,
     "tools": 624,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 133
+      "count": 134
     },
     {
       "id": "launch-and-onboarding",
@@ -2058,6 +2058,16 @@
       "kind": "automation module",
       "meaning": "Internal automation bolt-on for proof-first work motion.",
       "source": "AUTOPILOT.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-local-src-pages-admin-adminseatslocal-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Local",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Local.",
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
       "route": "",
       "tags": []
     },
