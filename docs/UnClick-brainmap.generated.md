@@ -33,7 +33,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | ba1c1aa52c7d | 7047 |
+| package.json | adbb13d02beb | 7084 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/brand-voice-guidelines.skill.md | 9580d2788e27 | 1248 |
@@ -2220,7 +2220,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | --- | --- |
 | brainmap:check | node scripts/UnClick-brainmap.mjs --check |
 | brainmap:generate | node scripts/UnClick-brainmap.mjs |
-| build | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build |
+| build | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build && node scripts/prerender-routes.mjs |
 | build:dev | vite build --mode development |
 | compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
