@@ -842,6 +842,10 @@ import { coinChange } from "./coinchange-tool.js";
 import { editDistance } from "./editdist-tool.js";
 import { powerSet } from "./powerset-tool.js";
 import { necklaceCount } from "./necklace-tool.js";
+import { derangementCalc } from "./derangement-tool.js";
+import { kmpAutomaton } from "./kmpautomaton-tool.js";
+import { rmqSparse } from "./rmqsparse-tool.js";
+import { partitionCount } from "./partition-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12452,6 +12456,60 @@ export const ADDITIONAL_TOOLS = [
         n: { type: "number", description: "Length (1-1000)" },
         k: { type: "number", description: "Number of colors (1-1000)" },
       }, required: ["n", "k"],
+    },
+  },
+
+  // ── derangement-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "derangement_calc",
+    description: "Count and optionally enumerate derangements (permutations with no fixed points).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Size of permutation (1-20)" },
+        enumerate: { type: "boolean", description: "List all derangements (n <= 8)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── kmpautomaton-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "kmp_automaton",
+    description: "Build a full KMP DFA transition table for streaming pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pattern: { type: "string", description: "Pattern string (max 1000 chars)" },
+        alphabet: { type: "string", description: "Alphabet characters (default a-z)" },
+      }, required: ["pattern"],
+    },
+  },
+
+  // ── rmqsparse-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "rmq_sparse",
+    description: "Build a sparse table for O(1) range minimum/maximum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input array" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [left, right] pairs" },
+        mode: { type: "string", description: "\"min\" or \"max\" (default min)" },
+      }, required: ["values", "queries"],
+    },
+  },
+
+  // ── partition-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "partition_count",
+    description: "Count integer partitions of n with optional max part size and part count constraints.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer to partition (0-10000)" },
+        max_part: { type: "number", description: "Maximum part size" },
+        num_parts: { type: "number", description: "Exact number of parts" },
+      }, required: ["n"],
     },
   },
 
@@ -24368,6 +24426,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   edit_distance:                 (args) => editDistance(args),
   power_set:                     (args) => powerSet(args),
   necklace_count:                (args) => necklaceCount(args),
+
+  // batch 92: Derangement, KMP Automaton, RMQ Sparse, Partition
+  derangement_calc:              (args) => derangementCalc(args),
+  kmp_automaton:                 (args) => kmpAutomaton(args),
+  rmq_sparse:                    (args) => rmqSparse(args),
+  partition_count:               (args) => partitionCount(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1089,
+    "inventory": 1093,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 664,
+    "tools": 668,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 664
+      "count": 668
     },
     {
       "id": "rooms",
@@ -5662,6 +5662,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-derangement-packages-mcp-server-src-derangement-tool-ts-no-route",
+      "division": "Tools",
+      "name": "derangement",
+      "kind": "MCP tool",
+      "meaning": "derangement MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/derangement-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-descriptive-packages-mcp-server-src-descriptive-tool-ts-no-route",
       "division": "Tools",
       "name": "descriptive",
@@ -7252,6 +7262,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-kmpautomaton-packages-mcp-server-src-kmpautomaton-tool-ts-no-route",
+      "division": "Tools",
+      "name": "kmpautomaton",
+      "kind": "MCP tool",
+      "meaning": "kmpautomaton MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/kmpautomaton-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-knapsack-packages-mcp-server-src-knapsack-tool-ts-no-route",
       "division": "Tools",
       "name": "knapsack",
@@ -8462,6 +8482,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-partition-packages-mcp-server-src-partition-tool-ts-no-route",
+      "division": "Tools",
+      "name": "partition",
+      "kind": "MCP tool",
+      "meaning": "partition MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/partition-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-pascaltri-packages-mcp-server-src-pascaltri-tool-ts-no-route",
       "division": "Tools",
       "name": "pascaltri",
@@ -9258,6 +9288,16 @@
       "kind": "MCP tool",
       "meaning": "rlencode MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/rlencode-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-rmqsparse-packages-mcp-server-src-rmqsparse-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rmqsparse",
+      "kind": "MCP tool",
+      "meaning": "rmqsparse MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rmqsparse-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12316,6 +12356,11 @@
       "packages/mcp-server/src/deezer-tool.ts"
     ],
     [
+      "derangement",
+      "derangement MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/derangement-tool.ts"
+    ],
+    [
       "descriptive",
       "descriptive MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/descriptive-tool.ts"
@@ -13111,6 +13156,11 @@
       "packages/mcp-server/src/kmp-tool.ts"
     ],
     [
+      "kmpautomaton",
+      "kmpautomaton MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/kmpautomaton-tool.ts"
+    ],
+    [
       "knapsack",
       "knapsack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/knapsack-tool.ts"
@@ -13716,6 +13766,11 @@
       "packages/mcp-server/src/pandascore-tool.ts"
     ],
     [
+      "partition",
+      "partition MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/partition-tool.ts"
+    ],
+    [
       "pascaltri",
       "pascaltri MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pascaltri-tool.ts"
@@ -14114,6 +14169,11 @@
       "rlencode",
       "rlencode MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/rlencode-tool.ts"
+    ],
+    [
+      "rmqsparse",
+      "rmqsparse MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rmqsparse-tool.ts"
     ],
     [
       "robohash",
