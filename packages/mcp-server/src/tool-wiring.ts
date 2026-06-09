@@ -826,6 +826,10 @@ import { deBruijn } from "./debruijn-tool.js";
 import { shuntingYard } from "./shunting-tool.js";
 import { fenwickRange } from "./fenwickrange-tool.js";
 import { bitmaskOps } from "./bitmask-tool.js";
+import { grayCode } from "./graycode-tool.js";
+import { catmullRom } from "./catmullrom-tool.js";
+import { rlEncode } from "./rlencode-tool.js";
+import { topoCount } from "./topocount-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12227,6 +12231,60 @@ export const ADDITIONAL_TOOLS = [
         operation: { type: "string", description: "Operation: info, submasks, supersets, next_permutation, or enumerate" },
         universe: { type: "number", description: "Universe mask for supersets operation" },
       }, required: ["mask", "operation"],
+    },
+  },
+
+  // ── graycode-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "gray_code",
+    description: "Convert between binary and Gray code, or generate n-bit Gray code sequences.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Bit width (1-20)" },
+        value: { type: "number", description: "Optional value to convert (omit for full sequence)" },
+        to_gray: { type: "boolean", description: "If true convert binary to Gray; if false convert Gray to binary (default true)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── catmullrom-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "catmull_rom",
+    description: "Evaluate a Catmull-Rom spline through control points at given parameter values.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array" }, description: "Control points as [x,y] pairs (min 4)" },
+        t_values: { type: "array", items: { type: "number" }, description: "Parameter values 0-1 to evaluate" },
+        alpha: { type: "number", description: "Alpha parameter (0=uniform, 0.5=centripetal, 1=chordal; default 0.5)" },
+      }, required: ["points", "t_values"],
+    },
+  },
+
+  // ── rlencode-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "rl_encode",
+    description: "Run-length encode or decode a string.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to encode or RLE-encoded string to decode" },
+        decode: { type: "boolean", description: "If true, decode RLE input (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── topocount-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "topo_count",
+    description: "Count the number of distinct topological orderings of a DAG.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        num_nodes: { type: "number", description: "Number of nodes (max 20)" },
+        edges: { type: "array", items: { type: "array" }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["num_nodes", "edges"],
     },
   },
 
@@ -24119,6 +24177,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   shunting_yard:                 (args) => shuntingYard(args),
   fenwick_range:                 (args) => fenwickRange(args),
   bitmask_ops:                   (args) => bitmaskOps(args),
+
+  // batch 88: Gray Code, Catmull-Rom, Run-Length Encoding, Topo Count
+  gray_code:                     (args) => grayCode(args),
+  catmull_rom:                   (args) => catmullRom(args),
+  rl_encode:                     (args) => rlEncode(args),
+  topo_count:                    (args) => topoCount(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

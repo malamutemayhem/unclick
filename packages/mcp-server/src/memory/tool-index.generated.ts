@@ -1122,6 +1122,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "catmullrom",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "catmull_rom",
+        "description": "Evaluate a Catmull-Rom spline through control points at given parameter values."
+      }
+    ]
+  },
+  {
     "app": "centroid",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3604,6 +3614,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "graph_coloring",
         "description": "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color."
+      }
+    ]
+  },
+  {
+    "app": "graycode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gray_code",
+        "description": "Convert between binary and Gray code, or generate n-bit Gray code sequences."
       }
     ]
   },
@@ -7554,6 +7574,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rlencode",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rl_encode",
+        "description": "Run-length encode or decode a string."
+      }
+    ]
+  },
+  {
     "app": "robohash",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -9010,6 +9040,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "tomorrow_history",
         "description": "Get historical weather data from Tomorrow.io."
+      }
+    ]
+  },
+  {
+    "app": "topocount",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "topo_count",
+        "description": "Count the number of distinct topological orderings of a DAG."
       }
     ]
   },

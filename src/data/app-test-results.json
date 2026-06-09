@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:06:18.237Z",
+  "updatedAt": "2026-06-09T04:13:14.559Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5337,6 +5337,38 @@
       "testedAt": "2026-06-09T04:06:18.237Z",
       "toolsTested": [
         "bitmask_ops"
+      ]
+    },
+    "graycode": {
+      "status": "pass",
+      "note": "gray_code({n:3}) returned 8-element Gray code sequence",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "gray_code"
+      ]
+    },
+    "catmullrom": {
+      "status": "pass",
+      "note": "catmull_rom with 4 points evaluated correctly at t=0.5",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "catmull_rom"
+      ]
+    },
+    "rlencode": {
+      "status": "pass",
+      "note": "rl_encode({text:\"aaabbc\"}) returned encoded=\"3a2b1c\"",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "rl_encode"
+      ]
+    },
+    "topocount": {
+      "status": "pass",
+      "note": "topo_count({num_nodes:3,edges:[[0,1],[0,2]]}) returned count=2",
+      "testedAt": "2026-06-09T04:13:14.559Z",
+      "toolsTested": [
+        "topo_count"
       ]
     }
   },
