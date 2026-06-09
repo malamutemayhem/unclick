@@ -980,6 +980,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "catalan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "catalan_calc",
+        "description": "Compute the nth Catalan number and its combinatorial interpretations."
+      }
+    ]
+  },
+  {
     "app": "catapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6498,6 +6508,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rabinkarp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rabin_karp_search",
+        "description": "Find all occurrences of a pattern in text using the Rabin-Karp rolling hash algorithm."
+      }
+    ]
+  },
+  {
     "app": "radiobrowser",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7874,6 +7894,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "tarjan",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "tarjan_scc",
+        "description": "Find all strongly connected components of a directed graph using Tarjan's algorithm."
+      }
+    ]
+  },
+  {
     "app": "tarot",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8506,6 +8536,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "uk_police_crimes",
         "description": "Get reported crimes at a UK location from data.police.uk."
+      }
+    ]
+  },
+  {
+    "app": "unionfind",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "union_find",
+        "description": "Perform union-find (disjoint set) operations: merge elements and query connectivity."
       }
     ]
   },

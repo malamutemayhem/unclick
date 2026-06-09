@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 993,
+    "inventory": 997,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 568,
+    "tools": 572,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 568
+      "count": 572
     },
     {
       "id": "rooms",
@@ -4812,6 +4812,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-catalan-packages-mcp-server-src-catalan-tool-ts-no-route",
+      "division": "Tools",
+      "name": "catalan",
+      "kind": "MCP tool",
+      "meaning": "catalan MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/catalan-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-catapi-packages-mcp-server-src-catapi-tool-ts-no-route",
       "division": "Tools",
       "name": "catapi",
@@ -8272,6 +8282,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rabinkarp-packages-mcp-server-src-rabinkarp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rabinkarp",
+      "kind": "MCP tool",
+      "meaning": "rabinkarp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rabinkarp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-radiobrowser-packages-mcp-server-src-radiobrowser-tool-ts-no-route",
       "division": "Tools",
       "name": "radiobrowser",
@@ -9052,6 +9072,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-tarjan-packages-mcp-server-src-tarjan-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tarjan",
+      "kind": "MCP tool",
+      "meaning": "tarjan MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tarjan-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-tarot-packages-mcp-server-src-tarot-tool-ts-no-route",
       "division": "Tools",
       "name": "tarot",
@@ -9388,6 +9418,16 @@
       "kind": "MCP tool",
       "meaning": "ukpolice MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/ukpolice-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-unionfind-packages-mcp-server-src-unionfind-tool-ts-no-route",
+      "division": "Tools",
+      "name": "unionfind",
+      "kind": "MCP tool",
+      "meaning": "unionfind MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/unionfind-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10929,6 +10969,11 @@
       "cataas",
       "cataas MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/cataas-tool.ts"
+    ],
+    [
+      "catalan",
+      "catalan MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/catalan-tool.ts"
     ],
     [
       "catapi",
@@ -12661,6 +12706,11 @@
       "packages/mcp-server/src/quotable-tool.ts"
     ],
     [
+      "rabinkarp",
+      "rabinkarp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rabinkarp-tool.ts"
+    ],
+    [
       "radiobrowser",
       "radiobrowser MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/radiobrowser-tool.ts"
@@ -13051,6 +13101,11 @@
       "packages/mcp-server/src/tacofancy-tool.ts"
     ],
     [
+      "tarjan",
+      "tarjan MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tarjan-tool.ts"
+    ],
+    [
       "tarot",
       "tarot MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/tarot-tool.ts"
@@ -13219,6 +13274,11 @@
       "ukpolice",
       "ukpolice MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ukpolice-tool.ts"
+    ],
+    [
+      "unionfind",
+      "unionfind MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/unionfind-tool.ts"
     ],
     [
       "unit converter",

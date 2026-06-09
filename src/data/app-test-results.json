@@ -4234,6 +4234,30 @@
       "note": "lru_simulate analyzes cache hit/miss rates. Local computation.",
       "testedAt": "2026-06-09T00:57:00.000Z",
       "toolsTested": ["lru_simulate"]
+    },
+    "unionfind": {
+      "status": "pass",
+      "note": "union_find merges elements and queries connectivity. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": ["union_find"]
+    },
+    "tarjan": {
+      "status": "pass",
+      "note": "tarjan_scc finds strongly connected components. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": ["tarjan_scc"]
+    },
+    "catalan": {
+      "status": "pass",
+      "note": "catalan_calc computes Catalan numbers. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": ["catalan_calc"]
+    },
+    "rabinkarp": {
+      "status": "pass",
+      "note": "rabin_karp_search finds pattern matches via rolling hash. Local computation.",
+      "testedAt": "2026-06-09T01:02:00.000Z",
+      "toolsTested": ["rabin_karp_search"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
