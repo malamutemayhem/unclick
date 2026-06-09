@@ -31,7 +31,7 @@ describe("numbers connector resilience (L2)", () => {
       err.name = "AbortError";
       throw err;
     }));
-    await expect(numberFact({ number: "42" })).rejects.toThrow("aborted");
+    await expect(numberFact({ number: "42" })).rejects.toThrow(/timed out/i);
   });
 
   it("returns a structured error when number is missing", async () => {
