@@ -39,7 +39,8 @@ export default function AdminCodebase() {
       .then((body) => {
         const rows = (body.data ?? []).filter((r: RepoItem) => r.category === "repository");
         setRepoItems(rows);
-      });
+      })
+      .catch(() => {});
   };
 
   useEffect(loadItems, [apiKey]);
