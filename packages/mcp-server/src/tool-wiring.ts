@@ -742,6 +742,11 @@ import { powerIteration } from "./poweriter-tool.js";
 import { tspSolve } from "./tsp-tool.js";
 import { lruSimulate } from "./lrucache-tool.js";
 
+import { unionFindOps } from "./unionfind-tool.js";
+import { tarjanScc } from "./tarjan-tool.js";
+import { catalanCalc } from "./catalan-tool.js";
+import { rabinKarpSearch } from "./rabinkarp-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11092,6 +11097,58 @@ export const ADDITIONAL_TOOLS = [
         accesses: { type: "array", items: {}, description: "Sequence of key accesses" },
         capacity: { type: "number", description: "Cache capacity (default 4)" },
       }, required: ["accesses"],
+    },
+  },
+
+  // ── unionfind-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "union_find",
+    description: "Perform union-find (disjoint set) operations: merge elements and query connectivity.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        unions: { type: "array", items: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"] }, description: "Pairs to merge" },
+        queries: { type: "array", items: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"] }, description: "Optional pairs to check connectivity" },
+      }, required: ["unions"],
+    },
+  },
+
+  // ── tarjan-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "tarjan_scc",
+    description: "Find all strongly connected components of a directed graph using Tarjan's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of directed edges" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── catalan-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "catalan_calc",
+    description: "Compute the nth Catalan number and its combinatorial interpretations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer index" },
+        sequence: { type: "boolean", description: "Return the full sequence from 0 to n (default false)" },
+        count: { type: "number", description: "Limit sequence length (used with sequence: true)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── rabinkarp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rabin_karp_search",
+    description: "Find all occurrences of a pattern in text using the Rabin-Karp rolling hash algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        pattern: { type: "string", description: "Pattern to find" },
+      }, required: ["text", "pattern"],
     },
   },
 
@@ -22864,6 +22921,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   power_iteration:           (args) => powerIteration(args),
   tsp_solve:                 (args) => tspSolve(args),
   lru_simulate:              (args) => lruSimulate(args),
+
+  // batch 68: Union-Find, Tarjan SCC, Catalan, Rabin-Karp
+  union_find:                (args) => unionFindOps(args),
+  tarjan_scc:                (args) => tarjanScc(args),
+  catalan_calc:              (args) => catalanCalc(args),
+  rabin_karp_search:         (args) => rabinKarpSearch(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

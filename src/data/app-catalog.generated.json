@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 567,
-  "toolCount": 1489,
+  "appCount": 571,
+  "toolCount": 1493,
   "categories": [
     "AI",
     "Books",
@@ -1276,6 +1276,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "catalan",
+      "name": "Catalan Numbers",
+      "category": "Utilities",
+      "blurb": "Compute the nth Catalan number with combinatorial interpretations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "catalan_calc",
+          "description": "Compute the nth Catalan number and its combinatorial interpretations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "charcodes",
@@ -8822,6 +8838,22 @@
       "hardened": true
     },
     {
+      "slug": "rabinkarp",
+      "name": "Rabin-Karp Search",
+      "category": "Utilities",
+      "blurb": "Find all pattern occurrences in text using Rabin-Karp rolling hash.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rabin_karp_search",
+          "description": "Find all occurrences of a pattern in text using the Rabin-Karp rolling hash algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "radiobrowser",
       "name": "Radio Browser",
       "category": "Music & video",
@@ -10654,6 +10686,22 @@
       "hardened": false
     },
     {
+      "slug": "tarjan",
+      "name": "Tarjan SCC",
+      "category": "Utilities",
+      "blurb": "Find all strongly connected components in a directed graph (Tarjan's algorithm).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tarjan_scc",
+          "description": "Find all strongly connected components of a directed graph using Tarjan's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "tarot",
       "name": "Tarot Cards",
       "category": "Utilities",
@@ -11624,6 +11672,22 @@
         {
           "name": "uk_police_crimes",
           "description": "Get reported crimes at a UK location from data.police.uk."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "unionfind",
+      "name": "Union-Find",
+      "category": "Utilities",
+      "blurb": "Merge elements and query connectivity using union-find with path compression.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "union_find",
+          "description": "Perform union-find (disjoint set) operations: merge elements and query connectivity."
         }
       ],
       "level": 5,
