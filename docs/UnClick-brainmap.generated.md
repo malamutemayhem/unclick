@@ -73,7 +73,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
-| src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
+| src/pages/admin/AdminAgents.tsx | 45680fdc2a4c | 45855 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
@@ -243,7 +243,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 137 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1174,6 +1174,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
+| Modules and apps | component | Api Tier Panel | Admin surface for Api Tier Panel. | - | src/pages/admin/seats/ApiTierPanel.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
 | Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |
 | Modules and apps | component | Arena Problem | Arena page for Arena Problem. | - | src/pages/arena/ArenaProblem.tsx |
@@ -1183,6 +1184,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
 | Modules and apps | component | Code Tab | Memory admin panel for Code Tab. | - | src/pages/admin/memory/CodeTab.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
+| Modules and apps | component | Compute Tab Shell | Admin surface for Compute Tab Shell. | - | src/pages/admin/seats/ComputeTabShell.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
 | Modules and apps | component | Empty State | Memory admin panel for Empty State. | - | src/pages/admin/memory/EmptyState.tsx |
@@ -1190,6 +1192,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Ideas | Admin surface for Ideas. | - | src/pages/admin/fishbowl/Ideas.tsx |
 | Modules and apps | component | Info Card | Memory admin panel for Info Card. | - | src/pages/admin/memory/InfoCard.tsx |
 | Modules and apps | component | Library Tab | Memory admin panel for Library Tab. | - | src/pages/admin/memory/LibraryTab.tsx |
+| Modules and apps | component | Local Tier Panel | Admin surface for Local Tier Panel. | - | src/pages/admin/seats/LocalTierPanel.tsx |
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
@@ -1199,6 +1202,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Settings | User-facing page for Settings. | - | src/pages/Settings.tsx |
 | Modules and apps | component | Settings | Admin surface for Settings. | - | src/pages/admin/fishbowl/Settings.tsx |
 | Modules and apps | component | Storage Bar | Memory admin panel for Storage Bar. | - | src/pages/admin/memory/StorageBar.tsx |
+| Modules and apps | component | Subscription Tier Panel | Admin surface for Subscription Tier Panel. | - | src/pages/admin/seats/SubscriptionTierPanel.tsx |
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
 | Modules and apps | package | abn mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/abn-mcp/package.json |
 | Modules and apps | package | amber mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/amber-mcp/package.json |

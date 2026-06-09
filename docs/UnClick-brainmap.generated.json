@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1025,
+    "inventory": 1029,
     "source_manifest": 215,
     "pages": 88,
     "tools": 600,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 133
+      "count": 137
     },
     {
       "id": "launch-and-onboarding",
@@ -2082,6 +2082,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-api-tier-panel-src-pages-admin-seats-apitierpanel-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Api Tier Panel",
+      "kind": "component",
+      "meaning": "Admin surface for Api Tier Panel.",
+      "source": "src/pages/admin/seats/ApiTierPanel.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-arena-home-src-pages-arena-arenahome-tsx-no-route",
       "division": "Modules and apps",
       "name": "Arena Home",
@@ -2172,6 +2182,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-compute-tab-shell-src-pages-admin-seats-computetabshell-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Compute Tab Shell",
+      "kind": "component",
+      "meaning": "Admin surface for Compute Tab Shell.",
+      "source": "src/pages/admin/seats/ComputeTabShell.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-connected-services-src-pages-admin-tools-connectedservices-tsx-no-route",
       "division": "Modules and apps",
       "name": "Connected Services",
@@ -2238,6 +2258,16 @@
       "kind": "component",
       "meaning": "Memory admin panel for Library Tab.",
       "source": "src/pages/admin/memory/LibraryTab.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-local-tier-panel-src-pages-admin-seats-localtierpanel-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Local Tier Panel",
+      "kind": "component",
+      "meaning": "Admin surface for Local Tier Panel.",
+      "source": "src/pages/admin/seats/LocalTierPanel.tsx",
       "route": "",
       "tags": []
     },
@@ -2328,6 +2358,16 @@
       "kind": "component",
       "meaning": "Memory admin panel for Storage Bar.",
       "source": "src/pages/admin/memory/StorageBar.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-subscription-tier-panel-src-pages-admin-seats-subscriptiontierpanel-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Subscription Tier Panel",
+      "kind": "component",
+      "meaning": "Admin surface for Subscription Tier Panel.",
+      "source": "src/pages/admin/seats/SubscriptionTierPanel.tsx",
       "route": "",
       "tags": []
     },
@@ -14515,8 +14555,8 @@
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "73353b1405ef",
-      "bytes": 45563
+      "hash": "45680fdc2a4c",
+      "bytes": 45855
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
