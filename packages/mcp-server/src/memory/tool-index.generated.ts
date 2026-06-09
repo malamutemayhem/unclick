@@ -1830,6 +1830,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "crt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chinese_remainder_theorem",
+        "description": "Solve a system of simultaneous congruences using the Chinese Remainder Theorem."
+      }
+    ]
+  },
+  {
     "app": "csuite",
     "category": "AI",
     "tools": [
@@ -2776,6 +2786,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "extgcd",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "extended_gcd",
+        "description": "Compute the extended GCD of two integers, returning Bezout coefficients and optionally the modular inverse."
+      }
+    ]
+  },
+  {
     "app": "fakerapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3378,6 +3398,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "graphcolor",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "graph_coloring",
+        "description": "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color."
+      }
+    ]
+  },
+  {
     "app": "groq",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3562,6 +3592,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "hibp_check_password",
         "description": "Check if a password has appeared in a data breach."
+      }
+    ]
+  },
+  {
+    "app": "heapsort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "heap_sort",
+        "description": "Sort numbers using the heap sort algorithm. Guaranteed O(n log n) in-place sorting with swap count."
       }
     ]
   },

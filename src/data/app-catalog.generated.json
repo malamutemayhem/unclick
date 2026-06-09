@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 595,
-  "toolCount": 1517,
+  "appCount": 599,
+  "toolCount": 1521,
   "categories": [
     "AI",
     "Books",
@@ -1440,6 +1440,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "crt",
+      "name": "Chinese Remainder Theorem",
+      "category": "Utilities",
+      "blurb": "Solve simultaneous congruences using the Chinese Remainder Theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chinese_remainder_theorem",
+          "description": "Solve a system of simultaneous congruences using the Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "chucknorris",
@@ -3614,6 +3630,22 @@
       "hardened": false
     },
     {
+      "slug": "extgcd",
+      "name": "Extended GCD",
+      "category": "Utilities",
+      "blurb": "Extended Euclidean algorithm returning GCD, Bezout coefficients, and modular inverse.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "extended_gcd",
+          "description": "Compute the extended GCD of two integers, returning Bezout coefficients and optionally the modular inverse."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "fakestoreapi",
       "name": "Fake Store API",
       "category": "Developer & infra",
@@ -4414,6 +4446,22 @@
       "hardened": false
     },
     {
+      "slug": "graphcolor",
+      "name": "Graph Coloring",
+      "category": "Utilities",
+      "blurb": "Greedy vertex coloring of an undirected graph with color groups.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "graph_coloring",
+          "description": "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "groq",
       "name": "Groq",
       "category": "AI",
@@ -4660,6 +4708,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "heapsort",
+      "name": "Heap Sort",
+      "category": "Utilities",
+      "blurb": "In-place O(n log n) sorting using a binary heap with swap tracking.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "heap_sort",
+          "description": "Sort numbers using the heap sort algorithm. Guaranteed O(n log n) in-place sorting with swap count."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "heygen",
