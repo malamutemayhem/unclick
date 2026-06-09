@@ -64,7 +64,7 @@ Do risky things.
   });
 
   it("ships a validated starter pack with native rails plus user-facing capability skills", () => {
-    expect(STARTER_SKILLS).toHaveLength(36);
+    expect(STARTER_SKILLS).toHaveLength(41);
     expect(STARTER_SKILLS.every((skill) => skill.validationIssues.every((issue) => issue.severity !== "error"))).toBe(true);
 
     const summary = buildSkillLibrarySummary(STARTER_SKILLS);
