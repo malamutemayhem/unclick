@@ -17,6 +17,7 @@ import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import {
+  ArrowRightLeft,
   User,
   Brain,
   KeyRound,
@@ -32,6 +33,7 @@ import {
   BarChart3,
   Bell,
   Code2,
+  HardDrive,
   Terminal,
   ChevronRight,
   ChevronDown,
@@ -408,28 +410,42 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+const SEATS_CHILDREN = [
+  { path: "/admin/agents/api",              label: "API",          icon: KeyRound   },
+  { path: "/admin/agents/api/routing",      label: "Routing",      icon: ArrowRightLeft },
+  { path: "/admin/agents/api/usage",        label: "Usage",        icon: BarChart3  },
+  { path: "/admin/agents/local",            label: "Local",        icon: HardDrive  },
+  { path: "/admin/agents/subscription",     label: "Subscription", icon: CreditCard },
+  { path: "/admin/agents/heartbeat",        label: "Heartbeat",    icon: HeartPulse },
+] as const;
+
 function SeatsNavItem({ onClick }: { onClick?: () => void }) {
   const location = useLocation();
   const isSeats = location.pathname === "/admin/agents" || location.pathname.startsWith("/admin/agents/");
-  const heartbeatActive = location.pathname === "/admin/agents/heartbeat";
 
   return (
     <div>
       <SurfaceLink path="/admin/agents" label="Seats" icon={SeatsCascadeIcon} onClick={onClick} />
       {isSeats && (
         <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
-          <Link
-            to="/admin/agents/heartbeat"
-            onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              heartbeatActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-card/40 hover:text-body"
-            }`}
-          >
-            <HeartPulse className="h-3 w-3 shrink-0" />
-            Heartbeat
-          </Link>
+          {SEATS_CHILDREN.map(({ path, label, icon: Icon }) => {
+            const active = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClick}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                }`}
+              >
+                <Icon className="h-3 w-3 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
