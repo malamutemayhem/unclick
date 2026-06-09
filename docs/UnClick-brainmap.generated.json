@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1005,
+    "inventory": 1009,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 580,
+    "tools": 584,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 580
+      "count": 584
     },
     {
       "id": "rooms",
@@ -5262,6 +5262,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-countingsort-packages-mcp-server-src-countingsort-tool-ts-no-route",
+      "division": "Tools",
+      "name": "countingsort",
+      "kind": "MCP tool",
+      "meaning": "countingsort MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/countingsort-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-countryflag-packages-mcp-server-src-countryflag-tool-ts-no-route",
       "division": "Tools",
       "name": "countryflag",
@@ -7062,6 +7072,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-manacher-packages-mcp-server-src-manacher-tool-ts-no-route",
+      "division": "Tools",
+      "name": "manacher",
+      "kind": "MCP tool",
+      "meaning": "manacher MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/manacher-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-mapbox-packages-mcp-server-src-mapbox-tool-ts-no-route",
       "division": "Tools",
       "name": "mapbox",
@@ -8842,6 +8862,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-skiplist-packages-mcp-server-src-skiplist-tool-ts-no-route",
+      "division": "Tools",
+      "name": "skiplist",
+      "kind": "MCP tool",
+      "meaning": "skiplist MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/skiplist-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-slack-packages-mcp-server-src-slack-tool-ts-no-route",
       "division": "Tools",
       "name": "slack",
@@ -9398,6 +9428,16 @@
       "kind": "MCP tool",
       "meaning": "trianglesolve MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/trianglesolve-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-trie-packages-mcp-server-src-trie-tool-ts-no-route",
+      "division": "Tools",
+      "name": "trie",
+      "kind": "MCP tool",
+      "meaning": "trie MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/trie-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11276,6 +11316,11 @@
       "packages/mcp-server/src/countdowncalc-tool.ts"
     ],
     [
+      "countingsort",
+      "countingsort MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/countingsort-tool.ts"
+    ],
+    [
       "countryflag",
       "countryflag MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/countryflag-tool.ts"
@@ -12176,6 +12221,11 @@
       "packages/mcp-server/src/makeup-tool.ts"
     ],
     [
+      "manacher",
+      "manacher MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/manacher-tool.ts"
+    ],
+    [
       "mapbox",
       "mapbox MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mapbox-tool.ts"
@@ -13066,6 +13116,11 @@
       "packages/mcp-server/src/simplex-tool.ts"
     ],
     [
+      "skiplist",
+      "skiplist MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/skiplist-tool.ts"
+    ],
+    [
       "slack",
       "slack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/slack-tool.ts"
@@ -13344,6 +13399,11 @@
       "trianglesolve",
       "trianglesolve MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/trianglesolve-tool.ts"
+    ],
+    [
+      "trie",
+      "trie MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/trie-tool.ts"
     ],
     [
       "trivia",

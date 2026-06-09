@@ -757,6 +757,11 @@ import { kmpSearch } from "./kmp-tool.js";
 import { ahoCorasickSearch } from "./ahocorasick-tool.js";
 import { zAlgorithm } from "./zalgo-tool.js";
 
+import { trieOps } from "./trie-tool.js";
+import { skipListSim } from "./skiplist-tool.js";
+import { manacherPalindrome } from "./manacher-tool.js";
+import { countingSort } from "./countingsort-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11273,6 +11278,58 @@ export const ADDITIONAL_TOOLS = [
         text: { type: "string", description: "Input text" },
         pattern: { type: "string", description: "Optional pattern to search for" },
       }, required: ["text"],
+    },
+  },
+
+  // ── trie-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "trie_ops",
+    description: "Build a trie (prefix tree) from words and perform search, prefix count, and autocomplete queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        words: { type: "array", items: { type: "string" }, description: "Words to insert into the trie" },
+        queries: { type: "array", items: { type: "string" }, description: "Words to search for (exact match and prefix count)" },
+        prefix: { type: "string", description: "Prefix for autocomplete suggestions" },
+      }, required: ["words"],
+    },
+  },
+
+  // ── skiplist-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "skip_list_sim",
+    description: "Simulate a skip list: insert values, get sorted output, and search for elements in O(log n) expected time.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Values to insert" },
+        search: { type: "array", items: { type: "number" }, description: "Values to search for" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── manacher-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "manacher_palindrome",
+    description: "Find the longest palindromic substring in linear time using Manacher's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string" },
+        all: { type: "boolean", description: "List all palindromic substrings of length >= 2 (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── countingsort-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "counting_sort",
+    description: "Sort an array of integers in O(n+k) time using counting sort, with frequency analysis.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of integers to sort" },
+      }, required: ["values"],
     },
   },
 
@@ -23063,6 +23120,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   kmp_search:                (args) => kmpSearch(args),
   aho_corasick_search:       (args) => ahoCorasickSearch(args),
   z_algorithm:               (args) => zAlgorithm(args),
+
+  // batch 71: Trie, Skip List, Manacher, Counting Sort
+  trie_ops:                  (args) => trieOps(args),
+  skip_list_sim:             (args) => skipListSim(args),
+  manacher_palindrome:       (args) => manacherPalindrome(args),
+  counting_sort:             (args) => countingSort(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
