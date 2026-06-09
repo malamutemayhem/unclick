@@ -1,6 +1,6 @@
 # Anti-AI-Slop Research Corpus
 
-**Source:** Chris's research uploads, 2026-05-19
+**Source:** Operator research uploads, 2026-05-19
 
 **Purpose:** Feeder corpus for the new `JS-AIDETECT-31+` rule family in the JobSmith universal rules pack. Specifically supports rule-pack writer work on:
 

@@ -264,7 +264,7 @@ These words have become AI-canary indicators because they appear at unusual freq
 
 ### C. Punctuation and typography tells
 
-- **Em dash overuse**. The "ChatGPT dash". One em dash in a CV is fine; three or more in a one-page doc is a flag. Many recruiters now use em-dash density as a first-pass AI filter. (Note: Chris's brand standard already bans em dashes entirely. This aligns.)
+- **Em dash overuse**. The "ChatGPT dash". One em dash in a CV is fine; three or more in a one-page doc is a flag. Many recruiters now use em-dash density as a first-pass AI filter. (Note: the project brand standard already bans em dashes entirely. This aligns.)
 - **Curly quotes** (" " ' ') when the rest of the doc uses straight quotes, or vice versa. Inconsistency is a paste-from-AI tell.
 - **Unicode arrows** (→, ⇒, ➜). AI loves them. Use a hyphen or "to" instead.
 - **Non-breaking spaces** invisible to the eye but visible to text inspectors.

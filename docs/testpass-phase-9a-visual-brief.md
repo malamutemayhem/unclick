@@ -1,7 +1,7 @@
 # TestPass Phase 9A — Visual Overhaul Brief
 
 **Status:** Draft, ready for review
-**Owner:** Chris Byrne / Malamute Mayhem
+**Owner:** UnClick Core Team
 **Implementer:** 🍿 Plex (Claude on Plex PC, todo `c116075a`)
 **Related:** TestPass Phase 9 plan (`agent/memory/project-testpass-phase-9.md`), Idiot-proof examples (`agent/memory/feedback-idiot-proof-examples.md`), UnClick brand copy (`agent/memory/reference-unclick-brand-copy.md`)
 

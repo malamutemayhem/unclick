@@ -1,7 +1,7 @@
 # Connectors — Phase 0 Specification
 
 **Status:** Locked 2026-04-27
-**Owner:** Chris Byrne / Malamute Mayhem
+**Owner:** UnClick Core Team
 **Replaces:** BackstagePass-as-vault (paused, infrastructure preserved, not deleted)
 **Related ADRs:** ADR-0009 (Build Desk), ADR-0006 (subscription-only billing), ADR-0010 (bolt-on Signals)
 **Related memory:** `agent/memory/project-plugboard.md`, `agent/memory/feedback-platform-philosophy.md`, `agent/memory/project-unclick-orchestrator-wizard.md`
@@ -145,7 +145,7 @@ The existing BackstagePass infrastructure stays in the repo and the database. It
 
 This is intentional. If Path C (wrap an audited vault like Bitwarden) ever becomes attractive — for example if a paying enterprise customer demands an SOC 2 audited credentials vault — the path back is short. The infrastructure is parked, not destroyed.
 
-## 7. Open decisions still requiring Chris's call
+## 7. Open decisions still requiring the operator's call
 
 - **Lawyer for the Phase 6 ToS review.** Lawpath, LegalVision, or a personal contact. Targeted at $300-500 AUD for the online review tier.
 - **Trademark clearance budget.** $300-1500 USD for a paid USPTO/EU/AU TM clearance opinion before any major paid marketing spend on the Connectors name. Defer until launch week is acceptable.
