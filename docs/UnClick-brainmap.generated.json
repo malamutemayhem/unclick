@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1085,
+    "inventory": 1089,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 660,
+    "tools": 664,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 660
+      "count": 664
     },
     {
       "id": "rooms",
@@ -5152,6 +5152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-coinchange-packages-mcp-server-src-coinchange-tool-ts-no-route",
+      "division": "Tools",
+      "name": "coinchange",
+      "kind": "MCP tool",
+      "meaning": "coinchange MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/coinchange-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-coingecko-packages-mcp-server-src-coingecko-tool-ts-no-route",
       "division": "Tools",
       "name": "coingecko",
@@ -5928,6 +5938,16 @@
       "kind": "MCP tool",
       "meaning": "ebird MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/ebird-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-editdist-packages-mcp-server-src-editdist-tool-ts-no-route",
+      "division": "Tools",
+      "name": "editdist",
+      "kind": "MCP tool",
+      "meaning": "editdist MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/editdist-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7952,6 +7972,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-necklace-packages-mcp-server-src-necklace-tool-ts-no-route",
+      "division": "Tools",
+      "name": "necklace",
+      "kind": "MCP tool",
+      "meaning": "necklace MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/necklace-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-neon-packages-mcp-server-src-neon-tool-ts-no-route",
       "division": "Tools",
       "name": "neon",
@@ -8758,6 +8788,16 @@
       "kind": "MCP tool",
       "meaning": "poweriter MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/poweriter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-powerset-packages-mcp-server-src-powerset-tool-ts-no-route",
+      "division": "Tools",
+      "name": "powerset",
+      "kind": "MCP tool",
+      "meaning": "powerset MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/powerset-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12021,6 +12061,11 @@
       "packages/mcp-server/src/coincap-tool.ts"
     ],
     [
+      "coinchange",
+      "coinchange MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/coinchange-tool.ts"
+    ],
+    [
       "coingecko",
       "coingecko MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/coingecko-tool.ts"
@@ -12409,6 +12454,11 @@
       "ebird",
       "ebird MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ebird-tool.ts"
+    ],
+    [
+      "editdist",
+      "editdist MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/editdist-tool.ts"
     ],
     [
       "edmondskarp",
@@ -13421,6 +13471,11 @@
       "packages/mcp-server/src/natoalphabet-tool.ts"
     ],
     [
+      "necklace",
+      "necklace MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/necklace-tool.ts"
+    ],
+    [
       "neon",
       "neon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/neon-tool.ts"
@@ -13824,6 +13879,11 @@
       "poweriter",
       "poweriter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/poweriter-tool.ts"
+    ],
+    [
+      "powerset",
+      "powerset MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/powerset-tool.ts"
     ],
     [
       "prefixfn",
