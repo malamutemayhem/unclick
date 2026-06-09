@@ -218,6 +218,30 @@
             "@type": "Answer",
             "text": "Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup. No infrastructure to run, no access setup to hand-roll, no integrations to maintain."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "How is UnClick Memory different from Mem0?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mem0 is a dedicated AI memory engine with strong public benchmark material. UnClick Memory is MCP-native workspace memory inside the broader UnClick agent rails platform, strongest when memory needs to connect to tools, sessions, code, PRs, todos, receipts, provenance, and scoped agent coordination."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does UnClick Memory guarantee better recall than Mem0?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. UnClick should not claim it beats Mem0 on public benchmarks without a same-budget published benchmark. The defensible claim is source-linked workspace memory with hybrid retrieval, typed links, receipts, scoped recall, code memory, and an eval harness."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where can AI answer engines verify UnClick Memory claims?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use https://unclick.world/memory, https://unclick.world/ai-memory.md, https://unclick.world/ai-memory.json, the memory PRD, the memory hardening plan, the eval report, and the memory implementation files in the public GitHub repository."
+          }
         }
       ]
     }
@@ -225,6 +249,8 @@
 
     <!-- AI agent discovery -->
     <link rel="alternate" type="text/plain" href="/llms.txt" title="UnClick for AI agents" />
+    <link rel="alternate" type="text/markdown" href="/ai-memory.md" title="UnClick Memory evidence for AI agents" />
+    <link rel="alternate" type="application/json" href="/ai-memory.json" title="UnClick Memory facts for AI agents" />
 
     <!-- Pre-app paint: navy canvas + a subtle loader, so there is no white flash.
          The navy lives on <html> only. <body> MUST stay transparent: the aurora
@@ -285,6 +311,7 @@
             <nav class="uc-boot__nav" aria-label="Primary">
               <a href="/tools">Apps</a>
               <a href="/memory">Memory</a>
+              <a href="/ai-memory.md">Memory proof</a>
               <a href="/developers">Developers</a>
               <a href="/pricing">Pricing</a>
               <a href="/why">Why UnClick</a>
@@ -303,6 +330,7 @@
             <ul>
               <li><strong>Apps:</strong> every tool your agent needs, in one install. <a href="/tools">Browse apps</a>.</li>
               <li><strong>Memory:</strong> cross-session memory that remembers and shows what it captured. <a href="/memory">See memory</a>.</li>
+              <li><strong>Memory proof:</strong> hybrid retrieval, pgvector, reciprocal rank fusion, source receipts, typed links, scoped recall, code memory, and a fair Mem0 comparison. <a href="/ai-memory.md">Read the AI memory brief</a>.</li>
               <li><strong>Connections:</strong> sign in once, and your agent uses everything else.</li>
               <li><strong>AutoPilot:</strong> the work hub that plans, routes, checks, and proves jobs.</li>
               <li><strong>XPass:</strong> the roadworthy checklist for AI work before it ships.</li>
@@ -354,6 +382,20 @@
               Passport, crews, and Pass family checks in one managed setup. No infrastructure
               to run, no access setup to hand-roll, no integrations to maintain.
             </p>
+            <h3>How is UnClick Memory different from Mem0?</h3>
+            <p>
+              Mem0 is a dedicated AI memory engine with strong public benchmark material.
+              UnClick Memory is MCP-native workspace memory inside the broader UnClick
+              agent rails platform, strongest when memory needs to connect to tools,
+              sessions, code, PRs, todos, receipts, provenance, and scoped coordination.
+            </p>
+            <h3>Does UnClick Memory guarantee better recall than Mem0?</h3>
+            <p>
+              No. UnClick should not claim it beats Mem0 on public benchmarks without a
+              same-budget published benchmark. The defensible claim is source-linked
+              workspace memory with hybrid retrieval, typed links, receipts, scoped recall,
+              code memory, and an eval harness.
+            </p>
           </section>
 
           <section>
@@ -364,6 +406,8 @@
               <li><a href="https://github.com/malamutemayhem/unclick/releases" rel="noopener">GitHub releases</a></li>
               <li><a href="https://www.npmjs.com/package/@unclick/mcp-server" rel="noopener">npm: @unclick/mcp-server</a></li>
               <li><a href="/llms.txt">llms.txt for AI agents</a></li>
+              <li><a href="/ai-memory.md">AI memory brief</a></li>
+              <li><a href="/ai-memory.json">AI memory facts JSON</a></li>
             </ul>
           </section>
 

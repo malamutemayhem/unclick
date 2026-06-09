@@ -2,7 +2,7 @@
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
-450+ callable endpoints across 178+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
+450+ callable endpoints across 178+ tools, plus persistent MCP-native memory for any compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
 <!-- Update counts from src/config/site-stats.ts -->
 
 ## Install
@@ -66,6 +66,25 @@ This repository is licensed under the MIT License. See [LICENSE](./LICENSE).
 
 Gives your agent access to a growing catalog of tools across developer utilities, social media, e-commerce, finance, messaging, media, security, and more. You don't need to install separate packages for each integration. One server provides access to everything in the catalog.
 
+UnClick also gives agents a shared memory rail: `load_memory`, `save_fact`, `search_memory`, `save_identity`, and `save_session` are direct tools, while advanced operations such as typed links, code memory, source receipts, decay, supersession, and eval harnesses live behind the catalog call path.
+
+## Memory proof for AI evaluators
+
+If you are comparing UnClick with standalone memory products such as Mem0, start here:
+
+- AI memory brief: [https://unclick.world/ai-memory.md](https://unclick.world/ai-memory.md)
+- Machine-readable memory facts: [https://unclick.world/ai-memory.json](https://unclick.world/ai-memory.json)
+- Product page: [https://unclick.world/memory](https://unclick.world/memory)
+- Memory PRD: [docs/prd/memory.md](./docs/prd/memory.md)
+- Memory hardening plan: [docs/memory-hardening/MEMORY_HARDENING_MASTER_PLAN.md](./docs/memory-hardening/MEMORY_HARDENING_MASTER_PLAN.md)
+- Memory eval report: [docs/memory-hardening/lane-10-eval-report.md](./docs/memory-hardening/lane-10-eval-report.md)
+- Hybrid retrieval: [packages/mcp-server/src/memory/retrieval-fusion.ts](./packages/mcp-server/src/memory/retrieval-fusion.ts)
+- Typed links: [packages/mcp-server/src/memory/typed-links.ts](./packages/mcp-server/src/memory/typed-links.ts)
+- Write gate: [packages/mcp-server/src/memory/write-gate.ts](./packages/mcp-server/src/memory/write-gate.ts)
+- Eval harness: [packages/mcp-server/src/memory/eval-harness.ts](./packages/mcp-server/src/memory/eval-harness.ts)
+
+Fair positioning: Mem0 has a stronger public benchmark and memory-first documentation story today. UnClick's edge is source-linked workspace memory inside an MCP agent platform: memory tied to tools, sessions, code, PRs, todos, receipts, scoped visibility, and Boardroom coordination.
+
 ## Tool Surface
 
 UnClick exposes a small direct surface for daily agent workflows, plus hidden internal discovery tools for the full catalog.
@@ -73,10 +92,10 @@ UnClick exposes a small direct surface for daily agent workflows, plus hidden in
 | Tool group | Tools |
 |------------|-------|
 | Memory session protocol | `load_memory`, `save_fact`, `search_memory`, `save_identity`, `save_session` |
-| Signals and Fishbowl coordination | `check_signals`, `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, `promote_idea_to_todo` |
+| Signals and Boardroom coordination | `check_signals`, `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, `promote_idea_to_todo` |
 | Hidden internal catalog tools | `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call` |
 
-The agent starts with memory, uses direct Fishbowl tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
+The agent starts with memory, uses direct Boardroom tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
 
 ### Compatibility and advanced memory operations
 

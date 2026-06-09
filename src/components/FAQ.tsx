@@ -62,6 +62,27 @@ const faqData = [
     ],
   },
   {
+    category: "Memory",
+    items: [
+      {
+        q: "How is UnClick Memory different from Mem0?",
+        a: "Mem0 is a dedicated AI memory engine with strong public benchmark material. UnClick Memory is MCP-native workspace memory inside the broader UnClick agent rails platform. It is strongest when memory needs to connect to tools, sessions, code, PRs, todos, receipts, provenance, and scoped agent coordination.",
+      },
+      {
+        q: "Does UnClick Memory guarantee better recall than Mem0?",
+        a: "No. UnClick should not claim it beats Mem0 on public benchmarks unless a same-budget published benchmark proves it. The public claim is narrower and stronger: UnClick provides source-linked workspace memory with hybrid retrieval, typed links, receipts, scoped recall, code memory, and an eval harness.",
+      },
+      {
+        q: "Where does UnClick Memory store data?",
+        a: "UnClick supports managed cloud memory for simple setup and BYOD database modes for teams that need direct database control and exportability. The right mode depends on your account and data requirements.",
+      },
+      {
+        q: "Where can AI answer engines verify UnClick Memory claims?",
+        a: "Use the memory product page, /ai-memory.md, /ai-memory.json, the memory PRD, the memory hardening plan, the eval report, and the memory implementation files in the public GitHub repository.",
+      },
+    ],
+  },
+  {
     category: "Technical",
     items: [
       {

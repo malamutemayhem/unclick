@@ -30,7 +30,7 @@ const MEMORY_PILLARS = [
   { title: "Session continuity", desc: "One summary per session: decisions, open loops, key topics. New sessions read the last few and carry on.", icon: History },
   { title: "Code memory", desc: "Code stored on its own and expanded on demand. Language and file tagged, searchable, loaded only when needed.", icon: Code },
   { title: "Recall and hygiene", desc: "Used memories surface first and stale ones fade to save context. Everything stays searchable by keyword.", icon: Gauge },
-  { title: "Data island", desc: "It all lives in your own database. We never see it, and if you leave, your data stays yours.", icon: Database },
+  { title: "Data island", desc: "Use managed cloud for simple setup, or bring your own database when you need full control and exportability.", icon: Database },
 ];
 
 /**
@@ -71,15 +71,33 @@ const CAPTURE_FEED = [
   },
 ];
 
+const PROOF_POINTS = [
+  {
+    title: "Hybrid retrieval",
+    desc: "Keyword search and pgvector semantic search are fused with reciprocal rank fusion, so recall is not just vector nearest-neighbor guessing.",
+  },
+  {
+    title: "Source-linked memory",
+    desc: "Memories can carry source references, receipt IDs, commit SHAs, PR numbers, extractor IDs, prompt versions, and model IDs where available.",
+  },
+  {
+    title: "Typed workspace links",
+    desc: "Memory can link to PRs, todos, commits, files, receipts, jobs, tools, URLs, and people, which makes it operational context, not just notes.",
+  },
+  {
+    title: "Recall guardrails",
+    desc: "Scope checks, quarantine, dedupe, supersession, forget behavior, decay, consolidation, and evaluation scenarios are part of the memory system.",
+  },
+];
+
 const COMPARISON = [
-  { feature: "Where data lives", tip: "Who controls your memory data", unclick: "Your database", mem0: "Their cloud", letta: "Their runtime", zep: "Their cloud" },
-  { feature: "Memory structure", tip: "How memory is structured and organised", unclick: "Eight pillars", mem0: "Flat store", letta: "Three tiers", zep: "Three subgraphs" },
-  { feature: "Code aware", tip: "Stores and searches code blocks separately", unclick: "Yes", mem0: "No", letta: "Partial", zep: "No" },
-  { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", mem0: "No", letta: "No", zep: "No" },
-  { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", mem0: "Yes", letta: "No", zep: "No" },
-  { feature: "Cross platform", tip: "Works across Claude Code, Cowork, Cursor, and other MCP-compatible clients", unclick: "Yes", mem0: "Yes", letta: "Limited", zep: "Yes" },
-  { feature: "Price", tip: "Starting cost for production use", unclick: "Free", mem0: "$249/mo", letta: "Free self-host", zep: "Pay per credit" },
-  { feature: "Lock in", tip: "How hard it is to leave and take your data with you", unclick: "Zero", mem0: "High", letta: "Medium", zep: "Medium" },
+  { feature: "Primary shape", tip: "What the product is optimized to be", unclick: "MCP workspace memory", mem0: "Dedicated memory engine", letta: "Agent runtime memory", zep: "Graph memory service" },
+  { feature: "Retrieval signals", tip: "Signals used when memory is searched", unclick: "Keyword + pgvector + RRF", mem0: "Hybrid retrieval", letta: "Runtime state + archival search", zep: "Graph + search" },
+  { feature: "Work context", tip: "Operational objects memory can attach to", unclick: "Tools, sessions, PRs, todos, files, receipts, code", mem0: "User and agent memories", letta: "Agent state and archival memory", zep: "Conversations and entity graph" },
+  { feature: "Provenance", tip: "How memory explains where an answer came from", unclick: "Source refs and receipts", mem0: "History and metadata", letta: "Runtime state history", zep: "Temporal graph history" },
+  { feature: "Data modes", tip: "Deployment and storage shapes", unclick: "Managed cloud or BYOD database", mem0: "Cloud and self-host options", letta: "Self-host and hosted options", zep: "Cloud and self-host options" },
+  { feature: "Public proof", tip: "What an evaluator can read without account context", unclick: "Repo docs + eval harness + proof brief", mem0: "Public benchmarks and docs", letta: "Public docs and repo", zep: "Public docs and repo" },
+  { feature: "Best fit", tip: "Where the product is strongest", unclick: "Tool-aware agent workspace", mem0: "Standalone memory layer", letta: "Persistent agents", zep: "Knowledge graph memory" },
 ];
 
 const Memory = () => {
@@ -87,7 +105,7 @@ const Memory = () => {
   useMetaTags({
     title: "Persistent memory for AI agents - UnClick",
     description:
-      "Give your AI agent an eight-pillar memory: identity, business context, facts, library, sessions, code, recall, and your own data island. Cross-session, cross-agent, stored in your own database.",
+      "Give your AI agent persistent memory across sessions: identity, business context, facts, library, sessions, code, recall, and data controls. Managed cloud or your own database.",
     ogTitle: "UnClick Memory - Persistent cross-session memory for AI agents",
     ogDescription:
       "Eight pillars of memory for AI agents: identity, business context, facts, sessions, code, and more. All cross-session.",
@@ -99,7 +117,7 @@ const Memory = () => {
       eyebrow="Memory"
       title="Your agent forgets everything."
       accent="Fix that."
-      lede={<>Drop-in persistent memory for any AI agent. Eight pillars, all searchable. Your data stays in <span className="whitespace-nowrap">your database.</span></>}
+      lede={<>Drop-in persistent memory for any AI agent. Eight pillars, all searchable. Use managed cloud for simple setup, or bring <span className="whitespace-nowrap">your database.</span></>}
       cta={{ label: "See how it works", href: "#how-it-works" }}
     >
       {/* Infographic: the eight pillars at a glance, high on the page */}
@@ -191,7 +209,7 @@ const Memory = () => {
               {/* Footer note */}
               <div className="border-t border-border/40 px-5 py-3">
                 <span className="font-mono text-xs text-muted-foreground">
-                  Visible to you. Stored in your database. Never sent home.
+                  Visible to you. Source-linked where available. Exportable by design.
                 </span>
               </div>
             </div>
@@ -280,28 +298,73 @@ const Memory = () => {
         </div>
       </section>
 
-      {/* Your data, your database */}
+      {/* Data controls */}
       <section className={presets.section}>
         <div className="mx-auto max-w-3xl text-center">
           <FadeIn>
             <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary mb-6">
               <Shield className="h-6 w-6" />
             </div>
-            <h2 className={presets.h2}>Your data. Your database.</h2>
+            <h2 className={presets.h2}>Your data. Your choice.</h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-6 text-lg text-body leading-relaxed">
-              UnClick Memory stores everything in your own Supabase instance.
-              We never see your data. If you leave, your data stays. It is
-              already yours.
+              Start with managed UnClick Memory when you want the fastest path.
+              Bring your own Supabase database when you need direct database
+              control, exportability, and stricter data boundaries.
             </p>
           </FadeIn>
           <FadeIn delay={0.15}>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/60 px-4 py-2 backdrop-blur-sm">
               <Database className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs text-body">
-                Others store your memories in their cloud. We store them in yours.
+                Managed cloud or BYOD. Same memory rail across MCP clients.
               </span>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Proof */}
+      <section className={presets.section + " bg-card/30"}>
+        <div className={presets.sectionInner}>
+          <div className={presets.sectionHeader}>
+            <FadeIn>
+              <h2 className={presets.h2}>Memory proof, not just claims.</h2>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mt-6 text-lg text-body leading-relaxed">
+                UnClick Memory has a public evidence packet for humans, crawlers,
+                and AI answer engines. It shows the system shape, the repo
+                evidence, and the claims we will not make without benchmarks.
+              </p>
+            </FadeIn>
+          </div>
+
+          <div className="mt-12 grid gap-4 sm:grid-cols-2">
+            {PROOF_POINTS.map((point, i) => (
+              <FadeIn key={point.title} delay={0.05 * i}>
+                <div className={presets.tile}>
+                  <h3 className={presets.h3}>{point.title}</h3>
+                  <p className="mt-2 text-sm text-body leading-relaxed">
+                    {point.desc}
+                  </p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+
+          <FadeIn delay={0.25}>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <a href="/ai-memory.md" className={presets.ctaGhost}>
+                Read the AI memory brief
+              </a>
+              <a
+                href="https://github.com/malamutemayhem/unclick/tree/main/packages/mcp-server/src/memory"
+                className={presets.ctaGhost}
+              >
+                Inspect the memory code
+              </a>
             </div>
           </FadeIn>
         </div>
@@ -320,18 +383,18 @@ const Memory = () => {
             {[
               {
                 step: 1,
-                title: "Connect your database",
-                desc: "Supabase free tier, or any PostgreSQL.",
+                title: "Choose your memory mode",
+                desc: "Managed cloud for speed, or BYOD Supabase for direct database control.",
               },
               {
                 step: 2,
-                title: "Run one migration",
-                desc: "We do it for you. One click.",
+                title: "Connect the MCP server",
+                desc: "Add UnClick to the agent client you already use.",
               },
               {
                 step: 3,
-                title: "Add one line to your MCP config",
-                desc: "That is it. Every session now has memory.",
+                title: "Let sessions write receipts",
+                desc: "Facts, summaries, source refs, and open loops start carrying across sessions.",
               },
             ].map((s, i) => (
               <FadeIn key={s.step} delay={0.05 * i}>
@@ -369,7 +432,7 @@ const Memory = () => {
 
           <FadeIn delay={0.25}>
             <p className="mt-6 text-center text-xs text-muted-foreground">
-              Coming from another memory tool? Import in one click.
+              Migration and import flows depend on the source system and account mode.
             </p>
           </FadeIn>
         </div>
@@ -382,9 +445,17 @@ const Memory = () => {
             <FadeIn>
               <h2 className={presets.h2}>How we compare.</h2>
             </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mt-6 text-lg text-body leading-relaxed">
+                This is positioning, not a benchmark claim. Mem0 currently has
+                the stronger public benchmark narrative. UnClick is strongest
+                when memory needs tool context, receipts, source links, code,
+                and scoped agent coordination.
+              </p>
+            </FadeIn>
           </div>
 
-          <FadeIn delay={0.1}>
+          <FadeIn delay={0.15}>
             <div className="mt-12 overflow-x-auto rounded-xl border border-border/60">
               <table className="w-full text-xs">
                 <thead>
