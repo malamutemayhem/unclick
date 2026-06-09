@@ -1,4 +1,4 @@
-# UNCLICK ADMIN SHELL + HOSTED MEMORY BUILD PLAN (v2)
+# UnClick Admin Shell + Hosted Memory Build Plan (v2)
 
 **For execution by Claude Code**
 **Author: UnClick Core Team (with Cowork strategy session, April 15, 2026)**
@@ -10,10 +10,10 @@
 
 ## BEFORE YOU START
 
-1. Call `get_startup_context` to load the operator's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
+1. Call `load_memory` to load the operator's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
 2. Read the project root `CLAUDE.md` for the session bridge protocol and current architecture notes. Do NOT read `packages/memory-mcp/CLAUDE.md`; that package is deprecated.
-3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `claude/setup-malamute-mayhem-zkquO` named `claude/phase-N-<description>` for your phase. Do not push to `main`; it is stale.
-4. At the end of the session, call `write_session_summary` before leaving.
+3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `origin/main` named `claude/phase-N-<description>` for your phase.
+4. At the end of the session, call `save_session` before leaving.
 
 ---
 
@@ -132,7 +132,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 - Npm publish path is resolved with Chris.
 
 **Verification:**
-- Write a test agent that calls `add_fact`, `search_memory`, `get_startup_context` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
+- Write a test agent that calls `save_fact`, `search_memory`, `load_memory` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
 - Inject an invalid api_key. Verify rejection with clear error.
 - Simulate a BYOD user (seed `memory_configs` row). Verify their writes route to their own Supabase, not managed cloud.
 - Force 5,001 fact writes on a free-tier test user. Verify the 5,001st returns a cap error.

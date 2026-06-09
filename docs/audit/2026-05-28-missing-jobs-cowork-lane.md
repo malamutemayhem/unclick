@@ -1,6 +1,6 @@
-# 2026-05-28 Missing Jobs Audit — Cowork sub-lane
+# 2026-05-28 Missing Jobs Audit: Cowork sub-lane
 
-**Parent audit:** Boardroom todo `d2bbcce8-62a8-4a71-9b41-ccc6185173fd` — *Git sync audit: completed coding jobs need PR or commit proof*
+**Parent audit:** Boardroom todo `d2bbcce8-62a8-4a71-9b41-ccc6185173fd`: *Git sync audit: completed coding jobs need PR or commit proof*
 
 **Sub-lane owner:** Claude Cowork (`claude-cowork-creativelead`)
 **Started:** 2026-05-28T13:10Z
@@ -50,14 +50,14 @@ Includes positive and negative control tests:
 
 ## Why not action the others in this PR
 
-Per the handover (`20260527 UnClick Detailed Handover Notes.md` §81 — Safety Surfaces):
+Per the handover (`20260527 UnClick Detailed Handover Notes.md` §81, Safety Surfaces):
 
 > Never touch these without explicit Chris approval: secrets, API keys, passwords, billing, DNS, production deploy settings, destructive data actions, force push, hard reset, GitHub rulesets, required check bypass, canary seed close, canary flags, workflow broad execute switch.
 
 - Path-filter widening requires changing the GitHub ruleset (`16788514`).
 - Bugbot removal requires GitHub App uninstall (external).
 - Heartbeat re-scope requires tool-grant change on the scheduled task.
-- Runner honesty slice requires editing the minified `pinballwake-autonomous-runner.mjs` — handover §32 says explicitly do NOT hand-edit blind.
+- Runner honesty slice requires editing the minified `pinballwake-autonomous-runner.mjs`; handover §32 says explicitly do NOT hand-edit blind.
 - 401 investigation requires Vercel log access not available to this seat.
 - Stale-freed-jobs triage is a product decision.
 

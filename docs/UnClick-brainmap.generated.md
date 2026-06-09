@@ -71,7 +71,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
+| src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | fe9d0fede6a8 | 39375 |
@@ -87,7 +87,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
-| src/pages/admin/AdminBrainmap.tsx | 825a4928a569 | 26632 |
+| src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
@@ -117,7 +117,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
+| src/pages/AppDetail.tsx | 5d2ee9cd8690 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
@@ -127,13 +127,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
-| src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
+| src/pages/Dispatch.tsx | cbe1263c226f | 15459 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
-| src/pages/Login.tsx | 86f887990094 | 8440 |
+| src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
@@ -218,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
-| .github/workflows/dirty-branch-hygiene.yml | 3df7d09eebc7 | 2190 |
+| .github/workflows/dirty-branch-hygiene.yml | d5ca538bd8a9 | 2190 |
 | .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |

@@ -281,7 +281,7 @@ export async function createVercelEnv(args: Record<string, unknown>): Promise<un
     const params: Record<string, string> = {};
     if (args.team_id) params.teamId = String(args.team_id);
     // upsert=true lets us overwrite an existing value for the same key/target
-    // combination instead of 409-ing — matches the "just make it so" mental
+    // combination instead of 409-ing. Matches the "just make it so" mental
     // model most agent flows want.
     if (args.upsert !== false) params.upsert = "true";
 
@@ -321,7 +321,7 @@ export async function deleteVercelEnv(args: Record<string, unknown>): Promise<un
 
 // create_vercel_deployment
 // Creates a new deployment, typically to redeploy the latest commit on a
-// project — with optional build-cache skipping (the common "cache-off
+// project, with optional build-cache skipping (the common "cache-off
 // redeploy" use case when new serverless functions or env vars need to
 // take effect).
 // POST /v13/deployments

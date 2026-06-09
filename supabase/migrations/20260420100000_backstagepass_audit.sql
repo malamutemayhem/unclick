@@ -8,7 +8,7 @@
 -- table answers "who touched which credential, when, from where" for
 -- every reveal / update / delete / test action.
 --
--- Scope: one row per action. NOT tied to request lifecycle — if a
+-- Scope: one row per action. NOT tied to request lifecycle. If a
 -- request triggers N internal decrypts, that's N rows. Append-only.
 -- Never mutated. Read-only to the owner via /api/backstagepass?action=audit.
 --
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS backstagepass_audit (
 
   -- Who acted (Supabase auth user.id if available) and which vault it
   -- affected (api_key_hash of the owning user). These are usually the
-  -- same user today — but decoupling them now means admin-on-behalf-of
+  -- same user today, but decoupling them now means admin-on-behalf-of
   -- flows can slot in later without a schema change.
   actor_user_id   UUID,
   api_key_hash    TEXT         NOT NULL,
@@ -49,13 +49,13 @@ CREATE TABLE IF NOT EXISTS backstagepass_audit (
 
   -- Where from. IP + UA are best-effort; Vercel forwards x-forwarded-for
   -- so we record that string verbatim. Don't treat these as
-  -- authentication signals — they're just breadcrumbs.
+  -- authentication signals. They're just breadcrumbs.
   ip              TEXT,
   user_agent      TEXT,
 
   -- Result signal. TRUE for successful reveal/update/delete/test, FALSE
   -- for "attempted but failed" (e.g. wrong api_key on reveal). Both are
-  -- logged — a stream of failed reveals is a signal worth seeing.
+  -- logged. A stream of failed reveals is a signal worth seeing.
   success         BOOLEAN      DEFAULT TRUE,
 
   -- Free-form extras. Examples: { "reason": "wrong_api_key" },

@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 //
 // Auth: api_key embedded as ?key= query param. /api/mcp accepts this because
 // Claude.ai's and ChatGPT's "Add custom connector" dialogs only expose a URL
-// field — no place to set a header.
+// field, so there is no place to set a header.
 
 type Platform = "Claude" | "ChatGPT" | "Cursor" | "VS Code" | "Other";
 type ClaudeSurface = "Web" | "Desktop" | "Code";
@@ -147,7 +147,7 @@ function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
   );
 }
 
-// Deeplink install button — renders as <a> so the browser hands the URL to
+// Deeplink install button. Renders as <a> so the browser hands the URL to
 // the platform's registered protocol handler.
 function DeeplinkButton({
   href,
