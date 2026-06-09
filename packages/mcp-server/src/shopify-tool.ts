@@ -149,7 +149,7 @@ export async function shopifyProducts(args: Record<string, unknown>): Promise<un
     case "get": {
       const id = String(args.id ?? "").trim();
       if (!id) return { error: "id is required for action='get'." };
-      return shopifyFetch(cfg, "GET", `/products/${id}.json`);
+      return shopifyFetch(cfg, "GET", `/products/${encodeURIComponent(id)}.json`);
     }
 
     case "create": {
@@ -165,7 +165,7 @@ export async function shopifyProducts(args: Record<string, unknown>): Promise<un
       if (!args.product || typeof args.product !== "object") {
         return { error: "product object is required for action='update'." };
       }
-      return shopifyFetch(cfg, "PUT", `/products/${id}.json`, { product: args.product });
+      return shopifyFetch(cfg, "PUT", `/products/${encodeURIComponent(id)}.json`, { product: args.product });
     }
 
     default:

@@ -166,7 +166,7 @@ export async function fplGameweek(
 export async function fplFixtures(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const path = args.gw ? `/fixtures/?event=${args.gw}` : "/fixtures/";
+  const path = args.gw ? `/fixtures/?event=${encodeURIComponent(String(args.gw))}` : "/fixtures/";
   const data = (await fplFetch<Record<string, unknown>[]>(path)) as Record<
     string,
     unknown

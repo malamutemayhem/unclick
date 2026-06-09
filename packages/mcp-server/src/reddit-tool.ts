@@ -400,7 +400,7 @@ function redditThreadPath(args: RedditThreadArgs): string | null {
 
   const sub = args.subreddit?.replace(/^r\//i, "");
   if (!sub || !args.id?.trim()) return null;
-  return `/r/${sub}/comments/${args.id.trim()}.json`;
+  return `/r/${encodeURIComponent(sub)}/comments/${encodeURIComponent(args.id.trim())}.json`;
 }
 
 // ── Exported operation functions ─────────────────────────────────────────────
@@ -563,7 +563,7 @@ export async function redditSearch(args: RedditSearchArgs): Promise<unknown> {
   if (args.subreddit) params["restrict_sr"] = true;
 
   const sub = args.subreddit?.replace(/^r\//i, "");
-  const path = sub ? `/r/${sub}/search.json` : "/search.json";
+  const path = sub ? `/r/${encodeURIComponent(sub)}/search.json` : "/search.json";
 
   const result = await rFetch("GET", path, args.access_token, params);
   if (result && typeof result === "object" && "error" in (result as object)) return result;
@@ -647,12 +647,12 @@ export async function redditUser(args: RedditUserArgs): Promise<unknown> {
   const limit = Math.min(100, Math.max(1, Number(args.limit ?? 10)));
 
   const [aboutResult, ...activityResults] = await Promise.all([
-    rFetch("GET", `/user/${username}/about.json`, args.access_token),
+    rFetch("GET", `/user/${encodeURIComponent(username)}/about.json`, args.access_token),
     args.include_posts !== false
-      ? rFetch("GET", `/user/${username}/submitted.json`, args.access_token, { limit })
+      ? rFetch("GET", `/user/${encodeURIComponent(username)}/submitted.json`, args.access_token, { limit })
       : Promise.resolve(null),
     args.include_comments !== false
-      ? rFetch("GET", `/user/${username}/comments.json`, args.access_token, { limit })
+      ? rFetch("GET", `/user/${encodeURIComponent(username)}/comments.json`, args.access_token, { limit })
       : Promise.resolve(null),
   ]);
 

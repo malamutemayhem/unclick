@@ -81,7 +81,7 @@ export async function esportsMatches(
 
   // Game filter uses the videogame slug prefix on the path
   const game = String(args.game ?? "").toLowerCase();
-  const path = game ? `/${game}/matches` : "/matches";
+  const path = game ? `/${encodeURIComponent(game)}/matches` : "/matches";
 
   const data = await pandascoreFetch<Record<string, unknown>[]>(
     path,
@@ -150,7 +150,7 @@ export async function esportsTournaments(
   if (args.tier) params["filter[tier]"] = String(args.tier);
 
   const game = String(args.game ?? "").toLowerCase();
-  const path = game ? `/${game}/tournaments` : "/tournaments";
+  const path = game ? `/${encodeURIComponent(game)}/tournaments` : "/tournaments";
 
   const data = await pandascoreFetch<Record<string, unknown>[]>(
     path,
@@ -192,7 +192,7 @@ export async function esportsTeams(
 ): Promise<unknown> {
   const token = requireKey(args);
   const game = String(args.game ?? "").toLowerCase();
-  const path = game ? `/${game}/teams` : "/teams";
+  const path = game ? `/${encodeURIComponent(game)}/teams` : "/teams";
 
   const data = await pandascoreFetch<Record<string, unknown>[]>(
     path,
@@ -234,7 +234,7 @@ export async function esportsPlayers(
 ): Promise<unknown> {
   const token = requireKey(args);
   const game = String(args.game ?? "").toLowerCase();
-  const path = game ? `/${game}/players` : "/players";
+  const path = game ? `/${encodeURIComponent(game)}/players` : "/players";
 
   const data = await pandascoreFetch<Record<string, unknown>[]>(
     path,
