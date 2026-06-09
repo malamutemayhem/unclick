@@ -1448,6 +1448,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "coinchange",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "coin_change",
+        "description": "Compute minimum coins for a target amount and count distinct combinations."
+      }
+    ]
+  },
+  {
     "app": "coingecko",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2648,6 +2658,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ebird_species_info",
         "description": "Get information about a bird species from eBird."
+      }
+    ]
+  },
+  {
+    "app": "editdist",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "edit_distance",
+        "description": "Compute edit distance with full backtrace of insert/delete/replace operations."
       }
     ]
   },
@@ -5626,6 +5646,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "necklace",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "necklace_count",
+        "description": "Count distinct necklaces and bracelets using Burnside's lemma."
+      }
+    ]
+  },
+  {
     "app": "neon",
     "category": "Dev / Cloud",
     "tools": [
@@ -6884,6 +6914,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "power_iteration",
         "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+      }
+    ]
+  },
+  {
+    "app": "powerset",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "power_set",
+        "description": "Generate all subsets of a set (up to 20 elements)."
       }
     ]
   },

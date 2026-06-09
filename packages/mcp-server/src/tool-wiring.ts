@@ -838,6 +838,10 @@ import { continuedFraction } from "./contfrac-tool.js";
 import { longestCommonPrefix } from "./lcprefix-tool.js";
 import { lehmerCode } from "./lehmer-tool.js";
 import { digitDp } from "./digitdp-tool.js";
+import { coinChange } from "./coinchange-tool.js";
+import { editDistance } from "./editdist-tool.js";
+import { powerSet } from "./powerset-tool.js";
+import { necklaceCount } from "./necklace-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12397,6 +12401,57 @@ export const ADDITIONAL_TOOLS = [
         n: { type: "number", description: "Upper bound (positive integer, max 1e15)" },
         target_digit_sum: { type: "number", description: "Target digit sum (0-135)" },
       }, required: ["n", "target_digit_sum"],
+    },
+  },
+
+  // ── coinchange-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "coin_change",
+    description: "Compute minimum coins for a target amount and count distinct combinations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        coins: { type: "array", items: { type: "number" }, description: "Coin denominations" },
+        amount: { type: "number", description: "Target amount (max 1,000,000)" },
+      }, required: ["coins", "amount"],
+    },
+  },
+
+  // ── editdist-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "edit_distance",
+    description: "Compute edit distance with full backtrace of insert/delete/replace operations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        source: { type: "string", description: "Source string (max 5,000 chars)" },
+        target: { type: "string", description: "Target string (max 5,000 chars)" },
+      }, required: ["source", "target"],
+    },
+  },
+
+  // ── powerset-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "power_set",
+    description: "Generate all subsets of a set (up to 20 elements).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        elements: { type: "array", description: "Array of elements (max 20)" },
+      }, required: ["elements"],
+    },
+  },
+
+  // ── necklace-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "necklace_count",
+    description: "Count distinct necklaces and bracelets using Burnside's lemma.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Length (1-1000)" },
+        k: { type: "number", description: "Number of colors (1-1000)" },
+      }, required: ["n", "k"],
     },
   },
 
@@ -24307,6 +24362,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   longest_common_prefix:         (args) => longestCommonPrefix(args),
   lehmer_code:                   (args) => lehmerCode(args),
   digit_dp:                      (args) => digitDp(args),
+
+  // batch 91: Coin Change, Edit Distance, Power Set, Necklace Count
+  coin_change:                   (args) => coinChange(args),
+  edit_distance:                 (args) => editDistance(args),
+  power_set:                     (args) => powerSet(args),
+  necklace_count:                (args) => necklaceCount(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 659,
-  "toolCount": 1581,
+  "appCount": 663,
+  "toolCount": 1585,
   "categories": [
     "AI",
     "Books",
@@ -1898,6 +1898,22 @@
       "hardened": true
     },
     {
+      "slug": "coinchange",
+      "name": "Coin Change",
+      "category": "Utilities",
+      "blurb": "Minimum coins and combination count for a target amount using DP.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "coin_change",
+          "description": "Compute minimum coins for a target amount and count distinct combinations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "coincap",
       "name": "CoinCap",
       "category": "Markets & crypto",
@@ -3508,6 +3524,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "editdist",
+      "name": "Edit Distance",
+      "category": "Utilities",
+      "blurb": "Full edit distance with backtrace of insert, delete, and replace operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "edit_distance",
+          "description": "Compute edit distance with full backtrace of insert/delete/replace operations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "edmondskarp",
@@ -7730,6 +7762,22 @@
       "hardened": false
     },
     {
+      "slug": "necklace",
+      "name": "Necklace Count",
+      "category": "Utilities",
+      "blurb": "Count distinct necklaces and bracelets using Burnside's lemma.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "necklace_count",
+          "description": "Count distinct necklaces and bracelets using Burnside's lemma."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "neon",
       "name": "Neon",
       "category": "Developer & infra",
@@ -9452,6 +9500,22 @@
         {
           "name": "power_iteration",
           "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "powerset",
+      "name": "Power Set",
+      "category": "Utilities",
+      "blurb": "Generate all subsets of a set using bitmask enumeration.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "power_set",
+          "description": "Generate all subsets of a set (up to 20 elements)."
         }
       ],
       "level": 5,
