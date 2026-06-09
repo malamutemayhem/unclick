@@ -32,6 +32,7 @@ interface StaticRoute {
 const STATIC_ROUTES: StaticRoute[] = [
   { path: "/",                    changefreq: "weekly",  priority: "1.0" },
   { path: "/tools",               changefreq: "weekly",  priority: "0.9" },
+  { path: "/why",                 changefreq: "monthly", priority: "0.8" },
   { path: "/arena",               changefreq: "daily",   priority: "0.9" },
   { path: "/arena/leaderboard",   changefreq: "daily",   priority: "0.7" },
   { path: "/docs",                changefreq: "weekly",  priority: "0.9" },
