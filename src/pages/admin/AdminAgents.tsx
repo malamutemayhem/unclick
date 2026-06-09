@@ -4,14 +4,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
+  Cpu,
+  CreditCard,
   Pencil,
   Trash2,
   Search,
   X,
   Check,
   AlertTriangle,
+  KeyRound,
   Save,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   AGENT_TEMPLATES,
   CREW_CATEGORIES,
@@ -33,6 +39,7 @@ import {
   type SeatRoutingPolicy,
 } from "./AdminAgentsSeatUtils";
 import { useSession } from "@/lib/auth";
+import { platformHasConfigFile, platformLabel, type Platform } from "@/lib/configGenerator";
 
 interface Agent {
   id: string;
@@ -64,6 +71,53 @@ interface AgentDetail {
   tools: Array<{ connector_id: string; is_enabled: boolean }>;
   memory_scope: Array<{ memory_layer: string; is_enabled: boolean }>;
 }
+
+interface ComputeCredential {
+  platform: string;
+  is_valid: boolean;
+  health_status?: CredentialHealthStatus;
+  last_checked_at?: string | null;
+  last_tested_at?: string | null;
+  connector: {
+    category: string;
+    name: string;
+  } | null;
+}
+
+interface ConnectionStatus {
+  connected: boolean;
+  last_seen: string | null;
+}
+
+type CredentialHealthStatus = "healthy" | "untested" | "failing" | "stale" | "needs_rotation";
+type ComputeTierTone = "ready" | "watch" | "muted";
+
+interface ComputeTierCard {
+  key: "api" | "local" | "subscription";
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  count: string;
+  metric: string;
+  status: string;
+  tone: ComputeTierTone;
+  description: string;
+}
+
+const AI_PROVIDER_PLATFORMS = new Set([
+  "anthropic",
+  "openai",
+  "google-ai",
+  "cohere",
+  "mistral",
+  "groq",
+  "perplexity",
+  "together-ai",
+  "replicate",
+]);
+
+const SUBSCRIPTION_PLATFORMS: Platform[] = ["claude-code", "cursor", "windsurf", "copilot", "chatgpt"];
+const PLATFORM_STORAGE = "unclick_platform";
 
 const ROLE_OPTIONS = [
   { value: "researcher", label: "Researcher" },
@@ -226,8 +280,224 @@ export default function AdminAgentsPage() {
         </p>
       </header>
 
+      <ComputeTierSummaryStrip />
       <AISeatsPanel />
     </div>
+  );
+}
+
+function isAiProviderCredential(credential: ComputeCredential): boolean {
+  return (
+    AI_PROVIDER_PLATFORMS.has(credential.platform) ||
+    credential.connector?.category.toLowerCase() === "ai"
+  );
+}
+
+function credentialHealthStatus(credential: ComputeCredential): CredentialHealthStatus {
+  if (credential.health_status) return credential.health_status;
+  if (!credential.is_valid) return "failing";
+  if (!credential.last_tested_at && !credential.last_checked_at) return "untested";
+  return "healthy";
+}
+
+function getStoredSubscriptionPlatform(): Platform | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(PLATFORM_STORAGE);
+    return stored && SUBSCRIPTION_PLATFORMS.includes(stored as Platform) ? (stored as Platform) : null;
+  } catch {
+    return null;
+  }
+}
+
+function toneClass(tone: ComputeTierTone): string {
+  if (tone === "ready") return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  if (tone === "watch") return "border-amber-400/30 bg-amber-400/10 text-amber-300";
+  return "border-border/40 bg-card/40 text-muted-foreground";
+}
+
+function ComputeTierSummaryStrip() {
+  const { session, loading: sessionLoading } = useSession();
+  const authToken = session?.access_token ?? getApiKey();
+  const [apiCredentials, setApiCredentials] = useState<ComputeCredential[]>([]);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [connection, setConnection] = useState<ConnectionStatus | null>(null);
+  const [connectionLoading, setConnectionLoading] = useState(false);
+  const subscriptionPlatform = useMemo(() => getStoredSubscriptionPlatform(), []);
+
+  useEffect(() => {
+    if (sessionLoading) return;
+    if (!authToken) {
+      queueMicrotask(() => {
+        setApiCredentials([]);
+        setApiError(null);
+        setConnection(null);
+      });
+      return;
+    }
+
+    let cancelled = false;
+    const headers = { Authorization: `Bearer ${authToken}` };
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setApiLoading(true);
+      setConnectionLoading(true);
+      setApiError(null);
+    });
+
+    Promise.allSettled([
+      fetch("/api/backstagepass?action=list", { headers }),
+      fetch("/api/memory-admin?action=admin_check_connection", { headers }),
+    ])
+      .then(async ([credentialsResult, connectionResult]) => {
+        if (cancelled) return;
+
+        if (credentialsResult.status === "fulfilled" && credentialsResult.value.ok) {
+          const body = (await credentialsResult.value.json()) as { data?: ComputeCredential[] };
+          setApiCredentials((body.data ?? []).filter(isAiProviderCredential));
+        } else {
+          setApiCredentials([]);
+          setApiError("Passport unavailable");
+        }
+
+        if (connectionResult.status === "fulfilled" && connectionResult.value.ok) {
+          setConnection((await connectionResult.value.json()) as ConnectionStatus);
+        } else {
+          setConnection(null);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setApiCredentials([]);
+          setApiError(error instanceof Error ? error.message : "Passport unavailable");
+          setConnection(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setApiLoading(false);
+          setConnectionLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken, sessionLoading]);
+
+  const aiProviderCount = apiCredentials.length;
+  const healthyProviderCount = apiCredentials.filter((credential) => credentialHealthStatus(credential) === "healthy").length;
+  const selectedPlatformLabel = subscriptionPlatform ? platformLabel(subscriptionPlatform) : null;
+  const selectedPlatformHasConfig = subscriptionPlatform ? platformHasConfigFile(subscriptionPlatform) : false;
+
+  const cards: ComputeTierCard[] = [
+    {
+      key: "api",
+      title: "API",
+      href: "/admin/agents/api",
+      icon: KeyRound,
+      count: apiLoading ? "Checking" : `${aiProviderCount} provider${aiProviderCount === 1 ? "" : "s"}`,
+      metric: apiError
+        ? apiError
+        : aiProviderCount > 0
+          ? `${healthyProviderCount} healthy`
+          : "Not configured",
+      status: aiProviderCount > 0 ? "Ready for routing" : "Add provider keys",
+      tone: apiError ? "watch" : aiProviderCount > 0 ? "ready" : "muted",
+      description:
+        aiProviderCount > 0
+          ? "AI Passport entries are available for token-metered work."
+          : "No AI provider keys are saved yet.",
+    },
+    {
+      key: "local",
+      title: "Local",
+      href: "/admin/agents/local",
+      icon: Cpu,
+      count: "0 models",
+      metric: "Not configured",
+      status: "No endpoint",
+      tone: "muted",
+      description: "No local runtime has reported installed models yet.",
+    },
+    {
+      key: "subscription",
+      title: "Subscription",
+      href: "/admin/agents/subscription",
+      icon: CreditCard,
+      count: selectedPlatformLabel ? "1 platform" : "0 platforms",
+      metric: selectedPlatformLabel ?? "Not configured",
+      status: connectionLoading
+        ? "Checking"
+        : connection?.connected
+          ? "Connected"
+          : selectedPlatformLabel
+            ? "Setup needed"
+            : "No platform",
+      tone: connection?.connected ? "ready" : selectedPlatformLabel ? "watch" : "muted",
+      description: selectedPlatformLabel
+        ? `${selectedPlatformLabel} is selected${selectedPlatformHasConfig ? " with config output" : " with MCP context"}.`
+        : "No subscription platform has been selected yet.",
+    },
+  ];
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-border/40 bg-card/20">
+      <div className="flex flex-col gap-2 border-b border-border/40 px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-heading">Compute overview</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            API, local, and subscription capacity for Seats routing.
+          </p>
+        </div>
+        <span className="w-fit rounded-md border border-border/40 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground">
+          Three tiers
+        </span>
+      </div>
+
+      <div className="grid gap-3 p-4 md:grid-cols-3">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link
+              key={card.key}
+              to={card.href}
+              className="group rounded-lg border border-border/30 bg-card/30 p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                      card.key === "api"
+                        ? "bg-sky-400/10 text-sky-300"
+                        : card.key === "local"
+                          ? "bg-emerald-400/10 text-emerald-300"
+                          : "bg-amber-400/10 text-amber-300"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-heading">{card.title}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{card.count}</p>
+                  </div>
+                </div>
+                <span className={`rounded-md border px-2 py-1 text-[10px] ${toneClass(card.tone)}`}>
+                  {card.status}
+                </span>
+              </div>
+              <p className="mt-4 text-lg font-semibold text-heading">{card.metric}</p>
+              <p className="mt-1 min-h-8 text-xs leading-4 text-muted-foreground">{card.description}</p>
+              <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                Open
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -251,6 +521,7 @@ function AISeatsPanel() {
   const [profilesLoading, setProfilesLoading] = useState(false);
   const [profilesError, setProfilesError] = useState<string | null>(null);
   const [editingSeatId, setEditingSeatId] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const issues = seats.filter((seat) => seat.issue);
   const seatProfiles = useMemo(() => mapProfilesToSeats(seats, profiles), [profiles, seats]);
   const extraProfiles = useMemo(
@@ -301,6 +572,7 @@ function AISeatsPanel() {
       setProfiles([]);
       setProfilesError(error instanceof Error ? error.message : "Could not load live check-ins.");
     } finally {
+      setNowMs(Date.now());
       setProfilesLoading(false);
     }
   }, [authToken, sessionLoading]);
@@ -545,7 +817,7 @@ function AISeatsPanel() {
           {extraProfiles.map((profile) => {
             const checkedInAt = latestProfileCheckInAt(profile);
             const checkedInMs = checkedInAt ? Date.parse(checkedInAt) : NaN;
-            const isReady = Number.isFinite(checkedInMs) && Date.now() - checkedInMs < 15 * 60 * 1000;
+            const isReady = Number.isFinite(checkedInMs) && nowMs - checkedInMs < 15 * 60 * 1000;
             return (
               <div
                 key={`live-${profile.agent_id}`}
