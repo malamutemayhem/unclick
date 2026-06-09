@@ -29,11 +29,25 @@ async function sbFetch(
   headers:  Record<string, string>,
   body?:    unknown
 ): Promise<{ ok: boolean; status: number; data: unknown }> {
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const KEYCHAIN_TIMEOUT_MS = Number(process.env.KEYCHAIN_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KEYCHAIN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Keychain request timed out after ${KEYCHAIN_TIMEOUT_MS}ms.`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
   let data: unknown;
   try { data = await res.json(); } catch { data = null; }
   return { ok: res.ok, status: res.status, data };

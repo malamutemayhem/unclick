@@ -23,12 +23,27 @@ function parseTextBody(text: string): unknown {
   try { return text ? JSON.parse(text) : null; } catch { return text; }
 }
 
+const TESTPASS_TIMEOUT_MS = Number(process.env.TESTPASS_TIMEOUT_MS) || 30000;
+
 async function fetchJson(path: string): Promise<{ ok: boolean; status: number; body: unknown } | NotConnectedResult> {
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TESTPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, status: 0, body: { error: `TestPass request timed out after ${TESTPASS_TIMEOUT_MS}ms.` } };
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   return { ok: res.ok, status: res.status, body: parseTextBody(text) };
 }
@@ -55,14 +70,27 @@ export async function testpassRun(args: Record<string, unknown>): Promise<unknow
   };
   requestBody[UUID_RE.test(packId) ? "pack_id" : "pack_slug"] = packId;
   if (taskId) requestBody.task_id = taskId;
-  const res = await fetch(`${API_BASE}/api/testpass?action=start_run`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TESTPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/testpass?action=start_run`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `TestPass start_run timed out after ${TESTPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `TestPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   const body = parseTextBody(text);
   if (!res.ok) return { error: `testpass start_run failed (HTTP ${res.status})`, body };
@@ -85,10 +113,22 @@ export async function testpassReportHtml(args: Record<string, unknown>): Promise
 
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(
-    `${API_BASE}/api/testpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
-    { headers: { Authorization: `Bearer ${apiKey}` } },
-  );
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TESTPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE}/api/testpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
+      { headers: { Authorization: `Bearer ${apiKey}` }, signal: controller.signal },
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `TestPass report_html timed out after ${TESTPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `TestPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   if (!res.ok) {
     const body = parseTextBody(text);
@@ -155,14 +195,27 @@ export async function testpassSavePack(args: Record<string, unknown>): Promise<u
 
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(`${API_BASE}/api/testpass?action=save_pack`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ pack_id: packId, pack_yaml: yaml }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TESTPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/testpass?action=save_pack`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ pack_id: packId, pack_yaml: yaml }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `TestPass save_pack timed out after ${TESTPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `TestPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   const body = parseTextBody(text);
   if (!res.ok) return { error: `testpass save_pack failed (HTTP ${res.status})`, body };
@@ -187,14 +240,27 @@ export async function testpassEditItem(args: Record<string, unknown>): Promise<u
 
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(`${API_BASE}/api/testpass?action=edit_item`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TESTPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/testpass?action=edit_item`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `TestPass edit_item timed out after ${TESTPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `TestPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   const body = parseTextBody(text);
   if (!res.ok) return { error: `testpass edit_item failed (HTTP ${res.status})`, body };

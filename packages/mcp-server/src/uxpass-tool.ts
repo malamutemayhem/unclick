@@ -78,20 +78,35 @@ function getApiKey(): string | NotConnectedResult {
   return key;
 }
 
+const UXPASS_TIMEOUT_MS = Number(process.env.UXPASS_TIMEOUT_MS) || 30000;
+
 async function callApi(
   pathAndQuery: string,
   init: { method?: string; body?: unknown } = {},
 ): Promise<unknown> {
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(`${API_BASE}/api/uxpass${pathAndQuery}`, {
-    method: init.method ?? "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UXPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/uxpass${pathAndQuery}`, {
+      method: init.method ?? "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `UXPass request timed out after ${UXPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `UXPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   let body: unknown = text;
   try {
@@ -324,10 +339,22 @@ export async function uxpassReportHtml(args: Record<string, unknown>): Promise<u
   if (!runId) return { error: "run_id is required" };
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const res = await fetch(
-    `${API_BASE}/api/uxpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
-    { headers: { Authorization: `Bearer ${apiKey}` } },
-  );
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UXPASS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE}/api/uxpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
+      { headers: { Authorization: `Bearer ${apiKey}` }, signal: controller.signal },
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `UXPass report_html timed out after ${UXPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `UXPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   if (!res.ok) {
     let body: unknown = text;

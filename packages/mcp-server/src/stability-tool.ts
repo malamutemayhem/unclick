@@ -290,7 +290,20 @@ export async function stabilityImageToImage(args: Record<string, unknown>): Prom
   const samples = Math.min(10, Math.max(1, Number(args.samples ?? 1)));
 
   // Fetch the source image
-  const imgRes = await fetch(imageUrl);
+  const STABILITY_TIMEOUT_MS = Number(process.env.STABILITY_TIMEOUT_MS) || 60000;
+  const dlController = new AbortController();
+  const dlTimer = setTimeout(() => dlController.abort(), STABILITY_TIMEOUT_MS);
+  let imgRes: Response;
+  try {
+    imgRes = await fetch(imageUrl, { signal: dlController.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Image download timed out after ${STABILITY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Failed to fetch image: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(dlTimer);
+  }
   if (!imgRes.ok) throw new Error(`Failed to fetch image_url: HTTP ${imgRes.status}`);
   const imgBlob = await imgRes.blob();
 
@@ -336,7 +349,20 @@ export async function stabilityUpscale(args: Record<string, unknown>): Promise<u
   requireStabilitySpendAllowed("upscale", engineId, apiKey);
 
   // Fetch source image
-  const imgRes = await fetch(imageUrl);
+  const STABILITY_TIMEOUT_MS = Number(process.env.STABILITY_TIMEOUT_MS) || 60000;
+  const dlController = new AbortController();
+  const dlTimer = setTimeout(() => dlController.abort(), STABILITY_TIMEOUT_MS);
+  let imgRes: Response;
+  try {
+    imgRes = await fetch(imageUrl, { signal: dlController.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Image download timed out after ${STABILITY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Failed to fetch image: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(dlTimer);
+  }
   if (!imgRes.ok) throw new Error(`Failed to fetch image_url: HTTP ${imgRes.status}`);
   const imgBlob = await imgRes.blob();
 
