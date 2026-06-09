@@ -782,6 +782,10 @@ import { eulerTotient } from "./eulertotient-tool.js";
 import { hopcroftKarp } from "./hopcroftcarp-tool.js";
 import { intervalMerge } from "./intervalmerge-tool.js";
 import { ternarySearch } from "./ternarysearch-tool.js";
+import { shellSort } from "./shellsort-tool.js";
+import { matrixExponentiation } from "./matexp-tool.js";
+import { segmentIntersection } from "./segmentintersect-tool.js";
+import { minVertexCover } from "./minvertexcover-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11611,6 +11615,57 @@ export const ADDITIONAL_TOOLS = [
         target: { type: "number", description: "Value to search for (search mode only)" },
         mode: { type: "string", enum: ["search", "max", "min"], description: "Mode: search (default), max, or min" },
       }, required: ["array"],
+    },
+  },
+
+  // ── shellsort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "shell_sort",
+    description: "Sort an array using Shell sort with gap sequence tracking, comparison and swap counts.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort (max 100,000 elements)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── matexp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "matrix_exponentiation",
+    description: "Raise a square matrix to a non-negative integer power using fast exponentiation, with optional modular arithmetic.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Square matrix (max 10x10)" },
+        power: { type: "number", description: "Non-negative integer exponent (max 1 billion)" },
+        mod: { type: "number", description: "Optional modulus for modular arithmetic" },
+      }, required: ["matrix", "power"],
+    },
+  },
+
+  // ── segmentintersect-tool.ts ────────────────────────────────────────────────
+  {
+    name: "segment_intersection",
+    description: "Find all pairwise intersections among a set of 2D line segments, returning intersection points.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        segments: { type: "array", items: { type: "object", properties: { p1: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] }, p2: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] } }, required: ["p1", "p2"] }, description: "Array of line segments (max 1000)" },
+      }, required: ["segments"],
+    },
+  },
+
+  // ── minvertexcover-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "min_vertex_cover",
+    description: "Find the minimum vertex cover of a graph using exact bitmask enumeration (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
     },
   },
 
@@ -23437,6 +23492,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   hopcroft_karp:             (args) => hopcroftKarp(args),
   interval_merge:            (args) => intervalMerge(args),
   ternary_search:            (args) => ternarySearch(args),
+
+  // batch 77: Shell Sort, Matrix Exponentiation, Segment Intersection, Min Vertex Cover
+  shell_sort:                (args) => shellSort(args),
+  matrix_exponentiation:     (args) => matrixExponentiation(args),
+  segment_intersection:      (args) => segmentIntersection(args),
+  min_vertex_cover:          (args) => minVertexCover(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

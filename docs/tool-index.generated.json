@@ -4810,6 +4810,16 @@
     ]
   },
   {
+    "app": "matexp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_exponentiation",
+        "description": "Raise a square matrix to a non-negative integer power using fast exponentiation, with optional modular arithmetic."
+      }
+    ]
+  },
+  {
     "app": "matinverse",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4966,6 +4976,16 @@
       {
         "name": "miller_rabin_test",
         "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+      }
+    ]
+  },
+  {
+    "app": "minvertexcover",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "min_vertex_cover",
+        "description": "Find the minimum vertex cover of a graph using exact bitmask enumeration (up to 20 vertices)."
       }
     ]
   },
@@ -7378,6 +7398,16 @@
     ]
   },
   {
+    "app": "segmentintersect",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "segment_intersection",
+        "description": "Find all pairwise intersections among a set of 2D line segments, returning intersection points."
+      }
+    ]
+  },
+  {
     "app": "segtree",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7510,6 +7540,16 @@
       {
         "name": "setops_calculate",
         "description": "Perform set operations: union, intersection, difference, symmetric difference, subset/superset."
+      }
+    ]
+  },
+  {
+    "app": "shellsort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "shell_sort",
+        "description": "Sort an array using Shell sort with gap sequence tracking, comparison and swap counts."
       }
     ]
   },
