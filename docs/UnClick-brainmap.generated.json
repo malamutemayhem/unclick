@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 977,
+    "inventory": 981,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 552,
+    "tools": 556,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 552
+      "count": 556
     },
     {
       "id": "rooms",
@@ -5422,6 +5422,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dfs-packages-mcp-server-src-dfs-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dfs",
+      "kind": "MCP tool",
+      "meaning": "dfs MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dfs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-diceware-packages-mcp-server-src-diceware-tool-ts-no-route",
       "division": "Tools",
       "name": "diceware",
@@ -7162,12 +7172,32 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-montecarlo-packages-mcp-server-src-montecarlo-tool-ts-no-route",
+      "division": "Tools",
+      "name": "montecarlo",
+      "kind": "MCP tool",
+      "meaning": "montecarlo MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/montecarlo-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-morse-packages-mcp-server-src-morse-tool-ts-no-route",
       "division": "Tools",
       "name": "morse",
       "kind": "MCP tool",
       "meaning": "morse MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/morse-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-mst-packages-mcp-server-src-mst-tool-ts-no-route",
+      "division": "Tools",
+      "name": "mst",
+      "kind": "MCP tool",
+      "meaning": "mst MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/mst-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7738,6 +7768,16 @@
       "kind": "MCP tool",
       "meaning": "percentage MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/percentage-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-percentile-packages-mcp-server-src-percentile-tool-ts-no-route",
+      "division": "Tools",
+      "name": "percentile",
+      "kind": "MCP tool",
+      "meaning": "percentile MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/percentile-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11076,6 +11116,11 @@
       "packages/mcp-server/src/descriptive-tool.ts"
     ],
     [
+      "dfs",
+      "dfs MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dfs-tool.ts"
+    ],
+    [
       "diceware",
       "diceware MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/diceware-tool.ts"
@@ -11946,9 +11991,19 @@
       "packages/mcp-server/src/monica-tool.ts"
     ],
     [
+      "montecarlo",
+      "montecarlo MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/montecarlo-tool.ts"
+    ],
+    [
       "morse",
       "morse MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/morse-tool.ts"
+    ],
+    [
+      "mst",
+      "mst MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/mst-tool.ts"
     ],
     [
       "mtg",
@@ -12234,6 +12289,11 @@
       "percentage",
       "percentage MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/percentage-tool.ts"
+    ],
+    [
+      "percentile",
+      "percentile MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/percentile-tool.ts"
     ],
     [
       "permutation",

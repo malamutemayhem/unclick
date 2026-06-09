@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 552 |
+| Tools | MCP and gateway capabilities available to seats. | 556 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -492,6 +492,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | deepl | deepl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deepl-tool.ts |
 | deezer | deezer MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deezer-tool.ts |
 | descriptive | descriptive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/descriptive-tool.ts |
+| dfs | dfs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dfs-tool.ts |
 | diceware | diceware MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/diceware-tool.ts |
 | dictionary | dictionary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dictionary-tool.ts |
 | difftext | difftext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/difftext-tool.ts |
@@ -666,7 +667,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | modpow | modpow MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/modpow-tool.ts |
 | monday | monday MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monday-tool.ts |
 | monica | monica MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monica-tool.ts |
+| montecarlo | montecarlo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/montecarlo-tool.ts |
 | morse | morse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/morse-tool.ts |
+| mst | mst MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mst-tool.ts |
 | mtg | mtg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mtg-tool.ts |
 | multiavatar | multiavatar MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/multiavatar-tool.ts |
 | musicbrainz | musicbrainz MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/musicbrainz-tool.ts |
@@ -724,6 +727,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/passwordgen-tool.ts |
 | paypal | paypal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/paypal-tool.ts |
 | percentage | percentage MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/percentage-tool.ts |
+| percentile | percentile MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/percentile-tool.ts |
 | permutation | permutation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/permutation-tool.ts |
 | perplexity | perplexity MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/perplexity-tool.ts |
 | phonetic | phonetic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/phonetic-tool.ts |
@@ -1460,6 +1464,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | deepl | deepl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deepl-tool.ts |
 | Tools | MCP tool | deezer | deezer MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deezer-tool.ts |
 | Tools | MCP tool | descriptive | descriptive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/descriptive-tool.ts |
+| Tools | MCP tool | dfs | dfs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dfs-tool.ts |
 | Tools | MCP tool | diceware | diceware MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/diceware-tool.ts |
 | Tools | MCP tool | dictionary | dictionary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dictionary-tool.ts |
 | Tools | MCP tool | difftext | difftext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/difftext-tool.ts |
@@ -1634,7 +1639,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | modpow | modpow MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/modpow-tool.ts |
 | Tools | MCP tool | monday | monday MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monday-tool.ts |
 | Tools | MCP tool | monica | monica MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monica-tool.ts |
+| Tools | MCP tool | montecarlo | montecarlo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/montecarlo-tool.ts |
 | Tools | MCP tool | morse | morse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/morse-tool.ts |
+| Tools | MCP tool | mst | mst MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mst-tool.ts |
 | Tools | MCP tool | mtg | mtg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mtg-tool.ts |
 | Tools | MCP tool | multiavatar | multiavatar MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/multiavatar-tool.ts |
 | Tools | MCP tool | musicbrainz | musicbrainz MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/musicbrainz-tool.ts |
@@ -1692,6 +1699,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | passwordgen | passwordgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/passwordgen-tool.ts |
 | Tools | MCP tool | paypal | paypal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/paypal-tool.ts |
 | Tools | MCP tool | percentage | percentage MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/percentage-tool.ts |
+| Tools | MCP tool | percentile | percentile MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/percentile-tool.ts |
 | Tools | MCP tool | permutation | permutation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/permutation-tool.ts |
 | Tools | MCP tool | perplexity | perplexity MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/perplexity-tool.ts |
 | Tools | MCP tool | phonetic | phonetic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/phonetic-tool.ts |

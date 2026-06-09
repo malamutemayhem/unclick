@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 551,
-  "toolCount": 1473,
+  "appCount": 555,
+  "toolCount": 1477,
   "categories": [
     "AI",
     "Books",
@@ -2592,6 +2592,22 @@
         {
           "name": "descriptive_stats",
           "description": "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "dfs",
+      "name": "DFS Search",
+      "category": "Utilities",
+      "blurb": "Depth-first search with path finding, reachability, and cycle detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dfs_search",
+          "description": "Depth-first search on a graph. Finds a path, visit order, reachable count, and detects cycles."
         }
       ],
       "level": 5,
@@ -6226,6 +6242,22 @@
       "hardened": false
     },
     {
+      "slug": "mst",
+      "name": "Min Spanning Tree",
+      "category": "Utilities",
+      "blurb": "Find the minimum spanning tree of a weighted graph (Kruskal's algorithm).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "mst_find",
+          "description": "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "miro",
       "name": "Miro",
       "category": "Productivity",
@@ -6388,6 +6420,22 @@
         {
           "name": "mhw_weapons",
           "description": "Browse Monster Hunter World weapons by type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "montecarlo",
+      "name": "Monte Carlo",
+      "category": "Utilities",
+      "blurb": "Monte Carlo estimation of pi or definite integrals via random sampling.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "monte_carlo_estimate",
+          "description": "Monte Carlo estimation: estimate pi or compute a definite integral via random sampling."
         }
       ],
       "level": 5,
@@ -7660,6 +7708,22 @@
         {
           "name": "percentage_calc",
           "description": "Perform percentage calculations (of, change, increase, decrease, is_what_percent)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "percentile",
+      "name": "Percentile",
+      "category": "Utilities",
+      "blurb": "Compute percentiles (p5-p99) and find the percentile rank of a value.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "percentile_calc",
+          "description": "Compute percentiles of a dataset (default p5-p99) and optionally find the percentile rank of a given value."
         }
       ],
       "level": 5,
