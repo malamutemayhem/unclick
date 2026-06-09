@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T03:44:02.149Z",
+  "updatedAt": "2026-06-09T03:51:16.832Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5241,6 +5241,38 @@
       "testedAt": "2026-06-09T03:44:02.149Z",
       "toolsTested": [
         "xor_basis"
+      ]
+    },
+    "moebius": {
+      "status": "pass",
+      "note": "moebius_function({n:10}) returned mu values and Mertens function",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "moebius_function"
+      ]
+    },
+    "zfunction": {
+      "status": "pass",
+      "note": "z_function({text:\"aabxaa\"}) returned correct Z-array",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "z_function"
+      ]
+    },
+    "chineseremainder": {
+      "status": "pass",
+      "note": "chinese_remainder({remainders:[2,3],moduli:[3,5]}) returned solution=8, modulus=15",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "chinese_remainder"
+      ]
+    },
+    "lucas": {
+      "status": "pass",
+      "note": "lucas_theorem({n:10,k:3,p:7}) returned correct binomial mod prime",
+      "testedAt": "2026-06-09T03:51:16.832Z",
+      "toolsTested": [
+        "lucas_theorem"
       ]
     }
   },

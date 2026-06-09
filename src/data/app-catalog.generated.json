@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 635,
-  "toolCount": 1557,
+  "appCount": 639,
+  "toolCount": 1561,
   "categories": [
     "AI",
     "Books",
@@ -1520,6 +1520,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "chineseremainder",
+      "name": "Chinese Remainder",
+      "category": "Utilities",
+      "blurb": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chinese_remainder",
+          "description": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "crt",
@@ -6522,6 +6538,22 @@
       "hardened": false
     },
     {
+      "slug": "lucas",
+      "name": "Lucas' Theorem",
+      "category": "Utilities",
+      "blurb": "Compute large binomial coefficients mod prime using Lucas' theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lucas_theorem",
+          "description": "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "luhn",
       "name": "Luhn Validator",
       "category": "Utilities",
@@ -7148,6 +7180,22 @@
         {
           "name": "modular_arithmetic",
           "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "moebius",
+      "name": "Moebius Function",
+      "category": "Utilities",
+      "blurb": "Compute Moebius function values and Mertens function using linear sieve.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "moebius_function",
+          "description": "Compute Moebius function values and Mertens function using linear sieve."
         }
       ],
       "level": 5,
@@ -13780,6 +13828,22 @@
         {
           "name": "z_algorithm",
           "description": "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "zfunction",
+      "name": "Z-Function",
+      "category": "Utilities",
+      "blurb": "Z-function string algorithm for pattern matching and prefix analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "z_function",
+          "description": "Compute Z-function of a string with optional pattern matching."
         }
       ],
       "level": 5,

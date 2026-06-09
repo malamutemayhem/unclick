@@ -1460,6 +1460,26 @@
     }
   },
   {
+    "connector": "chineseremainder",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "chromatic",
     "level": 5,
     "levelName": "Agentic",
@@ -5700,6 +5720,26 @@
     }
   },
   {
+    "connector": "lucas",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "luhn",
     "level": 5,
     "levelName": "Agentic",
@@ -6281,6 +6321,26 @@
   },
   {
     "connector": "modpow",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "moebius",
     "level": 5,
     "levelName": "Agentic",
     "hardened": false,
@@ -11370,6 +11430,26 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "zfunction",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
