@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 973,
+    "inventory": 977,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 548,
+    "tools": 552,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 548
+      "count": 552
     },
     {
       "id": "rooms",
@@ -4542,6 +4542,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bfs-packages-mcp-server-src-bfs-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bfs",
+      "kind": "MCP tool",
+      "meaning": "bfs MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bfs-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bgg-packages-mcp-server-src-bgg-tool-ts-no-route",
       "division": "Tools",
       "name": "bgg",
@@ -5142,6 +5152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-convolution-packages-mcp-server-src-convolution-tool-ts-no-route",
+      "division": "Tools",
+      "name": "convolution",
+      "kind": "MCP tool",
+      "meaning": "convolution MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/convolution-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-copypass-packages-mcp-server-src-copypass-tool-ts-no-route",
       "division": "Tools",
       "name": "copypass",
@@ -5388,6 +5408,16 @@
       "kind": "MCP tool",
       "meaning": "deezer MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/deezer-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-descriptive-packages-mcp-server-src-descriptive-tool-ts-no-route",
+      "division": "Tools",
+      "name": "descriptive",
+      "kind": "MCP tool",
+      "meaning": "descriptive MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/descriptive-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8352,6 +8382,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rle2-packages-mcp-server-src-rle2-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rle2",
+      "kind": "MCP tool",
+      "meaning": "rle2 MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rle2-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-robohash-packages-mcp-server-src-robohash-tool-ts-no-route",
       "division": "Tools",
       "name": "robohash",
@@ -10596,6 +10636,11 @@
       "packages/mcp-server/src/bezier-tool.ts"
     ],
     [
+      "bfs",
+      "bfs MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bfs-tool.ts"
+    ],
+    [
       "bgg",
       "bgg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bgg-tool.ts"
@@ -10896,6 +10941,11 @@
       "packages/mcp-server/src/convexhull-tool.ts"
     ],
     [
+      "convolution",
+      "convolution MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/convolution-tool.ts"
+    ],
+    [
       "copypass",
       "copypass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/copypass-tool.ts"
@@ -11019,6 +11069,11 @@
       "deezer",
       "deezer MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/deezer-tool.ts"
+    ],
+    [
+      "descriptive",
+      "descriptive MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/descriptive-tool.ts"
     ],
     [
       "diceware",
@@ -12499,6 +12554,11 @@
       "ripe",
       "ripe MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ripe-tool.ts"
+    ],
+    [
+      "rle2",
+      "rle2 MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rle2-tool.ts"
     ],
     [
       "robohash",
@@ -14384,6 +14444,11 @@
       "bytes": 2561
     },
     {
+      "source": "packages/mcp-server/src/bfs-tool.ts",
+      "hash": "6eff2fdbba8b",
+      "bytes": 2678
+    },
+    {
       "source": "packages/mcp-server/src/bgg-tool.ts",
       "hash": "f7014933783a",
       "bytes": 12903
@@ -14407,11 +14472,6 @@
       "source": "packages/mcp-server/src/binaryconv-tool.ts",
       "hash": "b09d86831da2",
       "bytes": 1337
-    },
-    {
-      "source": "packages/mcp-server/src/binomprob-tool.ts",
-      "hash": "08174a2866e7",
-      "bytes": 1770
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

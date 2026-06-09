@@ -570,6 +570,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bfs",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bfs_search",
+        "description": "Breadth-first search on a graph. Finds shortest unweighted path, visit order, and reachable node count."
+      }
+    ]
+  },
+  {
     "app": "bgg",
     "category": "Gaming",
     "tools": [
@@ -1570,6 +1580,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "convolution",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "convolution",
+        "description": "Compute discrete convolution of a signal with a kernel. Supports full, same, and valid modes."
+      }
+    ]
+  },
+  {
     "app": "copypass",
     "category": "CopyPass (copy quality QC, sister to SecurityPass)",
     "tools": [
@@ -1940,6 +1960,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "descriptive",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "descriptive_stats",
+        "description": "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more."
       }
     ]
   },
@@ -6790,6 +6820,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ripe_asn_neighbours",
         "description": "Get peering neighbours for an ASN from RIPE NCC."
+      }
+    ]
+  },
+  {
+    "app": "rle2",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rle_encode_decode",
+        "description": "Run-length encode a numeric array into runs, or decode runs back to a numeric array."
       }
     ]
   },

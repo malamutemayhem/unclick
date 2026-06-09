@@ -718,6 +718,10 @@ import { correlationCalc } from "./correlation-tool.js";
 import { bitCount } from "./bitcount-tool.js";
 import { runningStats } from "./runstats-tool.js";
 import { graphAnalyze } from "./graph-tool.js";
+import { convolution } from "./convolution-tool.js";
+import { rleEncodeDecode } from "./rle2-tool.js";
+import { descriptiveStats } from "./descriptive-tool.js";
+import { bfsSearch } from "./bfs-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10792,6 +10796,61 @@ export const ADDITIONAL_TOOLS = [
         edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to"] }, description: "Array of edges" },
         directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
       }, required: ["edges"],
+    },
+  },
+
+  // ── convolution-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "convolution",
+    description: "Compute discrete convolution of a signal with a kernel. Supports full, same, and valid modes.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        signal: { type: "array", items: { type: "number" }, description: "Input signal array" },
+        kernel: { type: "array", items: { type: "number" }, description: "Convolution kernel array" },
+        mode: { type: "string", enum: ["full", "same", "valid"], description: "Output mode (default full)" },
+      }, required: ["signal", "kernel"],
+    },
+  },
+
+  // ── rle2-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "rle_encode_decode",
+    description: "Run-length encode a numeric array into runs, or decode runs back to a numeric array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        operation: { type: "string", enum: ["encode", "decode"], description: "Operation (default encode)" },
+        data: { type: "array", items: { type: "number" }, description: "Numeric array to encode" },
+        runs: { type: "array", items: { type: "object", properties: { value: { type: "number" }, count: { type: "integer" } } }, description: "Runs to decode" },
+      }, required: ["operation"],
+    },
+  },
+
+  // ── descriptive-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "descriptive_stats",
+    description: "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── bfs-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "bfs_search",
+    description: "Breadth-first search on a graph. Finds shortest unweighted path, visit order, and reachable node count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node to find path to" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges", "start"],
     },
   },
 
@@ -22534,6 +22593,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   bit_count:                 (args) => bitCount(args),
   running_stats:             (args) => runningStats(args),
   graph_analyze:             (args) => graphAnalyze(args),
+
+  // batch 63: convolution, RLE encode/decode, descriptive stats, BFS
+  convolution:               (args) => convolution(args),
+  rle_encode_decode:         (args) => rleEncodeDecode(args),
+  descriptive_stats:         (args) => descriptiveStats(args),
+  bfs_search:                (args) => bfsSearch(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

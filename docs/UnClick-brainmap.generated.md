@@ -203,12 +203,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/base64-tool.ts | b93e3d17577c | 1174 |
 | packages/mcp-server/src/baseconvert-tool.ts | bbfa716f0f7c | 1246 |
 | packages/mcp-server/src/bezier-tool.ts | 29ff88e26cbb | 2561 |
+| packages/mcp-server/src/bfs-tool.ts | 6eff2fdbba8b | 2678 |
 | packages/mcp-server/src/bgg-tool.ts | f7014933783a | 12903 |
 | packages/mcp-server/src/bgpview-tool.ts | c97cbd66581b | 2523 |
 | packages/mcp-server/src/bible-tool.ts | 94f62f2fa1c1 | 2338 |
 | packages/mcp-server/src/bibleverse-tool.ts | c5c118d0eb27 | 1698 |
 | packages/mcp-server/src/binaryconv-tool.ts | b09d86831da2 | 1337 |
-| packages/mcp-server/src/binomprob-tool.ts | 08174a2866e7 | 1770 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 548 |
+| Tools | MCP and gateway capabilities available to seats. | 552 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -404,6 +404,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | base64 | base64 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/base64-tool.ts |
 | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/baseconvert-tool.ts |
 | bezier | bezier MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bezier-tool.ts |
+| bfs | bfs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bfs-tool.ts |
 | bgg | bgg MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bgg-tool.ts |
 | bgpview | bgpview MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bgpview-tool.ts |
 | bible | bible MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/bible-tool.ts |
@@ -464,6 +465,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | contentful | contentful MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/contentful-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | convexhull | convexhull MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convexhull-tool.ts |
+| convolution | convolution MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convolution-tool.ts |
 | copypass | copypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/copypass-tool.ts |
 | corporatebs | corporatebs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/corporatebs-tool.ts |
 | correlation | correlation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/correlation-tool.ts |
@@ -489,6 +491,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | deckofcards | deckofcards MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deckofcards-tool.ts |
 | deepl | deepl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deepl-tool.ts |
 | deezer | deezer MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/deezer-tool.ts |
+| descriptive | descriptive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/descriptive-tool.ts |
 | diceware | diceware MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/diceware-tool.ts |
 | dictionary | dictionary MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dictionary-tool.ts |
 | difftext | difftext MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/difftext-tool.ts |
@@ -785,6 +788,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rickandmorty-tool.ts |
 | riot | riot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/riot-tool.ts |
 | ripe | ripe MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ripe-tool.ts |
+| rle2 | rle2 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rle2-tool.ts |
 | robohash | robohash MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/robohash-tool.ts |
 | roman | roman MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/roman-tool.ts |
 | rootfind | rootfind MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/rootfind-tool.ts |
@@ -1368,6 +1372,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | base64 | base64 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/base64-tool.ts |
 | Tools | MCP tool | baseconvert | baseconvert MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/baseconvert-tool.ts |
 | Tools | MCP tool | bezier | bezier MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bezier-tool.ts |
+| Tools | MCP tool | bfs | bfs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bfs-tool.ts |
 | Tools | MCP tool | bgg | bgg MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bgg-tool.ts |
 | Tools | MCP tool | bgpview | bgpview MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bgpview-tool.ts |
 | Tools | MCP tool | bible | bible MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/bible-tool.ts |
@@ -1428,6 +1433,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | contentful | contentful MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/contentful-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | convexhull | convexhull MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convexhull-tool.ts |
+| Tools | MCP tool | convolution | convolution MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convolution-tool.ts |
 | Tools | MCP tool | copypass | copypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/copypass-tool.ts |
 | Tools | MCP tool | corporatebs | corporatebs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/corporatebs-tool.ts |
 | Tools | MCP tool | correlation | correlation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/correlation-tool.ts |
@@ -1453,6 +1459,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | deckofcards | deckofcards MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deckofcards-tool.ts |
 | Tools | MCP tool | deepl | deepl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deepl-tool.ts |
 | Tools | MCP tool | deezer | deezer MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/deezer-tool.ts |
+| Tools | MCP tool | descriptive | descriptive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/descriptive-tool.ts |
 | Tools | MCP tool | diceware | diceware MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/diceware-tool.ts |
 | Tools | MCP tool | dictionary | dictionary MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dictionary-tool.ts |
 | Tools | MCP tool | difftext | difftext MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/difftext-tool.ts |
@@ -1749,6 +1756,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | rickandmorty | rickandmorty MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rickandmorty-tool.ts |
 | Tools | MCP tool | riot | riot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/riot-tool.ts |
 | Tools | MCP tool | ripe | ripe MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ripe-tool.ts |
+| Tools | MCP tool | rle2 | rle2 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rle2-tool.ts |
 | Tools | MCP tool | robohash | robohash MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/robohash-tool.ts |
 | Tools | MCP tool | roman | roman MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/roman-tool.ts |
 | Tools | MCP tool | rootfind | rootfind MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/rootfind-tool.ts |
