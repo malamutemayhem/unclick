@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 643,
-  "toolCount": 1565,
+  "appCount": 647,
+  "toolCount": 1569,
   "categories": [
     "AI",
     "Books",
@@ -988,6 +988,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bitmask",
+      "name": "Bitmask Ops",
+      "category": "Utilities",
+      "blurb": "Bitmask operations: submasks, supersets, next permutation, and bit info.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bitmask_ops",
+          "description": "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bitwise",
@@ -2798,6 +2814,22 @@
       "hardened": false
     },
     {
+      "slug": "debruijn",
+      "name": "de Bruijn Sequence",
+      "category": "Utilities",
+      "blurb": "Generate de Bruijn sequences containing every k-ary substring of length n.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "de_bruijn",
+          "description": "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "deckofcards",
       "name": "Deck of Cards",
       "category": "Utilities",
@@ -3972,6 +4004,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "fenwickrange",
+      "name": "Fenwick Range",
+      "category": "Utilities",
+      "blurb": "Fenwick tree supporting both range update and range query operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_range",
+          "description": "Fenwick tree with range update and range query support using two BITs."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fenwick",
@@ -10916,6 +10964,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "shunting",
+      "name": "Shunting-Yard",
+      "category": "Utilities",
+      "blurb": "Convert infix math expressions to postfix (RPN) and evaluate using the shunting-yard algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shunting_yard",
+          "description": "Convert an infix math expression to postfix (RPN) and evaluate it."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "sieve",
