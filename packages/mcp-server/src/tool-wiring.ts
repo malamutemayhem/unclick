@@ -747,6 +747,11 @@ import { tarjanScc } from "./tarjan-tool.js";
 import { catalanCalc } from "./catalan-tool.js";
 import { rabinKarpSearch } from "./rabinkarp-tool.js";
 
+import { sieveOfEratosthenes } from "./sieve-tool.js";
+import { suffixArrayBuild } from "./suffixarray-tool.js";
+import { matChainOrder } from "./matchain-tool.js";
+import { fenwickTree } from "./fenwick-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11149,6 +11154,63 @@ export const ADDITIONAL_TOOLS = [
         text: { type: "string", description: "Text to search in" },
         pattern: { type: "string", description: "Pattern to find" },
       }, required: ["text", "pattern"],
+    },
+  },
+
+  // ── sieve-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "sieve_of_eratosthenes",
+    description: "Generate all prime numbers up to N using the Sieve of Eratosthenes algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Upper bound (inclusive), must be >= 2 and <= 10,000,000" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── suffixarray-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "suffix_array_build",
+    description: "Build a suffix array for a string, with optional LCP (longest common prefix) array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string" },
+        lcp: { type: "boolean", description: "Also compute the LCP array (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matchain-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "matrix_chain_order",
+    description: "Find the optimal parenthesization for matrix chain multiplication to minimize scalar multiplications.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        dimensions: {
+          type: "array", items: { type: "number" },
+          description: "Array of matrix dimensions. For N matrices, provide N+1 values: [r1, c1/r2, c2/r3, ..., cN]",
+        },
+      }, required: ["dimensions"],
+    },
+  },
+
+  // ── fenwick-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "fenwick_tree",
+    description: "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array of numbers" },
+        operations: {
+          type: "array",
+          description: "Operations: {type:'update',index,delta}, {type:'query',left,right}, {type:'point_query',index}",
+          items: { type: "object" },
+        },
+      }, required: ["values"],
     },
   },
 
@@ -22927,6 +22989,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   tarjan_scc:                (args) => tarjanScc(args),
   catalan_calc:              (args) => catalanCalc(args),
   rabin_karp_search:         (args) => rabinKarpSearch(args),
+
+  // batch 69: Sieve, Suffix Array, Matrix Chain, Fenwick Tree
+  sieve_of_eratosthenes:     (args) => sieveOfEratosthenes(args),
+  suffix_array_build:        (args) => suffixArrayBuild(args),
+  matrix_chain_order:        (args) => matChainOrder(args),
+  fenwick_tree:              (args) => fenwickTree(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

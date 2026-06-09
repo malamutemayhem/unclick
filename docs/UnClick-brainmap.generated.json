@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 997,
+    "inventory": 1001,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 572,
+    "tools": 576,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 572
+      "count": 576
     },
     {
       "id": "rooms",
@@ -5892,6 +5892,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-fenwick-packages-mcp-server-src-fenwick-tool-ts-no-route",
+      "division": "Tools",
+      "name": "fenwick",
+      "kind": "MCP tool",
+      "meaning": "fenwick MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fenwick-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-fft-packages-mcp-server-src-fft-tool-ts-no-route",
       "division": "Tools",
       "name": "fft",
@@ -7078,6 +7088,16 @@
       "kind": "MCP tool",
       "meaning": "mastodon MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/mastodon-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-matchain-packages-mcp-server-src-matchain-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matchain",
+      "kind": "MCP tool",
+      "meaning": "matchain MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matchain-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8762,6 +8782,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sieve-packages-mcp-server-src-sieve-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sieve",
+      "kind": "MCP tool",
+      "meaning": "sieve MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sieve-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-sigmoid-packages-mcp-server-src-sigmoid-tool-ts-no-route",
       "division": "Tools",
       "name": "sigmoid",
@@ -9008,6 +9038,16 @@
       "kind": "MCP tool",
       "meaning": "stripe MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/stripe-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-suffixarray-packages-mcp-server-src-suffixarray-tool-ts-no-route",
+      "division": "Tools",
+      "name": "suffixarray",
+      "kind": "MCP tool",
+      "meaning": "suffixarray MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/suffixarray-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11511,6 +11551,11 @@
       "packages/mcp-server/src/feedly-tool.ts"
     ],
     [
+      "fenwick",
+      "fenwick MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fenwick-tool.ts"
+    ],
+    [
       "fft",
       "fft MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/fft-tool.ts"
@@ -12104,6 +12149,11 @@
       "mastodon",
       "mastodon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mastodon-tool.ts"
+    ],
+    [
+      "matchain",
+      "matchain MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matchain-tool.ts"
     ],
     [
       "matinverse",
@@ -12946,6 +12996,11 @@
       "packages/mcp-server/src/shortcut-tool.ts"
     ],
     [
+      "sieve",
+      "sieve MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sieve-tool.ts"
+    ],
+    [
       "sigmoid",
       "sigmoid MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sigmoid-tool.ts"
@@ -13069,6 +13124,11 @@
       "stripe",
       "stripe MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/stripe-tool.ts"
+    ],
+    [
+      "suffixarray",
+      "suffixarray MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/suffixarray-tool.ts"
     ],
     [
       "sunrisesunset",

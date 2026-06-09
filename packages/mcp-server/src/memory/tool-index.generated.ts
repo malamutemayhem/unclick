@@ -2752,6 +2752,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "fenwick",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "fenwick_tree",
+        "description": "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries."
+      }
+    ]
+  },
+  {
     "app": "fft",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4620,6 +4630,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "mastodon_action",
         "description": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications."
+      }
+    ]
+  },
+  {
+    "app": "matchain",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "matrix_chain_order",
+        "description": "Find the optimal parenthesization for matrix chain multiplication to minimize scalar multiplications."
       }
     ]
   },
@@ -7372,6 +7392,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "sieve",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sieve_of_eratosthenes",
+        "description": "Generate all prime numbers up to N using the Sieve of Eratosthenes algorithm."
+      }
+    ]
+  },
+  {
     "app": "sigmoid",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7770,6 +7800,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "stripe_prices",
         "description": "List Stripe prices."
+      }
+    ]
+  },
+  {
+    "app": "suffixarray",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "suffix_array_build",
+        "description": "Build a suffix array for a string, with optional LCP (longest common prefix) array."
       }
     ]
   },
