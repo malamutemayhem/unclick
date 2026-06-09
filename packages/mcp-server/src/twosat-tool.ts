@@ -1,14 +1,14 @@
 import { stampMeta, ConnectorMeta } from "./connector-meta.js";
 
 export async function twoSat(args: Record<string, unknown>) {
-  const numVars = args.num_vars as number;
+  const numVars = args.variable_count as number;
   const clauses = args.clauses as [number, number][];
 
   if (typeof numVars !== "number" || !Number.isInteger(numVars) || numVars < 1) {
-    throw new Error("num_vars must be a positive integer");
+    throw new Error("variable_count must be a positive integer");
   }
   if (numVars > 50_000) {
-    throw new Error("num_vars must be at most 50,000");
+    throw new Error("variable_count must be at most 50,000");
   }
   if (!Array.isArray(clauses)) {
     throw new Error("clauses must be an array of [lit1, lit2] pairs");
