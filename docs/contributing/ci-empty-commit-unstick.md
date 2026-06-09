@@ -25,7 +25,7 @@ That's it. The checks run, pass, and the PR becomes mergeable through the normal
 ## What this is NOT
 
 - **NOT a bypass.** The required checks actually run and actually pass. The branch-protection ruleset is honored. No `--admin` flag, no merge-without-review.
-- **NOT a fix.** It papers over a path-filter mismatch. The underlying fix is to widen the workflow's `paths:` filter (or the required-check definition) to include `api/**` so that api-only PRs trigger the same checks. That requires `workflow` scope on the branch-protection ruleset — tracked as the option-A half of Boardroom todo `e1a51d36`.
+- **NOT a fix.** It papers over a path-filter mismatch. The underlying fix is to widen the workflow's `paths:` filter (or the required-check definition) to include `api/**` so that api-only PRs trigger the same checks. That requires `workflow` scope on the branch-protection ruleset, tracked as the option-A half of Boardroom todo `e1a51d36`.
 
 ## Why not just widen the filter
 
@@ -45,6 +45,6 @@ So in the meantime, when you hit the symptom, use the empty-commit unstick. It i
 
 ## See also
 
-- `docs/audit/2026-05-28-missing-jobs-cowork-lane.md` — the missing-jobs sub-lane that filed `e1a51d36`.
-- `scripts/api-lib-esm-extension-guard.test.mjs` — the regression guard for the exact PR #1047 bug class.
-- `.github/workflows/ci.yml` — the required-check workflow whose path filter is the root of this.
+- `docs/audit/2026-05-28-missing-jobs-cowork-lane.md` - the missing-jobs sub-lane that filed `e1a51d36`.
+- `scripts/api-lib-esm-extension-guard.test.mjs` - the regression guard for the exact PR #1047 bug class.
+- `.github/workflows/ci.yml` - the required-check workflow whose path filter is the root of this.

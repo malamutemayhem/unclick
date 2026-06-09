@@ -1,6 +1,6 @@
 # UnClick Review Rubric
 
-Every submission goes through this process. We publish the rubric because developers shouldn't be guessing why their app failed — they should be able to self-assess, fix it, and resubmit.
+Every submission goes through this process. We publish the rubric because developers shouldn't be guessing why their app failed. They should be able to self-assess, fix it, and resubmit.
 
 There is no penalty for revisions. Submit as many times as you need.
 
@@ -30,7 +30,7 @@ Runs after all automated checks pass. A lightweight AI review that catches commo
 |-----------|-----------------|
 | Does what it claims | The core feature described in the app's description actually works as described |
 | Error handling | API failures and empty states produce readable feedback, not raw errors or blank screens |
-| Code quality | No obvious bugs — infinite loops, unhandled promises, broken conditional logic |
+| Code quality | No obvious bugs: infinite loops, unhandled promises, broken conditional logic |
 | UnClick usage | Tools are called with the correct format, results are checked before use, error branch exists |
 | Security basics | No XSS vectors (user input rendered as raw HTML), no sensitive data logged or exposed |
 
@@ -44,10 +44,10 @@ Apps applying for Certified status go through a review by the UnClick team. Cert
 
 We're checking for:
 
-- **Genuinely useful** — solves a real problem for real people, not a demo or a toy
-- **Polished** — the UI feels intentional. Error states, empty states, and loading states all exist. Nothing looks like a first draft.
-- **Maintained** — the developer is reachable and has committed to keeping the app working as underlying APIs change
-- **Original** — not a close clone of an existing Certified app. Building a better version of something is fine; rebuilding it identically is not.
+- **Genuinely useful**: solves a real problem for real people, not a demo or a toy
+- **Polished**: the UI feels intentional. Error states, empty states, and loading states all exist. Nothing looks like a first draft.
+- **Maintained**: the developer is reachable and has committed to keeping the app working as underlying APIs change
+- **Original**: not a close clone of an existing Certified app. Building a better version of something is fine; rebuilding it identically is not.
 
 Certified review is manual, so it takes longer. We'll tell you what to improve if your app doesn't pass on the first attempt.
 
@@ -57,6 +57,6 @@ Certified review is manual, so it takes longer. We'll tell you what to improve i
 
 1. You get a report that names the specific checks that failed
 2. Each failure includes what we found and how to fix it
-3. You fix it and resubmit — no waiting period, no strike count
+3. You fix it and resubmit. No waiting period, no strike count
 
-The process is meant to make apps better, not to keep apps out. If the feedback is unclear, reach out — we'd rather explain it than have you guess.
+The process is meant to make apps better, not to keep apps out. If the feedback is unclear, reach out. We'd rather explain it than have you guess.
