@@ -4,12 +4,12 @@
 **Branch:** `claude/phase-1-memory-backend` (cut off `claude/setup-malamute-mayhem-zkquO`)
 **Plan:** `docs/UNCLICK_ADMIN_BUILD_PLAN.md` (v2)
 **Platform:** Claude Code on the web
-**Operator:** Chris Byrne
+**Operator:** UnClick Core Team
 
 ## TL;DR
 
 Phase 1 work items 1 to 5 landed on the phase branch. Item 6 (npm publish target)
-is deferred per Chris's instruction. The branch is ready for review and a manual
+is deferred per the operator's instruction. The branch is ready for review and a manual
 verification pass before merging back to `claude/setup-malamute-mayhem-zkquO`.
 
 ## Decisions logged this session
@@ -25,7 +25,7 @@ verification pass before merging back to `claude/setup-malamute-mayhem-zkquO`.
    loops).
 4. **MCP-tools gap.** The UnClick MCP server was not connected to this
    Claude Code session, so `get_startup_context` and `write_session_summary`
-   are not callable as tools. Per Chris's choice, this file replaces the
+   are not callable as tools. Per the operator's choice, this file replaces the
    missing `write_session_summary` call.
 
 ## Work completed

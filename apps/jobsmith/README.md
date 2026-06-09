@@ -1,6 +1,6 @@
 # Jobsmith v0: drafted code drop
 
-Drafted 2026-05-15 under Chris's any-worker-hat greenlight while waiting on UnClick fleet seats to claim. Pairs with:
+Drafted 2026-05-15 under the operator's any-worker-hat greenlight while waiting on UnClick fleet seats to claim. Pairs with:
 
 - UnClick todo `4bcb3169` (Jobsmith v0)
 - ScopePack v1 comment `11329bb8`

@@ -1,6 +1,6 @@
 # Jobsmith v0
 
-A local, template-driven cover-letter drafter that uses Chris's CV corpus as the voice donor.
+A local, template-driven cover-letter drafter that uses the operator's CV corpus as the voice donor.
 
 ## What ships in v0
 

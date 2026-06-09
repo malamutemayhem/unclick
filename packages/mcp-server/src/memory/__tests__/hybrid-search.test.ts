@@ -672,7 +672,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const factText = "Test owner is Chris Byrne for P0 search-memory regression";
+    const factText = "Test owner is Jane Smith for P0 search-memory regression";
     const { data: inserted, error: insertErr } = await supabase
       .from("extracted_facts")
       .insert({

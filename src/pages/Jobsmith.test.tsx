@@ -25,7 +25,7 @@ const SAMPLE_LETTER = [
   "Thank you for considering my application.",
   "I look forward to discussing how I can contribute.",
   "Sincerely,",
-  "Christopher Byrne",
+  "Jane Smith",
 ].join("\n");
 
 const SAMPLE_JD = [
