@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T01:28:00.000Z",
+  "updatedAt": "2026-06-09T01:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4354,6 +4354,30 @@
       "note": "kosaraju_scc finds SCCs using two-pass DFS. Local computation.",
       "testedAt": "2026-06-09T01:28:00.000Z",
       "toolsTested": ["kosaraju_scc"]
+    },
+    "bucketsort": {
+      "status": "pass",
+      "note": "bucket_sort distributes elements into buckets and sorts each. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": ["bucket_sort"]
+    },
+    "edmondskarp": {
+      "status": "pass",
+      "note": "edmonds_karp computes max flow via BFS augmenting paths. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": ["edmonds_karp"]
+    },
+    "avltree": {
+      "status": "pass",
+      "note": "avl_tree builds self-balancing BST with inorder traversal and search. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": ["avl_tree"]
+    },
+    "bipartite": {
+      "status": "pass",
+      "note": "bipartite_check tests 2-colorability via BFS coloring. Local computation.",
+      "testedAt": "2026-06-09T01:45:00.000Z",
+      "toolsTested": ["bipartite_check"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

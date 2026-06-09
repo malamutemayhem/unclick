@@ -520,6 +520,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "avltree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "avl_tree",
+        "description": "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results."
+      }
+    ]
+  },
+  {
     "app": "balldontlie",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -702,6 +712,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bipartite",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bipartite_check",
+        "description": "Check whether an undirected graph is bipartite (2-colorable). Returns the two vertex sets if bipartite, or an odd cycle if not."
+      }
+    ]
+  },
+  {
     "app": "bitbucket",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -834,6 +854,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "brewery_random",
         "description": "Get random breweries."
+      }
+    ]
+  },
+  {
+    "app": "bucketsort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bucket_sort",
+        "description": "Sort numbers using the bucket sort algorithm. Distributes elements into buckets, sorts each, then concatenates."
       }
     ]
   },
@@ -2438,6 +2468,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "ebird_species_info",
         "description": "Get information about a bird species from eBird."
+      }
+    ]
+  },
+  {
+    "app": "edmondskarp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "edmonds_karp",
+        "description": "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm."
       }
     ]
   },
