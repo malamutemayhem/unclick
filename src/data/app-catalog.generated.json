@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 631,
-  "toolCount": 1553,
+  "appCount": 635,
+  "toolCount": 1557,
   "categories": [
     "AI",
     "Books",
@@ -804,6 +804,22 @@
         {
           "name": "bellman_ford",
           "description": "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "berlekamp",
+      "name": "Berlekamp-Massey",
+      "category": "Utilities",
+      "blurb": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "berlekamp_massey",
+          "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
         }
       ],
       "level": 5,
@@ -5732,6 +5748,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "josephus",
+      "name": "Josephus Problem",
+      "category": "Utilities",
+      "blurb": "Solve the Josephus problem - find the survivor in a circle elimination game.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "josephus",
+          "description": "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "jsoncrack",
@@ -10926,6 +10958,22 @@
       "hardened": false
     },
     {
+      "slug": "sos",
+      "name": "SOS DP",
+      "category": "Utilities",
+      "blurb": "Sum over Subsets (SOS) dynamic programming and zeta transform on bitmasks.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sos_dp",
+          "description": "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "soundex",
       "name": "Soundex",
       "category": "Utilities",
@@ -13604,6 +13652,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "xorbase",
+      "name": "XOR Basis",
+      "category": "Utilities",
+      "blurb": "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "xor_basis",
+          "description": "Compute a linear basis over GF(2) (XOR basis) for a set of integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "xpass-aggregated-verdict",

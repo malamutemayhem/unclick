@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T03:30:17.942Z",
+  "updatedAt": "2026-06-09T03:44:02.149Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5209,6 +5209,38 @@
       "testedAt": "2026-06-09T03:30:17.942Z",
       "toolsTested": [
         "ntt"
+      ]
+    },
+    "josephus": {
+      "status": "pass",
+      "note": "josephus: solved n=7 k=3 survivor correctly",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "josephus"
+      ]
+    },
+    "berlekamp": {
+      "status": "pass",
+      "note": "berlekamp_massey: found Fibonacci recurrence [1,1]",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "berlekamp_massey"
+      ]
+    },
+    "sos": {
+      "status": "pass",
+      "note": "sos_dp: computed subset sums correctly for 4 elements",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "sos_dp"
+      ]
+    },
+    "xorbase": {
+      "status": "pass",
+      "note": "xor_basis: computed linear basis and max XOR correctly",
+      "testedAt": "2026-06-09T03:44:02.149Z",
+      "toolsTested": [
+        "xor_basis"
       ]
     }
   },
