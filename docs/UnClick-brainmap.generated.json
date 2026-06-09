@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1061,
+    "inventory": 1063,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 636,
+    "tools": 638,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 636
+      "count": 638
     },
     {
       "id": "rooms",
@@ -7632,6 +7632,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-moebius-packages-mcp-server-src-moebius-tool-ts-no-route",
+      "division": "Tools",
+      "name": "moebius",
+      "kind": "MCP tool",
+      "meaning": "moebius MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/moebius-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-monday-packages-mcp-server-src-monday-tool-ts-no-route",
       "division": "Tools",
       "name": "monday",
@@ -10542,6 +10552,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-zfunction-packages-mcp-server-src-zfunction-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zfunction",
+      "kind": "MCP tool",
+      "meaning": "zfunction MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zfunction-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-zippopotamus-packages-mcp-server-src-zippopotamus-tool-ts-no-route",
       "division": "Tools",
       "name": "zippopotamus",
@@ -13021,6 +13041,11 @@
       "packages/mcp-server/src/modpow-tool.ts"
     ],
     [
+      "moebius",
+      "moebius MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/moebius-tool.ts"
+    ],
+    [
       "monday",
       "monday MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/monday-tool.ts"
@@ -14474,6 +14499,11 @@
       "zenquotes",
       "zenquotes MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/zenquotes-tool.ts"
+    ],
+    [
+      "zfunction",
+      "zfunction MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zfunction-tool.ts"
     ],
     [
       "zippopotamus",

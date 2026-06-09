@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (610 external connectors)
+## Distribution (612 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 571 | 94% |
+| L5 | Agentic | 573 | 94% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 6% |
 | L1 | Wrapper | 3 | 0% |
 
-**Hardened (reliability bar met): 241 of 610 (40%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 612 (39%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 571 of 574 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 573 of 576 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -245,6 +245,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `mincostflow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `minvertexcover` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `modpow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `moebius` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `montecarlo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `morse` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mosalgo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -405,6 +406,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `worldbank` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `xorbase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `zalgo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `zfunction` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `zscore` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 
 ## Per-connector, highest rung first
@@ -726,6 +728,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mistral` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mixpanel` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `modpow` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `moebius` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `montecarlo` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `morse` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -980,6 +983,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `zalgo` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `zendesk` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `zenquotes` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `zfunction` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `zippopotamus` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `zscore` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L2 Reliable | `airtable` | Yes | - | - | - | - | L2 by design (action-multiplexer) |

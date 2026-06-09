@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 636 |
+| Tools | MCP and gateway capabilities available to seats. | 638 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -713,6 +713,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | mistral | mistral MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mistral-tool.ts |
 | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mixpanel-tool.ts |
 | modpow | modpow MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/modpow-tool.ts |
+| moebius | moebius MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/moebius-tool.ts |
 | monday | monday MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monday-tool.ts |
 | monica | monica MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/monica-tool.ts |
 | montecarlo | montecarlo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/montecarlo-tool.ts |
@@ -1004,6 +1005,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | zalgo | zalgo MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zalgo-tool.ts |
 | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zendesk-tool.ts |
 | zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zenquotes-tool.ts |
+| zfunction | zfunction MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zfunction-tool.ts |
 | zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zippopotamus-tool.ts |
 | zscore | zscore MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/zscore-tool.ts |
 
@@ -1765,6 +1767,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | mistral | mistral MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mistral-tool.ts |
 | Tools | MCP tool | mixpanel | mixpanel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mixpanel-tool.ts |
 | Tools | MCP tool | modpow | modpow MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/modpow-tool.ts |
+| Tools | MCP tool | moebius | moebius MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/moebius-tool.ts |
 | Tools | MCP tool | monday | monday MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monday-tool.ts |
 | Tools | MCP tool | monica | monica MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/monica-tool.ts |
 | Tools | MCP tool | montecarlo | montecarlo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/montecarlo-tool.ts |
@@ -2056,6 +2059,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | zalgo | zalgo MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zalgo-tool.ts |
 | Tools | MCP tool | zendesk | zendesk MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zendesk-tool.ts |
 | Tools | MCP tool | zenquotes | zenquotes MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zenquotes-tool.ts |
+| Tools | MCP tool | zfunction | zfunction MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zfunction-tool.ts |
 | Tools | MCP tool | zippopotamus | zippopotamus MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zippopotamus-tool.ts |
 | Tools | MCP tool | zscore | zscore MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/zscore-tool.ts |
 | Workers and seats | seat | Claude Reviewer Seat | External reviewer lane used for independent checks and proof review. | - | docs/fleet-worker-roles.md |
