@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 495,
-  "toolCount": 1417,
+  "appCount": 671,
+  "toolCount": 1593,
   "categories": [
     "AI",
     "Books",
@@ -25,6 +25,54 @@
     "Weather & science"
   ],
   "apps": [
+    {
+      "slug": "twosat",
+      "name": "2-SAT Solver",
+      "category": "Utilities",
+      "blurb": "2-SAT boolean satisfiability solver using implication graph and SCC.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "two_sat",
+          "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "convexhull3d",
+      "name": "3D Convex Hull",
+      "category": "Utilities",
+      "blurb": "Compute the 3D convex hull of a point set returning triangular faces.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convex_hull_3d",
+          "description": "Compute the 3D convex hull of a point set, returning triangular faces."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "astar",
+      "name": "A* Pathfinding",
+      "category": "Utilities",
+      "blurb": "Find the shortest path on a 2D grid using the A* algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "astar_path",
+          "description": "Find the shortest path on a 2D grid using the A* algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
     {
       "slug": "abn",
       "name": "ABN",
@@ -70,6 +118,22 @@
       "hardened": true
     },
     {
+      "slug": "ackermann",
+      "name": "Ackermann Function",
+      "category": "Utilities",
+      "blurb": "Compute the Ackermann function A(m,n) with closed-form optimization.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ackermann",
+          "description": "Compute the Ackermann function A(m, n)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "acronymgen",
       "name": "Acronym Generator",
       "category": "Utilities",
@@ -80,6 +144,22 @@
         {
           "name": "acronym_generate",
           "description": "Generate an acronym from a phrase, optionally skipping small words."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sigmoid",
+      "name": "Activation Functions",
+      "category": "Utilities",
+      "blurb": "Compute activation functions (sigmoid, tanh, relu, etc.) and their derivatives.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sigmoid_calculate",
+          "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
         }
       ],
       "level": 5,
@@ -156,6 +236,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ahocorasick",
+      "name": "Aho-Corasick",
+      "category": "Utilities",
+      "blurb": "Multi-pattern string search using the Aho-Corasick automaton.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "aho_corasick_search",
+          "description": "Find all occurrences of multiple patterns in text simultaneously using the Aho-Corasick algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "airtable",
@@ -334,6 +430,22 @@
       "hardened": false
     },
     {
+      "slug": "angleconv",
+      "name": "Angle Converter",
+      "category": "Utilities",
+      "blurb": "Convert between degrees, radians, gradians, and turns with trig values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "angle_convert",
+          "description": "Convert angles between degrees, radians, gradians, and turns. Includes trig values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "acnhapi",
       "name": "Animal Crossing NH",
       "category": "Games & esports",
@@ -396,6 +508,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "areacalc",
+      "name": "Area Calculator",
+      "category": "Utilities",
+      "blurb": "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "area_calculate",
+          "description": "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "artic",
@@ -566,6 +694,38 @@
       "hardened": true
     },
     {
+      "slug": "avltree",
+      "name": "AVL Tree",
+      "category": "Utilities",
+      "blurb": "Self-balancing BST with O(log n) insert, search, and height guarantees.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "avl_tree",
+          "description": "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "babygiant",
+      "name": "Baby-step Giant-step",
+      "category": "Utilities",
+      "blurb": "Discrete logarithm solver using baby-step giant-step method.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "baby_giant_step",
+          "description": "Solve the discrete logarithm problem (find x such that base^x = target mod modulus) using baby-step giant-step."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lorem",
       "name": "Bacon Ipsum",
       "category": "Utilities",
@@ -666,6 +826,86 @@
       "hardened": false
     },
     {
+      "slug": "bellmanford",
+      "name": "Bellman-Ford",
+      "category": "Utilities",
+      "blurb": "Single-source shortest paths with negative edge weight support (Bellman-Ford).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bellman_ford",
+          "description": "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "berlekamp",
+      "name": "Berlekamp-Massey",
+      "category": "Utilities",
+      "blurb": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "berlekamp_massey",
+          "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bezierclip",
+      "name": "Bezier Clip",
+      "category": "Utilities",
+      "blurb": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bezier_clip",
+          "description": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bezier",
+      "name": "Bezier Curve",
+      "category": "Utilities",
+      "blurb": "Compute Bezier curves from control points with arc length and evaluation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bezier_curve",
+          "description": "Compute a Bezier curve from control points with arc length and optional evaluation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bfs",
+      "name": "BFS Search",
+      "category": "Utilities",
+      "blurb": "Breadth-first search for shortest unweighted paths and reachability.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bfs_search",
+          "description": "Breadth-first search on a graph. Finds shortest unweighted path, visit order, and reachable node count."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bgpview",
       "name": "BGPView",
       "category": "Security",
@@ -710,6 +950,54 @@
       "hardened": true
     },
     {
+      "slug": "binomprob",
+      "name": "Binomial Probability",
+      "category": "Utilities",
+      "blurb": "Binomial distribution probability, cumulative probabilities, mean, and variance.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "binomial_probability",
+          "description": "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bipartite",
+      "name": "Bipartite Check",
+      "category": "Utilities",
+      "blurb": "Check if a graph is bipartite and return the vertex partition or odd cycle.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bipartite_check",
+          "description": "Check whether an undirected graph is bipartite (2-colorable). Returns the two vertex sets if bipartite, or an odd cycle if not."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bitcount",
+      "name": "Bit Count",
+      "category": "Utilities",
+      "blurb": "Count set bits, convert between decimal/binary/hex/octal, detect powers of two.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bit_count",
+          "description": "Count set bits (popcount), total bits, and convert between decimal, binary, hex, and octal. Detects powers of two."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bitbucket",
       "name": "Bitbucket",
       "category": "Developer & infra",
@@ -734,6 +1022,22 @@
       "hardened": true
     },
     {
+      "slug": "bitmask",
+      "name": "Bitmask Ops",
+      "category": "Utilities",
+      "blurb": "Bitmask operations: submasks, supersets, next permutation, and bit info.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bitmask_ops",
+          "description": "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bitwise",
       "name": "Bitwise Calculator",
       "category": "Developer & infra",
@@ -744,6 +1048,22 @@
         {
           "name": "bitwise_calc",
           "description": "Perform bitwise operations (AND, OR, XOR, NOT, NAND, NOR, shifts) on integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bloomfilter",
+      "name": "Bloom Filter",
+      "category": "Utilities",
+      "blurb": "Probabilistic set membership testing with configurable false positive rate.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bloom_filter",
+          "description": "Build a Bloom filter from items and test membership of query items (probabilistic, no false negatives)."
         }
       ],
       "level": 5,
@@ -796,6 +1116,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "booth",
+      "name": "Booth's Rotation",
+      "category": "Utilities",
+      "blurb": "Find the lexicographically smallest rotation of a string in O(n).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "booth_rotation",
+          "description": "Find the lexicographically smallest rotation of a string using Booth's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "bored",
@@ -878,6 +1214,22 @@
       "hardened": true
     },
     {
+      "slug": "bucketsort",
+      "name": "Bucket Sort",
+      "category": "Utilities",
+      "blurb": "Distribution-based sort dividing elements into buckets then merging.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bucket_sort",
+          "description": "Sort numbers using the bucket sort algorithm. Distributes elements into buckets, sorts each, then concatenates."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "bungie",
       "name": "Bungie",
       "category": "Games & esports",
@@ -904,6 +1256,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "bwt",
+      "name": "Burrows-Wheeler",
+      "category": "Utilities",
+      "blurb": "Burrows-Wheeler Transform for text compression preprocessing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "burrows_wheeler",
+          "description": "Compute the Burrows-Wheeler Transform (forward or inverse)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "csuite",
@@ -1058,6 +1426,22 @@
       "hardened": true
     },
     {
+      "slug": "cartesiantree",
+      "name": "Cartesian Tree",
+      "category": "Utilities",
+      "blurb": "Cartesian tree construction from an array for range minimum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cartesian_tree",
+          "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "camelsnake",
       "name": "Case Converter",
       "category": "Utilities",
@@ -1116,6 +1500,54 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "catalan",
+      "name": "Catalan Numbers",
+      "category": "Utilities",
+      "blurb": "Compute the nth Catalan number with combinatorial interpretations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "catalan_calc",
+          "description": "Compute the nth Catalan number and its combinatorial interpretations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "catmullrom",
+      "name": "Catmull-Rom Spline",
+      "category": "Utilities",
+      "blurb": "Evaluate Catmull-Rom splines through control points with configurable alpha.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "catmull_rom",
+          "description": "Evaluate a Catmull-Rom spline through control points at given parameter values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "centroid",
+      "name": "Centroid Decomposition",
+      "category": "Utilities",
+      "blurb": "Centroid decomposition of trees for efficient path queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "centroid_decomposition",
+          "description": "Compute the centroid decomposition of a tree, returning centroid parents and depths."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "charcodes",
@@ -1200,6 +1632,54 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "chineseremainder",
+      "name": "Chinese Remainder",
+      "category": "Utilities",
+      "blurb": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chinese_remainder",
+          "description": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "crt",
+      "name": "Chinese Remainder Theorem",
+      "category": "Utilities",
+      "blurb": "Solve simultaneous congruences using the Chinese Remainder Theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chinese_remainder_theorem",
+          "description": "Solve a system of simultaneous congruences using the Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "chromatic",
+      "name": "Chromatic Number",
+      "category": "Utilities",
+      "blurb": "Exact chromatic number computation using inclusion-exclusion (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chromatic_number",
+          "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "chucknorris",
@@ -1448,6 +1928,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "coinchange",
+      "name": "Coin Change",
+      "category": "Utilities",
+      "blurb": "Minimum coins and combination count for a target amount using DP.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "coin_change",
+          "description": "Compute minimum coins for a target amount and count distinct combinations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "coincap",
@@ -1762,6 +2258,22 @@
       "hardened": false
     },
     {
+      "slug": "complexnum",
+      "name": "Complex Numbers",
+      "category": "Utilities",
+      "blurb": "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "complex_calc",
+          "description": "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "compliancepass",
       "name": "CompliancePass",
       "category": "Quality (XPass)",
@@ -1842,6 +2354,22 @@
       "hardened": true
     },
     {
+      "slug": "contfrac",
+      "name": "Continued Fractions",
+      "category": "Utilities",
+      "blurb": "Convert rational numbers to continued fraction representation with convergents.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "continued_fraction",
+          "description": "Convert a rational number to its continued fraction representation with convergents."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "convertkit",
       "name": "Convertkit",
       "category": "Messaging & email",
@@ -1876,6 +2404,38 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "convexhull",
+      "name": "Convex Hull",
+      "category": "Utilities",
+      "blurb": "Compute the convex hull of 2D points with area and perimeter.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convex_hull",
+          "description": "Compute the convex hull of 2D points with area and perimeter."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "convolution",
+      "name": "Convolution",
+      "category": "Utilities",
+      "blurb": "Compute discrete convolution of a signal with a kernel (full/same/valid).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convolution",
+          "description": "Compute discrete convolution of a signal with a kernel. Supports full, same, and valid modes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "copypass",
@@ -1914,6 +2474,22 @@
       "hardened": true
     },
     {
+      "slug": "correlation",
+      "name": "Correlation",
+      "category": "Utilities",
+      "blurb": "Compute Pearson correlation, r-squared, covariance, and regression line.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "correlation_calc",
+          "description": "Compute Pearson correlation coefficient, r-squared, covariance, and linear regression between two numeric arrays."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "cosinesim",
       "name": "Cosine Similarity",
       "category": "Utilities",
@@ -1940,6 +2516,22 @@
         {
           "name": "countdown_calc",
           "description": "Calculate days, weeks until or since a given date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "countingsort",
+      "name": "Counting Sort",
+      "category": "Utilities",
+      "blurb": "Integer sorting in O(n+k) time with frequency analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "counting_sort",
+          "description": "Sort an array of integers in O(n+k) time using counting sort, with frequency analysis."
         }
       ],
       "level": 5,
@@ -2048,6 +2640,22 @@
         {
           "name": "crontab_explain",
           "description": "Explain a cron expression in human-readable terms."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "crossproduct",
+      "name": "Cross Product",
+      "category": "Utilities",
+      "blurb": "Cross product of two 3D vectors with magnitude and parallelism check.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cross_product",
+          "description": "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check."
         }
       ],
       "level": 5,
@@ -2302,6 +2910,22 @@
       "hardened": false
     },
     {
+      "slug": "debruijn",
+      "name": "de Bruijn Sequence",
+      "category": "Utilities",
+      "blurb": "Generate de Bruijn sequences containing every k-ary substring of length n.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "de_bruijn",
+          "description": "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "deckofcards",
       "name": "Deck of Cards",
       "category": "Utilities",
@@ -2390,6 +3014,54 @@
       "hardened": true
     },
     {
+      "slug": "derangement",
+      "name": "Derangement",
+      "category": "Utilities",
+      "blurb": "Count and enumerate derangements (permutations with no fixed points).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "derangement_calc",
+          "description": "Count and optionally enumerate derangements (permutations with no fixed points)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "descriptive",
+      "name": "Descriptive Stats",
+      "category": "Utilities",
+      "blurb": "Full descriptive statistics: mean, median, mode, std, skewness, kurtosis, IQR.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "descriptive_stats",
+          "description": "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "dfs",
+      "name": "DFS Search",
+      "category": "Utilities",
+      "blurb": "Depth-first search with path finding, reachability, and cycle detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dfs_search",
+          "description": "Depth-first search on a graph. Finds a path, visit order, reachable count, and detects cycles."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "diceware",
       "name": "Diceware",
       "category": "Utilities",
@@ -2450,6 +3122,22 @@
       "hardened": false
     },
     {
+      "slug": "digitdp",
+      "name": "Digit DP",
+      "category": "Utilities",
+      "blurb": "Count integers up to N with a given digit sum using digit DP.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "digit_dp",
+          "description": "Count integers from 1 to N whose digit sum equals a target value using digit DP."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "digitalocean",
       "name": "DigitalOcean",
       "category": "Developer & infra",
@@ -2476,6 +3164,38 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "dijkstra",
+      "name": "Dijkstra Shortest Path",
+      "category": "Utilities",
+      "blurb": "Find the shortest path between two nodes in a weighted graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dijkstra_path",
+          "description": "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "dinic",
+      "name": "Dinic Max Flow",
+      "category": "Utilities",
+      "blurb": "Maximum flow computation using Dinic's blocking flow algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dinic_max_flow",
+          "description": "Compute maximum flow in a network using Dinic's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "discogs",
@@ -2702,6 +3422,22 @@
       "hardened": false
     },
     {
+      "slug": "dotproduct",
+      "name": "Dot Product",
+      "category": "Utilities",
+      "blurb": "Dot product of two vectors with angle and orthogonality detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dot_product",
+          "description": "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "dropbox",
       "name": "Dropbox",
       "category": "Productivity",
@@ -2770,6 +3506,22 @@
       "hardened": false
     },
     {
+      "slug": "duval",
+      "name": "Duval / Lyndon",
+      "category": "Utilities",
+      "blurb": "Lyndon factorization of a string using Duval's O(n) algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "duval_factorize",
+          "description": "Compute the Lyndon factorization of a string using Duval's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "ebay",
       "name": "eBay",
       "category": "Shopping",
@@ -2820,6 +3572,54 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "editdist",
+      "name": "Edit Distance",
+      "category": "Utilities",
+      "blurb": "Full edit distance with backtrace of insert, delete, and replace operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "edit_distance",
+          "description": "Compute edit distance with full backtrace of insert/delete/replace operations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "edmondskarp",
+      "name": "Edmonds-Karp",
+      "category": "Utilities",
+      "blurb": "Compute maximum flow and minimum cut via BFS-augmenting paths.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "edmonds_karp",
+          "description": "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eertree",
+      "name": "Eertree",
+      "category": "Utilities",
+      "blurb": "Palindromic tree (eertree) for counting distinct palindromic substrings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "eertree",
+          "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "elevenlabs",
@@ -3034,6 +3834,54 @@
       "hardened": true
     },
     {
+      "slug": "eulerpath",
+      "name": "Euler Path",
+      "category": "Utilities",
+      "blurb": "Check whether a graph has an Eulerian path or circuit via degree analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_path",
+          "description": "Check whether a graph has an Eulerian path or circuit. Reports degree analysis and start/end vertices."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eulertotient",
+      "name": "Euler Totient",
+      "category": "Utilities",
+      "blurb": "Compute Euler's totient phi(n) counting integers coprime to n.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_totient",
+          "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eulertour",
+      "name": "Euler Tour",
+      "category": "Utilities",
+      "blurb": "Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_tour",
+          "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "europeana",
       "name": "Europeana",
       "category": "News & reading",
@@ -3166,6 +4014,38 @@
       "hardened": false
     },
     {
+      "slug": "expgrowth",
+      "name": "Exponential Growth",
+      "category": "Utilities",
+      "blurb": "Exponential growth and decay with doubling time and half-life.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "exponential_growth",
+          "description": "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "extgcd",
+      "name": "Extended GCD",
+      "category": "Utilities",
+      "blurb": "Extended Euclidean algorithm returning GCD, Bezout coefficients, and modular inverse.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "extended_gcd",
+          "description": "Compute the extended GCD of two integers, returning Bezout coefficients and optionally the modular inverse."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "fakestoreapi",
       "name": "Fake Store API",
       "category": "Developer & infra",
@@ -3268,6 +4148,70 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "fenwick2d",
+      "name": "Fenwick 2D",
+      "category": "Utilities",
+      "blurb": "2D Fenwick tree for point updates and rectangle sum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_2d",
+          "description": "2D Fenwick tree for point updates and rectangle sum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fenwickrange",
+      "name": "Fenwick Range",
+      "category": "Utilities",
+      "blurb": "Fenwick tree supporting both range update and range query operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_range",
+          "description": "Fenwick tree with range update and range query support using two BITs."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fenwick",
+      "name": "Fenwick Tree",
+      "category": "Utilities",
+      "blurb": "Fenwick tree (BIT) for efficient prefix sums and point updates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_tree",
+          "description": "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "fft",
+      "name": "FFT (Fast Fourier Transform)",
+      "category": "Utilities",
+      "blurb": "Fast Fourier Transform (Cooley-Tukey radix-2) for frequency analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fft_transform",
+          "description": "Fast Fourier Transform (Cooley-Tukey radix-2) with optional inverse."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "fibonacci",
@@ -3423,6 +4367,22 @@
         }
       ],
       "level": null,
+      "hardened": false
+    },
+    {
+      "slug": "floydwarshall",
+      "name": "Floyd-Warshall",
+      "category": "Utilities",
+      "blurb": "All-pairs shortest paths via Floyd-Warshall algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "floyd_warshall",
+          "description": "Compute all-pairs shortest paths using Floyd-Warshall."
+        }
+      ],
+      "level": 5,
       "hardened": false
     },
     {
@@ -3610,6 +4570,22 @@
       "hardened": false
     },
     {
+      "slug": "gabow",
+      "name": "Gabow SCC",
+      "category": "Utilities",
+      "blurb": "Strongly connected components via Gabow's path-based algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gabow_scc",
+          "description": "Find strongly connected components of a directed graph using Gabow's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "gameoflife",
       "name": "Game of Life",
       "category": "Games & esports",
@@ -3620,6 +4596,22 @@
         {
           "name": "game_of_life_step",
           "description": "Run Conway's Game of Life simulation steps (local, no network)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gausselim",
+      "name": "Gaussian Elimination",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gaussian_elimination",
+          "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
         }
       ],
       "level": 5,
@@ -3770,6 +4762,22 @@
       "hardened": false
     },
     {
+      "slug": "geomseries",
+      "name": "Geometric Series",
+      "category": "Utilities",
+      "blurb": "Finite and infinite sums of geometric series.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "geometric_series",
+          "description": "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ..."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "geopass",
       "name": "GeoPass",
       "category": "Quality (XPass)",
@@ -3886,6 +4894,86 @@
       "hardened": true
     },
     {
+      "slug": "goertzel",
+      "name": "Goertzel DFT",
+      "category": "Utilities",
+      "blurb": "Compute a single DFT frequency bin efficiently without a full FFT.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "goertzel",
+          "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "graph",
+      "name": "Graph Analyze",
+      "category": "Utilities",
+      "blurb": "Analyze graph structure: nodes, edges, components, density, and degrees.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "graph_analyze",
+          "description": "Analyze a graph: count nodes, edges, connected components, density, degrees, and detect self-loops."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "graphcolor",
+      "name": "Graph Coloring",
+      "category": "Utilities",
+      "blurb": "Greedy vertex coloring of an undirected graph with color groups.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "graph_coloring",
+          "description": "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "condensation",
+      "name": "Graph Condensation",
+      "category": "Utilities",
+      "blurb": "SCC condensation of directed graphs into a DAG using Kosaraju's algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "graph_condensation",
+          "description": "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "graycode",
+      "name": "Gray Code",
+      "category": "Utilities",
+      "blurb": "Convert between binary and Gray code or generate full n-bit Gray code sequences.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gray_code",
+          "description": "Convert between binary and Gray code, or generate n-bit Gray code sequences."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "groq",
       "name": "Groq",
       "category": "AI",
@@ -3990,6 +5078,22 @@
       "hardened": false
     },
     {
+      "slug": "waveletfn",
+      "name": "Haar Wavelet",
+      "category": "Utilities",
+      "blurb": "Haar wavelet transform (forward and inverse) on power-of-2 length arrays.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "haar_wavelet",
+          "description": "Haar wavelet transform (forward and inverse) on a power-of-2 length array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "hackernews",
       "name": "Hacker News",
       "category": "Social",
@@ -4040,6 +5144,22 @@
         {
           "name": "hamming_distance",
           "description": "Calculate Hamming distance between two equal-length strings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "harmonicseries",
+      "name": "Harmonic Series",
+      "category": "Utilities",
+      "blurb": "Partial sums of the harmonic series with ln approximation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "harmonic_series",
+          "description": "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n."
         }
       ],
       "level": 5,
@@ -4118,6 +5238,38 @@
       "hardened": true
     },
     {
+      "slug": "heapsort",
+      "name": "Heap Sort",
+      "category": "Utilities",
+      "blurb": "In-place O(n log n) sorting using a binary heap with swap tracking.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "heap_sort",
+          "description": "Sort numbers using the heap sort algorithm. Guaranteed O(n log n) in-place sorting with swap count."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "hld",
+      "name": "Heavy-Light Decomposition",
+      "category": "Utilities",
+      "blurb": "Heavy-light decomposition of trees for efficient path queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "heavy_light_decomposition",
+          "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "heygen",
       "name": "Heygen",
       "category": "AI",
@@ -4184,6 +5336,22 @@
         {
           "name": "histogram_create",
           "description": "Create a histogram from numeric data with configurable bins and ASCII visualization."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "hopcroftcarp",
+      "name": "Hopcroft-Karp",
+      "category": "Utilities",
+      "blurb": "Maximum bipartite matching via Hopcroft-Karp in O(E * sqrt(V)).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hopcroft_karp",
+          "description": "Find maximum matching in a bipartite graph using the Hopcroft-Karp algorithm in O(E * sqrt(V))."
         }
       ],
       "level": 5,
@@ -4306,6 +5474,38 @@
       "hardened": true
     },
     {
+      "slug": "huffman",
+      "name": "Huffman Coding",
+      "category": "Utilities",
+      "blurb": "Build Huffman codes and analyze compression ratio and entropy.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "huffman_code",
+          "description": "Build a Huffman coding tree for the given text and return the code table, encoded bit count, compression ratio, and entropy."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "hungarian",
+      "name": "Hungarian Assignment",
+      "category": "Utilities",
+      "blurb": "Optimally assign workers to tasks using the Hungarian algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hungarian_assign",
+          "description": "Solve the assignment problem (optimally assign N workers to N tasks) using the Hungarian algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "hunter",
       "name": "Hunter",
       "category": "Security",
@@ -4328,6 +5528,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "hypothesis",
+      "name": "Hypothesis Test",
+      "category": "Utilities",
+      "blurb": "Run z-test, t-test, or chi-squared hypothesis tests with p-values.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hypothesis_test",
+          "description": "Perform statistical hypothesis tests: z-test, t-test, or chi-squared test. Returns test statistic, p-value, and rejection decision."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "iceandfire",
@@ -4442,6 +5658,22 @@
       "hardened": true
     },
     {
+      "slug": "partition",
+      "name": "Integer Partition",
+      "category": "Utilities",
+      "blurb": "Count integer partitions with optional part size and count constraints.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "partition_count",
+          "description": "Count integer partitions of n with optional max part size and part count constraints."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "intercom",
       "name": "Intercom",
       "category": "Messaging & email",
@@ -4488,6 +5720,38 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "interpolate",
+      "name": "Interpolation",
+      "category": "Utilities",
+      "blurb": "Linear interpolation and extrapolation between two points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "interpolate_calc",
+          "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "intervalmerge",
+      "name": "Interval Merge",
+      "category": "Utilities",
+      "blurb": "Merge overlapping intervals and report gaps and total coverage.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "interval_merge",
+          "description": "Merge overlapping intervals and report gaps, coverage, and the consolidated set."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "ipaddrinfo",
@@ -4822,6 +6086,22 @@
       "hardened": true
     },
     {
+      "slug": "josephus",
+      "name": "Josephus Problem",
+      "category": "Utilities",
+      "blurb": "Solve the Josephus problem - find the survivor in a circle elimination game.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "josephus",
+          "description": "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "jsoncrack",
       "name": "JSON Format",
       "category": "Developer & infra",
@@ -4892,6 +6172,22 @@
         {
           "name": "jwt_decode",
           "description": "Decode a JWT token to inspect header and payload claims (does NOT verify signature)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "kmeans",
+      "name": "K-Means Clustering",
+      "category": "Utilities",
+      "blurb": "Partition data points into k clusters using the k-means algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmeans_cluster",
+          "description": "Partition points into k clusters using the k-means algorithm."
         }
       ],
       "level": 5,
@@ -4994,6 +6290,70 @@
       "hardened": true
     },
     {
+      "slug": "kmpautomaton",
+      "name": "KMP Automaton",
+      "category": "Utilities",
+      "blurb": "Build a full KMP DFA transition table for streaming pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmp_automaton",
+          "description": "Build a full KMP DFA transition table for streaming pattern matching."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "kmp",
+      "name": "KMP Search",
+      "category": "Utilities",
+      "blurb": "Single-pattern string search using Knuth-Morris-Pratt algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmp_search",
+          "description": "Find all occurrences of a pattern in text using Knuth-Morris-Pratt algorithm with failure function."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "knapsack",
+      "name": "Knapsack Solver",
+      "category": "Utilities",
+      "blurb": "Solve the 0-1 knapsack optimization problem for items with weight and value.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "knapsack_solve",
+          "description": "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "kosaraju",
+      "name": "Kosaraju SCC",
+      "category": "Utilities",
+      "blurb": "Find strongly connected components via Kosaraju's two-pass algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kosaraju_scc",
+          "description": "Find all strongly connected components in a directed graph using Kosaraju's two-pass algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "languagetool",
       "name": "LanguageTool",
       "category": "Utilities",
@@ -5052,6 +6412,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "lcs",
+      "name": "LCS (Longest Common Subsequence)",
+      "category": "Utilities",
+      "blurb": "Find the longest common subsequence of two strings with similarity score.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "string_lcs",
+          "description": "Find the longest common subsequence of two strings with similarity score."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "legalpass",
@@ -5124,6 +6500,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "lehmer",
+      "name": "Lehmer Code",
+      "category": "Utilities",
+      "blurb": "Convert between permutations and Lehmer codes for ranking and unranking.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lehmer_code",
+          "description": "Convert between permutations and Lehmer codes, compute permutation rank and unrank."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "lemonsqueezy",
@@ -5254,6 +6646,22 @@
       "hardened": true
     },
     {
+      "slug": "slopeintercept",
+      "name": "Line Equation",
+      "category": "Utilities",
+      "blurb": "Line equation from two points in slope-intercept and standard form.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "slope_intercept",
+          "description": "Find the line equation (slope-intercept and standard form) from two points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "sortlines",
       "name": "Line Sorter",
       "category": "Utilities",
@@ -5302,6 +6710,70 @@
       "hardened": false
     },
     {
+      "slug": "linearsolve",
+      "name": "Linear Solver",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations Ax = b with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "linear_solve",
+          "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "linkcut",
+      "name": "Link-Cut Tree",
+      "category": "Utilities",
+      "blurb": "Dynamic forest connectivity with link, cut, and path queries via splay trees.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "link_cut_tree",
+          "description": "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lis",
+      "name": "LIS Solver",
+      "category": "Utilities",
+      "blurb": "Find longest increasing subsequence in O(n log n) time.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "longest_increasing_subsequence",
+          "description": "Find the longest increasing subsequence in O(n log n) time using patience sorting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "logbase",
+      "name": "Logarithm Calculator",
+      "category": "Utilities",
+      "blurb": "Logarithm with any base, plus natural log, log10, and log2.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "log_base",
+          "description": "Compute logarithm with any base. Also returns ln, log10, and log2."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "abstract-holidays",
       "name": "Long Weekends",
       "category": "Travel, maps & local",
@@ -5316,6 +6788,22 @@
         {
           "name": "long_weekends",
           "description": "Get long weekends for a country and year from Nager.Date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lcprefix",
+      "name": "Longest Common Prefix",
+      "category": "Utilities",
+      "blurb": "Find the longest common prefix among an array of strings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "longest_common_prefix",
+          "description": "Find the longest common prefix among an array of strings."
         }
       ],
       "level": 5,
@@ -5384,6 +6872,54 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "lca",
+      "name": "Lowest Common Ancestor",
+      "category": "Utilities",
+      "blurb": "Lowest common ancestor with binary lifting and tree distance queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lowest_common_ancestor",
+          "description": "Find lowest common ancestors and distances in a tree using binary lifting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lrucache",
+      "name": "LRU Cache Sim",
+      "category": "Utilities",
+      "blurb": "Simulate an LRU cache over access sequences and analyze hit/miss rates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lru_simulate",
+          "description": "Simulate an LRU cache over a sequence of key accesses and report hit/miss rates."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lucas",
+      "name": "Lucas' Theorem",
+      "category": "Utilities",
+      "blurb": "Compute large binomial coefficients mod prime using Lucas' theorem.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lucas_theorem",
+          "description": "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "luhn",
@@ -5498,6 +7034,22 @@
       "hardened": true
     },
     {
+      "slug": "manacher",
+      "name": "Manacher Palindrome",
+      "category": "Utilities",
+      "blurb": "Find longest palindromic substring in linear time.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "manacher_palindrome",
+          "description": "Find the longest palindromic substring in linear time using Manacher's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mapbox",
       "name": "Mapbox",
       "category": "Travel, maps & local",
@@ -5608,6 +7160,102 @@
         {
           "name": "matrix_operate",
           "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matchain",
+      "name": "Matrix Chain",
+      "category": "Utilities",
+      "blurb": "Find optimal parenthesization for matrix chain multiplication.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_chain_order",
+          "description": "Find the optimal parenthesization for matrix chain multiplication to minimize scalar multiplications."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matrixdecomp",
+      "name": "Matrix Decomposition",
+      "category": "Utilities",
+      "blurb": "Matrix decomposition and analysis: LU, transpose, trace, rank.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_decomp",
+          "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matexp",
+      "name": "Matrix Exponentiation",
+      "category": "Utilities",
+      "blurb": "Matrix exponentiation via fast binary method with optional modular arithmetic.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_exponentiation",
+          "description": "Raise a square matrix to a non-negative integer power using fast exponentiation, with optional modular arithmetic."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matinverse",
+      "name": "Matrix Inverse",
+      "category": "Utilities",
+      "blurb": "Compute the inverse and determinant of a square matrix.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_inverse",
+          "description": "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matrank",
+      "name": "Matrix Rank",
+      "category": "Utilities",
+      "blurb": "Compute matrix rank using Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_rank",
+          "description": "Compute the rank of a matrix using Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "maxindepset",
+      "name": "Max Independent Set",
+      "category": "Utilities",
+      "blurb": "Exact maximum independent set via bitmask enumeration (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "max_independent_set",
+          "description": "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices)."
         }
       ],
       "level": 5,
@@ -5730,6 +7378,86 @@
       "hardened": false
     },
     {
+      "slug": "midpoint",
+      "name": "Midpoint & Distance",
+      "category": "Utilities",
+      "blurb": "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "midpoint_calc",
+          "description": "Calculate the midpoint, distance, slope, and angle between two 2D points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "millerrabin",
+      "name": "Miller-Rabin",
+      "category": "Utilities",
+      "blurb": "Deterministic Miller-Rabin primality test with multiple witnesses.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "miller_rabin_test",
+          "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "mincostflow",
+      "name": "Min Cost Max Flow",
+      "category": "Utilities",
+      "blurb": "Minimum cost maximum flow using successive shortest paths.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "min_cost_max_flow",
+          "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "mst",
+      "name": "Min Spanning Tree",
+      "category": "Utilities",
+      "blurb": "Find the minimum spanning tree of a weighted graph (Kruskal's algorithm).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "mst_find",
+          "description": "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "minvertexcover",
+      "name": "Min Vertex Cover",
+      "category": "Utilities",
+      "blurb": "Exact minimum vertex cover via bitmask enumeration (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "min_vertex_cover",
+          "description": "Find the minimum vertex cover of a graph using exact bitmask enumeration (up to 20 vertices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "miro",
       "name": "Miro",
       "category": "Productivity",
@@ -5810,6 +7538,54 @@
       "hardened": true
     },
     {
+      "slug": "mosalgo",
+      "name": "Mo's Algorithm",
+      "category": "Utilities",
+      "blurb": "Offline range query processing with sqrt decomposition (sum and distinct count).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "mos_algorithm",
+          "description": "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "modpow",
+      "name": "Modular Arithmetic",
+      "category": "Utilities",
+      "blurb": "Modular exponentiation, modular inverse, and modular reduction.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "modular_arithmetic",
+          "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "moebius",
+      "name": "Moebius Function",
+      "category": "Utilities",
+      "blurb": "Compute Moebius function values and Mertens function using linear sieve.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "moebius_function",
+          "description": "Compute Moebius function values and Mertens function using linear sieve."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "monday",
       "name": "Monday",
       "category": "Productivity",
@@ -5876,6 +7652,22 @@
         {
           "name": "mhw_weapons",
           "description": "Browse Monster Hunter World weapons by type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "montecarlo",
+      "name": "Monte Carlo",
+      "category": "Utilities",
+      "blurb": "Monte Carlo estimation of pi or definite integrals via random sampling.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "monte_carlo_estimate",
+          "description": "Monte Carlo estimation: estimate pi or compute a definite integral via random sampling."
         }
       ],
       "level": 5,
@@ -6066,6 +7858,22 @@
       "hardened": false
     },
     {
+      "slug": "necklace",
+      "name": "Necklace Count",
+      "category": "Utilities",
+      "blurb": "Count distinct necklaces and bracelets using Burnside's lemma.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "necklace_count",
+          "description": "Count distinct necklaces and bracelets using Burnside's lemma."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "neon",
       "name": "Neon",
       "category": "Developer & infra",
@@ -6230,6 +8038,22 @@
       "hardened": false
     },
     {
+      "slug": "normaldistr",
+      "name": "Normal Distribution",
+      "category": "Utilities",
+      "blurb": "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "normal_distribution",
+          "description": "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "notion",
       "name": "Notion",
       "category": "Productivity",
@@ -6260,6 +8084,38 @@
         {
           "name": "npm_get_package",
           "description": "Get metadata for an npm package (latest version)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "nthroot",
+      "name": "Nth Root",
+      "category": "Utilities",
+      "blurb": "Nth root of a number with verification and integer detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "nth_root",
+          "description": "Calculate the nth root of a number. Default is square root (n=2)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ntt",
+      "name": "NTT",
+      "category": "Utilities",
+      "blurb": "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ntt",
+          "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
         }
       ],
       "level": 5,
@@ -6326,6 +8182,38 @@
       "hardened": false
     },
     {
+      "slug": "numdiff",
+      "name": "Numerical Differentiation",
+      "category": "Utilities",
+      "blurb": "Numerical differentiation using five-point stencil (1st through 4th order).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "numerical_diff",
+          "description": "Numerical differentiation of a math expression using five-point stencil (1st-4th order)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "numintegrate",
+      "name": "Numerical Integration",
+      "category": "Utilities",
+      "blurb": "Numerical integration using Simpson, trapezoid, or midpoint rule.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "numerical_integrate",
+          "description": "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nvd",
       "name": "NVD (CVEs)",
       "category": "Security",
@@ -6348,6 +8236,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "ode",
+      "name": "ODE Solver",
+      "category": "Utilities",
+      "blurb": "Solve ordinary differential equations numerically via Euler or RK4.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ode_solve",
+          "description": "Solve an ordinary differential equation numerically using Euler or RK4 method. Provide the ODE as a JS expression in terms of t and y."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "oeis",
@@ -6918,6 +8822,22 @@
       "hardened": false
     },
     {
+      "slug": "pagerank",
+      "name": "PageRank",
+      "category": "Utilities",
+      "blurb": "Compute PageRank scores for nodes in a directed link graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "page_rank",
+          "description": "Compute PageRank scores for nodes in a directed graph."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pagerduty",
       "name": "Pagerduty",
       "category": "Developer & infra",
@@ -7074,6 +8994,22 @@
       "hardened": false
     },
     {
+      "slug": "percentile",
+      "name": "Percentile",
+      "category": "Utilities",
+      "blurb": "Compute percentiles (p5-p99) and find the percentile rank of a value.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "percentile_calc",
+          "description": "Compute percentiles of a dataset (default p5-p99) and optionally find the percentile rank of a given value."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "permutation",
       "name": "Permutations",
       "category": "Utilities",
@@ -7106,6 +9042,22 @@
       "hardened": true
     },
     {
+      "slug": "persistarray",
+      "name": "Persistent Array",
+      "category": "Utilities",
+      "blurb": "Persistent array with version-controlled get/set operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "persistent_array",
+          "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "phonetic",
       "name": "Phonetic Alphabet",
       "category": "Utilities",
@@ -7116,6 +9068,22 @@
         {
           "name": "phonetic_spell",
           "description": "Spell out text using NATO or IPA phonetic alphabet."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "piapprox",
+      "name": "Pi Approximation",
+      "category": "Utilities",
+      "blurb": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pi_approx",
+          "description": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates."
         }
       ],
       "level": 5,
@@ -7402,6 +9370,22 @@
       "hardened": false
     },
     {
+      "slug": "poisson",
+      "name": "Poisson Distribution",
+      "category": "Utilities",
+      "blurb": "Poisson distribution PMF and CDF for modeling rare events.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "poisson_probability",
+          "description": "Calculate Poisson distribution PMF and CDF for k events with rate lambda."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pokeapi",
       "name": "PokeAPI",
       "category": "Games & esports",
@@ -7448,6 +9432,54 @@
         {
           "name": "pokemon_tcg_sets",
           "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "pollardrho",
+      "name": "Pollard's Rho",
+      "category": "Utilities",
+      "blurb": "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pollard_rho",
+          "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "polygon",
+      "name": "Polygon Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate area, perimeter, angles, apothem, and circumradius of regular polygons.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "polygon_calculate",
+          "description": "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "polynomial",
+      "name": "Polynomial Ops",
+      "category": "Utilities",
+      "blurb": "Evaluate, differentiate, integrate, add, or multiply polynomials.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "polynomial_ops",
+          "description": "Perform polynomial operations: evaluate, derivative, integral, add, or multiply. Coefficients are highest degree first."
         }
       ],
       "level": 5,
@@ -7554,6 +9586,54 @@
       "hardened": true
     },
     {
+      "slug": "poweriter",
+      "name": "Power Iteration",
+      "category": "Utilities",
+      "blurb": "Find the dominant eigenvalue and eigenvector of a square matrix.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "power_iteration",
+          "description": "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "powerset",
+      "name": "Power Set",
+      "category": "Utilities",
+      "blurb": "Generate all subsets of a set using bitmask enumeration.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "power_set",
+          "description": "Generate all subsets of a set (up to 20 elements)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "prefixfn",
+      "name": "Prefix Function",
+      "category": "Utilities",
+      "blurb": "Compute the KMP prefix/failure function with optional pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prefix_function",
+          "description": "Compute the KMP prefix/failure function array, with optional pattern occurrence counting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "unitpressure",
       "name": "Pressure Converter",
       "category": "Developer & infra",
@@ -7580,6 +9660,22 @@
         {
           "name": "prime_check",
           "description": "Check if a number is prime, get its factorization, and find adjacent primes."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "primefactor",
+      "name": "Prime Factorization",
+      "category": "Utilities",
+      "blurb": "Find the prime factorization of any integer up to one trillion.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "prime_factor",
+          "description": "Find the prime factorization of an integer."
         }
       ],
       "level": 5,
@@ -7866,6 +9962,22 @@
       "hardened": false
     },
     {
+      "slug": "quadratic",
+      "name": "Quadratic Solver",
+      "category": "Utilities",
+      "blurb": "Solve quadratic equations with real or complex roots, discriminant, and vertex.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "quadratic_solve",
+          "description": "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "quickbooks",
       "name": "Quickbooks",
       "category": "Money & payments",
@@ -7926,6 +10038,22 @@
       "hardened": true
     },
     {
+      "slug": "rabinkarp",
+      "name": "Rabin-Karp Search",
+      "category": "Utilities",
+      "blurb": "Find all pattern occurrences in text using Rabin-Karp rolling hash.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rabin_karp_search",
+          "description": "Find all occurrences of a pattern in text using the Rabin-Karp rolling hash algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "radiobrowser",
       "name": "Radio Browser",
       "category": "Music & video",
@@ -7960,6 +10088,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "radixsort",
+      "name": "Radix Sort",
+      "category": "Utilities",
+      "blurb": "Non-comparative integer sort using digit-by-digit bucketing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "radix_sort",
+          "description": "Sort non-negative integers using radix sort with configurable base."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "railfence",
@@ -8106,6 +10250,22 @@
       "hardened": false
     },
     {
+      "slug": "ratiosimplify",
+      "name": "Ratio Simplifier",
+      "category": "Utilities",
+      "blurb": "Simplify ratios to lowest terms with decimal and percentage forms.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ratio_simplify",
+          "description": "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "rawg",
       "name": "Rawg",
       "category": "Games & esports",
@@ -8208,6 +10368,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "rbtree",
+      "name": "Red-Black Tree",
+      "category": "Utilities",
+      "blurb": "Red-black tree simulation with insert, inorder traversal, and validity check.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rb_tree_sim",
+          "description": "Build a red-black tree from a list of keys. Returns inorder traversal, tree height, black height, and validity check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "reddit",
@@ -8390,6 +10566,22 @@
       "hardened": true
     },
     {
+      "slug": "reservoir",
+      "name": "Reservoir Sampling",
+      "category": "Utilities",
+      "blurb": "Select k random items from a list with equal probability (reservoir sampling).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "reservoir_sample",
+          "description": "Select k random items from a list with equal probability using reservoir sampling."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "restcountries",
       "name": "REST Countries",
       "category": "Travel, maps & local",
@@ -8510,6 +10702,38 @@
       "hardened": false
     },
     {
+      "slug": "rle2",
+      "name": "RLE Numeric",
+      "category": "Utilities",
+      "blurb": "Run-length encode or decode numeric arrays for compression analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rle_encode_decode",
+          "description": "Run-length encode a numeric array into runs, or decode runs back to a numeric array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "rmqsparse",
+      "name": "RMQ Sparse Table",
+      "category": "Utilities",
+      "blurb": "Build a sparse table for O(1) range minimum/maximum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rmq_sparse",
+          "description": "Build a sparse table for O(1) range minimum/maximum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "robohash",
       "name": "RoboHash",
       "category": "Images",
@@ -8542,6 +10766,22 @@
       "hardened": false
     },
     {
+      "slug": "rootfind",
+      "name": "Root Finder",
+      "category": "Utilities",
+      "blurb": "Find roots of expressions using Newton's method or bisection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "root_find",
+          "description": "Find roots of a math expression using Newton's method or bisection."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "rot13",
       "name": "ROT13 Cipher",
       "category": "Utilities",
@@ -8558,6 +10798,22 @@
       "hardened": false
     },
     {
+      "slug": "rlencode",
+      "name": "Run-Length Encoding",
+      "category": "Utilities",
+      "blurb": "Run-length encode and decode strings for compression analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rl_encode",
+          "description": "Run-length encode or decode a string."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "runlength",
       "name": "Run-Length Encoding",
       "category": "Utilities",
@@ -8568,6 +10824,22 @@
         {
           "name": "runlength_process",
           "description": "Run-length encode or decode text (e.g. aaabbb to 3a3b)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "runstats",
+      "name": "Running Stats",
+      "category": "Utilities",
+      "blurb": "Compute sliding-window running mean, std, min, and max over numeric data.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "running_stats",
+          "description": "Compute running (sliding window) mean, standard deviation, min, and max over a numeric array."
         }
       ],
       "level": 5,
@@ -8596,6 +10868,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "standardform",
+      "name": "Scientific Notation",
+      "category": "Utilities",
+      "blurb": "Convert numbers to scientific and engineering notation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "standard_form",
+          "description": "Convert a number to scientific and engineering notation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "seatgeek",
@@ -8704,6 +10992,38 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "segmentintersect",
+      "name": "Segment Intersection",
+      "category": "Utilities",
+      "blurb": "Find pairwise intersections among 2D line segments.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "segment_intersection",
+          "description": "Find all pairwise intersections among a set of 2D line segments, returning intersection points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "segtree",
+      "name": "Segment Tree",
+      "category": "Utilities",
+      "blurb": "Segment tree for range queries (sum/min/max) with point updates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "segment_tree",
+          "description": "Build a segment tree for range queries (sum/min/max) with point updates on a mutable array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "semver",
@@ -8874,6 +11194,22 @@
       "hardened": true
     },
     {
+      "slug": "shellsort",
+      "name": "Shell Sort",
+      "category": "Utilities",
+      "blurb": "Shell sort with gap sequence tracking, comparison and swap counts.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shell_sort",
+          "description": "Sort an array using Shell sort with gap sequence tracking, comparison and swap counts."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "shibe",
       "name": "Shibe Online",
       "category": "Images",
@@ -8982,6 +11318,70 @@
       "hardened": true
     },
     {
+      "slug": "shunting",
+      "name": "Shunting-Yard",
+      "category": "Utilities",
+      "blurb": "Convert infix math expressions to postfix (RPN) and evaluate using the shunting-yard algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shunting_yard",
+          "description": "Convert an infix math expression to postfix (RPN) and evaluate it."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sieve",
+      "name": "Sieve of Eratosthenes",
+      "category": "Utilities",
+      "blurb": "Generate all prime numbers up to N using the Sieve of Eratosthenes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sieve_of_eratosthenes",
+          "description": "Generate all prime numbers up to N using the Sieve of Eratosthenes algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "simplex",
+      "name": "Simplex LP",
+      "category": "Utilities",
+      "blurb": "Solve linear programming problems (maximize subject to constraints) via simplex.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "simplex_solve",
+          "description": "Solve a linear programming problem (maximize objective subject to <= constraints) using the simplex method."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "skiplist",
+      "name": "Skip List",
+      "category": "Utilities",
+      "blurb": "Probabilistic sorted data structure with O(log n) search.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "skip_list_sim",
+          "description": "Simulate a skip list: insert values, get sorted output, and search for elements in O(log n) expected time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "slack",
       "name": "Slack",
       "category": "Messaging & email",
@@ -9086,6 +11486,22 @@
       "hardened": false
     },
     {
+      "slug": "sos",
+      "name": "SOS DP",
+      "category": "Utilities",
+      "blurb": "Sum over Subsets (SOS) dynamic programming and zeta transform on bitmasks.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sos_dp",
+          "description": "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "soundex",
       "name": "Soundex",
       "category": "Utilities",
@@ -9150,6 +11566,22 @@
       "hardened": false
     },
     {
+      "slug": "sparsetable",
+      "name": "Sparse Table",
+      "category": "Utilities",
+      "blurb": "Build a sparse table for O(1) range minimum or maximum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sparse_table",
+          "description": "Build a sparse table for O(1) range minimum or maximum queries on a static array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "speedrun",
       "name": "Speedrun",
       "category": "Games & esports",
@@ -9180,6 +11612,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "spline",
+      "name": "Spline Interpolation",
+      "category": "Utilities",
+      "blurb": "Natural cubic spline interpolation through data points with evaluation.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "spline_interpolate",
+          "description": "Natural cubic spline interpolation through data points, with optional evaluation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "splitwise",
@@ -9422,6 +11870,38 @@
       "hardened": true
     },
     {
+      "slug": "sternbrocot",
+      "name": "Stern-Brocot Tree",
+      "category": "Utilities",
+      "blurb": "Best rational approximation via the Stern-Brocot tree and continued fractions.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stern_brocot_tree",
+          "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "stirling",
+      "name": "Stirling Numbers",
+      "category": "Utilities",
+      "blurb": "Compute Stirling numbers of the first or second kind via dynamic programming.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stirling_numbers",
+          "description": "Compute Stirling numbers of the first or second kind via DP."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "stringcase",
       "name": "String Case Converter",
       "category": "Developer & infra",
@@ -9504,6 +11984,54 @@
         {
           "name": "ghibli_people",
           "description": "List characters from Studio Ghibli films."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "suffixarray",
+      "name": "Suffix Array",
+      "category": "Utilities",
+      "blurb": "Build a suffix array for a string with optional LCP array.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "suffix_array_build",
+          "description": "Build a suffix array for a string, with optional LCP (longest common prefix) array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "suffixauto",
+      "name": "Suffix Automaton",
+      "category": "Utilities",
+      "blurb": "Suffix automaton construction with distinct substring counting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "suffix_automaton",
+          "description": "Build a suffix automaton for a string and count distinct substrings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "suffixtree",
+      "name": "Suffix Tree",
+      "category": "Utilities",
+      "blurb": "Suffix tree construction via Ukkonen's algorithm with substring analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "suffix_tree",
+          "description": "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring."
         }
       ],
       "level": 5,
@@ -9630,6 +12158,22 @@
       "hardened": false
     },
     {
+      "slug": "tarjan",
+      "name": "Tarjan SCC",
+      "category": "Utilities",
+      "blurb": "Find all strongly connected components in a directed graph (Tarjan's algorithm).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tarjan_scc",
+          "description": "Find all strongly connected components of a directed graph using Tarjan's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "tarot",
       "name": "Tarot Cards",
       "category": "Utilities",
@@ -9652,6 +12196,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "taylor",
+      "name": "Taylor Series",
+      "category": "Utilities",
+      "blurb": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "taylor_expand",
+          "description": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "telegram",
@@ -9700,6 +12260,22 @@
         {
           "name": "temperature_convert",
           "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ternarysearch",
+      "name": "Ternary Search",
+      "category": "Utilities",
+      "blurb": "Ternary search on sorted arrays or unimodal extremum finding.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ternary_search",
+          "description": "Ternary search on a sorted array (search mode) or find the extremum of a unimodal array (max/min mode)."
         }
       ],
       "level": 5,
@@ -10286,6 +12862,54 @@
       "hardened": true
     },
     {
+      "slug": "topocount",
+      "name": "Topo Order Count",
+      "category": "Utilities",
+      "blurb": "Count distinct topological orderings of a directed acyclic graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "topo_count",
+          "description": "Count the number of distinct topological orderings of a DAG."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "toposort",
+      "name": "Topological Sort",
+      "category": "Utilities",
+      "blurb": "Topological sort of a directed graph with cycle detection.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "topo_sort",
+          "description": "Topological sort of a directed graph with cycle detection."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "treap",
+      "name": "Treap",
+      "category": "Utilities",
+      "blurb": "Randomized BST combining tree and heap properties.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "treap_sim",
+          "description": "Simulate a treap (randomized BST): insert values, get sorted output, tree height, and search."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "trello",
       "name": "Trello",
       "category": "Productivity",
@@ -10300,6 +12924,38 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "trianglesolve",
+      "name": "Triangle Solver",
+      "category": "Utilities",
+      "blurb": "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "triangle_solve",
+          "description": "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "trie",
+      "name": "Trie",
+      "category": "Utilities",
+      "blurb": "Prefix tree for word search, prefix counting, and autocomplete.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "trie_ops",
+          "description": "Build a trie (prefix tree) from words and perform search, prefix count, and autocomplete queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "trivia",
@@ -10344,6 +13000,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "tsp",
+      "name": "TSP Solver",
+      "category": "Utilities",
+      "blurb": "Find a short tour visiting all cities (traveling salesman, nearest-neighbor heuristic).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tsp_solve",
+          "description": "Find a short tour visiting all cities and returning to start (traveling salesman, nearest-neighbor heuristic)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "turso",
@@ -10536,6 +13208,22 @@
         {
           "name": "uk_police_crimes",
           "description": "Get reported crimes at a UK location from data.police.uk."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "unionfind",
+      "name": "Union-Find",
+      "category": "Utilities",
+      "blurb": "Merge elements and query connectivity using union-find with path compression.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "union_find",
+          "description": "Perform union-find (disjoint set) operations: merge elements and query connectivity."
         }
       ],
       "level": 5,
@@ -10898,6 +13586,22 @@
       "hardened": false
     },
     {
+      "slug": "variancecalc",
+      "name": "Variance Calculator",
+      "category": "Utilities",
+      "blurb": "Population/sample variance, standard deviation, median, range, and CV.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "variance_calc",
+          "description": "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "vatcomply",
       "name": "VATcomply",
       "category": "Markets & crypto",
@@ -11022,6 +13726,38 @@
       "hardened": true
     },
     {
+      "slug": "wavelength",
+      "name": "Wavelength Converter",
+      "category": "Utilities",
+      "blurb": "Convert between wavelength and frequency with energy and EM spectrum band.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wavelength_convert",
+          "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "wavelet",
+      "name": "Wavelet Tree",
+      "category": "Utilities",
+      "blurb": "Wavelet tree for range kth-smallest queries on integer arrays.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wavelet_tree",
+          "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "wayback",
       "name": "Wayback Machine",
       "category": "News & reading",
@@ -11064,6 +13800,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "weightedmean",
+      "name": "Weighted Mean",
+      "category": "Utilities",
+      "blurb": "Weighted, arithmetic, geometric, and harmonic means of a value set.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "weighted_mean",
+          "description": "Compute weighted, arithmetic, geometric, and harmonic means of a set of values."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "wger",
@@ -11462,6 +14214,22 @@
       "hardened": true
     },
     {
+      "slug": "xorbase",
+      "name": "XOR Basis",
+      "category": "Utilities",
+      "blurb": "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "xor_basis",
+          "description": "Compute a linear basis over GF(2) (XOR basis) for a set of integers."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "xpass-aggregated-verdict",
       "name": "XPass Verdict",
       "category": "Quality (XPass)",
@@ -11560,6 +14328,54 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "zalgo",
+      "name": "Z-Algorithm",
+      "category": "Utilities",
+      "blurb": "Z-array computation and linear-time pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "z_algorithm",
+          "description": "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "zfunction",
+      "name": "Z-Function",
+      "category": "Utilities",
+      "blurb": "Z-function string algorithm for pattern matching and prefix analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "z_function",
+          "description": "Compute Z-function of a string with optional pattern matching."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "zscore",
+      "name": "Z-Score Calculator",
+      "category": "Utilities",
+      "blurb": "Calculate z-scores, cumulative probabilities, and percentiles.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "zscore_calculate",
+          "description": "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "zenquotes",

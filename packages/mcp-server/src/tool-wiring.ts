@@ -660,6 +660,196 @@ import { gcdCalculate } from "./gcd-tool.js";
 import { permutationCalc } from "./permutation-tool.js";
 import { combinationCalc } from "./combination-tool.js";
 import { proportionSolve } from "./proportion-tool.js";
+import { quadraticSolve } from "./quadratic-tool.js";
+import { primeFactor } from "./primefactor-tool.js";
+import { zscoreCalculate } from "./zscore-tool.js";
+import { angleConvert } from "./angleconv-tool.js";
+import { polygonCalculate } from "./polygon-tool.js";
+import { sigmoidCalculate } from "./sigmoid-tool.js";
+import { interpolateCalc } from "./interpolate-tool.js";
+import { modularArithmetic } from "./modpow-tool.js";
+import { ratioSimplify } from "./ratiosimplify-tool.js";
+import { binomialProbability } from "./binomprob-tool.js";
+import { normalDistribution } from "./normaldistr-tool.js";
+import { triangleSolve } from "./trianglesolve-tool.js";
+import { standardForm } from "./standardform-tool.js";
+import { complexCalc } from "./complexnum-tool.js";
+import { wavelengthConvert } from "./wavelength-tool.js";
+import { midpointCalc } from "./midpoint-tool.js";
+import { slopeIntercept } from "./slopeintercept-tool.js";
+import { logBase } from "./logbase-tool.js";
+import { nthRoot } from "./nthroot-tool.js";
+import { areaCalculate } from "./areacalc-tool.js";
+import { dotProduct } from "./dotproduct-tool.js";
+import { crossProduct } from "./crossproduct-tool.js";
+import { weightedMean } from "./weightedmean-tool.js";
+import { varianceCalc } from "./variancecalc-tool.js";
+import { poissonProbability } from "./poisson-tool.js";
+import { exponentialGrowth } from "./expgrowth-tool.js";
+import { geometricSeries } from "./geomseries-tool.js";
+import { harmonicSeries } from "./harmonicseries-tool.js";
+import { piApprox } from "./piapprox-tool.js";
+import { taylorExpand } from "./taylor-tool.js";
+
+// ── batch 58: algorithms & data structures ──
+import { stringLcs } from "./lcs-tool.js";
+import { topoSort } from "./toposort-tool.js";
+import { convexHull } from "./convexhull-tool.js";
+import { knapsackSolve } from "./knapsack-tool.js";
+import { splineInterpolate } from "./spline-tool.js";
+
+// ── batch 59: graphs, linear algebra, calculus ──
+import { dijkstraPath } from "./dijkstra-tool.js";
+import { matrixDecomp } from "./matrixdecomp-tool.js";
+import { linearSolve } from "./linearsolve-tool.js";
+import { numericalDiff } from "./numdiff-tool.js";
+import { numericalIntegrate } from "./numintegrate-tool.js";
+
+// ── batch 60: signal processing, curves, root finding, matrix inverse ──
+import { fftTransform } from "./fft-tool.js";
+import { bezierCurve } from "./bezier-tool.js";
+import { rootFind } from "./rootfind-tool.js";
+import { matrixInverse } from "./matinverse-tool.js";
+import { odeSolve } from "./ode-tool.js";
+import { polynomialOps } from "./polynomial-tool.js";
+import { hypothesisTest } from "./hypothesis-tool.js";
+import { huffmanCode } from "./huffman-tool.js";
+import { correlationCalc } from "./correlation-tool.js";
+import { bitCount } from "./bitcount-tool.js";
+import { runningStats } from "./runstats-tool.js";
+import { graphAnalyze } from "./graph-tool.js";
+import { convolution } from "./convolution-tool.js";
+import { rleEncodeDecode } from "./rle2-tool.js";
+import { descriptiveStats } from "./descriptive-tool.js";
+import { bfsSearch } from "./bfs-tool.js";
+import { monteCarloEstimate } from "./montecarlo-tool.js";
+import { dfsSearch } from "./dfs-tool.js";
+import { percentileCalc } from "./percentile-tool.js";
+import { mstFind } from "./mst-tool.js";
+
+import { pageRank } from "./pagerank-tool.js";
+import { astarPath } from "./astar-tool.js";
+import { simplexSolve } from "./simplex-tool.js";
+import { hungarianAssign } from "./hungarian-tool.js";
+
+import { kmeansCluster } from "./kmeans-tool.js";
+import { bellmanFord } from "./bellmanford-tool.js";
+import { floydWarshall } from "./floydwarshall-tool.js";
+import { reservoirSample } from "./reservoir-tool.js";
+
+import { bloomFilter } from "./bloomfilter-tool.js";
+import { powerIteration } from "./poweriter-tool.js";
+import { tspSolve } from "./tsp-tool.js";
+import { lruSimulate } from "./lrucache-tool.js";
+
+import { unionFindOps } from "./unionfind-tool.js";
+import { tarjanScc } from "./tarjan-tool.js";
+import { catalanCalc } from "./catalan-tool.js";
+import { rabinKarpSearch } from "./rabinkarp-tool.js";
+
+import { sieveOfEratosthenes } from "./sieve-tool.js";
+import { suffixArrayBuild } from "./suffixarray-tool.js";
+import { matChainOrder } from "./matchain-tool.js";
+import { fenwickTree } from "./fenwick-tool.js";
+
+import { segTree } from "./segtree-tool.js";
+import { kmpSearch } from "./kmp-tool.js";
+import { ahoCorasickSearch } from "./ahocorasick-tool.js";
+import { zAlgorithm } from "./zalgo-tool.js";
+
+import { trieOps } from "./trie-tool.js";
+import { skipListSim } from "./skiplist-tool.js";
+import { manacherPalindrome } from "./manacher-tool.js";
+import { countingSort } from "./countingsort-tool.js";
+
+import { radixSort } from "./radixsort-tool.js";
+import { treapSim } from "./treap-tool.js";
+import { longestIncreasingSubseq } from "./lis-tool.js";
+import { kosarajuScc } from "./kosaraju-tool.js";
+import { bucketSort } from "./bucketsort-tool.js";
+import { edmondsKarp } from "./edmondskarp-tool.js";
+import { avlTree } from "./avltree-tool.js";
+import { bipartiteCheck } from "./bipartite-tool.js";
+import { eulerPath } from "./eulerpath-tool.js";
+import { sparseTable } from "./sparsetable-tool.js";
+import { millerRabinTest } from "./millerrabin-tool.js";
+import { rbTreeSim } from "./rbtree-tool.js";
+import { heapSort } from "./heapsort-tool.js";
+import { chineseRemainderTheorem } from "./crt-tool.js";
+import { graphColoring } from "./graphcolor-tool.js";
+import { extendedGcd } from "./extgcd-tool.js";
+import { eulerTotient } from "./eulertotient-tool.js";
+import { hopcroftKarp } from "./hopcroftcarp-tool.js";
+import { intervalMerge } from "./intervalmerge-tool.js";
+import { ternarySearch } from "./ternarysearch-tool.js";
+import { shellSort } from "./shellsort-tool.js";
+import { matrixExponentiation } from "./matexp-tool.js";
+import { segmentIntersection } from "./segmentintersect-tool.js";
+import { minVertexCover } from "./minvertexcover-tool.js";
+import { suffixAutomaton } from "./suffixauto-tool.js";
+import { gabowScc } from "./gabow-tool.js";
+import { babyGiantStep } from "./babygiant-tool.js";
+import { centroidDecomposition } from "./centroid-tool.js";
+import { waveletTree } from "./wavelet-tool.js";
+import { dinicMaxFlow } from "./dinic-tool.js";
+import { lowestCommonAncestor } from "./lca-tool.js";
+import { maxIndependentSet } from "./maxindepset-tool.js";
+import { twoSat } from "./twosat-tool.js";
+import { heavyLightDecomp } from "./hld-tool.js";
+import { minCostMaxFlow } from "./mincostflow-tool.js";
+import { persistentArray } from "./persistarray-tool.js";
+import { suffixTree } from "./suffixtree-tool.js";
+import { linkCutTree } from "./linkcut-tool.js";
+import { graphCondensation } from "./condensation-tool.js";
+import { mosAlgorithm } from "./mosalgo-tool.js";
+import { cartesianTree } from "./cartesiantree-tool.js";
+import { sternBrocotTree } from "./sternbrocot-tool.js";
+import { chromaticNumber } from "./chromatic-tool.js";
+import { eulerTour } from "./eulertour-tool.js";
+import { gaussianElimination } from "./gausselim-tool.js";
+import { eertree } from "./eertree-tool.js";
+import { pollardRho } from "./pollardrho-tool.js";
+import { ntt } from "./ntt-tool.js";
+import { josephus } from "./josephus-tool.js";
+import { berlekampMassey } from "./berlekamp-tool.js";
+import { sosDp } from "./sos-tool.js";
+import { xorBasis } from "./xorbase-tool.js";
+import { moebiusFunction } from "./moebius-tool.js";
+import { zFunction } from "./zfunction-tool.js";
+import { chineseRemainder } from "./chineseremainder-tool.js";
+import { lucasTheorem } from "./lucas-tool.js";
+import { duvalFactorize } from "./duval-tool.js";
+import { goertzel } from "./goertzel-tool.js";
+import { burrowsWheeler } from "./bwt-tool.js";
+import { ackermannFunction } from "./ackermann-tool.js";
+import { deBruijn } from "./debruijn-tool.js";
+import { shuntingYard } from "./shunting-tool.js";
+import { fenwickRange } from "./fenwickrange-tool.js";
+import { bitmaskOps } from "./bitmask-tool.js";
+import { grayCode } from "./graycode-tool.js";
+import { catmullRom } from "./catmullrom-tool.js";
+import { rlEncode } from "./rlencode-tool.js";
+import { topoCount } from "./topocount-tool.js";
+import { boothRotation } from "./booth-tool.js";
+import { prefixFunction } from "./prefixfn-tool.js";
+import { matrixRank } from "./matrank-tool.js";
+import { fenwick2D } from "./fenwick2d-tool.js";
+import { continuedFraction } from "./contfrac-tool.js";
+import { longestCommonPrefix } from "./lcprefix-tool.js";
+import { lehmerCode } from "./lehmer-tool.js";
+import { digitDp } from "./digitdp-tool.js";
+import { coinChange } from "./coinchange-tool.js";
+import { editDistance } from "./editdist-tool.js";
+import { powerSet } from "./powerset-tool.js";
+import { necklaceCount } from "./necklace-tool.js";
+import { derangementCalc } from "./derangement-tool.js";
+import { kmpAutomaton } from "./kmpautomaton-tool.js";
+import { rmqSparse } from "./rmqsparse-tool.js";
+import { partitionCount } from "./partition-tool.js";
+import { stirlingNumbers } from "./stirling-tool.js";
+import { haarWavelet } from "./waveletfn-tool.js";
+import { convexHull3D } from "./convexhull3d-tool.js";
+import { bezierClip } from "./bezierclip-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -10068,6 +10258,2315 @@ export const ADDITIONAL_TOOLS = [
         c: { type: "number" as const, description: "Value c." },
         d: { type: "number" as const, description: "Value d." },
       },
+    },
+  },
+
+  // ── quadratic-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "quadratic_solve",
+    description: "Solve a quadratic equation ax^2 + bx + c = 0. Returns roots, discriminant, and vertex.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Coefficient a (must not be 0)." },
+        b: { type: "number" as const, description: "Coefficient b." },
+        c: { type: "number" as const, description: "Coefficient c." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── primefactor-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "prime_factor",
+    description: "Find the prime factorization of an integer.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Integer to factorize (>= 2, max 1 trillion)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zscore-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "zscore_calculate",
+    description: "Calculate z-score, cumulative probability, and percentile for a value given mean and standard deviation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "The observed value." },
+        mean: { type: "number" as const, description: "Population mean." },
+        stddev: { type: "number" as const, description: "Population standard deviation (positive)." },
+      }, required: ["value", "mean", "stddev"],
+    },
+  },
+
+  // ── angleconv-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "angle_convert",
+    description: "Convert angles between degrees, radians, gradians, and turns. Includes trig values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Angle value to convert." },
+        from: { type: "string" as const, description: "Unit of input: degrees, radians, gradians, or turns." },
+      }, required: ["value", "from"],
+    },
+  },
+
+  // ── polygon-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "polygon_calculate",
+    description: "Calculate properties of a regular polygon: area, perimeter, angles, apothem, circumradius, diagonals.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        sides: { type: "number" as const, description: "Number of sides (>= 3)." },
+        side_length: { type: "number" as const, description: "Length of each side." },
+      }, required: ["sides", "side_length"],
+    },
+  },
+
+  // ── sigmoid-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "sigmoid_calculate",
+    description: "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "Input value." },
+        function: { type: "string" as const, description: "Activation function: sigmoid, tanh, relu, leaky_relu, elu, or swish. Default: sigmoid." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── interpolate-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "interpolate_calc",
+    description: "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X coordinate of first point." },
+        y1: { type: "number" as const, description: "Y coordinate of first point." },
+        x2: { type: "number" as const, description: "X coordinate of second point." },
+        y2: { type: "number" as const, description: "Y coordinate of second point." },
+        x: { type: "number" as const, description: "X value to interpolate at." },
+      }, required: ["x1", "y1", "x2", "y2", "x"],
+    },
+  },
+
+  // ── modpow-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "modular_arithmetic",
+    description: "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: modpow, modinverse, or mod." },
+        a: { type: "number" as const, description: "Base value." },
+        b: { type: "number" as const, description: "Exponent (required for modpow)." },
+        m: { type: "number" as const, description: "Modulus (positive integer)." },
+      }, required: ["operation", "a", "m"],
+    },
+  },
+
+  // ── ratiosimplify-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ratio_simplify",
+    description: "Simplify a ratio a:b to its lowest terms. Returns decimal and percentage forms.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First value." },
+        b: { type: "number" as const, description: "Second value (non-zero)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── binomprob-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "binomial_probability",
+    description: "Calculate binomial distribution probability P(X=k) and cumulative probabilities for n trials with probability p.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of trials (0-1000)." },
+        k: { type: "number" as const, description: "Number of successes (0 to n)." },
+        p: { type: "number" as const, description: "Probability of success per trial (0 to 1)." },
+      }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── normaldistr-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "normal_distribution",
+    description: "Calculate normal (Gaussian) distribution PDF, CDF, and percentile for a given value.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x: { type: "number" as const, description: "The value to evaluate." },
+        mean: { type: "number" as const, description: "Distribution mean (default 0)." },
+        stddev: { type: "number" as const, description: "Standard deviation (default 1, must be positive)." },
+      }, required: ["x"],
+    },
+  },
+
+  // ── trianglesolve-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "triangle_solve",
+    description: "Solve a triangle given three side lengths. Returns angles, area, perimeter, inradius, circumradius, and type.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "Side a length." },
+        b: { type: "number" as const, description: "Side b length." },
+        c: { type: "number" as const, description: "Side c length." },
+      }, required: ["a", "b", "c"],
+    },
+  },
+
+  // ── standardform-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "standard_form",
+    description: "Convert a number to scientific and engineering notation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to convert." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── complexnum-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "complex_calc",
+    description: "Complex number arithmetic: add, subtract, multiply, divide, magnitude, conjugate, or polar conversion.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        operation: { type: "string" as const, description: "Operation: add, subtract, multiply, divide, magnitude, conjugate, or polar." },
+        real1: { type: "number" as const, description: "Real part of first complex number." },
+        imag1: { type: "number" as const, description: "Imaginary part of first complex number." },
+        real2: { type: "number" as const, description: "Real part of second complex number (for binary ops)." },
+        imag2: { type: "number" as const, description: "Imaginary part of second complex number (for binary ops)." },
+      }, required: ["operation", "real1", "imag1"],
+    },
+  },
+
+  // ── wavelength-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "wavelength_convert",
+    description: "Convert between wavelength and frequency. Returns energy and EM spectrum band.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        wavelength_m: { type: "number" as const, description: "Wavelength in meters." },
+        frequency_hz: { type: "number" as const, description: "Frequency in hertz." },
+      },
+    },
+  },
+
+  // ── midpoint-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "midpoint_calc",
+    description: "Calculate the midpoint, distance, slope, and angle between two 2D points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── slopeintercept-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "slope_intercept",
+    description: "Find the line equation (slope-intercept and standard form) from two points.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        x1: { type: "number" as const, description: "X of first point." },
+        y1: { type: "number" as const, description: "Y of first point." },
+        x2: { type: "number" as const, description: "X of second point." },
+        y2: { type: "number" as const, description: "Y of second point." },
+      }, required: ["x1", "y1", "x2", "y2"],
+    },
+  },
+
+  // ── logbase-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "log_base",
+    description: "Compute logarithm with any base. Also returns ln, log10, and log2.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Positive number to compute log of." },
+        base: { type: "number" as const, description: "Logarithm base (default 10, must be positive and not 1)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── nthroot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "nth_root",
+    description: "Calculate the nth root of a number. Default is square root (n=2).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        value: { type: "number" as const, description: "Number to find root of." },
+        n: { type: "number" as const, description: "Root degree (default 2 for square root)." },
+      }, required: ["value"],
+    },
+  },
+
+  // ── areacalc-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "area_calculate",
+    description: "Calculate area (and perimeter where possible) of common shapes: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, sector.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        shape: { type: "string" as const, description: "Shape: circle, rectangle, triangle, trapezoid, ellipse, parallelogram, or sector." },
+        radius: { type: "number" as const, description: "Radius (circle, sector)." },
+        width: { type: "number" as const, description: "Width (rectangle)." },
+        height: { type: "number" as const, description: "Height (rectangle, triangle, trapezoid, parallelogram)." },
+        base: { type: "number" as const, description: "Base (triangle, parallelogram)." },
+        base1: { type: "number" as const, description: "First base (trapezoid)." },
+        base2: { type: "number" as const, description: "Second base (trapezoid)." },
+        semi_major: { type: "number" as const, description: "Semi-major axis (ellipse)." },
+        semi_minor: { type: "number" as const, description: "Semi-minor axis (ellipse)." },
+        angle_degrees: { type: "number" as const, description: "Angle in degrees (sector)." },
+      }, required: ["shape"],
+    },
+  },
+
+  // ── dotproduct-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dot_product",
+    description: "Compute the dot product of two vectors. Returns magnitude, angle, and orthogonality check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First vector." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second vector (same length)." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── crossproduct-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "cross_product",
+    description: "Compute the cross product of two 3D vectors. Returns magnitude and parallelism check.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "array" as const, items: { type: "number" as const }, description: "First 3D vector [x,y,z]." },
+        b: { type: "array" as const, items: { type: "number" as const }, description: "Second 3D vector [x,y,z]." },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── weightedmean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "weighted_mean",
+    description: "Compute weighted, arithmetic, geometric, and harmonic means of a set of values.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values." },
+        weights: { type: "array" as const, items: { type: "number" as const }, description: "Optional weights (same length as values)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── variancecalc-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "variance_calc",
+    description: "Calculate population/sample variance, standard deviation, median, range, and coefficient of variation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        values: { type: "array" as const, items: { type: "number" as const }, description: "Array of numeric values (at least 2)." },
+      }, required: ["values"],
+    },
+  },
+
+  // ── poisson-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "poisson_probability",
+    description: "Calculate Poisson distribution PMF and CDF for k events with rate lambda.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        k: { type: "number" as const, description: "Number of events (non-negative integer)." },
+        lambda: { type: "number" as const, description: "Expected rate (positive)." },
+      }, required: ["k", "lambda"],
+    },
+  },
+
+  // ── expgrowth-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "exponential_growth",
+    description: "Model exponential growth or decay: final = initial * e^(rate*time). Includes doubling time or half-life.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        initial: { type: "number" as const, description: "Initial value." },
+        rate: { type: "number" as const, description: "Growth rate (positive=growth, negative=decay)." },
+        time: { type: "number" as const, description: "Time elapsed." },
+      }, required: ["initial", "rate", "time"],
+    },
+  },
+
+  // ── geomseries-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "geometric_series",
+    description: "Calculate finite and infinite sums of a geometric series: a, ar, ar^2, ...",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "number" as const, description: "First term." },
+        r: { type: "number" as const, description: "Common ratio." },
+        n: { type: "number" as const, description: "Number of terms (1-1000)." },
+      }, required: ["a", "r", "n"],
+    },
+  },
+
+  // ── harmonicseries-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "harmonic_series",
+    description: "Calculate partial sum of the harmonic series H(n) = 1 + 1/2 + 1/3 + ... + 1/n.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        n: { type: "number" as const, description: "Number of terms (1-100000)." },
+      }, required: ["n"],
+    },
+  },
+
+  // ── piapprox-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "pi_approx",
+    description: "Approximate pi using Leibniz, Nilakantha, and Wallis formulas. Compare convergence rates.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        terms: { type: "number" as const, description: "Number of terms (default 1000, max 1000000)." },
+      },
+    },
+  },
+
+  // ── taylor-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "taylor_expand",
+    description: "Taylor series approximation for exp, sin, cos, ln(1+x), and atan(x).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        function: { type: "string" as const, description: "Function: exp, sin, cos, ln1p, or atan." },
+        x: { type: "number" as const, description: "Point to evaluate at." },
+        terms: { type: "number" as const, description: "Number of terms (default 10, max 50)." },
+      }, required: ["function", "x"],
+    },
+  },
+
+  // ── lcs-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "string_lcs",
+    description: "Find the longest common subsequence of two strings with similarity score.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        a: { type: "string" as const, description: "First string." },
+        b: { type: "string" as const, description: "Second string." },
+      }, required: ["a", "b"],
+    },
+  },
+  // ── toposort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "topo_sort",
+    description: "Topological sort of a directed graph with cycle detection.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        edges: { type: "array" as const, description: "Array of [from, to] directed edge pairs.", items: { type: "array" as const, items: { type: "string" as const } } },
+      }, required: ["edges"],
+    },
+  },
+  // ── convexhull-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "convex_hull",
+    description: "Compute the convex hull of 2D points with area and perimeter.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] coordinate pairs.", items: { type: "array" as const, items: { type: "number" as const } } },
+      }, required: ["points"],
+    },
+  },
+  // ── knapsack-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "knapsack_solve",
+    description: "Solve the 0-1 knapsack problem: pick items to maximize value within a weight capacity.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        capacity: { type: "number" as const, description: "Maximum weight capacity (integer units, max 100000)." },
+        items: { type: "array" as const, description: "Array of { name?, weight, value } objects.", items: { type: "object" as const, properties: { name: { type: "string" as const }, weight: { type: "number" as const }, value: { type: "number" as const } }, required: ["weight", "value"] } },
+      }, required: ["capacity", "items"],
+    },
+  },
+  // ── spline-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "spline_interpolate",
+    description: "Natural cubic spline interpolation through data points, with optional evaluation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        points: { type: "array" as const, description: "Array of [x, y] data points (at least 3, distinct x).", items: { type: "array" as const, items: { type: "number" as const } } },
+        eval_at: { description: "X value(s) to evaluate the spline at. Number or array of numbers." },
+      }, required: ["points"],
+    },
+  },
+
+  // ── dijkstra-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "dijkstra_path",
+    description: "Find the shortest path between two nodes in a weighted graph (Dijkstra's algorithm).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        source: { type: "string" as const, description: "Source node name." },
+        target: { type: "string" as const, description: "Target node name." },
+        edges: { type: "array" as const, description: "Array of [from, to, weight] triples.", items: { type: "array" as const } },
+        directed: { type: "boolean" as const, description: "Treat graph as directed (default false)." },
+      }, required: ["source", "target", "edges"],
+    },
+  },
+  // ── matrixdecomp-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "matrix_decomp",
+    description: "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "2D array of numbers (the matrix).", items: { type: "array" as const, items: { type: "number" as const } } },
+        operation: { type: "string" as const, description: "Operation: lu, transpose, trace, or rank (default lu)." },
+      }, required: ["matrix"],
+    },
+  },
+  // ── linearsolve-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "linear_solve",
+    description: "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "Coefficient matrix A (square, 2D array).", items: { type: "array" as const, items: { type: "number" as const } } },
+        vector: { type: "array" as const, description: "Right-hand side vector b.", items: { type: "number" as const } },
+      }, required: ["matrix", "vector"],
+    },
+  },
+  // ── numdiff-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "numerical_diff",
+    description: "Numerical differentiation of a math expression using five-point stencil (1st-4th order).",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 + 3*x')." },
+        x: { type: "number" as const, description: "Point to evaluate at." },
+        h: { type: "number" as const, description: "Step size (default 1e-7)." },
+        order: { type: "number" as const, description: "Derivative order: 1, 2, 3, or 4 (default 1)." },
+      }, required: ["expression", "x"],
+    },
+  },
+  // ── numintegrate-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "numerical_integrate",
+    description: "Numerical integration of a math expression using Simpson's rule, trapezoid, or midpoint method.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 + 1')." },
+        a: { type: "number" as const, description: "Lower bound of integration." },
+        b: { type: "number" as const, description: "Upper bound of integration." },
+        method: { type: "string" as const, description: "Method: simpson (default), trapezoid, or midpoint." },
+        intervals: { type: "number" as const, description: "Number of intervals (default 1000, max 1000000)." },
+      }, required: ["expression", "a", "b"],
+    },
+  },
+
+  // ── fft-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "fft_transform",
+    description: "Fast Fourier Transform (Cooley-Tukey radix-2) with optional inverse.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        signal: { type: "array" as const, description: "Array of real-valued samples.", items: { type: "number" as const } },
+        inverse: { type: "boolean" as const, description: "Perform inverse FFT (default false)." },
+      }, required: ["signal"],
+    },
+  },
+  // ── bezier-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "bezier_curve",
+    description: "Compute a Bezier curve from control points with arc length and optional evaluation.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        control_points: { type: "array" as const, description: "Array of [x, y] control points (at least 2).", items: { type: "array" as const, items: { type: "number" as const } } },
+        steps: { type: "number" as const, description: "Number of curve samples (default 50, max 1000)." },
+        eval_at: { description: "t value(s) in [0,1] to evaluate at. Number or array of numbers." },
+      }, required: ["control_points"],
+    },
+  },
+  // ── rootfind-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "root_find",
+    description: "Find roots of a math expression using Newton's method or bisection.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        expression: { type: "string" as const, description: "Math expression in x (e.g. 'x^2 - 4')." },
+        method: { type: "string" as const, description: "Method: newton (default) or bisection." },
+        x0: { type: "number" as const, description: "Initial guess (Newton, default 1)." },
+        a: { type: "number" as const, description: "Left bound (bisection)." },
+        b: { type: "number" as const, description: "Right bound (bisection)." },
+        tolerance: { type: "number" as const, description: "Convergence tolerance (default 1e-10)." },
+        max_iterations: { type: "number" as const, description: "Max iterations (default 100)." },
+      }, required: ["expression"],
+    },
+  },
+  // ── matinverse-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "matrix_inverse",
+    description: "Compute the inverse and determinant of a square matrix using Gauss-Jordan elimination.",
+    inputSchema: {
+      type: "object" as const, additionalProperties: false, properties: {
+        matrix: { type: "array" as const, description: "Square 2D array of numbers.", items: { type: "array" as const, items: { type: "number" as const } } },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── ode-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "ode_solve",
+    description: "Solve an ordinary differential equation numerically using Euler or RK4 method. Provide the ODE as a JS expression in terms of t and y.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        expression: { type: "string", description: "JS expression for dy/dt in terms of t and y, e.g. 't + y'" },
+        t0: { type: "number", description: "Initial time (default 0)" },
+        y0: { type: "number", description: "Initial value y(t0) (default 1)" },
+        t_end: { type: "number", description: "End time (default 1)" },
+        steps: { type: "integer", description: "Number of steps (default 100, max 10000)" },
+        method: { type: "string", enum: ["euler", "rk4"], description: "Integration method (default rk4)" },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── polynomial-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "polynomial_ops",
+    description: "Perform polynomial operations: evaluate, derivative, integral, add, or multiply. Coefficients are highest degree first.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        operation: { type: "string", enum: ["evaluate", "derivative", "integral", "add", "multiply"], description: "Operation to perform" },
+        coefficients: { type: "array", items: { type: "number" }, description: "Polynomial coefficients, highest degree first" },
+        coefficients2: { type: "array", items: { type: "number" }, description: "Second polynomial for add/multiply" },
+        x: { type: "number", description: "Point to evaluate at (for evaluate operation)" },
+      }, required: ["operation", "coefficients"],
+    },
+  },
+
+  // ── hypothesis-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "hypothesis_test",
+    description: "Perform statistical hypothesis tests: z-test, t-test, or chi-squared test. Returns test statistic, p-value, and rejection decision.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        test: { type: "string", enum: ["z", "t", "chi2"], description: "Type of test" },
+        sample_mean: { type: "number", description: "Sample mean (for z/t tests)" },
+        population_mean: { type: "number", description: "Population mean / null hypothesis value" },
+        population_std: { type: "number", description: "Population standard deviation (for z-test)" },
+        sample_std: { type: "number", description: "Sample standard deviation (for t-test)" },
+        sample_size: { type: "integer", description: "Sample size (for z/t tests)" },
+        alpha: { type: "number", description: "Significance level (default 0.05)" },
+        tail: { type: "string", enum: ["two", "left", "right"], description: "Tail type (default two)" },
+        observed: { type: "array", items: { type: "number" }, description: "Observed frequencies (for chi2)" },
+        expected: { type: "array", items: { type: "number" }, description: "Expected frequencies (for chi2)" },
+      }, required: ["test"],
+    },
+  },
+
+  // ── huffman-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "huffman_code",
+    description: "Build a Huffman coding tree for the given text and return the code table, encoded bit count, compression ratio, and entropy.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to encode (max 100000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── correlation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "correlation_calc",
+    description: "Compute Pearson correlation coefficient, r-squared, covariance, and linear regression between two numeric arrays.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        x: { type: "array", items: { type: "number" }, description: "First data array" },
+        y: { type: "array", items: { type: "number" }, description: "Second data array" },
+      }, required: ["x", "y"],
+    },
+  },
+
+  // ── bitcount-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bit_count",
+    description: "Count set bits (popcount), total bits, and convert between decimal, binary, hex, and octal. Detects powers of two.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        value: { type: "string", description: "Integer or binary/hex string (e.g. 42, 0xFF, 0b1010)" },
+      }, required: ["value"],
+    },
+  },
+
+  // ── runstats-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "running_stats",
+    description: "Compute running (sliding window) mean, standard deviation, min, and max over a numeric array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+        window: { type: "integer", description: "Window size (default 5)" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── graph-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "graph_analyze",
+    description: "Analyze a graph: count nodes, edges, connected components, density, degrees, and detect self-loops.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to"] }, description: "Array of edges" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── convolution-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "convolution",
+    description: "Compute discrete convolution of a signal with a kernel. Supports full, same, and valid modes.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        signal: { type: "array", items: { type: "number" }, description: "Input signal array" },
+        kernel: { type: "array", items: { type: "number" }, description: "Convolution kernel array" },
+        mode: { type: "string", enum: ["full", "same", "valid"], description: "Output mode (default full)" },
+      }, required: ["signal", "kernel"],
+    },
+  },
+
+  // ── rle2-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "rle_encode_decode",
+    description: "Run-length encode a numeric array into runs, or decode runs back to a numeric array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        operation: { type: "string", enum: ["encode", "decode"], description: "Operation (default encode)" },
+        data: { type: "array", items: { type: "number" }, description: "Numeric array to encode" },
+        runs: { type: "array", items: { type: "object", properties: { value: { type: "number" }, count: { type: "integer" } } }, description: "Runs to decode" },
+      }, required: ["operation"],
+    },
+  },
+
+  // ── descriptive-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "descriptive_stats",
+    description: "Compute descriptive statistics: mean, median, mode, std, variance, skewness, kurtosis, quartiles, IQR, and more.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── bfs-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "bfs_search",
+    description: "Breadth-first search on a graph. Finds shortest unweighted path, visit order, and reachable node count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node to find path to" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges", "start"],
+    },
+  },
+
+  // ── montecarlo-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "monte_carlo_estimate",
+    description: "Monte Carlo estimation: estimate pi or compute a definite integral via random sampling.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        method: { type: "string", enum: ["pi", "integral"], description: "Estimation method (default pi)" },
+        samples: { type: "integer", description: "Number of random samples (default 10000, max 10000000)" },
+        expression: { type: "string", description: "JS expression in x for integral method" },
+        a: { type: "number", description: "Lower bound for integral" },
+        b: { type: "number", description: "Upper bound for integral" },
+        seed: { type: "integer", description: "Random seed for reproducibility" },
+      }, required: [],
+    },
+  },
+
+  // ── dfs-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "dfs_search",
+    description: "Depth-first search on a graph. Finds a path, visit order, reachable count, and detects cycles.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default true)" },
+      }, required: ["edges", "start"],
+    },
+  },
+
+  // ── percentile-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "percentile_calc",
+    description: "Compute percentiles of a dataset (default p5-p99) and optionally find the percentile rank of a given value.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        data: { type: "array", items: { type: "number" }, description: "Numeric data array" },
+        percentiles: { type: "array", items: { type: "number" }, description: "Percentiles to compute (default [5,10,25,50,75,90,95,99])" },
+        value: { type: "number", description: "Optional value to find its percentile rank" },
+      }, required: ["data"],
+    },
+  },
+
+  // ── mst-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "mst_find",
+    description: "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted edges" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── pagerank-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "page_rank",
+    description: "Compute PageRank scores for nodes in a directed graph.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of directed edges {from, to}" },
+        damping: { type: "number", description: "Damping factor (default 0.85)" },
+        iterations: { type: "number", description: "Max iterations (default 100)" },
+        tolerance: { type: "number", description: "Convergence tolerance (default 1e-6)" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── astar-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "astar_path",
+    description: "Find the shortest path on a 2D grid using the A* algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        grid: { type: "array", items: { type: "array", items: { type: "number" } }, description: "2D grid (0 = passable, 1 = wall)" },
+        start: { type: "array", items: { type: "number" }, description: "[row, col] start position" },
+        end: { type: "array", items: { type: "number" }, description: "[row, col] end position" },
+        diagonal: { type: "boolean", description: "Allow diagonal movement (default true)" },
+      }, required: ["grid", "start", "end"],
+    },
+  },
+
+  // ── simplex-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "simplex_solve",
+    description: "Solve a linear programming problem (maximize objective subject to <= constraints) using the simplex method.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        objective: { type: "array", items: { type: "number" }, description: "Coefficients to maximize (e.g. [5, 4] for 5x + 4y)" },
+        constraints: { type: "array", items: { type: "object", properties: { coeffs: { type: "array", items: { type: "number" } }, bound: { type: "number" } }, required: ["coeffs", "bound"] }, description: "Array of {coeffs, bound} for <= constraints" },
+      }, required: ["objective", "constraints"],
+    },
+  },
+
+  // ── hungarian-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hungarian_assign",
+    description: "Solve the assignment problem (optimally assign N workers to N tasks) using the Hungarian algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        cost_matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "NxN cost matrix" },
+        maximize: { type: "boolean", description: "Maximize instead of minimize (default false)" },
+      }, required: ["cost_matrix"],
+    },
+  },
+
+  // ── kmeans-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "kmeans_cluster",
+    description: "Partition points into k clusters using the k-means algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of numeric vectors (all same dimension)" },
+        k: { type: "number", description: "Number of clusters (default 3)" },
+        max_iterations: { type: "number", description: "Max iterations (default 100)" },
+      }, required: ["points"],
+    },
+  },
+
+  // ── bellmanford-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "bellman_ford",
+    description: "Find shortest paths from a source node using Bellman-Ford (handles negative edge weights).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted directed edges" },
+        start: { type: "string", description: "Start node" },
+        target: { type: "string", description: "Optional target node for path reconstruction" },
+      }, required: ["edges", "start"],
+    },
+  },
+
+  // ── floydwarshall-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "floyd_warshall",
+    description: "Compute all-pairs shortest paths using Floyd-Warshall.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted edges" },
+        directed: { type: "boolean", description: "Treat as directed graph (default true)" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── reservoir-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "reservoir_sample",
+    description: "Select k random items from a list with equal probability using reservoir sampling.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        items: { type: "array", items: {}, description: "Array of items to sample from" },
+        k: { type: "number", description: "Number of items to sample (default 1)" },
+        seed: { type: "number", description: "Optional seed for reproducible results" },
+      }, required: ["items"],
+    },
+  },
+
+  // ── bloomfilter-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "bloom_filter",
+    description: "Build a Bloom filter from items and test membership of query items (probabilistic, no false negatives).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        items: { type: "array", items: { type: "string" }, description: "Strings to insert into the filter" },
+        query: { type: "array", items: { type: "string" }, description: "Strings to check for membership" },
+        fp_rate: { type: "number", description: "Target false positive rate (default 0.01)" },
+      }, required: ["items", "query"],
+    },
+  },
+
+  // ── poweriter-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "power_iteration",
+    description: "Find the dominant eigenvalue and eigenvector of a square matrix via power iteration.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Square NxN matrix" },
+        max_iterations: { type: "number", description: "Max iterations (default 1000)" },
+        tolerance: { type: "number", description: "Convergence tolerance (default 1e-10)" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── tsp-tool.ts ────────────────────────────────────────────────────────────────
+  {
+    name: "tsp_solve",
+    description: "Find a short tour visiting all cities and returning to start (traveling salesman, nearest-neighbor heuristic).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        cities: { type: "array", items: { type: "object", properties: { name: { type: "string" }, x: { type: "number" }, y: { type: "number" } }, required: ["name", "x", "y"] }, description: "Array of {name, x, y} city locations" },
+      }, required: ["cities"],
+    },
+  },
+
+  // ── lrucache-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "lru_simulate",
+    description: "Simulate an LRU cache over a sequence of key accesses and report hit/miss rates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        accesses: { type: "array", items: {}, description: "Sequence of key accesses" },
+        capacity: { type: "number", description: "Cache capacity (default 4)" },
+      }, required: ["accesses"],
+    },
+  },
+
+  // ── unionfind-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "union_find",
+    description: "Perform union-find (disjoint set) operations: merge elements and query connectivity.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        unions: { type: "array", items: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"] }, description: "Pairs to merge" },
+        queries: { type: "array", items: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"] }, description: "Optional pairs to check connectivity" },
+      }, required: ["unions"],
+    },
+  },
+
+  // ── tarjan-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "tarjan_scc",
+    description: "Find all strongly connected components of a directed graph using Tarjan's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of directed edges" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── catalan-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "catalan_calc",
+    description: "Compute the nth Catalan number and its combinatorial interpretations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer index" },
+        sequence: { type: "boolean", description: "Return the full sequence from 0 to n (default false)" },
+        count: { type: "number", description: "Limit sequence length (used with sequence: true)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── rabinkarp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rabin_karp_search",
+    description: "Find all occurrences of a pattern in text using the Rabin-Karp rolling hash algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        pattern: { type: "string", description: "Pattern to find" },
+      }, required: ["text", "pattern"],
+    },
+  },
+
+  // ── sieve-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "sieve_of_eratosthenes",
+    description: "Generate all prime numbers up to N using the Sieve of Eratosthenes algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Upper bound (inclusive), must be >= 2 and <= 10,000,000" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── suffixarray-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "suffix_array_build",
+    description: "Build a suffix array for a string, with optional LCP (longest common prefix) array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string" },
+        lcp: { type: "boolean", description: "Also compute the LCP array (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matchain-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "matrix_chain_order",
+    description: "Find the optimal parenthesization for matrix chain multiplication to minimize scalar multiplications.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        dimensions: {
+          type: "array", items: { type: "number" },
+          description: "Array of matrix dimensions. For N matrices, provide N+1 values: [r1, c1/r2, c2/r3, ..., cN]",
+        },
+      }, required: ["dimensions"],
+    },
+  },
+
+  // ── fenwick-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "fenwick_tree",
+    description: "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array of numbers" },
+        operations: {
+          type: "array",
+          description: "Operations: {type:'update',index,delta}, {type:'query',left,right}, {type:'point_query',index}",
+          items: { type: "object" },
+        },
+      }, required: ["values"],
+    },
+  },
+
+  // ── segtree-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "segment_tree",
+    description: "Build a segment tree for range queries (sum/min/max) with point updates on a mutable array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array of numbers" },
+        operation: { type: "string", enum: ["sum", "min", "max"], description: "Aggregate operation (default sum)" },
+        operations: {
+          type: "array",
+          description: "Operations: {type:'update',index,value} or {type:'query',left,right}",
+          items: { type: "object" },
+        },
+      }, required: ["values"],
+    },
+  },
+
+  // ── kmp-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "kmp_search",
+    description: "Find all occurrences of a pattern in text using Knuth-Morris-Pratt algorithm with failure function.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        pattern: { type: "string", description: "Pattern to find" },
+      }, required: ["text", "pattern"],
+    },
+  },
+
+  // ── ahocorasick-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "aho_corasick_search",
+    description: "Find all occurrences of multiple patterns in text simultaneously using the Aho-Corasick algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to search in" },
+        patterns: { type: "array", items: { type: "string" }, description: "Patterns to search for" },
+      }, required: ["text", "patterns"],
+    },
+  },
+
+  // ── zalgo-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "z_algorithm",
+    description: "Compute the Z-array for a string, or find pattern matches using the Z-algorithm in linear time.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input text" },
+        pattern: { type: "string", description: "Optional pattern to search for" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── trie-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "trie_ops",
+    description: "Build a trie (prefix tree) from words and perform search, prefix count, and autocomplete queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        words: { type: "array", items: { type: "string" }, description: "Words to insert into the trie" },
+        queries: { type: "array", items: { type: "string" }, description: "Words to search for (exact match and prefix count)" },
+        prefix: { type: "string", description: "Prefix for autocomplete suggestions" },
+      }, required: ["words"],
+    },
+  },
+
+  // ── skiplist-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "skip_list_sim",
+    description: "Simulate a skip list: insert values, get sorted output, and search for elements in O(log n) expected time.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Values to insert" },
+        search: { type: "array", items: { type: "number" }, description: "Values to search for" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── manacher-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "manacher_palindrome",
+    description: "Find the longest palindromic substring in linear time using Manacher's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string" },
+        all: { type: "boolean", description: "List all palindromic substrings of length >= 2 (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── countingsort-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "counting_sort",
+    description: "Sort an array of integers in O(n+k) time using counting sort, with frequency analysis.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of integers to sort" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── radixsort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "radix_sort",
+    description: "Sort non-negative integers using radix sort with configurable base.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Non-negative integers to sort" },
+        base: { type: "number", description: "Radix base (default 10, range 2-256)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── treap-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "treap_sim",
+    description: "Simulate a treap (randomized BST): insert values, get sorted output, tree height, and search.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Values to insert" },
+        search: { type: "array", items: { type: "number" }, description: "Values to search for" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── lis-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "longest_increasing_subsequence",
+    description: "Find the longest increasing subsequence in O(n log n) time using patience sorting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── kosaraju-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "kosaraju_scc",
+    description: "Find all strongly connected components in a directed graph using Kosaraju's two-pass algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── bucketsort-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bucket_sort",
+    description: "Sort numbers using the bucket sort algorithm. Distributes elements into buckets, sorts each, then concatenates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort" },
+        bucket_count: { type: "number", description: "Number of buckets (default: sqrt of array length)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── edmondskarp-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "edmonds_karp",
+    description: "Compute maximum flow and minimum cut in a flow network using the Edmonds-Karp (BFS-based Ford-Fulkerson) algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [from, to, capacity] triples" },
+        source: { type: "number", description: "Source vertex (default: 0)" },
+        sink: { type: "number", description: "Sink vertex (default: vertices - 1)" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── avltree-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "avl_tree",
+    description: "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        keys: { type: "array", items: { type: "number" }, description: "Keys to insert into the AVL tree" },
+        search_keys: { type: "array", items: { type: "number" }, description: "Optional keys to search for in the tree" },
+      }, required: ["keys"],
+    },
+  },
+
+  // ── bipartite-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bipartite_check",
+    description: "Check whether an undirected graph is bipartite (2-colorable). Returns the two vertex sets if bipartite, or an odd cycle if not.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Undirected edges as [u, v] pairs" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── eulerpath-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "euler_path",
+    description: "Check whether a graph has an Eulerian path or circuit. Reports degree analysis and start/end vertices.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default: false)" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── sparsetable-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "sparse_table",
+    description: "Build a sparse table for O(1) range minimum or maximum queries on a static array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [left, right] pairs (inclusive)" },
+        mode: { type: "string", enum: ["min", "max"], description: "Query mode: 'min' or 'max' (default: min)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── millerrabin-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "miller_rabin_test",
+    description: "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "number", description: "The number to test for primality (up to 10^18)" },
+      }, required: ["number"],
+    },
+  },
+
+  // ── rbtree-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rb_tree_sim",
+    description: "Build a red-black tree from a list of keys. Returns inorder traversal, tree height, black height, and validity check.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        keys: { type: "array", items: { type: "number" }, description: "Keys to insert into the red-black tree" },
+      }, required: ["keys"],
+    },
+  },
+
+  // ── heapsort-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "heap_sort",
+    description: "Sort numbers using the heap sort algorithm. Guaranteed O(n log n) in-place sorting with swap count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── crt-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "chinese_remainder_theorem",
+    description: "Solve a system of simultaneous congruences using the Chinese Remainder Theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        remainders: { type: "array", items: { type: "number" }, description: "Remainders for each congruence" },
+        moduli: { type: "array", items: { type: "number" }, description: "Moduli for each congruence" },
+      }, required: ["remainders", "moduli"],
+    },
+  },
+
+  // ── graphcolor-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "graph_coloring",
+    description: "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Undirected edges as [u, v] pairs" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── extgcd-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "extended_gcd",
+    description: "Compute the extended GCD of two integers, returning Bezout coefficients and optionally the modular inverse.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        a: { type: "number", description: "First integer" },
+        b: { type: "number", description: "Second integer" },
+      }, required: ["a", "b"],
+    },
+  },
+
+  // ── eulertotient-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "euler_totient",
+    description: "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "number", description: "Positive integer to compute totient for" },
+      }, required: ["number"],
+    },
+  },
+
+  // ── hopcroftcarp-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "hopcroft_karp",
+    description: "Find maximum matching in a bipartite graph using the Hopcroft-Karp algorithm in O(E * sqrt(V)).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        left_size: { type: "number", description: "Number of vertices on the left side" },
+        right_size: { type: "number", description: "Number of vertices on the right side" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [left_vertex, right_vertex] pairs" },
+      }, required: ["left_size", "right_size", "edges"],
+    },
+  },
+
+  // ── intervalmerge-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "interval_merge",
+    description: "Merge overlapping intervals and report gaps, coverage, and the consolidated set.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        intervals: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Intervals as [start, end] pairs" },
+      }, required: ["intervals"],
+    },
+  },
+
+  // ── ternarysearch-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "ternary_search",
+    description: "Ternary search on a sorted array (search mode) or find the extremum of a unimodal array (max/min mode).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+        target: { type: "number", description: "Value to search for (search mode only)" },
+        mode: { type: "string", enum: ["search", "max", "min"], description: "Mode: search (default), max, or min" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── shellsort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "shell_sort",
+    description: "Sort an array using Shell sort with gap sequence tracking, comparison and swap counts.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort (max 100,000 elements)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── matexp-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "matrix_exponentiation",
+    description: "Raise a square matrix to a non-negative integer power using fast exponentiation, with optional modular arithmetic.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Square matrix (max 10x10)" },
+        power: { type: "number", description: "Non-negative integer exponent (max 1 billion)" },
+        mod: { type: "number", description: "Optional modulus for modular arithmetic" },
+      }, required: ["matrix", "power"],
+    },
+  },
+
+  // ── segmentintersect-tool.ts ────────────────────────────────────────────────
+  {
+    name: "segment_intersection",
+    description: "Find all pairwise intersections among a set of 2D line segments, returning intersection points.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        segments: { type: "array", items: { type: "object", properties: { p1: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] }, p2: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] } }, required: ["p1", "p2"] }, description: "Array of line segments (max 1000)" },
+      }, required: ["segments"],
+    },
+  },
+
+  // ── minvertexcover-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "min_vertex_cover",
+    description: "Find the minimum vertex cover of a graph using exact bitmask enumeration (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── suffixauto-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "suffix_automaton",
+    description: "Build a suffix automaton for a string and count distinct substrings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 100,000 characters)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── gabow-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "gabow_scc",
+    description: "Find strongly connected components of a directed graph using Gabow's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── babygiant-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "baby_giant_step",
+    description: "Solve the discrete logarithm problem (find x such that base^x = target mod modulus) using baby-step giant-step.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        base: { type: "number", description: "Base of the exponentiation" },
+        target: { type: "number", description: "Target value" },
+        modulus: { type: "number", description: "Modulus (max 1,000,000,000)" },
+      }, required: ["base", "target", "modulus"],
+    },
+  },
+
+  // ── centroid-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "centroid_decomposition",
+    description: "Compute the centroid decomposition of a tree, returning centroid parents and depths.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (must be N-1 edges)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── wavelet-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wavelet_tree",
+    description: "Build a wavelet tree for an integer array and answer range kth-smallest queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of integers (max 100,000)" },
+        queries: { type: "array", items: { type: "object", properties: { type: { type: "string" }, l: { type: "number" }, r: { type: "number" }, k: { type: "number" } }, required: ["type", "l", "r"] }, description: "Queries: {type:'kth', l, r, k} for kth smallest in [l, r)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── dinic-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dinic_max_flow",
+    description: "Compute maximum flow in a network using Dinic's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 10,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v, capacity] triples" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── lca-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "lowest_common_ancestor",
+    description: "Find lowest common ancestors and distances in a tree using binary lifting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "LCA queries as [u, v] pairs" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges", "queries"],
+    },
+  },
+
+  // ── maxindepset-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "max_independent_set",
+    description: "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── twosat-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "two_sat",
+    description: "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        variable_count: { type: "number", description: "Number of boolean variables (1-based)" },
+        clauses: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Clauses as [a, b] pairs where positive = true, negative = negated" },
+      }, required: ["variable_count", "clauses"],
+    },
+  },
+
+  // ── hld-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "heavy_light_decomposition",
+    description: "Perform heavy-light decomposition of a tree for efficient path queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mincostflow-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "min_cost_max_flow",
+    description: "Compute minimum cost maximum flow using successive shortest paths (SPFA).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [from, to, capacity, cost]" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── persistarray-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "persistent_array",
+    description: "Persistent array with version-controlled get/set operations using a persistent segment tree.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        initial: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: {type:'get'|'set', version, index, value?}" },
+      }, required: ["initial", "operations"],
+    },
+  },
+
+  // ── suffixtree-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "suffix_tree",
+    description: "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input text (max 10,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── linkcut-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "link_cut_tree",
+    description: "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (1-indexed)" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: link, cut, connected, set_value, path_sum with u, v, value fields" },
+      }, required: ["vertex_count", "operations"],
+    },
+  },
+
+  // ── condensation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "graph_condensation",
+    description: "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mosalgo-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "mos_algorithm",
+    description: "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [l, r] pairs (0-indexed, inclusive)" },
+      }, required: ["array", "queries"],
+    },
+  },
+
+  // ── cartesiantree-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "cartesian_tree",
+    description: "Build a Cartesian tree from an array (min-heap ordered with BST on indices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── sternbrocot-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "stern_brocot_tree",
+    description: "Find best rational approximation using the Stern-Brocot tree and continued fractions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        target: { type: "number", description: "Positive number to approximate" },
+        max_denominator: { type: "number", description: "Maximum denominator allowed (default 1000)" },
+      }, required: ["target"],
+    },
+  },
+
+  // ── chromatic-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "chromatic_number",
+    description: "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── eulertour-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "euler_tour",
+    description: "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── gausselim-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "gaussian_elimination",
+    description: "Solve a system of linear equations via Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Augmented matrix rows [a1, a2, ..., an, b]" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── eertree-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "eertree",
+    description: "Build a palindromic tree (eertree) to count distinct palindromic substrings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to analyse" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── pollardrho-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "pollard_rho",
+    description: "Factor an integer using Pollard's rho with Miller-Rabin primality testing.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        value: { type: "number", description: "Positive integer to factor" },
+      }, required: ["value"],
+    },
+  },
+
+  // ── ntt-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "ntt",
+    description: "Multiply two polynomials using Number Theoretic Transform (mod 998244353).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        poly_a: { type: "array", items: { type: "number" }, description: "First polynomial coefficients" },
+        poly_b: { type: "array", items: { type: "number" }, description: "Second polynomial coefficients" },
+      }, required: ["poly_a", "poly_b"],
+    },
+  },
+
+  // ── josephus-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "josephus",
+    description: "Solve the Josephus problem: find the survivor in a circle of n people eliminating every k-th.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Number of people in the circle" },
+        k: { type: "number", description: "Every k-th person is eliminated" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── berlekamp-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "berlekamp_massey",
+    description: "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        sequence: { type: "array", items: { type: "number" }, description: "Input sequence of integers" },
+      }, required: ["sequence"],
+    },
+  },
+
+  // ── sos-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "sos_dp",
+    description: "Sum over Subsets (SOS) dynamic programming / zeta transform on bitmasks.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of values indexed by bitmask (length must be power of 2)" },
+        direction: { type: "string", description: "subset_sum or superset_sum (default: superset_sum)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── xorbase-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "xor_basis",
+    description: "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of non-negative integers" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── moebius-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "moebius_function",
+    description: "Compute Moebius function values and Mertens function using linear sieve.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Positive integer upper bound (max 10,000,000)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zfunction-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "z_function",
+    description: "Compute Z-function of a string with optional pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to compute Z-function for" },
+        pattern: { type: "string", description: "Optional pattern to search for in text" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── chineseremainder-tool.ts ──────────────────────────────────────────────
+  {
+    name: "chinese_remainder",
+    description: "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        remainders: { type: "array", items: { type: "number" }, description: "Array of remainders" },
+        moduli: { type: "array", items: { type: "number" }, description: "Array of moduli (positive integers)" },
+      }, required: ["remainders", "moduli"],
+    },
+  },
+
+  // ── lucas-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "lucas_theorem",
+    description: "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer n" },
+        k: { type: "number", description: "Non-negative integer k (k <= n)" },
+        p: { type: "number", description: "Prime modulus" },
+      }, required: ["n", "k", "p"],
+    },
+  },
+
+  // ── duval-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "duval_factorize",
+    description: "Compute the Lyndon factorization of a string using Duval's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to factorize (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── goertzel-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "goertzel",
+    description: "Compute a single DFT frequency bin using the Goertzel algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        samples: { type: "array", items: { type: "number" }, description: "Array of real-valued samples" },
+        bin: { type: "number", description: "Target frequency bin index (0 to N-1)" },
+      }, required: ["samples", "bin"],
+    },
+  },
+
+  // ── bwt-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "burrows_wheeler",
+    description: "Compute the Burrows-Wheeler Transform (forward or inverse).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (or BWT output for inverse mode)" },
+        inverse: { type: "boolean", description: "If true, perform inverse BWT" },
+        original_index: { type: "number", description: "Original index (required for inverse mode)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── ackermann-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "ackermann",
+    description: "Compute the Ackermann function A(m, n).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        m: { type: "number", description: "Non-negative integer m (max 4)" },
+        n: { type: "number", description: "Non-negative integer n" },
+      }, required: ["m", "n"],
+    },
+  },
+
+  // ── debruijn-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "de_bruijn",
+    description: "Generate a de Bruijn sequence B(k,n) containing every k-ary substring of length n exactly once.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        k: { type: "number", description: "Alphabet size (2-10)" },
+        n: { type: "number", description: "Substring length (1-10)" },
+      }, required: ["k", "n"],
+    },
+  },
+
+  // ── shunting-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "shunting_yard",
+    description: "Convert an infix math expression to postfix (RPN) and evaluate it.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        expression: { type: "string", description: "Infix math expression (e.g. '3 + 4 * 2')" },
+      }, required: ["expression"],
+    },
+  },
+
+  // ── fenwickrange-tool.ts ──────────────────────────────────────────────────
+  {
+    name: "fenwick_range",
+    description: "Fenwick tree with range update and range query support using two BITs.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, left, right, value?} operations" },
+      }, required: ["values", "operations"],
+    },
+  },
+
+  // ── bitmask-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "bitmask_ops",
+    description: "Bitmask operations: info, submasks, supersets, next permutation, enumerate set bits.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mask: { type: "number", description: "Non-negative integer bitmask" },
+        operation: { type: "string", description: "Operation: info, submasks, supersets, next_permutation, or enumerate" },
+        universe: { type: "number", description: "Universe mask for supersets operation" },
+      }, required: ["mask", "operation"],
+    },
+  },
+
+  // ── graycode-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "gray_code",
+    description: "Convert between binary and Gray code, or generate n-bit Gray code sequences.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Bit width (1-20)" },
+        value: { type: "number", description: "Optional value to convert (omit for full sequence)" },
+        to_gray: { type: "boolean", description: "If true convert binary to Gray; if false convert Gray to binary (default true)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── catmullrom-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "catmull_rom",
+    description: "Evaluate a Catmull-Rom spline through control points at given parameter values.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array" }, description: "Control points as [x,y] pairs (min 4)" },
+        t_values: { type: "array", items: { type: "number" }, description: "Parameter values 0-1 to evaluate" },
+        alpha: { type: "number", description: "Alpha parameter (0=uniform, 0.5=centripetal, 1=chordal; default 0.5)" },
+      }, required: ["points", "t_values"],
+    },
+  },
+
+  // ── rlencode-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "rl_encode",
+    description: "Run-length encode or decode a string.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to encode or RLE-encoded string to decode" },
+        decode: { type: "boolean", description: "If true, decode RLE input (default false)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── topocount-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "topo_count",
+    description: "Count the number of distinct topological orderings of a DAG.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        num_nodes: { type: "number", description: "Number of nodes (max 20)" },
+        edges: { type: "array", items: { type: "array" }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["num_nodes", "edges"],
+    },
+  },
+
+  // ── booth-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "booth_rotation",
+    description: "Find the lexicographically smallest rotation of a string using Booth's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── prefixfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "prefix_function",
+    description: "Compute the KMP prefix/failure function array, with optional pattern occurrence counting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 1,000,000 chars)" },
+        pattern: { type: "string", description: "Optional pattern to count occurrences of" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── matrank-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "matrix_rank",
+    description: "Compute the rank of a matrix using Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array" }, description: "2D number array (max 100x100)" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── fenwick2d-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "fenwick_2d",
+    description: "2D Fenwick tree for point updates and rectangle sum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        rows: { type: "number", description: "Number of rows" },
+        cols: { type: "number", description: "Number of columns" },
+        operations: { type: "array", items: { type: "object" }, description: "Array of {type, row, col, row2?, col2?, value?} operations" },
+      }, required: ["rows", "cols", "operations"],
+    },
+  },
+
+  // ── contfrac-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "continued_fraction",
+    description: "Convert a rational number to its continued fraction representation with convergents.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        numerator: { type: "number", description: "Numerator of the rational number" },
+        denominator: { type: "number", description: "Denominator of the rational number" },
+        max_terms: { type: "number", description: "Maximum number of terms (default 50)" },
+      }, required: ["numerator", "denominator"],
+    },
+  },
+
+  // ── lcprefix-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "longest_common_prefix",
+    description: "Find the longest common prefix among an array of strings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        strings: { type: "array", items: { type: "string" }, description: "Array of strings (max 10,000)" },
+      }, required: ["strings"],
+    },
+  },
+
+  // ── lehmer-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "lehmer_code",
+    description: "Convert between permutations and Lehmer codes, compute permutation rank and unrank.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        permutation: { type: "array", items: { type: "number" }, description: "Permutation of [0..n-1] to encode" },
+        rank: { type: "number", description: "Lexicographic rank to decode (use with n)" },
+        n: { type: "number", description: "Permutation size for unranking (use with rank)" },
+      }, required: [],
+    },
+  },
+
+  // ── digitdp-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "digit_dp",
+    description: "Count integers from 1 to N whose digit sum equals a target value using digit DP.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Upper bound (positive integer, max 1e15)" },
+        target_digit_sum: { type: "number", description: "Target digit sum (0-135)" },
+      }, required: ["n", "target_digit_sum"],
+    },
+  },
+
+  // ── coinchange-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "coin_change",
+    description: "Compute minimum coins for a target amount and count distinct combinations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        coins: { type: "array", items: { type: "number" }, description: "Coin denominations" },
+        amount: { type: "number", description: "Target amount (max 1,000,000)" },
+      }, required: ["coins", "amount"],
+    },
+  },
+
+  // ── editdist-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "edit_distance",
+    description: "Compute edit distance with full backtrace of insert/delete/replace operations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        source: { type: "string", description: "Source string (max 5,000 chars)" },
+        target: { type: "string", description: "Target string (max 5,000 chars)" },
+      }, required: ["source", "target"],
+    },
+  },
+
+  // ── powerset-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "power_set",
+    description: "Generate all subsets of a set (up to 20 elements).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        elements: { type: "array", description: "Array of elements (max 20)" },
+      }, required: ["elements"],
+    },
+  },
+
+  // ── necklace-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "necklace_count",
+    description: "Count distinct necklaces and bracelets using Burnside's lemma.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Length (1-1000)" },
+        k: { type: "number", description: "Number of colors (1-1000)" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── derangement-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "derangement_calc",
+    description: "Count and optionally enumerate derangements (permutations with no fixed points).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Size of permutation (1-20)" },
+        enumerate: { type: "boolean", description: "List all derangements (n <= 8)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── kmpautomaton-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "kmp_automaton",
+    description: "Build a full KMP DFA transition table for streaming pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pattern: { type: "string", description: "Pattern string (max 1000 chars)" },
+        alphabet: { type: "string", description: "Alphabet characters (default a-z)" },
+      }, required: ["pattern"],
+    },
+  },
+
+  // ── rmqsparse-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "rmq_sparse",
+    description: "Build a sparse table for O(1) range minimum/maximum queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input array" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [left, right] pairs" },
+        mode: { type: "string", description: "\"min\" or \"max\" (default min)" },
+      }, required: ["values", "queries"],
+    },
+  },
+
+  // ── partition-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "partition_count",
+    description: "Count integer partitions of n with optional max part size and part count constraints.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer to partition (0-10000)" },
+        max_part: { type: "number", description: "Maximum part size" },
+        num_parts: { type: "number", description: "Exact number of parts" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── stirling-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "stirling_numbers",
+    description: "Compute Stirling numbers of the first or second kind via DP.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "n (0-200)" },
+        k: { type: "number", description: "k (0-n)" },
+        kind: { type: "number", description: "1 or 2 (default 2)" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── waveletfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "haar_wavelet",
+    description: "Haar wavelet transform (forward and inverse) on a power-of-2 length array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input values (length must be power of 2)" },
+        inverse: { type: "boolean", description: "Inverse transform (default false)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── convexhull3d-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "convex_hull_3d",
+    description: "Compute the 3D convex hull of a point set, returning triangular faces.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y,z] points (at least 4)" },
+      }, required: ["points"],
+    },
+  },
+
+  // ── bezierclip-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "bezier_clip",
+    description: "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        control_points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y] control points" },
+        t_start: { type: "number", description: "Start parameter (0-1)" },
+        t_end: { type: "number", description: "End parameter (0-1)" },
+      }, required: ["control_points", "t_start", "t_end"],
     },
   },
 
@@ -21688,6 +24187,314 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // proportion-tool.ts
   proportion_solve:          (args) => proportionSolve(args),
+
+  // quadratic-tool.ts
+  quadratic_solve:           (args) => quadraticSolve(args),
+
+  // primefactor-tool.ts
+  prime_factor:              (args) => primeFactor(args),
+
+  // zscore-tool.ts
+  zscore_calculate:          (args) => zscoreCalculate(args),
+
+  // angleconv-tool.ts
+  angle_convert:             (args) => angleConvert(args),
+
+  // polygon-tool.ts
+  polygon_calculate:         (args) => polygonCalculate(args),
+
+  // sigmoid-tool.ts
+  sigmoid_calculate:         (args) => sigmoidCalculate(args),
+
+  // interpolate-tool.ts
+  interpolate_calc:          (args) => interpolateCalc(args),
+
+  // modpow-tool.ts
+  modular_arithmetic:        (args) => modularArithmetic(args),
+
+  // ratiosimplify-tool.ts
+  ratio_simplify:            (args) => ratioSimplify(args),
+
+  // binomprob-tool.ts
+  binomial_probability:      (args) => binomialProbability(args),
+
+  // normaldistr-tool.ts
+  normal_distribution:       (args) => normalDistribution(args),
+
+  // trianglesolve-tool.ts
+  triangle_solve:            (args) => triangleSolve(args),
+
+  // standardform-tool.ts
+  standard_form:             (args) => standardForm(args),
+
+  // complexnum-tool.ts
+  complex_calc:              (args) => complexCalc(args),
+
+  // wavelength-tool.ts
+  wavelength_convert:        (args) => wavelengthConvert(args),
+
+  // midpoint-tool.ts
+  midpoint_calc:             (args) => midpointCalc(args),
+
+  // slopeintercept-tool.ts
+  slope_intercept:           (args) => slopeIntercept(args),
+
+  // logbase-tool.ts
+  log_base:                  (args) => logBase(args),
+
+  // nthroot-tool.ts
+  nth_root:                  (args) => nthRoot(args),
+
+  // areacalc-tool.ts
+  area_calculate:            (args) => areaCalculate(args),
+
+  // dotproduct-tool.ts
+  dot_product:               (args) => dotProduct(args),
+
+  // crossproduct-tool.ts
+  cross_product:             (args) => crossProduct(args),
+
+  // weightedmean-tool.ts
+  weighted_mean:             (args) => weightedMean(args),
+
+  // variancecalc-tool.ts
+  variance_calc:             (args) => varianceCalc(args),
+
+  // poisson-tool.ts
+  poisson_probability:       (args) => poissonProbability(args),
+
+  // expgrowth-tool.ts
+  exponential_growth:        (args) => exponentialGrowth(args),
+
+  // geomseries-tool.ts
+  geometric_series:          (args) => geometricSeries(args),
+
+  // harmonicseries-tool.ts
+  harmonic_series:           (args) => harmonicSeries(args),
+
+  // piapprox-tool.ts
+  pi_approx:                 (args) => piApprox(args),
+
+  // taylor-tool.ts
+  taylor_expand:             (args) => taylorExpand(args),
+
+  // batch 58: algorithms & data structures
+  string_lcs:                (args) => stringLcs(args),
+  topo_sort:                 (args) => topoSort(args),
+  convex_hull:               (args) => convexHull(args),
+  knapsack_solve:            (args) => knapsackSolve(args),
+  spline_interpolate:        (args) => splineInterpolate(args),
+
+  // batch 59: graphs, linear algebra, calculus
+  dijkstra_path:             (args) => dijkstraPath(args),
+  matrix_decomp:             (args) => matrixDecomp(args),
+  linear_solve:              (args) => linearSolve(args),
+  numerical_diff:            (args) => numericalDiff(args),
+  numerical_integrate:       (args) => numericalIntegrate(args),
+
+  // batch 60: signal processing, curves, root finding, matrix inverse
+  fft_transform:             (args) => fftTransform(args),
+  bezier_curve:              (args) => bezierCurve(args),
+  root_find:                 (args) => rootFind(args),
+  matrix_inverse:            (args) => matrixInverse(args),
+
+  // batch 61: ODE solver, polynomial ops, hypothesis testing, Huffman coding
+  ode_solve:                 (args) => odeSolve(args),
+  polynomial_ops:            (args) => polynomialOps(args),
+  hypothesis_test:           (args) => hypothesisTest(args),
+  huffman_code:              (args) => huffmanCode(args),
+
+  // batch 62: correlation, bit count, running stats, graph analysis
+  correlation_calc:          (args) => correlationCalc(args),
+  bit_count:                 (args) => bitCount(args),
+  running_stats:             (args) => runningStats(args),
+  graph_analyze:             (args) => graphAnalyze(args),
+
+  // batch 63: convolution, RLE encode/decode, descriptive stats, BFS
+  convolution:               (args) => convolution(args),
+  rle_encode_decode:         (args) => rleEncodeDecode(args),
+  descriptive_stats:         (args) => descriptiveStats(args),
+  bfs_search:                (args) => bfsSearch(args),
+
+  // batch 64: Monte Carlo, DFS, percentile, MST
+  monte_carlo_estimate:      (args) => monteCarloEstimate(args),
+  dfs_search:                (args) => dfsSearch(args),
+  percentile_calc:           (args) => percentileCalc(args),
+  mst_find:                  (args) => mstFind(args),
+
+  // batch 65: PageRank, A*, simplex, Hungarian
+  page_rank:                 (args) => pageRank(args),
+  astar_path:                (args) => astarPath(args),
+  simplex_solve:             (args) => simplexSolve(args),
+  hungarian_assign:          (args) => hungarianAssign(args),
+
+  // batch 66: k-means, Bellman-Ford, Floyd-Warshall, reservoir sampling
+  kmeans_cluster:            (args) => kmeansCluster(args),
+  bellman_ford:              (args) => bellmanFord(args),
+  floyd_warshall:            (args) => floydWarshall(args),
+  reservoir_sample:          (args) => reservoirSample(args),
+
+  // batch 67: Bloom filter, power iteration, TSP, LRU cache
+  bloom_filter:              (args) => bloomFilter(args),
+  power_iteration:           (args) => powerIteration(args),
+  tsp_solve:                 (args) => tspSolve(args),
+  lru_simulate:              (args) => lruSimulate(args),
+
+  // batch 68: Union-Find, Tarjan SCC, Catalan, Rabin-Karp
+  union_find:                (args) => unionFindOps(args),
+  tarjan_scc:                (args) => tarjanScc(args),
+  catalan_calc:              (args) => catalanCalc(args),
+  rabin_karp_search:         (args) => rabinKarpSearch(args),
+
+  // batch 69: Sieve, Suffix Array, Matrix Chain, Fenwick Tree
+  sieve_of_eratosthenes:     (args) => sieveOfEratosthenes(args),
+  suffix_array_build:        (args) => suffixArrayBuild(args),
+  matrix_chain_order:        (args) => matChainOrder(args),
+  fenwick_tree:              (args) => fenwickTree(args),
+
+  // batch 70: Segment Tree, KMP, Aho-Corasick, Z-Algorithm
+  segment_tree:              (args) => segTree(args),
+  kmp_search:                (args) => kmpSearch(args),
+  aho_corasick_search:       (args) => ahoCorasickSearch(args),
+  z_algorithm:               (args) => zAlgorithm(args),
+
+  // batch 71: Trie, Skip List, Manacher, Counting Sort
+  trie_ops:                  (args) => trieOps(args),
+  skip_list_sim:             (args) => skipListSim(args),
+  manacher_palindrome:       (args) => manacherPalindrome(args),
+  counting_sort:             (args) => countingSort(args),
+
+  // batch 72: Radix Sort, Treap, LIS, Kosaraju SCC
+  radix_sort:                (args) => radixSort(args),
+  treap_sim:                 (args) => treapSim(args),
+  longest_increasing_subsequence: (args) => longestIncreasingSubseq(args),
+  kosaraju_scc:              (args) => kosarajuScc(args),
+
+  // batch 73: Bucket Sort, Edmonds-Karp, AVL Tree, Bipartite Check
+  bucket_sort:               (args) => bucketSort(args),
+  edmonds_karp:              (args) => edmondsKarp(args),
+  avl_tree:                  (args) => avlTree(args),
+  bipartite_check:           (args) => bipartiteCheck(args),
+
+  // batch 74: Euler Path, Sparse Table, Miller-Rabin, Red-Black Tree
+  euler_path:                (args) => eulerPath(args),
+  sparse_table:              (args) => sparseTable(args),
+  miller_rabin_test:         (args) => millerRabinTest(args),
+  rb_tree_sim:               (args) => rbTreeSim(args),
+
+  // batch 75: Heap Sort, CRT, Graph Coloring, Extended GCD
+  heap_sort:                 (args) => heapSort(args),
+  chinese_remainder_theorem: (args) => chineseRemainderTheorem(args),
+  graph_coloring:            (args) => graphColoring(args),
+  extended_gcd:              (args) => extendedGcd(args),
+
+  // batch 76: Euler Totient, Hopcroft-Karp, Interval Merge, Ternary Search
+  euler_totient:             (args) => eulerTotient(args),
+  hopcroft_karp:             (args) => hopcroftKarp(args),
+  interval_merge:            (args) => intervalMerge(args),
+  ternary_search:            (args) => ternarySearch(args),
+
+  // batch 77: Shell Sort, Matrix Exponentiation, Segment Intersection, Min Vertex Cover
+  shell_sort:                (args) => shellSort(args),
+  matrix_exponentiation:     (args) => matrixExponentiation(args),
+  segment_intersection:      (args) => segmentIntersection(args),
+  min_vertex_cover:          (args) => minVertexCover(args),
+
+  // batch 78: Suffix Automaton, Gabow SCC, Baby-step Giant-step, Centroid Decomposition
+  suffix_automaton:          (args) => suffixAutomaton(args),
+  gabow_scc:                 (args) => gabowScc(args),
+  baby_giant_step:           (args) => babyGiantStep(args),
+  centroid_decomposition:    (args) => centroidDecomposition(args),
+
+  // batch 79: Wavelet Tree, Dinic Max Flow, LCA, Max Independent Set
+  wavelet_tree:              (args) => waveletTree(args),
+  dinic_max_flow:            (args) => dinicMaxFlow(args),
+  lowest_common_ancestor:    (args) => lowestCommonAncestor(args),
+  max_independent_set:       (args) => maxIndependentSet(args),
+
+  // batch 80: 2-SAT, HLD, Min Cost Max Flow, Persistent Array
+  two_sat:                       (args) => twoSat(args),
+  heavy_light_decomposition:     (args) => heavyLightDecomp(args),
+  min_cost_max_flow:             (args) => minCostMaxFlow(args),
+  persistent_array:              (args) => persistentArray(args),
+
+  // batch 81: Suffix Tree, Link-Cut Tree, Graph Condensation, Mo's Algorithm
+  suffix_tree:                   (args) => suffixTree(args),
+  link_cut_tree:                 (args) => linkCutTree(args),
+  graph_condensation:            (args) => graphCondensation(args),
+  mos_algorithm:                 (args) => mosAlgorithm(args),
+
+  // batch 82: Cartesian Tree, Stern-Brocot Tree, Chromatic Number, Euler Tour
+  cartesian_tree:                (args) => cartesianTree(args),
+  stern_brocot_tree:             (args) => sternBrocotTree(args),
+  chromatic_number:              (args) => chromaticNumber(args),
+  euler_tour:                    (args) => eulerTour(args),
+
+  // batch 83: Gaussian Elimination, Eertree, Pollard's Rho, NTT
+  gaussian_elimination:          (args) => gaussianElimination(args),
+  eertree:                       (args) => eertree(args),
+  pollard_rho:                   (args) => pollardRho(args),
+  ntt:                           (args) => ntt(args),
+
+  // batch 84: Josephus, Berlekamp-Massey, SOS DP, XOR Basis
+  josephus:                      (args) => josephus(args),
+  berlekamp_massey:              (args) => berlekampMassey(args),
+  sos_dp:                        (args) => sosDp(args),
+  xor_basis:                     (args) => xorBasis(args),
+
+  // batch 85: Moebius Function, Z-Function, Chinese Remainder, Lucas' Theorem
+  moebius_function:              (args) => moebiusFunction(args),
+  z_function:                    (args) => zFunction(args),
+  chinese_remainder:             (args) => chineseRemainder(args),
+  lucas_theorem:                 (args) => lucasTheorem(args),
+
+  // batch 86: Duval, Goertzel, Burrows-Wheeler, Ackermann
+  duval_factorize:               (args) => duvalFactorize(args),
+  goertzel:                      (args) => goertzel(args),
+  burrows_wheeler:               (args) => burrowsWheeler(args),
+  ackermann:                     (args) => ackermannFunction(args),
+
+  // batch 87: de Bruijn, Shunting-Yard, Fenwick Range, Bitmask Ops
+  de_bruijn:                     (args) => deBruijn(args),
+  shunting_yard:                 (args) => shuntingYard(args),
+  fenwick_range:                 (args) => fenwickRange(args),
+  bitmask_ops:                   (args) => bitmaskOps(args),
+
+  // batch 88: Gray Code, Catmull-Rom, Run-Length Encoding, Topo Count
+  gray_code:                     (args) => grayCode(args),
+  catmull_rom:                   (args) => catmullRom(args),
+  rl_encode:                     (args) => rlEncode(args),
+  topo_count:                    (args) => topoCount(args),
+
+  // batch 89: Booth, Prefix Function, Matrix Rank, Fenwick 2D
+  booth_rotation:                (args) => boothRotation(args),
+  prefix_function:               (args) => prefixFunction(args),
+  matrix_rank:                   (args) => matrixRank(args),
+  fenwick_2d:                    (args) => fenwick2D(args),
+
+  // batch 90: Continued Fractions, Longest Common Prefix, Lehmer Code, Digit DP
+  continued_fraction:            (args) => continuedFraction(args),
+  longest_common_prefix:         (args) => longestCommonPrefix(args),
+  lehmer_code:                   (args) => lehmerCode(args),
+  digit_dp:                      (args) => digitDp(args),
+
+  // batch 91: Coin Change, Edit Distance, Power Set, Necklace Count
+  coin_change:                   (args) => coinChange(args),
+  edit_distance:                 (args) => editDistance(args),
+  power_set:                     (args) => powerSet(args),
+  necklace_count:                (args) => necklaceCount(args),
+
+  // batch 92: Derangement, KMP Automaton, RMQ Sparse, Partition
+  derangement_calc:              (args) => derangementCalc(args),
+  kmp_automaton:                 (args) => kmpAutomaton(args),
+  rmq_sparse:                    (args) => rmqSparse(args),
+  partition_count:               (args) => partitionCount(args),
+
+  // batch 93: Stirling Numbers, Haar Wavelet, 3D Convex Hull, Bezier Clip
+  stirling_numbers:              (args) => stirlingNumbers(args),
+  haar_wavelet:                  (args) => haarWavelet(args),
+  convex_hull_3d:                (args) => convexHull3D(args),
+  bezier_clip:                   (args) => bezierClip(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -344,7 +344,19 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
   requireOpenAiSpendAllowed("transcription", model, apiKey);
 
   // Fetch the audio file
-  const audioRes = await fetch(audioUrl);
+  const dlController = new AbortController();
+  const dlTimer = setTimeout(() => dlController.abort(), OPENAI_TIMEOUT_MS);
+  let audioRes: Response;
+  try {
+    audioRes = await fetch(audioUrl, { signal: dlController.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Audio download timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Failed to fetch audio: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(dlTimer);
+  }
   if (!audioRes.ok) throw new Error(`Failed to fetch audio_url: HTTP ${audioRes.status}`);
   const audioBlob = await audioRes.blob();
 
@@ -357,11 +369,24 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
   if (args.prompt) form.append("prompt", String(args.prompt));
   if (args.temperature !== undefined) form.append("temperature", String(args.temperature));
 
-  const res = await fetch(`${OPENAI_API_BASE}/audio/transcriptions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
-  });
+  const txController = new AbortController();
+  const txTimer = setTimeout(() => txController.abort(), OPENAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENAI_API_BASE}/audio/transcriptions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: form,
+      signal: txController.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAI transcription request timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAI transcription network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(txTimer);
+  }
 
   if (!res.ok) {
     let msg = `status ${res.status}`;
