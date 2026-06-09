@@ -1016,6 +1016,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cartesiantree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cartesian_tree",
+        "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+      }
+    ]
+  },
+  {
     "app": "cataas",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1138,6 +1148,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "chess_leaderboards",
         "description": "Get Chess.com leaderboards."
+      }
+    ]
+  },
+  {
+    "app": "chromatic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chromatic_number",
+        "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
       }
     ]
   },
@@ -2712,6 +2732,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "euler_totient",
         "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+      }
+    ]
+  },
+  {
+    "app": "eulertour",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "euler_tour",
+        "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
       }
     ]
   },
@@ -8160,6 +8190,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_steam_store",
         "description": "Search the Steam store for games by name."
+      }
+    ]
+  },
+  {
+    "app": "sternbrocot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stern_brocot_tree",
+        "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
       }
     ]
   },

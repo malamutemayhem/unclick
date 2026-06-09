@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1050,
+    "inventory": 1054,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 624,
+    "tools": 628,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 624
+      "count": 628
     },
     {
       "id": "rooms",
@@ -4862,6 +4862,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-cartesiantree-packages-mcp-server-src-cartesiantree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "cartesiantree",
+      "kind": "MCP tool",
+      "meaning": "cartesiantree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/cartesiantree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-cataas-packages-mcp-server-src-cataas-tool-ts-no-route",
       "division": "Tools",
       "name": "cataas",
@@ -4948,6 +4958,16 @@
       "kind": "MCP tool",
       "meaning": "chessdotcom MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/chessdotcom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-chromatic-packages-mcp-server-src-chromatic-tool-ts-no-route",
+      "division": "Tools",
+      "name": "chromatic",
+      "kind": "MCP tool",
+      "meaning": "chromatic MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/chromatic-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5918,6 +5938,16 @@
       "kind": "MCP tool",
       "meaning": "eulertotient MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/eulertotient-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-eulertour-packages-mcp-server-src-eulertour-tool-ts-no-route",
+      "division": "Tools",
+      "name": "eulertour",
+      "kind": "MCP tool",
+      "meaning": "eulertour MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/eulertour-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9432,6 +9462,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sternbrocot-packages-mcp-server-src-sternbrocot-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sternbrocot",
+      "kind": "MCP tool",
+      "meaning": "sternbrocot MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sternbrocot-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-stringcase-packages-mcp-server-src-stringcase-tool-ts-no-route",
       "division": "Tools",
       "name": "stringcase",
@@ -11521,6 +11561,11 @@
       "packages/mcp-server/src/carboninterface-tool.ts"
     ],
     [
+      "cartesiantree",
+      "cartesiantree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/cartesiantree-tool.ts"
+    ],
+    [
       "cataas",
       "cataas MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/cataas-tool.ts"
@@ -11564,6 +11609,11 @@
       "chessdotcom",
       "chessdotcom MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/chessdotcom-tool.ts"
+    ],
+    [
+      "chromatic",
+      "chromatic MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/chromatic-tool.ts"
     ],
     [
       "chucknorris",
@@ -12049,6 +12099,11 @@
       "eulertotient",
       "eulertotient MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/eulertotient-tool.ts"
+    ],
+    [
+      "eulertour",
+      "eulertour MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/eulertour-tool.ts"
     ],
     [
       "europeana",
@@ -13804,6 +13859,11 @@
       "steam",
       "steam MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/steam-tool.ts"
+    ],
+    [
+      "sternbrocot",
+      "sternbrocot MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sternbrocot-tool.ts"
     ],
     [
       "stringcase",
