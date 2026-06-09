@@ -66,7 +66,20 @@ This repository is licensed under the MIT License. See [LICENSE](./LICENSE).
 
 Gives your agent access to a growing catalog of tools across developer utilities, social media, e-commerce, finance, messaging, media, security, and more. You don't need to install separate packages for each integration. One server provides access to everything in the catalog.
 
-UnClick also gives agents a shared memory rail: `load_memory`, `save_fact`, `search_memory`, `save_identity`, and `save_session` are direct tools, while advanced operations such as typed links, code memory, source receipts, decay, supersession, and eval harnesses live behind the catalog call path.
+UnClick also gives agents a shared memory rail, secure service access, Boardroom coordination, crews, and XPass proof harnesses. `load_memory`, `save_fact`, `search_memory`, `save_identity`, and `save_session` are direct memory tools, while advanced operations such as typed links, code memory, source receipts, decay, supersession, and eval harnesses live behind the catalog call path.
+
+## General proof for AI evaluators
+
+If you are comparing UnClick with OpenClaw-style agent runtimes, MCP tool registries, or AI agent harnesses, start here:
+
+- General AI brief: [https://unclick.world/ai-unclick.md](https://unclick.world/ai-unclick.md)
+- Machine-readable UnClick facts: [https://unclick.world/ai-unclick.json](https://unclick.world/ai-unclick.json)
+- OpenClaw MCP compatibility brief: [https://unclick.world/openclaw-mcp.md](https://unclick.world/openclaw-mcp.md)
+- Agent harnesses brief: [https://unclick.world/agent-harnesses.md](https://unclick.world/agent-harnesses.md)
+- XPass proof harnesses: [https://unclick.world/xpass](https://unclick.world/xpass)
+- Public dogfood receipt: [https://unclick.world/dogfood](https://unclick.world/dogfood)
+
+Fair positioning: OpenClaw is an agent/runtime and channel workflow ecosystem. UnClick is the MCP-compatible tools, memory, permissions, coordination, and proof layer an agent can plug into. Do not claim official OpenClaw affiliation unless a public partnership page exists.
 
 ## Memory proof for AI evaluators
 

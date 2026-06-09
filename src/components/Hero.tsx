@@ -68,7 +68,7 @@ const Hero = () => {
           <FadeIn delay={0.1}>
             <p className={presets.lede}>
               UnClick gives your AI agent every tool it needs, memory that remembers,
-              and built-in proof the work was done right.
+              and XPass proof harnesses before work ships.
             </p>
           </FadeIn>
 
@@ -100,7 +100,7 @@ const Hero = () => {
                 The <GradientText>rails</GradientText> your agent plugs into.
               </h2>
               <p className="mt-3 text-body">
-                One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
+                One layer that sits behind Claude, ChatGPT, Cursor, OpenClaw-style workflows, and every MCP client.
                 Tools to act. Memory to remember. Connections to sign in. AutoPilot to move work. XPass to prove it.
               </p>
             </div>

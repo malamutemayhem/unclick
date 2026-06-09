@@ -23,6 +23,7 @@
     "memory:eval": "node scripts/memory-retrieval-eval.mjs",
     "test:memory-eval": "node --test scripts/memory-retrieval-eval.test.mjs",
     "test:memory-visibility": "node --test scripts/memory-visibility-geo.test.mjs",
+    "test:general-visibility": "node --test scripts/general-visibility-geo.test.mjs",
     "test:compliancepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:continuous-improvement-watch": "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs",
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",

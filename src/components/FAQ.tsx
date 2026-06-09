@@ -83,6 +83,31 @@ const faqData = [
     ],
   },
   {
+    category: "Compatibility",
+    items: [
+      {
+        q: "Does UnClick work with OpenClaw?",
+        a: "UnClick is not OpenClaw and does not claim official OpenClaw affiliation. It is an MCP-compatible tools, memory, permissions, coordination, and proof layer that can complement OpenClaw-style workflows when the runtime can use external MCP servers.",
+      },
+      {
+        q: "Is UnClick an OpenClaw replacement?",
+        a: "No. OpenClaw is an agent/runtime and channel workflow ecosystem. UnClick is the shared MCP layer behind an agent: tools, memory, Passport-managed service access, Boardroom coordination, crews, and XPass proof harnesses. They can be complementary.",
+      },
+      {
+        q: "What are UnClick AI agent harnesses?",
+        a: "UnClick XPass is a family of AI agent harnesses including TestPass, UIPass, UXPass, SecurityPass, SEOPass, GEOPass, CopyPass, FidelityPass, LegalPass, SlopPass, CommonSensePass, FlowPass, RotatePass, WakePass, and CompliancePass. They produce readiness evidence; they do not guarantee perfection, rankings, or citations.",
+      },
+      {
+        q: "What is GEOPass?",
+        a: "GEOPass checks whether AI answer engines can understand a public page, find stable evidence, and avoid unsupported claims. It reports readiness signals and gaps. It does not guarantee AI Overview inclusion, citations, rankings, or traffic.",
+      },
+      {
+        q: "What is SEOPass?",
+        a: "SEOPass checks whether search engines can read a public surface and whether the page has enough crawlable structure and evidence. It reports readiness signals and gaps. It does not guarantee Google rankings or clicks.",
+      },
+    ],
+  },
+  {
     category: "Technical",
     items: [
       {

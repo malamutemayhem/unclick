@@ -24,10 +24,10 @@ const Index = () => {
   useMetaTags({
     title: "UnClick. The universal remote for AI.",
     description:
-      "One install gives your AI agent every tool, memory that remembers, signed permissions, and built-in proof the work was done right.",
+      "One install gives Claude, ChatGPT, Cursor, OpenClaw-style workflows, and MCP-compatible AI agents tools, memory, signed permissions, and proof harnesses.",
     ogTitle: "UnClick. The universal remote for AI.",
     ogDescription:
-      "Every tool. Persistent memory. Signed permissions. Built-in proof. One install.",
+      "Every tool. Persistent memory. Signed permissions. XPass proof harnesses. One install.",
     ogUrl: "https://unclick.world/",
   });
 
