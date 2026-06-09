@@ -790,6 +790,10 @@ import { suffixAutomaton } from "./suffixauto-tool.js";
 import { gabowScc } from "./gabow-tool.js";
 import { babyGiantStep } from "./babygiant-tool.js";
 import { centroidDecomposition } from "./centroid-tool.js";
+import { waveletTree } from "./wavelet-tool.js";
+import { dinicMaxFlow } from "./dinic-tool.js";
+import { lowestCommonAncestor } from "./lca-tool.js";
+import { maxIndependentSet } from "./maxindepset-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11721,6 +11725,62 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (must be N-1 edges)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── wavelet-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wavelet_tree",
+    description: "Build a wavelet tree for an integer array and answer range kth-smallest queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of integers (max 100,000)" },
+        queries: { type: "array", items: { type: "object", properties: { type: { type: "string" }, l: { type: "number" }, r: { type: "number" }, k: { type: "number" } }, required: ["type", "l", "r"] }, description: "Queries: {type:'kth', l, r, k} for kth smallest in [l, r)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── dinic-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dinic_max_flow",
+    description: "Compute maximum flow in a network using Dinic's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 10,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v, capacity] triples" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── lca-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "lowest_common_ancestor",
+    description: "Find lowest common ancestors and distances in a tree using binary lifting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "LCA queries as [u, v] pairs" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges", "queries"],
+    },
+  },
+
+  // ── maxindepset-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "max_independent_set",
+    description: "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
       }, required: ["vertex_count", "edges"],
     },
   },
@@ -23560,6 +23620,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   gabow_scc:                 (args) => gabowScc(args),
   baby_giant_step:           (args) => babyGiantStep(args),
   centroid_decomposition:    (args) => centroidDecomposition(args),
+
+  // batch 79: Wavelet Tree, Dinic Max Flow, LCA, Max Independent Set
+  wavelet_tree:              (args) => waveletTree(args),
+  dinic_max_flow:            (args) => dinicMaxFlow(args),
+  lowest_common_ancestor:    (args) => lowestCommonAncestor(args),
+  max_independent_set:       (args) => maxIndependentSet(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

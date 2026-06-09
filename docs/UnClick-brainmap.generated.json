@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1037,
+    "inventory": 1041,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 612,
+    "tools": 616,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 612
+      "count": 616
     },
     {
       "id": "rooms",
@@ -5612,6 +5612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dinic-packages-mcp-server-src-dinic-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dinic",
+      "kind": "MCP tool",
+      "meaning": "dinic MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dinic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-discogs-packages-mcp-server-src-discogs-tool-ts-no-route",
       "division": "Tools",
       "name": "discogs",
@@ -7032,6 +7042,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-lca-packages-mcp-server-src-lca-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lca",
+      "kind": "MCP tool",
+      "meaning": "lca MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lca-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lcs-packages-mcp-server-src-lcs-tool-ts-no-route",
       "division": "Tools",
       "name": "lcs",
@@ -7348,6 +7368,16 @@
       "kind": "MCP tool",
       "meaning": "matrixdecomp MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/matrixdecomp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-maxindepset-packages-mcp-server-src-maxindepset-tool-ts-no-route",
+      "division": "Tools",
+      "name": "maxindepset",
+      "kind": "MCP tool",
+      "meaning": "maxindepset MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/maxindepset-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10052,6 +10082,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-wavelet-packages-mcp-server-src-wavelet-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wavelet",
+      "kind": "MCP tool",
+      "meaning": "wavelet MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wavelet-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-wayback-packages-mcp-server-src-wayback-tool-ts-no-route",
       "division": "Tools",
       "name": "wayback",
@@ -11771,6 +11811,11 @@
       "packages/mcp-server/src/dijkstra-tool.ts"
     ],
     [
+      "dinic",
+      "dinic MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dinic-tool.ts"
+    ],
+    [
       "discogs",
       "discogs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discogs-tool.ts"
@@ -12481,6 +12526,11 @@
       "packages/mcp-server/src/lastfm-tool.ts"
     ],
     [
+      "lca",
+      "lca MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lca-tool.ts"
+    ],
+    [
       "lcs",
       "lcs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lcs-tool.ts"
@@ -12639,6 +12689,11 @@
       "matrixdecomp",
       "matrixdecomp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/matrixdecomp-tool.ts"
+    ],
+    [
+      "maxindepset",
+      "maxindepset MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/maxindepset-tool.ts"
     ],
     [
       "mcsrvstat",
@@ -13989,6 +14044,11 @@
       "wavelength",
       "wavelength MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/wavelength-tool.ts"
+    ],
+    [
+      "wavelet",
+      "wavelet MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wavelet-tool.ts"
     ],
     [
       "wayback",

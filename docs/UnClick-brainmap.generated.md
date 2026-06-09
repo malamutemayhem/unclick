@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 612 |
+| Tools | MCP and gateway capabilities available to seats. | 616 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -511,6 +511,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | digimon | digimon MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digimon-tool.ts |
 | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/digitalocean-tool.ts |
 | dijkstra | dijkstra MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dijkstra-tool.ts |
+| dinic | dinic MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/dinic-tool.ts |
 | discogs | discogs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/discogs-tool.ts |
 | discord | discord MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/discord-tool.ts |
 | diseasesh | diseasesh MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/diseasesh-tool.ts |
@@ -653,6 +654,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/kosaraju-tool.ts |
 | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/languagetool-tool.ts |
 | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lastfm-tool.ts |
+| lca | lca MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lca-tool.ts |
 | lcs | lcs MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lcs-tool.ts |
 | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/legalpass-tool.ts |
 | lego | lego MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/lego-tool.ts |
@@ -685,6 +687,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | matinverse | matinverse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matinverse-tool.ts |
 | matrix | matrix MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrix-tool.ts |
 | matrixdecomp | matrixdecomp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/matrixdecomp-tool.ts |
+| maxindepset | maxindepset MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/maxindepset-tool.ts |
 | mcsrvstat | mcsrvstat MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mcsrvstat-tool.ts |
 | meal | meal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/meal-tool.ts |
 | mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/mediawiki-tool.ts |
@@ -955,6 +958,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | vigenere | vigenere MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/vigenere-tool.ts |
 | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/virustotal-tool.ts |
 | wavelength | wavelength MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wavelength-tool.ts |
+| wavelet | wavelet MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wavelet-tool.ts |
 | wayback | wayback MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wayback-tool.ts |
 | webflow | webflow MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/webflow-tool.ts |
 | weightedmean | weightedmean MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/weightedmean-tool.ts |
@@ -1539,6 +1543,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | digimon | digimon MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digimon-tool.ts |
 | Tools | MCP tool | digitalocean | digitalocean MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/digitalocean-tool.ts |
 | Tools | MCP tool | dijkstra | dijkstra MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dijkstra-tool.ts |
+| Tools | MCP tool | dinic | dinic MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/dinic-tool.ts |
 | Tools | MCP tool | discogs | discogs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/discogs-tool.ts |
 | Tools | MCP tool | discord | discord MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/discord-tool.ts |
 | Tools | MCP tool | diseasesh | diseasesh MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/diseasesh-tool.ts |
@@ -1681,6 +1686,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | kosaraju | kosaraju MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/kosaraju-tool.ts |
 | Tools | MCP tool | languagetool | languagetool MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/languagetool-tool.ts |
 | Tools | MCP tool | lastfm | lastfm MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lastfm-tool.ts |
+| Tools | MCP tool | lca | lca MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lca-tool.ts |
 | Tools | MCP tool | lcs | lcs MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lcs-tool.ts |
 | Tools | MCP tool | legalpass | legalpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/legalpass-tool.ts |
 | Tools | MCP tool | lego | lego MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/lego-tool.ts |
@@ -1713,6 +1719,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | matinverse | matinverse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matinverse-tool.ts |
 | Tools | MCP tool | matrix | matrix MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrix-tool.ts |
 | Tools | MCP tool | matrixdecomp | matrixdecomp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/matrixdecomp-tool.ts |
+| Tools | MCP tool | maxindepset | maxindepset MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/maxindepset-tool.ts |
 | Tools | MCP tool | mcsrvstat | mcsrvstat MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mcsrvstat-tool.ts |
 | Tools | MCP tool | meal | meal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/meal-tool.ts |
 | Tools | MCP tool | mediawiki | mediawiki MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/mediawiki-tool.ts |
@@ -1983,6 +1990,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | vigenere | vigenere MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/vigenere-tool.ts |
 | Tools | MCP tool | virustotal | virustotal MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/virustotal-tool.ts |
 | Tools | MCP tool | wavelength | wavelength MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wavelength-tool.ts |
+| Tools | MCP tool | wavelet | wavelet MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wavelet-tool.ts |
 | Tools | MCP tool | wayback | wayback MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wayback-tool.ts |
 | Tools | MCP tool | webflow | webflow MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/webflow-tool.ts |
 | Tools | MCP tool | weightedmean | weightedmean MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/weightedmean-tool.ts |
