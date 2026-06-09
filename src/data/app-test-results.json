@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T02:15:00.000Z",
+  "updatedAt": "2026-06-09T02:22:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4474,6 +4474,30 @@
       "note": "min_vertex_cover finds exact minimum vertex cover via bitmask. Local computation, all tests pass.",
       "testedAt": "2026-06-09T02:14:00.000Z",
       "toolsTested": ["min_vertex_cover"]
+    },
+    "suffixauto": {
+      "status": "pass",
+      "note": "suffix_automaton builds suffix automaton and counts distinct substrings. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": ["suffix_automaton"]
+    },
+    "gabow": {
+      "status": "pass",
+      "note": "gabow_scc finds strongly connected components via Gabow's algorithm. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": ["gabow_scc"]
+    },
+    "babygiant": {
+      "status": "pass",
+      "note": "baby_giant_step solves discrete logarithm via baby-step giant-step. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": ["baby_giant_step"]
+    },
+    "centroid": {
+      "status": "pass",
+      "note": "centroid_decomposition computes centroid decomposition of trees. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:22:00.000Z",
+      "toolsTested": ["centroid_decomposition"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
