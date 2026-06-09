@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 623,
-  "toolCount": 1545,
+  "appCount": 631,
+  "toolCount": 1553,
   "categories": [
     "AI",
     "Books",
@@ -1314,6 +1314,22 @@
       "hardened": true
     },
     {
+      "slug": "cartesiantree",
+      "name": "Cartesian Tree",
+      "category": "Utilities",
+      "blurb": "Cartesian tree construction from an array for range minimum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "cartesian_tree",
+          "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "camelsnake",
       "name": "Case Converter",
       "category": "Utilities",
@@ -1500,6 +1516,22 @@
         {
           "name": "chinese_remainder_theorem",
           "description": "Solve a system of simultaneous congruences using the Chinese Remainder Theorem."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "chromatic",
+      "name": "Chromatic Number",
+      "category": "Utilities",
+      "blurb": "Exact chromatic number computation using inclusion-exclusion (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "chromatic_number",
+          "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
         }
       ],
       "level": 5,
@@ -3318,6 +3350,22 @@
       "hardened": false
     },
     {
+      "slug": "eertree",
+      "name": "Eertree",
+      "category": "Utilities",
+      "blurb": "Palindromic tree (eertree) for counting distinct palindromic substrings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "eertree",
+          "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "elevenlabs",
       "name": "Elevenlabs",
       "category": "AI",
@@ -3556,6 +3604,22 @@
         {
           "name": "euler_totient",
           "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "eulertour",
+      "name": "Euler Tour",
+      "category": "Utilities",
+      "blurb": "Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_tour",
+          "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
         }
       ],
       "level": 5,
@@ -4244,6 +4308,22 @@
         {
           "name": "game_of_life_step",
           "description": "Run Conway's Game of Life simulation steps (local, no network)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gausselim",
+      "name": "Gaussian Elimination",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gaussian_elimination",
+          "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
         }
       ],
       "level": 5,
@@ -7546,6 +7626,22 @@
       "hardened": false
     },
     {
+      "slug": "ntt",
+      "name": "NTT",
+      "category": "Utilities",
+      "blurb": "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ntt",
+          "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nudgeonly",
       "name": "NudgeOnly",
       "category": "Quality (XPass)",
@@ -8856,6 +8952,22 @@
         {
           "name": "pokemon_tcg_sets",
           "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "pollardrho",
+      "name": "Pollard's Rho",
+      "category": "Utilities",
+      "blurb": "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pollard_rho",
+          "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
         }
       ],
       "level": 5,
@@ -11180,6 +11292,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "sternbrocot",
+      "name": "Stern-Brocot Tree",
+      "category": "Utilities",
+      "blurb": "Best rational approximation via the Stern-Brocot tree and continued fractions.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stern_brocot_tree",
+          "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "stringcase",

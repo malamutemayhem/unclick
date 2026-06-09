@@ -1016,6 +1016,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cartesiantree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "cartesian_tree",
+        "description": "Build a Cartesian tree from an array (min-heap ordered with BST on indices)."
+      }
+    ]
+  },
+  {
     "app": "cataas",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1138,6 +1148,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "chess_leaderboards",
         "description": "Get Chess.com leaderboards."
+      }
+    ]
+  },
+  {
+    "app": "chromatic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chromatic_number",
+        "description": "Compute the exact chromatic number of a graph using inclusion-exclusion (up to 20 vertices)."
       }
     ]
   },
@@ -2532,6 +2552,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "eertree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "eertree",
+        "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
+      }
+    ]
+  },
+  {
     "app": "elevenlabs",
     "category": "AI",
     "tools": [
@@ -2712,6 +2742,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "euler_totient",
         "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+      }
+    ]
+  },
+  {
+    "app": "eulertour",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "euler_tour",
+        "description": "Compute Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes."
       }
     ]
   },
@@ -3238,6 +3278,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "game_of_life_step",
         "description": "Run Conway's Game of Life simulation steps (local, no network)."
+      }
+    ]
+  },
+  {
+    "app": "gausselim",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gaussian_elimination",
+        "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
       }
     ]
   },
@@ -5542,6 +5592,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "ntt",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ntt",
+        "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
+      }
+    ]
+  },
+  {
     "app": "nudgeonly",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -6498,6 +6558,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "pokemon_tcg_sets",
         "description": "List or search Pokemon TCG card sets."
+      }
+    ]
+  },
+  {
+    "app": "pollardrho",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "pollard_rho",
+        "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
       }
     ]
   },
@@ -8160,6 +8230,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_steam_store",
         "description": "Search the Steam store for games by name."
+      }
+    ]
+  },
+  {
+    "app": "sternbrocot",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stern_brocot_tree",
+        "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
       }
     ]
   },
