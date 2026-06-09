@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1097,
-    "source_manifest": 215,
-    "pages": 88,
+    "inventory": 1102,
+    "source_manifest": 220,
+    "pages": 93,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 52
+      "count": 57
     },
     {
       "id": "public-surfaces",
@@ -349,6 +349,56 @@
       "meaning": "Master heartbeat copy policy for scheduled AI seats.",
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "route": "/admin/agents/heartbeat",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-api-src-pages-admin-adminseatsapi-tsx-admin-agents-api",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Api",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Api.",
+      "source": "src/pages/admin/AdminSeatsApi.tsx",
+      "route": "/admin/agents/api",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-api-routing-src-pages-admin-adminseatsapirouting-tsx-admin-agents-api-routing",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Api Routing",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Api Routing.",
+      "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
+      "route": "/admin/agents/api/routing",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-api-usage-src-pages-admin-adminseatsapiusage-tsx-admin-agents-api-usage",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Api Usage",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Api Usage.",
+      "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
+      "route": "/admin/agents/api/usage",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-local-src-pages-admin-adminseatslocal-tsx-admin-agents-local",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Local",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Local.",
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
+      "route": "/admin/agents/local",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-subscription-src-pages-admin-adminseatssubscription-tsx-admin-agents-subscription",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Subscription",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Subscription.",
+      "source": "src/pages/admin/AdminSeatsSubscription.tsx",
+      "route": "/admin/agents/subscription",
       "tags": []
     },
     {
@@ -11076,10 +11126,40 @@
       "src/pages/admin/AdminActivity.tsx"
     ],
     [
+      "/admin/agents/api/routing",
+      "Admin Seats Api Routing",
+      "Admin surface for Admin Seats Api Routing.",
+      "src/pages/admin/AdminSeatsApiRouting.tsx"
+    ],
+    [
+      "/admin/agents/api/usage",
+      "Admin Seats Api Usage",
+      "Admin surface for Admin Seats Api Usage.",
+      "src/pages/admin/AdminSeatsApiUsage.tsx"
+    ],
+    [
+      "/admin/agents/api",
+      "Admin Seats Api",
+      "Admin surface for Admin Seats Api.",
+      "src/pages/admin/AdminSeatsApi.tsx"
+    ],
+    [
       "/admin/agents/heartbeat",
       "Admin Seat Heartbeat",
       "Master heartbeat copy policy for scheduled AI seats.",
       "src/pages/admin/AdminSeatHeartbeat.tsx"
+    ],
+    [
+      "/admin/agents/local",
+      "Admin Seats Local",
+      "Admin surface for Admin Seats Local.",
+      "src/pages/admin/AdminSeatsLocal.tsx"
+    ],
+    [
+      "/admin/agents/subscription",
+      "Admin Seats Subscription",
+      "Admin surface for Admin Seats Subscription.",
+      "src/pages/admin/AdminSeatsSubscription.tsx"
     ],
     [
       "/admin/agents",
@@ -15340,13 +15420,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ead5f39c080b",
-      "bytes": 16499
+      "hash": "5009beb107c4",
+      "bytes": 17238
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "2c6ec8581d6c",
-      "bytes": 25721
+      "hash": "cfba67a61b3f",
+      "bytes": 26450
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15589,14 +15669,39 @@
       "bytes": 14795
     },
     {
+      "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
+      "hash": "4caf939d9bed",
+      "bytes": 22147
+    },
+    {
+      "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
+      "hash": "5bfc0414856f",
+      "bytes": 16509
+    },
+    {
+      "source": "src/pages/admin/AdminSeatsApi.tsx",
+      "hash": "fe9d0fede6a8",
+      "bytes": 39375
+    },
+    {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "hash": "f9548c19ddab",
       "bytes": 11641
     },
     {
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
+      "hash": "e48fb3565853",
+      "bytes": 35934
+    },
+    {
+      "source": "src/pages/admin/AdminSeatsSubscription.tsx",
+      "hash": "57262eb562b5",
+      "bytes": 25229
+    },
+    {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "73353b1405ef",
-      "bytes": 45563
+      "hash": "681342e77f86",
+      "bytes": 49250
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15720,8 +15825,8 @@
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "48449b4ebd11",
-      "bytes": 40601
+      "hash": "607d306885ac",
+      "bytes": 30026
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
