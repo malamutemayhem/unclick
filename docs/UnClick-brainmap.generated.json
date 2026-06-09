@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1041,
+    "inventory": 1045,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 616,
+    "tools": 620,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 616
+      "count": 620
     },
     {
       "id": "rooms",
@@ -6552,6 +6552,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hld-packages-mcp-server-src-hld-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hld",
+      "kind": "MCP tool",
+      "meaning": "hld MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hld-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-holidays-packages-mcp-server-src-holidays-tool-ts-no-route",
       "division": "Tools",
       "name": "holidays",
@@ -7472,6 +7482,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-mincostflow-packages-mcp-server-src-mincostflow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "mincostflow",
+      "kind": "MCP tool",
+      "meaning": "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/mincostflow-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-minvertexcover-packages-mcp-server-src-minvertexcover-tool-ts-no-route",
       "division": "Tools",
       "name": "minvertexcover",
@@ -8178,6 +8198,16 @@
       "kind": "MCP tool",
       "meaning": "perplexity MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/perplexity-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-persistarray-packages-mcp-server-src-persistarray-tool-ts-no-route",
+      "division": "Tools",
+      "name": "persistarray",
+      "kind": "MCP tool",
+      "meaning": "persistarray MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/persistarray-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9818,6 +9848,16 @@
       "kind": "MCP tool",
       "meaning": "twitch MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/twitch-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-twosat-packages-mcp-server-src-twosat-tool-ts-no-route",
+      "division": "Tools",
+      "name": "twosat",
+      "kind": "MCP tool",
+      "meaning": "twosat MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/twosat-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12281,6 +12321,11 @@
       "packages/mcp-server/src/histogram-tool.ts"
     ],
     [
+      "hld",
+      "hld MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hld-tool.ts"
+    ],
+    [
       "holidays",
       "holidays MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/holidays-tool.ts"
@@ -12741,6 +12786,11 @@
       "packages/mcp-server/src/millerrabin-tool.ts"
     ],
     [
+      "mincostflow",
+      "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/mincostflow-tool.ts"
+    ],
+    [
       "minvertexcover",
       "minvertexcover MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/minvertexcover-tool.ts"
@@ -13094,6 +13144,11 @@
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
+    ],
+    [
+      "persistarray",
+      "persistarray MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/persistarray-tool.ts"
     ],
     [
       "phonetic",
@@ -13914,6 +13969,11 @@
       "twitch",
       "twitch MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/twitch-tool.ts"
+    ],
+    [
+      "twosat",
+      "twosat MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/twosat-tool.ts"
     ],
     [
       "typeform",

@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 615,
-  "toolCount": 1537,
+  "appCount": 619,
+  "toolCount": 1541,
   "categories": [
     "AI",
     "Books",
@@ -25,6 +25,22 @@
     "Weather & science"
   ],
   "apps": [
+    {
+      "slug": "twosat",
+      "name": "2-SAT Solver",
+      "category": "Utilities",
+      "blurb": "2-SAT boolean satisfiability solver using implication graph and SCC.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "two_sat",
+          "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
     {
       "slug": "astar",
       "name": "A* Pathfinding",
@@ -4806,6 +4822,22 @@
       "hardened": false
     },
     {
+      "slug": "hld",
+      "name": "Heavy-Light Decomposition",
+      "category": "Utilities",
+      "blurb": "Heavy-light decomposition of trees for efficient path queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "heavy_light_decomposition",
+          "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "heygen",
       "name": "Heygen",
       "category": "AI",
@@ -6818,6 +6850,22 @@
       "hardened": false
     },
     {
+      "slug": "mincostflow",
+      "name": "Min Cost Max Flow",
+      "category": "Utilities",
+      "blurb": "Minimum cost maximum flow using successive shortest paths.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "min_cost_max_flow",
+          "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mst",
       "name": "Min Spanning Tree",
       "category": "Utilities",
@@ -8368,6 +8416,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "persistarray",
+      "name": "Persistent Array",
+      "category": "Utilities",
+      "blurb": "Persistent array with version-controlled get/set operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "persistent_array",
+          "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "phonetic",

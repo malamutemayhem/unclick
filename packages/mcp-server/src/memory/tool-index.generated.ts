@@ -3710,6 +3710,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hld",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "heavy_light_decomposition",
+        "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+      }
+    ]
+  },
+  {
     "app": "holidays",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5054,6 +5064,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mincostflow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "min_cost_max_flow",
+        "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
+      }
+    ]
+  },
+  {
     "app": "minvertexcover",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6136,6 +6156,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "perplexity_chat_completion",
         "description": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web."
+      }
+    ]
+  },
+  {
+    "app": "persistarray",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "persistent_array",
+        "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
       }
     ]
   },
@@ -8924,6 +8954,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "twitch_schedule",
         "description": "Get a Twitch channel's streaming schedule by its login name."
+      }
+    ]
+  },
+  {
+    "app": "twosat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "two_sat",
+        "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
       }
     ]
   },
