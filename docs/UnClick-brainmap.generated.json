@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1063,
+    "inventory": 1057,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 638,
+    "tools": 632,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 638
+      "count": 632
     },
     {
       "id": "rooms",
@@ -4582,16 +4582,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-berlekamp-packages-mcp-server-src-berlekamp-tool-ts-no-route",
-      "division": "Tools",
-      "name": "berlekamp",
-      "kind": "MCP tool",
-      "meaning": "berlekamp MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/berlekamp-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-bezier-packages-mcp-server-src-bezier-tool-ts-no-route",
       "division": "Tools",
       "name": "bezier",
@@ -6982,16 +6972,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-josephus-packages-mcp-server-src-josephus-tool-ts-no-route",
-      "division": "Tools",
-      "name": "josephus",
-      "kind": "MCP tool",
-      "meaning": "josephus MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/josephus-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-jsoncrack-packages-mcp-server-src-jsoncrack-tool-ts-no-route",
       "division": "Tools",
       "name": "jsoncrack",
@@ -7628,16 +7608,6 @@
       "kind": "MCP tool",
       "meaning": "modpow MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/modpow-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "tools-mcp-tool-moebius-packages-mcp-server-src-moebius-tool-ts-no-route",
-      "division": "Tools",
-      "name": "moebius",
-      "kind": "MCP tool",
-      "meaning": "moebius MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/moebius-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9372,16 +9342,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-sos-packages-mcp-server-src-sos-tool-ts-no-route",
-      "division": "Tools",
-      "name": "sos",
-      "kind": "MCP tool",
-      "meaning": "sos MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/sos-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-soundex-packages-mcp-server-src-soundex-tool-ts-no-route",
       "division": "Tools",
       "name": "soundex",
@@ -10472,16 +10432,6 @@
       "tags": []
     },
     {
-      "id": "tools-mcp-tool-xorbase-packages-mcp-server-src-xorbase-tool-ts-no-route",
-      "division": "Tools",
-      "name": "xorbase",
-      "kind": "MCP tool",
-      "meaning": "xorbase MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/xorbase-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "tools-mcp-tool-xpass-aggregated-verdict-packages-mcp-server-src-xpass-aggregated-verdict-tool-ts-no-route",
       "division": "Tools",
       "name": "xpass aggregated verdict",
@@ -10548,16 +10498,6 @@
       "kind": "MCP tool",
       "meaning": "zenquotes MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/zenquotes-tool.ts",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "tools-mcp-tool-zfunction-packages-mcp-server-src-zfunction-tool-ts-no-route",
-      "division": "Tools",
-      "name": "zfunction",
-      "kind": "MCP tool",
-      "meaning": "zfunction MCP capability, available through the UnClick tool gateway.",
-      "source": "packages/mcp-server/src/zfunction-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11514,11 +11454,6 @@
       "bellmanford",
       "bellmanford MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bellmanford-tool.ts"
-    ],
-    [
-      "berlekamp",
-      "berlekamp MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/berlekamp-tool.ts"
     ],
     [
       "bezier",
@@ -12716,11 +12651,6 @@
       "packages/mcp-server/src/joke-tool.ts"
     ],
     [
-      "josephus",
-      "josephus MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/josephus-tool.ts"
-    ],
-    [
       "jsoncrack",
       "jsoncrack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/jsoncrack-tool.ts"
@@ -13039,11 +12969,6 @@
       "modpow",
       "modpow MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/modpow-tool.ts"
-    ],
-    [
-      "moebius",
-      "moebius MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/moebius-tool.ts"
     ],
     [
       "monday",
@@ -13911,11 +13836,6 @@
       "packages/mcp-server/src/sortlines-tool.ts"
     ],
     [
-      "sos",
-      "sos MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/sos-tool.ts"
-    ],
-    [
       "soundex",
       "soundex MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/soundex-tool.ts"
@@ -14461,11 +14381,6 @@
       "packages/mcp-server/src/xkcd-tool.ts"
     ],
     [
-      "xorbase",
-      "xorbase MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/xorbase-tool.ts"
-    ],
-    [
       "xpass aggregated verdict",
       "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts"
@@ -14499,11 +14414,6 @@
       "zenquotes",
       "zenquotes MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/zenquotes-tool.ts"
-    ],
-    [
-      "zfunction",
-      "zfunction MCP capability, available through the UnClick tool gateway.",
-      "packages/mcp-server/src/zfunction-tool.ts"
     ],
     [
       "zippopotamus",
@@ -15754,14 +15664,14 @@
       "bytes": 2955
     },
     {
-      "source": "packages/mcp-server/src/berlekamp-tool.ts",
-      "hash": "5ac75aee3d2e",
-      "bytes": 2512
-    },
-    {
       "source": "packages/mcp-server/src/bezier-tool.ts",
       "hash": "29ff88e26cbb",
       "bytes": 2561
+    },
+    {
+      "source": "packages/mcp-server/src/bfs-tool.ts",
+      "hash": "6eff2fdbba8b",
+      "bytes": 2678
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

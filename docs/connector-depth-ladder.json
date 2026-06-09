@@ -740,26 +740,6 @@
     }
   },
   {
-    "connector": "berlekamp",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
     "connector": "bezier",
     "level": 5,
     "levelName": "Agentic",
@@ -5100,26 +5080,6 @@
     }
   },
   {
-    "connector": "josephus",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
     "connector": "jsoncrack",
     "level": 5,
     "levelName": "Agentic",
@@ -6281,26 +6241,6 @@
   },
   {
     "connector": "modpow",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
-    "connector": "moebius",
     "level": 5,
     "levelName": "Agentic",
     "hardened": false,
@@ -9320,26 +9260,6 @@
     }
   },
   {
-    "connector": "sos",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
     "connector": "soundex",
     "level": 5,
     "levelName": "Agentic",
@@ -11260,26 +11180,6 @@
     }
   },
   {
-    "connector": "xorbase",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
     "connector": "yelp",
     "level": 5,
     "levelName": "Agentic",
@@ -11390,26 +11290,6 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": true,
-      "sourceStamped": true
-    }
-  },
-  {
-    "connector": "zfunction",
-    "level": 5,
-    "levelName": "Agentic",
-    "hardened": false,
-    "cappedByDesign": false,
-    "capReason": null,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
