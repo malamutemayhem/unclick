@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 989,
+    "inventory": 993,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 564,
+    "tools": 568,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 564
+      "count": 568
     },
     {
       "id": "rooms",
@@ -4662,6 +4662,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bloomfilter-packages-mcp-server-src-bloomfilter-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bloomfilter",
+      "kind": "MCP tool",
+      "meaning": "bloomfilter MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bloomfilter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bluesky-packages-mcp-server-src-bluesky-tool-ts-no-route",
       "division": "Tools",
       "name": "bluesky",
@@ -6962,6 +6972,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-lrucache-packages-mcp-server-src-lrucache-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lrucache",
+      "kind": "MCP tool",
+      "meaning": "lrucache MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lrucache-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-luhn-packages-mcp-server-src-luhn-tool-ts-no-route",
       "division": "Tools",
       "name": "luhn",
@@ -8088,6 +8108,16 @@
       "kind": "MCP tool",
       "meaning": "postmark MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/postmark-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-poweriter-packages-mcp-server-src-poweriter-tool-ts-no-route",
+      "division": "Tools",
+      "name": "poweriter",
+      "kind": "MCP tool",
+      "meaning": "poweriter MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/poweriter-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9288,6 +9318,16 @@
       "kind": "MCP tool",
       "meaning": "trove MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/trove-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-tsp-packages-mcp-server-src-tsp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "tsp",
+      "kind": "MCP tool",
+      "meaning": "tsp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/tsp-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10816,6 +10856,11 @@
       "packages/mcp-server/src/bitwise-tool.ts"
     ],
     [
+      "bloomfilter",
+      "bloomfilter MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bloomfilter-tool.ts"
+    ],
+    [
       "bluesky",
       "bluesky MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bluesky-tool.ts"
@@ -11966,6 +12011,11 @@
       "packages/mcp-server/src/lotr-tool.ts"
     ],
     [
+      "lrucache",
+      "lrucache MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lrucache-tool.ts"
+    ],
+    [
       "luhn",
       "luhn MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/luhn-tool.ts"
@@ -12529,6 +12579,11 @@
       "postmark",
       "postmark MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/postmark-tool.ts"
+    ],
+    [
+      "poweriter",
+      "poweriter MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/poweriter-tool.ts"
     ],
     [
       "primecheck",
@@ -13129,6 +13184,11 @@
       "trove",
       "trove MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/trove-tool.ts"
+    ],
+    [
+      "tsp",
+      "tsp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/tsp-tool.ts"
     ],
     [
       "turso",

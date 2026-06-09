@@ -44,7 +44,7 @@ bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsinto
 bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary", "bible", "openlib2", "bibleverse", "mediawiki", "jisho", "poetrydb", "crossref", "arxiv", "openalex", "dblp", "gutendex"]);
 bucket("Images", ["unsplash", "giphy", "dogceo", "picsum", "randomfox", "dogapi", "catapi", "placekitten", "shibe", "cataas", "dummyimage", "avatarapi", "robohash", "countryflag", "colr", "imgflip", "httpcat", "multiavatar", "placebear", "memegen", "randomduck", "httpdog", "thecolorapi", "placehold"]);
-bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate", "fft", "bezier", "rootfind", "matinverse", "ode", "polynomial", "hypothesis", "huffman", "correlation", "bitcount", "runstats", "graph", "convolution", "rle2", "descriptive", "bfs", "montecarlo", "dfs", "percentile", "mst", "pagerank", "astar", "simplex", "hungarian", "kmeans", "bellmanford", "floydwarshall", "reservoir"]);
+bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter", "dictionary", "joke", "chucknorris", "catfacts", "deckofcards", "adviceslip", "agify", "quotable", "bored", "affirmation", "tarot", "superhero", "zenquotes", "kanye", "dadjoke", "uselessfacts", "corporatebs", "yesno", "evilinsult", "lorem", "github-emoji", "excuser", "dogfacts", "emojihub", "iseven", "tacofancy", "funtranslations", "datamuse", "urbandictionary", "genderize", "nationalize", "opentriviadb", "diceware", "colornames", "officialjoke", "newton", "timeapi", "languagetool", "mymemory", "iban", "libretranslate", "colorconvert", "lorem2", "wordcount", "roman", "morse", "loremname", "textstats", "timezone", "fibonacci", "primecheck", "sortlines", "countdowncalc", "emojilookup", "natoalphabet", "tempconvert", "textwrap", "braille", "piglatin", "rot13", "reversetext", "palindrome", "acronymgen", "wordfreq", "markdowntable", "runlength", "luhn", "charcodes", "soundex", "frequency", "entropy", "ngram", "camelsnake", "metaphone", "tfidf", "readability", "tokencount", "crc32", "jaccard", "hamming", "cosinesim", "damerau", "markov", "vigenere", "atbash", "railfence", "phonetic", "matrix", "setops", "collatz", "pascaltri", "histogram", "regression", "baseconvert", "gcd", "permutation", "combination", "proportion", "quadratic", "primefactor", "zscore", "angleconv", "polygon", "sigmoid", "interpolate", "modpow", "ratiosimplify", "binomprob", "normaldistr", "trianglesolve", "standardform", "complexnum", "wavelength", "midpoint", "slopeintercept", "logbase", "nthroot", "areacalc", "dotproduct", "crossproduct", "weightedmean", "variancecalc", "poisson", "expgrowth", "geomseries", "harmonicseries", "piapprox", "taylor", "lcs", "toposort", "convexhull", "knapsack", "spline", "dijkstra", "matrixdecomp", "linearsolve", "numdiff", "numintegrate", "fft", "bezier", "rootfind", "matinverse", "ode", "polynomial", "hypothesis", "huffman", "correlation", "bitcount", "runstats", "graph", "convolution", "rle2", "descriptive", "bfs", "montecarlo", "dfs", "percentile", "mst", "pagerank", "astar", "simplex", "hungarian", "kmeans", "bellmanford", "floydwarshall", "reservoir", "bloomfilter", "poweriter", "tsp", "lrucache"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
@@ -202,6 +202,7 @@ const NAME_OF = {
   montecarlo: "Monte Carlo", dfs: "DFS Search", percentile: "Percentile", mst: "Min Spanning Tree",
   pagerank: "PageRank", astar: "A* Pathfinding", simplex: "Simplex LP", hungarian: "Hungarian Assignment",
   kmeans: "K-Means Clustering", bellmanford: "Bellman-Ford", floydwarshall: "Floyd-Warshall", reservoir: "Reservoir Sampling",
+  bloomfilter: "Bloom Filter", poweriter: "Power Iteration", tsp: "TSP Solver", lrucache: "LRU Cache Sim",
 };
 
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
@@ -612,6 +613,10 @@ const BLURB_OF = {
   bellmanford: "Single-source shortest paths with negative edge weight support (Bellman-Ford).",
   floydwarshall: "All-pairs shortest paths via Floyd-Warshall algorithm.",
   reservoir: "Select k random items from a list with equal probability (reservoir sampling).",
+  bloomfilter: "Probabilistic set membership testing with configurable false positive rate.",
+  poweriter: "Find the dominant eigenvalue and eigenvector of a square matrix.",
+  tsp: "Find a short tour visiting all cities (traveling salesman, nearest-neighbor heuristic).",
+  lrucache: "Simulate an LRU cache over access sequences and analyze hit/miss rates.",
 };
 
 // Keep every blurb a short, single-line sentence (the safety net for any new
@@ -790,6 +795,7 @@ const DOMAIN_OF = {
   montecarlo: "local", dfs: "local", percentile: "local", mst: "local",
   pagerank: "local", astar: "local", simplex: "local", hungarian: "local",
   kmeans: "local", bellmanford: "local", floydwarshall: "local", reservoir: "local",
+  bloomfilter: "local", poweriter: "local", tsp: "local", lrucache: "local",
 };
 
 function titleCase(slug) {

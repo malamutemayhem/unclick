@@ -4210,6 +4210,30 @@
       "note": "reservoir_sample selects k random items with equal probability. Local computation.",
       "testedAt": "2026-06-09T00:52:00.000Z",
       "toolsTested": ["reservoir_sample"]
+    },
+    "bloomfilter": {
+      "status": "pass",
+      "note": "bloom_filter tests probabilistic set membership. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": ["bloom_filter"]
+    },
+    "poweriter": {
+      "status": "pass",
+      "note": "power_iteration finds dominant eigenvalue and eigenvector. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": ["power_iteration"]
+    },
+    "tsp": {
+      "status": "pass",
+      "note": "tsp_solve finds short tour via nearest-neighbor heuristic. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": ["tsp_solve"]
+    },
+    "lrucache": {
+      "status": "pass",
+      "note": "lru_simulate analyzes cache hit/miss rates. Local computation.",
+      "testedAt": "2026-06-09T00:57:00.000Z",
+      "toolsTested": ["lru_simulate"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
