@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 965,
+    "inventory": 969,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 540,
+    "tools": 544,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 540
+      "count": 544
     },
     {
       "id": "rooms",
@@ -6322,12 +6322,32 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-huffman-packages-mcp-server-src-huffman-tool-ts-no-route",
+      "division": "Tools",
+      "name": "huffman",
+      "kind": "MCP tool",
+      "meaning": "huffman MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/huffman-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-hunter-packages-mcp-server-src-hunter-tool-ts-no-route",
       "division": "Tools",
       "name": "hunter",
       "kind": "MCP tool",
       "meaning": "hunter MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/hunter-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-hypothesis-packages-mcp-server-src-hypothesis-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hypothesis",
+      "kind": "MCP tool",
+      "meaning": "hypothesis MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hypothesis-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7332,6 +7352,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ode-packages-mcp-server-src-ode-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ode",
+      "kind": "MCP tool",
+      "meaning": "ode MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ode-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-oeis-packages-mcp-server-src-oeis-tool-ts-no-route",
       "division": "Tools",
       "name": "oeis",
@@ -7848,6 +7878,16 @@
       "kind": "MCP tool",
       "meaning": "polygon MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/polygon-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-polynomial-packages-mcp-server-src-polynomial-tool-ts-no-route",
+      "division": "Tools",
+      "name": "polynomial",
+      "kind": "MCP tool",
+      "meaning": "polynomial MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/polynomial-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11406,9 +11446,19 @@
       "packages/mcp-server/src/hubspot-tool.ts"
     ],
     [
+      "huffman",
+      "huffman MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/huffman-tool.ts"
+    ],
+    [
       "hunter",
       "hunter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hunter-tool.ts"
+    ],
+    [
+      "hypothesis",
+      "hypothesis MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hypothesis-tool.ts"
     ],
     [
       "iban",
@@ -11911,6 +11961,11 @@
       "packages/mcp-server/src/nvd-tool.ts"
     ],
     [
+      "ode",
+      "ode MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ode-tool.ts"
+    ],
+    [
       "oeis",
       "oeis MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/oeis-tool.ts"
@@ -12169,6 +12224,11 @@
       "polygon",
       "polygon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/polygon-tool.ts"
+    ],
+    [
+      "polynomial",
+      "polynomial MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/polynomial-tool.ts"
     ],
     [
       "postcodes",
