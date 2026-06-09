@@ -1,7 +1,7 @@
-# UNCLICK ADMIN SHELL + HOSTED MEMORY BUILD PLAN (v2)
+# UnClick Admin Shell + Hosted Memory Build Plan (v2)
 
 **For execution by Claude Code**
-**Author: Chris Byrne (with Cowork strategy session, April 15, 2026)**
+**Author: UnClick Core Team (with Cowork strategy session, April 15, 2026)**
 **Repo: malamutemayhem/unclick**
 
 **v2 changelog (April 15, 2026):** Corrections folded in from a prior Claude Code exploration session that caught codebase drift in v1. See "CODEBASE GROUND TRUTH" below for the specifics.
@@ -10,10 +10,10 @@
 
 ## BEFORE YOU START
 
-1. Call `get_startup_context` to load Chris's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
+1. Call `load_memory` to load the operator's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
 2. Read the project root `CLAUDE.md` for the session bridge protocol and current architecture notes. Do NOT read `packages/memory-mcp/CLAUDE.md`; that package is deprecated.
-3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `claude/setup-malamute-mayhem-zkquO` named `claude/phase-N-<description>` for your phase. Do not push to `main`; it is stale.
-4. At the end of the session, call `write_session_summary` before leaving.
+3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `origin/main` named `claude/phase-N-<description>` for your phase.
+4. At the end of the session, call `save_session` before leaving.
 
 ---
 
@@ -39,7 +39,7 @@ These corrections override anything the older master context report says:
 
 UnClick today is invisible plumbing. Agents call it, humans never see it. The next step is the visible shell: an admin dashboard that turns UnClick into a coherent product a normal human can install, understand, and manage. This shell is also the seed of what UnClick could eventually become as an operating system layer for agents. Every decision here needs to survive that far-vision future.
 
-The build must honor Chris's standing rules:
+The build must honor the operator's standing rules:
 - No em dashes anywhere in code, copy, or comments. Use regular dashes or restructure.
 - Card-based UI (OS shell foundation). Not traditional pages.
 - Memory is the #1 priority. It enables cross-session consistency across multiple Claude Code accounts.
@@ -132,7 +132,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 - Npm publish path is resolved with Chris.
 
 **Verification:**
-- Write a test agent that calls `add_fact`, `search_memory`, `get_startup_context` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
+- Write a test agent that calls `save_fact`, `search_memory`, `load_memory` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
 - Inject an invalid api_key. Verify rejection with clear error.
 - Simulate a BYOD user (seed `memory_configs` row). Verify their writes route to their own Supabase, not managed cloud.
 - Force 5,001 fact writes on a free-tier test user. Verify the 5,001st returns a cap error.
@@ -424,7 +424,7 @@ Most of this already exists. Verify and fill gaps:
 
 ## PHASE ORDERING PRINCIPLE
 
-Each phase reduces resistance for the next. Memory first (Chris's priority and the foundation for the assistant). Auth second (every surface needs identity). Shell third (the skeleton). Then fill surfaces in order of how foundational they are: You, Memory, Keychain, Tools, Activity. Assistant last because it depends on all surfaces existing. Marketplace in parallel, low priority, doors closed.
+Each phase reduces resistance for the next. Memory first (the operator's priority and the foundation for the assistant). Auth second (every surface needs identity). Shell third (the skeleton). Then fill surfaces in order of how foundational they are: You, Memory, Keychain, Tools, Activity. Assistant last because it depends on all surfaces existing. Marketplace in parallel, low priority, doors closed.
 
 Do not parallelize. Solo operator resource budget is not built for parallel tracks.
 

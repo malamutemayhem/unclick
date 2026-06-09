@@ -1,7 +1,7 @@
-# TestPass Phase 9A — Visual Overhaul Brief
+# TestPass Phase 9A: Visual Overhaul Brief
 
 **Status:** Draft, ready for review
-**Owner:** Chris Byrne / Malamute Mayhem
+**Owner:** UnClick Core Team
 **Implementer:** 🍿 Plex (Claude on Plex PC, todo `c116075a`)
 **Related:** TestPass Phase 9 plan (`agent/memory/project-testpass-phase-9.md`), Idiot-proof examples (`agent/memory/feedback-idiot-proof-examples.md`), UnClick brand copy (`agent/memory/reference-unclick-brand-copy.md`)
 
@@ -109,9 +109,9 @@ interface ScoreBadgeProps {
 - Shareable variant: clicking copies the share URL to clipboard, brief toast "Link copied"
 
 **States:**
-- `loading` — pulsing skeleton placeholder
-- `idle` — full badge
-- `copied` — green flash on click for 800 ms
+- `loading`: pulsing skeleton placeholder
+- `idle`: full badge
+- `copied`: green flash on click for 800 ms
 
 ### 4.2 RunButton
 
@@ -252,7 +252,7 @@ The starter pack list is hardcoded for Phase 9A; pack discovery via API ships in
 
 ### 5.3 Share URL
 
-Each run gets a deterministic shareable URL: `https://unclick.world/testpass/run/{run_id}/share` — public read, no auth required, anonymised (no api_key visible). The ScoreBadge's share button copies this URL.
+Each run gets a deterministic shareable URL: `https://unclick.world/testpass/run/{run_id}/share`. Public read, no auth required, anonymised (no api_key visible). The ScoreBadge's share button copies this URL.
 
 ## 6. Visual standards
 
@@ -324,7 +324,7 @@ None blocking. The pack picker behaviour for a single pack (lock as label, no dr
 
 For context only, not in scope here:
 
-- **Phase 9B** — Run history list, real-time progress streaming via Supabase realtime, pack discovery API, badge embed code generator
-- **Phase 9C** — Server-side QC chip dispatch (the actual smoke dispatch fix that's currently blocking the dispatcher gap), agent bridge polish, marketplace badge ranking integration
+- **Phase 9B**: Run history list, real-time progress streaming via Supabase realtime, pack discovery API, badge embed code generator
+- **Phase 9C**: Server-side QC chip dispatch (the actual smoke dispatch fix that's currently blocking the dispatcher gap), agent bridge polish, marketplace badge ranking integration
 
 After Phase 9A merges, todo `c116075a` closes and 🍿 picks up Phase 9B per the project memory file.

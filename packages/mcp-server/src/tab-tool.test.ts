@@ -31,7 +31,7 @@ describe("tab connector resilience (L2)", () => {
 
   it("maps meeting listings into a clean shape", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
-      ok: true, status: 200, headers: { get: (): string | null => null },
+      ok: true, status: 200, headers: { get: (h: string): string | null => h.toLowerCase() === "content-type" ? "application/json" : null },
       json: async () => ({ meetings: [{ raceType: "R", meetingId: "m1", meetingName: "Flemington", races: [] }] }),
     })));
     const result = await getTabMeetings({ race_type: "R" }) as Record<string, unknown>;

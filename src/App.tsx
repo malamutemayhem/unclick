@@ -64,6 +64,11 @@ import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
 import AdminSeatHeartbeatPage from "./pages/admin/AdminSeatHeartbeat.tsx";
+import AdminSeatsApi from "./pages/admin/AdminSeatsApi.tsx";
+import AdminSeatsApiRouting from "./pages/admin/AdminSeatsApiRouting.tsx";
+import AdminSeatsApiUsage from "./pages/admin/AdminSeatsApiUsage.tsx";
+import AdminSeatsLocal from "./pages/admin/AdminSeatsLocal.tsx";
+import AdminSeatsSubscription from "./pages/admin/AdminSeatsSubscription.tsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
 import AdminCodebase from "./pages/admin/AdminCodebase.tsx";
 import AdminOrchestratorPage from "./pages/admin/AdminOrchestrator.tsx";
@@ -103,7 +108,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-// BuildDeskPage import removed 2026-05-28 - page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
+// BuildDeskPage import removed 2026-05-28 - page hidden (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -201,6 +206,11 @@ const App = () => (
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
+            <Route path="agents/api" element={<AdminSeatsApi />} />
+            <Route path="agents/api/routing" element={<AdminSeatsApiRouting />} />
+            <Route path="agents/api/usage" element={<AdminSeatsApiUsage />} />
+            <Route path="agents/local" element={<AdminSeatsLocal />} />
+            <Route path="agents/subscription" element={<AdminSeatsSubscription />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
             <Route path="jobs" element={<AdminJobs />} />
@@ -256,7 +266,7 @@ const App = () => (
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/xpass" element={<XPassPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+          {/* BuildDesk: hidden 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace
               chapter is ready. Page component retained; route redirected. */}
           <Route path="/build" element={<Navigate to="/" replace />} />

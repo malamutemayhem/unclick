@@ -59,6 +59,8 @@
           "@id": "https://unclick.world/#website",
           "url": "https://unclick.world",
           "name": "UnClick - Agent rails for tools, memory, and QC",
+          "inLanguage": "en",
+          "dateModified": "__UC_BUILD_DATE__",
           "publisher": { "@id": "https://unclick.world/#org" }
         },
         {
@@ -161,6 +163,66 @@
     }
     </script>
 
+    <!-- FAQ structured data (static, crawlable without JS). Mirrors the visible
+         boot-screen FAQ below; superseded by the runtime FAQ schema (#faq-schema)
+         once the React app mounts on the homepage or /faq. -->
+    <script type="application/ld+json" id="faq-schema">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is UnClick?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. Instead of building and maintaining integrations yourself, you point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does UnClick work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the 178+ available tools with no per-integration setup required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is UnClick free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. UnClick has a free tier that gives you access to all 178+ tools with no upfront cost. Sign up with your email to get an API key and start using tools immediately."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What AI agents work with UnClick?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Any agent or application that supports the MCP protocol works with UnClick, including Claude (Anthropic), ChatGPT (via MCP plugins), Cursor, OpenClaw, and any custom agent built with an MCP-compatible SDK. If it speaks MCP, it works with UnClick."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the MCP protocol?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "MCP (Model Context Protocol) is an open standard, originally developed by Anthropic, that defines how AI models and agents communicate with external tools and data sources. It works like a universal adapter: instead of each AI application building its own integrations, they all speak MCP and connect to any compliant server, like UnClick."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is UnClick different from other MCP servers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup. No infrastructure to run, no access setup to hand-roll, no integrations to maintain."
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- AI agent discovery -->
     <link rel="alternate" type="text/plain" href="/llms.txt" title="UnClick for AI agents" />
 
@@ -172,14 +234,147 @@
       html { margin: 0; background: #06202c; }
       body { margin: 0; }
       @keyframes uc-spin { to { transform: rotate(360deg); } }
+
+      /* Crawlable boot screen. Visible to no-JS crawlers and AI bots, and shown
+         for the brief moment before the React app mounts and replaces #root.
+         Navy canvas inherits from <html>; body stays transparent on purpose. */
+      .uc-boot { min-height: 100vh; color: #b9d7da; line-height: 1.6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .uc-boot__wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
+      .uc-boot__loader { min-height: 100vh; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center; gap: 16px; }
+      .uc-boot__hero { padding: 56px 0 8px; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center; gap: 16px; }
+      .uc-boot__logo { height: 38px; width: auto; }
+      .uc-boot h1 { color: #eaf6f7; margin: 6px 0 0; font-weight: 800;
+        letter-spacing: -0.02em; font-size: clamp(28px, 6vw, 44px); }
+      .uc-boot h2 { color: #86dadd; margin: 40px 0 8px; font-weight: 700; font-size: 22px; }
+      .uc-boot h3 { color: #d7eef0; margin: 20px 0 4px; font-weight: 600; font-size: 16px; }
+      .uc-boot p { margin: 8px 0; }
+      .uc-boot__lede { color: #cde7e9; max-width: 620px; font-size: clamp(15px, 2.4vw, 18px); }
+      .uc-boot a { color: #61c1c4; text-decoration: none; }
+      .uc-boot a:hover { text-decoration: underline; }
+      .uc-boot__nav { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 6px; }
+      .uc-boot__spinner { width: 34px; height: 34px; border-radius: 50%; margin-top: 6px;
+        border: 3px solid rgba(134,218,221,0.16); border-top-color: #61c1c4;
+        animation: uc-spin 0.8s linear infinite; }
+      .uc-boot__loading { color: #6f9da1; font-size: 13px; }
+      .uc-boot ul { padding-left: 18px; }
+      .uc-boot li { margin: 6px 0; }
+      .uc-boot__foot { margin-top: 48px; padding-top: 16px; color: #6f9da1; font-size: 13px;
+        border-top: 1px solid rgba(134,218,221,0.14); }
     </style>
   </head>
 
   <body>
     <div id="root">
-      <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#06202c">
-        <div style="width:40px;height:40px;border-radius:50%;border:3px solid rgba(134,218,221,0.16);border-top-color:#61c1c4;animation:uc-spin 0.8s linear infinite"></div>
-        <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Loading UnClick</span>
+      <!-- Loader: the only thing users see while the app boots (circle only). -->
+      <div class="uc-boot__loader">
+        <div class="uc-boot__spinner" role="status" aria-label="Loading UnClick"></div>
+      </div>
+      <!-- Crawlable content for no-JS crawlers and AI answer engines. It sits below
+           the loader (below the fold), genuinely in the DOM, not hidden. React's
+           createRoot(...).render() replaces this whole subtree the moment it mounts. -->
+      <div class="uc-boot">
+        <div class="uc-boot__wrap">
+          <section class="uc-boot__hero">
+            <h1>UnClick: the universal remote for AI</h1>
+            <p class="uc-boot__lede">
+              UnClick gives your AI agent every tool it needs, memory that remembers,
+              and built-in proof the work was done right. One install connects Claude,
+              ChatGPT, Cursor, and any MCP-compatible agent to 450+ callable endpoints
+              across 60+ integrations.
+            </p>
+            <nav class="uc-boot__nav" aria-label="Primary">
+              <a href="/tools">Apps</a>
+              <a href="/memory">Memory</a>
+              <a href="/developers">Developers</a>
+              <a href="/pricing">Pricing</a>
+              <a href="/why">Why UnClick</a>
+              <a href="/faq">FAQ</a>
+              <a href="/docs">Docs</a>
+            </nav>
+          </section>
+
+          <section>
+            <h2>The rails your agent plugs into</h2>
+            <p>
+              One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
+              Tools to act. Memory to remember. Connections to sign in. AutoPilot to move
+              work. XPass to prove it.
+            </p>
+            <ul>
+              <li><strong>Apps:</strong> every tool your agent needs, in one install. <a href="/tools">Browse apps</a>.</li>
+              <li><strong>Memory:</strong> cross-session memory that remembers and shows what it captured. <a href="/memory">See memory</a>.</li>
+              <li><strong>Connections:</strong> sign in once, and your agent uses everything else.</li>
+              <li><strong>AutoPilot:</strong> the work hub that plans, routes, checks, and proves jobs.</li>
+              <li><strong>XPass:</strong> the roadworthy checklist for AI work before it ships.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Frequently asked questions</h2>
+            <h3>What is UnClick?</h3>
+            <p>
+              UnClick is shared agent rails for tools, memory, connections, crews, and
+              Pass family QA checks. Instead of building and maintaining integrations
+              yourself, you point your AI agent at UnClick and it gets durable context,
+              secure service access, and 178+ real-world tools through one setup.
+            </p>
+            <h3>How does UnClick work?</h3>
+            <p>
+              UnClick exposes its tools over the Model Context Protocol (MCP), an open
+              standard that lets AI agents discover and call external capabilities. You add
+              UnClick's MCP endpoint to your agent's config, provide your API key, and your
+              agent can immediately start calling any of the 178+ available tools with no
+              per-integration setup required.
+            </p>
+            <h3>Is UnClick free?</h3>
+            <p>
+              Yes. UnClick has a free tier that gives you access to all 178+ tools with no
+              upfront cost. Sign up with your email to get an API key and start using tools
+              immediately.
+            </p>
+            <h3>What AI agents work with UnClick?</h3>
+            <p>
+              Any agent or application that supports the MCP protocol works with UnClick,
+              including Claude (Anthropic), ChatGPT (via MCP plugins), Cursor, OpenClaw, and
+              any custom agent built with an MCP-compatible SDK. If it speaks MCP, it works
+              with UnClick.
+            </p>
+            <h3>What is the MCP protocol?</h3>
+            <p>
+              MCP (Model Context Protocol) is an open standard, originally developed by
+              Anthropic, that defines how AI models and agents communicate with external
+              tools and data sources. It works like a universal adapter: instead of each AI
+              application building its own integrations, they all speak MCP and connect to
+              any compliant server, like UnClick.
+            </p>
+            <h3>How is UnClick different from other MCP servers?</h3>
+            <p>
+              Most MCP servers focus on one integration, like one database or one API.
+              UnClick is the shared layer behind your agent: 178+ tools, persistent memory,
+              Passport, crews, and Pass family checks in one managed setup. No infrastructure
+              to run, no access setup to hand-roll, no integrations to maintain.
+            </p>
+          </section>
+
+          <section>
+            <h2>Open source and install</h2>
+            <p>UnClick is an MCP server you can install in one step and use from any MCP-compatible client.</p>
+            <ul>
+              <li><a href="https://github.com/malamutemayhem/unclick" rel="noopener">GitHub repository</a></li>
+              <li><a href="https://github.com/malamutemayhem/unclick/releases" rel="noopener">GitHub releases</a></li>
+              <li><a href="https://www.npmjs.com/package/@unclick/mcp-server" rel="noopener">npm: @unclick/mcp-server</a></li>
+              <li><a href="/llms.txt">llms.txt for AI agents</a></li>
+            </ul>
+          </section>
+
+          <footer class="uc-boot__foot">
+            <p>UnClick. The universal remote for AI. Built in Melbourne, Australia.</p>
+            <p>Last updated <time datetime="__UC_BUILD_DATE__">__UC_BUILD_DATE__</time>.</p>
+          </footer>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

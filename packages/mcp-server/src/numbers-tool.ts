@@ -1,8 +1,9 @@
 // Numbers API integration - interesting facts about numbers, dates, and years.
 // No authentication required - completely free and open.
-// Base URL: http://numbersapi.com/
+// Base URL: https://numbersapi.com/
 
-const NUMBERS_BASE = "http://numbersapi.com";
+const NUMBERS_BASE = "https://numbersapi.com";
+const NUMBERS_TIMEOUT_MS = Number(process.env.NUMBERS_TIMEOUT_MS) || 10000;
 
 const VALID_TYPES = ["trivia", "math", "date", "year"] as const;
 type NumberType = typeof VALID_TYPES[number];
@@ -17,11 +18,26 @@ interface NumbersResponse {
 }
 
 async function numbersFetch(path: string): Promise<NumbersResponse> {
-  // Append ?json to get structured JSON instead of plain text
   const url = `${NUMBERS_BASE}${path}?json`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NUMBERS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Numbers API request timed out after ${NUMBERS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Numbers API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 404 || res.status === 403) {
+    throw new Error(`Numbers API returned HTTP ${res.status}. The service at numbersapi.com may be temporarily unavailable.`);
+  }
   if (!res.ok) throw new Error(`Numbers API HTTP ${res.status}`);
   return res.json() as Promise<NumbersResponse>;
 }

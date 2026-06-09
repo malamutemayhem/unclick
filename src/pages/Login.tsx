@@ -5,7 +5,7 @@
  * NO password field. NO GitHub button. Per preflight decisions.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,7 +18,6 @@ import { Loader2, Mail, Check } from "lucide-react";
 import { signInWithMagicLink, signInWithOAuth, useSession } from "@/lib/auth";
 import { posthog } from "@/lib/posthog";
 import { track } from "@/lib/analytics";
-import { useEffect } from "react";
 
 export default function LoginPage() {
   useCanonical("https://unclick.world/login");

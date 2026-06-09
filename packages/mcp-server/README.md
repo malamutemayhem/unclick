@@ -4,7 +4,7 @@
 
 One install gives any MCP-compatible AI agent (Claude, Cursor, etc.) access to:
 - **450+ callable endpoints** across 60+ integrations (social, e-commerce, accounting, messaging, and more)
-- **Persistent cross-session memory** — the agent remembers you across sessions, zero config
+- **Persistent cross-session memory** - the agent remembers you across sessions, zero config
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ Get your API key at [unclick.world](https://unclick.world).
 
 ### Cursor
 
-Same config snippet as above — Cursor uses the same MCP format.
+Same config snippet as above. Cursor uses the same MCP format.
 
 ### Local / Development
 
@@ -42,7 +42,7 @@ UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releas
 
 ## Memory (built in, zero config)
 
-Memory works out of the box. No setup needed — data is stored as JSON files in `~/.unclick/memory/`.
+Memory works out of the box. No setup needed. Data is stored as JSON files in `~/.unclick/memory/`.
 
 **Want cross-machine sync?** Add Supabase env vars to your config:
 
@@ -123,13 +123,13 @@ The most-used tools are exposed as first-class MCP tools for immediate use witho
 
 The marketplace currently includes 23 tool groups spanning:
 
-- **Text** — transform (case, slug, count), encode/decode (base64, URL, HTML, hex), hash/HMAC, regex, markdown, diff
-- **Data** — JSON utilities, CSV processing, input validation (email, URL, phone, credit card, IP, color)
-- **Media** — image processing (resize, convert, crop, rotate, compress, grayscale), QR code generation, color utilities
-- **Time** — timestamp conversion, cron parsing/building
-- **Network** — URL shortening, IP utilities (parse, subnet, CIDR)
-- **Generation** — UUID v4, random (numbers, strings, passwords, picks, shuffles, colors)
-- **Storage** — key-value store (with TTL), webhook bins
+- **Text**: transform (case, slug, count), encode/decode (base64, URL, HTML, hex), hash/HMAC, regex, markdown, diff
+- **Data**: JSON utilities, CSV processing, input validation (email, URL, phone, credit card, IP, color)
+- **Media**: image processing (resize, convert, crop, rotate, compress, grayscale), QR code generation, color utilities
+- **Time**: timestamp conversion, cron parsing/building
+- **Network**: URL shortening, IP utilities (parse, subnet, CIDR)
+- **Generation**: UUID v4, random (numbers, strings, passwords, picks, shuffles, colors)
+- **Storage**: key-value store (with TTL), webhook bins
 
 All tools are accessible via `unclick_call` with the appropriate `endpoint_id`.
 

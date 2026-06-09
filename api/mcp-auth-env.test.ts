@@ -33,7 +33,7 @@ describe("applyMcpRequestEnv", () => {
       api_key_hash: "hash-123",
       tier: "pro",
       user_id: "user-123",
-      account_email: "chris@example.test",
+      account_email: "user@example.test",
       memory_quota_exempt: true,
     };
 
@@ -43,7 +43,7 @@ describe("applyMcpRequestEnv", () => {
     expect(process.env.UNCLICK_API_KEY_HASH).toBe("hash-123");
     expect(process.env.UNCLICK_TIER).toBe("pro");
     expect(process.env.UNCLICK_USER_ID).toBe("user-123");
-    expect(process.env.UNCLICK_ACCOUNT_EMAIL).toBe("chris@example.test");
+    expect(process.env.UNCLICK_ACCOUNT_EMAIL).toBe("user@example.test");
     expect(process.env.UNCLICK_MEMORY_QUOTA_EXEMPT).toBe("true");
   });
 });

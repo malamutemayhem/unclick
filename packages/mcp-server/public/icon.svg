@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!-- Dark rounded square background -->
   <rect width="512" height="512" rx="61" fill="#0a0a0a"/>
-  <!-- White "U" lettermark — geometric, bold, well-centred -->
+  <!-- White "U" lettermark - geometric, bold, well-centred -->
   <text
     x="256"
     y="345"

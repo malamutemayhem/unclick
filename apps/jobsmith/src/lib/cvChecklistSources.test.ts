@@ -16,7 +16,7 @@ import {
 const jobsmithRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 describe("JobSmith CV checklist CopyRoom manifest", () => {
-  test("declares the five exact source files Chris supplied", () => {
+  test("declares the five exact source files supplied", () => {
     expect(getExpectedCvChecklistFileNames()).toEqual([
       "cv-checklists_1.md",
       "cv-checklists_1a.md",

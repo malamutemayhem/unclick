@@ -309,4 +309,22 @@ describe("Fishbowl job pipeline inference", () => {
       proof_state_reason: "The job is parked or waiting for scope.",
     });
   });
+
+  it("resets pipeline when a revert or rollback invalidates ship proof", () => {
+    const revertResult = inferFishbowlJobPipeline(
+      { title: "Feature X deploy", status: "done" },
+      ["PR #200 merged and deployed to production.", "Reverted due to staging errors."],
+    );
+    expect(revertResult.proof_state).toBe("stale");
+    expect(revertResult.effective_status).toBe("needs_proof");
+    expect(revertResult.release_blocked).toBe(true);
+
+    const rollbackResult = inferFishbowlJobPipeline(
+      { title: "Feature Y ship", status: "done" },
+      ["Deployed and published to npm.", "Rolled back after customer reports."],
+    );
+    expect(rollbackResult.proof_state).toBe("stale");
+    expect(rollbackResult.effective_status).toBe("needs_proof");
+    expect(rollbackResult.release_blocked).toBe(true);
+  });
 });

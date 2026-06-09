@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ReactNode } from "react";
 import {
   Bot,
   BookOpen,
@@ -329,7 +328,7 @@ export default function AdminBrainmap() {
             <h2 className="text-lg font-semibold text-white">Human orientation</h2>
             <p className="mt-2 text-sm leading-6 text-white/65">
               Start here when you want a plain-English overview. This page is generated from source files, so
-              it stays useful for both Chris and AI seats as UnClick changes.
+              it stays useful for both the operator and AI seats as UnClick changes.
             </p>
           </div>
           <div className="rounded-lg border border-[#E2B93B]/20 bg-[#E2B93B]/10 p-4">

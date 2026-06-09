@@ -86,7 +86,7 @@ describe("MemoryActivityTab", () => {
     activityFactory = () => {
       const backgroundFact = {
         id: "static-profile",
-        fact: "Chris prefers concise worker updates",
+        fact: "User prefers concise worker updates",
         category: "preference",
         access_count: 2080,
         decay_tier: "hot",
@@ -129,7 +129,7 @@ describe("MemoryActivityTab", () => {
     activityFactory = () => {
       const backgroundFacts = Array.from({ length: 10 }, (_, index) => ({
         id: `static-profile-${index + 1}`,
-        fact: `Chris profile preference ${index + 1}`,
+        fact: `User profile preference ${index + 1}`,
         category: "preference",
         access_count: 2080 - index,
         decay_tier: "hot",

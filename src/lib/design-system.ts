@@ -14,7 +14,7 @@
  *  5. One CTA per section. Strip the third button.
  *  6. Motion budget = discreet. One slow-drifting teal aurora on the dark
  *     canvas (16-24s) plus FadeIn on first paint. No marquee, no grain.
- *     (Updated 2026-06-07 per Chris: subtle, beautiful background movement.)
+ *     (Updated 2026-06-07: subtle, beautiful background movement.)
  *  7. No em dashes anywhere.
  */
 
