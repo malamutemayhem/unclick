@@ -774,6 +774,10 @@ import { eulerPath } from "./eulerpath-tool.js";
 import { sparseTable } from "./sparsetable-tool.js";
 import { millerRabinTest } from "./millerrabin-tool.js";
 import { rbTreeSim } from "./rbtree-tool.js";
+import { heapSort } from "./heapsort-tool.js";
+import { chineseRemainderTheorem } from "./crt-tool.js";
+import { graphColoring } from "./graphcolor-tool.js";
+import { extendedGcd } from "./extgcd-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11500,6 +11504,57 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         keys: { type: "array", items: { type: "number" }, description: "Keys to insert into the red-black tree" },
       }, required: ["keys"],
+    },
+  },
+
+  // ── heapsort-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "heap_sort",
+    description: "Sort numbers using the heap sort algorithm. Guaranteed O(n log n) in-place sorting with swap count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers to sort" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── crt-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "chinese_remainder_theorem",
+    description: "Solve a system of simultaneous congruences using the Chinese Remainder Theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        remainders: { type: "array", items: { type: "number" }, description: "Remainders for each congruence" },
+        moduli: { type: "array", items: { type: "number" }, description: "Moduli for each congruence" },
+      }, required: ["remainders", "moduli"],
+    },
+  },
+
+  // ── graphcolor-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "graph_coloring",
+    description: "Color vertices of an undirected graph using a greedy algorithm so no adjacent vertices share a color.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Undirected edges as [u, v] pairs" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── extgcd-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "extended_gcd",
+    description: "Compute the extended GCD of two integers, returning Bezout coefficients and optionally the modular inverse.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        a: { type: "number", description: "First integer" },
+        b: { type: "number", description: "Second integer" },
+      }, required: ["a", "b"],
     },
   },
 
@@ -23314,6 +23369,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   sparse_table:              (args) => sparseTable(args),
   miller_rabin_test:         (args) => millerRabinTest(args),
   rb_tree_sim:               (args) => rbTreeSim(args),
+
+  // batch 75: Heap Sort, CRT, Graph Coloring, Extended GCD
+  heap_sort:                 (args) => heapSort(args),
+  chinese_remainder_theorem: (args) => chineseRemainderTheorem(args),
+  graph_coloring:            (args) => graphColoring(args),
+  extended_gcd:              (args) => extendedGcd(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1021,
+    "inventory": 1025,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 596,
+    "tools": 600,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 596
+      "count": 600
     },
     {
       "id": "rooms",
@@ -5382,6 +5382,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-crt-packages-mcp-server-src-crt-tool-ts-no-route",
+      "division": "Tools",
+      "name": "crt",
+      "kind": "MCP tool",
+      "meaning": "crt MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/crt-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-csuite-packages-mcp-server-src-csuite-tool-ts-no-route",
       "division": "Tools",
       "name": "csuite",
@@ -5932,6 +5942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-extgcd-packages-mcp-server-src-extgcd-tool-ts-no-route",
+      "division": "Tools",
+      "name": "extgcd",
+      "kind": "MCP tool",
+      "meaning": "extgcd MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/extgcd-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-fakerapi-packages-mcp-server-src-fakerapi-tool-ts-no-route",
       "division": "Tools",
       "name": "fakerapi",
@@ -6322,6 +6342,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-graphcolor-packages-mcp-server-src-graphcolor-tool-ts-no-route",
+      "division": "Tools",
+      "name": "graphcolor",
+      "kind": "MCP tool",
+      "meaning": "graphcolor MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/graphcolor-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-groq-packages-mcp-server-src-groq-tool-ts-no-route",
       "division": "Tools",
       "name": "groq",
@@ -6418,6 +6448,16 @@
       "kind": "MCP tool",
       "meaning": "haveibeenpwned MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/haveibeenpwned-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-heapsort-packages-mcp-server-src-heapsort-tool-ts-no-route",
+      "division": "Tools",
+      "name": "heapsort",
+      "kind": "MCP tool",
+      "meaning": "heapsort MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/heapsort-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11496,6 +11536,11 @@
       "packages/mcp-server/src/crossref-tool.ts"
     ],
     [
+      "crt",
+      "crt MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/crt-tool.ts"
+    ],
+    [
       "csuite",
       "csuite MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/csuite-tool.ts"
@@ -11771,6 +11816,11 @@
       "packages/mcp-server/src/expgrowth-tool.ts"
     ],
     [
+      "extgcd",
+      "extgcd MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/extgcd-tool.ts"
+    ],
+    [
       "fakerapi",
       "fakerapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/fakerapi-tool.ts"
@@ -11966,6 +12016,11 @@
       "packages/mcp-server/src/graph-tool.ts"
     ],
     [
+      "graphcolor",
+      "graphcolor MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/graphcolor-tool.ts"
+    ],
+    [
       "groq",
       "groq MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/groq-tool.ts"
@@ -12014,6 +12069,11 @@
       "haveibeenpwned",
       "haveibeenpwned MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/haveibeenpwned-tool.ts"
+    ],
+    [
+      "heapsort",
+      "heapsort MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/heapsort-tool.ts"
     ],
     [
       "Heartbeat Protocol",

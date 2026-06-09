@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 52 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 596 |
+| Tools | MCP and gateway capabilities available to seats. | 600 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -488,6 +488,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | crontab | crontab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crontab-tool.ts |
 | crossproduct | crossproduct MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crossproduct-tool.ts |
 | crossref | crossref MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crossref-tool.ts |
+| crt | crt MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crt-tool.ts |
 | csuite | csuite MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/csuite-tool.ts |
 | csvparse | csvparse MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/csvparse-tool.ts |
 | cvecircl | cvecircl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/cvecircl-tool.ts |
@@ -543,6 +544,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | exchangerate3 | exchangerate3 MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/exchangerate3-tool.ts |
 | excuser | excuser MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/excuser-tool.ts |
 | expgrowth | expgrowth MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/expgrowth-tool.ts |
+| extgcd | extgcd MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/extgcd-tool.ts |
 | fakerapi | fakerapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fakerapi-tool.ts |
 | fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fakestoreapi-tool.ts |
 | feedly | feedly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/feedly-tool.ts |
@@ -582,6 +584,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
 | graph | graph MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graph-tool.ts |
+| graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graphcolor-tool.ts |
 | groq | groq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/groq-tool.ts |
 | guardian | guardian MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/guardian-tool.ts |
 | gumroad | gumroad MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gumroad-tool.ts |
@@ -592,6 +595,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | harrypotter | harrypotter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/harrypotter-tool.ts |
 | hashgen | hashgen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hashgen-tool.ts |
 | haveibeenpwned | haveibeenpwned MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/haveibeenpwned-tool.ts |
+| heapsort | heapsort MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/heapsort-tool.ts |
 | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | packages/mcp-server/src/heartbeat-protocol.ts |
 | heygen | heygen MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/heygen-tool.ts |
 | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/higgsfield-tool.ts |
@@ -1500,6 +1504,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | crontab | crontab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crontab-tool.ts |
 | Tools | MCP tool | crossproduct | crossproduct MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crossproduct-tool.ts |
 | Tools | MCP tool | crossref | crossref MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crossref-tool.ts |
+| Tools | MCP tool | crt | crt MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crt-tool.ts |
 | Tools | MCP tool | csuite | csuite MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/csuite-tool.ts |
 | Tools | MCP tool | csvparse | csvparse MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/csvparse-tool.ts |
 | Tools | MCP tool | cvecircl | cvecircl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/cvecircl-tool.ts |
@@ -1555,6 +1560,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | exchangerate3 | exchangerate3 MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/exchangerate3-tool.ts |
 | Tools | MCP tool | excuser | excuser MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/excuser-tool.ts |
 | Tools | MCP tool | expgrowth | expgrowth MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/expgrowth-tool.ts |
+| Tools | MCP tool | extgcd | extgcd MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/extgcd-tool.ts |
 | Tools | MCP tool | fakerapi | fakerapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fakerapi-tool.ts |
 | Tools | MCP tool | fakestoreapi | fakestoreapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fakestoreapi-tool.ts |
 | Tools | MCP tool | feedly | feedly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/feedly-tool.ts |
@@ -1594,6 +1600,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-emoji-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
 | Tools | MCP tool | graph | graph MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graph-tool.ts |
+| Tools | MCP tool | graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graphcolor-tool.ts |
 | Tools | MCP tool | groq | groq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/groq-tool.ts |
 | Tools | MCP tool | guardian | guardian MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/guardian-tool.ts |
 | Tools | MCP tool | gumroad | gumroad MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gumroad-tool.ts |
@@ -1604,6 +1611,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | harrypotter | harrypotter MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/harrypotter-tool.ts |
 | Tools | MCP tool | hashgen | hashgen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/hashgen-tool.ts |
 | Tools | MCP tool | haveibeenpwned | haveibeenpwned MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/haveibeenpwned-tool.ts |
+| Tools | MCP tool | heapsort | heapsort MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/heapsort-tool.ts |
 | Tools | MCP tool | Heartbeat Protocol | Canonical heartbeat policy served to scheduled seats. | - | packages/mcp-server/src/heartbeat-protocol.ts |
 | Tools | MCP tool | heygen | heygen MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/heygen-tool.ts |
 | Tools | MCP tool | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/higgsfield-tool.ts |
