@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (558 external connectors)
+## Distribution (562 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 519 | 93% |
+| L5 | Agentic | 523 | 93% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 6% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 558 (43%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 562 (43%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 519 of 522 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 523 of 526 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -184,11 +184,13 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `kmeans` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `kmp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `knapsack` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `kosaraju` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `languagetool` (L5 Agentic): not-hardened, 2x-bare-error, no-memory
 - `lcs` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `levenshtein` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `libretranslate` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `linearsolve` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `lis` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `logbase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `lorem2` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `loremname` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -276,6 +278,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `qrserver` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `quadratic` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `rabinkarp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `radixsort` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `railfence` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `randomduck` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `randomuser` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
@@ -327,6 +330,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `timezone` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tokencount` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `toposort` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `treap` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `trianglesolve` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `trie` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tsp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -600,6 +604,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `kmeans` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `kmp` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `knapsack` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `kosaraju` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `languagetool` | - | - | - | Yes | Yes | not-hardened, 2x-bare-error, no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lcs` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -609,6 +614,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `libretranslate` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `lichess` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `linearsolve` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `lis` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `logbase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `lorem` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lorem2` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -735,6 +741,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `quotable` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `rabinkarp` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `radixsort` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `railfence` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `randomduck` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `randomfox` | Yes | - | - | Yes | Yes | no-memory |
@@ -823,6 +830,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `tokencount` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `tomorrowio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toposort` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `treap` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `trianglesolve` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `trie` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `trivia` | Yes | - | - | Yes | Yes | no-memory |

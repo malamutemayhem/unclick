@@ -762,6 +762,11 @@ import { skipListSim } from "./skiplist-tool.js";
 import { manacherPalindrome } from "./manacher-tool.js";
 import { countingSort } from "./countingsort-tool.js";
 
+import { radixSort } from "./radixsort-tool.js";
+import { treapSim } from "./treap-tool.js";
+import { longestIncreasingSubseq } from "./lis-tool.js";
+import { kosarajuScc } from "./kosaraju-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -11330,6 +11335,57 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         values: { type: "array", items: { type: "number" }, description: "Array of integers to sort" },
       }, required: ["values"],
+    },
+  },
+
+  // ── radixsort-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "radix_sort",
+    description: "Sort non-negative integers using radix sort with configurable base.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Non-negative integers to sort" },
+        base: { type: "number", description: "Radix base (default 10, range 2-256)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── treap-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "treap_sim",
+    description: "Simulate a treap (randomized BST): insert values, get sorted output, tree height, and search.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Values to insert" },
+        search: { type: "array", items: { type: "number" }, description: "Values to search for" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── lis-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "longest_increasing_subsequence",
+    description: "Find the longest increasing subsequence in O(n log n) time using patience sorting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── kosaraju-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "kosaraju_scc",
+    description: "Find all strongly connected components in a directed graph using Kosaraju's two-pass algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [from, to] pairs" },
+      }, required: ["vertices", "edges"],
     },
   },
 
@@ -23126,6 +23182,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   skip_list_sim:             (args) => skipListSim(args),
   manacher_palindrome:       (args) => manacherPalindrome(args),
   counting_sort:             (args) => countingSort(args),
+
+  // batch 72: Radix Sort, Treap, LIS, Kosaraju SCC
+  radix_sort:                (args) => radixSort(args),
+  treap_sim:                 (args) => treapSim(args),
+  longest_increasing_subsequence: (args) => longestIncreasingSubseq(args),
+  kosaraju_scc:              (args) => kosarajuScc(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

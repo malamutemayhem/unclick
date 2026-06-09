@@ -4210,6 +4210,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "kosaraju",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kosaraju_scc",
+        "description": "Find all strongly connected components in a directed graph using Kosaraju's two-pass algorithm."
+      }
+    ]
+  },
+  {
     "app": "languagetool",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4458,6 +4468,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "linear_solve",
         "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
+      }
+    ]
+  },
+  {
+    "app": "lis",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "longest_increasing_subsequence",
+        "description": "Find the longest increasing subsequence in O(n log n) time using patience sorting."
       }
     ]
   },
@@ -6608,6 +6628,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "radixsort",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "radix_sort",
+        "description": "Sort non-negative integers using radix sort with configurable base."
+      }
+    ]
+  },
+  {
     "app": "railfence",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8430,6 +8460,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "topo_sort",
         "description": "Topological sort of a directed graph with cycle detection."
+      }
+    ]
+  },
+  {
+    "app": "treap",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "treap_sim",
+        "description": "Simulate a treap (randomized BST): insert values, get sorted output, tree height, and search."
       }
     ]
   },
