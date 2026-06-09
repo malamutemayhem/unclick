@@ -52,7 +52,11 @@ async function fetchJsonp(url: string): Promise<unknown> {
   if (!match) {
     throw new Error("Unexpected ABR API response format (not JSONP).");
   }
-  return JSON.parse(match[1]) as unknown;
+  try {
+    return JSON.parse(match[1]) as unknown;
+  } catch {
+    throw new Error("ABR API returned invalid JSON inside JSONP wrapper.");
+  }
 }
 
 // The ABR JSON AbnDetails endpoint returns BusinessName (trading names) as an

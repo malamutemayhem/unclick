@@ -652,7 +652,8 @@ function buildGitleaksCommand(repoPath) {
 }
 function parseGitleaksJson(stdout) {
   if (!stdout.trim()) return [];
-  const leaks = JSON.parse(stdout);
+  let leaks;
+  try { leaks = JSON.parse(stdout); } catch { return []; }
   return leaks.map((leak) => ({
     check_id: `securitypass.gitleaks.${leak.RuleID ?? "secret"}`,
     title: leak.Description ?? "Potential secret detected",
@@ -826,7 +827,8 @@ function callAnalysisForVulnerability(pkg, vuln) {
 }
 function parseOsvScannerJson(stdout) {
   if (!stdout.trim()) return [];
-  const body = JSON.parse(stdout);
+  let body;
+  try { body = JSON.parse(stdout); } catch { return []; }
   const findings = [];
   for (const result of body.results ?? []) {
     for (const pkg of result.packages ?? []) {

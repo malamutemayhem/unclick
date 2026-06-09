@@ -114,7 +114,11 @@ export function decodeJwt(token: string) {
   const b64urlDecode = (s: string): unknown => {
     const padded = s.replace(/-/g, "+").replace(/_/g, "/")
       .padEnd(s.length + ((4 - (s.length % 4)) % 4), "=");
-    return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+    try {
+      return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+    } catch {
+      return { _raw: Buffer.from(padded, "base64").toString("utf8") };
+    }
   };
 
   const header = b64urlDecode(parts[0]) as Record<string, unknown>;

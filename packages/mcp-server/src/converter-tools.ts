@@ -29,7 +29,8 @@ export function htmlToMarkdown(html: string): { markdown: string } {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function jsonToYaml(json: string, indent = 2): { yaml: string } {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   const result = yaml.dump(parsed, { indent });
   return { yaml: result };
 }
@@ -45,7 +46,8 @@ export function yamlToJson(yamlStr: string, indent = 2): { json: string } {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function jsonToXml(json: string, rootKey = "root"): { xml: string } {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   const builder = new XMLBuilder({ format: true, indentBy: "  " });
   const wrapped = typeof parsed === "object" && !Array.isArray(parsed)
     ? parsed
@@ -66,7 +68,8 @@ export function xmlToJson(xml: string, indent = 2): { json: string } {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function jsonToToml(json: string): { toml: string } {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   if (typeof parsed !== "object" || Array.isArray(parsed) || parsed === null) {
     throw new Error("TOML requires a top-level object (not an array or primitive)");
   }
@@ -113,7 +116,8 @@ export function jsonToCsv(
   options: { delimiter?: string } = {}
 ): { csv: string; rows: number } {
   const { delimiter = "," } = options;
-  const parsed = JSON.parse(json) as unknown[];
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   if (!Array.isArray(parsed)) {
     throw new Error("Input must be a JSON array");
   }
@@ -135,7 +139,8 @@ export function jsonFormat(
   json: string,
   indent: number | "tab" | "minify" = 2
 ): { json: string } {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   if (indent === "minify") {
     return { json: JSON.stringify(parsed) };
   }
@@ -148,7 +153,8 @@ export function jsonFormat(
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function jsonToJsonl(json: string): { jsonl: string; lines: number } {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try { parsed = JSON.parse(json); } catch { throw new Error("Invalid JSON input."); }
   if (!Array.isArray(parsed)) {
     throw new Error("Input must be a JSON array to convert to JSONL");
   }
@@ -161,6 +167,8 @@ export function jsonlToJson(jsonl: string, indent = 2): { json: string; lines: n
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
-  const parsed = lines.map((line) => JSON.parse(line) as unknown);
+  const parsed = lines.map((line, i) => {
+    try { return JSON.parse(line) as unknown; } catch { throw new Error(`Invalid JSON on line ${i + 1}.`); }
+  });
   return { json: JSON.stringify(parsed, null, indent), lines: parsed.length };
 }
