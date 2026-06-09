@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 667,
-  "toolCount": 1589,
+  "appCount": 671,
+  "toolCount": 1593,
   "categories": [
     "AI",
     "Books",
@@ -36,6 +36,22 @@
         {
           "name": "two_sat",
           "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "convexhull3d",
+      "name": "3D Convex Hull",
+      "category": "Utilities",
+      "blurb": "Compute the 3D convex hull of a point set returning triangular faces.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "convex_hull_3d",
+          "description": "Compute the 3D convex hull of a point set, returning triangular faces."
         }
       ],
       "level": 5,
@@ -836,6 +852,22 @@
         {
           "name": "berlekamp_massey",
           "description": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "bezierclip",
+      "name": "Bezier Clip",
+      "category": "Utilities",
+      "blurb": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "bezier_clip",
+          "description": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision."
         }
       ],
       "level": 5,
@@ -5040,6 +5072,22 @@
         {
           "name": "gutendex_book",
           "description": "Get details for a Project Gutenberg book by ID."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "waveletfn",
+      "name": "Haar Wavelet",
+      "category": "Utilities",
+      "blurb": "Haar wavelet transform (forward and inverse) on power-of-2 length arrays.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "haar_wavelet",
+          "description": "Haar wavelet transform (forward and inverse) on a power-of-2 length array."
         }
       ],
       "level": 5,
@@ -11832,6 +11880,22 @@
         {
           "name": "stern_brocot_tree",
           "description": "Find best rational approximation using the Stern-Brocot tree and continued fractions."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "stirling",
+      "name": "Stirling Numbers",
+      "category": "Utilities",
+      "blurb": "Compute Stirling numbers of the first or second kind via dynamic programming.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "stirling_numbers",
+          "description": "Compute Stirling numbers of the first or second kind via DP."
         }
       ],
       "level": 5,

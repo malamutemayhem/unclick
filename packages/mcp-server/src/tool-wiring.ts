@@ -846,6 +846,10 @@ import { derangementCalc } from "./derangement-tool.js";
 import { kmpAutomaton } from "./kmpautomaton-tool.js";
 import { rmqSparse } from "./rmqsparse-tool.js";
 import { partitionCount } from "./partition-tool.js";
+import { stirlingNumbers } from "./stirling-tool.js";
+import { haarWavelet } from "./waveletfn-tool.js";
+import { convexHull3D } from "./convexhull3d-tool.js";
+import { bezierClip } from "./bezierclip-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12510,6 +12514,59 @@ export const ADDITIONAL_TOOLS = [
         max_part: { type: "number", description: "Maximum part size" },
         num_parts: { type: "number", description: "Exact number of parts" },
       }, required: ["n"],
+    },
+  },
+
+  // ── stirling-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "stirling_numbers",
+    description: "Compute Stirling numbers of the first or second kind via DP.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "n (0-200)" },
+        k: { type: "number", description: "k (0-n)" },
+        kind: { type: "number", description: "1 or 2 (default 2)" },
+      }, required: ["n", "k"],
+    },
+  },
+
+  // ── waveletfn-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "haar_wavelet",
+    description: "Haar wavelet transform (forward and inverse) on a power-of-2 length array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        values: { type: "array", items: { type: "number" }, description: "Input values (length must be power of 2)" },
+        inverse: { type: "boolean", description: "Inverse transform (default false)" },
+      }, required: ["values"],
+    },
+  },
+
+  // ── convexhull3d-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "convex_hull_3d",
+    description: "Compute the 3D convex hull of a point set, returning triangular faces.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y,z] points (at least 4)" },
+      }, required: ["points"],
+    },
+  },
+
+  // ── bezierclip-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "bezier_clip",
+    description: "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        control_points: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Array of [x,y] control points" },
+        t_start: { type: "number", description: "Start parameter (0-1)" },
+        t_end: { type: "number", description: "End parameter (0-1)" },
+      }, required: ["control_points", "t_start", "t_end"],
     },
   },
 
@@ -24432,6 +24489,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   kmp_automaton:                 (args) => kmpAutomaton(args),
   rmq_sparse:                    (args) => rmqSparse(args),
   partition_count:               (args) => partitionCount(args),
+
+  // batch 93: Stirling Numbers, Haar Wavelet, 3D Convex Hull, Bezier Clip
+  stirling_numbers:              (args) => stirlingNumbers(args),
+  haar_wavelet:                  (args) => haarWavelet(args),
+  convex_hull_3d:                (args) => convexHull3D(args),
+  bezier_clip:                   (args) => bezierClip(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

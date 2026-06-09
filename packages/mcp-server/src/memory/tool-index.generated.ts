@@ -640,6 +640,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bezierclip",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "bezier_clip",
+        "description": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision."
+      }
+    ]
+  },
+  {
     "app": "bfs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1796,6 +1806,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "convex_hull",
         "description": "Compute the convex hull of 2D points with area and perimeter."
+      }
+    ]
+  },
+  {
+    "app": "convexhull3d",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "convex_hull_3d",
+        "description": "Compute the 3D convex hull of a point set, returning triangular faces."
       }
     ]
   },
@@ -8574,6 +8594,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "stirling",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "stirling_numbers",
+        "description": "Compute Stirling numbers of the first or second kind via DP."
+      }
+    ]
+  },
+  {
     "app": "stringcase",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -9882,6 +9912,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wavelet_tree",
         "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
+      }
+    ]
+  },
+  {
+    "app": "waveletfn",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "haar_wavelet",
+        "description": "Haar wavelet transform (forward and inverse) on a power-of-2 length array."
       }
     ]
   },

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:43:50.756Z",
+  "updatedAt": "2026-06-09T04:56:04.429Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5497,6 +5497,38 @@
       "testedAt": "2026-06-09T04:43:50.756Z",
       "toolsTested": [
         "partition_count"
+      ]
+    },
+    "stirling": {
+      "status": "pass",
+      "note": "stirling_numbers({n:5,k:2}) returned correct Stirling number",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "stirling_numbers"
+      ]
+    },
+    "waveletfn": {
+      "status": "pass",
+      "note": "haar_wavelet({values:[1,2,3,4]}) returned wavelet coefficients",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "haar_wavelet"
+      ]
+    },
+    "convexhull3d": {
+      "status": "pass",
+      "note": "convex_hull_3d with tetrahedron returned 4 faces",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "convex_hull_3d"
+      ]
+    },
+    "bezierclip": {
+      "status": "pass",
+      "note": "bezier_clip({control_points:...,t_start:0,t_end:0.5}) returned sub-curve",
+      "testedAt": "2026-06-09T04:56:04.429Z",
+      "toolsTested": [
+        "bezier_clip"
       ]
     }
   },
