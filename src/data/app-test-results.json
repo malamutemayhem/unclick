@@ -4186,6 +4186,30 @@
       "note": "hungarian_assign optimally assigns workers to tasks. Local computation.",
       "testedAt": "2026-06-09T00:45:00.000Z",
       "toolsTested": ["hungarian_assign"]
+    },
+    "kmeans": {
+      "status": "pass",
+      "note": "kmeans_cluster partitions points into k clusters. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": ["kmeans_cluster"]
+    },
+    "bellmanford": {
+      "status": "pass",
+      "note": "bellman_ford finds shortest paths with negative weight support. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": ["bellman_ford"]
+    },
+    "floydwarshall": {
+      "status": "pass",
+      "note": "floyd_warshall computes all-pairs shortest paths. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": ["floyd_warshall"]
+    },
+    "reservoir": {
+      "status": "pass",
+      "note": "reservoir_sample selects k random items with equal probability. Local computation.",
+      "testedAt": "2026-06-09T00:52:00.000Z",
+      "toolsTested": ["reservoir_sample"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

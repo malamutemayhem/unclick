@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 985,
+    "inventory": 989,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 560,
+    "tools": 564,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 560
+      "count": 564
     },
     {
       "id": "rooms",
@@ -4542,6 +4542,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-bellmanford-packages-mcp-server-src-bellmanford-tool-ts-no-route",
+      "division": "Tools",
+      "name": "bellmanford",
+      "kind": "MCP tool",
+      "meaning": "bellmanford MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/bellmanford-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bezier-packages-mcp-server-src-bezier-tool-ts-no-route",
       "division": "Tools",
       "name": "bezier",
@@ -5932,6 +5942,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-floydwarshall-packages-mcp-server-src-floydwarshall-tool-ts-no-route",
+      "division": "Tools",
+      "name": "floydwarshall",
+      "kind": "MCP tool",
+      "meaning": "floydwarshall MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/floydwarshall-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-flyio-packages-mcp-server-src-flyio-tool-ts-no-route",
       "division": "Tools",
       "name": "flyio",
@@ -6748,6 +6768,16 @@
       "kind": "MCP tool",
       "meaning": "kling MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/kling-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-kmeans-packages-mcp-server-src-kmeans-tool-ts-no-route",
+      "division": "Tools",
+      "name": "kmeans",
+      "kind": "MCP tool",
+      "meaning": "kmeans MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/kmeans-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8398,6 +8428,16 @@
       "kind": "MCP tool",
       "meaning": "resend MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/resend-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-reservoir-packages-mcp-server-src-reservoir-tool-ts-no-route",
+      "division": "Tools",
+      "name": "reservoir",
+      "kind": "MCP tool",
+      "meaning": "reservoir MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/reservoir-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10716,6 +10756,11 @@
       "packages/mcp-server/src/baseconvert-tool.ts"
     ],
     [
+      "bellmanford",
+      "bellmanford MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/bellmanford-tool.ts"
+    ],
+    [
       "bezier",
       "bezier MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bezier-tool.ts"
@@ -11411,6 +11456,11 @@
       "packages/mcp-server/src/flowpass-tool.ts"
     ],
     [
+      "floydwarshall",
+      "floydwarshall MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/floydwarshall-tool.ts"
+    ],
+    [
       "flyio",
       "flyio MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/flyio-tool.ts"
@@ -11819,6 +11869,11 @@
       "kling",
       "kling MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/kling-tool.ts"
+    ],
+    [
+      "kmeans",
+      "kmeans MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/kmeans-tool.ts"
     ],
     [
       "knapsack",
@@ -12644,6 +12699,11 @@
       "resend",
       "resend MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/resend-tool.ts"
+    ],
+    [
+      "reservoir",
+      "reservoir MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/reservoir-tool.ts"
     ],
     [
       "restcountries",
@@ -14564,6 +14624,11 @@
       "bytes": 1246
     },
     {
+      "source": "packages/mcp-server/src/bellmanford-tool.ts",
+      "hash": "baef494b3f6a",
+      "bytes": 2955
+    },
+    {
       "source": "packages/mcp-server/src/bezier-tool.ts",
       "hash": "29ff88e26cbb",
       "bytes": 2561
@@ -14587,11 +14652,6 @@
       "source": "packages/mcp-server/src/bible-tool.ts",
       "hash": "94f62f2fa1c1",
       "bytes": 2338
-    },
-    {
-      "source": "packages/mcp-server/src/bibleverse-tool.ts",
-      "hash": "c5c118d0eb27",
-      "bytes": 1698
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
