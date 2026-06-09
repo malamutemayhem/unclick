@@ -770,6 +770,10 @@ import { bucketSort } from "./bucketsort-tool.js";
 import { edmondsKarp } from "./edmondskarp-tool.js";
 import { avlTree } from "./avltree-tool.js";
 import { bipartiteCheck } from "./bipartite-tool.js";
+import { eulerPath } from "./eulerpath-tool.js";
+import { sparseTable } from "./sparsetable-tool.js";
+import { millerRabinTest } from "./millerrabin-tool.js";
+import { rbTreeSim } from "./rbtree-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11444,6 +11448,58 @@ export const ADDITIONAL_TOOLS = [
         vertices: { type: "number", description: "Number of vertices (0-indexed)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Undirected edges as [u, v] pairs" },
       }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── eulerpath-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "euler_path",
+    description: "Check whether a graph has an Eulerian path or circuit. Reports degree analysis and start/end vertices.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertices: { type: "number", description: "Number of vertices (0-indexed)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+        directed: { type: "boolean", description: "Whether the graph is directed (default: false)" },
+      }, required: ["vertices", "edges"],
+    },
+  },
+
+  // ── sparsetable-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "sparse_table",
+    description: "Build a sparse table for O(1) range minimum or maximum queries on a static array.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [left, right] pairs (inclusive)" },
+        mode: { type: "string", enum: ["min", "max"], description: "Query mode: 'min' or 'max' (default: min)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── millerrabin-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "miller_rabin_test",
+    description: "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "number", description: "The number to test for primality (up to 10^18)" },
+      }, required: ["number"],
+    },
+  },
+
+  // ── rbtree-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "rb_tree_sim",
+    description: "Build a red-black tree from a list of keys. Returns inorder traversal, tree height, black height, and validity check.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        keys: { type: "array", items: { type: "number" }, description: "Keys to insert into the red-black tree" },
+      }, required: ["keys"],
     },
   },
 
@@ -23252,6 +23308,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   edmonds_karp:              (args) => edmondsKarp(args),
   avl_tree:                  (args) => avlTree(args),
   bipartite_check:           (args) => bipartiteCheck(args),
+
+  // batch 74: Euler Path, Sparse Table, Miller-Rabin, Red-Black Tree
+  euler_path:                (args) => eulerPath(args),
+  sparse_table:              (args) => sparseTable(args),
+  miller_rabin_test:         (args) => millerRabinTest(args),
+  rb_tree_sim:               (args) => rbTreeSim(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

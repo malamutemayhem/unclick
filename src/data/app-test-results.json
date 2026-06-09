@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T01:45:00.000Z",
+  "updatedAt": "2026-06-09T01:55:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4378,6 +4378,30 @@
       "note": "bipartite_check tests 2-colorability via BFS coloring. Local computation.",
       "testedAt": "2026-06-09T01:45:00.000Z",
       "toolsTested": ["bipartite_check"]
+    },
+    "eulerpath": {
+      "status": "pass",
+      "note": "euler_path checks Eulerian path/circuit via degree analysis. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": ["euler_path"]
+    },
+    "sparsetable": {
+      "status": "pass",
+      "note": "sparse_table builds O(1) RMQ structure from static array. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": ["sparse_table"]
+    },
+    "millerrabin": {
+      "status": "pass",
+      "note": "miller_rabin_test performs deterministic primality testing. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": ["miller_rabin_test"]
+    },
+    "rbtree": {
+      "status": "pass",
+      "note": "rb_tree_sim builds red-black tree with validity checking. Local computation.",
+      "testedAt": "2026-06-09T01:55:00.000Z",
+      "toolsTested": ["rb_tree_sim"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

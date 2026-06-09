@@ -2646,6 +2646,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "eulerpath",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "euler_path",
+        "description": "Check whether a graph has an Eulerian path or circuit. Reports degree analysis and start/end vertices."
+      }
+    ]
+  },
+  {
     "app": "europeana",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4894,6 +4904,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "millerrabin",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "miller_rabin_test",
+        "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+      }
+    ]
+  },
+  {
     "app": "miro",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -6810,6 +6830,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "rbtree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rb_tree_sim",
+        "description": "Build a red-black tree from a list of keys. Returns inorder traversal, tree height, black height, and validity check."
+      }
+    ]
+  },
+  {
     "app": "rdap",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7688,6 +7718,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "spacex_rockets",
         "description": "List all SpaceX rockets with specifications."
+      }
+    ]
+  },
+  {
+    "app": "sparsetable",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "sparse_table",
+        "description": "Build a sparse table for O(1) range minimum or maximum queries on a static array."
       }
     ]
   },

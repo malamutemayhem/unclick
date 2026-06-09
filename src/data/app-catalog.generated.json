@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 591,
-  "toolCount": 1513,
+  "appCount": 595,
+  "toolCount": 1517,
   "categories": [
     "AI",
     "Books",
@@ -3450,6 +3450,22 @@
       "hardened": true
     },
     {
+      "slug": "eulerpath",
+      "name": "Euler Path",
+      "category": "Utilities",
+      "blurb": "Check whether a graph has an Eulerian path or circuit via degree analysis.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_path",
+          "description": "Check whether a graph has an Eulerian path or circuit. Reports degree analysis and start/end vertices."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "europeana",
       "name": "Europeana",
       "category": "News & reading",
@@ -6562,6 +6578,22 @@
       "hardened": false
     },
     {
+      "slug": "millerrabin",
+      "name": "Miller-Rabin",
+      "category": "Utilities",
+      "blurb": "Deterministic Miller-Rabin primality test with multiple witnesses.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "miller_rabin_test",
+          "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mst",
       "name": "Min Spanning Tree",
       "category": "Utilities",
@@ -9362,6 +9394,22 @@
       "hardened": true
     },
     {
+      "slug": "rbtree",
+      "name": "Red-Black Tree",
+      "category": "Utilities",
+      "blurb": "Red-black tree simulation with insert, inorder traversal, and validity check.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rb_tree_sim",
+          "description": "Build a red-black tree from a list of keys. Returns inorder traversal, tree height, black height, and validity check."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "reddit",
       "name": "Reddit",
       "category": "Social",
@@ -10440,6 +10488,22 @@
         {
           "name": "spacex_rockets",
           "description": "List all SpaceX rockets with specifications."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "sparsetable",
+      "name": "Sparse Table",
+      "category": "Utilities",
+      "blurb": "Build a sparse table for O(1) range minimum or maximum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sparse_table",
+          "description": "Build a sparse table for O(1) range minimum or maximum queries on a static array."
         }
       ],
       "level": 5,

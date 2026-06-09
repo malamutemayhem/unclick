@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1017,
+    "inventory": 1021,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 592,
+    "tools": 596,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 592
+      "count": 596
     },
     {
       "id": "rooms",
@@ -5842,6 +5842,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-eulerpath-packages-mcp-server-src-eulerpath-tool-ts-no-route",
+      "division": "Tools",
+      "name": "eulerpath",
+      "kind": "MCP tool",
+      "meaning": "eulerpath MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/eulerpath-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-europeana-packages-mcp-server-src-europeana-tool-ts-no-route",
       "division": "Tools",
       "name": "europeana",
@@ -7312,6 +7322,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-millerrabin-packages-mcp-server-src-millerrabin-tool-ts-no-route",
+      "division": "Tools",
+      "name": "millerrabin",
+      "kind": "MCP tool",
+      "meaning": "millerrabin MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/millerrabin-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-miro-packages-mcp-server-src-miro-tool-ts-no-route",
       "division": "Tools",
       "name": "miro",
@@ -8512,6 +8532,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-rbtree-packages-mcp-server-src-rbtree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "rbtree",
+      "kind": "MCP tool",
+      "meaning": "rbtree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/rbtree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-rdap-packages-mcp-server-src-rdap-tool-ts-no-route",
       "division": "Tools",
       "name": "rdap",
@@ -9038,6 +9068,16 @@
       "kind": "MCP tool",
       "meaning": "spacex MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/spacex-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-sparsetable-packages-mcp-server-src-sparsetable-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sparsetable",
+      "kind": "MCP tool",
+      "meaning": "sparsetable MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sparsetable-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11686,6 +11726,11 @@
       "packages/mcp-server/src/etsy-tool.ts"
     ],
     [
+      "eulerpath",
+      "eulerpath MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/eulerpath-tool.ts"
+    ],
+    [
       "europeana",
       "europeana MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/europeana-tool.ts"
@@ -12421,6 +12466,11 @@
       "packages/mcp-server/src/midpoint-tool.ts"
     ],
     [
+      "millerrabin",
+      "millerrabin MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/millerrabin-tool.ts"
+    ],
+    [
       "miro",
       "miro MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/miro-tool.ts"
@@ -13021,6 +13071,11 @@
       "packages/mcp-server/src/rawg-tool.ts"
     ],
     [
+      "rbtree",
+      "rbtree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/rbtree-tool.ts"
+    ],
+    [
       "rdap",
       "rdap MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/rdap-tool.ts"
@@ -13284,6 +13339,11 @@
       "spacex",
       "spacex MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/spacex-tool.ts"
+    ],
+    [
+      "sparsetable",
+      "sparsetable MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sparsetable-tool.ts"
     ],
     [
       "speedrun",
