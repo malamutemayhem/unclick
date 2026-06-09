@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 583,
-  "toolCount": 1505,
+  "appCount": 587,
+  "toolCount": 1509,
   "categories": [
     "AI",
     "Books",
@@ -5570,6 +5570,22 @@
       "hardened": false
     },
     {
+      "slug": "kosaraju",
+      "name": "Kosaraju SCC",
+      "category": "Utilities",
+      "blurb": "Find strongly connected components via Kosaraju's two-pass algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kosaraju_scc",
+          "description": "Find all strongly connected components in a directed graph using Kosaraju's two-pass algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "languagetool",
       "name": "LanguageTool",
       "category": "Utilities",
@@ -5920,6 +5936,22 @@
         {
           "name": "linear_solve",
           "description": "Solve a system of linear equations Ax = b using Gaussian elimination with partial pivoting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lis",
+      "name": "LIS Solver",
+      "category": "Utilities",
+      "blurb": "Find longest increasing subsequence in O(n log n) time.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "longest_increasing_subsequence",
+          "description": "Find the longest increasing subsequence in O(n log n) time using patience sorting."
         }
       ],
       "level": 5,
@@ -8986,6 +9018,22 @@
       "hardened": true
     },
     {
+      "slug": "radixsort",
+      "name": "Radix Sort",
+      "category": "Utilities",
+      "blurb": "Non-comparative integer sort using digit-by-digit bucketing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "radix_sort",
+          "description": "Sort non-negative integers using radix sort with configurable base."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "railfence",
       "name": "Rail Fence Cipher",
       "category": "Utilities",
@@ -11544,6 +11592,22 @@
         {
           "name": "topo_sort",
           "description": "Topological sort of a directed graph with cycle detection."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "treap",
+      "name": "Treap",
+      "category": "Utilities",
+      "blurb": "Randomized BST combining tree and heap properties.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "treap_sim",
+          "description": "Simulate a treap (randomized BST): insert values, get sorted output, tree height, and search."
         }
       ],
       "level": 5,

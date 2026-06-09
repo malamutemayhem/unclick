@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1009,
+    "inventory": 1013,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 584,
+    "tools": 588,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 584
+      "count": 588
     },
     {
       "id": "rooms",
@@ -6852,6 +6852,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-kosaraju-packages-mcp-server-src-kosaraju-tool-ts-no-route",
+      "division": "Tools",
+      "name": "kosaraju",
+      "kind": "MCP tool",
+      "meaning": "kosaraju MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/kosaraju-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-languagetool-packages-mcp-server-src-languagetool-tool-ts-no-route",
       "division": "Tools",
       "name": "languagetool",
@@ -6968,6 +6978,16 @@
       "kind": "MCP tool",
       "meaning": "linearsolve MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/linearsolve-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-lis-packages-mcp-server-src-lis-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lis",
+      "kind": "MCP tool",
+      "meaning": "lis MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lis-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8362,6 +8382,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-radixsort-packages-mcp-server-src-radixsort-tool-ts-no-route",
+      "division": "Tools",
+      "name": "radixsort",
+      "kind": "MCP tool",
+      "meaning": "radixsort MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/radixsort-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-railfence-packages-mcp-server-src-railfence-tool-ts-no-route",
       "division": "Tools",
       "name": "railfence",
@@ -9408,6 +9438,16 @@
       "kind": "MCP tool",
       "meaning": "toposort MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/toposort-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-treap-packages-mcp-server-src-treap-tool-ts-no-route",
+      "division": "Tools",
+      "name": "treap",
+      "kind": "MCP tool",
+      "meaning": "treap MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/treap-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12111,6 +12151,11 @@
       "packages/mcp-server/src/knapsack-tool.ts"
     ],
     [
+      "kosaraju",
+      "kosaraju MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/kosaraju-tool.ts"
+    ],
+    [
       "languagetool",
       "languagetool MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/languagetool-tool.ts"
@@ -12169,6 +12214,11 @@
       "linearsolve",
       "linearsolve MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/linearsolve-tool.ts"
+    ],
+    [
+      "lis",
+      "lis MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lis-tool.ts"
     ],
     [
       "logbase",
@@ -12866,6 +12916,11 @@
       "packages/mcp-server/src/radiobrowser-tool.ts"
     ],
     [
+      "radixsort",
+      "radixsort MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/radixsort-tool.ts"
+    ],
+    [
       "railfence",
       "railfence MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/railfence-tool.ts"
@@ -13389,6 +13444,11 @@
       "toposort",
       "toposort MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/toposort-tool.ts"
+    ],
+    [
+      "treap",
+      "treap MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/treap-tool.ts"
     ],
     [
       "trello",

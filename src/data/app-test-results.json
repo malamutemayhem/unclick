@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T01:23:00.000Z",
+  "updatedAt": "2026-06-09T01:28:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4330,6 +4330,30 @@
       "note": "counting_sort sorts integers in O(n+k) with frequency analysis. Local computation.",
       "testedAt": "2026-06-09T01:23:00.000Z",
       "toolsTested": ["counting_sort"]
+    },
+    "radixsort": {
+      "status": "pass",
+      "note": "radix_sort sorts non-negative integers using digit-by-digit bucketing. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": ["radix_sort"]
+    },
+    "treap": {
+      "status": "pass",
+      "note": "treap_sim builds randomized BST with search capability. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": ["treap_sim"]
+    },
+    "lis": {
+      "status": "pass",
+      "note": "longest_increasing_subsequence finds LIS in O(n log n). Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": ["longest_increasing_subsequence"]
+    },
+    "kosaraju": {
+      "status": "pass",
+      "note": "kosaraju_scc finds SCCs using two-pass DFS. Local computation.",
+      "testedAt": "2026-06-09T01:28:00.000Z",
+      "toolsTested": ["kosaraju_scc"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
