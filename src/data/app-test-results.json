@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T02:02:00.000Z",
+  "updatedAt": "2026-06-09T02:10:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4426,6 +4426,30 @@
       "note": "extended_gcd computes Bezout coefficients and modular inverse. Local computation.",
       "testedAt": "2026-06-09T02:02:00.000Z",
       "toolsTested": ["extended_gcd"]
+    },
+    "eulertotient": {
+      "status": "pass",
+      "note": "euler_totient computes phi(n) via prime factorization. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": ["euler_totient"]
+    },
+    "hopcroftcarp": {
+      "status": "pass",
+      "note": "hopcroft_karp finds maximum bipartite matching. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": ["hopcroft_karp"]
+    },
+    "intervalmerge": {
+      "status": "pass",
+      "note": "interval_merge consolidates overlapping intervals. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": ["interval_merge"]
+    },
+    "ternarysearch": {
+      "status": "pass",
+      "note": "ternary_search performs ternary search on sorted/unimodal arrays. Local computation.",
+      "testedAt": "2026-06-09T02:10:00.000Z",
+      "toolsTested": ["ternary_search"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

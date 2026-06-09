@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1025,
+    "inventory": 1029,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 600,
+    "tools": 604,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 600
+      "count": 604
     },
     {
       "id": "rooms",
@@ -5862,6 +5862,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-eulertotient-packages-mcp-server-src-eulertotient-tool-ts-no-route",
+      "division": "Tools",
+      "name": "eulertotient",
+      "kind": "MCP tool",
+      "meaning": "eulertotient MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/eulertotient-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-europeana-packages-mcp-server-src-europeana-tool-ts-no-route",
       "division": "Tools",
       "name": "europeana",
@@ -6512,6 +6522,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hopcroftcarp-packages-mcp-server-src-hopcroftcarp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hopcroftcarp",
+      "kind": "MCP tool",
+      "meaning": "hopcroftcarp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hopcroftcarp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-htmlstrip-packages-mcp-server-src-htmlstrip-tool-ts-no-route",
       "division": "Tools",
       "name": "htmlstrip",
@@ -6678,6 +6698,16 @@
       "kind": "MCP tool",
       "meaning": "interpolate MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/interpolate-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-intervalmerge-packages-mcp-server-src-intervalmerge-tool-ts-no-route",
+      "division": "Tools",
+      "name": "intervalmerge",
+      "kind": "MCP tool",
+      "meaning": "intervalmerge MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/intervalmerge-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9372,6 +9402,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ternarysearch-packages-mcp-server-src-ternarysearch-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ternarysearch",
+      "kind": "MCP tool",
+      "meaning": "ternarysearch MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ternarysearch-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-testpass-packages-mcp-server-src-testpass-tool-ts-no-route",
       "division": "Tools",
       "name": "testpass",
@@ -11776,6 +11816,11 @@
       "packages/mcp-server/src/eulerpath-tool.ts"
     ],
     [
+      "eulertotient",
+      "eulertotient MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/eulertotient-tool.ts"
+    ],
+    [
       "europeana",
       "europeana MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/europeana-tool.ts"
@@ -12101,6 +12146,11 @@
       "packages/mcp-server/src/holidays-tool.ts"
     ],
     [
+      "hopcroftcarp",
+      "hopcroftcarp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hopcroftcarp-tool.ts"
+    ],
+    [
       "htmlstrip",
       "htmlstrip MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/htmlstrip-tool.ts"
@@ -12184,6 +12234,11 @@
       "interpolate",
       "interpolate MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/interpolate-tool.ts"
+    ],
+    [
+      "intervalmerge",
+      "intervalmerge MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/intervalmerge-tool.ts"
     ],
     [
       "ipaddrinfo",
@@ -13529,6 +13584,11 @@
       "tempconvert",
       "tempconvert MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/tempconvert-tool.ts"
+    ],
+    [
+      "ternarysearch",
+      "ternarysearch MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ternarysearch-tool.ts"
     ],
     [
       "testpass",
