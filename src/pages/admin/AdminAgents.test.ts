@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
@@ -54,18 +55,23 @@ function profile(patch: Partial<FishbowlProfile>): FishbowlProfile {
 }
 
 describe("AdminAgents seat check-ins", () => {
-  it("shows Seats without the old Workers section", () => {
-    render(React.createElement(AdminAgentsPage));
+  it("shows Seats with compute tier tabs and local tier as default", () => {
+    render(
+      React.createElement(MemoryRouter, { initialEntries: ["/admin/agents"] },
+        React.createElement(AdminAgentsPage),
+      ),
+    );
 
     expect(screen.getByRole("heading", { name: "Seats" })).toBeInTheDocument();
-    expect(screen.getByText("AI Seats")).toBeInTheDocument();
+    expect(screen.getByText("API")).toBeInTheDocument();
+    expect(screen.getByText("Local")).toBeInTheDocument();
+    expect(screen.getByText("Subscription")).toBeInTheDocument();
+    expect(screen.getByText("Local Seats")).toBeInTheDocument();
     expect(screen.getByText("Performance monitor")).toBeInTheDocument();
     expect(screen.getByText("Cycle share")).toBeInTheDocument();
     expect(screen.getByText("Fungible mode")).toBeInTheDocument();
     expect(screen.queryByText("UnClick Workers")).not.toBeInTheDocument();
     expect(screen.queryByText("New Worker")).not.toBeInTheDocument();
-    expect(screen.queryByText("Manual mode")).not.toBeInTheDocument();
-    expect(screen.queryByText("Manual load")).not.toBeInTheDocument();
   });
 
   it("matches a live profile to a named physical seat", () => {
