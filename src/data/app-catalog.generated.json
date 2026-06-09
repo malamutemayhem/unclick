@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 655,
-  "toolCount": 1577,
+  "appCount": 659,
+  "toolCount": 1581,
   "categories": [
     "AI",
     "Books",
@@ -2306,6 +2306,22 @@
       "hardened": true
     },
     {
+      "slug": "contfrac",
+      "name": "Continued Fractions",
+      "category": "Utilities",
+      "blurb": "Convert rational numbers to continued fraction representation with convergents.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "continued_fraction",
+          "description": "Convert a rational number to its continued fraction representation with convergents."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "convertkit",
       "name": "Convertkit",
       "category": "Messaging & email",
@@ -3036,6 +3052,22 @@
         {
           "name": "digimon_by_level",
           "description": "List Digimon filtered by evolution level."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "digitdp",
+      "name": "Digit DP",
+      "category": "Utilities",
+      "blurb": "Count integers up to N with a given digit sum using digit DP.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "digit_dp",
+          "description": "Count integers from 1 to N whose digit sum equals a target value using digit DP."
         }
       ],
       "level": 5,
@@ -6342,6 +6374,22 @@
       "hardened": true
     },
     {
+      "slug": "lehmer",
+      "name": "Lehmer Code",
+      "category": "Utilities",
+      "blurb": "Convert between permutations and Lehmer codes for ranking and unranking.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lehmer_code",
+          "description": "Convert between permutations and Lehmer codes, compute permutation rank and unrank."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lemonsqueezy",
       "name": "Lemon Squeezy",
       "category": "Money & payments",
@@ -6612,6 +6660,22 @@
         {
           "name": "long_weekends",
           "description": "Get long weekends for a country and year from Nager.Date."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "lcprefix",
+      "name": "Longest Common Prefix",
+      "category": "Utilities",
+      "blurb": "Find the longest common prefix among an array of strings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "longest_common_prefix",
+          "description": "Find the longest common prefix among an array of strings."
         }
       ],
       "level": 5,

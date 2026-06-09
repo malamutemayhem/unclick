@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1081,
+    "inventory": 1085,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 656,
+    "tools": 660,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 656
+      "count": 660
     },
     {
       "id": "rooms",
@@ -5332,6 +5332,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-contfrac-packages-mcp-server-src-contfrac-tool-ts-no-route",
+      "division": "Tools",
+      "name": "contfrac",
+      "kind": "MCP tool",
+      "meaning": "contfrac MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/contfrac-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-convertkit-packages-mcp-server-src-convertkit-tool-ts-no-route",
       "division": "Tools",
       "name": "convertkit",
@@ -5708,6 +5718,16 @@
       "kind": "MCP tool",
       "meaning": "digitalocean MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/digitalocean-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-digitdp-packages-mcp-server-src-digitdp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "digitdp",
+      "kind": "MCP tool",
+      "meaning": "digitdp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/digitdp-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7262,6 +7282,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-lcprefix-packages-mcp-server-src-lcprefix-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lcprefix",
+      "kind": "MCP tool",
+      "meaning": "lcprefix MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lcprefix-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lcs-packages-mcp-server-src-lcs-tool-ts-no-route",
       "division": "Tools",
       "name": "lcs",
@@ -7288,6 +7318,16 @@
       "kind": "MCP tool",
       "meaning": "lego MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/lego-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-lehmer-packages-mcp-server-src-lehmer-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lehmer",
+      "kind": "MCP tool",
+      "meaning": "lehmer MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lehmer-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12071,6 +12111,11 @@
       "packages/mcp-server/src/contentful-tool.ts"
     ],
     [
+      "contfrac",
+      "contfrac MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/contfrac-tool.ts"
+    ],
+    [
       "convertkit",
       "convertkit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/convertkit-tool.ts"
@@ -12259,6 +12304,11 @@
       "digitalocean",
       "digitalocean MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/digitalocean-tool.ts"
+    ],
+    [
+      "digitdp",
+      "digitdp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/digitdp-tool.ts"
     ],
     [
       "dijkstra",
@@ -13036,6 +13086,11 @@
       "packages/mcp-server/src/lca-tool.ts"
     ],
     [
+      "lcprefix",
+      "lcprefix MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lcprefix-tool.ts"
+    ],
+    [
       "lcs",
       "lcs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lcs-tool.ts"
@@ -13049,6 +13104,11 @@
       "lego",
       "lego MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lego-tool.ts"
+    ],
+    [
+      "lehmer",
+      "lehmer MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lehmer-tool.ts"
     ],
     [
       "lemonsqueezy",
