@@ -1,3 +1,5 @@
+import { classifySeatTier, type ComputeTier } from "../../src/lib/seats/compute-tiers";
+
 export type SeatProfileKind = "physical" | "virtual" | "pc_tether";
 export type SeatWorkKind = "brain" | "review" | "fallback";
 export type SeatRoutingPolicy = "auto" | "prefer" | "avoid" | "blocked";
@@ -17,6 +19,9 @@ export interface SeatLoadPolicyInput {
   computedLoad?: unknown;
   routingPolicy?: unknown;
   performanceStatus?: string | null;
+  computeTier?: ComputeTier | null;
+  provider?: string | null;
+  device?: string | null;
 }
 
 export interface BuildSeatLoadRoutingPlanInput {
@@ -25,12 +30,14 @@ export interface BuildSeatLoadRoutingPlanInput {
   staleAfterMs?: number;
   workKind?: SeatWorkKind;
   allowVirtualFallback?: boolean;
+  preferredTier?: ComputeTier | null;
 }
 
 export interface SeatLoadRoutingWeight {
   id: string;
   label: string;
   profile_kind: SeatProfileKind;
+  tier: ComputeTier;
   eligible: boolean;
   weight: number;
   raw_weight: number;
@@ -140,6 +147,11 @@ function applyRoutingPolicy(rawWeight: number, policy: SeatRoutingPolicy): numbe
   return rawWeight;
 }
 
+function applyTierBias(rawWeight: number, seatTier: ComputeTier, preferredTier: ComputeTier | null | undefined): number {
+  if (!preferredTier) return rawWeight;
+  return seatTier === preferredTier ? rawWeight * 1.5 : rawWeight * 0.75;
+}
+
 function normalizeIntegerWeights(rows: SeatLoadRoutingWeight[]): number[] {
   if (rows.length === 0) return [];
 
@@ -175,8 +187,16 @@ export function buildSeatLoadRoutingPlan(input: BuildSeatLoadRoutingPlanInput): 
   const workKind = input.workKind ?? "brain";
   const allowVirtualFallback = input.allowVirtualFallback === true;
 
+  const preferredTier = input.preferredTier ?? null;
+
   const firstPass = input.seats.map((seat): SeatLoadRoutingWeight => {
     const profileKind = inferProfileKind(seat);
+    const tier = classifySeatTier({
+      computeTier: seat.computeTier,
+      provider: seat.provider,
+      device: seat.device,
+      userAgentHint: seat.userAgentHint,
+    });
     const policy = normalizeRoutingPolicy(seat.routingPolicy);
     const latest = latestCheckInAt(seat);
     const fresh = isFresh(latest, nowMs, staleAfterMs);
@@ -211,17 +231,21 @@ export function buildSeatLoadRoutingPlan(input: BuildSeatLoadRoutingPlanInput): 
     }
 
     const raw = rawWeightForSeat(seat, profileKind);
-    const weightedRaw = eligible ? applyRoutingPolicy(raw.raw_weight, policy) : 0;
+    const policyWeighted = eligible ? applyRoutingPolicy(raw.raw_weight, policy) : 0;
+    const weightedRaw = eligible ? applyTierBias(policyWeighted, tier, preferredTier) : 0;
     if (raw.load_source === "manual_override") reasons.push("manual_override");
     if (raw.load_source === "computed_load") reasons.push("computed_load");
     if (raw.load_source === "default_even_split") reasons.push("default_even_split");
     if (policy === "prefer") reasons.push("prefer_policy");
     if (policy === "avoid") reasons.push("avoid_policy");
+    if (preferredTier && tier === preferredTier) reasons.push("preferred_tier");
+    if (preferredTier && tier !== preferredTier) reasons.push("non_preferred_tier");
 
     return {
       id: seat.id,
       label: String(seat.label ?? seat.id),
       profile_kind: profileKind,
+      tier,
       eligible,
       weight: 0,
       raw_weight: weightedRaw,
