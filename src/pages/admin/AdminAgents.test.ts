@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
@@ -55,7 +56,7 @@ function profile(patch: Partial<FishbowlProfile>): FishbowlProfile {
 
 describe("AdminAgents seat check-ins", () => {
   it("shows Seats without the old Workers section", () => {
-    render(React.createElement(AdminAgentsPage));
+    render(React.createElement(MemoryRouter, null, React.createElement(AdminAgentsPage)));
 
     expect(screen.getByRole("heading", { name: "Seats" })).toBeInTheDocument();
     expect(screen.getByText("AI Seats")).toBeInTheDocument();
