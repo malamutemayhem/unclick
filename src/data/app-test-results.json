@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T02:10:00.000Z",
+  "updatedAt": "2026-06-09T02:15:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4450,6 +4450,30 @@
       "note": "ternary_search performs ternary search on sorted/unimodal arrays. Local computation.",
       "testedAt": "2026-06-09T02:10:00.000Z",
       "toolsTested": ["ternary_search"]
+    },
+    "shellsort": {
+      "status": "pass",
+      "note": "shell_sort sorts arrays with gap sequence tracking. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": ["shell_sort"]
+    },
+    "matexp": {
+      "status": "pass",
+      "note": "matrix_exponentiation raises matrices to integer powers via fast exponentiation. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": ["matrix_exponentiation"]
+    },
+    "segmentintersect": {
+      "status": "pass",
+      "note": "segment_intersection finds pairwise 2D segment intersections. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": ["segment_intersection"]
+    },
+    "minvertexcover": {
+      "status": "pass",
+      "note": "min_vertex_cover finds exact minimum vertex cover via bitmask. Local computation, all tests pass.",
+      "testedAt": "2026-06-09T02:14:00.000Z",
+      "toolsTested": ["min_vertex_cover"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

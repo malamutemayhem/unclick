@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 603,
-  "toolCount": 1525,
+  "appCount": 607,
+  "toolCount": 1529,
   "categories": [
     "AI",
     "Books",
@@ -6542,6 +6542,22 @@
       "hardened": false
     },
     {
+      "slug": "matexp",
+      "name": "Matrix Exponentiation",
+      "category": "Utilities",
+      "blurb": "Matrix exponentiation via fast binary method with optional modular arithmetic.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_exponentiation",
+          "description": "Raise a square matrix to a non-negative integer power using fast exponentiation, with optional modular arithmetic."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "matinverse",
       "name": "Matrix Inverse",
       "category": "Utilities",
@@ -6716,6 +6732,22 @@
         {
           "name": "mst_find",
           "description": "Find the minimum spanning tree of a weighted graph using Kruskal's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "minvertexcover",
+      "name": "Min Vertex Cover",
+      "category": "Utilities",
+      "blurb": "Exact minimum vertex cover via bitmask enumeration (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "min_vertex_cover",
+          "description": "Find the minimum vertex cover of a graph using exact bitmask enumeration (up to 20 vertices)."
         }
       ],
       "level": 5,
@@ -10098,6 +10130,22 @@
       "hardened": true
     },
     {
+      "slug": "segmentintersect",
+      "name": "Segment Intersection",
+      "category": "Utilities",
+      "blurb": "Find pairwise intersections among 2D line segments.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "segment_intersection",
+          "description": "Find all pairwise intersections among a set of 2D line segments, returning intersection points."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "segtree",
       "name": "Segment Tree",
       "category": "Utilities",
@@ -10280,6 +10328,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "shellsort",
+      "name": "Shell Sort",
+      "category": "Utilities",
+      "blurb": "Shell sort with gap sequence tracking, comparison and swap counts.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "shell_sort",
+          "description": "Sort an array using Shell sort with gap sequence tracking, comparison and swap counts."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "shibe",

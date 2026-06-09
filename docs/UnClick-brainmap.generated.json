@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1029,
+    "inventory": 1033,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 604,
+    "tools": 608,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 604
+      "count": 608
     },
     {
       "id": "rooms",
@@ -7282,6 +7282,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-matexp-packages-mcp-server-src-matexp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "matexp",
+      "kind": "MCP tool",
+      "meaning": "matexp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/matexp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-matinverse-packages-mcp-server-src-matinverse-tool-ts-no-route",
       "division": "Tools",
       "name": "matinverse",
@@ -7398,6 +7408,16 @@
       "kind": "MCP tool",
       "meaning": "millerrabin MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/millerrabin-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-minvertexcover-packages-mcp-server-src-minvertexcover-tool-ts-no-route",
+      "division": "Tools",
+      "name": "minvertexcover",
+      "kind": "MCP tool",
+      "meaning": "minvertexcover MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/minvertexcover-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8882,6 +8902,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-segmentintersect-packages-mcp-server-src-segmentintersect-tool-ts-no-route",
+      "division": "Tools",
+      "name": "segmentintersect",
+      "kind": "MCP tool",
+      "meaning": "segmentintersect MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/segmentintersect-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-segtree-packages-mcp-server-src-segtree-tool-ts-no-route",
       "division": "Tools",
       "name": "segtree",
@@ -8958,6 +8988,16 @@
       "kind": "MCP tool",
       "meaning": "setops MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/setops-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-shellsort-packages-mcp-server-src-shellsort-tool-ts-no-route",
+      "division": "Tools",
+      "name": "shellsort",
+      "kind": "MCP tool",
+      "meaning": "shellsort MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/shellsort-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12526,6 +12566,11 @@
       "packages/mcp-server/src/matchain-tool.ts"
     ],
     [
+      "matexp",
+      "matexp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/matexp-tool.ts"
+    ],
+    [
       "matinverse",
       "matinverse MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/matinverse-tool.ts"
@@ -12584,6 +12629,11 @@
       "millerrabin",
       "millerrabin MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/millerrabin-tool.ts"
+    ],
+    [
+      "minvertexcover",
+      "minvertexcover MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/minvertexcover-tool.ts"
     ],
     [
       "miro",
@@ -13326,6 +13376,11 @@
       "packages/mcp-server/src/segment-tool.ts"
     ],
     [
+      "segmentintersect",
+      "segmentintersect MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/segmentintersect-tool.ts"
+    ],
+    [
       "segtree",
       "segtree MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/segtree-tool.ts"
@@ -13364,6 +13419,11 @@
       "setops",
       "setops MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/setops-tool.ts"
+    ],
+    [
+      "shellsort",
+      "shellsort MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/shellsort-tool.ts"
     ],
     [
       "shibe",
