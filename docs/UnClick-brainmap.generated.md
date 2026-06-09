@@ -36,9 +36,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | package.json | adbb13d02beb | 7084 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
+| seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
 | seed/skills/brand-voice-guidelines.skill.md | 9580d2788e27 | 1248 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
+| seed/skills/codebase-archaeologist.skill.md | 6ecdf38b0aa4 | 3089 |
 | seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
 | seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
 | seed/skills/data-analyst.skill.md | ef28e22c114e | 1233 |
@@ -48,9 +50,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
 | seed/skills/frontend-design-review.skill.md | 149d13cb68d0 | 1377 |
 | seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/incident-responder.skill.md | d9c3d95e5c96 | 3001 |
 | seed/skills/mcp-server-builder.skill.md | a4493b9ae2d7 | 1304 |
 | seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
+| seed/skills/migration-planner.skill.md | e947613042ca | 3240 |
 | seed/skills/pdf-toolkit.skill.md | 918db2b218b2 | 1248 |
+| seed/skills/performance-investigator.skill.md | 20e3abeb7c1c | 3776 |
 | seed/skills/presentation-builder.skill.md | fea5b75a0ec7 | 1250 |
 | seed/skills/react-nextjs-best-practices.skill.md | 3e095e354af9 | 1369 |
 | seed/skills/research-brief-generator.skill.md | 849b249b5f2a | 915 |
@@ -248,7 +253,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 138 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1350,9 +1355,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Modules and apps | skill package | accessibility audit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/accessibility-audit.skill.md |
 | Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |
+| Modules and apps | skill package | api design reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/api-design-reviewer.skill.md |
 | Modules and apps | skill package | brand voice guidelines | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/brand-voice-guidelines.skill.md |
 | Modules and apps | skill package | browser qa tester | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/browser-qa-tester.skill.md |
 | Modules and apps | skill package | builder implementation packet | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/builder-implementation-packet.skill.md |
+| Modules and apps | skill package | codebase archaeologist | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/codebase-archaeologist.skill.md |
 | Modules and apps | skill package | coordinator router | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/coordinator-router.skill.md |
 | Modules and apps | skill package | cross pc context summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/cross-pc-context-summariser.skill.md |
 | Modules and apps | skill package | data analyst | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/data-analyst.skill.md |
@@ -1362,9 +1369,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill package | fix failing ci | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/fix-failing-ci.skill.md |
 | Modules and apps | skill package | frontend design review | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/frontend-design-review.skill.md |
 | Modules and apps | skill package | github pr summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/github-pr-summariser.skill.md |
+| Modules and apps | skill package | incident responder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/incident-responder.skill.md |
 | Modules and apps | skill package | mcp server builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/mcp-server-builder.skill.md |
 | Modules and apps | skill package | memory distiller | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/memory-distiller.skill.md |
+| Modules and apps | skill package | migration planner | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/migration-planner.skill.md |
 | Modules and apps | skill package | pdf toolkit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/pdf-toolkit.skill.md |
+| Modules and apps | skill package | performance investigator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/performance-investigator.skill.md |
 | Modules and apps | skill package | presentation builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/presentation-builder.skill.md |
 | Modules and apps | skill package | react nextjs best practices | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/react-nextjs-best-practices.skill.md |
 | Modules and apps | skill package | research brief generator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/research-brief-generator.skill.md |

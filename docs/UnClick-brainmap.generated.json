@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1102,
-    "source_manifest": 220,
+    "inventory": 1107,
+    "source_manifest": 225,
     "pages": 93,
     "tools": 672,
     "rooms": 23,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 133
+      "count": 138
     },
     {
       "id": "launch-and-onboarding",
@@ -3022,6 +3022,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-api-design-reviewer-seed-skills-api-design-reviewer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "api design reviewer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/api-design-reviewer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-brand-voice-guidelines-seed-skills-brand-voice-guidelines-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "brand voice guidelines",
@@ -3048,6 +3058,16 @@
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/builder-implementation-packet.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-codebase-archaeologist-seed-skills-codebase-archaeologist-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "codebase archaeologist",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/codebase-archaeologist.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -3142,6 +3162,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-incident-responder-seed-skills-incident-responder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "incident responder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/incident-responder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-mcp-server-builder-seed-skills-mcp-server-builder-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "mcp server builder",
@@ -3162,12 +3192,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-migration-planner-seed-skills-migration-planner-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "migration planner",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/migration-planner.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-pdf-toolkit-seed-skills-pdf-toolkit-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "pdf toolkit",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/pdf-toolkit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-performance-investigator-seed-skills-performance-investigator-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "performance investigator",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/performance-investigator.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -15489,6 +15539,11 @@
       "bytes": 938
     },
     {
+      "source": "seed/skills/api-design-reviewer.skill.md",
+      "hash": "c58bf854f279",
+      "bytes": 3561
+    },
+    {
       "source": "seed/skills/brand-voice-guidelines.skill.md",
       "hash": "9580d2788e27",
       "bytes": 1248
@@ -15502,6 +15557,11 @@
       "source": "seed/skills/builder-implementation-packet.skill.md",
       "hash": "1fcda17af905",
       "bytes": 1276
+    },
+    {
+      "source": "seed/skills/codebase-archaeologist.skill.md",
+      "hash": "6ecdf38b0aa4",
+      "bytes": 3089
     },
     {
       "source": "seed/skills/coordinator-router.skill.md",
@@ -15549,6 +15609,11 @@
       "bytes": 987
     },
     {
+      "source": "seed/skills/incident-responder.skill.md",
+      "hash": "d9c3d95e5c96",
+      "bytes": 3001
+    },
+    {
       "source": "seed/skills/mcp-server-builder.skill.md",
       "hash": "a4493b9ae2d7",
       "bytes": 1304
@@ -15559,9 +15624,19 @@
       "bytes": 983
     },
     {
+      "source": "seed/skills/migration-planner.skill.md",
+      "hash": "e947613042ca",
+      "bytes": 3240
+    },
+    {
       "source": "seed/skills/pdf-toolkit.skill.md",
       "hash": "918db2b218b2",
       "bytes": 1248
+    },
+    {
+      "source": "seed/skills/performance-investigator.skill.md",
+      "hash": "20e3abeb7c1c",
+      "bytes": 3776
     },
     {
       "source": "seed/skills/presentation-builder.skill.md",
