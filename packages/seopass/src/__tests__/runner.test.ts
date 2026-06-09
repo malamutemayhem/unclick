@@ -31,7 +31,7 @@ const healthyHtml = `<!doctype html>
         "@graph": [
           { "@type": "Organization", "@id": "https://example.com/#org", "name": "Example", "sameAs": ["https://www.linkedin.com/company/example"] },
           { "@type": "FAQPage", "mainEntity": [] },
-          { "@type": "Article", "headline": "SEOPass guide", "dateModified": "2026-05-27", "author": { "@type": "Person", "name": "Chris" } }
+          { "@type": "Article", "headline": "SEOPass guide", "dateModified": "2026-05-27", "author": { "@type": "Person", "name": "Alex" } }
         ]
       }
     </script>
@@ -39,7 +39,7 @@ const healthyHtml = `<!doctype html>
   <body>
     <h1>SEO verdicts you can fix in your IDE</h1>
     <h2>How does SEOPass work?</h2>
-    <p>SEOPass is a read-only verdict engine. Updated on 27 May 2026 by Chris.</p>
+    <p>SEOPass is a read-only verdict engine. Updated on 27 May 2026 by the team.</p>
     <p>Teams cut fix discovery time by 42 percent when reports include direct acceptance criteria.</p>
     <p>See the <a href="https://example.com/about">about page</a>, <a href="https://example.com/pricing">pricing</a>, and <a href="https://example.com/docs">docs</a>.</p>
     <p>External sources: <a href="https://developers.google.com/search/docs">Google Search docs</a> and <a href="https://schema.org">Schema.org</a>.</p>

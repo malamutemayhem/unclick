@@ -13,13 +13,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 790b43137907 | 17556 |
-| FLEET_SYNC.md | 83bbf1598b48 | 14705 |
-| docs/unclick-context-boot-packet.md | 8af9b8fedfc4 | 11213 |
+| AUTOPILOT.md | 190d9db14287 | 17607 |
+| FLEET_SYNC.md | 0768614dd1ed | 14732 |
+| docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
-| docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
+| docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
+| docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 5009beb107c4 | 17238 |
@@ -42,14 +42,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
 | seed/skills/codebase-archaeologist.skill.md | 6ecdf38b0aa4 | 3089 |
 | seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
-| seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
+| seed/skills/cross-pc-context-summariser.skill.md | cd641e5caeb7 | 939 |
 | seed/skills/data-analyst.skill.md | ef28e22c114e | 1233 |
 | seed/skills/deep-research-analyst.skill.md | 74d773d9e04d | 1069 |
 | seed/skills/dependency-upgrade-reviewer.skill.md | d70607ce286b | 1045 |
 | seed/skills/draft-pr-description.skill.md | 29bd5a084a33 | 892 |
 | seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
 | seed/skills/frontend-design-review.skill.md | 149d13cb68d0 | 1377 |
-| seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/github-pr-summariser.skill.md | f45192c5c9ca | 994 |
 | seed/skills/incident-responder.skill.md | d9c3d95e5c96 | 3001 |
 | seed/skills/mcp-server-builder.skill.md | a4493b9ae2d7 | 1304 |
 | seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
@@ -164,7 +164,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
-| scripts/pinballwake-launchpad-room.mjs | 9ee3556460d0 | 20544 |
+| scripts/pinballwake-launchpad-room.mjs | 966a89e4e00a | 20554 |
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |

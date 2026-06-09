@@ -43,7 +43,7 @@ The build must honor the operator's standing rules:
 - No em dashes anywhere in code, copy, or comments. Use regular dashes or restructure.
 - Card-based UI (OS shell foundation). Not traditional pages.
 - Memory is the #1 priority. It enables cross-session consistency across multiple Claude Code accounts.
-- Default to action. Escalate to Chris only at genuine brick walls.
+- Default to action. Escalate to the operator only at genuine brick walls.
 - Business-first priority. Speed over polish.
 - Cloud-first architecture. Source of truth lives on GitHub + Supabase + Vercel env vars.
 - Conversation-first, visual as companion.
@@ -58,7 +58,7 @@ The build must honor the operator's standing rules:
 
 3. **The AI assistant is a floating element across every surface.** Not its own surface. Always visible, context-aware, can read and act on anything in the admin.
 
-4. **Auth is magic link plus OAuth. No passwords, ever.** Supabase Auth handles both. Google, Microsoft, and GitHub as OAuth providers (Chris already has Google OAuth and Azure AD configured in env).
+4. **Auth is magic link plus OAuth. No passwords, ever.** Supabase Auth handles both. Google, Microsoft, and GitHub as OAuth providers (the operator already has Google OAuth and Azure AD configured in env).
 
 5. **Memory is hosted by default, with caps on free tier.** BYOD Supabase stays available as an escape hatch for power users and privacy-first customers. One-click onboarding beats five-step setup every time.
 
@@ -78,13 +78,13 @@ The build must honor the operator's standing rules:
 
 ## KNOWN BLOCKERS CLAUDE CODE CANNOT SOLVE
 
-Flag these to Chris when you hit them. Do not work around them silently.
+Flag these to the operator when you hit them. Do not work around them silently.
 
-1. **NPM publish for the memory package.** The publish target may need to be rethought given `packages/memory-mcp/` is deprecated. Verify with Chris whether the npm package should ship from `packages/mcp-server/` or a new dedicated package extracted from `packages/mcp-server/src/memory/`. If shipping, a GitHub Actions workflow (.github/workflows/publish.yml) with NPM_TOKEN as a GitHub secret is the recommended permanent fix.
+1. **NPM publish for the memory package.** The publish target may need to be rethought given `packages/memory-mcp/` is deprecated. Verify with the operator whether the npm package should ship from `packages/mcp-server/` or a new dedicated package extracted from `packages/mcp-server/src/memory/`. If shipping, a GitHub Actions workflow (.github/workflows/publish.yml) with NPM_TOKEN as a GitHub secret is the recommended permanent fix.
 
-2. **Vercel Hobby plan 12-function cap.** Current count is already at or near 12. New API endpoints cannot be added as separate files. Either consolidate existing endpoints into action-routed handlers (like `/api/memory-admin` already does with 12+ actions), or Chris upgrades to Vercel Pro. Recommend consolidation unless Chris says otherwise.
+2. **Vercel Hobby plan 12-function cap.** Current count is already at or near 12. New API endpoints cannot be added as separate files. Either consolidate existing endpoints into action-routed handlers (like `/api/memory-admin` already does with 12+ actions), or the operator upgrades to Vercel Pro. Recommend consolidation unless the operator says otherwise.
 
-3. **GitHub push permissions.** Recent sessions have had intermittent 403s on push. If this recurs, stop and ask Chris rather than looping on retries.
+3. **GitHub push permissions.** Recent sessions have had intermittent 403s on push. If this recurs, stop and ask the operator rather than looping on retries.
 
 ---
 
@@ -122,14 +122,14 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 5. **Add nightly extraction + decay job** (Pro tier). Scheduled Vercel cron (once per 24h) that processes new conversation log entries into extracted facts and runs the hot/warm/cold decay on existing facts. Gated by `tier`.
 
-6. **Resolve the npm publish target with Chris.** Clarify whether the public package ships from `packages/mcp-server/` or a new dedicated extraction. Once resolved, set up the GitHub Actions workflow for auto-publish.
+6. **Resolve the npm publish target with the operator.** Clarify whether the public package ships from `packages/mcp-server/` or a new dedicated extraction. Once resolved, set up the GitHub Actions workflow for auto-publish.
 
 **Acceptance criteria:**
 - A fresh install of UnClick via `/api/mcp?key=NEWUSER_KEY` writes a fact, reads it back in a second request, and the fact persists. No Supabase setup from the user.
 - Invalid api_keys to `/api/mcp` are rejected with a clear error.
 - Existing BYOD users (those with a `memory_configs` row) are unaffected. Their service role key continues to route their memory to their own Supabase, and encryption property is preserved (PBKDF2 from api_key still required to decrypt).
 - Free tier cap enforcement returns a clear, actionable error when hit.
-- Npm publish path is resolved with Chris.
+- Npm publish path is resolved with the operator.
 
 **Verification:**
 - Write a test agent that calls `save_fact`, `search_memory`, `load_memory` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
@@ -234,7 +234,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 ### PHASE 5: Surface - Memory (THE MARQUEE FEATURE)
 
-**Goal:** The memory UI no competitor has. Chris is visual. This is where UnClick becomes the leader.
+**Goal:** The memory UI no competitor has. The operator is visual. This is where UnClick becomes the leader.
 
 **Work:**
 
@@ -387,7 +387,7 @@ Most of this already exists. Verify and fill gaps:
 
 4. **Marketplace tools in the Tools surface** have a "coming soon" state. Reserve the UI slot.
 
-5. **Do not open the doors.** Chris decides when marketplace launches. Not now.
+5. **Do not open the doors.** The operator decides when marketplace launches. Not now.
 
 **Acceptance criteria:**
 - A developer can register, submit a tool, and see "pending review" status.

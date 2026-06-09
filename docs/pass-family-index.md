@@ -55,7 +55,7 @@ These cannot dogfood in public the same way. They use the boundary sweep, which 
 
 - **EnterprisePass** is the old internal name for CompliancePass. Existing receipts under `public/enterprise/` keep the legacy path for link stability; the `product` field inside the JSON is `CompliancePass`.
 - **QualityPass** is retired wording for SlopPass.
-- **QCPass** is process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
+- **QCPass** is process wording for a final XPass/QC receipt, not an official XPass product unless the operator explicitly promotes it.
 
 ## Maintenance rule
 

@@ -70,7 +70,7 @@ The **specialist stack** is cmdk for command palettes, Sonner for toast feedback
 
 The **advisory stack** includes UI UX Pro Max style intelligence. It can improve taste, references, and critique prompts, but it cannot be treated as a runtime dependency, component source, license proof, or visual evidence.
 
-Continuous improvement is handled by the UIPass toolbox scoreboard: `approved`, `needs_proof`, `blocked`, `unknown_source`, `by_tier`, and `missing_gate_counts`. Repeated missing gates become improvement jobs. For example, if workers repeatedly miss reduced-motion evidence on Aceternity or Magic UI snippets, UIPass should add a fixture or prompt rule rather than relying on Chris to remind the seat.
+Continuous improvement is handled by the UIPass toolbox scoreboard: `approved`, `needs_proof`, `blocked`, `unknown_source`, `by_tier`, and `missing_gate_counts`. Repeated missing gates become improvement jobs. For example, if workers repeatedly miss reduced-motion evidence on Aceternity or Magic UI snippets, UIPass should add a fixture or prompt rule rather than relying on the operator to remind the seat.
 
 ### 2.6 Design token layer
 

@@ -362,7 +362,7 @@ On each heartbeat:
 3. Check Launchpad Council induction. Use Council Lite anti-rubber-stamp questions on material work; if XPass says Crews is recommended, prompt a Council run before any launch-ready claim.
 4. Decide one next safe action: stay quiet, create/update one job, route one worker packet, call one blocker, or ask Master for a merge/lift decision.
 5. Do not directly spam every worker. Use UnClick rooms and delivery adapters.
-6. Report to Chris only when material changed or Chris action is needed.
+6. Report to the operator only when material changed or operator action is needed.
 
 Safety:
 No secrets, auth, billing, DNS/domains, migrations, raw keys, destructive cleanup, force-pushes, or draft/HOLD/DIRTY merges.

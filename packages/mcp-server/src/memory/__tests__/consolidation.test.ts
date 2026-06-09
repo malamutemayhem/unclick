@@ -70,19 +70,19 @@ describe("lane-08 consolidation", () => {
     const now = "2026-06-04T00:00:00.000Z";
 
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.86,
       source_session_id: "s1",
     });
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.9,
       source_session_id: "s2",
     });
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts",
+      fact: "User prefers compact memory first with source receipts",
       category: "preference",
       confidence: 0.88,
       source_session_id: "s3",
@@ -187,12 +187,12 @@ describe("lane-08 consolidation", () => {
     const backend = new LocalBackend();
 
     await backend.addFact({
-      fact: "Chris keeps credentials out of durable memory.",
+      fact: "User keeps credentials out of durable memory.",
       category: "security",
       confidence: 0.9,
     });
     await backend.addFact({
-      fact: "Chris keeps credentials out of durable memory.",
+      fact: "User keeps credentials out of durable memory.",
       category: "security",
       confidence: 0.89,
     });

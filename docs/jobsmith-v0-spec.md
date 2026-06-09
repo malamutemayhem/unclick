@@ -24,7 +24,7 @@ The market gap is the space between template resume builders, ATS score tools, m
 
 ## First User
 
-Chris is the first user and dogfood loop. v0 should support one applicant well before it tries to support every applicant.
+The operator is the first user and dogfood loop. v0 should support one applicant well before it tries to support every applicant.
 
 First-user needs:
 
@@ -43,7 +43,7 @@ Ship this spec and `docs/jobsmith-guardrails.md`. The docs define naming, scope,
 
 ### Phase 1: Admin Job Capture and Manual Wizard
 
-Build an internal admin-first flow for Chris:
+Build an internal admin-first flow for the operator:
 
 - Add job by URL, pasted description, or manual notes.
 - Capture company, role, salary, location, closing date, level, recruiter, source, and likely ATS vendor.
@@ -146,11 +146,11 @@ Phase 0 is accepted when:
 
 Future product acceptance:
 
-- Chris can capture a job in under 60 seconds.
+- The operator can capture a job in under 60 seconds.
 - Generated CV, cover letter, and email drafts contain zero unsupported claims.
 - DOCX, text-based PDF, and plain-text exports pass Workday, Greenhouse, and Lever parse self-tests.
 - Redaction audit shows zero unredacted external detector calls.
-- Five real Chris applications run end to end and outcomes are captured.
+- Five real operator applications run end to end and outcomes are captured.
 
 ## Non Goals
 

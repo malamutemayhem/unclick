@@ -2,7 +2,7 @@
 
 ## Decision
 
-Chris greenlit the worker-movement infrastructure split on 2026-05-16:
+The operator greenlit the worker-movement infrastructure split on 2026-05-16:
 
 - Use Vercel Workflow or Vercel Queues first for short reliable background tasks.
 - Use Railway only if UnClick needs a true always-running watcher or reclaimer and Vercel cannot keep that loop reliable.
@@ -128,7 +128,7 @@ The scheduler-ready slice adds a quiet Vercel cron call to `/api/worker-movement
 - With `WORKER_MOVEMENT_PILOT_ENABLED` unset, the cron call returns `skip_disabled` without querying todos or inserting proof.
 - With `WORKER_MOVEMENT_PILOT_ENABLED` enabled but `WORKER_MOVEMENT_PILOT_PROOF_WRITES_ENABLED` unset, the route can fetch and plan one expired candidate, then returns `proof_planned` without dedupe checks or `mc_signals` inserts.
 - `mc_signals` proof writes require `WORKER_MOVEMENT_PILOT_PROOF_WRITES_ENABLED` to be `1`, `true`, or `enabled`.
-- This lets production exercise the protected route and candidate planner safely before Chris or an operator enables proof inserts.
+- This lets production exercise the protected route and candidate planner safely before the operator enables proof inserts.
 
 ## Proof-Write Gate Slice
 
