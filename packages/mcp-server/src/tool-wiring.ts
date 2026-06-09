@@ -814,6 +814,10 @@ import { josephus } from "./josephus-tool.js";
 import { berlekampMassey } from "./berlekamp-tool.js";
 import { sosDp } from "./sos-tool.js";
 import { xorBasis } from "./xorbase-tool.js";
+import { moebiusFunction } from "./moebius-tool.js";
+import { zFunction } from "./zfunction-tool.js";
+import { chineseRemainder } from "./chineseremainder-tool.js";
+import { lucasTheorem } from "./lucas-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -12059,6 +12063,58 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         values: { type: "array", items: { type: "number" }, description: "Array of non-negative integers" },
       }, required: ["values"],
+    },
+  },
+
+  // ── moebius-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "moebius_function",
+    description: "Compute Moebius function values and Mertens function using linear sieve.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Positive integer upper bound (max 10,000,000)" },
+      }, required: ["n"],
+    },
+  },
+
+  // ── zfunction-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "z_function",
+    description: "Compute Z-function of a string with optional pattern matching.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to compute Z-function for" },
+        pattern: { type: "string", description: "Optional pattern to search for in text" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── chineseremainder-tool.ts ──────────────────────────────────────────────
+  {
+    name: "chinese_remainder",
+    description: "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        remainders: { type: "array", items: { type: "number" }, description: "Array of remainders" },
+        moduli: { type: "array", items: { type: "number" }, description: "Array of moduli (positive integers)" },
+      }, required: ["remainders", "moduli"],
+    },
+  },
+
+  // ── lucas-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "lucas_theorem",
+    description: "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        n: { type: "number", description: "Non-negative integer n" },
+        k: { type: "number", description: "Non-negative integer k (k <= n)" },
+        p: { type: "number", description: "Prime modulus" },
+      }, required: ["n", "k", "p"],
     },
   },
 
@@ -23933,6 +23989,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   berlekamp_massey:              (args) => berlekampMassey(args),
   sos_dp:                        (args) => sosDp(args),
   xor_basis:                     (args) => xorBasis(args),
+
+  // batch 85: Moebius Function, Z-Function, Chinese Remainder, Lucas' Theorem
+  moebius_function:              (args) => moebiusFunction(args),
+  z_function:                    (args) => zFunction(args),
+  chinese_remainder:             (args) => chineseRemainder(args),
+  lucas_theorem:                 (args) => lucasTheorem(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

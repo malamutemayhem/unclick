@@ -1162,6 +1162,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "chineseremainder",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "chinese_remainder",
+        "description": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem."
+      }
+    ]
+  },
+  {
     "app": "chromatic",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4820,6 +4830,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lucas",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lucas_theorem",
+        "description": "Compute binomial coefficient C(n,k) mod prime using Lucas' theorem."
+      }
+    ]
+  },
+  {
     "app": "luhn",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5242,6 +5262,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "modular_arithmetic",
         "description": "Modular arithmetic operations: modpow (a^b mod m), modinverse (a^-1 mod m), or mod (a mod m)."
+      }
+    ]
+  },
+  {
+    "app": "moebius",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "moebius_function",
+        "description": "Compute Moebius function values and Mertens function using linear sieve."
       }
     ]
   },
@@ -10024,6 +10054,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "zen_quotes",
         "description": "Get a batch of inspirational quotes from Zen Quotes (returns up to 20)."
+      }
+    ]
+  },
+  {
+    "app": "zfunction",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "z_function",
+        "description": "Compute Z-function of a string with optional pattern matching."
       }
     ]
   },
