@@ -116,7 +116,7 @@ export async function sendgridListTemplates(args: Record<string, unknown>): Prom
   const apiKey = requireKey(args);
   if (typeof apiKey !== "string") return apiKey;
   const params: Record<string, string> = { generations: "dynamic" };
-  if (args.page_size) params.page_size = String(Math.min(200, Math.max(1, Number(args.page_size))));
+  if (args.page_size) params.page_size = String(Math.min(200, Math.max(1, Number(args.page_size) || 20)));
   return sgGet(apiKey, "/templates", params);
 }
 

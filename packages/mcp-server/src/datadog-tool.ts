@@ -90,7 +90,7 @@ export async function datadogListMonitors(args: Record<string, unknown>): Promis
   if (args.name) params.name = String(args.name);
   if (args.tags) params.monitor_tags = String(args.tags);
   if (args.page) params.page = String(args.page);
-  if (args.page_size) params.page_size = String(Math.min(1000, Number(args.page_size)));
+  if (args.page_size) params.page_size = String(Math.min(1000, Number(args.page_size) || 100));
   const data = await ddGet<unknown[]>(apiKey, appKey, "/monitor", params);
 
   // L4 proactive: monitors sitting in the Alert state are user-actionable, so

@@ -65,7 +65,7 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
     if (args.first_name) params["first_name"] = String(args.first_name);
     if (args.last_name) params["last_name"] = String(args.last_name);
     if (args.company) params["company"] = String(args.company);
-    if (args.limit) params["limit"] = String(Math.min(100, Number(args.limit)));
+    if (args.limit) params["limit"] = String(Math.min(100, Number(args.limit) || 10));
     if (args.skip) params["skip"] = String(args.skip);
     if (args.department) params["department"] = String(args.department);
     if (args.seniority) params["seniority"] = String(args.seniority);

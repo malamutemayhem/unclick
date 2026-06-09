@@ -285,7 +285,7 @@ export async function elevenlabsTextToSpeech(args: Record<string, unknown>): Pro
     stability: Math.min(1, Math.max(0, Number(args.stability ?? 0.5))),
     similarity_boost: Math.min(1, Math.max(0, Number(args.similarity_boost ?? 0.75))),
   };
-  if (args.style !== undefined) voiceSettings.style = Math.min(1, Math.max(0, Number(args.style)));
+  if (args.style !== undefined) voiceSettings.style = Math.min(1, Math.max(0, Number(args.style) || 0));
   if (args.use_speaker_boost !== undefined) voiceSettings.use_speaker_boost = Boolean(args.use_speaker_boost);
 
   const path = `/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${encodeURIComponent(outputFormat)}`;

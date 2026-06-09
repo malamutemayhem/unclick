@@ -273,8 +273,8 @@ export async function amazonSearch(args: Record<string, unknown>): Promise<unkno
   if (args.sort_by)         body.SortBy        = String(args.sort_by);
   if (args.min_price)       body.MinPrice      = Number(args.min_price);
   if (args.max_price)       body.MaxPrice      = Number(args.max_price);
-  if (args.itemCount ?? args.item_count)      body.ItemCount     = Math.min(10, Math.max(1, Number(args.itemCount ?? args.item_count)));
-  if (args.item_page)       body.ItemPage      = Math.min(10, Math.max(1, Number(args.item_page)));
+  if (args.itemCount ?? args.item_count)      body.ItemCount     = Math.min(10, Math.max(1, Number(args.itemCount ?? args.item_count) || 1));
+  if (args.item_page)       body.ItemPage      = Math.min(10, Math.max(1, Number(args.item_page) || 1));
 
   const data         = await paApiCall("SearchItems", body, creds) as Record<string, unknown>;
   const searchResult = data.SearchResult as Record<string, unknown> | undefined;

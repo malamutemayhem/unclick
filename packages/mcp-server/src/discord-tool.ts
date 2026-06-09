@@ -269,9 +269,9 @@ export async function discordSearch(
   if (args.author_id) params.set("author_id", String(args.author_id));
   if (args.has) params.set("has", String(args.has));
   if (args.limit) {
-    params.set("limit", String(Math.min(25, Math.max(1, Number(args.limit)))));
+    params.set("limit", String(Math.min(25, Math.max(1, Number(args.limit) || 25))));
   }
-  if (args.offset) params.set("offset", String(Number(args.offset)));
+  if (args.offset) params.set("offset", String(Number(args.offset) || 0));
 
   return discordFetch(
     "GET",
