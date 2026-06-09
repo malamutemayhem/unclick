@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1053,
+    "inventory": 1057,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 628,
+    "tools": 632,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 628
+      "count": 632
     },
     {
       "id": "rooms",
@@ -5832,6 +5832,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-eertree-packages-mcp-server-src-eertree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "eertree",
+      "kind": "MCP tool",
+      "meaning": "eertree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/eertree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-elevenlabs-packages-mcp-server-src-elevenlabs-tool-ts-no-route",
       "division": "Tools",
       "name": "elevenlabs",
@@ -6268,6 +6278,16 @@
       "kind": "MCP tool",
       "meaning": "gameoflife MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gameoflife-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gausselim-packages-mcp-server-src-gausselim-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gausselim",
+      "kind": "MCP tool",
+      "meaning": "gausselim MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gausselim-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7842,6 +7862,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ntt-packages-mcp-server-src-ntt-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ntt",
+      "kind": "MCP tool",
+      "meaning": "ntt MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ntt-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-nudgeonly-packages-mcp-server-src-nudgeonly-tool-ts-no-route",
       "division": "Tools",
       "name": "NudgeOnly",
@@ -8438,6 +8468,16 @@
       "kind": "MCP tool",
       "meaning": "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pokemontcg-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-pollardrho-packages-mcp-server-src-pollardrho-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pollardrho",
+      "kind": "MCP tool",
+      "meaning": "pollardrho MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pollardrho-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12041,6 +12081,11 @@
       "packages/mcp-server/src/edmondskarp-tool.ts"
     ],
     [
+      "eertree",
+      "eertree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/eertree-tool.ts"
+    ],
+    [
       "elevenlabs",
       "elevenlabs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/elevenlabs-tool.ts"
@@ -12259,6 +12304,11 @@
       "gameoflife",
       "gameoflife MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gameoflife-tool.ts"
+    ],
+    [
+      "gausselim",
+      "gausselim MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gausselim-tool.ts"
     ],
     [
       "gbif",
@@ -13046,6 +13096,11 @@
       "packages/mcp-server/src/nthroot-tool.ts"
     ],
     [
+      "ntt",
+      "ntt MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ntt-tool.ts"
+    ],
+    [
       "NudgeOnly",
       "NudgeOnly low-token receipt bridge and advisory classifier.",
       "packages/mcp-server/src/nudgeonly-tool.ts"
@@ -13344,6 +13399,11 @@
       "pokemontcg",
       "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pokemontcg-tool.ts"
+    ],
+    [
+      "pollardrho",
+      "pollardrho MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pollardrho-tool.ts"
     ],
     [
       "polygon",

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T03:03:50.401Z",
+  "updatedAt": "2026-06-09T03:30:17.942Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -5177,6 +5177,38 @@
       "testedAt": "2026-06-09T03:03:50.401Z",
       "toolsTested": [
         "euler_tour"
+      ]
+    },
+    "gausselim": {
+      "status": "pass",
+      "note": "gaussian_elimination: solved 2x2 system correctly",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "gaussian_elimination"
+      ]
+    },
+    "eertree": {
+      "status": "pass",
+      "note": "eertree: found distinct palindromic substrings in test string",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "eertree"
+      ]
+    },
+    "pollardrho": {
+      "status": "pass",
+      "note": "pollard_rho: factored composite correctly with prime factors",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "pollard_rho"
+      ]
+    },
+    "ntt": {
+      "status": "pass",
+      "note": "ntt: multiplied polynomials correctly mod 998244353",
+      "testedAt": "2026-06-09T03:30:17.942Z",
+      "toolsTested": [
+        "ntt"
       ]
     }
   },

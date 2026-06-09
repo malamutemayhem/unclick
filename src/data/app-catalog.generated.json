@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 627,
-  "toolCount": 1549,
+  "appCount": 631,
+  "toolCount": 1553,
   "categories": [
     "AI",
     "Books",
@@ -3350,6 +3350,22 @@
       "hardened": false
     },
     {
+      "slug": "eertree",
+      "name": "Eertree",
+      "category": "Utilities",
+      "blurb": "Palindromic tree (eertree) for counting distinct palindromic substrings.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "eertree",
+          "description": "Build a palindromic tree (eertree) to count distinct palindromic substrings."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "elevenlabs",
       "name": "Elevenlabs",
       "category": "AI",
@@ -4292,6 +4308,22 @@
         {
           "name": "game_of_life_step",
           "description": "Run Conway's Game of Life simulation steps (local, no network)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gausselim",
+      "name": "Gaussian Elimination",
+      "category": "Utilities",
+      "blurb": "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gaussian_elimination",
+          "description": "Solve a system of linear equations via Gaussian elimination with partial pivoting."
         }
       ],
       "level": 5,
@@ -7594,6 +7626,22 @@
       "hardened": false
     },
     {
+      "slug": "ntt",
+      "name": "NTT",
+      "category": "Utilities",
+      "blurb": "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ntt",
+          "description": "Multiply two polynomials using Number Theoretic Transform (mod 998244353)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "nudgeonly",
       "name": "NudgeOnly",
       "category": "Quality (XPass)",
@@ -8904,6 +8952,22 @@
         {
           "name": "pokemon_tcg_sets",
           "description": "List or search Pokemon TCG card sets."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "pollardrho",
+      "name": "Pollard's Rho",
+      "category": "Utilities",
+      "blurb": "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "pollard_rho",
+          "description": "Factor an integer using Pollard's rho with Miller-Rabin primality testing."
         }
       ],
       "level": 5,
