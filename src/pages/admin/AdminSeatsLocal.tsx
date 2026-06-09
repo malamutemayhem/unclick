@@ -98,14 +98,22 @@ function timeAgo(iso: string): string {
 // Hooks
 // ---------------------------------------------------------------------------
 
+const LOCAL_CONNECTED_KEY = "unclick_seats_local_connected";
+
 function useOllamaConnection(url: string) {
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [runningModels, setRunningModels] = useState<OllamaRunningModel[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [refreshNonce, setRefreshNonce] = useState(0);
+  const [connectNonce, setConnectNonce] = useState(() => {
+    try {
+      return window.localStorage.getItem(LOCAL_CONNECTED_KEY) === "1" ? 1 : 0;
+    } catch { return 0; }
+  });
 
   useEffect(() => {
+    if (connectNonce === 0) return;
+
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -138,6 +146,7 @@ function useOllamaConnection(url: string) {
         setRunningModels(running);
 
         setStatus("connected");
+        try { window.localStorage.setItem(LOCAL_CONNECTED_KEY, "1"); } catch { /* ignore */ }
       } catch (err) {
         if (cancelled) return;
 
@@ -157,13 +166,15 @@ function useOllamaConnection(url: string) {
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [url, refreshNonce]);
+  }, [url, connectNonce]);
 
-  const refresh = useCallback(() => {
-    setRefreshNonce((value) => value + 1);
+  const connect = useCallback(() => {
+    setConnectNonce((value) => value + 1);
   }, []);
 
-  return { status, models, runningModels, error, refresh, setModels };
+  const refresh = connect;
+
+  return { status, models, runningModels, error, refresh, connect, setModels };
 }
 
 // ---------------------------------------------------------------------------
@@ -638,7 +649,7 @@ export default function AdminSeatsLocal() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [customModels, setCustomModels] = useState<CustomEndpointModel[]>([]);
 
-  const { status, models, runningModels, error, refresh, setModels } = useOllamaConnection(ollamaUrl);
+  const { status, models, runningModels, error, refresh, connect, setModels } = useOllamaConnection(ollamaUrl);
 
   const runningSet = new Set(runningModels.map((m) => m.name));
 
@@ -722,14 +733,36 @@ export default function AdminSeatsLocal() {
         </div>
       </div>
 
-      {/* Browser-direct notice */}
-      <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-400">
-        <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-        <span>
-          Local detection uses browser-direct calls. Ollama must run on the same machine as your browser,
-          or a custom endpoint must be reachable from this browser and allow this site with CORS.
-        </span>
-      </div>
+      {/* First visit - connect prompt */}
+      {status === "disconnected" && (
+        <div className="rounded-lg border border-border/40 bg-card/30 p-8 text-center">
+          <Server className="mx-auto h-10 w-10 text-muted-foreground/40" />
+          <h2 className="mt-4 text-sm font-medium">Connect to local models</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
+            This page detects AI models running on your machine (Ollama, LM Studio, etc).
+            Your browser will ask permission to access local network services - this is normal
+            and required to communicate with the endpoint.
+          </p>
+          <button
+            onClick={connect}
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            <Wifi className="h-4 w-4" />
+            Connect to {ollamaUrl}
+          </button>
+        </div>
+      )}
+
+      {/* Browser-direct notice (shown after connecting) */}
+      {status !== "disconnected" && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-400">
+          <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+          <span>
+            Local detection uses browser-direct calls. Ollama must run on the same machine as your browser,
+            or a custom endpoint must be reachable from this browser and allow this site with CORS.
+          </span>
+        </div>
+      )}
 
       {/* Connection error */}
       {status === "error" && error && (
