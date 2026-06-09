@@ -1600,6 +1600,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "condensation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "graph_condensation",
+        "description": "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm."
+      }
+    ]
+  },
+  {
     "app": "confluence",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -4652,6 +4662,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "linkcut",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "link_cut_tree",
+        "description": "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees."
+      }
+    ]
+  },
+  {
     "app": "lis",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5212,6 +5232,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "morse_convert",
         "description": "Encode text to Morse code or decode Morse code to text."
+      }
+    ]
+  },
+  {
+    "app": "mosalgo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mos_algorithm",
+        "description": "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count)."
       }
     ]
   },
@@ -8190,6 +8220,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "suffix_automaton",
         "description": "Build a suffix automaton for a string and count distinct substrings."
+      }
+    ]
+  },
+  {
+    "app": "suffixtree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "suffix_tree",
+        "description": "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring."
       }
     ]
   },
