@@ -65,6 +65,8 @@ import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
 import AdminSeatHeartbeatPage from "./pages/admin/AdminSeatHeartbeat.tsx";
 import AdminSeatsApi from "./pages/admin/AdminSeatsApi.tsx";
+import AdminSeatsApiRouting from "./pages/admin/AdminSeatsApiRouting.tsx";
+import AdminSeatsApiUsage from "./pages/admin/AdminSeatsApiUsage.tsx";
 import AdminSeatsLocal from "./pages/admin/AdminSeatsLocal.tsx";
 import AdminSeatsSubscription from "./pages/admin/AdminSeatsSubscription.tsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
@@ -205,6 +207,8 @@ const App = () => (
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
             <Route path="agents/api" element={<AdminSeatsApi />} />
+            <Route path="agents/api/routing" element={<AdminSeatsApiRouting />} />
+            <Route path="agents/api/usage" element={<AdminSeatsApiUsage />} />
             <Route path="agents/local" element={<AdminSeatsLocal />} />
             <Route path="agents/subscription" element={<AdminSeatsSubscription />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />

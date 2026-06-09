@@ -17,6 +17,7 @@ import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import {
+  ArrowRightLeft,
   User,
   Brain,
   KeyRound,
@@ -410,10 +411,12 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
 }
 
 const SEATS_CHILDREN = [
-  { path: "/admin/agents/api",          label: "API",          icon: KeyRound   },
-  { path: "/admin/agents/local",        label: "Local",        icon: HardDrive  },
-  { path: "/admin/agents/subscription", label: "Subscription", icon: CreditCard },
-  { path: "/admin/agents/heartbeat",    label: "Heartbeat",    icon: HeartPulse },
+  { path: "/admin/agents/api",              label: "API",          icon: KeyRound   },
+  { path: "/admin/agents/api/routing",      label: "Routing",      icon: ArrowRightLeft },
+  { path: "/admin/agents/api/usage",        label: "Usage",        icon: BarChart3  },
+  { path: "/admin/agents/local",            label: "Local",        icon: HardDrive  },
+  { path: "/admin/agents/subscription",     label: "Subscription", icon: CreditCard },
+  { path: "/admin/agents/heartbeat",        label: "Heartbeat",    icon: HeartPulse },
 ] as const;
 
 function SeatsNavItem({ onClick }: { onClick?: () => void }) {
