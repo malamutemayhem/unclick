@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1042,
+    "inventory": 1050,
     "source_manifest": 216,
     "pages": 89,
-    "tools": 616,
+    "tools": 624,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 616
+      "count": 624
     },
     {
       "id": "rooms",
@@ -5222,6 +5222,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-condensation-packages-mcp-server-src-condensation-tool-ts-no-route",
+      "division": "Tools",
+      "name": "condensation",
+      "kind": "MCP tool",
+      "meaning": "condensation MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/condensation-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-confluence-packages-mcp-server-src-confluence-tool-ts-no-route",
       "division": "Tools",
       "name": "confluence",
@@ -6562,6 +6572,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hld-packages-mcp-server-src-hld-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hld",
+      "kind": "MCP tool",
+      "meaning": "hld MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hld-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-holidays-packages-mcp-server-src-holidays-tool-ts-no-route",
       "division": "Tools",
       "name": "holidays",
@@ -7162,6 +7182,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-linkcut-packages-mcp-server-src-linkcut-tool-ts-no-route",
+      "division": "Tools",
+      "name": "linkcut",
+      "kind": "MCP tool",
+      "meaning": "linkcut MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/linkcut-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lis-packages-mcp-server-src-lis-tool-ts-no-route",
       "division": "Tools",
       "name": "lis",
@@ -7482,6 +7512,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-mincostflow-packages-mcp-server-src-mincostflow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "mincostflow",
+      "kind": "MCP tool",
+      "meaning": "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/mincostflow-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-minvertexcover-packages-mcp-server-src-minvertexcover-tool-ts-no-route",
       "division": "Tools",
       "name": "minvertexcover",
@@ -7568,6 +7608,16 @@
       "kind": "MCP tool",
       "meaning": "morse MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/morse-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-mosalgo-packages-mcp-server-src-mosalgo-tool-ts-no-route",
+      "division": "Tools",
+      "name": "mosalgo",
+      "kind": "MCP tool",
+      "meaning": "mosalgo MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/mosalgo-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8188,6 +8238,16 @@
       "kind": "MCP tool",
       "meaning": "perplexity MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/perplexity-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-persistarray-packages-mcp-server-src-persistarray-tool-ts-no-route",
+      "division": "Tools",
+      "name": "persistarray",
+      "kind": "MCP tool",
+      "meaning": "persistarray MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/persistarray-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9412,6 +9472,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-suffixtree-packages-mcp-server-src-suffixtree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "suffixtree",
+      "kind": "MCP tool",
+      "meaning": "suffixtree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/suffixtree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-sunrisesunset-packages-mcp-server-src-sunrisesunset-tool-ts-no-route",
       "division": "Tools",
       "name": "sunrisesunset",
@@ -9828,6 +9898,16 @@
       "kind": "MCP tool",
       "meaning": "twitch MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/twitch-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-twosat-packages-mcp-server-src-twosat-tool-ts-no-route",
+      "division": "Tools",
+      "name": "twosat",
+      "kind": "MCP tool",
+      "meaning": "twosat MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/twosat-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11627,6 +11707,11 @@
       "packages/mcp-server/src/compliancepass-tool.ts"
     ],
     [
+      "condensation",
+      "condensation MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/condensation-tool.ts"
+    ],
+    [
       "confluence",
       "confluence MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/confluence-tool.ts"
@@ -12297,6 +12382,11 @@
       "packages/mcp-server/src/histogram-tool.ts"
     ],
     [
+      "hld",
+      "hld MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hld-tool.ts"
+    ],
+    [
       "holidays",
       "holidays MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/holidays-tool.ts"
@@ -12597,6 +12687,11 @@
       "packages/mcp-server/src/linearsolve-tool.ts"
     ],
     [
+      "linkcut",
+      "linkcut MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/linkcut-tool.ts"
+    ],
+    [
       "lis",
       "lis MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lis-tool.ts"
@@ -12757,6 +12852,11 @@
       "packages/mcp-server/src/millerrabin-tool.ts"
     ],
     [
+      "mincostflow",
+      "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/mincostflow-tool.ts"
+    ],
+    [
       "minvertexcover",
       "minvertexcover MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/minvertexcover-tool.ts"
@@ -12800,6 +12900,11 @@
       "morse",
       "morse MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/morse-tool.ts"
+    ],
+    [
+      "mosalgo",
+      "mosalgo MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/mosalgo-tool.ts"
     ],
     [
       "mst",
@@ -13110,6 +13215,11 @@
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
+    ],
+    [
+      "persistarray",
+      "persistarray MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/persistarray-tool.ts"
     ],
     [
       "phonetic",
@@ -13722,6 +13832,11 @@
       "packages/mcp-server/src/suffixauto-tool.ts"
     ],
     [
+      "suffixtree",
+      "suffixtree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/suffixtree-tool.ts"
+    ],
+    [
       "sunrisesunset",
       "sunrisesunset MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sunrisesunset-tool.ts"
@@ -13930,6 +14045,11 @@
       "twitch",
       "twitch MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/twitch-tool.ts"
+    ],
+    [
+      "twosat",
+      "twosat MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/twosat-tool.ts"
     ],
     [
       "typeform",
@@ -14771,8 +14891,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "83b5f96c5f3d",
-      "bytes": 36857
+      "hash": "e48fb3565853",
+      "bytes": 35934
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",

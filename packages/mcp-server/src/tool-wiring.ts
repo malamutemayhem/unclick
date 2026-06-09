@@ -794,6 +794,14 @@ import { waveletTree } from "./wavelet-tool.js";
 import { dinicMaxFlow } from "./dinic-tool.js";
 import { lowestCommonAncestor } from "./lca-tool.js";
 import { maxIndependentSet } from "./maxindepset-tool.js";
+import { twoSat } from "./twosat-tool.js";
+import { heavyLightDecomp } from "./hld-tool.js";
+import { minCostMaxFlow } from "./mincostflow-tool.js";
+import { persistentArray } from "./persistarray-tool.js";
+import { suffixTree } from "./suffixtree-tool.js";
+import { linkCutTree } from "./linkcut-tool.js";
+import { graphCondensation } from "./condensation-tool.js";
+import { mosAlgorithm } from "./mosalgo-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11782,6 +11790,112 @@ export const ADDITIONAL_TOOLS = [
         vertex_count: { type: "number", description: "Number of vertices (max 20)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
       }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── twosat-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "two_sat",
+    description: "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        variable_count: { type: "number", description: "Number of boolean variables (1-based)" },
+        clauses: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Clauses as [a, b] pairs where positive = true, negative = negated" },
+      }, required: ["variable_count", "clauses"],
+    },
+  },
+
+  // ── hld-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "heavy_light_decomposition",
+    description: "Perform heavy-light decomposition of a tree for efficient path queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mincostflow-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "min_cost_max_flow",
+    description: "Compute minimum cost maximum flow using successive shortest paths (SPFA).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [from, to, capacity, cost]" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── persistarray-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "persistent_array",
+    description: "Persistent array with version-controlled get/set operations using a persistent segment tree.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        initial: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: {type:'get'|'set', version, index, value?}" },
+      }, required: ["initial", "operations"],
+    },
+  },
+
+  // ── suffixtree-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "suffix_tree",
+    description: "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input text (max 10,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── linkcut-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "link_cut_tree",
+    description: "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (1-indexed)" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: link, cut, connected, set_value, path_sum with u, v, value fields" },
+      }, required: ["vertex_count", "operations"],
+    },
+  },
+
+  // ── condensation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "graph_condensation",
+    description: "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mosalgo-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "mos_algorithm",
+    description: "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [l, r] pairs (0-indexed, inclusive)" },
+      }, required: ["array", "queries"],
     },
   },
 
@@ -23626,6 +23740,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   dinic_max_flow:            (args) => dinicMaxFlow(args),
   lowest_common_ancestor:    (args) => lowestCommonAncestor(args),
   max_independent_set:       (args) => maxIndependentSet(args),
+
+  // batch 80: 2-SAT, HLD, Min Cost Max Flow, Persistent Array
+  two_sat:                       (args) => twoSat(args),
+  heavy_light_decomposition:     (args) => heavyLightDecomp(args),
+  min_cost_max_flow:             (args) => minCostMaxFlow(args),
+  persistent_array:              (args) => persistentArray(args),
+
+  // batch 81: Suffix Tree, Link-Cut Tree, Graph Condensation, Mo's Algorithm
+  suffix_tree:                   (args) => suffixTree(args),
+  link_cut_tree:                 (args) => linkCutTree(args),
+  graph_condensation:            (args) => graphCondensation(args),
+  mos_algorithm:                 (args) => mosAlgorithm(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

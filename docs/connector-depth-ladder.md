@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (590 external connectors)
+## Distribution (598 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 551 | 93% |
+| L5 | Agentic | 559 | 93% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 6% |
 | L1 | Wrapper | 3 | 1% |
 
-**Hardened (reliability bar met): 241 of 590 (41%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 241 of 598 (40%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 551 of 554 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 559 of 562 (99%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -95,6 +95,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `colr` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `combination` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `complexnum` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `condensation` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `convexhull` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `convolution` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `correlation` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -173,6 +174,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `hashgen` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `heapsort` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `histogram` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `hld` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `hopcroftcarp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `htmlstrip` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `httpcat` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -207,6 +209,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `levenshtein` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `libretranslate` (L5 Agentic): not-hardened, no-rate-limit, no-memory
 - `linearsolve` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `linkcut` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `lis` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `logbase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `lorem2` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -232,10 +235,12 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `mhwdb` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `midpoint` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `millerrabin` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mincostflow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `minvertexcover` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `modpow` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `montecarlo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `morse` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `mosalgo` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mst` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `mtg` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `multiavatar` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -276,6 +281,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `percentage` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `percentile` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `permutation` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `persistarray` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `phonetic` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `piapprox` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `piglatin` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -344,6 +350,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `stringcase` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `suffixarray` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `suffixauto` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
+- `suffixtree` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tacofancy` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `tarjan` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `taylor` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -362,6 +369,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 - `trie` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tsp` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `tvmaze` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
+- `twosat` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `ukpolice` (L5 Agentic): not-hardened, 1x-bare-error, no-memory
 - `unionfind` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 - `unitpressure` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
@@ -484,6 +492,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `colr` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `combination` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `complexnum` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `condensation` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `confluence` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `contentful` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
@@ -605,6 +614,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `heygen` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `higgsfield` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `histogram` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `hld` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `holidays` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hopcroftcarp` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `htmlstrip` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -659,6 +669,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `libretranslate` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `lichess` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `linearsolve` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `linkcut` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `lis` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `logbase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `lorem` | Yes | - | - | Yes | Yes | no-memory |
@@ -690,6 +701,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mhwdb` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `midpoint` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `millerrabin` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `mincostflow` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `minvertexcover` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `miro` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mistral` | Yes | - | - | Yes | Yes | no-memory |
@@ -698,6 +710,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `montecarlo` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `morse` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `mosalgo` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `mst` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `mtg` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `multiavatar` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -755,6 +768,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `percentage` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `percentile` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `permutation` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `persistarray` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `phonetic` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `piapprox` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `picsum` | Yes | - | - | Yes | Yes | no-memory |
@@ -857,6 +871,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `stringcase` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `suffixarray` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `suffixauto` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `suffixtree` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `sunrisesunset` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `superhero` | Yes | - | - | Yes | Yes | no-memory |
@@ -895,6 +910,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `tvmaze` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `twilio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `twitch` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `twosat` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `typeform` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ukpolice` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `unionfind` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |

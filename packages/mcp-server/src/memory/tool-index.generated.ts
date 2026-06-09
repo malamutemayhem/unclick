@@ -1600,6 +1600,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "condensation",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "graph_condensation",
+        "description": "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm."
+      }
+    ]
+  },
+  {
     "app": "confluence",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -3710,6 +3720,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hld",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "heavy_light_decomposition",
+        "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+      }
+    ]
+  },
+  {
     "app": "holidays",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4642,6 +4662,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "linkcut",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "link_cut_tree",
+        "description": "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees."
+      }
+    ]
+  },
+  {
     "app": "lis",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5054,6 +5084,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "mincostflow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "min_cost_max_flow",
+        "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
+      }
+    ]
+  },
+  {
     "app": "minvertexcover",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5192,6 +5232,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "morse_convert",
         "description": "Encode text to Morse code or decode Morse code to text."
+      }
+    ]
+  },
+  {
+    "app": "mosalgo",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "mos_algorithm",
+        "description": "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count)."
       }
     ]
   },
@@ -6136,6 +6186,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "perplexity_chat_completion",
         "description": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web."
+      }
+    ]
+  },
+  {
+    "app": "persistarray",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "persistent_array",
+        "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
       }
     ]
   },
@@ -8164,6 +8224,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "suffixtree",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "suffix_tree",
+        "description": "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring."
+      }
+    ]
+  },
+  {
     "app": "sunrisesunset",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -8924,6 +8994,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "twitch_schedule",
         "description": "Get a Twitch channel's streaming schedule by its login name."
+      }
+    ]
+  },
+  {
+    "app": "twosat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "two_sat",
+        "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
       }
     ]
   },

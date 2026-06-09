@@ -15,26 +15,18 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import {
+  formatBytes,
+  getEndpointModelsUrl,
+  inferCapabilities,
+  normalizeEndpointUrl,
+  type EndpointType,
+  type OllamaModel,
+} from "./AdminSeatsLocalUtils";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-interface OllamaModel {
-  name: string;
-  model: string;
-  modified_at: string;
-  size: number;
-  digest: string;
-  details: {
-    parent_model?: string;
-    format?: string;
-    family?: string;
-    families?: string[] | null;
-    parameter_size?: string;
-    quantization_level?: string;
-  };
-}
 
 interface OllamaRunningModel {
   name: string;
@@ -48,9 +40,8 @@ interface CustomEndpointModel {
   id: string;
   object?: string;
   owned_by?: string;
+  sourceUrl?: string;
 }
-
-type EndpointType = "ollama" | "openai-compat";
 
 interface EndpointConfig {
   type: EndpointType;
@@ -79,7 +70,7 @@ const OLLAMA_SETUP_LINKS: Record<string, { label: string; url: string }> = {
 };
 
 const POPULAR_MODELS = [
-  { name: "llama3.2:8b", desc: "Meta - general chat and code", size: "~4.7GB" },
+  { name: "llama3.2:3b", desc: "Meta - general chat and code", size: "~2GB" },
   { name: "nomic-embed-text", desc: "Embeddings - great for RAG", size: "~274MB" },
   { name: "codestral:22b", desc: "Mistral - code generation", size: "~12GB" },
   { name: "gemma2:9b", desc: "Google - efficient chat", size: "~5.4GB" },
@@ -92,16 +83,6 @@ const POPULAR_MODELS = [
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${kb.toFixed(0)} KB`;
-  const mb = kb / 1024;
-  if (mb < 1024) return `${mb.toFixed(0)} MB`;
-  const gb = mb / 1024;
-  return `${gb.toFixed(1)} GB`;
-}
-
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
@@ -113,28 +94,6 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
-function inferCapabilities(model: OllamaModel): string[] {
-  const caps: string[] = [];
-  const n = model.name.toLowerCase();
-  const families = model.details.families ?? [];
-
-  if (n.includes("embed") || families.includes("bert")) {
-    caps.push("Embeddings");
-  } else {
-    caps.push("Chat");
-  }
-
-  if (n.includes("code") || n.includes("codestral") || n.includes("deepseek-coder") || n.includes("starcoder")) {
-    caps.push("Code");
-  }
-
-  if (n.includes("llava") || n.includes("bakllava") || n.includes("vision") || families.includes("clip")) {
-    caps.push("Vision");
-  }
-
-  return caps;
-}
-
 // ---------------------------------------------------------------------------
 // Hooks
 // ---------------------------------------------------------------------------
@@ -144,61 +103,65 @@ function useOllamaConnection(url: string) {
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [runningModels, setRunningModels] = useState<OllamaRunningModel[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const retryCount = useRef(0);
-  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const fetchModels = useCallback(async (endpoint: string) => {
-    try {
-      setStatus("connecting");
-      setError(null);
-
-      const tagsRes = await fetch(`${endpoint}/api/tags`, {
-        signal: AbortSignal.timeout(5000),
-      });
-      if (!tagsRes.ok) throw new Error(`Ollama responded with ${tagsRes.status}`);
-      const tagsBody = await tagsRes.json();
-      setModels(tagsBody.models ?? []);
-
-      let running: OllamaRunningModel[] = [];
-      try {
-        const psRes = await fetch(`${endpoint}/api/ps`, {
-          signal: AbortSignal.timeout(3000),
-        });
-        if (psRes.ok) {
-          const psBody = await psRes.json();
-          running = psBody.models ?? [];
-        }
-      } catch {
-        // /api/ps is optional; older Ollama versions may not have it
-      }
-      setRunningModels(running);
-
-      setStatus("connected");
-      retryCount.current = 0;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Connection failed";
-      setError(msg);
-      setStatus("error");
-
-      if (retryCount.current < 3) {
-        retryCount.current += 1;
-        const delay = 2000 * retryCount.current;
-        retryTimer.current = setTimeout(() => void fetchModels(endpoint), delay);
-      }
-    }
-  }, []);
-
-  const refresh = useCallback(() => {
-    retryCount.current = 0;
-    void fetchModels(url);
-  }, [url, fetchModels]);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
-    void fetchModels(url);
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function fetchModels(attempt = 0) {
+      try {
+        setStatus("connecting");
+        setError(null);
+
+        const tagsRes = await fetch(`${url}/api/tags`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!tagsRes.ok) throw new Error(`Ollama responded with ${tagsRes.status}`);
+        const tagsBody = await tagsRes.json();
+        if (cancelled) return;
+        setModels(tagsBody.models ?? []);
+
+        let running: OllamaRunningModel[] = [];
+        try {
+          const psRes = await fetch(`${url}/api/ps`, {
+            signal: AbortSignal.timeout(3000),
+          });
+          if (psRes.ok) {
+            const psBody = await psRes.json();
+            running = psBody.models ?? [];
+          }
+        } catch {
+          // /api/ps is optional; older Ollama versions may not have it
+        }
+        if (cancelled) return;
+        setRunningModels(running);
+
+        setStatus("connected");
+      } catch (err) {
+        if (cancelled) return;
+
+        const msg = err instanceof Error ? err.message : "Connection failed";
+        setError(msg);
+        setStatus("error");
+
+        if (attempt < 3) {
+          const delay = 2000 * (attempt + 1);
+          retryTimer = setTimeout(() => void fetchModels(attempt + 1), delay);
+        }
+      }
+    }
+
+    void fetchModels();
     return () => {
-      if (retryTimer.current) clearTimeout(retryTimer.current);
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [url, fetchModels]);
+  }, [url, refreshNonce]);
+
+  const refresh = useCallback(() => {
+    setRefreshNonce((value) => value + 1);
+  }, []);
 
   return { status, models, runningModels, error, refresh, setModels };
 }
@@ -535,17 +498,16 @@ function CustomEndpointSection({
     setTestResult(null);
 
     try {
-      const testUrl = type === "ollama"
-        ? `${url.replace(/\/+$/, "")}/api/tags`
-        : `${url.replace(/\/+$/, "")}/v1/models`;
+      const normalizedUrl = normalizeEndpointUrl(url);
+      const testUrl = getEndpointModelsUrl(type, normalizedUrl);
 
       const res = await fetch(testUrl, { signal: AbortSignal.timeout(5000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setTestResult("success");
       onAdd({
         type,
-        url: url.replace(/\/+$/, ""),
-        label: label.trim() || url,
+        url: normalizedUrl,
+        label: label.trim() || normalizedUrl,
       });
       setAdding(false);
       setUrl("");
@@ -701,7 +663,7 @@ export default function AdminSeatsLocal() {
 
   const handleRemoveEndpoint = useCallback((url: string) => {
     setCustomEndpoints((prev) => prev.filter((e) => e.url !== url));
-    setCustomModels([]);
+    setCustomModels((prev) => prev.filter((m) => m.sourceUrl !== url));
   }, []);
 
   useEffect(() => {
@@ -709,19 +671,17 @@ export default function AdminSeatsLocal() {
       const allModels: CustomEndpointModel[] = [];
       for (const ep of customEndpoints) {
         try {
-          const url = ep.type === "ollama"
-            ? `${ep.url}/api/tags`
-            : `${ep.url}/v1/models`;
+          const url = getEndpointModelsUrl(ep.type, ep.url);
           const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
           if (!res.ok) continue;
           const body = await res.json();
           if (ep.type === "ollama") {
             for (const m of body.models ?? []) {
-              allModels.push({ id: `${ep.label}: ${m.name}`, owned_by: ep.label });
+              allModels.push({ id: `${ep.label}: ${m.name}`, owned_by: ep.label, sourceUrl: ep.url });
             }
           } else {
             for (const m of body.data ?? []) {
-              allModels.push({ id: m.id, owned_by: ep.label, object: m.object });
+              allModels.push({ id: m.id, owned_by: ep.label, object: m.object, sourceUrl: ep.url });
             }
           }
         } catch {
@@ -766,8 +726,8 @@ export default function AdminSeatsLocal() {
       <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-400">
         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
         <span>
-          Local model detection connects directly from your browser to localhost.
-          Ollama must be running on the same machine as your browser.
+          Local detection uses browser-direct calls. Ollama must run on the same machine as your browser,
+          or a custom endpoint must be reachable from this browser and allow this site with CORS.
         </span>
       </div>
 
