@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 981,
+    "inventory": 985,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 556,
+    "tools": 560,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 556
+      "count": 560
     },
     {
       "id": "rooms",
@@ -4462,6 +4462,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-astar-packages-mcp-server-src-astar-tool-ts-no-route",
+      "division": "Tools",
+      "name": "astar",
+      "kind": "MCP tool",
+      "meaning": "astar MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/astar-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-atbash-packages-mcp-server-src-atbash-tool-ts-no-route",
       "division": "Tools",
       "name": "atbash",
@@ -6402,6 +6412,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hungarian-packages-mcp-server-src-hungarian-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hungarian",
+      "kind": "MCP tool",
+      "meaning": "hungarian MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hungarian-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-hunter-packages-mcp-server-src-hunter-tool-ts-no-route",
       "division": "Tools",
       "name": "hunter",
@@ -7702,6 +7722,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-pagerank-packages-mcp-server-src-pagerank-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pagerank",
+      "kind": "MCP tool",
+      "meaning": "pagerank MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pagerank-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-pagerduty-packages-mcp-server-src-pagerduty-tool-ts-no-route",
       "division": "Tools",
       "name": "pagerduty",
@@ -8648,6 +8678,16 @@
       "kind": "MCP tool",
       "meaning": "sigmoid MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sigmoid-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-simplex-packages-mcp-server-src-simplex-tool-ts-no-route",
+      "division": "Tools",
+      "name": "simplex",
+      "kind": "MCP tool",
+      "meaning": "simplex MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/simplex-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10636,6 +10676,11 @@
       "packages/mcp-server/src/assemblyai-tool.ts"
     ],
     [
+      "astar",
+      "astar MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/astar-tool.ts"
+    ],
+    [
       "atbash",
       "atbash MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/atbash-tool.ts"
@@ -11606,6 +11651,11 @@
       "packages/mcp-server/src/huffman-tool.ts"
     ],
     [
+      "hungarian",
+      "hungarian MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hungarian-tool.ts"
+    ],
+    [
       "hunter",
       "hunter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hunter-tool.ts"
@@ -12256,6 +12306,11 @@
       "packages/mcp-server/src/opentriviadb-tool.ts"
     ],
     [
+      "pagerank",
+      "pagerank MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pagerank-tool.ts"
+    ],
+    [
       "pagerduty",
       "pagerduty MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pagerduty-tool.ts"
@@ -12729,6 +12784,11 @@
       "sigmoid",
       "sigmoid MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sigmoid-tool.ts"
+    ],
+    [
+      "simplex",
+      "simplex MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/simplex-tool.ts"
     ],
     [
       "slack",
@@ -14464,6 +14524,11 @@
       "bytes": 11837
     },
     {
+      "source": "packages/mcp-server/src/astar-tool.ts",
+      "hash": "e53a6111e889",
+      "bytes": 3879
+    },
+    {
       "source": "packages/mcp-server/src/atbash-tool.ts",
       "hash": "90f7681ac6a5",
       "bytes": 863
@@ -14527,11 +14592,6 @@
       "source": "packages/mcp-server/src/bibleverse-tool.ts",
       "hash": "c5c118d0eb27",
       "bytes": 1698
-    },
-    {
-      "source": "packages/mcp-server/src/binaryconv-tool.ts",
-      "hash": "b09d86831da2",
-      "bytes": 1337
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

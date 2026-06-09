@@ -462,6 +462,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "astar",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "astar_path",
+        "description": "Find the shortest path on a 2D grid using the A* algorithm."
+      }
+    ]
+  },
+  {
     "app": "atbash",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3608,6 +3618,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hungarian",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hungarian_assign",
+        "description": "Solve the assignment problem (optimally assign N workers to N tasks) using the Hungarian algorithm."
+      }
+    ]
+  },
+  {
     "app": "hunter",
     "category": "Security",
     "tools": [
@@ -5616,6 +5636,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pagerank",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "page_rank",
+        "description": "Compute PageRank scores for nodes in a directed graph."
+      }
+    ]
+  },
+  {
     "app": "pagerduty",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -7258,6 +7288,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "sigmoid_calculate",
         "description": "Compute activation functions (sigmoid, tanh, relu, leaky_relu, elu, swish) and their derivatives."
+      }
+    ]
+  },
+  {
+    "app": "simplex",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "simplex_solve",
+        "description": "Solve a linear programming problem (maximize objective subject to <= constraints) using the simplex method."
       }
     ]
   },

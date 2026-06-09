@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 555,
-  "toolCount": 1477,
+  "appCount": 559,
+  "toolCount": 1481,
   "categories": [
     "AI",
     "Books",
@@ -25,6 +25,22 @@
     "Weather & science"
   ],
   "apps": [
+    {
+      "slug": "astar",
+      "name": "A* Pathfinding",
+      "category": "Utilities",
+      "blurb": "Find the shortest path on a 2D grid using the A* algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "astar_path",
+          "description": "Find the shortest path on a 2D grid using the A* algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
     {
       "slug": "abn",
       "name": "ABN",
@@ -4658,6 +4674,22 @@
       "hardened": false
     },
     {
+      "slug": "hungarian",
+      "name": "Hungarian Assignment",
+      "category": "Utilities",
+      "blurb": "Optimally assign workers to tasks using the Hungarian algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hungarian_assign",
+          "description": "Solve the assignment problem (optimally assign N workers to N tasks) using the Hungarian algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "hunter",
       "name": "Hunter",
       "category": "Security",
@@ -7558,6 +7590,22 @@
       "hardened": false
     },
     {
+      "slug": "pagerank",
+      "name": "PageRank",
+      "category": "Utilities",
+      "blurb": "Compute PageRank scores for nodes in a directed link graph.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "page_rank",
+          "description": "Compute PageRank scores for nodes in a directed graph."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "pagerduty",
       "name": "Pagerduty",
       "category": "Developer & infra",
@@ -9812,6 +9860,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "simplex",
+      "name": "Simplex LP",
+      "category": "Utilities",
+      "blurb": "Solve linear programming problems (maximize subject to constraints) via simplex.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "simplex_solve",
+          "description": "Solve a linear programming problem (maximize objective subject to <= constraints) using the simplex method."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "slack",
