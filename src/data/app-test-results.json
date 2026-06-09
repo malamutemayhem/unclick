@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T00:45:00.000Z",
+  "updatedAt": "2026-06-09T01:12:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4258,6 +4258,30 @@
       "note": "rabin_karp_search finds pattern matches via rolling hash. Local computation.",
       "testedAt": "2026-06-09T01:02:00.000Z",
       "toolsTested": ["rabin_karp_search"]
+    },
+    "sieve": {
+      "status": "pass",
+      "note": "sieve_of_eratosthenes generates all primes up to N. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": ["sieve_of_eratosthenes"]
+    },
+    "suffixarray": {
+      "status": "pass",
+      "note": "suffix_array_build constructs suffix array with optional LCP. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": ["suffix_array_build"]
+    },
+    "matchain": {
+      "status": "pass",
+      "note": "matrix_chain_order finds optimal parenthesization for matrix multiplication. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": ["matrix_chain_order"]
+    },
+    "fenwick": {
+      "status": "pass",
+      "note": "fenwick_tree builds BIT for prefix sums and point updates. Local computation.",
+      "testedAt": "2026-06-09T01:12:00.000Z",
+      "toolsTested": ["fenwick_tree"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

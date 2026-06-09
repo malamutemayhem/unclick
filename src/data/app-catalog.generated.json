@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 571,
-  "toolCount": 1493,
+  "appCount": 575,
+  "toolCount": 1497,
   "categories": [
     "AI",
     "Books",
@@ -3606,6 +3606,22 @@
       "hardened": true
     },
     {
+      "slug": "fenwick",
+      "name": "Fenwick Tree",
+      "category": "Utilities",
+      "blurb": "Fenwick tree (BIT) for efficient prefix sums and point updates.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "fenwick_tree",
+          "description": "Build a Fenwick tree (Binary Indexed Tree) from values and run point updates and range sum queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "fft",
       "name": "FFT (Fast Fourier Transform)",
       "category": "Utilities",
@@ -6200,6 +6216,22 @@
         {
           "name": "matrix_operate",
           "description": "Perform matrix operations: add, multiply, transpose, or determinant."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "matchain",
+      "name": "Matrix Chain",
+      "category": "Utilities",
+      "blurb": "Find optimal parenthesization for matrix chain multiplication.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "matrix_chain_order",
+          "description": "Find the optimal parenthesization for matrix chain multiplication to minimize scalar multiplications."
         }
       ],
       "level": 5,
@@ -10006,6 +10038,22 @@
       "hardened": true
     },
     {
+      "slug": "sieve",
+      "name": "Sieve of Eratosthenes",
+      "category": "Utilities",
+      "blurb": "Generate all prime numbers up to N using the Sieve of Eratosthenes.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "sieve_of_eratosthenes",
+          "description": "Generate all prime numbers up to N using the Sieve of Eratosthenes algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "simplex",
       "name": "Simplex LP",
       "category": "Utilities",
@@ -10560,6 +10608,22 @@
         {
           "name": "ghibli_people",
           "description": "List characters from Studio Ghibli films."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "suffixarray",
+      "name": "Suffix Array",
+      "category": "Utilities",
+      "blurb": "Build a suffix array for a string with optional LCP array.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "suffix_array_build",
+          "description": "Build a suffix array for a string, with optional LCP (longest common prefix) array."
         }
       ],
       "level": 5,
