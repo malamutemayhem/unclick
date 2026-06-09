@@ -2666,6 +2666,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "eulertotient",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "euler_totient",
+        "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+      }
+    ]
+  },
+  {
     "app": "europeana",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3682,6 +3692,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hopcroftcarp",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "hopcroft_karp",
+        "description": "Find maximum matching in a bipartite graph using the Hopcroft-Karp algorithm in O(E * sqrt(V))."
+      }
+    ]
+  },
+  {
     "app": "htmlstrip",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3936,6 +3956,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "interpolate_calc",
         "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+      }
+    ]
+  },
+  {
+    "app": "intervalmerge",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "interval_merge",
+        "description": "Merge overlapping intervals and report gaps, coverage, and the consolidated set."
       }
     ]
   },
@@ -8218,6 +8248,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "temperature_convert",
         "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
+      }
+    ]
+  },
+  {
+    "app": "ternarysearch",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "ternary_search",
+        "description": "Ternary search on a sorted array (search mode) or find the extremum of a unimodal array (max/min mode)."
       }
     ]
   },

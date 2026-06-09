@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 599,
-  "toolCount": 1521,
+  "appCount": 603,
+  "toolCount": 1525,
   "categories": [
     "AI",
     "Books",
@@ -3482,6 +3482,22 @@
       "hardened": false
     },
     {
+      "slug": "eulertotient",
+      "name": "Euler Totient",
+      "category": "Utilities",
+      "blurb": "Compute Euler's totient phi(n) counting integers coprime to n.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "euler_totient",
+          "description": "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "europeana",
       "name": "Europeana",
       "category": "News & reading",
@@ -4798,6 +4814,22 @@
       "hardened": false
     },
     {
+      "slug": "hopcroftcarp",
+      "name": "Hopcroft-Karp",
+      "category": "Utilities",
+      "blurb": "Maximum bipartite matching via Hopcroft-Karp in O(E * sqrt(V)).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "hopcroft_karp",
+          "description": "Find maximum matching in a bipartite graph using the Hopcroft-Karp algorithm in O(E * sqrt(V))."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "htmlstrip",
       "name": "HTML Stripper",
       "category": "Developer & infra",
@@ -5156,6 +5188,22 @@
         {
           "name": "interpolate_calc",
           "description": "Linear interpolation (or extrapolation) between two points. Returns the y value for a given x."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "intervalmerge",
+      "name": "Interval Merge",
+      "category": "Utilities",
+      "blurb": "Merge overlapping intervals and report gaps and total coverage.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "interval_merge",
+          "description": "Merge overlapping intervals and report gaps, coverage, and the consolidated set."
         }
       ],
       "level": 5,
@@ -11188,6 +11236,22 @@
         {
           "name": "temperature_convert",
           "description": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "ternarysearch",
+      "name": "Ternary Search",
+      "category": "Utilities",
+      "blurb": "Ternary search on sorted arrays or unimodal extremum finding.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "ternary_search",
+          "description": "Ternary search on a sorted array (search mode) or find the extremum of a unimodal array (max/min mode)."
         }
       ],
       "level": 5,

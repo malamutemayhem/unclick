@@ -778,6 +778,10 @@ import { heapSort } from "./heapsort-tool.js";
 import { chineseRemainderTheorem } from "./crt-tool.js";
 import { graphColoring } from "./graphcolor-tool.js";
 import { extendedGcd } from "./extgcd-tool.js";
+import { eulerTotient } from "./eulertotient-tool.js";
+import { hopcroftKarp } from "./hopcroftcarp-tool.js";
+import { intervalMerge } from "./intervalmerge-tool.js";
+import { ternarySearch } from "./ternarysearch-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11555,6 +11559,58 @@ export const ADDITIONAL_TOOLS = [
         a: { type: "number", description: "First integer" },
         b: { type: "number", description: "Second integer" },
       }, required: ["a", "b"],
+    },
+  },
+
+  // ── eulertotient-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "euler_totient",
+    description: "Compute Euler's totient function phi(n) - the count of integers up to n that are coprime with n.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "number", description: "Positive integer to compute totient for" },
+      }, required: ["number"],
+    },
+  },
+
+  // ── hopcroftcarp-tool.ts ────────────────────────────────────────────────────
+  {
+    name: "hopcroft_karp",
+    description: "Find maximum matching in a bipartite graph using the Hopcroft-Karp algorithm in O(E * sqrt(V)).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        left_size: { type: "number", description: "Number of vertices on the left side" },
+        right_size: { type: "number", description: "Number of vertices on the right side" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [left_vertex, right_vertex] pairs" },
+      }, required: ["left_size", "right_size", "edges"],
+    },
+  },
+
+  // ── intervalmerge-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "interval_merge",
+    description: "Merge overlapping intervals and report gaps, coverage, and the consolidated set.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        intervals: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Intervals as [start, end] pairs" },
+      }, required: ["intervals"],
+    },
+  },
+
+  // ── ternarysearch-tool.ts ───────────────────────────────────────────────────
+  {
+    name: "ternary_search",
+    description: "Ternary search on a sorted array (search mode) or find the extremum of a unimodal array (max/min mode).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of numbers" },
+        target: { type: "number", description: "Value to search for (search mode only)" },
+        mode: { type: "string", enum: ["search", "max", "min"], description: "Mode: search (default), max, or min" },
+      }, required: ["array"],
     },
   },
 
@@ -23375,6 +23431,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   chinese_remainder_theorem: (args) => chineseRemainderTheorem(args),
   graph_coloring:            (args) => graphColoring(args),
   extended_gcd:              (args) => extendedGcd(args),
+
+  // batch 76: Euler Totient, Hopcroft-Karp, Interval Merge, Ternary Search
+  euler_totient:             (args) => eulerTotient(args),
+  hopcroft_karp:             (args) => hopcroftKarp(args),
+  interval_merge:            (args) => intervalMerge(args),
+  ternary_search:            (args) => ternarySearch(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
