@@ -798,6 +798,10 @@ import { twoSat } from "./twosat-tool.js";
 import { heavyLightDecomp } from "./hld-tool.js";
 import { minCostMaxFlow } from "./mincostflow-tool.js";
 import { persistentArray } from "./persistarray-tool.js";
+import { suffixTree } from "./suffixtree-tool.js";
+import { linkCutTree } from "./linkcut-tool.js";
+import { graphCondensation } from "./condensation-tool.js";
+import { mosAlgorithm } from "./mosalgo-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11841,6 +11845,57 @@ export const ADDITIONAL_TOOLS = [
         initial: { type: "array", items: { type: "number" }, description: "Initial array values" },
         operations: { type: "array", items: { type: "object" }, description: "Operations: {type:'get'|'set', version, index, value?}" },
       }, required: ["initial", "operations"],
+    },
+  },
+
+  // ── suffixtree-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "suffix_tree",
+    description: "Build a suffix tree (Ukkonen's algorithm) and compute distinct substrings and longest repeated substring.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input text (max 10,000 chars)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── linkcut-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "link_cut_tree",
+    description: "Dynamic forest connectivity with link, cut, connected, and path sum queries using link-cut trees.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (1-indexed)" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: link, cut, connected, set_value, path_sum with u, v, value fields" },
+      }, required: ["vertex_count", "operations"],
+    },
+  },
+
+  // ── condensation-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "graph_condensation",
+    description: "Compute SCC condensation of a directed graph into a DAG using Kosaraju's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [u, v] pairs (0-indexed)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mosalgo-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "mos_algorithm",
+    description: "Offline range query processing using Mo's algorithm with sqrt decomposition (range sum and distinct count).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Input array of numbers" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Range queries as [l, r] pairs (0-indexed, inclusive)" },
+      }, required: ["array", "queries"],
     },
   },
 
@@ -23691,6 +23746,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   heavy_light_decomposition:     (args) => heavyLightDecomp(args),
   min_cost_max_flow:             (args) => minCostMaxFlow(args),
   persistent_array:              (args) => persistentArray(args),
+
+  // batch 81: Suffix Tree, Link-Cut Tree, Graph Condensation, Mo's Algorithm
+  suffix_tree:                   (args) => suffixTree(args),
+  link_cut_tree:                 (args) => linkCutTree(args),
+  graph_condensation:            (args) => graphCondensation(args),
+  mos_algorithm:                 (args) => mosAlgorithm(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
