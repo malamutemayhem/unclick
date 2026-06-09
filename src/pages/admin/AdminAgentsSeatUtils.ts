@@ -25,6 +25,7 @@ export interface AISeat {
   issue: string;
   isVirtual?: boolean;
   routingPolicy?: SeatRoutingPolicy;
+  computeTier?: import("./seats/computeTypes").ComputeTier;
 }
 
 export type SeatPerformanceStatus = "strong" | "watch" | "stale" | "blocked";

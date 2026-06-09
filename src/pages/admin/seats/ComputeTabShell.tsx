@@ -1,17 +1,27 @@
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { COMPUTE_TIERS, TIER_META, type ComputeTier } from "./computeTypes";
+import { Zap, HardDrive, CreditCard } from "lucide-react";
+import { COMPUTE_TIERS, TIER_META, countSeatsByTier, type ComputeTier } from "./computeTypes";
+import type { AISeat } from "../AdminAgentsSeatUtils";
 import ApiTierPanel from "./ApiTierPanel";
 import LocalTierPanel from "./LocalTierPanel";
 import SubscriptionTierPanel from "./SubscriptionTierPanel";
+
+const TIER_ICONS: Record<ComputeTier, typeof Zap> = {
+  api: Zap,
+  local: HardDrive,
+  subscription: CreditCard,
+};
 
 function resolveTab(param: string | null): ComputeTier {
   if (param === "api" || param === "local" || param === "subscription") return param;
   return "local";
 }
 
-export default function ComputeTabShell() {
+export default function ComputeTabShell({ seats = [] }: { seats?: AISeat[] }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = resolveTab(searchParams.get("tier"));
+  const tierCounts = useMemo(() => countSeatsByTier(seats), [seats]);
 
   const setTab = (tier: ComputeTier) => {
     setSearchParams({ tier }, { replace: true });
@@ -23,6 +33,8 @@ export default function ComputeTabShell() {
         {COMPUTE_TIERS.map((tier) => {
           const meta = TIER_META[tier];
           const active = activeTab === tier;
+          const Icon = TIER_ICONS[tier];
+          const count = tierCounts[tier];
           return (
             <button
               key={tier}
@@ -34,7 +46,21 @@ export default function ComputeTabShell() {
                   : "text-muted-foreground hover:bg-card/40 hover:text-heading"
               }`}
             >
-              <span className="block">{meta.label}</span>
+              <span className="flex items-center justify-center gap-1.5">
+                <Icon className="h-3.5 w-3.5" />
+                {meta.label}
+                {count > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                      active
+                        ? "bg-primary/20 text-primary"
+                        : "bg-border/30 text-muted-foreground"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </span>
               <span className="block text-[10px] font-normal opacity-70">{meta.description}</span>
             </button>
           );
