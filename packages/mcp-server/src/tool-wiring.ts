@@ -790,6 +790,14 @@ import { suffixAutomaton } from "./suffixauto-tool.js";
 import { gabowScc } from "./gabow-tool.js";
 import { babyGiantStep } from "./babygiant-tool.js";
 import { centroidDecomposition } from "./centroid-tool.js";
+import { waveletTree } from "./wavelet-tool.js";
+import { dinicMaxFlow } from "./dinic-tool.js";
+import { lowestCommonAncestor } from "./lca-tool.js";
+import { maxIndependentSet } from "./maxindepset-tool.js";
+import { twoSat } from "./twosat-tool.js";
+import { heavyLightDecomp } from "./hld-tool.js";
+import { minCostMaxFlow } from "./mincostflow-tool.js";
+import { persistentArray } from "./persistarray-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11722,6 +11730,117 @@ export const ADDITIONAL_TOOLS = [
         vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (must be N-1 edges)" },
       }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── wavelet-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "wavelet_tree",
+    description: "Build a wavelet tree for an integer array and answer range kth-smallest queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        array: { type: "array", items: { type: "number" }, description: "Array of integers (max 100,000)" },
+        queries: { type: "array", items: { type: "object", properties: { type: { type: "string" }, l: { type: "number" }, r: { type: "number" }, k: { type: "number" } }, required: ["type", "l", "r"] }, description: "Queries: {type:'kth', l, r, k} for kth smallest in [l, r)" },
+      }, required: ["array"],
+    },
+  },
+
+  // ── dinic-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "dinic_max_flow",
+    description: "Compute maximum flow in a network using Dinic's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 10,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v, capacity] triples" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── lca-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "lowest_common_ancestor",
+    description: "Find lowest common ancestors and distances in a tree using binary lifting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs" },
+        queries: { type: "array", items: { type: "array", items: { type: "number" } }, description: "LCA queries as [u, v] pairs" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges", "queries"],
+    },
+  },
+
+  // ── maxindepset-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "max_independent_set",
+    description: "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 20)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── twosat-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "two_sat",
+    description: "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        variable_count: { type: "number", description: "Number of boolean variables (1-based)" },
+        clauses: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Clauses as [a, b] pairs where positive = true, negative = negated" },
+      }, required: ["variable_count", "clauses"],
+    },
+  },
+
+  // ── hld-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "heavy_light_decomposition",
+    description: "Perform heavy-light decomposition of a tree for efficient path queries.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs (0-indexed)" },
+        root: { type: "number", description: "Root vertex (default 0)" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── mincostflow-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "min_cost_max_flow",
+    description: "Compute minimum cost maximum flow using successive shortest paths (SPFA).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [from, to, capacity, cost]" },
+        source: { type: "number", description: "Source vertex" },
+        sink: { type: "number", description: "Sink vertex" },
+      }, required: ["vertex_count", "edges", "source", "sink"],
+    },
+  },
+
+  // ── persistarray-tool.ts ─────────────────────────────────────────────────────
+  {
+    name: "persistent_array",
+    description: "Persistent array with version-controlled get/set operations using a persistent segment tree.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        initial: { type: "array", items: { type: "number" }, description: "Initial array values" },
+        operations: { type: "array", items: { type: "object" }, description: "Operations: {type:'get'|'set', version, index, value?}" },
+      }, required: ["initial", "operations"],
     },
   },
 
@@ -23560,6 +23679,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   gabow_scc:                 (args) => gabowScc(args),
   baby_giant_step:           (args) => babyGiantStep(args),
   centroid_decomposition:    (args) => centroidDecomposition(args),
+
+  // batch 79: Wavelet Tree, Dinic Max Flow, LCA, Max Independent Set
+  wavelet_tree:              (args) => waveletTree(args),
+  dinic_max_flow:            (args) => dinicMaxFlow(args),
+  lowest_common_ancestor:    (args) => lowestCommonAncestor(args),
+  max_independent_set:       (args) => maxIndependentSet(args),
+
+  // batch 80: 2-SAT, HLD, Min Cost Max Flow, Persistent Array
+  two_sat:                       (args) => twoSat(args),
+  heavy_light_decomposition:     (args) => heavyLightDecomp(args),
+  min_cost_max_flow:             (args) => minCostMaxFlow(args),
+  persistent_array:              (args) => persistentArray(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

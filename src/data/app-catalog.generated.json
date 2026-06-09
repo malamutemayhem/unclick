@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 611,
-  "toolCount": 1533,
+  "appCount": 619,
+  "toolCount": 1541,
   "categories": [
     "AI",
     "Books",
@@ -25,6 +25,22 @@
     "Weather & science"
   ],
   "apps": [
+    {
+      "slug": "twosat",
+      "name": "2-SAT Solver",
+      "category": "Utilities",
+      "blurb": "2-SAT boolean satisfiability solver using implication graph and SCC.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "two_sat",
+          "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
     {
       "slug": "astar",
       "name": "A* Pathfinding",
@@ -2910,6 +2926,22 @@
       "hardened": false
     },
     {
+      "slug": "dinic",
+      "name": "Dinic Max Flow",
+      "category": "Utilities",
+      "blurb": "Maximum flow computation using Dinic's blocking flow algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "dinic_max_flow",
+          "description": "Compute maximum flow in a network using Dinic's algorithm."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "discogs",
       "name": "Discogs",
       "category": "Music & video",
@@ -4790,6 +4822,22 @@
       "hardened": false
     },
     {
+      "slug": "hld",
+      "name": "Heavy-Light Decomposition",
+      "category": "Utilities",
+      "blurb": "Heavy-light decomposition of trees for efficient path queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "heavy_light_decomposition",
+          "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "heygen",
       "name": "Heygen",
       "category": "AI",
@@ -6298,6 +6346,22 @@
       "hardened": true
     },
     {
+      "slug": "lca",
+      "name": "Lowest Common Ancestor",
+      "category": "Utilities",
+      "blurb": "Lowest common ancestor with binary lifting and tree distance queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "lowest_common_ancestor",
+          "description": "Find lowest common ancestors and distances in a tree using binary lifting."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "lrucache",
       "name": "LRU Cache Sim",
       "category": "Utilities",
@@ -6622,6 +6686,22 @@
       "hardened": false
     },
     {
+      "slug": "maxindepset",
+      "name": "Max Independent Set",
+      "category": "Utilities",
+      "blurb": "Exact maximum independent set via bitmask enumeration (up to 20 vertices).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "max_independent_set",
+          "description": "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "mcsrvstat",
       "name": "MC Server Status",
       "category": "Games & esports",
@@ -6764,6 +6844,22 @@
         {
           "name": "miller_rabin_test",
           "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "mincostflow",
+      "name": "Min Cost Max Flow",
+      "category": "Utilities",
+      "blurb": "Minimum cost maximum flow using successive shortest paths.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "min_cost_max_flow",
+          "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
         }
       ],
       "level": 5,
@@ -8320,6 +8416,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "persistarray",
+      "name": "Persistent Array",
+      "category": "Utilities",
+      "blurb": "Persistent array with version-controlled get/set operations.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "persistent_array",
+          "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "phonetic",
@@ -12824,6 +12936,22 @@
         {
           "name": "wavelength_convert",
           "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "wavelet",
+      "name": "Wavelet Tree",
+      "category": "Utilities",
+      "blurb": "Wavelet tree for range kth-smallest queries on integer arrays.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "wavelet_tree",
+          "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
         }
       ],
       "level": 5,

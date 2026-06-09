@@ -2188,6 +2188,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dinic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dinic_max_flow",
+        "description": "Compute maximum flow in a network using Dinic's algorithm."
+      }
+    ]
+  },
+  {
     "app": "discogs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3700,6 +3710,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hld",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "heavy_light_decomposition",
+        "description": "Perform heavy-light decomposition of a tree for efficient path queries."
+      }
+    ]
+  },
+  {
     "app": "holidays",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4418,6 +4438,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lca",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lowest_common_ancestor",
+        "description": "Find lowest common ancestors and distances in a tree using binary lifting."
+      }
+    ]
+  },
+  {
     "app": "lcs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4894,6 +4924,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "maxindepset",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "max_independent_set",
+        "description": "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices)."
+      }
+    ]
+  },
+  {
     "app": "mcsrvstat",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -5020,6 +5060,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "miller_rabin_test",
         "description": "Test whether a number is prime using the deterministic Miller-Rabin primality test with multiple witnesses."
+      }
+    ]
+  },
+  {
+    "app": "mincostflow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "min_cost_max_flow",
+        "description": "Compute minimum cost maximum flow using successive shortest paths (SPFA)."
       }
     ]
   },
@@ -6106,6 +6156,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "perplexity_chat_completion",
         "description": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web."
+      }
+    ]
+  },
+  {
+    "app": "persistarray",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "persistent_array",
+        "description": "Persistent array with version-controlled get/set operations using a persistent segment tree."
       }
     ]
   },
@@ -8898,6 +8958,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "twosat",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "two_sat",
+        "description": "Solve a 2-SAT boolean satisfiability problem using implication graph and SCC."
+      }
+    ]
+  },
+  {
     "app": "typeform",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -9342,6 +9412,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wavelength_convert",
         "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+      }
+    ]
+  },
+  {
+    "app": "wavelet",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wavelet_tree",
+        "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
       }
     ]
   },

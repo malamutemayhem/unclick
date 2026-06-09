@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1037,
+    "inventory": 1045,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 612,
+    "tools": 620,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 612
+      "count": 620
     },
     {
       "id": "rooms",
@@ -5612,6 +5612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-dinic-packages-mcp-server-src-dinic-tool-ts-no-route",
+      "division": "Tools",
+      "name": "dinic",
+      "kind": "MCP tool",
+      "meaning": "dinic MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/dinic-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-discogs-packages-mcp-server-src-discogs-tool-ts-no-route",
       "division": "Tools",
       "name": "discogs",
@@ -6542,6 +6552,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hld-packages-mcp-server-src-hld-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hld",
+      "kind": "MCP tool",
+      "meaning": "hld MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hld-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-holidays-packages-mcp-server-src-holidays-tool-ts-no-route",
       "division": "Tools",
       "name": "holidays",
@@ -7032,6 +7052,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-lca-packages-mcp-server-src-lca-tool-ts-no-route",
+      "division": "Tools",
+      "name": "lca",
+      "kind": "MCP tool",
+      "meaning": "lca MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/lca-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-lcs-packages-mcp-server-src-lcs-tool-ts-no-route",
       "division": "Tools",
       "name": "lcs",
@@ -7352,6 +7382,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-maxindepset-packages-mcp-server-src-maxindepset-tool-ts-no-route",
+      "division": "Tools",
+      "name": "maxindepset",
+      "kind": "MCP tool",
+      "meaning": "maxindepset MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/maxindepset-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-mcsrvstat-packages-mcp-server-src-mcsrvstat-tool-ts-no-route",
       "division": "Tools",
       "name": "mcsrvstat",
@@ -7438,6 +7478,16 @@
       "kind": "MCP tool",
       "meaning": "millerrabin MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/millerrabin-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-mincostflow-packages-mcp-server-src-mincostflow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "mincostflow",
+      "kind": "MCP tool",
+      "meaning": "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/mincostflow-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8148,6 +8198,16 @@
       "kind": "MCP tool",
       "meaning": "perplexity MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/perplexity-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-persistarray-packages-mcp-server-src-persistarray-tool-ts-no-route",
+      "division": "Tools",
+      "name": "persistarray",
+      "kind": "MCP tool",
+      "meaning": "persistarray MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/persistarray-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9792,6 +9852,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-twosat-packages-mcp-server-src-twosat-tool-ts-no-route",
+      "division": "Tools",
+      "name": "twosat",
+      "kind": "MCP tool",
+      "meaning": "twosat MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/twosat-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-typeform-packages-mcp-server-src-typeform-tool-ts-no-route",
       "division": "Tools",
       "name": "typeform",
@@ -10048,6 +10118,16 @@
       "kind": "MCP tool",
       "meaning": "wavelength MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/wavelength-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-wavelet-packages-mcp-server-src-wavelet-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wavelet",
+      "kind": "MCP tool",
+      "meaning": "wavelet MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wavelet-tool.ts",
       "route": "",
       "tags": []
     },
@@ -11771,6 +11851,11 @@
       "packages/mcp-server/src/dijkstra-tool.ts"
     ],
     [
+      "dinic",
+      "dinic MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/dinic-tool.ts"
+    ],
+    [
       "discogs",
       "discogs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/discogs-tool.ts"
@@ -12236,6 +12321,11 @@
       "packages/mcp-server/src/histogram-tool.ts"
     ],
     [
+      "hld",
+      "hld MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hld-tool.ts"
+    ],
+    [
       "holidays",
       "holidays MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/holidays-tool.ts"
@@ -12481,6 +12571,11 @@
       "packages/mcp-server/src/lastfm-tool.ts"
     ],
     [
+      "lca",
+      "lca MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/lca-tool.ts"
+    ],
+    [
       "lcs",
       "lcs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/lcs-tool.ts"
@@ -12641,6 +12736,11 @@
       "packages/mcp-server/src/matrixdecomp-tool.ts"
     ],
     [
+      "maxindepset",
+      "maxindepset MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/maxindepset-tool.ts"
+    ],
+    [
       "mcsrvstat",
       "mcsrvstat MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mcsrvstat-tool.ts"
@@ -12684,6 +12784,11 @@
       "millerrabin",
       "millerrabin MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/millerrabin-tool.ts"
+    ],
+    [
+      "mincostflow",
+      "mincostflow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/mincostflow-tool.ts"
     ],
     [
       "minvertexcover",
@@ -13039,6 +13144,11 @@
       "perplexity",
       "perplexity MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/perplexity-tool.ts"
+    ],
+    [
+      "persistarray",
+      "persistarray MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/persistarray-tool.ts"
     ],
     [
       "phonetic",
@@ -13861,6 +13971,11 @@
       "packages/mcp-server/src/twitch-tool.ts"
     ],
     [
+      "twosat",
+      "twosat MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/twosat-tool.ts"
+    ],
+    [
       "typeform",
       "typeform MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/typeform-tool.ts"
@@ -13989,6 +14104,11 @@
       "wavelength",
       "wavelength MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/wavelength-tool.ts"
+    ],
+    [
+      "wavelet",
+      "wavelet MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wavelet-tool.ts"
     ],
     [
       "wayback",
