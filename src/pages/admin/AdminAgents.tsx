@@ -4,6 +4,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
+  Cpu,
+  CreditCard,
+  KeyRound,
   Pencil,
   Trash2,
   Search,
@@ -11,7 +15,9 @@ import {
   Check,
   AlertTriangle,
   Save,
+  type LucideIcon,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   AGENT_TEMPLATES,
   CREW_CATEGORIES,
@@ -64,6 +70,50 @@ interface AgentDetail {
   tools: Array<{ connector_id: string; is_enabled: boolean }>;
   memory_scope: Array<{ memory_layer: string; is_enabled: boolean }>;
 }
+
+interface ComputeTierSummary {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  accentClass: string;
+  countLabel: string;
+  metricLabel: string;
+  detailLabel: string;
+  statusLabel: string;
+}
+
+const COMPUTE_TIER_SUMMARIES: ComputeTierSummary[] = [
+  {
+    title: "API",
+    href: "/admin/agents/api",
+    icon: KeyRound,
+    accentClass: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+    countLabel: "0 active providers",
+    metricLabel: "No spend tracked",
+    detailLabel: "0 tokens this month",
+    statusLabel: "Not configured",
+  },
+  {
+    title: "Local",
+    href: "/admin/agents/local",
+    icon: Cpu,
+    accentClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+    countLabel: "0 local endpoints",
+    metricLabel: "No model active",
+    detailLabel: "0 queries/hr",
+    statusLabel: "Not configured",
+  },
+  {
+    title: "Subscription",
+    href: "/admin/agents/subscription",
+    icon: CreditCard,
+    accentClass: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+    countLabel: "0 platforms",
+    metricLabel: "No subscription linked",
+    detailLabel: "Connect Claude, ChatGPT, Cursor, or Copilot",
+    statusLabel: "Not configured",
+  },
+];
 
 const ROLE_OPTIONS = [
   { value: "researcher", label: "Researcher" },
@@ -226,8 +276,59 @@ export default function AdminAgentsPage() {
         </p>
       </header>
 
+      <ComputeTierSummaryStrip />
       <AISeatsPanel />
     </div>
+  );
+}
+
+function ComputeTierSummaryStrip() {
+  return (
+    <section aria-labelledby="compute-tier-summary-title" className="space-y-3">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 id="compute-tier-summary-title" className="text-sm font-semibold text-heading">
+            Compute tiers
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            API, local, and subscription capacity at a glance.
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {COMPUTE_TIER_SUMMARIES.map((tier) => {
+          const Icon = tier.icon;
+          return (
+            <Link
+              key={tier.title}
+              to={tier.href}
+              aria-label={`Open ${tier.title} compute tier`}
+              className="group flex min-h-[164px] flex-col justify-between rounded-xl border border-border/40 bg-card/20 p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${tier.accentClass}`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <h3 className="truncate text-sm font-semibold text-heading">{tier.title}</h3>
+                  </div>
+                  <p className="mt-3 text-lg font-semibold text-heading">{tier.countLabel}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{tier.metricLabel}</p>
+                </div>
+                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+              </div>
+              <div className="mt-4 flex flex-col gap-2">
+                <p className="min-h-8 text-xs text-body">{tier.detailLabel}</p>
+                <span className="w-fit rounded-md border border-border/40 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground">
+                  {tier.statusLabel}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
