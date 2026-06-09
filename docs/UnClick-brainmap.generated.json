@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1033,
+    "inventory": 1037,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 608,
+    "tools": 612,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 608
+      "count": 612
     },
     {
       "id": "rooms",
@@ -4522,6 +4522,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-babygiant-packages-mcp-server-src-babygiant-tool-ts-no-route",
+      "division": "Tools",
+      "name": "babygiant",
+      "kind": "MCP tool",
+      "meaning": "babygiant MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/babygiant-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-balldontlie-packages-mcp-server-src-balldontlie-tool-ts-no-route",
       "division": "Tools",
       "name": "balldontlie",
@@ -4878,6 +4888,16 @@
       "kind": "MCP tool",
       "meaning": "catfacts MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/catfacts-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-centroid-packages-mcp-server-src-centroid-tool-ts-no-route",
+      "division": "Tools",
+      "name": "centroid",
+      "kind": "MCP tool",
+      "meaning": "centroid MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/centroid-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6178,6 +6198,16 @@
       "kind": "MCP tool",
       "meaning": "funtranslations MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/funtranslations-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gabow-packages-mcp-server-src-gabow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gabow",
+      "kind": "MCP tool",
+      "meaning": "gabow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gabow-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9332,6 +9362,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-suffixauto-packages-mcp-server-src-suffixauto-tool-ts-no-route",
+      "division": "Tools",
+      "name": "suffixauto",
+      "kind": "MCP tool",
+      "meaning": "suffixauto MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/suffixauto-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-sunrisesunset-packages-mcp-server-src-sunrisesunset-tool-ts-no-route",
       "division": "Tools",
       "name": "sunrisesunset",
@@ -11186,6 +11226,11 @@
       "packages/mcp-server/src/avltree-tool.ts"
     ],
     [
+      "babygiant",
+      "babygiant MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/babygiant-tool.ts"
+    ],
+    [
       "balldontlie",
       "balldontlie MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/balldontlie-tool.ts"
@@ -11364,6 +11409,11 @@
       "catfacts",
       "catfacts MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/catfacts-tool.ts"
+    ],
+    [
+      "centroid",
+      "centroid MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/centroid-tool.ts"
     ],
     [
       "charcodes",
@@ -12014,6 +12064,11 @@
       "funtranslations",
       "funtranslations MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/funtranslations-tool.ts"
+    ],
+    [
+      "gabow",
+      "gabow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gabow-tool.ts"
     ],
     [
       "gameoflife",
@@ -13589,6 +13644,11 @@
       "suffixarray",
       "suffixarray MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/suffixarray-tool.ts"
+    ],
+    [
+      "suffixauto",
+      "suffixauto MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/suffixauto-tool.ts"
     ],
     [
       "sunrisesunset",
@@ -15274,6 +15334,11 @@
       "bytes": 3173
     },
     {
+      "source": "packages/mcp-server/src/babygiant-tool.ts",
+      "hash": "124346184d54",
+      "bytes": 1866
+    },
+    {
       "source": "packages/mcp-server/src/balldontlie-tool.ts",
       "hash": "cecae71c883d",
       "bytes": 2403
@@ -15307,11 +15372,6 @@
       "source": "packages/mcp-server/src/bfs-tool.ts",
       "hash": "6eff2fdbba8b",
       "bytes": 2678
-    },
-    {
-      "source": "packages/mcp-server/src/bgg-tool.ts",
-      "hash": "f7014933783a",
-      "bytes": 12903
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -530,6 +530,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "babygiant",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "baby_giant_step",
+        "description": "Solve the discrete logarithm problem (find x such that base^x = target mod modulus) using baby-step giant-step."
+      }
+    ]
+  },
+  {
     "app": "balldontlie",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1058,6 +1068,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "cat_breeds",
         "description": "List cat breeds with details."
+      }
+    ]
+  },
+  {
+    "app": "centroid",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "centroid_decomposition",
+        "description": "Compute the centroid decomposition of a tree, returning centroid parents and depths."
       }
     ]
   },
@@ -3178,6 +3198,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "fun_translate",
         "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+      }
+    ]
+  },
+  {
+    "app": "gabow",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "gabow_scc",
+        "description": "Find strongly connected components of a directed graph using Gabow's algorithm."
       }
     ]
   },
@@ -8090,6 +8120,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "suffix_array_build",
         "description": "Build a suffix array for a string, with optional LCP (longest common prefix) array."
+      }
+    ]
+  },
+  {
+    "app": "suffixauto",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "suffix_automaton",
+        "description": "Build a suffix automaton for a string and count distinct substrings."
       }
     ]
   },

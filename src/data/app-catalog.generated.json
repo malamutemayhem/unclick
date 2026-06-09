@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 607,
-  "toolCount": 1529,
+  "appCount": 611,
+  "toolCount": 1533,
   "categories": [
     "AI",
     "Books",
@@ -656,6 +656,22 @@
         {
           "name": "avl_tree",
           "description": "Build an AVL (self-balancing BST) from a list of keys. Returns inorder traversal, tree height, and optional key search results."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "babygiant",
+      "name": "Baby-step Giant-step",
+      "category": "Utilities",
+      "blurb": "Discrete logarithm solver using baby-step giant-step method.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "baby_giant_step",
+          "description": "Solve the discrete logarithm problem (find x such that base^x = target mod modulus) using baby-step giant-step."
         }
       ],
       "level": 5,
@@ -1352,6 +1368,22 @@
         {
           "name": "catalan_calc",
           "description": "Compute the nth Catalan number and its combinatorial interpretations."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "centroid",
+      "name": "Centroid Decomposition",
+      "category": "Utilities",
+      "blurb": "Centroid decomposition of trees for efficient path queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "centroid_decomposition",
+          "description": "Compute the centroid decomposition of a tree, returning centroid parents and depths."
         }
       ],
       "level": 5,
@@ -4148,6 +4180,22 @@
         {
           "name": "fun_translate",
           "description": "Translate text into fun dialects like Yoda, Pirate, Shakespeare, Minion, Dothraki, etc."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "gabow",
+      "name": "Gabow SCC",
+      "category": "Utilities",
+      "blurb": "Strongly connected components via Gabow's path-based algorithm.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "gabow_scc",
+          "description": "Find strongly connected components of a directed graph using Gabow's algorithm."
         }
       ],
       "level": 5,
@@ -11072,6 +11120,22 @@
         {
           "name": "suffix_array_build",
           "description": "Build a suffix array for a string, with optional LCP (longest common prefix) array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "suffixauto",
+      "name": "Suffix Automaton",
+      "category": "Utilities",
+      "blurb": "Suffix automaton construction with distinct substring counting.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "suffix_automaton",
+          "description": "Build a suffix automaton for a string and count distinct substrings."
         }
       ],
       "level": 5,

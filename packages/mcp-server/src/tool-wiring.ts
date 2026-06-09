@@ -786,6 +786,10 @@ import { shellSort } from "./shellsort-tool.js";
 import { matrixExponentiation } from "./matexp-tool.js";
 import { segmentIntersection } from "./segmentintersect-tool.js";
 import { minVertexCover } from "./minvertexcover-tool.js";
+import { suffixAutomaton } from "./suffixauto-tool.js";
+import { gabowScc } from "./gabow-tool.js";
+import { babyGiantStep } from "./babygiant-tool.js";
+import { centroidDecomposition } from "./centroid-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11665,6 +11669,58 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         vertex_count: { type: "number", description: "Number of vertices (max 20)" },
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── suffixauto-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "suffix_automaton",
+    description: "Build a suffix automaton for a string and count distinct substrings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string (max 100,000 characters)" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── gabow-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "gabow_scc",
+    description: "Find strongly connected components of a directed graph using Gabow's algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Directed edges as [u, v] pairs" },
+      }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── babygiant-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "baby_giant_step",
+    description: "Solve the discrete logarithm problem (find x such that base^x = target mod modulus) using baby-step giant-step.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        base: { type: "number", description: "Base of the exponentiation" },
+        target: { type: "number", description: "Target value" },
+        modulus: { type: "number", description: "Modulus (max 1,000,000,000)" },
+      }, required: ["base", "target", "modulus"],
+    },
+  },
+
+  // ── centroid-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "centroid_decomposition",
+    description: "Compute the centroid decomposition of a tree, returning centroid parents and depths.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        vertex_count: { type: "number", description: "Number of vertices (max 50,000)" },
+        edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (must be N-1 edges)" },
       }, required: ["vertex_count", "edges"],
     },
   },
@@ -23498,6 +23554,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   matrix_exponentiation:     (args) => matrixExponentiation(args),
   segment_intersection:      (args) => segmentIntersection(args),
   min_vertex_cover:          (args) => minVertexCover(args),
+
+  // batch 78: Suffix Automaton, Gabow SCC, Baby-step Giant-step, Centroid Decomposition
+  suffix_automaton:          (args) => suffixAutomaton(args),
+  gabow_scc:                 (args) => gabowScc(args),
+  baby_giant_step:           (args) => babyGiantStep(args),
+  centroid_decomposition:    (args) => centroidDecomposition(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
