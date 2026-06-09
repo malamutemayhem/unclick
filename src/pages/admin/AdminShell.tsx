@@ -152,6 +152,7 @@ const XPASS_LINKS = [
   { path: "/admin/checks/rotatepass", label: "RotatePass" },
   { path: "/admin/checks/wakepass", label: "WakePass" },
   { path: "/admin/checks/compliancepass", label: "CompliancePass" },
+  { path: "/admin/checks/contextpass", label: "ContextPass" },
 ] as const;
 
 // XGate is the pre-execution bookend twin of XPass: XPass proves what happened
@@ -203,7 +204,7 @@ function XPassNavItem({ onClick }: { onClick?: () => void }) {
                 key={path}
                 to={path}
                 onClick={onClick}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
                   active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-card/40 hover:text-body"
@@ -249,7 +250,7 @@ function XGateNavItem({ onClick }: { onClick?: () => void }) {
               key={path}
               to={path}
               onClick={onClick}
-              className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-card/40 hover:text-body"
+              className="rounded-md px-3 py-1.5 text-[0.8rem] font-medium text-muted-foreground transition-colors hover:bg-card/40 hover:text-body"
             >
               {label}
             </Link>
@@ -293,14 +294,23 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
             if (item.hasChildren && item.path === "/admin/xgate") {
               return <XGateNavItem key={item.path} onClick={onLinkClick} />;
             }
+            const ItemIcon = item.icon;
             return (
-              <SurfaceLink
+              <NavLink
                 key={item.path}
-                path={item.path}
-                label={item.label}
-                icon={item.icon}
+                to={item.path}
                 onClick={onLinkClick}
-              />
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                  }`
+                }
+              >
+                <ItemIcon className="h-3 w-3 shrink-0" />
+                {item.label}
+              </NavLink>
             );
           })}
         </div>
@@ -352,7 +362,7 @@ function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
               to={path}
               onClick={onLinkClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                `flex items-center gap-3 rounded-md px-3 py-2 text-[0.8rem] font-medium transition-colors ${
                   isActive
                     ? "bg-[#E2B93B]/15 text-[#E2B93B]"
                     : "text-[#a68a30] hover:bg-[#E2B93B]/10 hover:text-[#E2B93B]"
@@ -410,7 +420,7 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
               key={id}
               to={`/admin/memory?tab=${id}`}
               onClick={onClick}
-              className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
                 activeTab === id
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-card/40 hover:text-body"
@@ -467,7 +477,7 @@ function SeatsNavItem({ onClick }: { onClick?: () => void }) {
                 key={path}
                 to={path}
                 onClick={onClick}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
                   active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-card/40 hover:text-body"
@@ -516,7 +526,7 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
           <Link
             to="/admin/orchestrator"
             onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
               storyActive
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-card/40 hover:text-body"
@@ -528,7 +538,7 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
           <Link
             to="/admin/orchestrator/timeline"
             onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8rem] font-medium transition-colors ${
               timelineActive
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-card/40 hover:text-body"

@@ -23,7 +23,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 5009beb107c4 | 17238 |
-| src/pages/admin/AdminShell.tsx | a4bc878e2ed7 | 27974 |
+| src/pages/admin/AdminShell.tsx | 2d2fea415538 | 28516 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -106,7 +106,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
-| src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
+| src/pages/admin/AdminOrchestrator.tsx | 787aa7be4fb9 | 94930 |
 | src/pages/admin/AdminPinballWake.tsx | 4dce3c986684 | 21769 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
