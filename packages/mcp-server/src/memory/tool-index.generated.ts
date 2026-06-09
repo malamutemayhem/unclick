@@ -2214,6 +2214,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "derangement",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "derangement_calc",
+        "description": "Count and optionally enumerate derangements (permutations with no fixed points)."
+      }
+    ]
+  },
+  {
     "app": "descriptive",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4610,6 +4620,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "kmpautomaton",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "kmp_automaton",
+        "description": "Build a full KMP DFA transition table for streaming pattern matching."
+      }
+    ]
+  },
+  {
     "app": "knapsack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -6416,6 +6436,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "partition",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "partition_count",
+        "description": "Count integer partitions of n with optional max part size and part count constraints."
+      }
+    ]
+  },
+  {
     "app": "pascaltri",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -7700,6 +7730,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "rl_encode",
         "description": "Run-length encode or decode a string."
+      }
+    ]
+  },
+  {
+    "app": "rmqsparse",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "rmq_sparse",
+        "description": "Build a sparse table for O(1) range minimum/maximum queries."
       }
     ]
   },

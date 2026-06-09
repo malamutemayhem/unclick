@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 663,
-  "toolCount": 1585,
+  "appCount": 667,
+  "toolCount": 1589,
   "categories": [
     "AI",
     "Books",
@@ -2982,6 +2982,22 @@
       "hardened": true
     },
     {
+      "slug": "derangement",
+      "name": "Derangement",
+      "category": "Utilities",
+      "blurb": "Count and enumerate derangements (permutations with no fixed points).",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "derangement_calc",
+          "description": "Count and optionally enumerate derangements (permutations with no fixed points)."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "descriptive",
       "name": "Descriptive Stats",
       "category": "Utilities",
@@ -5594,6 +5610,22 @@
       "hardened": true
     },
     {
+      "slug": "partition",
+      "name": "Integer Partition",
+      "category": "Utilities",
+      "blurb": "Count integer partitions with optional part size and count constraints.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "partition_count",
+          "description": "Count integer partitions of n with optional max part size and part count constraints."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
       "slug": "intercom",
       "name": "Intercom",
       "category": "Messaging & email",
@@ -6208,6 +6240,22 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "kmpautomaton",
+      "name": "KMP Automaton",
+      "category": "Utilities",
+      "blurb": "Build a full KMP DFA transition table for streaming pattern matching.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "kmp_automaton",
+          "description": "Build a full KMP DFA transition table for streaming pattern matching."
+        }
+      ],
+      "level": 5,
+      "hardened": false
     },
     {
       "slug": "kmp",
@@ -10616,6 +10664,22 @@
         {
           "name": "rle_encode_decode",
           "description": "Run-length encode a numeric array into runs, or decode runs back to a numeric array."
+        }
+      ],
+      "level": 5,
+      "hardened": false
+    },
+    {
+      "slug": "rmqsparse",
+      "name": "RMQ Sparse Table",
+      "category": "Utilities",
+      "blurb": "Build a sparse table for O(1) range minimum/maximum queries.",
+      "domain": "local",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "rmq_sparse",
+          "description": "Build a sparse table for O(1) range minimum/maximum queries."
         }
       ],
       "level": 5,
