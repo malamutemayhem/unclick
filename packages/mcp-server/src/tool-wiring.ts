@@ -806,6 +806,10 @@ import { cartesianTree } from "./cartesiantree-tool.js";
 import { sternBrocotTree } from "./sternbrocot-tool.js";
 import { chromaticNumber } from "./chromatic-tool.js";
 import { eulerTour } from "./eulertour-tool.js";
+import { gaussianElimination } from "./gausselim-tool.js";
+import { eertree } from "./eertree-tool.js";
+import { pollardRho } from "./pollardrho-tool.js";
+import { ntt } from "./ntt-tool.js";
 
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
@@ -11952,6 +11956,55 @@ export const ADDITIONAL_TOOLS = [
         edges: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Tree edges as [u, v] pairs (0-indexed)" },
         root: { type: "number", description: "Root vertex (default 0)" },
       }, required: ["vertex_count", "edges"],
+    },
+  },
+
+  // ── gausselim-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "gaussian_elimination",
+    description: "Solve a system of linear equations via Gaussian elimination with partial pivoting.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "Augmented matrix rows [a1, a2, ..., an, b]" },
+      }, required: ["matrix"],
+    },
+  },
+
+  // ── eertree-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "eertree",
+    description: "Build a palindromic tree (eertree) to count distinct palindromic substrings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Input string to analyse" },
+      }, required: ["text"],
+    },
+  },
+
+  // ── pollardrho-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "pollard_rho",
+    description: "Factor an integer using Pollard's rho with Miller-Rabin primality testing.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        value: { type: "number", description: "Positive integer to factor" },
+      }, required: ["value"],
+    },
+  },
+
+  // ── ntt-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "ntt",
+    description: "Multiply two polynomials using Number Theoretic Transform (mod 998244353).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        poly_a: { type: "array", items: { type: "number" }, description: "First polynomial coefficients" },
+        poly_b: { type: "array", items: { type: "number" }, description: "Second polynomial coefficients" },
+      }, required: ["poly_a", "poly_b"],
     },
   },
 
@@ -23814,6 +23867,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   stern_brocot_tree:             (args) => sternBrocotTree(args),
   chromatic_number:              (args) => chromaticNumber(args),
   euler_tour:                    (args) => eulerTour(args),
+
+  // batch 83: Gaussian Elimination, Eertree, Pollard's Rho, NTT
+  gaussian_elimination:          (args) => gaussianElimination(args),
+  eertree:                       (args) => eertree(args),
+  pollard_rho:                   (args) => pollardRho(args),
+  ntt:                           (args) => ntt(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),

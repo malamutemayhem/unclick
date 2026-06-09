@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1053,
+    "inventory": 1061,
     "source_manifest": 215,
     "pages": 88,
-    "tools": 628,
+    "tools": 636,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 628
+      "count": 636
     },
     {
       "id": "rooms",
@@ -4582,6 +4582,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-berlekamp-packages-mcp-server-src-berlekamp-tool-ts-no-route",
+      "division": "Tools",
+      "name": "berlekamp",
+      "kind": "MCP tool",
+      "meaning": "berlekamp MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/berlekamp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-bezier-packages-mcp-server-src-bezier-tool-ts-no-route",
       "division": "Tools",
       "name": "bezier",
@@ -5832,6 +5842,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-eertree-packages-mcp-server-src-eertree-tool-ts-no-route",
+      "division": "Tools",
+      "name": "eertree",
+      "kind": "MCP tool",
+      "meaning": "eertree MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/eertree-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-elevenlabs-packages-mcp-server-src-elevenlabs-tool-ts-no-route",
       "division": "Tools",
       "name": "elevenlabs",
@@ -6268,6 +6288,16 @@
       "kind": "MCP tool",
       "meaning": "gameoflife MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/gameoflife-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gausselim-packages-mcp-server-src-gausselim-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gausselim",
+      "kind": "MCP tool",
+      "meaning": "gausselim MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gausselim-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6948,6 +6978,16 @@
       "kind": "MCP tool",
       "meaning": "joke MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/joke-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-josephus-packages-mcp-server-src-josephus-tool-ts-no-route",
+      "division": "Tools",
+      "name": "josephus",
+      "kind": "MCP tool",
+      "meaning": "josephus MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/josephus-tool.ts",
       "route": "",
       "tags": []
     },
@@ -7842,6 +7882,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-ntt-packages-mcp-server-src-ntt-tool-ts-no-route",
+      "division": "Tools",
+      "name": "ntt",
+      "kind": "MCP tool",
+      "meaning": "ntt MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/ntt-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-nudgeonly-packages-mcp-server-src-nudgeonly-tool-ts-no-route",
       "division": "Tools",
       "name": "NudgeOnly",
@@ -8438,6 +8488,16 @@
       "kind": "MCP tool",
       "meaning": "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pokemontcg-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-pollardrho-packages-mcp-server-src-pollardrho-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pollardrho",
+      "kind": "MCP tool",
+      "meaning": "pollardrho MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pollardrho-tool.ts",
       "route": "",
       "tags": []
     },
@@ -9298,6 +9358,16 @@
       "kind": "MCP tool",
       "meaning": "sortlines MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sortlines-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-sos-packages-mcp-server-src-sos-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sos",
+      "kind": "MCP tool",
+      "meaning": "sos MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sos-tool.ts",
       "route": "",
       "tags": []
     },
@@ -10392,6 +10462,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-xorbase-packages-mcp-server-src-xorbase-tool-ts-no-route",
+      "division": "Tools",
+      "name": "xorbase",
+      "kind": "MCP tool",
+      "meaning": "xorbase MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/xorbase-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-xpass-aggregated-verdict-packages-mcp-server-src-xpass-aggregated-verdict-tool-ts-no-route",
       "division": "Tools",
       "name": "xpass aggregated verdict",
@@ -11416,6 +11496,11 @@
       "packages/mcp-server/src/bellmanford-tool.ts"
     ],
     [
+      "berlekamp",
+      "berlekamp MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/berlekamp-tool.ts"
+    ],
+    [
       "bezier",
       "bezier MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/bezier-tool.ts"
@@ -12041,6 +12126,11 @@
       "packages/mcp-server/src/edmondskarp-tool.ts"
     ],
     [
+      "eertree",
+      "eertree MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/eertree-tool.ts"
+    ],
+    [
       "elevenlabs",
       "elevenlabs MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/elevenlabs-tool.ts"
@@ -12259,6 +12349,11 @@
       "gameoflife",
       "gameoflife MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/gameoflife-tool.ts"
+    ],
+    [
+      "gausselim",
+      "gausselim MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gausselim-tool.ts"
     ],
     [
       "gbif",
@@ -12599,6 +12694,11 @@
       "joke",
       "joke MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/joke-tool.ts"
+    ],
+    [
+      "josephus",
+      "josephus MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/josephus-tool.ts"
     ],
     [
       "jsoncrack",
@@ -13046,6 +13146,11 @@
       "packages/mcp-server/src/nthroot-tool.ts"
     ],
     [
+      "ntt",
+      "ntt MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/ntt-tool.ts"
+    ],
+    [
       "NudgeOnly",
       "NudgeOnly low-token receipt bridge and advisory classifier.",
       "packages/mcp-server/src/nudgeonly-tool.ts"
@@ -13344,6 +13449,11 @@
       "pokemontcg",
       "pokemontcg MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pokemontcg-tool.ts"
+    ],
+    [
+      "pollardrho",
+      "pollardrho MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pollardrho-tool.ts"
     ],
     [
       "polygon",
@@ -13774,6 +13884,11 @@
       "sortlines",
       "sortlines MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sortlines-tool.ts"
+    ],
+    [
+      "sos",
+      "sos MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sos-tool.ts"
     ],
     [
       "soundex",
@@ -14319,6 +14434,11 @@
       "xkcd",
       "xkcd MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/xkcd-tool.ts"
+    ],
+    [
+      "xorbase",
+      "xorbase MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/xorbase-tool.ts"
     ],
     [
       "xpass aggregated verdict",
@@ -15604,14 +15724,14 @@
       "bytes": 2955
     },
     {
+      "source": "packages/mcp-server/src/berlekamp-tool.ts",
+      "hash": "5ac75aee3d2e",
+      "bytes": 2512
+    },
+    {
       "source": "packages/mcp-server/src/bezier-tool.ts",
       "hash": "29ff88e26cbb",
       "bytes": 2561
-    },
-    {
-      "source": "packages/mcp-server/src/bfs-tool.ts",
-      "hash": "6eff2fdbba8b",
-      "bytes": 2678
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

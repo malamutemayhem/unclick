@@ -740,6 +740,26 @@
     }
   },
   {
+    "connector": "berlekamp",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "bezier",
     "level": 5,
     "levelName": "Agentic",
@@ -3000,6 +3020,26 @@
     }
   },
   {
+    "connector": "eertree",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "elevenlabs",
     "level": 5,
     "levelName": "Agentic",
@@ -3793,6 +3833,26 @@
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "gausselim",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
       "agentic": true,
@@ -5030,6 +5090,26 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "josephus",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -6680,6 +6760,26 @@
     }
   },
   {
+    "connector": "ntt",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "numdiff",
     "level": 5,
     "levelName": "Agentic",
@@ -7792,6 +7892,26 @@
       "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "pollardrho",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -9161,6 +9281,26 @@
   },
   {
     "connector": "sortlines",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "sos",
     "level": 5,
     "levelName": "Agentic",
     "hardened": false,
@@ -11090,6 +11230,26 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "xorbase",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
