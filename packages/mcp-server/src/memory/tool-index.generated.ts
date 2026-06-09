@@ -2188,6 +2188,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dinic",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "dinic_max_flow",
+        "description": "Compute maximum flow in a network using Dinic's algorithm."
+      }
+    ]
+  },
+  {
     "app": "discogs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4418,6 +4428,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "lca",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "lowest_common_ancestor",
+        "description": "Find lowest common ancestors and distances in a tree using binary lifting."
+      }
+    ]
+  },
+  {
     "app": "lcs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -4890,6 +4910,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "matrix_decomp",
         "description": "Matrix decomposition and analysis: LU factorization, transpose, trace, or rank."
+      }
+    ]
+  },
+  {
+    "app": "maxindepset",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "max_independent_set",
+        "description": "Find the maximum independent set of a graph using exact bitmask enumeration (up to 20 vertices)."
       }
     ]
   },
@@ -9342,6 +9372,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "wavelength_convert",
         "description": "Convert between wavelength and frequency. Returns energy and EM spectrum band."
+      }
+    ]
+  },
+  {
+    "app": "wavelet",
+    "category": "Existing tools (previously unwired)",
+    "tools": [
+      {
+        "name": "wavelet_tree",
+        "description": "Build a wavelet tree for an integer array and answer range kth-smallest queries."
       }
     ]
   },
