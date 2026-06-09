@@ -79,14 +79,14 @@ function sectionsHtml(sections = []) {
 
 function rootHtml(route) {
   return `
+      <div class="uc-boot__loader">
+        <div class="uc-boot__spinner" role="status" aria-label="Loading UnClick"></div>
+      </div>
       <div class="uc-boot">
         <div class="uc-boot__wrap">
           <section class="uc-boot__hero">
-            <img class="uc-boot__logo" src="/logo-wordmark.svg" alt="UnClick" />
             <h1>${esc(route.h1)}</h1>
             <p class="uc-boot__lede">${esc(route.intro)}</p>
-            <div class="uc-boot__spinner" role="status" aria-label="Loading UnClick"></div>
-            <p class="uc-boot__loading">Loading UnClick...</p>
             <nav class="uc-boot__nav" aria-label="Primary">
               ${navHtml()}
             </nav>
