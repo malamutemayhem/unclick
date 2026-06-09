@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T15:00:00.000Z",
+  "updatedAt": "2026-06-09T00:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -4162,6 +4162,30 @@
       "note": "mst_find computes minimum spanning tree via Kruskal's algorithm. Local computation.",
       "testedAt": "2026-06-09T19:00:00.000Z",
       "toolsTested": ["mst_find"]
+    },
+    "pagerank": {
+      "status": "pass",
+      "note": "page_rank computes PageRank scores for directed graphs. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": ["page_rank"]
+    },
+    "astar": {
+      "status": "pass",
+      "note": "astar_path finds shortest path on a 2D grid via A* algorithm. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": ["astar_path"]
+    },
+    "simplex": {
+      "status": "pass",
+      "note": "simplex_solve solves linear programming problems via simplex method. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": ["simplex_solve"]
+    },
+    "hungarian": {
+      "status": "pass",
+      "note": "hungarian_assign optimally assigns workers to tasks. Local computation.",
+      "testedAt": "2026-06-09T00:45:00.000Z",
+      "toolsTested": ["hungarian_assign"]
     }
   },
   "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."

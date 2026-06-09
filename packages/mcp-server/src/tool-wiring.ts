@@ -727,6 +727,11 @@ import { dfsSearch } from "./dfs-tool.js";
 import { percentileCalc } from "./percentile-tool.js";
 import { mstFind } from "./mst-tool.js";
 
+import { pageRank } from "./pagerank-tool.js";
+import { astarPath } from "./astar-tool.js";
+import { simplexSolve } from "./simplex-tool.js";
+import { hungarianAssign } from "./hungarian-tool.js";
+
 import {
   nasaApod, nasaAsteroids, nasaMarsPhotos,
   nasaEarthImagery, nasaEpic,
@@ -10913,6 +10918,62 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, weight: { type: "number" } }, required: ["from", "to", "weight"] }, description: "Array of weighted edges" },
       }, required: ["edges"],
+    },
+  },
+
+  // ── pagerank-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "page_rank",
+    description: "Compute PageRank scores for nodes in a directed graph.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        edges: { type: "array", items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } }, required: ["from", "to"] }, description: "Array of directed edges {from, to}" },
+        damping: { type: "number", description: "Damping factor (default 0.85)" },
+        iterations: { type: "number", description: "Max iterations (default 100)" },
+        tolerance: { type: "number", description: "Convergence tolerance (default 1e-6)" },
+      }, required: ["edges"],
+    },
+  },
+
+  // ── astar-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "astar_path",
+    description: "Find the shortest path on a 2D grid using the A* algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        grid: { type: "array", items: { type: "array", items: { type: "number" } }, description: "2D grid (0 = passable, 1 = wall)" },
+        start: { type: "array", items: { type: "number" }, description: "[row, col] start position" },
+        end: { type: "array", items: { type: "number" }, description: "[row, col] end position" },
+        diagonal: { type: "boolean", description: "Allow diagonal movement (default true)" },
+      }, required: ["grid", "start", "end"],
+    },
+  },
+
+  // ── simplex-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "simplex_solve",
+    description: "Solve a linear programming problem (maximize objective subject to <= constraints) using the simplex method.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        objective: { type: "array", items: { type: "number" }, description: "Coefficients to maximize (e.g. [5, 4] for 5x + 4y)" },
+        constraints: { type: "array", items: { type: "object", properties: { coeffs: { type: "array", items: { type: "number" } }, bound: { type: "number" } }, required: ["coeffs", "bound"] }, description: "Array of {coeffs, bound} for <= constraints" },
+      }, required: ["objective", "constraints"],
+    },
+  },
+
+  // ── hungarian-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "hungarian_assign",
+    description: "Solve the assignment problem (optimally assign N workers to N tasks) using the Hungarian algorithm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        cost_matrix: { type: "array", items: { type: "array", items: { type: "number" } }, description: "NxN cost matrix" },
+        maximize: { type: "boolean", description: "Maximize instead of minimize (default false)" },
+      }, required: ["cost_matrix"],
     },
   },
 
@@ -22667,6 +22728,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   dfs_search:                (args) => dfsSearch(args),
   percentile_calc:           (args) => percentileCalc(args),
   mst_find:                  (args) => mstFind(args),
+
+  // batch 65: PageRank, A*, simplex, Hungarian
+  page_rank:                 (args) => pageRank(args),
+  astar_path:                (args) => astarPath(args),
+  simplex_solve:             (args) => simplexSolve(args),
+  hungarian_assign:          (args) => hungarianAssign(args),
 
   // nasa-tool.ts
   nasa_apod:               (args) => nasaApod(args),
