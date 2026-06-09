@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1041,
-    "source_manifest": 215,
-    "pages": 88,
+    "inventory": 1042,
+    "source_manifest": 216,
+    "pages": 89,
     "tools": 616,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 52
+      "count": 53
     },
     {
       "id": "public-surfaces",
@@ -349,6 +349,16 @@
       "meaning": "Master heartbeat copy policy for scheduled AI seats.",
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "route": "/admin/agents/heartbeat",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-seats-local-src-pages-admin-adminseatslocal-tsx-admin-agents-local",
+      "division": "Admin surfaces",
+      "name": "Admin Seats Local",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Seats Local.",
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
+      "route": "/admin/agents/local",
       "tags": []
     },
     {
@@ -10522,6 +10532,12 @@
       "src/pages/admin/AdminSeatHeartbeat.tsx"
     ],
     [
+      "/admin/agents/local",
+      "Admin Seats Local",
+      "Admin surface for Admin Seats Local.",
+      "src/pages/admin/AdminSeatsLocal.tsx"
+    ],
+    [
       "/admin/agents",
       "Admin Agents",
       "Admin surface for Admin Agents.",
@@ -14500,8 +14516,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ead5f39c080b",
-      "bytes": 16499
+      "hash": "609671cf80b5",
+      "bytes": 16636
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -14752,6 +14768,11 @@
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "hash": "f9548c19ddab",
       "bytes": 11641
+    },
+    {
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
+      "hash": "83b5f96c5f3d",
+      "bytes": 36857
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
