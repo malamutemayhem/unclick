@@ -106,7 +106,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search apps or actions — try 'bmi', 'invoice', 'parcel'..."
+            placeholder="Search apps or actions - try 'bmi', 'invoice', 'parcel'..."
             className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/40 focus:outline-none"
           />
         </div>
@@ -227,7 +227,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                 </div>
               </div>
 
-              {/* Inline Actions — aligned under "What it does", columns stay locked */}
+              {/* Inline Actions - aligned under "What it does", columns stay locked */}
               {open && (
                 <div className={`grid ${cols} gap-3 bg-white/[0.015] px-3 pb-2`}>
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">

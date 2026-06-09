@@ -241,7 +241,9 @@
       .uc-boot { min-height: 100vh; color: #b9d7da; line-height: 1.6;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
       .uc-boot__wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
-      .uc-boot__hero { min-height: 100vh; display: flex; flex-direction: column;
+      .uc-boot__loader { min-height: 100vh; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center; gap: 16px; }
+      .uc-boot__hero { padding: 56px 0 8px; display: flex; flex-direction: column;
         align-items: center; justify-content: center; text-align: center; gap: 16px; }
       .uc-boot__logo { height: 38px; width: auto; }
       .uc-boot h1 { color: #eaf6f7; margin: 6px 0 0; font-weight: 800;
@@ -266,13 +268,16 @@
 
   <body>
     <div id="root">
-      <!-- Crawlable boot screen: real content for no-JS crawlers and AI answer
-           engines. The React app calls createRoot(...).render(), which replaces
-           this entire subtree the moment it mounts, so users get the live app. -->
+      <!-- Loader: the only thing users see while the app boots (circle only). -->
+      <div class="uc-boot__loader">
+        <div class="uc-boot__spinner" role="status" aria-label="Loading UnClick"></div>
+      </div>
+      <!-- Crawlable content for no-JS crawlers and AI answer engines. It sits below
+           the loader (below the fold), genuinely in the DOM, not hidden. React's
+           createRoot(...).render() replaces this whole subtree the moment it mounts. -->
       <div class="uc-boot">
         <div class="uc-boot__wrap">
           <section class="uc-boot__hero">
-            <img class="uc-boot__logo" src="/logo-wordmark.svg" alt="UnClick" />
             <h1>UnClick: the universal remote for AI</h1>
             <p class="uc-boot__lede">
               UnClick gives your AI agent every tool it needs, memory that remembers,
@@ -280,8 +285,6 @@
               ChatGPT, Cursor, and any MCP-compatible agent to 450+ callable endpoints
               across 60+ integrations.
             </p>
-            <div class="uc-boot__spinner" role="status" aria-label="Loading UnClick"></div>
-            <p class="uc-boot__loading">Loading UnClick...</p>
             <nav class="uc-boot__nav" aria-label="Primary">
               <a href="/tools">Apps</a>
               <a href="/memory">Memory</a>

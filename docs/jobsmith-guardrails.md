@@ -6,7 +6,7 @@ Jobsmith exists to help people apply for real jobs honestly. These guardrails ar
 
 - Use **Jobsmith** in all product, repo, Jobs room, GitHub, UI, and docs surfaces.
 - Treat older names in research files as source context only.
-- Do not create dual branding or transition copy unless Chris asks for it.
+- Do not create dual branding or transition copy unless the operator asks for it.
 
 ## Truth First
 

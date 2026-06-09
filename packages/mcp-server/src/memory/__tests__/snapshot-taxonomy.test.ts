@@ -14,7 +14,7 @@ describe("memory taxonomy snapshots", () => {
       {
         id: "fact-1",
         kind: "fact",
-        text: "Chris loves technology documentaries",
+        text: "User loves technology documentaries",
         category: "preference",
         confidence: 0.93,
         updated_at: "2026-05-10T10:00:00.000Z",

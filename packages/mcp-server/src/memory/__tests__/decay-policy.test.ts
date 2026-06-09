@@ -53,7 +53,7 @@ describe("lane-08 decay policy", () => {
     const now = "2026-06-04T00:00:00.000Z";
 
     const identity = await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.95,
     });

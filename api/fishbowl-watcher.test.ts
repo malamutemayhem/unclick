@@ -307,7 +307,7 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     };
     const message: FishbowlMessageAckRow = {
       id: "msg-ack",
-      text: "ACK. BLOCKER: exact Chris decision still required.",
+      text: "ACK. BLOCKER: exact operator decision still required.",
       thread_id: "msg-queuepush",
       created_at: "2026-05-01T01:12:00.000Z",
       author_agent_id: "chatgpt-codex-heartbeat",
@@ -536,7 +536,7 @@ describe("worker self-healing decision plan", () => {
         todo: {
           id: "todo-human-owned",
           status: "in_progress",
-          assigned_to_agent_id: "human-chris",
+          assigned_to_agent_id: "human-operator",
           lease_token: "lease-old",
           lease_expires_at: "2026-05-01T01:10:00.000Z",
           reclaim_count: 2,
@@ -927,7 +927,7 @@ describe("worker self-healing decision plan", () => {
         todo: {
           id: "todo-human",
           status: "in_progress",
-          assigned_to_agent_id: "human-chris",
+          assigned_to_agent_id: "human-operator",
           lease_token: "lease-old",
           lease_expires_at: "2026-05-01T01:10:00.000Z",
           reclaim_count: 0,
@@ -1174,7 +1174,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
       ),
     ).toBeNull();
     expect(
-      buildPlan({ assigned_to_agent_id: "human-chris" }, { isProtected: true }),
+      buildPlan({ assigned_to_agent_id: "human-operator" }, { isProtected: true }),
     ).toBeNull();
   });
 
@@ -1201,7 +1201,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
       workerSelfHealingProtectedReason({
         id: "t",
         status: "open",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         title: "ordinary task",
       } as never),
     ).toBe("human_owned_work_protected");
@@ -1254,7 +1254,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
   });
 
   it("does NOT release the canary even when aged AND owner dormant (protected-by-id)", () => {
-    // Worst case for the canary: aged > 6h with a dormant owner — exactly the
+    // Worst case for the canary: aged > 6h with a dormant owner, exactly the
     // sustained-outage edge. The watcher computes isProtected via the gate, so
     // the open-stale sweep must refuse to plan a release.
     const todo = canaryTodo({ updated_at: agedUpdatedAt, created_at: agedUpdatedAt });
@@ -1447,7 +1447,7 @@ describe("Vercel worker movement workflow pilot plan", () => {
         id: "todo-manual-only",
         title: "manual_only operator handoff",
         status: "in_progress",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         lease_token: "lease-secret",
         lease_expires_at: "2026-05-01T01:10:00.000Z",
         reclaim_count: 2,
@@ -1489,7 +1489,7 @@ describe("Vercel worker movement workflow pilot plan", () => {
       todo: {
         id: "todo-human-owned-only",
         status: "in_progress",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         lease_token: "lease-secret",
         lease_expires_at: "2026-05-01T01:10:00.000Z",
         reclaim_count: 1,

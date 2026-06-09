@@ -96,7 +96,7 @@ describe("detectLeaks", () => {
     assert.ok(fileSet.has("server.ts"));
   });
 
-  test("mention only resolves the file it names — others still flagged", () => {
+  test("mention only resolves the file it names, others still flagged", () => {
     const leaks = detectLeaks({
       changedFiles: ["api/memory-admin.ts", "server.ts"],
       prBody: "Adjusts memory-admin handler.",

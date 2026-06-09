@@ -454,7 +454,7 @@ const SECRET_PATTERNS: Array<[RegExp, string]> = [
   [/\b(authorization\s*:\s*bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password|passwd|private[_-]?key)\s*[:=]\s*["']?[^"'\s,;]+/gi, "$1=[redacted secret]"],
-  [/\b(sk-[a-z0-9_-]{8,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,})\b/gi, "[redacted secret]"],
+  [/\b(sk-[a-z0-9_-]{8,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,}|AKIA[0-9A-Z]{12,})\b/gi, "[redacted secret]"],
   [/\b(uc|agt)_[a-z0-9_-]{8,}\b/gi, "[redacted secret]"],
   [/\b(?:\d[ -]*?){13,19}\b/g, "[redacted billing data]"],
 ];

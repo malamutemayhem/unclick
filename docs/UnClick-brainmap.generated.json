@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1102,
-    "source_manifest": 220,
+    "inventory": 1107,
+    "source_manifest": 225,
     "pages": 93,
     "tools": 672,
     "rooms": 23,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 133
+      "count": 138
     },
     {
       "id": "launch-and-onboarding",
@@ -3022,6 +3022,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-api-design-reviewer-seed-skills-api-design-reviewer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "api design reviewer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/api-design-reviewer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-brand-voice-guidelines-seed-skills-brand-voice-guidelines-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "brand voice guidelines",
@@ -3048,6 +3058,16 @@
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/builder-implementation-packet.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-codebase-archaeologist-seed-skills-codebase-archaeologist-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "codebase archaeologist",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/codebase-archaeologist.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -3142,6 +3162,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-incident-responder-seed-skills-incident-responder-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "incident responder",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/incident-responder.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-mcp-server-builder-seed-skills-mcp-server-builder-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "mcp server builder",
@@ -3162,12 +3192,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-skill-package-migration-planner-seed-skills-migration-planner-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "migration planner",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/migration-planner.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-skill-package-pdf-toolkit-seed-skills-pdf-toolkit-skill-md-admin-skills",
       "division": "Modules and apps",
       "name": "pdf toolkit",
       "kind": "skill package",
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/pdf-toolkit.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-performance-investigator-seed-skills-performance-investigator-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "performance investigator",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/performance-investigator.skill.md",
       "route": "/admin/skills",
       "tags": []
     },
@@ -15375,18 +15425,18 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "790b43137907",
-      "bytes": 17556
+      "hash": "190d9db14287",
+      "bytes": 17607
     },
     {
       "source": "FLEET_SYNC.md",
-      "hash": "83bbf1598b48",
-      "bytes": 14705
+      "hash": "0768614dd1ed",
+      "bytes": 14732
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "8af9b8fedfc4",
-      "bytes": 11213
+      "hash": "d02028751751",
+      "bytes": 11234
     },
     {
       "source": "docs/agent-observability.md",
@@ -15395,8 +15445,8 @@
     },
     {
       "source": "docs/pinballwake-nudgeonly-api.md",
-      "hash": "e056b727ce53",
-      "bytes": 7559
+      "hash": "d3a3b2c544e4",
+      "bytes": 7566
     },
     {
       "source": "docs/pinballwake-igniteonly-api.md",
@@ -15405,8 +15455,8 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "de9f41b265f3",
-      "bytes": 4881
+      "hash": "760883150b3f",
+      "bytes": 4888
     },
     {
       "source": "docs/adr/0005-two-layer-admin-gating.md",
@@ -15489,6 +15539,11 @@
       "bytes": 938
     },
     {
+      "source": "seed/skills/api-design-reviewer.skill.md",
+      "hash": "c58bf854f279",
+      "bytes": 3561
+    },
+    {
       "source": "seed/skills/brand-voice-guidelines.skill.md",
       "hash": "9580d2788e27",
       "bytes": 1248
@@ -15504,14 +15559,19 @@
       "bytes": 1276
     },
     {
+      "source": "seed/skills/codebase-archaeologist.skill.md",
+      "hash": "6ecdf38b0aa4",
+      "bytes": 3089
+    },
+    {
       "source": "seed/skills/coordinator-router.skill.md",
       "hash": "9413945c7540",
       "bytes": 1379
     },
     {
       "source": "seed/skills/cross-pc-context-summariser.skill.md",
-      "hash": "a3ed67bc460c",
-      "bytes": 932
+      "hash": "cd641e5caeb7",
+      "bytes": 939
     },
     {
       "source": "seed/skills/data-analyst.skill.md",
@@ -15545,8 +15605,13 @@
     },
     {
       "source": "seed/skills/github-pr-summariser.skill.md",
-      "hash": "1fd84b27d797",
-      "bytes": 987
+      "hash": "f45192c5c9ca",
+      "bytes": 994
+    },
+    {
+      "source": "seed/skills/incident-responder.skill.md",
+      "hash": "d9c3d95e5c96",
+      "bytes": 3001
     },
     {
       "source": "seed/skills/mcp-server-builder.skill.md",
@@ -15559,9 +15624,19 @@
       "bytes": 983
     },
     {
+      "source": "seed/skills/migration-planner.skill.md",
+      "hash": "e947613042ca",
+      "bytes": 3240
+    },
+    {
       "source": "seed/skills/pdf-toolkit.skill.md",
       "hash": "918db2b218b2",
       "bytes": 1248
+    },
+    {
+      "source": "seed/skills/performance-investigator.skill.md",
+      "hash": "20e3abeb7c1c",
+      "bytes": 3776
     },
     {
       "source": "seed/skills/presentation-builder.skill.md",
@@ -15665,8 +15740,8 @@
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
-      "hash": "48f1919d4056",
-      "bytes": 14795
+      "hash": "6a69546e7223",
+      "bytes": 14794
     },
     {
       "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
@@ -15690,8 +15765,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "e48fb3565853",
-      "bytes": 35934
+      "hash": "a201c1e119a8",
+      "bytes": 37417
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
@@ -15745,8 +15820,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "825a4928a569",
-      "bytes": 26632
+      "hash": "48525d7a37d1",
+      "bytes": 26608
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -15895,7 +15970,7 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "0cf7c397e1b5",
+      "hash": "5d2ee9cd8690",
       "bytes": 5401
     },
     {
@@ -15945,8 +16020,8 @@
     },
     {
       "source": "src/pages/Dispatch.tsx",
-      "hash": "2cac7e8758d3",
-      "bytes": 15470
+      "hash": "cbe1263c226f",
+      "bytes": 15459
     },
     {
       "source": "src/pages/Docs.tsx",
@@ -15975,8 +16050,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "86f887990094",
-      "bytes": 8440
+      "hash": "c3b16f3ec268",
+      "bytes": 8416
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -16105,8 +16180,8 @@
     },
     {
       "source": "scripts/pinballwake-launchpad-room.mjs",
-      "hash": "9ee3556460d0",
-      "bytes": 20544
+      "hash": "966a89e4e00a",
+      "bytes": 20554
     },
     {
       "source": "scripts/pinballwake-merge-room.mjs",
@@ -16400,7 +16475,7 @@
     },
     {
       "source": ".github/workflows/dirty-branch-hygiene.yml",
-      "hash": "3df7d09eebc7",
+      "hash": "d5ca538bd8a9",
       "bytes": 2190
     },
     {

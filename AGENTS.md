@@ -39,7 +39,7 @@ Do not run broad local sweeps by default:
 - No repeated full build/test loops.
 - No browser/Vite cache dogtests unless the user asked for UI proof.
 - No AppData, Temp, global filesystem, or outside-repo temp work unless explicitly required.
-- No parallel local builder work unless Chris assigned it.
+- No parallel local builder work unless the operator assigned it.
 
 If temporary files are needed, put them under `.codex-tmp/<job-name>` in the current worktree and clean them before finishing.
 
@@ -95,12 +95,16 @@ Current summary:
 
 Additional memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
 
-## Adding a new tool
+## Adding a new connector (an "App")
 
-1. Create `api/*-tool.ts` with the Vercel handler and endpoint logic
-2. Wire it in `packages/mcp-server/src/tool-wiring.ts` (add name, description, category, and endpoint mapping)
-3. Add a tile in `src/pages/Tools.tsx`
-4. If it should appear in `ListTools`, add it intentionally to the first-party tool surface in `packages/mcp-server/src/server.ts`
+Read `docs/adding-a-connector.md` first for the full playbook.
+
+1. Create `packages/mcp-server/src/<slug>-tool.ts` - the connector file (connectors live here, NOT in `api/`)
+2. Create `packages/mcp-server/src/<slug>-tool.test.ts` - colocated test (required for L2)
+3. Wire it in `packages/mcp-server/src/tool-wiring.ts` (import + `ADDITIONAL_TOOLS` defs + `ADDITIONAL_HANDLERS` dispatch)
+4. Add a `CONNECTOR_SETUP` row in `packages/mcp-server/src/connector-setup.ts`
+5. Add a category bucket in `scripts/generate-app-catalog.mjs`
+6. Regenerate IN ORDER: `generate-tool-index.mjs` -> `connector-depth-ladder.mjs` -> `generate-app-catalog.mjs` -> `UnClick-brainmap.mjs`, then run the `--check` gates. The Apps pages render from the generated catalog (no manual tile edit).
 
 ## Style rules
 
@@ -113,7 +117,7 @@ This section applies to any AI coding agent operating on this repo asynchronousl
 
 ### 1. Only work on explicit user-assigned or approved autopilot tasks
 
-Only act on natural-language requests provided directly by the human user (Chris) in chat, tasks dispatched through Fishbowl with a human-readable assignment, or approved autopilot lanes defined in `FLEET_SYNC.md` and `AUTOPILOT.md`.
+Only act on natural-language requests provided directly by the human operator in chat, tasks dispatched through Fishbowl with a human-readable assignment, or approved autopilot lanes defined in `FLEET_SYNC.md` and `AUTOPILOT.md`.
 
 Do NOT start autonomous cleanup, code-health, testing-improvement, refactor, lint-fix, dependency-bump, or "suggestion" tasks outside the approved autopilot lanes.
 
@@ -185,7 +189,7 @@ This is how we verify the work actually landed in the remote repository.
 
 ### 8. No self-merging
 
-Never merge your own PR. All PRs require review by Chris or another worker before merge.
+Never merge your own PR. All PRs require review by the operator or another worker before merge.
 
 ### 9. Worker icon
 
@@ -196,8 +200,8 @@ In Fishbowl messages, identify yourself with the icon assigned to your platform:
 - Copilot Coding Agent = 🐙 Octo
 - Cursor Background Agent = 🎯 Cursor
 
-If your platform is not listed, use 🛠 Worker and ask Chris to assign you a permanent icon.
+If your platform is not listed, use 🛠 Worker and ask the operator to assign you a permanent icon.
 
 ### 10. When in doubt, ask in chat
 
-If the task is ambiguous, the scope is unclear, or the proof-of-delivery requirements conflict with platform constraints, STOP and ask Chris in chat. Do not guess. Do not "do your best". Stop and ask.
+If the task is ambiguous, the scope is unclear, or the proof-of-delivery requirements conflict with platform constraints, STOP and ask the operator in chat. Do not guess. Do not "do your best". Stop and ask.

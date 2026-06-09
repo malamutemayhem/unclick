@@ -1,7 +1,7 @@
 # UnClick Orchestrator Wizard - Phase 1 Spec
 
 Status: Phase 1 (foundation only).
-Owner: Bailey reviews and merges. Chris greenlit.
+Owner: Bailey reviews and merges. Operator greenlit.
 Companion smoke test: `docs/orchestrator-wizard-phase-1-smoke.md`.
 
 ## North star

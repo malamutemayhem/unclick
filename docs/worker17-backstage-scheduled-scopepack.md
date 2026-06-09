@@ -15,10 +15,10 @@ live dispatch path.
 
 | Job | Title | Outcome this pass | Owner of next step |
 |---|---|---|---|
-| 5c4aadc8 | Delete or formally retire BackstagePass code | Decision: keep the API (it is the live Keychain backend); the public page is orphaned and can be retired | Chris (approve page retire) |
+| 5c4aadc8 | Delete or formally retire BackstagePass code | Decision: keep the API (it is the live Keychain backend); the public page is orphaned and can be retired | Operator (approve page retire) |
 | be55cb76 | Implement Cowork scheduled-task wake route | Shipped dry-run receipt slice (code + tests) | Worker 17 (wire receipt into a heartbeat) |
 | c762a353 | Events bot - auto-post events to Boardroom | Scoped: toggle was removed by design; GitHub events already auto-posted; recommend connector-neutral fixture renderer next | Worker 17 / next builder |
-| 06479889 | Admin UI surface for scheduled tasks | Shipped read-only data layer (catalog + cron prose, code + tests); IA still pinned for Chris | Chris (pick IA), then render |
+| 06479889 | Admin UI surface for scheduled tasks | Shipped read-only data layer (catalog + cron prose, code + tests); IA still pinned for the operator | Operator (pick IA), then render |
 | e9a4841f | UnClick Backup tool - admin settings + module backup | Scoped: read-only settings surface is the safe first slice | Worker 17 / next builder |
 
 ---
@@ -55,12 +55,12 @@ Decision:
    precedent). This part of the job is **NO_CODE_NEEDED**.
 2. The orphaned public page `src/pages/BackstagePass.tsx` is a safe retire
    candidate: removing it plus its entry in the name-lock `PUBLIC_COPY_FILES`
-   list is a clean, reversible two-file change. It is **left for Chris to
+   list is a clean, reversible two-file change. It is **left for the operator to
    approve** because a prior standing note keeps BackstagePass as a legacy
    reference, and this is a deletion touching a name-lock guard. Not done
    unilaterally from a worker lane.
 
-Next chip (gated): on Chris approval, delete `src/pages/BackstagePass.tsx`,
+Next chip (gated): on operator approval, delete `src/pages/BackstagePass.tsx`,
 remove `"../pages/BackstagePass.tsx"` from `PUBLIC_COPY_FILES`, and confirm the
 name-lock suite stays green.
 
@@ -128,11 +128,11 @@ module ahead of a clear product decision.
 
 ## 06479889 - Admin UI surface for scheduled tasks (cron / description / drift)
 
-Status: **read-only data layer shipped (code + tests); IA pinned for Chris.**
+Status: **read-only data layer shipped (code + tests); IA pinned for the operator.**
 
 The 2026-04-26 Designer/Skeptic thread on this todo reached two conclusions:
 
-1. The page IA is **pinned for Chris**: standalone page vs a section under the
+1. The page IA is **pinned for the operator**: standalone page vs a section under the
    Boardroom admin vs a single `/admin/system` page with stacked bands (Drafts,
    Scheduled tasks, Wake routes) sharing one agent-row primitive.
 2. The v1 detector should be a **read-only table** that renders the cron and a
@@ -152,7 +152,7 @@ Shipped this pass (the safe data layer that does not pre-empt the IA choice):
   expansion, cadence prose for every catalog pattern, and UTC matching.
 
 Next chip (gated on the IA pick): render `SCHEDULED_TASKS` with
-`describeCron` in whichever surface Chris chooses, capture a screenshot, and
+`describeCron` in whichever surface the operator chooses, capture a screenshot, and
 only then consider the v2 drift chip once a cadence metadata field exists.
 
 ---

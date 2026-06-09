@@ -13,13 +13,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 790b43137907 | 17556 |
-| FLEET_SYNC.md | 83bbf1598b48 | 14705 |
-| docs/unclick-context-boot-packet.md | 8af9b8fedfc4 | 11213 |
+| AUTOPILOT.md | 190d9db14287 | 17607 |
+| FLEET_SYNC.md | 0768614dd1ed | 14732 |
+| docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
-| docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
+| docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
+| docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 5009beb107c4 | 17238 |
@@ -36,21 +36,26 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | package.json | adbb13d02beb | 7084 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
+| seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
 | seed/skills/brand-voice-guidelines.skill.md | 9580d2788e27 | 1248 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
+| seed/skills/codebase-archaeologist.skill.md | 6ecdf38b0aa4 | 3089 |
 | seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
-| seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
+| seed/skills/cross-pc-context-summariser.skill.md | cd641e5caeb7 | 939 |
 | seed/skills/data-analyst.skill.md | ef28e22c114e | 1233 |
 | seed/skills/deep-research-analyst.skill.md | 74d773d9e04d | 1069 |
 | seed/skills/dependency-upgrade-reviewer.skill.md | d70607ce286b | 1045 |
 | seed/skills/draft-pr-description.skill.md | 29bd5a084a33 | 892 |
 | seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
 | seed/skills/frontend-design-review.skill.md | 149d13cb68d0 | 1377 |
-| seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/github-pr-summariser.skill.md | f45192c5c9ca | 994 |
+| seed/skills/incident-responder.skill.md | d9c3d95e5c96 | 3001 |
 | seed/skills/mcp-server-builder.skill.md | a4493b9ae2d7 | 1304 |
 | seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
+| seed/skills/migration-planner.skill.md | e947613042ca | 3240 |
 | seed/skills/pdf-toolkit.skill.md | 918db2b218b2 | 1248 |
+| seed/skills/performance-investigator.skill.md | 20e3abeb7c1c | 3776 |
 | seed/skills/presentation-builder.skill.md | fea5b75a0ec7 | 1250 |
 | seed/skills/react-nextjs-best-practices.skill.md | 3e095e354af9 | 1369 |
 | seed/skills/research-brief-generator.skill.md | 849b249b5f2a | 915 |
@@ -71,12 +76,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
-| src/pages/admin/AdminActivity.tsx | 48f1919d4056 | 14795 |
+| src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | fe9d0fede6a8 | 39375 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
-| src/pages/admin/AdminSeatsLocal.tsx | e48fb3565853 | 35934 |
+| src/pages/admin/AdminSeatsLocal.tsx | a201c1e119a8 | 37417 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 57262eb562b5 | 25229 |
 | src/pages/admin/AdminAgents.tsx | 681342e77f86 | 49250 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
@@ -87,7 +92,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
-| src/pages/admin/AdminBrainmap.tsx | 825a4928a569 | 26632 |
+| src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
@@ -117,7 +122,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
+| src/pages/AppDetail.tsx | 5d2ee9cd8690 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
@@ -127,13 +132,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
-| src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
+| src/pages/Dispatch.tsx | cbe1263c226f | 15459 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
-| src/pages/Login.tsx | 86f887990094 | 8440 |
+| src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
@@ -159,7 +164,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
-| scripts/pinballwake-launchpad-room.mjs | 9ee3556460d0 | 20544 |
+| scripts/pinballwake-launchpad-room.mjs | 966a89e4e00a | 20554 |
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |
@@ -218,7 +223,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
-| .github/workflows/dirty-branch-hygiene.yml | 3df7d09eebc7 | 2190 |
+| .github/workflows/dirty-branch-hygiene.yml | d5ca538bd8a9 | 2190 |
 | .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
@@ -248,7 +253,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 133 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 138 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1350,9 +1355,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Modules and apps | skill package | accessibility audit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/accessibility-audit.skill.md |
 | Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |
+| Modules and apps | skill package | api design reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/api-design-reviewer.skill.md |
 | Modules and apps | skill package | brand voice guidelines | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/brand-voice-guidelines.skill.md |
 | Modules and apps | skill package | browser qa tester | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/browser-qa-tester.skill.md |
 | Modules and apps | skill package | builder implementation packet | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/builder-implementation-packet.skill.md |
+| Modules and apps | skill package | codebase archaeologist | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/codebase-archaeologist.skill.md |
 | Modules and apps | skill package | coordinator router | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/coordinator-router.skill.md |
 | Modules and apps | skill package | cross pc context summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/cross-pc-context-summariser.skill.md |
 | Modules and apps | skill package | data analyst | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/data-analyst.skill.md |
@@ -1362,9 +1369,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill package | fix failing ci | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/fix-failing-ci.skill.md |
 | Modules and apps | skill package | frontend design review | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/frontend-design-review.skill.md |
 | Modules and apps | skill package | github pr summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/github-pr-summariser.skill.md |
+| Modules and apps | skill package | incident responder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/incident-responder.skill.md |
 | Modules and apps | skill package | mcp server builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/mcp-server-builder.skill.md |
 | Modules and apps | skill package | memory distiller | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/memory-distiller.skill.md |
+| Modules and apps | skill package | migration planner | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/migration-planner.skill.md |
 | Modules and apps | skill package | pdf toolkit | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/pdf-toolkit.skill.md |
+| Modules and apps | skill package | performance investigator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/performance-investigator.skill.md |
 | Modules and apps | skill package | presentation builder | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/presentation-builder.skill.md |
 | Modules and apps | skill package | react nextjs best practices | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/react-nextjs-best-practices.skill.md |
 | Modules and apps | skill package | research brief generator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/research-brief-generator.skill.md |

@@ -50,7 +50,7 @@ export const DEFAULT_QUEUEPUSH_RUNNERS = [
     emoji: "🧭",
     readiness: "context_only",
     capabilities: ["owner_decision", "merge_proof", "status_relay"],
-    safeFor: ["blocked_chris_only", "chris-only", "human policy", "merge", "master"],
+    safeFor: ["blocked_human_only", "human-only", "human policy", "merge", "master"],
   },
   {
     emoji: "🧪",
@@ -88,7 +88,7 @@ const STATES = new Set([
   "dirty_branch",
   "failed_targeted_proof",
   "ready_for_qc",
-  "blocked_chris_only",
+  "blocked_human_only",
 ]);
 
 function parseBooleanFlag(value) {
@@ -162,8 +162,8 @@ const PROTECTED_OWNER_LIFT_LANE_TERMS = [
   "operator_only",
   "operator-only",
   "operator only",
-  "chris-only",
-  "chris only",
+  "human-only",
+  "human only",
   "human decision",
   "human approval",
   "human policy",
@@ -198,7 +198,7 @@ function isProtectedOwnerLiftLane(lane) {
 }
 
 export function queuepushRoutingLabel(pr, files = [], state = "") {
-  if (state === "blocked_chris_only") return "operator_only";
+  if (state === "blocked_human_only") return "operator_only";
   if (!isDraftGreenOwnerLiftState(state)) return null;
   const haystack = normalizeText(
     [
@@ -235,7 +235,7 @@ function isQcWaitOnlyHold(text) {
     /\b(?:only|sole|solely|just)\b.{0,80}\b(?:final qc|qc ack|qc pass|reviewer|tester)\b/.test(text) ||
     exactHoldIsQcOnly;
   if (!explicitQcOnlyWait) return false;
-  return !/\b(exact blocker|proof mismatch|body proof|stale proof|stale pr body|overlap|anti-stomp|dirty branch|not clean against main|targeted proof|focused proof|failing|failed|red|secrets|auth|billing|dns|migration|raw key|human decision|chris-only|needs chris)\b/.test(
+  return !/\b(exact blocker|proof mismatch|body proof|stale proof|stale pr body|overlap|anti-stomp|dirty branch|not clean against main|targeted proof|focused proof|failing|failed|red|secrets|auth|billing|dns|migration|raw key|human decision|human-only|needs human)\b/.test(
     text,
   );
 }
@@ -357,7 +357,7 @@ function isHumanOwner(todo) {
     kind === "human" ||
     kind === "person" ||
     owner.startsWith("human-") ||
-    owner.startsWith("chris") ||
+    owner.startsWith("operator") ||
     owner === "creativelead"
   );
 }
@@ -622,7 +622,7 @@ export function latestCommentSignals(comments = [], { headSha = "" } = {}) {
   let lastReviewerPass = -1;
   let lastReviewerSafetyHeadPass = -1;
   let lastMissingFinalQcAck = -1;
-  let hasChrisOnly = false;
+  let hasHumanOnly = false;
   let hasProof = false;
 
   sorted.forEach((comment, index) => {
@@ -687,8 +687,8 @@ export function latestCommentSignals(comments = [], { headSha = "" } = {}) {
     ) {
       lastDirtyBranch = index;
     }
-    if (/\b(chris-only|human decision|needs chris|user decision|refresh testpass_token|node 20 policy|semver-major policy)\b/.test(text)) {
-      hasChrisOnly = true;
+    if (/\b(human-only|human decision|needs human|user decision|refresh testpass_token|node 20 policy|semver-major policy)\b/.test(text)) {
+      hasHumanOnly = true;
     }
   });
 
@@ -702,7 +702,7 @@ export function latestCommentSignals(comments = [], { headSha = "" } = {}) {
     hasReviewerPass: lastReviewerPass >= 0 && lastReviewerPass > lastHold,
     hasReviewerSafetyHeadPass: lastReviewerSafetyHeadPass >= 0 && lastReviewerSafetyHeadPass > lastHold,
     hasMissingFinalQcAck: lastMissingFinalQcAck > lastReviewerPass,
-    hasChrisOnly,
+    hasHumanOnly,
     hasProof,
   };
 }
@@ -737,7 +737,7 @@ export function jobKindForState(state) {
     case "ready_for_qc":
     case "missing_review_safety_ack":
       return "qc_review";
-    case "blocked_chris_only":
+    case "blocked_human_only":
     case "draft_green_needs_owner_lift":
     case "hold_overlap":
       return "owner_decision";
@@ -822,11 +822,11 @@ export function classifyPullRequest(input) {
   const clean = ["clean", "has_hooks", "unstable"].includes(mergeState) || mergeState === "";
   const dirty = ["dirty", "behind"].includes(mergeState);
 
-  if (signals.hasChrisOnly) return { state: "blocked_chris_only", reason: "Chris-only or human policy blocker is present." };
+  if (signals.hasHumanOnly) return { state: "blocked_human_only", reason: "Human-only policy blocker is present." };
   if (dirty || signals.hasDirtyBranch) return { state: "dirty_branch", reason: "Branch is not clean against main." };
   if (signals.hasFailedProof) return { state: "failed_targeted_proof", reason: "Targeted proof was reported as failing." };
   if (signals.hasOverlap) return { state: "hold_overlap", reason: "Overlap or anti-stomp blocker is present." };
-  if (signals.hasActiveHold) return { state: "blocked_chris_only", reason: "Active HOLD/blocker comment remains." };
+  if (signals.hasActiveHold) return { state: "blocked_human_only", reason: "Active HOLD/blocker comment remains." };
   if (green && clean && signals.hasReviewerSafetyHeadPass) {
     return { state: null, reason: "Reviewer/Safety PASS already exists on this head; no duplicate QueuePush action needed." };
   }
@@ -877,7 +877,7 @@ export function expectedProofForState(state, pr) {
       return "Fix the failing targeted proof or close the stale branch; rerun the named focused test.";
     case "ready_for_qc":
       return "Second-read changed files, confirm checks/proof/non-overlap, then hand to merge lane if safe.";
-    case "blocked_chris_only":
+    case "blocked_human_only":
       return "Call the exact human decision; do not code around it.";
     default:
       return `Inspect PR #${pr.number} and report done/blocker.`;
@@ -900,8 +900,8 @@ export function directActionForState(state) {
       return "Claim it, fix the failing proof, rerun the named test, or close the stale branch.";
     case "ready_for_qc":
       return "Claim it, second-read the diff, then pass/block with exact evidence.";
-    case "blocked_chris_only":
-      return "Call the exact Chris decision needed; do not code around it.";
+    case "blocked_human_only":
+      return "Call the exact human decision needed; do not code around it.";
     default:
       return "Claim it, inspect the PR, and reply done/blocker.";
   }
@@ -1284,7 +1284,7 @@ function prioritizePackets(packets) {
     dirty_branch: 0,
     hold_overlap: 1,
     failed_targeted_proof: 2,
-    blocked_chris_only: 3,
+    blocked_human_only: 3,
     missing_review_safety_ack: 4,
     missing_final_qc_ack: 5,
     dormant_owner_requeue: 5,

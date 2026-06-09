@@ -4,7 +4,7 @@ Status: DRAFT packaging brief only. This document defines how a combined
 SEOPass + GEOPass offer would be packaged. It does NOT change billing,
 checkout, Stripe, pricing pages, or public marketing copy. The price below is
 a placeholder fixture for discussion and is not wired anywhere. Any launch,
-price, or checkout change is a human decision and waits for Chris to approve
+price, or checkout change is a human decision and waits for the operator to approve
 the offer framing.
 
 Source job: Boardroom todo `2e7d6604-0f9a-4c88-8f3d-1f234b607b37`
@@ -108,7 +108,7 @@ domain.
 ```json
 {
   "draft_only": true,
-  "do_not_wire": "No billing, Stripe, checkout, or marketing change. Awaiting Chris approval.",
+  "do_not_wire": "No billing, Stripe, checkout, or marketing change. Awaiting operator approval.",
   "offer": "SEOPass + GEOPass bundle",
   "proposed_price_monthly_usd": 149,
   "single_pass_reference_price_monthly_usd": 99,
@@ -131,11 +131,11 @@ placeholder to frame the bundle discount and is equally unconfirmed.
 - It does not create or change any Stripe product, price, or checkout flow.
 - It does not edit public pricing or marketing pages.
 - It does not enable any scheduled customer-facing automation.
-- It does not commit to the price. Pricing and launch wait for Chris.
+- It does not commit to the price. Pricing and launch wait for the operator.
 
 ## Suggested next steps (each is a separate, gated chip)
 
-1. Chris confirms or adjusts the offer framing and price.
+1. The operator confirms or adjusts the offer framing and price.
 2. After approval, a separate chip wires a customer-scoped scheduled receipt
    reusing the existing dogfood receipt builder (`runSEOPass` in
    `scripts/build-dogfood-report.mjs` and the GEOPass scanner adapter).

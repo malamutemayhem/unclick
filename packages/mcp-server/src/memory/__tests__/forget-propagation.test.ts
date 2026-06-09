@@ -40,7 +40,7 @@ describe("LocalBackend.forgetMemory true-forget propagation", () => {
       confidence: 0.95,
     });
     const keeper = await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.9,
     });
