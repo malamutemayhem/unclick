@@ -85,6 +85,8 @@
  *                      memory row scoped to the user's api_key_hash.
  *   - orchestrator_context_read: GET/POST read-only compact cross-seat state
  *                                from Memory, Boardroom, dispatches, signals.
+ *   - orchestrator_log_read: GET/POST owner-scoped source log with redacted
+ *                            previews and optional raw JSON download.
  *   - autopilot_zero_touch_metrics: GET/POST grouped human-touch metrics from
  *                                  the AutoPilot control ledger.
  *
@@ -9953,6 +9955,472 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               created_at: string;
             }>,
           }),
+        });
+      }
+
+      case "orchestrator_log_read": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Sign in or pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+
+        const body = (req.body ?? {}) as {
+          include_raw?: boolean | string;
+          includeRaw?: boolean | string;
+          limit?: number | string;
+          q?: string;
+        };
+        const parseBooleanParam = (value: unknown, fallback: boolean): boolean => {
+          if (typeof value === "boolean") return value;
+          if (typeof value === "string") {
+            const clean = value.trim().toLowerCase();
+            if (clean === "1" || clean === "true" || clean === "yes") return true;
+            if (clean === "0" || clean === "false" || clean === "no") return false;
+          }
+          return fallback;
+        };
+        const rawSearch =
+          typeof body.q === "string"
+            ? body.q
+            : typeof req.query.q === "string"
+              ? req.query.q
+              : "";
+        const query = rawSearch.replace(/\s+/g, " ").trim().slice(0, 100);
+        const requestedLimit = Number(body.limit ?? req.query.limit ?? 120);
+        const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 120, 20), 200);
+        const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
+        const searchPattern = query ? `%${query.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchUuid = query.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
+        const turnSearchFilter = searchPattern
+          ? [
+              `content.ilike.${searchPattern}`,
+              `session_id.ilike.${searchPattern}`,
+              ...(searchUuid ? [`id.eq.${searchUuid}`] : []),
+            ].join(",")
+          : "";
+
+        let conversationTurnsQuery = supabase
+          .from("mc_conversation_log")
+          .select("id, session_id, role, content, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (turnSearchFilter) conversationTurnsQuery = conversationTurnsQuery.or(turnSearchFilter);
+
+        let chatMessagesQuery = supabase
+          .from("chat_messages")
+          .select("id, session_id, role, content, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
+
+        let boardroomMessagesQuery = supabase
+          .from("mc_fishbowl_messages")
+          .select("id, author_name, author_agent_id, recipients, text, tags, thread_id, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) boardroomMessagesQuery = boardroomMessagesQuery.ilike("text", searchPattern);
+
+        let todosQuery = supabase
+          .from("mc_fishbowl_todos")
+          .select("id, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, source_idea_id, created_at, updated_at, completed_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          todosQuery = todosQuery.or(`title.ilike.${searchPattern},description.ilike.${searchPattern},status.ilike.${searchPattern},priority.ilike.${searchPattern}`);
+        }
+
+        let commentsQuery = supabase
+          .from("mc_fishbowl_comments")
+          .select("id, target_kind, target_id, author_agent_id, text, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) commentsQuery = commentsQuery.ilike("text", searchPattern);
+
+        let sessionsQuery = supabase
+          .from("mc_session_summaries")
+          .select("id, session_id, platform, summary, decisions, open_loops, topics, duration_minutes, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          sessionsQuery = sessionsQuery.or(`summary.ilike.${searchPattern},session_id.ilike.${searchPattern},platform.ilike.${searchPattern}`);
+        }
+
+        let signalsQuery = supabase
+          .from("mc_signals")
+          .select("id, tool, action, severity, summary, deep_link, payload, created_at, read_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          signalsQuery = signalsQuery.or(`summary.ilike.${searchPattern},tool.ilike.${searchPattern},action.ilike.${searchPattern},severity.ilike.${searchPattern}`);
+        }
+
+        let dispatchesQuery = supabase
+          .from("mc_agent_dispatches")
+          .select("dispatch_id, source, target_agent_id, task_ref, status, lease_owner, lease_expires_at, last_real_action_at, payload, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          dispatchesQuery = dispatchesQuery.or(`dispatch_id.ilike.${searchPattern},source.ilike.${searchPattern},target_agent_id.ilike.${searchPattern},task_ref.ilike.${searchPattern},status.ilike.${searchPattern}`);
+        }
+
+        let businessContextQuery = supabase
+          .from("mc_business_context")
+          .select("id, category, key, value, priority, decay_tier, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) businessContextQuery = businessContextQuery.or(`category.ilike.${searchPattern},key.ilike.${searchPattern}`);
+
+        let libraryQuery = supabase
+          .from("mc_knowledge_library")
+          .select("slug, title, category, tags, content, version, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) libraryQuery = libraryQuery.or(`slug.ilike.${searchPattern},title.ilike.${searchPattern},category.ilike.${searchPattern},content.ilike.${searchPattern}`);
+
+        const autopilotEventsQuery = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        const [
+          conversationTurnsResult,
+          chatMessagesResult,
+          boardroomMessagesResult,
+          todosResult,
+          commentsResult,
+          sessionsResult,
+          signalsResult,
+          dispatchesResult,
+          businessContextResult,
+          libraryResult,
+          autopilotEventsResult,
+        ] = await Promise.all([
+          conversationTurnsQuery,
+          chatMessagesQuery,
+          boardroomMessagesQuery,
+          todosQuery,
+          commentsQuery,
+          sessionsQuery,
+          signalsQuery,
+          dispatchesQuery,
+          businessContextQuery,
+          libraryQuery,
+          autopilotEventsQuery,
+        ]);
+
+        const errors = [
+          conversationTurnsResult.error,
+          chatMessagesResult.error,
+          boardroomMessagesResult.error,
+          todosResult.error,
+          commentsResult.error,
+          sessionsResult.error,
+          signalsResult.error,
+          dispatchesResult.error,
+          businessContextResult.error,
+          libraryResult.error,
+          autopilotEventsResult.error,
+        ].filter(Boolean);
+        if (errors.length > 0) throw errors[0];
+
+        type OrchestratorLogRecord = {
+          source_kind: string;
+          source_id: string;
+          created_at: string | null;
+          updated_at?: string | null;
+          label: string;
+          visibility: "private";
+          storage: "supabase_postgres";
+          preview: string;
+          data?: unknown;
+        };
+        const preview = (value: unknown, maxChars = 520): string => {
+          const clean = redactSensitive(value).replace(/\s+/g, " ").trim();
+          if (clean.length <= maxChars) return clean;
+          return `${clean.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
+        };
+        const makeRecord = (input: {
+          source_kind: string;
+          source_id: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+          label: string;
+          preview: unknown;
+          data: unknown;
+        }): OrchestratorLogRecord => ({
+          source_kind: input.source_kind,
+          source_id: input.source_id,
+          created_at: input.created_at ?? null,
+          updated_at: input.updated_at ?? null,
+          label: input.label,
+          visibility: "private",
+          storage: "supabase_postgres",
+          preview: preview(input.preview),
+          ...(includeRaw ? { data: input.data } : {}),
+        });
+
+        const conversationTurnRecords = ((conversationTurnsResult.data ?? []) as Array<{
+          id: string;
+          session_id: string;
+          role: string;
+          content: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "conversation_turn",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.role} conversation turn`,
+            preview: row.content,
+            data: row,
+          }),
+        );
+
+        const chatMessageRecords = ((chatMessagesResult.data ?? []) as Array<{
+          id: string;
+          session_id: string;
+          role: string;
+          content: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "chat_message",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.role} chat message`,
+            preview: row.content,
+            data: row,
+          }),
+        );
+
+        const boardroomMessageRecords = ((boardroomMessagesResult.data ?? []) as Array<{
+          id: string;
+          author_name?: string | null;
+          author_agent_id?: string | null;
+          text: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "boardroom_message",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.author_name ?? row.author_agent_id ?? "Unknown"} Boardroom message`,
+            preview: row.text,
+            data: row,
+          }),
+        );
+
+        const todoRecords = ((todosResult.data ?? []) as Array<{
+          id: string;
+          title: string;
+          description?: string | null;
+          status: string;
+          priority: string;
+          created_at: string;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "todo",
+            source_id: row.id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.priority} ${row.status} job`,
+            preview: `${row.title}${row.description ? ` - ${row.description}` : ""}`,
+            data: row,
+          }),
+        );
+
+        const commentRecords = ((commentsResult.data ?? []) as Array<{
+          id: string;
+          target_kind: string;
+          target_id: string;
+          author_agent_id?: string | null;
+          text: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "todo_comment",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.author_agent_id ?? "Unknown"} comment on ${row.target_kind}`,
+            preview: row.text,
+            data: row,
+          }),
+        );
+
+        const sessionRecords = ((sessionsResult.data ?? []) as Array<{
+          id?: string | null;
+          session_id: string;
+          platform?: string | null;
+          summary: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "session_summary",
+            source_id: row.id ?? row.session_id,
+            created_at: row.created_at,
+            label: `${row.platform ?? "session"} summary`,
+            preview: row.summary,
+            data: row,
+          }),
+        );
+
+        const signalRecords = ((signalsResult.data ?? []) as Array<{
+          id: string;
+          tool: string;
+          action: string;
+          severity: string;
+          summary: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "signal",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.severity} signal: ${row.action}`,
+            preview: `${row.tool}: ${row.summary}`,
+            data: row,
+          }),
+        );
+
+        const dispatchRecords = ((dispatchesResult.data ?? []) as Array<{
+          dispatch_id: string;
+          source: string;
+          target_agent_id: string;
+          task_ref?: string | null;
+          status: string;
+          payload?: Record<string, unknown> | null;
+          created_at: string;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "dispatch",
+            source_id: row.dispatch_id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.status} dispatch to ${row.target_agent_id}`,
+            preview: {
+              source: row.source,
+              task_ref: row.task_ref,
+              payload: row.payload,
+            },
+            data: row,
+          }),
+        );
+
+        const businessContextRecords = ((businessContextResult.data ?? []) as Array<{
+          id: string;
+          category: string;
+          key: string;
+          value: unknown;
+          created_at?: string | null;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "business_context",
+            source_id: row.id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.category}: ${row.key}`,
+            preview: row.value,
+            data: row,
+          }),
+        );
+
+        const libraryRecords = ((libraryResult.data ?? []) as Array<{
+          slug: string;
+          title: string;
+          category: string;
+          content?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "library",
+            source_id: row.slug,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.category}: ${row.title}`,
+            preview: row.content ?? row.title,
+            data: row,
+          }),
+        );
+
+        const autopilotEventRecords = ((autopilotEventsResult.data ?? []) as Array<{
+          event_type: string;
+          actor_agent_id: string;
+          ref_kind: string;
+          ref_id: string;
+          payload?: Record<string, unknown> | null;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "autopilot_event",
+            source_id: `${row.event_type}:${row.ref_kind}:${row.ref_id}:${row.created_at}`,
+            created_at: row.created_at,
+            label: `${row.event_type} by ${row.actor_agent_id}`,
+            preview: {
+              ref_kind: row.ref_kind,
+              ref_id: row.ref_id,
+              payload: row.payload,
+            },
+            data: row,
+          }),
+        );
+
+        const records = [
+          ...conversationTurnRecords,
+          ...chatMessageRecords,
+          ...boardroomMessageRecords,
+          ...todoRecords,
+          ...commentRecords,
+          ...sessionRecords,
+          ...signalRecords,
+          ...dispatchRecords,
+          ...businessContextRecords,
+          ...libraryRecords,
+          ...autopilotEventRecords,
+        ]
+          .sort((a, b) => Date.parse(b.updated_at ?? b.created_at ?? "") - Date.parse(a.updated_at ?? a.created_at ?? ""))
+          .slice(0, limit);
+
+        const sourceCounts = records.reduce<Record<string, number>>((acc, record) => {
+          acc[record.source_kind] = (acc[record.source_kind] ?? 0) + 1;
+          return acc;
+        }, {});
+
+        return res.status(200).json({
+          generated_at: new Date().toISOString(),
+          schema_version: 1,
+          query: query || null,
+          limit,
+          include_raw: includeRaw,
+          visibility: {
+            access: "Private to the signed-in owner or a holder of this tenant's UnClick API key.",
+            screen_preview: "On-screen previews redact secret-shaped values and billing-like numbers.",
+            download: includeRaw
+              ? "This response includes loaded raw source rows for the owner."
+              : "Call with include_raw=1 to download loaded source rows.",
+            storage:
+              "Current records live in tenant-scoped Supabase tables. The sealed raw archive can use Supabase Storage behind this same Log surface.",
+          },
+          source_counts: sourceCounts,
+          records,
         });
       }
 

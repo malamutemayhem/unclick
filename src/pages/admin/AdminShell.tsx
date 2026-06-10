@@ -491,6 +491,7 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
   const storyActive = location.pathname === "/admin/orchestrator" ||
     location.pathname === "/admin/orchestrator/story";
   const timelineActive = location.pathname === "/admin/orchestrator/timeline";
+  const logActive = location.pathname === "/admin/orchestrator/log";
 
   return (
     <div>
@@ -536,6 +537,18 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
           >
             <Clock className="h-3 w-3 shrink-0" />
             Timeline
+          </Link>
+          <Link
+            to="/admin/orchestrator/log"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              logActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
+            }`}
+          >
+            <ScrollText className="h-3 w-3 shrink-0" />
+            Log
           </Link>
         </div>
       )}

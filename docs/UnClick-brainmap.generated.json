@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1107,
-    "source_manifest": 225,
-    "pages": 93,
+    "inventory": 1108,
+    "source_manifest": 226,
+    "pages": 94,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 57
+      "count": 58
     },
     {
       "id": "public-surfaces",
@@ -319,6 +319,16 @@
       "meaning": "Readable continuity stream for seats and operator context.",
       "source": "src/pages/admin/AdminOrchestrator.tsx",
       "route": "/admin/orchestrator",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-orchestrator-log-src-pages-admin-adminorchestratorlog-tsx-admin-orchestrator-log",
+      "division": "Admin surfaces",
+      "name": "Admin Orchestrator Log",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Orchestrator Log.",
+      "source": "src/pages/admin/AdminOrchestratorLog.tsx",
+      "route": "/admin/orchestrator/log",
       "tags": []
     },
     {
@@ -11386,6 +11396,12 @@
       "src/pages/admin/AdminModeration.tsx"
     ],
     [
+      "/admin/orchestrator/log",
+      "Admin Orchestrator Log",
+      "Admin surface for Admin Orchestrator Log.",
+      "src/pages/admin/AdminOrchestratorLog.tsx"
+    ],
+    [
       "/admin/orchestrator/timeline",
       "Admin Orchestrator",
       "Readable continuity stream for seats and operator context.",
@@ -15470,13 +15486,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "5009beb107c4",
-      "bytes": 17238
+      "hash": "14906b128315",
+      "bytes": 17394
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "a4bc878e2ed7",
-      "bytes": 27974
+      "hash": "583495279a0e",
+      "bytes": 28506
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15887,6 +15903,11 @@
       "source": "src/pages/admin/AdminModeration.tsx",
       "hash": "27cae956bcfd",
       "bytes": 883
+    },
+    {
+      "source": "src/pages/admin/AdminOrchestratorLog.tsx",
+      "hash": "af0abb526002",
+      "bytes": 12944
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
