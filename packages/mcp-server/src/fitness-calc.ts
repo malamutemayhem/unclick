@@ -105,7 +105,7 @@ export function bodyFatNavy(
   );
 }
 
-export function idealWeight(heightCm: number, sex: "male" | "female"): { min: number; max: number } {
+export function idealWeight(heightCm: number, _sex: "male" | "female" = "male"): { min: number; max: number } {
   const heightM = heightCm / 100;
   return {
     min: round1(18.5 * heightM * heightM),
