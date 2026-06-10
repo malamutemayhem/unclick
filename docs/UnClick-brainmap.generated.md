@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 190d9db14287 | 17607 |
+| AUTOPILOT.md | 18863a2e935a | 18077 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
 | docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |

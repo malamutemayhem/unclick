@@ -269,6 +269,10 @@ Before opening a PR:
 
 - Pull from the latest main branch.
 - Keep the change to one chip.
+- Keep the diff proportional to the chip. The `pr-scope-guard` gate fails grossly
+  oversized PRs (stale-base bloat, bulk generation); a genuinely large change
+  carries the `large-change-ok` label. If your "one chip" is touching hundreds of
+  files, the branch is wrong, not the gate.
 - Run the smallest useful verification.
 - Run `/review` when available.
 - Mention whether the change is ship-without-ask, ask-once, or gated.
@@ -279,6 +283,9 @@ Before merging:
 - Checks must be green unless the operator explicitly overrides.
 - Draft PRs must be marked ready by the owner or by explicit instruction.
 - Security, auth, env, migration, and billing changes need operator approval.
+- Shipping proof is a wired, cataloged, TestPass-green surface, not a count of
+  new files, tests, or commits. Activity is not proof (see
+  `docs/autopilot-zero-touch-scoreboard.md`).
 
 ## Current Priority Rule
 
