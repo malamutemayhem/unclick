@@ -280,8 +280,8 @@ export const FlowPassUserPackSchema = z.object({
     name: z.string().min(1).optional(),
     kind: FlowPassJourneyKindSchema.default("custom"),
   }).optional(),
-  steps: z.array(z.union([z.string().min(1), FlowPassStepSchema, z.record(z.unknown())])).min(1),
-  assertions: z.array(z.union([z.string().min(1), z.record(z.unknown())])).default([]),
+  steps: z.array(z.union([z.string().min(1), FlowPassStepSchema, z.record(z.string(), z.unknown())])).min(1),
+  assertions: z.array(z.union([z.string().min(1), z.record(z.string(), z.unknown())])).default([]),
   hats: z.array(FlowPassHatIdSchema).default([
     "driver",
     "verifier",
@@ -296,8 +296,8 @@ export const FlowPassUserPackSchema = z.object({
     max_cost_usd: z.number().min(0).optional(),
     tier_cap: z.number().int().min(1).max(3).optional(),
   }).optional(),
-  monitor: z.record(z.unknown()).optional(),
-  fixtures: z.record(z.unknown()).optional(),
+  monitor: z.record(z.string(), z.unknown()).optional(),
+  fixtures: z.record(z.string(), z.unknown()).optional(),
 }).passthrough();
 
 export const FlowPassGeoPassAdapterSchema = z.object({

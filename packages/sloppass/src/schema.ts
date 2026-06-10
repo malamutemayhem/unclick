@@ -88,6 +88,7 @@ export const SlopPassGitContextSchema = z.object({
   base_sha: z.string().min(1),
   head_sha: z.string().min(1),
   files: z.record(
+    z.string(),
     z.object({
       base_blob: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
       main_blob: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
