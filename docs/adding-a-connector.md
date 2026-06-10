@@ -54,6 +54,19 @@ See `docs/connector-standard.md` for the full definitions. Summary:
 - **L3 and L4 are opt-in by nature.** Only add them when the connector has a
   stable per-user default (L3) or reads a changeable, user-actionable quantity (L4).
 
+### Non-negotiable: a module must be wired, or it does not exist
+
+L1 means a *callable* endpoint, not a file on disk. Every new module under
+`packages/mcp-server/src` must be reachable from the server (registered in
+`tool-wiring.ts`, imported from `server.ts`). The `check:orphans` CI gate fails
+any module that nothing reachable imports.
+
+Do not bulk-generate standalone modules with colocated tests as a way to show
+progress. A passing unit test on an unwired module is dead code, not a shipped
+feature: in #1347 this pattern produced ~1,975 unreachable `*-calc.ts` modules
+(57% of the package) before anyone noticed (root cause in #1440). One wired,
+cataloged, TestPass-green connector beats a hundred orphan files.
+
 ---
 
 ## 3. The connector template (copy this)
