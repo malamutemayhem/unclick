@@ -29,4 +29,9 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node scripts/check-pr-scope.mjs
+        run: |
+          if [ -f scripts/check-pr-scope.mjs ]; then
+            node scripts/check-pr-scope.mjs
+          else
+            echo "scripts/check-pr-scope.mjs not present on this PR branch (it predates the scope guard); skipping. Rebase on main to enable the check."
+          fi

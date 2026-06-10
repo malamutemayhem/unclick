@@ -46,15 +46,28 @@ function sh(cmd) {
   return execSync(cmd, { encoding: "utf8" }).trim();
 }
 
+// Lock files and generated artifacts are legitimately huge but are not
+// reviewed line by line, so they must not trip the guard. Excluding them is
+// what lets a dependency bump (a massive package-lock.json diff) or a
+// brainmap regeneration through.
+const IGNORE_RE =
+  /(^|\/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$|\.generated\.(json|md|ts)$/;
+
 let fileCount = 0;
 let additions = 0;
+let ignoredFiles = 0;
 try {
-  const names = sh(`git diff --name-only ${base}...${head}`);
-  fileCount = names ? names.split("\n").length : 0;
   // numstat: "<added>\t<deleted>\t<path>" per file ("-" for binary).
   const numstat = sh(`git diff --numstat ${base}...${head}`);
   for (const line of numstat.split("\n").filter(Boolean)) {
-    const added = line.split("\t")[0];
+    const parts = line.split("\t");
+    const added = parts[0];
+    const path = parts.slice(2).join("\t");
+    if (IGNORE_RE.test(path)) {
+      ignoredFiles++;
+      continue;
+    }
+    fileCount++;
     if (added !== "-") additions += Number(added) || 0;
   }
 } catch (err) {
@@ -75,7 +88,8 @@ if (additions > MAX_ADDITIONS)
 
 console.log(
   `PR scope guard: ${fileCount} files changed, ${additions} insertions ` +
-    `(limits: ${MAX_FILES} files / ${MAX_ADDITIONS} insertions).`
+    `(${ignoredFiles} lock/generated file(s) excluded; ` +
+    `limits: ${MAX_FILES} files / ${MAX_ADDITIONS} insertions).`
 );
 
 if (violations.length === 0) {
