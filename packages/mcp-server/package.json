@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "prepare:wiring": "node scripts/patch-reddit-public-wiring.mjs && node scripts/generate-tool-index.mjs",
+    "check:orphans": "node scripts/check-orphan-modules.mjs",
     "build": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsc",
     "dev": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx src/index.ts",
     "start": "node dist/index.js",

@@ -59,5 +59,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Typecheck + build
         run: npm run build
+      - name: Orphan-module gate
+        run: npm run check:orphans
       - name: Tests
         run: npm test
