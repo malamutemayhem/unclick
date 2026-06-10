@@ -229,7 +229,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 9aaef5273976 | 1137 |
-| .github/workflows/pr-scope-guard.yml | 90d8d809e259 | 1148 |
+| .github/workflows/pr-scope-guard.yml | fb2678102ed6 | 1038 |
 | .github/workflows/publish-channel-package.yml | 5c9197848ca9 | 8046 |
 | .github/workflows/publish-mcp-package.yml | c029877aab11 | 6427 |
 | .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |

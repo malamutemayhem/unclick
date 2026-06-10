@@ -16531,8 +16531,8 @@
     },
     {
       "source": ".github/workflows/pr-scope-guard.yml",
-      "hash": "90d8d809e259",
-      "bytes": 1148
+      "hash": "fb2678102ed6",
+      "bytes": 1038
     },
     {
       "source": ".github/workflows/publish-channel-package.yml",
