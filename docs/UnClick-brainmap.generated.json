@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1108,
-    "source_manifest": 226,
+    "inventory": 1109,
+    "source_manifest": 227,
     "pages": 94,
     "tools": 672,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 122
+      "count": 123
     },
     {
       "id": "ledgers-and-proof",
@@ -1788,6 +1788,16 @@
       "kind": "workflow",
       "meaning": "openhands test mode GitHub automation workflow.",
       "source": ".github/workflows/openhands-test-mode.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-pr-scope-guard-yml-github-workflows-pr-scope-guard-yml-no-route",
+      "division": "Automations",
+      "name": "pr scope guard.yml",
+      "kind": "workflow",
+      "meaning": "pr scope guard GitHub automation workflow.",
+      "source": ".github/workflows/pr-scope-guard.yml",
       "route": "",
       "tags": []
     },
@@ -16518,6 +16528,11 @@
       "source": ".github/workflows/openhands-test-mode.yml",
       "hash": "9aaef5273976",
       "bytes": 1137
+    },
+    {
+      "source": ".github/workflows/pr-scope-guard.yml",
+      "hash": "90d8d809e259",
+      "bytes": 1148
     },
     {
       "source": ".github/workflows/publish-channel-package.yml",
