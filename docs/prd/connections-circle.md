@@ -68,7 +68,16 @@ Per the operator: connecting must be super easy, ideally never leaving the windo
 
 - **OAuth-capable providers (GitHub, Google, Slack...): one button.** "Connect GitHub" -> provider's own consent popup -> done. The user never sees or pastes a token; UnClick receives an OAuth token scoped to what was approved and stores it encrypted. This is the Apple-vibes path and should be the default wherever the provider supports it.
 - **API-key-only providers: paste once, never again.** Inline field with a direct "get your key here" link, paste, Test, Save (encrypted). Connection survives across every device via account portability.
-- Status pills stay honest: connected / connected-untested / needs reconnection / error / revoked.
+- **Username/password websites (Amazon, eBay, supplier portals): never stored at all.** UnClick does not collect or keep the password, so no vault (certified or otherwise) is needed; there is nothing to vault. The user's own browser already holds the login (its password manager and session cookies), and UnClick Local (the browser extension, `docs/prd/unclick-local-extension.md`) uses that already-logged-in session locally under a scoped, revocable mandate, returning only a redacted receipt. The Connections list shows these honestly as "Local session (this browser)" rows with mandate state, never implying UnClick has a copy. Per-site caveat: these connections are per-machine by nature (the session lives in that browser), unlike OAuth/API-key connections which travel with the account.
+- Status pills stay honest: connected / connected-untested / needs reconnection / error / revoked, plus "local session" for browser-login rows.
+
+So the Apps tab presents exactly three connection types, each with the simplest safe shape:
+
+| Type | Example | Where the secret lives | Travels across devices? |
+|---|---|---|---|
+| OAuth | GitHub, Google | Scoped token, encrypted server-side | Yes |
+| API key | Most long-tail providers | Encrypted server-side | Yes |
+| Browser login | Amazon, eBay, portals | Nowhere in UnClick; user's own browser | No (per machine, by design) |
 
 Storing these credentials encrypted is lawful and industry-standard (see companion plan: "compliance reality"). The operator's instinct to minimize custody is still right, which is why OAuth-first (scoped revocable tokens, no raw passwords) and the local lane (browser sessions never leave the machine) are the preferred shapes.
 
