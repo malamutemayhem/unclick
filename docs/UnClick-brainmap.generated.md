@@ -137,7 +137,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
-| src/pages/HomePreview.tsx | 608d674c000e | 11423 |
+| src/pages/HomePreview.tsx | 84311de750c9 | 6853 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
