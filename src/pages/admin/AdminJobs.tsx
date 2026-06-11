@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { relativeTime } from "@/lib/relativeTime";
-import Comments from "./fishbowl/Comments";
+import Comments from "./boardroom/Comments";
 import {
   buildJobGithubSyncSignal,
   type JobGithubSyncSignal,
@@ -27,7 +27,7 @@ import {
 } from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
 
-interface FishbowlProfile {
+interface BoardroomProfile {
   agent_id: string;
   emoji: string;
   display_name: string | null;
@@ -1237,7 +1237,7 @@ export default function AdminJobs() {
           body: JSON.stringify({}),
         });
         const body = (await res.json().catch(() => ({}))) as {
-          profile?: FishbowlProfile;
+          profile?: BoardroomProfile;
           error?: string;
         };
         if (!cancelled && res.ok && body.profile) {

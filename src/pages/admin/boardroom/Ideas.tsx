@@ -24,7 +24,7 @@ interface IdeasProps {
   humanAgentId: string | null;
 }
 
-const STORAGE_KEY = "unclick.fishbowl.ideas.collapsed";
+const STORAGE_KEY = "unclick.boardroom.ideas.collapsed";
 
 const STATUS_STYLE: Record<Idea["status"], string> = {
   proposed: "bg-white/[0.05] text-[#aaa]",
@@ -293,7 +293,7 @@ function IdeaRow({
   );
 }
 
-export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) {
+export default function BoardroomIdeas({ authHeader, humanAgentId }: IdeasProps) {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return window.localStorage.getItem(STORAGE_KEY) !== "0";

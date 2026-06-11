@@ -39,6 +39,23 @@ For machine-readable output (e.g., for CI / planning scripts):
 node scripts/audit-fishbowl-naming.mjs --json > fishbowl-audit.json
 ```
 
+## The ratchet (CI enforcement)
+
+Since 2026-06-11 the audit is no longer informational-only. CI runs
+`npm run boardroom:check`, which compares per-file legacy occurrence counts
+(case-insensitive substring over path + content, so `FishbowlProfile`,
+`fishbowl_list_todos`, and `mc_fishbowl_todos` all count) against the committed
+baseline in `scripts/boardroom-naming-baseline.json`:
+
+- A new file containing a legacy name, or a grown count, FAILS the build. New
+  Fishbowl/Popcorn references are banned; use Boardroom.
+- A shrunk count also fails until you run `npm run boardroom:baseline` and
+  commit the regenerated baseline, so the baseline only ever ratchets down and
+  the remaining debt stays visible in PR diffs.
+- Justified exceptions (a live contract you must touch, a generated file) are
+  made by deliberately updating the baseline and explaining the bump in the PR
+  body.
+
 ## Migration order (recommended)
 
 1. **UI / docs first.** These have no contract obligations. Renaming `PopcornPanel` → `BoardroomPanel` is a cheap rename + import update. Do these in small PRs (one component at a time) referencing the relevant audit category.

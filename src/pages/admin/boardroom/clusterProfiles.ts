@@ -1,11 +1,11 @@
-export interface FishbowlProfileForCluster {
+export interface BoardroomProfileForCluster {
   agent_id: string;
   emoji: string;
   display_name: string | null;
   last_seen_at: string | null;
 }
 
-export interface ProfileCluster<P extends FishbowlProfileForCluster = FishbowlProfileForCluster> {
+export interface ProfileCluster<P extends BoardroomProfileForCluster = BoardroomProfileForCluster> {
   key: string;
   emoji: string;
   display_name: string | null;
@@ -19,12 +19,12 @@ export function clusterKey(emoji: string, display_name: string | null): string {
   return `${emoji}${display_name ?? ""}`;
 }
 
-export function isClusterFresh(p: FishbowlProfileForCluster, nowMs: number): boolean {
+export function isClusterFresh(p: BoardroomProfileForCluster, nowMs: number): boolean {
   if (!p.last_seen_at) return false;
   return nowMs - new Date(p.last_seen_at).getTime() < CLUSTER_FRESH_THRESHOLD_MS;
 }
 
-export function clusterProfiles<P extends FishbowlProfileForCluster>(
+export function clusterProfiles<P extends BoardroomProfileForCluster>(
   profiles: P[],
   nowMs: number,
 ): ProfileCluster<P>[] {
@@ -64,7 +64,7 @@ export function clusterProfiles<P extends FishbowlProfileForCluster>(
   return result;
 }
 
-export function findDuplicateProfileAgentIds<P extends FishbowlProfileForCluster>(
+export function findDuplicateProfileAgentIds<P extends BoardroomProfileForCluster>(
   profiles: P[],
 ): Set<string> {
   const buckets = new Map<string, P[]>();
