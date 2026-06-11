@@ -122,6 +122,13 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 20):** Connect page judgment copy. The success
+  state says what actually happened ("Saved. Your AI can use {app} from
+  now on, with no extra steps") instead of "MCP tool calls will use them
+  automatically"; the local-vault hint is labelled advanced; the trust
+  footer drops AES-256-GCM jargon for the same plain encrypted-storage
+  wording the setup wizard uses. CopyPass PASS 100 (run 78043307).
+
 - **2026-06-11 (round 19, post-merge):** Memory setup wizard reads like
   English. Copy-only changes on /memory/setup: Supabase is introduced as
   "a database service with a free plan" before being asked for; the

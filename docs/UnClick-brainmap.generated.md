@@ -127,7 +127,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 0bff27f46d0d | 29617 |
+| src/pages/Connect.tsx | 4879515ad320 | 29609 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
 | src/pages/DeveloperDocs.tsx | 9bfae679df42 | 23493 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
