@@ -15,7 +15,7 @@ import {
   profileMatchesSeat,
   unmatchedRecentProfiles,
   type AISeat,
-  type FishbowlProfile,
+  type BoardroomProfile,
 } from "./AdminAgentsSeatUtils";
 
 vi.mock("@/lib/auth", () => ({
@@ -39,7 +39,7 @@ function seat(patch: Partial<AISeat>): AISeat {
   };
 }
 
-function profile(patch: Partial<FishbowlProfile>): FishbowlProfile {
+function profile(patch: Partial<BoardroomProfile>): BoardroomProfile {
   return {
     agent_id: "chatgpt-codex-seat",
     emoji: "🤖",

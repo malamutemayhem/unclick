@@ -108,7 +108,7 @@ import {
 } from "./pages/admin/AdminEcosystemPages.tsx";
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
-import Fishbowl from "./pages/admin/Fishbowl.tsx";
+import Boardroom from "./pages/admin/Boardroom.tsx";
 // BuildDeskPage import removed 2026-05-28 - page hidden (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
@@ -255,7 +255,7 @@ const App = () => (
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
-            <Route path="boardroom"        element={<Fishbowl />} />
+            <Route path="boardroom"        element={<Boardroom />} />
             <Route path="fishbowl"         element={<Navigate to="/admin/boardroom" replace />} />
           </Route>
           {/* Phase 2 auth surface */}
