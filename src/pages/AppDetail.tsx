@@ -53,7 +53,7 @@ const AppDetail = () => {
             </Link>
 
             <div className="flex items-center gap-3">
-              <AppIcon name={app.name} category={app.category} domain={app.domain} size={40} />
+              <AppIcon name={app.name} category={app.category} domain={app.domain} slug={app.slug} size={40} />
               <div>
                 <h2 className="text-xl font-semibold text-white">{app.name}</h2>
                 <p className="text-xs text-white/45">
