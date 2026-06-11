@@ -134,8 +134,12 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
     the MCP package suite (both required-check surfaces) plus build and
     brainmap gates; results recorded in the round-21 commit message.
   - Remaining phase-6 queue: UIPass browser-screenshot evidence on key
-    pages (needs a browser-capable seat), mobile pass, fresh dogfood
-    report regeneration after the next merge.
+    pages and the mobile pass. Verified blocked from this seat, not
+    assumed: Playwright 1.60.0 is installed but the container's network
+    policy refuses the Chromium download (npx playwright install fails
+    code=1; --with-deps fails on apt). Needs a browser-capable seat or a
+    network allowance. Fresh dogfood report regeneration runs after the
+    rounds 19-21 merge.
 
 - **2026-06-11 (round 20):** Connect page judgment copy. The success
   state says what actually happened ("Saved. Your AI can use {app} from
