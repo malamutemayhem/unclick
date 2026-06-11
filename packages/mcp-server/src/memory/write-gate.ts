@@ -264,6 +264,26 @@ export function scoreMemoryWriteSimilarity(left: string, right: string): number 
   return Math.max(phraseContainment, overlap * 0.7 + jaccard * 0.3);
 }
 
+/**
+ * Same-subject value change: the candidate swaps a small slot of the existing
+ * fact's tokens (e.g. "channel is alpha" -> "channel is beta"). This must
+ * supersede, never NOOP: a cool-down or semantic-duplicate NOOP here silently
+ * loses the newer value, which is the exact data-loss class the gate exists
+ * to prevent. A large token swap is a rewrite, not a value change, and still
+ * falls through to the duplicate heuristics.
+ */
+function isValueChange(candidate: FactInput, existing: MemoryWriteGateCandidate, similarity: number): boolean {
+  if (similarity >= 1 || similarity < WRITE_GATE_UPDATE_SIMILARITY) return false;
+  if (candidate.category !== existing.category) return false;
+  const candidateTokens = new Set(tokenizeMemoryWriteGateText(candidate.fact));
+  const existingTokens = new Set(tokenizeMemoryWriteGateText(existing.fact));
+  if (existingTokens.size < 3 || candidateTokens.size < 3) return false;
+  const replaced = [...existingTokens].filter((token) => !candidateTokens.has(token));
+  const added = [...candidateTokens].filter((token) => !existingTokens.has(token));
+  if (replaced.length === 0 || added.length === 0) return false;
+  return replaced.length / existingTokens.size <= 0.34;
+}
+
 function isExpansion(candidate: FactInput, existing: MemoryWriteGateCandidate, similarity: number): boolean {
   if (similarity < WRITE_GATE_UPDATE_SIMILARITY) return false;
   if (candidate.category !== existing.category) return false;
@@ -390,6 +410,17 @@ export function selectAdmissionDecision(
     return decision({
       action: "UPDATE",
       reason: "compatible_expansion",
+      candidate,
+      matched: best.candidate,
+      similarity: best.similarity,
+      admittedToFactStore: true,
+    });
+  }
+
+  if (best && isValueChange(candidate, best.candidate, best.similarity)) {
+    return decision({
+      action: "UPDATE",
+      reason: "value_change_supersede",
       candidate,
       matched: best.candidate,
       similarity: best.similarity,
