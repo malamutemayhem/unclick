@@ -13,8 +13,8 @@ vi.mock("@/components/FadeIn", () => ({
     React.createElement(React.Fragment, null, children),
 }));
 
-// The run console renders complete under reduced motion; force that path
-// so the test never races the sequencer timers.
+// Force the reduced-motion path so the page renders complete and the
+// test never races the typing or scroll-linked animation.
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = await importOriginal<typeof import("framer-motion")>();
   return { ...actual, useReducedMotion: () => true };
@@ -32,31 +32,51 @@ describe("HomePreview", () => {
   it("keeps the brand headline and the install path", () => {
     renderPage();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Every tool.One install.",
+      /Every tool\.\s*One install\./,
     );
     expect(screen.getAllByText("Get started").length).toBeGreaterThan(0);
     // The live install section ships unchanged on the preview.
     expect(document.getElementById("install")).not.toBeNull();
   });
 
-  it("plays a complete run in the console under reduced motion", () => {
+  it("runs one ask through all five stations", () => {
     renderPage();
-    expect(screen.getByText(/Fix the broken pricing link and ship it/)).toBeInTheDocument();
-    expect(screen.getByText("load_memory")).toBeInTheDocument();
-    expect(screen.getByText("XGate · ScopeGate")).toBeInTheDocument();
+    expect(screen.getAllByText(/ship the pricing fix/).length).toBeGreaterThan(0);
+    for (const headline of [
+      "It already knows how you work.",
+      "Nothing moves without a yes.",
+      "Every job leaves with a receipt.",
+      "It queues the next one itself.",
+    ]) {
+      expect(screen.getByText(headline)).toBeInTheDocument();
+    }
+    expect(screen.getByText(/endpoints\. One URL\./)).toBeInTheDocument();
   });
 
-  it("keeps all five product rails linked to their live routes", () => {
+  it("lands on the collective moat statement", () => {
     renderPage();
-    const links = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
-    for (const href of ["/tools", "/memory", "/admin/keychain", "/admin/autopilot", "/dogfood"]) {
-      expect(links, `expected a rail linking to ${href}`).toContain(href);
-    }
+    expect(screen.getByText("Each piece is replaceable.")).toBeInTheDocument();
+    expect(screen.getByText("The system isn't.")).toBeInTheDocument();
   });
 
   it("ships no invented latency or token claims in page copy", () => {
     const { container } = renderPage();
     expect(container.textContent).not.toMatch(/~[\d,]+ms|~[\d,]+ tokens/);
+  });
+
+  it("ships no pricing or free-tier talk of its own", () => {
+    // The shared InstallSection and FAQ own their copy; this guards the
+    // demo's own sections while the beta-neutral lane (#1453) is open.
+    renderPage();
+    const main = document.querySelector("main");
+    const isShared = (el: Element) =>
+      el.id === "install" ||
+      el.id === "faq" ||
+      el.querySelector("#install") !== null ||
+      el.querySelector("#faq") !== null;
+    const ownSections = Array.from(main?.children ?? []).filter((el) => !isShared(el));
+    const text = ownSections.map((el) => el.textContent ?? "").join(" ");
+    expect(text).not.toMatch(/free|credit card|pricing plan/i);
   });
 
   it("marks the preview noindex while it is a design sample", () => {

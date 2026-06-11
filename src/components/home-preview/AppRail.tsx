@@ -1,9 +1,11 @@
-import { SITE_STATS } from "@/config/site-stats";
+import "./preview.css";
 
 /**
  * AppRail: two slow counter-scrolling rows of real connector names,
- * masked at the edges. Communicates catalog scale in one glance.
- * Rows pause on hover and stand still under prefers-reduced-motion.
+ * masked at the edges. Communicates catalog scale in one glance; the
+ * station headline above it carries the numbers, so the strip itself
+ * stays wordless. Rows pause on hover and stand still under
+ * prefers-reduced-motion.
  */
 
 const ROW_A = [
@@ -38,10 +40,7 @@ function TickerRow({ names, variant }: { names: string[]; variant: "a" | "b" }) 
 
 export default function AppRail() {
   return (
-    <section aria-label="Connected apps" className="relative py-10">
-      <p className="mb-6 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-primary/70">
-        {SITE_STATS.ENDPOINTS_DISPLAY} callable endpoints · {SITE_STATS.TOOLS_DISPLAY} apps · one URL
-      </p>
+    <section aria-label="Connected apps" className="relative py-8">
       <div className="hp-ticker space-y-4 overflow-hidden">
         <TickerRow names={ROW_A} variant="a" />
         <TickerRow names={ROW_B} variant="b" />

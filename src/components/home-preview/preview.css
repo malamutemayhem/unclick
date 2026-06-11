@@ -4,8 +4,9 @@
    Everything here is namespaced hp- so it cannot leak into the
    live site. The demo keeps the navy + teal investor-deck canvas
    and pushes the grid motif further: a perspective floor in the
-   hero, blueprint crosshairs, and a slow app ticker. All motion
-   stops under prefers-reduced-motion.
+   hero, blueprint crosshairs, a slow app ticker, and the run rail
+   that carries one ask down the page. All motion stops under
+   prefers-reduced-motion.
    ============================================================ */
 
 /* Perspective floor grid: the hero "rails". A wide plane tilted
@@ -39,7 +40,7 @@
   to   { background-position: 0 56px, 0 56px; }
 }
 
-/* Blinking cursor for the console ask line. */
+/* Blinking cursor for the typed ask. */
 .hp-caret {
   display: inline-block;
   width: 8px;
@@ -59,7 +60,7 @@
   50% { opacity: 0; }
 }
 
-/* Live dot pulse on the console header. */
+/* Soft pulse for live dots and the scroll cue. */
 @media (prefers-reduced-motion: no-preference) {
   .hp-live-dot {
     animation: hp-pulse 1.8s ease-in-out infinite;
@@ -71,15 +72,16 @@
   60%      { box-shadow: 0 0 0 7px hsl(182 46% 57% / 0); }
 }
 
-/* Running spinner square (terminal flavored, not a circle). */
+/* Scroll cue nudge. */
 @media (prefers-reduced-motion: no-preference) {
-  .hp-running {
-    animation: hp-spin 0.9s steps(8) infinite;
+  .hp-cue {
+    animation: hp-nudge 2.2s ease-in-out infinite;
   }
 }
 
-@keyframes hp-spin {
-  to { transform: rotate(360deg); }
+@keyframes hp-nudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
 }
 
 /* App ticker rows. Each row holds its list twice for a seamless
@@ -106,27 +108,7 @@
   to   { transform: translateX(-50%); }
 }
 
-/* Bento spotlight: a teal radial that follows the pointer.
-   Coordinates are set as CSS vars from React. */
-.hp-spot {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  background: radial-gradient(
-    260px circle at var(--hp-x, 50%) var(--hp-y, 50%),
-    hsl(184 60% 70% / 0.12),
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.hp-card:hover .hp-spot {
-  opacity: 1;
-}
-
-/* Blueprint crosshair corners on bento cards and the console. */
+/* Blueprint crosshair corners on station cards. */
 .hp-cross {
   position: absolute;
   width: 9px;
