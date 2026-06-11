@@ -706,7 +706,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+        className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
       />
     </label>
   );
@@ -847,7 +847,7 @@ export default function AdminJobsmith() {
           </div>
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
             <div className="mb-3 flex items-center gap-2">
               <ClipboardCheck className="h-4 w-4 text-[#61C1C4]" />
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Readiness checks</p>
@@ -864,7 +864,7 @@ export default function AdminJobsmith() {
               ))}
             </div>
           </div>
-          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
             <div className="mb-3 flex items-center gap-2">
               <FileText className="h-4 w-4 text-fuchsia-300" />
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Portal guidance</p>
@@ -891,7 +891,7 @@ export default function AdminJobsmith() {
               <LinkIcon className="h-4 w-4 text-[#61C1C4]" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Job Source</h2>
             </div>
-            <div className="mb-4 grid grid-cols-3 overflow-hidden rounded-lg border border-white/[0.08] bg-black/20 p-1">
+            <div className="mb-4 grid grid-cols-3 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.03] p-1">
               {(["url", "paste", "notes"] as SourceMode[]).map((mode) => (
                 <button
                   key={mode}
@@ -926,7 +926,7 @@ export default function AdminJobsmith() {
                   value={draft.pastedDescription}
                   onChange={(event) => updateField("pastedDescription", event.target.value)}
                   rows={8}
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   placeholder="Paste the role description here."
                 />
               </label>
@@ -939,7 +939,7 @@ export default function AdminJobsmith() {
                   value={draft.manualNotes}
                   onChange={(event) => updateField("manualNotes", event.target.value)}
                   rows={6}
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   placeholder="Recruiter notes, pasted messages, or quick role context."
                 />
               </label>
@@ -977,7 +977,7 @@ export default function AdminJobsmith() {
                   className={`flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
                     draft.materials[key]
                       ? "border-[#61C1C4]/35 bg-[#61C1C4]/10 text-white"
-                      : "border-white/[0.08] bg-black/20 text-white/55"
+                      : "border-white/[0.08] bg-white/[0.03] text-white/55"
                   }`}
                 >
                   <input
@@ -1050,7 +1050,7 @@ export default function AdminJobsmith() {
                             ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200"
                             : isBlocked
                               ? "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#E2B93B]"
-                              : "border-white/[0.08] bg-black/20 text-white/45"
+                              : "border-white/[0.08] bg-white/[0.03] text-white/45"
                         }`}
                       >
                         {isBlocked ? <AlertTriangle className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
@@ -1067,7 +1067,7 @@ export default function AdminJobsmith() {
                         })
                       }
                       rows={2}
-                      className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                      className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                       placeholder="Draft one claim, then cite its source facts."
                     />
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -1078,7 +1078,7 @@ export default function AdminJobsmith() {
                           className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${
                             draft.claimSources[claimKey]?.includes(sourceKey)
                               ? "border-[#61C1C4]/35 bg-[#61C1C4]/10 text-white"
-                              : "border-white/[0.08] bg-black/20 text-white/55"
+                              : "border-white/[0.08] bg-white/[0.03] text-white/55"
                           }`}
                         >
                           <input
@@ -1114,7 +1114,7 @@ export default function AdminJobsmith() {
                   id="jobsmith-outcome-status"
                   value={draft.outcome.status}
                   onChange={(event) => updateOutcome("status", event.target.value as ApplicationOutcomeStatus)}
-                  className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#61C1C4]/45"
                 >
                   {(Object.keys(OUTCOME_LABELS) as ApplicationOutcomeStatus[]).map((status) => (
                     <option key={status} value={status} className="bg-white/[0.03] text-white">
@@ -1134,7 +1134,7 @@ export default function AdminJobsmith() {
                   value={draft.outcome.recruiterResponse}
                   onChange={(event) => updateOutcome("recruiterResponse", event.target.value)}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   placeholder="Reply, silence context, interview request, rejection note, or offer signal."
                 />
               </label>
@@ -1145,7 +1145,7 @@ export default function AdminJobsmith() {
                   value={draft.outcome.outcomeNotes}
                   onChange={(event) => updateOutcome("outcomeNotes", event.target.value)}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   placeholder="What worked, what failed, and what Jobsmith should learn."
                 />
               </label>
@@ -1156,27 +1156,27 @@ export default function AdminJobsmith() {
                   value={draft.outcome.nextActionOverride}
                   onChange={(event) => updateOutcome("nextActionOverride", event.target.value)}
                   rows={2}
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   placeholder="Optional custom next step."
                 />
               </label>
             </div>
             <div className="space-y-2" data-testid="jobsmith-outcome-summary">
-              <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <p className="text-xs font-medium text-white/45">Current status</p>
                 <p className="mt-1 text-sm font-semibold text-white">{outcomeSummary.label}</p>
               </div>
-              <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <p className="text-xs font-medium text-white/45">Evidence count</p>
                 <p className="mt-1 text-sm font-semibold text-white">
                   {outcomeSummary.evidenceCount} evidence item{outcomeSummary.evidenceCount === 1 ? "" : "s"}
                 </p>
               </div>
-              <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <p className="text-xs font-medium text-white/45">Next action</p>
                 <p className="mt-1 text-sm font-semibold text-white">{outcomeSummary.nextAction}</p>
               </div>
-              <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3 text-xs leading-5 text-white/55">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 text-xs leading-5 text-white/55">
                 <p>{outcomeSummary.sent ? "Sent application captured" : "Draft only"}</p>
                 <p>{outcomeSummary.postSend ? "Post-send outcome captured" : "Awaiting outcome"}</p>
               </div>
@@ -1193,7 +1193,7 @@ export default function AdminJobsmith() {
             </div>
             <div className="mb-4 grid gap-2 sm:grid-cols-2">
               {applicationPacket.summary.map((item) => (
-                <div key={item.label} className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+                <div key={item.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                   <p className="text-xs font-medium text-white/45">{item.label}</p>
                   <p className="mt-1 text-sm font-semibold text-white">{item.value}</p>
                 </div>
@@ -1218,7 +1218,7 @@ export default function AdminJobsmith() {
             >
               {applicationPacket.text}
             </pre>
-            <details className="mt-3 rounded-lg border border-white/[0.06] bg-black/20 p-3">
+            <details className="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
                 Structured Preview
               </summary>
@@ -1245,14 +1245,14 @@ export default function AdminJobsmith() {
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Manual Plan</h2>
             </div>
             <div className="mb-4 grid gap-3">
-              <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
                 <div>
                   <p className="text-sm font-semibold text-white">{textValue(draft.company, "Company")}</p>
                   <p className="text-xs text-white/45">{textValue(draft.role, "Role")}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#E2B93B]" />
                 <div>
                   <p className="text-sm font-semibold text-white">{textValue(draft.location, "Location")}</p>
