@@ -189,7 +189,7 @@ function stripNoisyLead(value: string): string {
     .trim();
 }
 
-function simplifyJobTitle(title: string): string {
+export function simplifyJobTitle(title: string): string {
   const cleaned = stripNoisyLead(title)
     .replace(/\bgreen-but-idle\b/gi, "idle")
     .replace(/\bauto[- ]close\b/gi, "auto-close")
@@ -247,7 +247,7 @@ function simplifyJobContext(todo: JobTodo): string {
   return cleaned || simplifyJobTitle(todo.title);
 }
 
-function displayCopyFor(todo: JobTodo): JobDisplayCopy {
+export function displayCopyFor(todo: JobTodo): JobDisplayCopy {
   return {
     title: simplifyJobTitle(todo.title),
     summary: simplifyJobSummary(todo),
@@ -278,7 +278,7 @@ function ownerLabel(todo: JobTodo): string {
     .replace(/\bAi\b/g, "AI");
 }
 
-function statusLabel(status: DisplayStatus): string {
+export function statusLabel(status: DisplayStatus): string {
   if (status === "needs_proof") return "needs proof";
   if (status === "in_progress") return "active";
   return status.replace("_", " ");
@@ -484,7 +484,7 @@ function jobSearchText(todo: JobTodo): string {
     .join(" ");
 }
 
-function matchesJobSearch(todo: JobTodo, query: string): boolean {
+export function matchesJobSearch(todo: JobTodo, query: string): boolean {
   const normalizedQuery = normalizeSearch(query);
   if (!normalizedQuery) return true;
 

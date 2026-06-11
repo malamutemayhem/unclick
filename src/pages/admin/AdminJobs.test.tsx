@@ -1,7 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminJobs, { JOBS_REFRESH_INTERVAL_MS } from "./AdminJobs";
+import AdminJobs, {
+  JOBS_REFRESH_INTERVAL_MS,
+  displayCopyFor,
+  matchesJobSearch,
+  simplifyJobTitle,
+  statusLabel,
+} from "./AdminJobs";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({
@@ -323,5 +329,47 @@ describe("AdminJobs", () => {
     expect(await screen.findByText("Completed second page job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).getByText("32/383")).toBeInTheDocument();
     expect(completedOffsets).toEqual([0, 100]);
+  });
+});
+
+describe("AdminJobs copy and search helpers (characterization)", () => {
+  const baseTodo = {
+    id: "todo-1",
+    title: "fix: unclick mcp wiring breaks ai seat routing",
+    description: "Scope: repair the seat router.\nProof: PR #1290 merged.",
+    status: "in_progress",
+    priority: "high",
+    created_by_agent_id: "claude-code-builder",
+    assigned_to_agent_id: "claude-code-builder",
+    created_at: "2026-06-10T00:00:00Z",
+    updated_at: "2026-06-10T01:00:00Z",
+  } as Parameters<typeof displayCopyFor>[0];
+
+  it("simplifyJobTitle uppercases product names and rewrites dependency bumps", () => {
+    expect(simplifyJobTitle("bump vitest from 4.1.7 to 4.1.8")).toBe("Update vitest to 4.1.8");
+    expect(simplifyJobTitle("unclick mcp wiring for ai seats")).toContain("UnClick MCP");
+    expect(simplifyJobTitle("unclick mcp wiring for ai seats")).toContain("AI");
+  });
+
+  it("displayCopyFor always produces non-empty plain-English title, summary, and context", () => {
+    const copy = displayCopyFor(baseTodo);
+    expect(copy.title.length).toBeGreaterThan(0);
+    expect(copy.summary.length).toBeGreaterThan(0);
+    expect(copy.context.length).toBeGreaterThan(0);
+    expect(copy.title).toContain("UnClick");
+  });
+
+  it("matchesJobSearch finds tokens, prefixes, compact forms, and stays permissive on empty queries", () => {
+    expect(matchesJobSearch(baseTodo, "")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "seat routing")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "rout")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "claudecode")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "zebra quantum")).toBe(false);
+  });
+
+  it("statusLabel speaks plain English for display states", () => {
+    expect(statusLabel("needs_proof")).toBe("needs proof");
+    expect(statusLabel("in_progress")).toBe("active");
+    expect(statusLabel("open")).toBe("open");
   });
 });

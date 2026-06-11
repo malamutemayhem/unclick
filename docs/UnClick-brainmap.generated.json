@@ -15871,8 +15871,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "5960d9780504",
-      "bytes": 64066
+      "hash": "f71137a020fc",
+      "bytes": 64094
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -15881,8 +15881,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "a2f58cbc6310",
-      "bytes": 78318
+      "hash": "d743c17f4412",
+      "bytes": 78086
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",

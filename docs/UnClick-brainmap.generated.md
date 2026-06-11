@@ -101,9 +101,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 53d4116c6739 | 5945 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
-| src/pages/admin/AdminJobs.tsx | 5960d9780504 | 64066 |
+| src/pages/admin/AdminJobs.tsx | f71137a020fc | 64094 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | a2f58cbc6310 | 78318 |
+| src/pages/admin/AdminKeychain.tsx | d743c17f4412 | 78086 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
