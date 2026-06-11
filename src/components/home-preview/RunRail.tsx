@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { SITE_STATS } from "@/config/site-stats";
 import { cn } from "@/lib/utils";
 import AppRail from "@/components/home-preview/AppRail";
 
@@ -30,13 +29,15 @@ import AppRail from "@/components/home-preview/AppRail";
  * prefers-reduced-motion everything renders complete and still.
  */
 
-export const ASK = "ship the pricing fix";
+/* The ask is deliberately vague ("that invoice"); station one shows
+   memory resolving it to Acme, which is the point of memory. */
+export const ASK = "Chase that overdue invoice";
 
 /* Rail x-position: left edge on small screens, centered from lg up. */
 const RAIL_X = "left-5 lg:left-1/2 lg:-translate-x-1/2";
 
 function MemoryVignette() {
-  const facts = ["drafts first, never straight to main", "the palette is navy + teal"];
+  const facts = ["the overdue one is Acme, net-30 terms", "friendly tone, firm on dates"];
   return (
     <div className="space-y-2">
       {facts.map((fact, i) => (
@@ -62,8 +63,8 @@ function GateVignette() {
     <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.05] px-3.5 py-2.5">
       <div className="flex items-center gap-2.5 font-mono text-[12px]">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-amber-300/90" />
-        <span className="text-amber-200/90">ScopeGate</span>
-        <span className="truncate text-amber-100/60">approved · repo in scope</span>
+        <span className="text-amber-200/90">permission check</span>
+        <span className="truncate text-amber-100/60">allowed · invoices and email only</span>
         <motion.span
           initial={{ scale: 0, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
@@ -79,9 +80,9 @@ function GateVignette() {
 }
 
 const CALLS = [
-  { name: "github_action", detail: "branch + patch + draft PR", ms: 412 },
-  { name: "vercel_create_deployment", detail: "preview build", ms: 688 },
-  { name: "post_message", detail: "update to Boardroom", ms: 47 },
+  { app: "Xero", action: "found the Acme invoice" },
+  { app: "Gmail", action: "sent a polite reminder" },
+  { app: "Boardroom", action: "kept a note of it" },
 ];
 
 function AppsVignette() {
@@ -89,17 +90,22 @@ function AppsVignette() {
     <div className="space-y-1.5">
       {CALLS.map((call, i) => (
         <motion.div
-          key={call.name}
+          key={call.app}
           initial={{ opacity: 0, x: -10 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.35, delay: 0.15 + i * 0.18 }}
-          className="flex items-center gap-2.5 rounded-lg border border-white/[0.07] bg-[#06202c]/70 px-3.5 py-2 font-mono text-[12px]"
+          className="flex items-center gap-2.5 rounded-lg border border-white/[0.07] bg-[#06202c]/70 px-3.5 py-2 text-[13px]"
         >
-          <Check className="h-3 w-3 shrink-0 text-primary/80" />
-          <span className="shrink-0 text-heading/90">{call.name}</span>
-          <span className="truncate text-muted-foreground/80">{call.detail}</span>
-          <span className="ml-auto shrink-0 tabular-nums text-primary/60">{call.ms}ms</span>
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-primary/25 bg-primary/[0.08] font-mono text-[10px] font-bold text-primary"
+            aria-hidden="true"
+          >
+            {call.app[0]}
+          </span>
+          <span className="shrink-0 font-semibold text-heading">{call.app}</span>
+          <span className="truncate text-body/80">{call.action}</span>
+          <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-primary" />
         </motion.div>
       ))}
     </div>
@@ -109,8 +115,8 @@ function AppsVignette() {
 function ReceiptVignette({ reduced }: { reduced: boolean }) {
   return (
     <div className="relative rounded-lg border border-primary/30 bg-primary/[0.06] p-3.5 pr-24">
-      <p className="font-mono text-[12px] leading-5 text-body">draft PR opened, preview green</p>
-      <p className="font-mono text-[12px] leading-5 text-body">signed receipt in Ledger</p>
+      <p className="font-mono text-[12px] leading-5 text-body">reminder sent, follow-up booked</p>
+      <p className="font-mono text-[12px] leading-5 text-body">receipt saved for you</p>
       <motion.div
         initial={reduced ? false : { scale: 1.9, opacity: 0, rotate: 4 }}
         whileInView={{ scale: 1, opacity: 1, rotate: -6 }}
@@ -128,9 +134,9 @@ function ReceiptVignette({ reduced }: { reduced: boolean }) {
 }
 
 const JOBS = [
-  { name: "pricing fix", state: "proved" },
-  { name: "rotate stale API key", state: "running" },
-  { name: "weekly memory digest", state: "queued" },
+  { name: "chase Acme invoice", state: "done" },
+  { name: "send Monday's report", state: "running" },
+  { name: "follow up in 3 days", state: "queued" },
 ] as const;
 
 function AutopilotVignette() {
@@ -149,7 +155,7 @@ function AutopilotVignette() {
           <span
             className={cn(
               "ml-3 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
-              job.state === "proved" && "bg-primary/15 text-primary",
+              job.state === "done" && "bg-primary/15 text-primary",
               job.state === "running" && "bg-amber-400/15 text-amber-300",
               job.state === "queued" && "bg-white/[0.06] text-muted-foreground",
             )}
@@ -177,26 +183,26 @@ const STATIONS: StationDef[] = [
     vignette: () => <MemoryVignette />,
   },
   {
-    id: "xgate",
-    label: "xgate",
+    id: "permission",
+    label: "permission",
     headline: "Nothing moves without a yes.",
     vignette: () => <GateVignette />,
   },
   {
     id: "apps",
     label: "apps",
-    headline: `${SITE_STATS.ENDPOINTS_DISPLAY} endpoints. One URL.`,
+    headline: "Every app you already use.",
     vignette: () => <AppsVignette />,
   },
   {
-    id: "xpass",
-    label: "xpass · ledger",
+    id: "proof",
+    label: "proof",
     headline: "Every job leaves with a receipt.",
     vignette: (reduced) => <ReceiptVignette reduced={reduced} />,
   },
   {
     id: "autopilot",
-    label: "autopilot · boardroom · orchestrator",
+    label: "autopilot",
     headline: "It queues the next one itself.",
     vignette: () => <AutopilotVignette />,
   },
@@ -260,7 +266,7 @@ function Station({
 /** Closing seal: the five stations drawn as one connected circuit. */
 function MoatSeal() {
   const reduced = useReducedMotion() ?? false;
-  const labels = ["memory", "gates", "apps", "proof", "autopilot"];
+  const labels = ["memory", "permission", "apps", "proof", "autopilot"];
   const cx = 160;
   const cy = 160;
   const r = 118;
@@ -448,7 +454,7 @@ export default function RunRail() {
             </span>
           </h2>
           <p className="mx-auto mt-5 max-w-md text-body">
-            Memory, gates, apps, proof, autopilot. One layer your AI plugs into.
+            Memory, permission, apps, proof, autopilot. One layer your AI plugs into.
           </p>
           <MoatSeal />
         </motion.div>

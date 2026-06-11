@@ -41,16 +41,24 @@ describe("HomePreview", () => {
 
   it("runs one ask through all five stations", () => {
     renderPage();
-    expect(screen.getAllByText(/ship the pricing fix/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Chase that overdue invoice/).length).toBeGreaterThan(0);
     for (const headline of [
       "It already knows how you work.",
       "Nothing moves without a yes.",
+      "Every app you already use.",
       "Every job leaves with a receipt.",
       "It queues the next one itself.",
     ]) {
       expect(screen.getByText(headline)).toBeInTheDocument();
     }
-    expect(screen.getByText(/endpoints\. One URL\./)).toBeInTheDocument();
+  });
+
+  it("speaks plainly: no endpoint ids or internal product jargon in the run", () => {
+    renderPage();
+    const run = document.querySelector('[aria-label="One ask travelling the UnClick rails"]');
+    const text = run?.textContent ?? "";
+    expect(text).not.toMatch(/xero_invoices|email_send|post_message|_/);
+    expect(text).not.toMatch(/XGate|XPass|ScopeGate|Orchestrator/i);
   });
 
   it("lands on the collective moat statement", () => {

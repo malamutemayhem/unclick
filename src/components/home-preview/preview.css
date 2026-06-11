@@ -100,6 +100,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .hp-ticker-row-a { animation: hp-scroll 56s linear infinite; }
   .hp-ticker-row-b { animation: hp-scroll 72s linear infinite reverse; }
+  .hp-ticker-row-c { animation: hp-scroll 64s linear infinite; }
   .hp-ticker:hover .hp-ticker-row { animation-play-state: paused; }
 }
 

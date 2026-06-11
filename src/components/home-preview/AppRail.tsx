@@ -1,11 +1,10 @@
+import { SITE_STATS } from "@/config/site-stats";
 import "./preview.css";
 
 /**
- * AppRail: two slow counter-scrolling rows of real connector names,
- * masked at the edges. Communicates catalog scale in one glance; the
- * station headline above it carries the numbers, so the strip itself
- * stays wordless. Rows pause on hover and stand still under
- * prefers-reduced-motion.
+ * AppRail: three slow counter-scrolling rows of real connector names,
+ * masked at the edges, with one plain-English scale line. Rows pause
+ * on hover and stand still under prefers-reduced-motion.
  */
 
 const ROW_A = [
@@ -20,7 +19,13 @@ const ROW_B = [
   "Asana", "Datadog", "Supabase", "ElevenLabs",
 ];
 
-function TickerRow({ names, variant }: { names: string[]; variant: "a" | "b" }) {
+const ROW_C = [
+  "Airtable", "Dropbox", "Todoist", "Zendesk", "Intercom", "Miro", "Coda",
+  "Webflow", "WordPress", "Square", "Wise", "Typeform", "Pinterest",
+  "Bluesky", "Mastodon", "Twitch", "PagerDuty", "Klaviyo",
+];
+
+function TickerRow({ names, variant }: { names: string[]; variant: "a" | "b" | "c" }) {
   const doubled = [...names, ...names];
   return (
     <div className={`hp-ticker-row hp-ticker-row-${variant}`}>
@@ -44,7 +49,11 @@ export default function AppRail() {
       <div className="hp-ticker space-y-4 overflow-hidden">
         <TickerRow names={ROW_A} variant="a" />
         <TickerRow names={ROW_B} variant="b" />
+        <TickerRow names={ROW_C} variant="c" />
       </div>
+      <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-primary/70">
+        {SITE_STATS.ENDPOINTS_DISPLAY} actions · {SITE_STATS.TOOLS_DISPLAY} apps · one connection
+      </p>
     </section>
   );
 }

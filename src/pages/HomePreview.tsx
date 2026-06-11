@@ -49,14 +49,19 @@ function TypedAsk() {
     return () => window.clearTimeout(start);
   }, [reduced]);
 
+  // A chat bubble, not a terminal: this is something you say to your
+  // AI. Right-aligned with a tail, like every messaging app.
   return (
-    <div className="mx-auto inline-flex items-center gap-2.5 rounded-xl border border-[#86dadd]/20 bg-[#071e29]/90 px-5 py-3.5 shadow-[0_24px_70px_-28px_rgba(0,0,0,0.85),0_0_50px_-20px_rgba(97,193,196,0.45)] backdrop-blur-md">
-      <span className="hp-live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-      <span className="font-mono text-sm text-primary/70">you ›</span>
-      <span className="font-mono text-sm text-heading sm:text-base">
-        {ASK.slice(0, chars)}
-        {!done && <span className="hp-caret" aria-hidden="true" />}
+    <div className="mx-auto flex w-full max-w-sm flex-col items-end gap-1.5">
+      <span className="pr-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+        you, to your AI
       </span>
+      <div className="rounded-2xl rounded-br-md border border-primary/35 bg-primary/[0.12] px-5 py-3 text-left shadow-[0_24px_70px_-28px_rgba(0,0,0,0.85),0_0_50px_-22px_rgba(97,193,196,0.4)] backdrop-blur-md">
+        <span className="text-base text-heading sm:text-lg">
+          {ASK.slice(0, chars)}
+          {!done && <span className="hp-caret" aria-hidden="true" />}
+        </span>
+      </div>
     </div>
   );
 }
@@ -145,7 +150,7 @@ const HomePreview = () => {
                   className="inline-flex flex-col items-center gap-1 font-mono text-[10px] uppercase tracking-[0.24em] text-primary/60"
                   aria-hidden="true"
                 >
-                  follow the run
+                  watch what happens
                   <ChevronDown className="hp-cue h-3.5 w-3.5" />
                 </motion.span>
               </div>
