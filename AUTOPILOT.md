@@ -109,6 +109,15 @@ Enforcement path:
 - Phase 2: enforce completed Passes only. A missing incomplete Pass is a recorded skip, not a blocker.
 - Phase 3: enforce all relevant completed Passes before merge for Autopilot, admin UI, public pages, tools/connectors, and security-sensitive surfaces.
 
+**Current phase: Phase 2 (operator-approved 2026-06-11).** For passes with a
+stable runner (TestPass, UXPass, FlowPass, SecurityPass, CopyPass,
+FidelityPass, SEOPass, GEOPass, LegalPass, CompliancePass, CommonSensePass,
+SlopPass), a BLOCKER receipt on the current head SHA stops the merge unless
+the operator explicitly overrides. Passes without a runner (UIPass) or
+boundary-only passes (WakePass, RotatePass) remain recorded skips, never
+silent passes. Use `xpass_aggregated_verdict` with `available_checks` to
+compute the gate.
+
 This project should bias toward fixing real user-visible confusion over inventing new dashboards. When in doubt, dogfood the current product, write down the friction, and ship the smallest improvement that removes it.
 
 ## Autonomy Tiers

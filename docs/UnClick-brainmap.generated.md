@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 18863a2e935a | 18077 |
+| AUTOPILOT.md | 969ddb05e2d3 | 18609 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
 | docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
@@ -30,7 +30,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 5fe8ef28e93c | 1882 |
+| .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
 | package.json | 0946c1ef23c5 | 7326 |
@@ -237,7 +237,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/secret-scan.yml | 437fe35aa550 | 1158 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
+| .github/workflows/testpass-pr-check.yml | ab425e8d32b7 | 20467 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
 | .github/workflows/tier2-rollback.yml | 1468c05586fb | 1495 |

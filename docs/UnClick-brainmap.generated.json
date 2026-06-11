@@ -15475,8 +15475,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "18863a2e935a",
-      "bytes": 18077
+      "hash": "969ddb05e2d3",
+      "bytes": 18609
     },
     {
       "source": "FLEET_SYNC.md",
@@ -15560,8 +15560,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "5fe8ef28e93c",
-      "bytes": 1882
+      "hash": "ee6e7f0dd609",
+      "bytes": 2047
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -16595,8 +16595,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "bca601f0a1c2",
-      "bytes": 20251
+      "hash": "ab425e8d32b7",
+      "bytes": 20467
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
