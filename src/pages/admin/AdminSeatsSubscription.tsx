@@ -1,3 +1,4 @@
+import { relativeTime } from "@/lib/relativeTime";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -144,21 +145,13 @@ function getApiKey(): string {
   }
 }
 
-function formatRelative(iso: string | null): string {
-  if (!iso) return "never";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
+const formatRelative = (iso: string | null) => relativeTime(iso, { justNow: true });
 
-function planStatus(connection: ConnectionStatus | null): string {
+function planStatus(connection: ConnectionStatus | null, platformName?: string): string {
   if (!connection?.connected) return "Unknown until connected";
-  return "Plan not exposed by provider API";
+  // Providers do not expose plan details over their APIs, so the honest
+  // answer is to point at the one place that knows.
+  return platformName ? `Check your ${platformName} account for plan details` : "Check your provider account for plan details";
 }
 
 export default function AdminSeatsSubscription() {
@@ -387,7 +380,7 @@ export default function AdminSeatsSubscription() {
                 </p>
                 <p className="mt-3 text-[11px] uppercase tracking-wider text-white/35">Plan</p>
                 <p className="mt-1 text-xs text-white/70">
-                  {item === platform ? planStatus(connection) : "Select to inspect"}
+                  {item === platform ? planStatus(connection, platformLabel(item)) : "Select to inspect"}
                 </p>
               </button>
             );
@@ -553,8 +546,9 @@ export default function AdminSeatsSubscription() {
             </div>
             <div className="rounded-md border border-white/[0.06] bg-white/[0.02] p-3">
               <p className="text-white/70">
-                {connectedCount} subscription platform connected through UnClick. More platforms can
-                use the same MCP server once the provider app is configured.
+                {platformLabel(platform)} is {connectedCount === 1 ? "connected" : "not connected"} through
+                UnClick. This status covers the selected platform only; other platforms can use the same
+                MCP server once their provider app is configured.
               </p>
             </div>
           </div>

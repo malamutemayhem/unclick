@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1109,
+    "inventory": 1107,
     "source_manifest": 227,
     "pages": 94,
     "tools": 672,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 138
+      "count": 136
     },
     {
       "id": "launch-and-onboarding",
@@ -2132,16 +2132,6 @@
       "tags": []
     },
     {
-      "id": "modules-and-apps-component-admin-settings-src-pages-adminsettings-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Admin Settings",
-      "kind": "component",
-      "meaning": "Account and admin configuration.",
-      "source": "src/pages/AdminSettings.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
       "id": "modules-and-apps-component-admin-xpass-hub-src-pages-admin-adminxpasshub-tsx-no-route",
       "division": "Modules and apps",
       "name": "Admin XPass Hub",
@@ -2318,16 +2308,6 @@
       "kind": "component",
       "meaning": "Memory admin panel for Memory Activity Tab.",
       "source": "src/pages/admin/memory/MemoryActivityTab.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "modules-and-apps-component-memory-admin-src-pages-memoryadmin-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Memory Admin",
-      "kind": "component",
-      "meaning": "User-facing page for Memory Admin.",
-      "source": "src/pages/MemoryAdmin.tsx",
       "route": "",
       "tags": []
     },
@@ -15761,8 +15741,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "87bc594da785",
-      "bytes": 1598
+      "hash": "6ba14c5445bf",
+      "bytes": 1542
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -15781,28 +15761,28 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "fe9d0fede6a8",
-      "bytes": 39375
+      "hash": "9356d99ba1e3",
+      "bytes": 37675
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "f9548c19ddab",
-      "bytes": 11641
+      "hash": "78d5057027a1",
+      "bytes": 11750
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "a201c1e119a8",
-      "bytes": 37417
+      "hash": "720301565c67",
+      "bytes": 37209
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "hash": "57262eb562b5",
-      "bytes": 25229
+      "hash": "8511bc4559db",
+      "bytes": 25328
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "681342e77f86",
-      "bytes": 49250
+      "hash": "a37a2518aa57",
+      "bytes": 49158
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15821,8 +15801,8 @@
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
-      "hash": "947f6c4d8c10",
-      "bytes": 877
+      "hash": "905775a1985d",
+      "bytes": 1446
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
@@ -15831,8 +15811,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "765ac778242e",
-      "bytes": 12112
+      "hash": "a43f559b89c3",
+      "bytes": 13821
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -15841,8 +15821,8 @@
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "076fd12c1831",
-      "bytes": 37563
+      "hash": "60a5f41934b7",
+      "bytes": 37150
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
@@ -15861,8 +15841,8 @@
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
-      "hash": "cd0198794cbc",
-      "bytes": 13912
+      "hash": "2d65d1f907b8",
+      "bytes": 13908
     },
     {
       "source": "src/pages/admin/crews/CrewRun.tsx",
@@ -15881,18 +15861,18 @@
     },
     {
       "source": "src/pages/admin/crews/CrewsCatalog.tsx",
-      "hash": "089b6c00af2e",
-      "bytes": 5949
+      "hash": "53d4116c6739",
+      "bytes": 5945
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "c6c9093d733d",
-      "bytes": 5303
+      "hash": "e38f909e6d5b",
+      "bytes": 7090
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "5417b324cff7",
-      "bytes": 64232
+      "hash": "f71137a020fc",
+      "bytes": 64094
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -15901,8 +15881,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "982902265fb2",
-      "bytes": 77151
+      "hash": "d743c17f4412",
+      "bytes": 78086
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -15926,8 +15906,8 @@
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
-      "hash": "4dce3c986684",
-      "bytes": 21769
+      "hash": "c57ce13fa82d",
+      "bytes": 21866
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
@@ -15936,7 +15916,7 @@
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
-      "hash": "79f83645f7c9",
+      "hash": "2b6087890e54",
       "bytes": 10264
     },
     {
@@ -15946,13 +15926,13 @@
     },
     {
       "source": "src/pages/admin/signals/SignalsCatalog.tsx",
-      "hash": "f5332dd8f38e",
-      "bytes": 10865
+      "hash": "5bbc2fe8c321",
+      "bytes": 10370
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",
-      "hash": "4ddaaf1282db",
-      "bytes": 870
+      "hash": "00a2e7a8cd3e",
+      "bytes": 1421
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
@@ -16021,8 +16001,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "ebf2c68ad6c3",
-      "bytes": 29590
+      "hash": "0bff27f46d0d",
+      "bytes": 29617
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -16091,7 +16071,7 @@
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "c46cb67d413e",
+      "hash": "732d0646c356",
       "bytes": 19854
     },
     {
@@ -16101,8 +16081,8 @@
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "e2d14ccf9af9",
-      "bytes": 13179
+      "hash": "4fdcf1fa25d2",
+      "bytes": 13105
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -16111,8 +16091,8 @@
     },
     {
       "source": "src/pages/Pricing.tsx",
-      "hash": "0830c034b4a3",
-      "bytes": 8753
+      "hash": "b9834637502c",
+      "bytes": 8724
     },
     {
       "source": "src/pages/Privacy.tsx",

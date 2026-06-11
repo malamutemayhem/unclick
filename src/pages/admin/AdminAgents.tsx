@@ -2,6 +2,7 @@
  * AdminAgents manages connected AI seat capacity.
  */
 
+import { relativeTime as relativeTimeBase } from "@/lib/relativeTime";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -88,30 +89,30 @@ const COMPUTE_TIER_SUMMARIES: ComputeTierSummary[] = [
     href: "/admin/agents/api",
     icon: KeyRound,
     accentClass: "border-sky-400/30 bg-sky-400/10 text-sky-300",
-    countLabel: "0 active providers",
-    metricLabel: "No spend tracked",
-    detailLabel: "0 tokens this month",
-    statusLabel: "Not configured",
+    countLabel: "Your own provider keys",
+    metricLabel: "Route AI calls using your own API keys (GPT, Claude, Gemini, and more).",
+    detailLabel: "Live provider health and usage are shown inside.",
+    statusLabel: "Open to inspect",
   },
   {
     title: "Local",
     href: "/admin/agents/local",
     icon: Cpu,
     accentClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
-    countLabel: "0 local endpoints",
-    metricLabel: "No model active",
-    detailLabel: "0 queries/hr",
-    statusLabel: "Not configured",
+    countLabel: "Models on your hardware",
+    metricLabel: "Run open models with Ollama on your own machine.",
+    detailLabel: "Live endpoint and model status are shown inside.",
+    statusLabel: "Open to inspect",
   },
   {
     title: "Subscription",
     href: "/admin/agents/subscription",
     icon: CreditCard,
     accentClass: "border-amber-400/30 bg-amber-400/10 text-amber-300",
-    countLabel: "0 platforms",
-    metricLabel: "No subscription linked",
-    detailLabel: "Connect Claude, ChatGPT, Cursor, or Copilot",
-    statusLabel: "Not configured",
+    countLabel: "Interactive chat seats",
+    metricLabel: "Use the Claude, ChatGPT, Cursor, or Copilot plans you already pay for.",
+    detailLabel: "Connection status per platform is shown inside.",
+    statusLabel: "Open to inspect",
   },
 ];
 
@@ -166,7 +167,7 @@ const AI_SEATS: AISeat[] = [
     emoji: "💻",
     provider: "Unknown AI",
     device: "Unknown device",
-    status: "Ready",
+    status: "Standby",
     state: "Cycle-share capacity",
     load: 25,
     assigned: "General capacity",
@@ -179,7 +180,7 @@ const AI_SEATS: AISeat[] = [
     emoji: "💻",
     provider: "Unknown AI",
     device: "Unknown device",
-    status: "Ready",
+    status: "Standby",
     state: "Cycle-share capacity",
     load: 25,
     assigned: "General capacity",
@@ -192,7 +193,7 @@ const AI_SEATS: AISeat[] = [
     emoji: "💻",
     provider: "Unknown AI",
     device: "Unknown device",
-    status: "Ready",
+    status: "Standby",
     state: "Cycle-share capacity",
     load: 25,
     assigned: "General capacity",
@@ -205,7 +206,7 @@ const AI_SEATS: AISeat[] = [
     emoji: "💻",
     provider: "Unknown AI",
     device: "Unknown device",
-    status: "Ready",
+    status: "Standby",
     state: "Cycle-share capacity",
     load: 25,
     assigned: "General capacity",
@@ -232,25 +233,14 @@ function loadSeatOverrides(): AISeat[] {
   return loadSeatOverridesFromStorage(AI_SEATS);
 }
 
+const relativeTimeShared = (iso: string | null | undefined) =>
+  relativeTimeBase(iso, { emptyLabel: "No check-in yet" });
+
 function getApiKey(): string {
   if (typeof window === "undefined") return "";
   return window.localStorage.getItem("unclick_api_key") ?? "";
 }
 
-function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return "No check-in yet";
-  const then = new Date(iso).getTime();
-  if (!Number.isFinite(then)) return "Unknown";
-  const diffSec = Math.max(1, Math.floor((Date.now() - then) / 1000));
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 14) return `${diffDay}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 async function api<T>(action: string, opts: RequestInit = {}, authToken = getApiKey()): Promise<T> {
   const headers: Record<string, string> = {
@@ -371,7 +361,7 @@ function AISeatsPanel() {
       ? "Checking live seats..."
       : profiles.length > 0
         ? `${profiles.length} live check-in${profiles.length === 1 ? "" : "s"} loaded`
-        : "No live seat check-ins loaded yet";
+        : "No live seat check-ins loaded yet. A check-in appears when an AI seat loads UnClick memory at the start of a session.";
 
   const loadProfiles = useCallback(async () => {
     if (sessionLoading) return;
@@ -585,7 +575,7 @@ function AISeatsPanel() {
                   {matchedProfile && matchedCheckInAt ? (
                     <>
                       <p className="truncate text-xs font-medium text-heading" title={matchedProfile.agent_id}>
-                        {relativeTime(matchedCheckInAt)}
+                        {relativeTimeShared(matchedCheckInAt)}
                       </p>
                       <p className="truncate text-[10px] text-muted-foreground">
                         {profileDisplayName(matchedProfile)}
@@ -680,7 +670,7 @@ function AISeatsPanel() {
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium text-heading" title={profile.agent_id}>
-                    {relativeTime(checkedInAt)}
+                    {relativeTimeShared(checkedInAt)}
                   </p>
                   <p className="truncate text-[10px] text-muted-foreground">
                     {profile.current_status ? "Status updated" : "Checked in"}

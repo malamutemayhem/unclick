@@ -23,6 +23,17 @@
  * Backend: /api/backstagepass?action={list,reveal,update,delete,audit}
  */
 
+import { relativeTime } from "@/lib/relativeTime";
+import {
+  copySecretWithExpiry,
+  credentialHealth,
+  expiredReveals,
+  exportPasswordStrength,
+  maskValue,
+  daysSince,
+  ROTATION_WARNING_DAYS,
+  type CredentialHealthStatus,
+} from "./keychainHelpers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
@@ -37,6 +48,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  ChevronDown,
   RefreshCw,
   RotateCw,
   Search,
@@ -139,21 +151,6 @@ interface Credential {
   } | null;
 }
 
-type CredentialHealthStatus = "healthy" | "untested" | "failing" | "stale" | "needs_rotation";
-
-// Rotation-reminder threshold. Credentials whose last_rotated_at is
-// older than this show an inline warning pill in the admin list. Kept
-// as a module constant so it is easy to find and tune.
-const ROTATION_WARNING_DAYS = 90;
-const STALE_TEST_DAYS = 30;
-
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.floor((Date.now() - t) / 86_400_000);
-}
-
 interface AuditEntry {
   id:            string;
   action:        string;
@@ -169,17 +166,7 @@ interface AuditEntry {
 
 // Helpers
 
-function timeAgo(iso: string | null): string {
-  if (!iso) return "never";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1)  return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
+const timeAgo = (iso: string | null) => relativeTime(iso, { justNow: true });
 
 function readLocalApiKey(): string | null {
   try {
@@ -188,35 +175,6 @@ function readLocalApiKey(): string | null {
   } catch {
     return null;
   }
-}
-
-function maskValue(v: string): string {
-  if (v.length <= 8) return "•".repeat(Math.max(v.length, 4));
-  return `${v.slice(0, 4)}${"•".repeat(8)}${v.slice(-4)}`;
-}
-
-function daysUntil(iso: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.ceil((t - Date.now()) / 86_400_000);
-}
-
-function credentialHealth(cred: Credential): CredentialHealthStatus {
-  if (cred.health_status) return cred.health_status;
-
-  const expiresIn = daysUntil(cred.expires_at);
-  if (expiresIn !== null && expiresIn <= 14) return "needs_rotation";
-
-  const rotationAge = daysSince(cred.last_rotated_at);
-  if (rotationAge !== null && rotationAge >= ROTATION_WARNING_DAYS) return "needs_rotation";
-
-  if (!cred.is_valid) return "failing";
-
-  const testAge = daysSince(cred.last_tested_at);
-  if (testAge === null) return "untested";
-  if (testAge >= STALE_TEST_DAYS) return "stale";
-  return "healthy";
 }
 
 export function credentialLastCheckDisplay(cred: Pick<Credential, "last_checked_at" | "last_tested_at" | "supports_connection_test">): {
@@ -395,7 +353,7 @@ export default function AdminKeychain() {
       const body = await res.json();
       setCredentials(body.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Passport");
+      setError(scrubInternalNames(err instanceof Error ? err.message : "Failed to load Passport"));
     } finally {
       setLoading(false);
     }
@@ -453,11 +411,7 @@ export default function AdminKeychain() {
   // reset the timer for an already-revealed one.
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      const now = Date.now();
-      const expired: string[] = [];
-      for (const [id, at] of Object.entries(revealedAtRef.current)) {
-        if (now - at >= 60_000) expired.push(id);
-      }
+      const expired = expiredReveals(revealedAtRef.current, Date.now());
       if (expired.length === 0) return;
       setRevealed((prev) => {
         const next = { ...prev };
@@ -569,9 +523,18 @@ export default function AdminKeychain() {
     }
   }
 
+  /** Server errors can echo internal route names; users should only see Passport. */
+  function scrubInternalNames(message: string): string {
+    return message.replace(/backstagepass/gi, "Passport");
+  }
+
   async function copyToClipboard(field: string, value: string) {
     try {
-      await navigator.clipboard.writeText(value);
+      await copySecretWithExpiry(
+        value,
+        (text) => navigator.clipboard.writeText(text),
+        (fn, ms) => window.setTimeout(fn, ms),
+      );
       setCopiedField(field);
       window.setTimeout(() => setCopiedField((c) => (c === field ? null : c)), 2_000);
     } catch {
@@ -637,18 +600,6 @@ export default function AdminKeychain() {
     }
   }
 
-  function exportPasswordStrength(pw: string): { label: string; color: string } {
-    if (pw.length < 12) return { label: "Weak",   color: "bg-red-500" };
-    const hasUpper  = /[A-Z]/.test(pw);
-    const hasLower  = /[a-z]/.test(pw);
-    const hasDigit  = /[0-9]/.test(pw);
-    const hasSymbol = /[^A-Za-z0-9]/.test(pw);
-    const variety   = [hasUpper, hasLower, hasDigit, hasSymbol].filter(Boolean).length;
-    if (pw.length >= 16 && variety >= 3) return { label: "Strong", color: "bg-green-500" };
-    if (pw.length >= 12 && variety >= 2) return { label: "Good",   color: "bg-[#E2B93B]" };
-    return { label: "Weak", color: "bg-red-500" };
-  }
-
   const credentialByPlatform = useMemo(() => {
     const map = new Map<string, Credential>();
     for (const cred of credentials) {
@@ -700,22 +651,11 @@ export default function AdminKeychain() {
         <div>
           <h1 className="text-2xl font-semibold text-white">Passport</h1>
           <p className="mt-1 text-sm text-[#888]">
-            Permissions, keys, logins, and health. {credentials.length} saved item{credentials.length === 1 ? "" : "s"}.
+            Passport keeps your service keys and logins in one safe place so your AI can use
+            them without you repeating them. {credentials.length} saved item{credentials.length === 1 ? "" : "s"}.
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => { setExportOpen(true); setExportPassword(""); setExportConfirm(""); setExportError(null); }}
-            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
-          >
-            Export Passport
-          </button>
-          <button
-            onClick={openAudit}
-            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
-          >
-            Audit log
-          </button>
           <button
             onClick={() => void fetchList()}
             disabled={loading}
@@ -724,6 +664,41 @@ export default function AdminKeychain() {
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
+          <details className="relative" data-testid="passport-more-menu">
+            <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B] [&::-webkit-details-marker]:hidden">
+              More
+              <ChevronDown className="h-3 w-3" />
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 w-64 rounded-lg border border-white/[0.1] bg-[#0b2230] p-1 shadow-xl shadow-black/40">
+              <button
+                onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  setExportOpen(true);
+                  setExportPassword("");
+                  setExportConfirm("");
+                  setExportError(null);
+                }}
+                className="block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
+              >
+                <span className="block text-xs font-semibold text-white">Export Passport</span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-[#888]">
+                  Download an encrypted backup of your saved access.
+                </span>
+              </button>
+              <button
+                onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  void openAudit();
+                }}
+                className="block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
+              >
+                <span className="block text-xs font-semibold text-white">Audit log</span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-[#888]">
+                  Every reveal, change, and delete, with time and source.
+                </span>
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -952,7 +927,7 @@ export default function AdminKeychain() {
                           </button>
                           <button
                             onClick={() => void handleTestConnection(cred)}
-                            disabled={testing[cred.id]}
+                            disabled={testing[cred.id] || cred.supports_connection_test === false}
                             className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white disabled:opacity-40"
                             title={cred.supports_connection_test === false ? "No automated probe yet" : "Test connection"}
                           >
@@ -1083,6 +1058,7 @@ export default function AdminKeychain() {
         </summary>
         <p className="mt-2 text-xs leading-5 text-[#888]">
           Name-only map of the GitHub and Vercel runtime Passport entries that power workflows. This is for debugging and rotation planning, not day-to-day Passport setup.
+          The statuses below are not live: they come from a name-only audit and no real connection test has run against them.
         </p>
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           {(Object.keys(inventoryByProvider) as SystemCredentialProvider[]).map((provider) => (
@@ -1574,23 +1550,27 @@ function RotateValuesModal({
   onClose:    () => void;
   onSaved:    () => void;
 }) {
-  const [json, setJson] = useState("");
+  // Pre-fill rows from the connector's known fields so a non-technical user
+  // never has to hand-write JSON to rotate a key.
+  const [pairs, setPairs] = useState<Array<{ key: string; value: string; secret: boolean; locked: boolean }>>(() => {
+    const expected = cred.expected_fields ?? [];
+    if (expected.length > 0) {
+      return expected.map((field) => ({ key: field.name, value: "", secret: field.secret, locked: true }));
+    }
+    return [{ key: "", value: "", secret: true, locked: false }];
+  });
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState<string | null>(null);
 
   async function save() {
     setBusy(true); setErr(null);
     try {
-      let values: Record<string, string>;
-      try {
-        values = JSON.parse(json);
-        if (typeof values !== "object" || values === null || Array.isArray(values)) {
-          throw new Error("Values must be a JSON object of string fields.");
-        }
-      } catch (e) {
-        const parseError = new Error(e instanceof Error ? e.message : "Invalid JSON");
-        Object.assign(parseError, { cause: e });
-        throw parseError;
+      const values: Record<string, string> = {};
+      for (const pair of pairs) {
+        if (pair.key.trim() && pair.value) values[pair.key.trim()] = pair.value;
+      }
+      if (Object.keys(values).length === 0) {
+        throw new Error("Fill in at least one field with its new value.");
       }
 
       const apiKey = readLocalApiKey();
@@ -1614,22 +1594,41 @@ function RotateValuesModal({
   return (
     <ModalShell title={`Rotate ${cred.connector?.name ?? cred.platform} values`} onClose={onClose}>
       <p className="mb-3 text-xs text-[#888]">
-        Paste the new connection values as a JSON object. This replaces the stored values and re-encrypts with your UnClick API key.
+        Enter the new values. Saving replaces the stored values and re-encrypts them with your UnClick API key.
+        Fields left empty are not saved.
       </p>
-      <div className="mb-2 text-[10px] text-[#666]">Example:</div>
-      <pre className="mb-3 overflow-x-auto rounded border border-white/[0.04] bg-black/40 p-2 text-[10px] text-[#888]">
-{`{
-  "api_key": "sk-ant-…"
-}`}
-      </pre>
-      <textarea
-        value={json}
-        onChange={(e) => setJson(e.target.value)}
-        rows={6}
-        placeholder='{ "api_key": "..." }'
-        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
-        autoFocus
-      />
+      <div className="space-y-2" data-testid="rotate-pairs">
+        {pairs.map((pair, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              value={pair.key}
+              readOnly={pair.locked}
+              onChange={(e) =>
+                setPairs((current) => current.map((p, i) => (i === index ? { ...p, key: e.target.value } : p)))
+              }
+              placeholder="field name (e.g. api_key)"
+              className={`w-2/5 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none ${pair.locked ? "opacity-70" : ""}`}
+            />
+            <input
+              type={pair.secret ? "password" : "text"}
+              value={pair.value}
+              onChange={(e) =>
+                setPairs((current) => current.map((p, i) => (i === index ? { ...p, value: e.target.value } : p)))
+              }
+              placeholder="new value"
+              autoFocus={index === 0}
+              className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setPairs((current) => [...current, { key: "", value: "", secret: true, locked: false }])}
+        className="mt-2 text-[11px] font-medium text-[#E2B93B] hover:opacity-80"
+      >
+        + Add another field
+      </button>
       {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
       <div className="mt-4 flex justify-end gap-2">
         <button

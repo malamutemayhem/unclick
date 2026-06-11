@@ -75,45 +75,45 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 87bc594da785 | 1598 |
+| src/pages/Index.tsx | 6ba14c5445bf | 1542 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | fe9d0fede6a8 | 39375 |
-| src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
-| src/pages/admin/AdminSeatsLocal.tsx | a201c1e119a8 | 37417 |
-| src/pages/admin/AdminSeatsSubscription.tsx | 57262eb562b5 | 25229 |
-| src/pages/admin/AdminAgents.tsx | 681342e77f86 | 49250 |
+| src/pages/admin/AdminSeatsApi.tsx | 9356d99ba1e3 | 37675 |
+| src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
+| src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
+| src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
+| src/pages/admin/AdminAgents.tsx | a37a2518aa57 | 49158 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
-| src/pages/admin/AdminAuditLog.tsx | 947f6c4d8c10 | 877 |
+| src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
-| src/pages/admin/AdminEcosystemPages.tsx | 765ac778242e | 12112 |
+| src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
-| src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
+| src/pages/admin/Fishbowl.tsx | 60a5f41934b7 | 37150 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
-| src/pages/admin/crews/CrewComposer.tsx | cd0198794cbc | 13912 |
+| src/pages/admin/crews/CrewComposer.tsx | 2d65d1f907b8 | 13908 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
-| src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
-| src/pages/admin/AdminDashboard.tsx | c6c9093d733d | 5303 |
-| src/pages/admin/AdminJobs.tsx | 5417b324cff7 | 64232 |
+| src/pages/admin/crews/CrewsCatalog.tsx | 53d4116c6739 | 5945 |
+| src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
+| src/pages/admin/AdminJobs.tsx | f71137a020fc | 64094 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
+| src/pages/admin/AdminKeychain.tsx | d743c17f4412 | 78086 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
 | src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
-| src/pages/admin/AdminPinballWake.tsx | 4dce3c986684 | 21769 |
+| src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
-| src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
+| src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
-| src/pages/admin/signals/SignalsCatalog.tsx | f5332dd8f38e | 10865 |
-| src/pages/admin/AdminSystemHealth.tsx | 4ddaaf1282db | 870 |
+| src/pages/admin/signals/SignalsCatalog.tsx | 5bbc2fe8c321 | 10370 |
+| src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
 | src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
@@ -127,7 +127,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
+| src/pages/Connect.tsx | 0bff27f46d0d | 29617 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
 | src/pages/DeveloperDocs.tsx | 9bfae679df42 | 23493 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -141,11 +141,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
+| src/pages/MemorySetup.tsx | 732d0646c356 | 19854 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
-| src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
+| src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
-| src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
+| src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 1d7898e16b70 | 20719 |
@@ -255,7 +255,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 123 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 138 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1269,7 +1269,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
-| Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
 | Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |
@@ -1288,7 +1287,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Info Card | Memory admin panel for Info Card. | - | src/pages/admin/memory/InfoCard.tsx |
 | Modules and apps | component | Library Tab | Memory admin panel for Library Tab. | - | src/pages/admin/memory/LibraryTab.tsx |
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
-| Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
 | Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |

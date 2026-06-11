@@ -1,3 +1,9 @@
+import { relativeTime } from "@/lib/relativeTime";
+import {
+  credentialHealth,
+  maskValue,
+  type CredentialHealthStatus,
+} from "./keychainHelpers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -22,7 +28,6 @@ import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
 
-type CredentialHealthStatus = "healthy" | "untested" | "failing" | "stale" | "needs_rotation";
 
 interface Credential {
   id: string;
@@ -78,8 +83,6 @@ const AI_PROVIDER_CATALOG = [
 ] as const;
 
 const AI_PROVIDER_SLUGS = new Set(AI_PROVIDER_CATALOG.map((provider) => provider.slug));
-const ROTATION_WARNING_DAYS = 90;
-const STALE_TEST_DAYS = 30;
 
 const HEALTH_BADGES: Record<CredentialHealthStatus, {
   label: string;
@@ -122,45 +125,10 @@ function readLocalApiKey(): string | null {
   }
 }
 
-function daysSince(iso: string | null | undefined): number | null {
-  if (!iso) return null;
-  const timestamp = new Date(iso).getTime();
-  if (Number.isNaN(timestamp)) return null;
-  return Math.floor((Date.now() - timestamp) / 86_400_000);
-}
 
-function daysUntil(iso: string | null | undefined): number | null {
-  if (!iso) return null;
-  const timestamp = new Date(iso).getTime();
-  if (Number.isNaN(timestamp)) return null;
-  return Math.ceil((timestamp - Date.now()) / 86_400_000);
-}
 
-function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return "never";
-  const timestamp = new Date(iso).getTime();
-  if (Number.isNaN(timestamp)) return "unknown";
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
+const timeAgo = (iso: string | null | undefined) => relativeTime(iso, { justNow: true });
 
-function credentialHealth(credential: Credential): CredentialHealthStatus {
-  if (credential.health_status) return credential.health_status;
-  const expiresIn = daysUntil(credential.expires_at);
-  if (expiresIn !== null && expiresIn <= 14) return "needs_rotation";
-  const rotationAge = daysSince(credential.last_rotated_at);
-  if (rotationAge !== null && rotationAge >= ROTATION_WARNING_DAYS) return "needs_rotation";
-  if (!credential.is_valid) return "failing";
-  const testAge = daysSince(credential.last_tested_at);
-  if (testAge === null) return "untested";
-  if (testAge >= STALE_TEST_DAYS) return "stale";
-  return "healthy";
-}
 
 function providerFor(slug: string) {
   return AI_PROVIDER_CATALOG.find((provider) => provider.slug === slug);
@@ -171,10 +139,6 @@ function isAiCredential(credential: Credential): boolean {
   return AI_PROVIDER_SLUGS.has(credential.platform) || category === "ai" || category === "llm";
 }
 
-function maskValue(value: string): string {
-  if (value.length <= 8) return "*".repeat(Math.max(value.length, 4));
-  return `${value.slice(0, 4)}${"*".repeat(8)}${value.slice(-4)}`;
-}
 
 export default function AdminSeatsApi() {
   const { session } = useSession();

@@ -89,7 +89,7 @@ describe("AdminSeatsApi", () => {
     await screen.findByText("OpenAI");
     fireEvent.click(screen.getByRole("button", { name: "Reveal values" }));
 
-    expect(await screen.findByText("sk-t********alue")).toBeInTheDocument();
+    expect(await screen.findByText("sk-t••••••••alue")).toBeInTheDocument();
     const revealCall = fetchMock.mock.calls.find(([input]) => String(input).includes("action=reveal"));
     expect(revealCall?.[1]).toMatchObject({
       method: "POST",

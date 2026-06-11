@@ -481,7 +481,7 @@ export default function MemorySetupPage() {
 
               <div className="mt-8 flex items-center justify-between rounded-lg border border-border/40 bg-card/30 p-4 text-xs text-body">
                 <span>Want to see what's in your memory?</span>
-                <a href="/memory/admin" className="text-primary hover:underline">
+                <a href="/admin/memory" className="text-primary hover:underline">
                   Open admin &rarr;
                 </a>
               </div>

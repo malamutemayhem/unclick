@@ -55,10 +55,10 @@ const NotFound = () => {
             Go home
           </Link>
           <Link
-            to="/arena"
+            to="/apps"
             className="rounded-lg border border-border/60 px-5 py-2.5 text-sm font-medium text-heading hover:border-primary/30 transition-colors"
           >
-            Browse Arena
+            Browse apps
           </Link>
         </div>
       </main>
