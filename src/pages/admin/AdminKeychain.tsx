@@ -25,7 +25,9 @@
 
 import { relativeTime } from "@/lib/relativeTime";
 import {
+  copySecretWithExpiry,
   credentialHealth,
+  expiredReveals,
   exportPasswordStrength,
   maskValue,
   daysSince,
@@ -409,11 +411,7 @@ export default function AdminKeychain() {
   // reset the timer for an already-revealed one.
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      const now = Date.now();
-      const expired: string[] = [];
-      for (const [id, at] of Object.entries(revealedAtRef.current)) {
-        if (now - at >= 60_000) expired.push(id);
-      }
+      const expired = expiredReveals(revealedAtRef.current, Date.now());
       if (expired.length === 0) return;
       setRevealed((prev) => {
         const next = { ...prev };
@@ -532,14 +530,13 @@ export default function AdminKeychain() {
 
   async function copyToClipboard(field: string, value: string) {
     try {
-      await navigator.clipboard.writeText(value);
+      await copySecretWithExpiry(
+        value,
+        (text) => navigator.clipboard.writeText(text),
+        (fn, ms) => window.setTimeout(fn, ms),
+      );
       setCopiedField(field);
       window.setTimeout(() => setCopiedField((c) => (c === field ? null : c)), 2_000);
-      // The reveal auto-hides after 60s; honor the same promise for the
-      // clipboard so a copied secret does not outlive the on-screen value.
-      window.setTimeout(() => {
-        void navigator.clipboard.writeText("").catch(() => {});
-      }, 60_000);
     } catch {
       // no-op: browser blocked clipboard
     }

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  copySecretWithExpiry,
   credentialHealth,
+  expiredReveals,
   exportPasswordStrength,
   maskValue,
   daysSince,
@@ -86,6 +88,51 @@ describe("exportPasswordStrength", () => {
 
   it("keeps low-variety long passwords weak", () => {
     expect(exportPasswordStrength("abcdefghabcd").label).toBe("Weak");
+  });
+});
+
+describe("expiredReveals", () => {
+  it("expires each reveal on its own clock; a second reveal never resets the first", () => {
+    const t0 = NOW.getTime();
+    const revealedAt = { "cred-a": t0, "cred-b": t0 + 30_000 };
+
+    expect(expiredReveals(revealedAt, t0 + 59_999)).toEqual([]);
+    expect(expiredReveals(revealedAt, t0 + 61_000)).toEqual(["cred-a"]);
+    expect(expiredReveals(revealedAt, t0 + 91_000)).toEqual(["cred-a", "cred-b"]);
+  });
+});
+
+describe("copySecretWithExpiry", () => {
+  it("writes the secret, then wipes the clipboard at the reveal TTL", async () => {
+    const writes: string[] = [];
+    let scheduled: { fn: () => void; ms: number } | null = null;
+
+    await copySecretWithExpiry(
+      "sk-secret-value",
+      async (text) => {
+        writes.push(text);
+      },
+      (fn, ms) => {
+        scheduled = { fn, ms };
+      },
+    );
+
+    expect(writes).toEqual(["sk-secret-value"]);
+    expect(scheduled!.ms).toBe(60_000);
+    scheduled!.fn();
+    expect(writes).toEqual(["sk-secret-value", ""]);
+  });
+
+  it("does not swallow the initial write failure", async () => {
+    await expect(
+      copySecretWithExpiry(
+        "value",
+        async () => {
+          throw new Error("clipboard blocked");
+        },
+        () => {},
+      ),
+    ).rejects.toThrow("clipboard blocked");
   });
 });
 

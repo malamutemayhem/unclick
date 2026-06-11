@@ -59,6 +59,43 @@ export function credentialHealth(cred: CredentialHealthInput): CredentialHealthS
   return "healthy";
 }
 
+/** How long a revealed secret may stay visible, and how long it may stay on the clipboard. */
+export const REVEAL_TTL_MS = 60_000;
+
+/**
+ * Which revealed credentials have aged past their TTL. Each entry expires on
+ * its own absolute timestamp, so revealing a second credential never resets
+ * the timer of one already on screen.
+ */
+export function expiredReveals(
+  revealedAt: Record<string, number>,
+  now: number,
+  ttlMs: number = REVEAL_TTL_MS,
+): string[] {
+  const expired: string[] = [];
+  for (const [id, at] of Object.entries(revealedAt)) {
+    if (now - at >= ttlMs) expired.push(id);
+  }
+  return expired;
+}
+
+/**
+ * Copy a secret and schedule the clipboard to be wiped after the same TTL the
+ * on-screen reveal honors, so a copied value never outlives the visible one.
+ * The clipboard writer and scheduler are injectable for deterministic tests.
+ */
+export async function copySecretWithExpiry(
+  value: string,
+  writeText: (text: string) => Promise<void>,
+  schedule: (fn: () => void, ms: number) => void,
+  ttlMs: number = REVEAL_TTL_MS,
+): Promise<void> {
+  await writeText(value);
+  schedule(() => {
+    void Promise.resolve(writeText("")).catch(() => {});
+  }, ttlMs);
+}
+
 export function exportPasswordStrength(pw: string): { label: string; color: string } {
   if (pw.length < 12) return { label: "Weak", color: "bg-red-500" };
   const hasUpper = /[A-Z]/.test(pw);
