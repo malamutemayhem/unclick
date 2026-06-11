@@ -33,6 +33,12 @@ import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
 import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
 import { isRecycleBinEnabled, MEMORY_RECYCLE_BIN_FLAG, EMPTY_BIN_MAX_BATCH } from "./recycle-bin.js";
 import {
+  isPatternPromotionEnabled,
+  MEMORY_PATTERN_PROMOTION_FLAG,
+  clusterEpisodes,
+  buildPatternFactText,
+} from "./pattern-promotion.js";
+import {
   isCorrectionsEnabled,
   CORRECTIONS_CATEGORY,
   CORRECTION_PRIORITY,
@@ -85,6 +91,14 @@ function num(v: unknown, fallback: number): number {
 
 function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.map(String) : [];
+}
+
+/** Parse an expiry argument into a normalized ISO timestamp, or undefined. */
+function parseExpiry(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.trim()) return undefined;
+  const parsed = Date.parse(v);
+  if (Number.isNaN(parsed)) throw new Error(`expires_at must be an ISO 8601 timestamp, got: ${v}`);
+  return new Date(parsed).toISOString();
 }
 
 function bool(v: unknown, fallback = false): boolean {
@@ -674,6 +688,95 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return result;
   },
 
+  /**
+   * Prompt-ready context block (Zep Context Block parity on cheap-first
+   * layers): one call returns compact markdown with standing rules, profile,
+   * durable facts, and optional query-relevant memories, under a char budget.
+   */
+  async get_context_block(args) {
+    const db = await getBackend();
+    const maxChars = Math.max(500, Math.min(num(args.max_chars, 4000), 20000));
+    const query = typeof args.query === "string" ? args.query.trim() : "";
+
+    const raw = await db.getStartupContext(3);
+    const compact = compactStartupContextForStrictClients(normalizeActiveFactsForLoadMemory(raw)) as {
+      business_context?: Array<{ category?: string; key?: string; value?: unknown }>;
+      profile_card?: {
+        profile_summary?: string[];
+        working_now?: string[];
+        do_not_repeat?: string[];
+        timezone_context?: string;
+      };
+      active_facts?: Array<{ fact?: string; category?: string }>;
+    };
+
+    const lines: string[] = ["# Memory context"];
+    const rules = compact.business_context ?? [];
+    if (rules.length > 0) {
+      lines.push("", "## Standing rules");
+      for (const row of rules) {
+        lines.push(`- [${row.category ?? "rule"}] ${row.key ?? ""}: ${stringifyForProfile(row.value, 200)}`);
+      }
+    }
+    const card = compact.profile_card;
+    if (card) {
+      lines.push("", "## Profile");
+      if (card.timezone_context) lines.push(`- ${card.timezone_context}`);
+      for (const item of card.profile_summary ?? []) lines.push(`- ${item}`);
+      const avoid = card.do_not_repeat ?? [];
+      if (avoid.length > 0) {
+        lines.push("", "## Do not repeat");
+        for (const item of avoid) lines.push(`- ${item}`);
+      }
+      const workingNow = card.working_now ?? [];
+      if (workingNow.length > 0) {
+        lines.push("", "## Working now");
+        for (const item of workingNow) lines.push(`- ${item}`);
+      }
+    }
+    const facts = compact.active_facts ?? [];
+    if (facts.length > 0) {
+      lines.push("", "## Durable facts");
+      for (const row of facts) {
+        if (row.fact) lines.push(`- [${row.category ?? "general"}] ${row.fact}`);
+      }
+    }
+
+    let queryMatches = 0;
+    if (query) {
+      const results = await db.searchMemory(query, num(args.max_results, 5)) as Array<{
+        content?: string;
+        source?: string;
+      }>;
+      const rows = Array.isArray(results) ? results.filter((row) => row.content) : [];
+      queryMatches = rows.length;
+      if (rows.length > 0) {
+        lines.push("", `## Relevant to: ${query}`);
+        for (const row of rows) {
+          lines.push(`- [${row.source ?? "memory"}] ${String(row.content).slice(0, 300)}`);
+        }
+      }
+    }
+
+    // Enforce the char budget by dropping whole trailing lines, never
+    // mid-line, so the block stays valid markdown.
+    const block: string[] = [];
+    let used = 0;
+    for (const line of lines) {
+      if (used + line.length + 1 > maxChars) break;
+      block.push(line);
+      used += line.length + 1;
+    }
+
+    return {
+      context_block: block.join("\n"),
+      char_count: used,
+      max_chars: maxChars,
+      truncated: block.length < lines.length,
+      query_matches: queryMatches,
+    };
+  },
+
   async search_memory(args) {
     const db = await getBackend();
     const asOf = typeof args.as_of === "string" ? args.as_of : undefined;
@@ -775,6 +878,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       confidence: num(args.confidence, 0.9),
       source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
       valid_from: typeof args.valid_from === "string" ? args.valid_from : undefined,
+      valid_to: parseExpiry(args.expires_at ?? args.valid_until ?? args.valid_to),
       extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
       prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
       model_id: typeof args.model_id === "string" ? args.model_id : undefined,
@@ -1092,7 +1196,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
   // --- lane-02: contradiction reconciliation & supersession ---
   async reconcile_fact(args) {
     const db = await getBackend();
-    return db.reconcileFact(
+    const result = await db.reconcileFact(
       {
         fact: str(args.fact),
         category: str(args.category, "general"),
@@ -1109,6 +1213,26 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
         dry_run: bool(args.dry_run, false),
       }
     );
+
+    // Lane-2 closeout: surface a genuine contradiction as exactly one signal
+    // so agents and the user see the conflict instead of a silent resolution.
+    if (result.contradiction && result.classification === "contradiction") {
+      const hash = currentApiKeyHash();
+      if (hash) {
+        void emitSignal({
+          apiKeyHash: hash,
+          tool: "memory",
+          action: "memory_contradiction",
+          severity: "action_needed",
+          summary:
+            `Memory contradiction on "${result.contradiction.subject}": ` +
+            `incoming "${result.contradiction.incoming.fact}" vs existing ` +
+            `"${result.contradiction.existing.fact}" (resolution: ${result.contradiction.resolution})`,
+          deepLink: "/admin/memory?tab=facts",
+        });
+      }
+    }
+    return result;
   },
   // --- end lane-02 ---
   // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
@@ -1269,6 +1393,91 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     };
   },
   // --- end recycle bin ---
+
+  // --- pattern promotion (MEMORY_PATTERN_PROMOTION_ENABLED) ---
+  async promote_patterns(args) {
+    if (!isPatternPromotionEnabled()) {
+      return { enabled: false, flag: MEMORY_PATTERN_PROMOTION_FLAG, promoted: 0 };
+    }
+    if (!isTypedMemorySplitEnabled()) {
+      return {
+        enabled: true,
+        flag: MEMORY_PATTERN_PROMOTION_FLAG,
+        promoted: 0,
+        note: "Typed memory split is disabled; there is no episode store to mine for patterns.",
+      };
+    }
+
+    const db = await getBackend();
+    const minOccurrences = Math.max(2, num(args.min_occurrences, 3));
+    const threshold = Math.min(0.95, Math.max(0.2, num(args.similarity_threshold, 0.5)));
+    const dryRun = bool(args.dry_run, false);
+
+    const rows = await db.listSessionEvents({ limit: num(args.limit, 200) }) as Array<{
+      id: string;
+      content?: string;
+      memory_class?: string;
+    }>;
+    const episodes = (Array.isArray(rows) ? rows : [])
+      .filter((row) => typeof row.content === "string" && row.content.trim())
+      .map((row) => ({ id: row.id, content: String(row.content) }));
+
+    const clusters = clusterEpisodes(episodes, threshold).filter(
+      (cluster) => cluster.occurrences >= minOccurrences
+    );
+
+    const proposals = [];
+    for (const cluster of clusters) {
+      const factText = buildPatternFactText(cluster);
+      if (dryRun) {
+        proposals.push({ fact: factText, occurrences: cluster.occurrences, event_ids: cluster.event_ids });
+        continue;
+      }
+      // Idempotency guard: an identical pattern fact from a previous run is
+      // reused, never duplicated (the local backend only hash-dedups when the
+      // write gate flag is on, so the guard cannot rely on addFact alone).
+      const existing = await db.searchFacts(factText) as Array<{ id: string; fact: string; status?: string }>;
+      const match = (Array.isArray(existing) ? existing : []).find(
+        (row) => row.fact === factText && (row.status === undefined || row.status === "active")
+      );
+      if (match) {
+        proposals.push({
+          fact_id: match.id,
+          fact: factText,
+          occurrences: cluster.occurrences,
+          event_ids: cluster.event_ids,
+        });
+        continue;
+      }
+      const written = await db.addFact({
+        fact: factText,
+        category: "preference",
+        confidence: 0.7,
+        startup_fact_kind: "durable",
+        memory_class: "semantic",
+        extractor_id: "pattern-promotion-v1",
+        source_agent_id: "memory-pattern-promotion",
+        source_ref: `pattern:${cluster.occurrences}-episodes`,
+      }) as { id?: string };
+      proposals.push({
+        fact_id: written.id,
+        fact: factText,
+        occurrences: cluster.occurrences,
+        event_ids: cluster.event_ids,
+      });
+    }
+
+    return {
+      enabled: true,
+      flag: MEMORY_PATTERN_PROMOTION_FLAG,
+      dry_run: dryRun,
+      scanned_events: episodes.length,
+      qualifying_clusters: clusters.length,
+      promoted: dryRun ? 0 : proposals.length,
+      proposals,
+    };
+  },
+  // --- end pattern promotion ---
 
   async save_correction(args) {
     if (!isCorrectionsEnabled()) {
