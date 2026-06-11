@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-11T05:45:00.000Z",
+  "updatedAt": "2026-06-11T06:50:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -85,9 +85,9 @@
       "comment": ""
     },
     "animechan": {
-      "status": "fail",
-      "note": "animechan_random: HTTP 404 HTML page; API moved to api.animechan.io/v1. Fix shipped; retest after deploy.",
-      "testedAt": "2026-06-11T05:45:00.000Z",
+      "status": "pass",
+      "note": "Recovered after host fix deploy: animechan_random returned a real quote from api.animechan.io, verified live 2026-06-11 post-deploy.",
+      "testedAt": "2026-06-11T06:50:00.000Z",
       "toolsTested": [
         "animechan_random"
       ]
@@ -227,9 +227,9 @@
       "comment": ""
     },
     "bored": {
-      "status": "fail",
-      "note": "bored_random: HTTP 404 'Cannot GET /api/activity'; bored-api.appbrewery.com moved to /random and /filter. Path fix shipped; retest after deploy.",
-      "testedAt": "2026-06-11T05:45:00.000Z",
+      "status": "pass",
+      "note": "Recovered after path fix deploy: bored_random returned a real activity from bored-api.appbrewery.com/random, verified live 2026-06-11 post-deploy.",
+      "testedAt": "2026-06-11T06:50:00.000Z",
       "toolsTested": [
         "bored_random"
       ]
@@ -1569,8 +1569,8 @@
     },
     "numbers": {
       "status": "fail",
-      "note": "Confirmed still failing 2026-06-11: number_fact gets HTTP 404 from numbersapi.com over HTTPS. Switched base to HTTP (the API is HTTP-only); retest after deploy.",
-      "testedAt": "2026-06-11T05:45:00.000Z",
+      "note": "Post-deploy retest 2026-06-11: still HTTP 404 from numbersapi.com over plain HTTP; the service is down, no code fix possible.",
+      "testedAt": "2026-06-11T06:50:00.000Z",
       "toolsTested": [
         "number_fact"
       ],
@@ -2024,8 +2024,8 @@
     },
     "restcountries": {
       "status": "fail",
-      "note": "All endpoints broken live: country_by_name/by_region/all throw 'countries.map is not a function' (upstream now returns a non-array object). Defensive fix shipped; retest after deploy.",
-      "testedAt": "2026-06-11T05:45:00.000Z",
+      "note": "Post-deploy retest 2026-06-11: shape guard works (clean \"REST Countries API error\" instead of .map crash) but upstream still returns a non-array body; service is broken upstream.",
+      "testedAt": "2026-06-11T06:50:00.000Z",
       "toolsTested": [
         "country_by_name",
         "country_by_code",
@@ -3326,8 +3326,8 @@
     },
     "isup": {
       "status": "fail",
-      "note": "isup_check returns 'isitup.org 404' for every domain (google.com included): isitup.org requires a User-Agent header. Fix shipped; retest after deploy.",
-      "testedAt": "2026-06-11T05:45:00.000Z",
+      "note": "Post-deploy retest 2026-06-11: still isitup.org 404 with the User-Agent header in place; isitup.org itself appears broken or gone.",
+      "testedAt": "2026-06-11T06:50:00.000Z",
       "toolsTested": [
         "isup_check"
       ]
