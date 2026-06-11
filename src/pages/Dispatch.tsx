@@ -4,10 +4,11 @@ import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { Zap, Brain, Lock, ArrowRight, Network, CheckCircle2, Terminal, Cloud, Workflow, Shield, RefreshCw } from "lucide-react";
+import { SITE_STATS } from "@/config/site-stats";
 
 const DISPATCH_FEATURES = [
   {
-    title: "178+ MCP Tools",
+    title: `${SITE_STATS.TOOLS_DISPLAY} MCP Tools`,
     desc: "Every tool available in both Cowork and Claude Code",
     icon: Network,
   },

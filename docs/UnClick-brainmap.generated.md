@@ -133,8 +133,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
-| src/pages/Dispatch.tsx | 047ef00fef21 | 15432 |
-| src/pages/Docs.tsx | 8de0bf490b3b | 18579 |
+| src/pages/Dispatch.tsx | 9a19c7e6018a | 15505 |
+| src/pages/Docs.tsx | bf98c22d1326 | 18605 |
 | src/pages/DogfoodReport.tsx | 3ab3e3ba08ad | 17345 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
