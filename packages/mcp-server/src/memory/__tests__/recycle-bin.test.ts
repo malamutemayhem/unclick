@@ -152,8 +152,8 @@ describe("recycle bin (MEMORY_RECYCLE_BIN_ENABLED)", () => {
     assert.equal(bin[0]?.id, keep.id);
   });
 
-  test("recycle-bin ops report disabled when the flag is off", async () => {
-    delete process.env.MEMORY_RECYCLE_BIN_ENABLED;
+  test("recycle-bin ops report disabled when the flag is killed", async () => {
+    process.env.MEMORY_RECYCLE_BIN_ENABLED = "0";
     const { MEMORY_HANDLERS } = await import("../handlers.js");
 
     const archive = await MEMORY_HANDLERS.archive_memory({ fact_id: "any" }) as { flag_enabled: boolean };
