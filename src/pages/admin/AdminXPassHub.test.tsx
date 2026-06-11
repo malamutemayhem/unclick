@@ -1,8 +1,19 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AdminXPassHub from "./AdminXPassHub";
 import { dogfoodReport } from "@/data/dogfoodReport";
+
+const sessionState: { session: { access_token: string } | null } = { session: null };
+
+vi.mock("@/lib/auth", () => ({
+  useSession: () => ({ session: sessionState.session, user: null, loading: false }),
+}));
+
+afterEach(() => {
+  sessionState.session = null;
+  vi.unstubAllGlobals();
+});
 
 function renderHub(path = "/admin/checks") {
   render(
@@ -66,6 +77,57 @@ describe("AdminXPassHub", () => {
     const rows = screen.getAllByTestId("xpass-check-row");
     const waiting = rows.filter((row) => within(row).queryByText("Waiting"));
     expect(waiting.length).toBeGreaterThan(10);
+  });
+
+  it("shows real recorded TestPass runs when the runs API responds", async () => {
+    sessionState.session = { access_token: "test-token" };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          runs: [
+            {
+              id: "run-1",
+              pack_name: "Smoke pack",
+              started_at: "2026-06-10T11:00:00Z",
+              status: "complete",
+              verdict_summary: { check: 9, fail: 0, na: 8, pending: 0 },
+            },
+            {
+              id: "run-2",
+              pack_name: "Connector pack",
+              started_at: "2026-06-09T11:00:00Z",
+              status: "complete",
+              verdict_summary: { check: 4, fail: 2, na: 1, pending: 0 },
+            },
+          ],
+        }),
+      }),
+    );
+
+    renderHub("/admin/checks/testpass");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("recorded-runs-panel")).toBeInTheDocument();
+    });
+    const rows = screen.getAllByTestId("recorded-run-row");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveAttribute("href", "/admin/testpass/runs/run-1");
+    expect(rows[0]).toHaveTextContent("Smoke pack");
+    expect(rows[0]).toHaveTextContent("9 PASS");
+    expect(rows[1]).toHaveTextContent("2 FAIL");
+  });
+
+  it("does not show a recorded-runs panel for Passes without run history", async () => {
+    sessionState.session = { access_token: "test-token" };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ runs: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderHub("/admin/checks/securitypass");
+
+    expect(screen.queryByTestId("recorded-runs-panel")).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("splits UIPass visual checks from UXPass journey checks", () => {

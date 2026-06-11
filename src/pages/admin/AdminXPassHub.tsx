@@ -1,4 +1,6 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useSession } from "@/lib/auth";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -371,6 +373,93 @@ function LatestEvidencePanel({ product, evidence }: { product: XPassProduct; evi
   );
 }
 
+type RecordedRun = {
+  id: string;
+  pack_name: string | null;
+  started_at: string;
+  status: string;
+  verdict_summary?: { check?: number; fail?: number; na?: number; pending?: number } | null;
+};
+
+/**
+ * Real recorded TestPass runs from the runs table. Only rendered for Passes
+ * that actually keep run history today (TestPass). Renders nothing while
+ * logged out or on fetch failure; shows an honest empty state when the
+ * account simply has no recorded runs yet.
+ */
+function RecordedRunsPanel() {
+  const { session } = useSession();
+  const token = session?.access_token;
+  const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : null), [token]);
+  const [runs, setRuns] = useState<RecordedRun[] | null>(null);
+
+  useEffect(() => {
+    if (!authHeader) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/memory-admin?action=list_testpass_runs&limit=6", { headers: authHeader });
+        const body = (await res.json().catch(() => ({}))) as { runs?: RecordedRun[] };
+        if (!res.ok || cancelled) return;
+        setRuns(Array.isArray(body.runs) ? body.runs : []);
+      } catch {
+        // Stay hidden: an unreadable history beats an invented one.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHeader]);
+
+  if (!authHeader || runs === null) return null;
+
+  return (
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3" data-testid="recorded-runs-panel">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-white">Recorded runs</h2>
+        <p className="text-[11px] font-medium text-white/40">Newest first</p>
+      </div>
+      {runs.length === 0 ? (
+        <p className="mt-2 text-[11px] leading-4 text-white/45">
+          No recorded runs for this account yet. Start one from the TestPass tool and it appears here.
+        </p>
+      ) : (
+        <div className="mt-2 space-y-1">
+          {runs.map((run) => {
+            const fails = run.verdict_summary?.fail ?? 0;
+            const checks = run.verdict_summary?.check ?? 0;
+            return (
+              <Link
+                key={run.id}
+                to={`/admin/testpass/runs/${run.id}`}
+                data-testid="recorded-run-row"
+                className="grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1 text-left transition-colors hover:border-[#61C1C4]/40"
+              >
+                <p className="truncate text-[10px] font-semibold text-white/55">{formatEvidenceDate(run.started_at)}</p>
+                <p className="truncate text-[11px] leading-4 text-white/70">{run.pack_name ?? "TestPass run"}</p>
+                <span
+                  className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                    fails > 0 ? "bg-red-500 text-white" : run.status === "complete" ? "bg-[#46c76f] text-black" : "bg-white/12 text-white/70"
+                  }`}
+                >
+                  {fails > 0 ? `${fails} FAIL` : run.status === "complete" ? `${checks} PASS` : run.status}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+      <Link
+        to="/admin/testpass"
+        className="mt-3 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
+      >
+        Open the full run log
+        <ExternalLink className="h-3.5 w-3.5" />
+      </Link>
+    </section>
+  );
+}
+
 function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
   return (
     <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
@@ -482,7 +571,10 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
           </div>
         </div>
       </section>
-        <LatestEvidencePanel product={product} evidence={evidence} />
+        <div className="min-w-0 space-y-5">
+          <LatestEvidencePanel product={product} evidence={evidence} />
+          {product.id === "testpass" ? <RecordedRunsPanel /> : null}
+        </div>
       </div>
 
       <section className="space-y-3" data-testid="xpass-checklist-results">
