@@ -32,6 +32,34 @@ import AppRail from "@/components/home-preview/AppRail";
 /* Rail x-position: left edge on small screens, centered from lg up. */
 const RAIL_X = "left-5 lg:left-1/2 lg:-translate-x-1/2";
 
+/* Every AI gets a seat: the deck's round-table idea as simple chips. */
+const SEATS = ["ChatGPT", "Claude", "Copilot", "Cursor", "your local model"];
+
+function AnyAIVignette() {
+  return (
+    <div className="flex flex-wrap gap-2 lg:justify-end">
+      {SEATS.map((seat, i) => (
+        <motion.span
+          key={seat}
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.3, delay: 0.12 + i * 0.1 }}
+          className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-[#06202c]/70 py-1.5 pl-2 pr-3.5 text-[12.5px] text-body"
+        >
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.1] font-mono text-[9px] font-bold text-primary"
+            aria-hidden="true"
+          >
+            {seat[0].toUpperCase()}
+          </span>
+          {seat}
+        </motion.span>
+      ))}
+    </div>
+  );
+}
+
 function MemoryVignette() {
   const facts = ["how you like things done", "what you said last time"];
   return (
@@ -54,23 +82,60 @@ function MemoryVignette() {
   );
 }
 
+/* The deck's gate panels, including the honest red one: a blocked
+   attempt is the feature working. */
+const GATES = [
+  { name: "commands", ok: true },
+  { name: "data", ok: true },
+  { name: "publish", ok: true },
+  { name: "secrets", ok: false },
+] as const;
+
 function GateVignette() {
   return (
-    <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.05] px-3.5 py-2.5">
-      <div className="flex items-center gap-2.5 font-mono text-[12px]">
-        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-amber-300/90" />
-        <span className="text-amber-200/90">permission check</span>
-        <span className="truncate text-amber-100/60">only what you've allowed</span>
-        <motion.span
-          initial={{ scale: 0, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.35 }}
-          className="ml-auto"
-        >
-          <Check className="h-3.5 w-3.5 text-amber-300" />
-        </motion.span>
+    <div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {GATES.map((gate, i) => (
+          <motion.div
+            key={gate.name}
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.3, delay: 0.12 + i * 0.14 }}
+            className={cn(
+              "flex flex-col items-center gap-1.5 rounded-lg border px-2 py-2.5 text-center",
+              gate.ok
+                ? "border-primary/25 bg-primary/[0.05]"
+                : "border-red-400/40 bg-red-400/[0.07]",
+            )}
+          >
+            {gate.ok ? (
+              <Check className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5 text-red-300" />
+            )}
+            <span
+              className={cn(
+                "font-mono text-[10px] uppercase tracking-[0.12em]",
+                gate.ok ? "text-body/80" : "text-red-200/90",
+              )}
+            >
+              {gate.name}
+            </span>
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-px font-mono text-[8.5px] font-bold uppercase tracking-[0.1em]",
+                gate.ok ? "bg-primary/15 text-primary" : "bg-red-400/20 text-red-200",
+              )}
+            >
+              {gate.ok ? "ok" : "blocked"}
+            </span>
+          </motion.div>
+        ))}
       </div>
+      <p className="mt-2.5 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60 lg:text-left">
+        only what you've allowed
+      </p>
     </div>
   );
 }
@@ -108,16 +173,32 @@ function AppsVignette() {
   );
 }
 
-function ReceiptVignette({ reduced }: { reduced: boolean }) {
+/* The deck's five plain checks, then the stamp. */
+const CHECKS = ["works", "reads well", "safe", "honest", "looks right"];
+
+function ProofVignette({ reduced }: { reduced: boolean }) {
   return (
     <div className="relative rounded-lg border border-primary/30 bg-primary/[0.06] p-3.5 pr-24">
-      <p className="font-mono text-[12px] leading-5 text-body">work checked before it ships</p>
-      <p className="font-mono text-[12px] leading-5 text-body">a receipt for every job</p>
+      <div className="flex flex-wrap gap-1.5">
+        {CHECKS.map((check, i) => (
+          <motion.span
+            key={check}
+            initial={{ opacity: 0, y: 6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.25, delay: 0.12 + i * 0.14 }}
+            className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-[#06202c]/70 px-2 py-0.5 font-mono text-[10.5px] text-body"
+          >
+            <Check className="h-2.5 w-2.5 text-primary" />
+            {check}
+          </motion.span>
+        ))}
+      </div>
       <motion.div
         initial={reduced ? false : { scale: 1.9, opacity: 0, rotate: 4 }}
         whileInView={{ scale: 1, opacity: 1, rotate: -6 }}
         viewport={{ once: true, margin: "-60px" }}
-        transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.3 }}
+        transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.95 }}
         className="absolute right-3 top-1/2 -translate-y-1/2 rounded border-2 border-primary/80 px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-primary"
       >
         <span className="inline-flex items-center gap-1">
@@ -129,37 +210,55 @@ function ReceiptVignette({ reduced }: { reduced: boolean }) {
   );
 }
 
+const ROLES = ["researcher", "designer", "copywriter", "devil's advocate"];
+
 const JOBS = [
   { name: "finished while you slept", state: "done" },
   { name: "running right now", state: "running" },
   { name: "queued for later", state: "queued" },
 ] as const;
 
-function AutopilotVignette() {
+function TeamVignette() {
   return (
-    <div className="space-y-1.5">
-      {JOBS.map((job, i) => (
-        <motion.div
-          key={job.name}
-          initial={{ opacity: 0, x: -10 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.35, delay: 0.15 + i * 0.18 }}
-          className="flex items-center justify-between rounded-lg border border-white/[0.07] bg-[#06202c]/70 px-3.5 py-2 font-mono text-[12px]"
-        >
-          <span className="truncate text-body">{job.name}</span>
-          <span
-            className={cn(
-              "ml-3 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
-              job.state === "done" && "bg-primary/15 text-primary",
-              job.state === "running" && "bg-amber-400/15 text-amber-300",
-              job.state === "queued" && "bg-white/[0.06] text-muted-foreground",
-            )}
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {ROLES.map((role, i) => (
+          <motion.span
+            key={role}
+            initial={{ opacity: 0, y: 6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.25, delay: 0.1 + i * 0.1 }}
+            className="rounded border border-primary/20 bg-primary/[0.07] px-2 py-0.5 font-mono text-[10.5px] text-primary/90"
           >
-            {job.state}
-          </span>
-        </motion.div>
-      ))}
+            {role}
+          </motion.span>
+        ))}
+      </div>
+      <div className="space-y-1.5">
+        {JOBS.map((job, i) => (
+          <motion.div
+            key={job.name}
+            initial={{ opacity: 0, x: -10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.35, delay: 0.45 + i * 0.15 }}
+            className="flex items-center justify-between rounded-lg border border-white/[0.07] bg-[#06202c]/70 px-3.5 py-2 font-mono text-[12px]"
+          >
+            <span className="truncate text-body">{job.name}</span>
+            <span
+              className={cn(
+                "ml-3 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
+                job.state === "done" && "bg-primary/15 text-primary",
+                job.state === "running" && "bg-amber-400/15 text-amber-300",
+                job.state === "queued" && "bg-white/[0.06] text-muted-foreground",
+              )}
+            >
+              {job.state}
+            </span>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -173,15 +272,21 @@ type StationDef = {
 
 const STATIONS: StationDef[] = [
   {
+    id: "any-ai",
+    label: "any ai",
+    headline: "Bring the AI you already use.",
+    vignette: () => <AnyAIVignette />,
+  },
+  {
     id: "memory",
     label: "memory",
     headline: "It already knows how you work.",
     vignette: () => <MemoryVignette />,
   },
   {
-    id: "permission",
-    label: "permission",
-    headline: "Nothing moves without a yes.",
+    id: "gate",
+    label: "the gate",
+    headline: "Checked before it runs.",
     vignette: () => <GateVignette />,
   },
   {
@@ -193,14 +298,14 @@ const STATIONS: StationDef[] = [
   {
     id: "proof",
     label: "proof",
-    headline: "Every job leaves with a receipt.",
-    vignette: (reduced) => <ReceiptVignette reduced={reduced} />,
+    headline: "Checked after, with a receipt.",
+    vignette: (reduced) => <ProofVignette reduced={reduced} />,
   },
   {
-    id: "autopilot",
-    label: "autopilot",
-    headline: "It queues the next one itself.",
-    vignette: () => <AutopilotVignette />,
+    id: "team",
+    label: "the team",
+    headline: "Not one bot. A whole team.",
+    vignette: () => <TeamVignette />,
   },
 ];
 
@@ -262,7 +367,7 @@ function Station({
 /** Closing seal: the five stations drawn as one connected circuit. */
 function MoatSeal() {
   const reduced = useReducedMotion() ?? false;
-  const labels = ["memory", "permission", "apps", "proof", "autopilot"];
+  const labels = ["any ai", "memory", "gates", "apps", "proof", "team"];
   const cx = 160;
   const cy = 160;
   const r = 118;
@@ -338,8 +443,11 @@ function MoatSeal() {
           </span>
         );
       })}
-      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-extrabold tracking-tight text-heading">
-        UnClick
+      <span className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+        <span className="text-lg font-extrabold tracking-tight text-heading">UnClick</span>
+        <span className="mt-0.5 font-mono text-[8.5px] uppercase tracking-[0.2em] text-primary/60">
+          where AI belongs
+        </span>
       </span>
     </div>
   );
@@ -408,7 +516,7 @@ export default function RunRail() {
 
       {/* Stations */}
       <div>
-        {STATIONS.slice(0, 3).map((station, i) => (
+        {STATIONS.slice(0, 4).map((station, i) => (
           <Station key={station.id} station={station} index={i} />
         ))}
       </div>
@@ -419,8 +527,8 @@ export default function RunRail() {
       </div>
 
       <div>
-        {STATIONS.slice(3).map((station, i) => (
-          <Station key={station.id} station={station} index={i + 3} />
+        {STATIONS.slice(4).map((station, i) => (
+          <Station key={station.id} station={station} index={i + 4} />
         ))}
       </div>
 
@@ -450,7 +558,7 @@ export default function RunRail() {
             </span>
           </h2>
           <p className="mx-auto mt-5 max-w-md text-body">
-            Memory, permission, apps, proof, autopilot. One layer your AI plugs into.
+            Any AI, memory, gates, apps, proof, and a team that keeps going.
           </p>
           <MoatSeal />
         </motion.div>

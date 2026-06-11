@@ -39,17 +39,22 @@ describe("HomePreview", () => {
     expect(document.getElementById("install")).not.toBeNull();
   });
 
-  it("runs one ask through all five stations", () => {
+  it("runs one ask through all six stations", () => {
     renderPage();
     expect(screen.getAllByText(/Chase that overdue invoice/).length).toBeGreaterThan(0);
     for (const headline of [
+      "Bring the AI you already use.",
       "It already knows how you work.",
-      "Nothing moves without a yes.",
+      "Checked before it runs.",
       "Every app you already use.",
-      "Every job leaves with a receipt.",
-      "It queues the next one itself.",
+      "Checked after, with a receipt.",
+      "Not one bot. A whole team.",
     ]) {
       expect(screen.getByText(headline)).toBeInTheDocument();
+    }
+    // The deck's five plain checks ride the proof station verbatim.
+    for (const check of ["works", "reads well", "safe", "honest", "looks right"]) {
+      expect(screen.getByText(check)).toBeInTheDocument();
     }
   });
 
