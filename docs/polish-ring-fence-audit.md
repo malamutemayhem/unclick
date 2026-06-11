@@ -122,6 +122,44 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 21 + phase-6 sweep):** remaining public pages and
+  the full-stack test pass.
+  - FAQ page no longer advertises the hidden Arena in its meta
+    description or lede. Organiser drops "unified behind a single MCP
+    interface" and "AI-native" for plain calendar wording. Dispatch's
+    "Session bridge protocol" reads "Your context travels with you
+    between apps". SmartHome and Docs audited: appropriately technical
+    for their audiences, no changes. CopyPass PASS 100 (run 35817b69).
+  - Phase-6 entry: full-stack sweep run covering the website suite and
+    the MCP package suite (both required-check surfaces) plus build and
+    brainmap gates; results recorded in the round-21 commit message.
+  - Remaining phase-6 queue: UIPass browser-screenshot evidence on key
+    pages and the mobile pass. Verified blocked from this seat, not
+    assumed: Playwright 1.60.0 is installed but the container's network
+    policy refuses the Chromium download (npx playwright install fails
+    code=1; --with-deps fails on apt). Needs a browser-capable seat or a
+    network allowance. Fresh dogfood report regeneration runs after the
+    rounds 19-21 merge.
+
+- **2026-06-11 (round 20):** Connect page judgment copy. The success
+  state says what actually happened ("Saved. Your AI can use {app} from
+  now on, with no extra steps") instead of "MCP tool calls will use them
+  automatically"; the local-vault hint is labelled advanced; the trust
+  footer drops AES-256-GCM jargon for the same plain encrypted-storage
+  wording the setup wizard uses. CopyPass PASS 100 (run 78043307).
+
+- **2026-06-11 (round 19, post-merge):** Memory setup wizard reads like
+  English. Copy-only changes on /memory/setup: Supabase is introduced as
+  "a database service with a free plan" before being asked for; the
+  service_role instruction names it "the secret key called service_role"
+  and warns plainly that the shorter key on the same page will not work;
+  "Drop this into your MCP config" reads "Add UnClick to your AI app"
+  with the settings-file explanation; the trust footer drops crypto
+  jargon. CopyPass receipt PASS 100 (run 6ca6b288) after the detector
+  caught one AI-tell word ("unlock") in the first draft. Logic, steps,
+  and handlers untouched.
+
+
 - **2026-06-11 (rounds 15-17):** last deferred chips + a CI truth lesson.
   - Passport header: Export and Audit moved into a labelled More menu with
     one-line descriptions, closing the last round-7 structure finding.

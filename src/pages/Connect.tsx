@@ -311,13 +311,13 @@ export default function ConnectPage() {
               {connector.name} connected
             </h2>
             <p className="text-sm text-body mt-1">
-              Access details stored securely. MCP tool calls will use them automatically.
+              Saved. Your AI can use {connector.name} from now on, with no extra steps.
             </p>
           </div>
 
           <div className="bg-card/40 border border-border/60 rounded-lg p-4 text-left space-y-2">
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
-              Optional: also store in local vault for offline use
+              Optional, advanced: keep a local copy for offline use
             </p>
             {vaultCommands.map((cmd) => (
               <code key={cmd} className="block text-xs font-mono text-primary bg-background/60 px-3 py-1.5 rounded">
@@ -790,7 +790,7 @@ function ConnectShell({
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            Saved access details are encrypted with AES-256-GCM using your API key before storage.
+            Your login details are stored encrypted. Only your API key can read them back.
           </p>
         </div>
       </main>
