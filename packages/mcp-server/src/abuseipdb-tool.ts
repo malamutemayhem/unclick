@@ -6,6 +6,7 @@
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { reliableFetch } from "./reliable-fetch.js";
 
 const ABUSEIPDB_BASE = "https://api.abuseipdb.com/api/v2";
 
@@ -20,25 +21,19 @@ async function abuseGet(
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams(params);
   const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
-  let res: Response;
-  try {
-    res = await fetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
+  // Pilot adoption of the shared resilience layer: timeout wording matches
+  // the previous hand-rolled AbortController path; reads retry politely.
+  const res = await reliableFetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
+    tool: "abuseipdb",
+    service: "AbuseIPDB",
+    timeoutMs: ABUSEIPDB_TIMEOUT_MS,
+    init: {
       headers: {
         Key: apiKey,
         Accept: "application/json",
       },
-      signal: controller.signal,
-    });
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
-    }
-    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
-  } finally {
-    clearTimeout(timer);
-  }
+    },
+  });
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded. Upgrade your plan or wait.");
   if (!res.ok) {
@@ -55,11 +50,13 @@ async function abusePost(
 ): Promise<Record<string, unknown>> {
   const body = new URLSearchParams(params);
   const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
-  let res: Response;
-  try {
-    res = await fetch(`${ABUSEIPDB_BASE}${path}`, {
+  // Reports are writes: reliableFetch never retries non-idempotent requests,
+  // so a flaky network cannot double-report an IP.
+  const res = await reliableFetch(`${ABUSEIPDB_BASE}${path}`, {
+    tool: "abuseipdb",
+    service: "AbuseIPDB",
+    timeoutMs: ABUSEIPDB_TIMEOUT_MS,
+    init: {
       method: "POST",
       headers: {
         Key: apiKey,
@@ -67,16 +64,8 @@ async function abusePost(
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: body.toString(),
-      signal: controller.signal,
-    });
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
-    }
-    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
-  } finally {
-    clearTimeout(timer);
-  }
+    },
+  });
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded.");
   if (!res.ok) {

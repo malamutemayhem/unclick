@@ -1556,6 +1556,9 @@ import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
+// ─── ToolStats (reliable-fetch telemetry) ─────────────────────────────────────
+import { toolStats } from "./toolstats-tool.js";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ADDITIONAL_TOOLS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16243,6 +16246,21 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── toolstats-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "tool_stats",
+    description: "Read per-tool reliability telemetry for this MCP server process: call counts, error classes, latency, rate-limit hits, retries, and circuit-breaker state for connectors routed through the shared reliableFetch layer. Use it to triage flaky tools before retrying them. Stats are per process and reset on restart.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        tool: { type: "string", description: "Optional connector slug to filter to one tool (e.g. abuseipdb)" },
+        unhealthy_only: { type: "boolean", description: "Only return tools with failure streaks, open circuit breakers, or rate-limit hits" },
+      },
+      required: [],
+    },
+  },
+
   // ── qc-tool.ts ───────────────────────────────────────────────────────────────
   {
     name: "qc_run_checklist",
@@ -24858,6 +24876,9 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
       focus:        args.focus        ? String(args.focus)        : undefined,
     }
   )),
+
+  // toolstats-tool.ts
+  tool_stats:              (args) => toolStats(args),
 
   // qc-tool.ts
   qc_run_checklist:        (args) => qcRunChecklist(args),

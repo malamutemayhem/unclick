@@ -39,6 +39,17 @@ So the rule is: steal the idea, ship it better, keep it in our style.
   limits** (`429`) with a clear message or a bounded retry / backoff.
 - **Every connector has a colocated test.**
 
+Preferred way to satisfy the timeout and rate-limit lines: route HTTP calls
+through the shared `reliableFetch` helper (`src/reliable-fetch.ts`) instead of
+hand-rolling AbortController plumbing. It supplies the standard timeout and
+network error wording, bounded exponential backoff that honors `Retry-After`
+(idempotent requests only, so writes are never double-sent), a per-tool
+circuit breaker, and per-tool telemetry readable via the `tool_stats`
+endpoint. The connector keeps its own status mapping and wording because
+`reliableFetch` returns every HTTP response, including the final 429/5xx after
+retries. `abuseipdb-tool.ts` is the reference adoption. Hand-rolled fetch
+remains acceptable where a connector needs unusual transport behavior.
+
 These four are the L2 bar. Most connectors fail them today, which is why L1 is
 crowded.
 

@@ -27,7 +27,7 @@ const OUT = path.resolve(REPO, "docs/integration-audit.md");
 
 const INTERNAL_PRODUCTS = new Set([
   "testpass", "legalpass", "uipass", "uxpass", "seopass", "compliancepass", "flowpass",
-  "copypass", "sloppass", "qc", "csuite", "crews", "igniteonly", "nudgeonly",
+  "copypass", "sloppass", "qc", "csuite", "crews", "toolstats", "igniteonly", "nudgeonly",
   "pushonly", "fidelitycopy", "commonsensepass",
 ]);
 const INFRA = new Set(["keychain", "vault"]);

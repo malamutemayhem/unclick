@@ -182,7 +182,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-xpass-gate-room.mjs | 8012a4cbab9e | 32880 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
-| packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |
+| packages/mcp-server/src/abuseipdb-tool.ts | 6a7d63c13669 | 5830 |
 | packages/mcp-server/src/ackermann-tool.ts | 8b8cf5a1062e | 2700 |
 | packages/mcp-server/src/acnhapi-tool.ts | 45c37b0289ed | 2427 |
 | packages/mcp-server/src/acronymgen-tool.ts | 893f3d635834 | 1113 |
@@ -247,7 +247,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 672 |
+| Tools | MCP and gateway capabilities available to seats. | 673 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -989,6 +989,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | toilets | toilets MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toilets-tool.ts |
 | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tokencount-tool.ts |
 | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/tomorrowio-tool.ts |
+| toolstats | toolstats MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toolstats-tool.ts |
 | topocount | topocount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/topocount-tool.ts |
 | toposort | toposort MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/toposort-tool.ts |
 | treap | treap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/treap-tool.ts |
@@ -2090,6 +2091,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | toilets | toilets MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toilets-tool.ts |
 | Tools | MCP tool | tokencount | tokencount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tokencount-tool.ts |
 | Tools | MCP tool | tomorrowio | tomorrowio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/tomorrowio-tool.ts |
+| Tools | MCP tool | toolstats | toolstats MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toolstats-tool.ts |
 | Tools | MCP tool | topocount | topocount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/topocount-tool.ts |
 | Tools | MCP tool | toposort | toposort MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/toposort-tool.ts |
 | Tools | MCP tool | treap | treap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/treap-tool.ts |

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1110,
+    "inventory": 1111,
     "source_manifest": 227,
     "pages": 94,
-    "tools": 672,
+    "tools": 673,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 672
+      "count": 673
     },
     {
       "id": "rooms",
@@ -10342,6 +10342,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-toolstats-packages-mcp-server-src-toolstats-tool-ts-no-route",
+      "division": "Tools",
+      "name": "toolstats",
+      "kind": "MCP tool",
+      "meaning": "toolstats MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/toolstats-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-topocount-packages-mcp-server-src-topocount-tool-ts-no-route",
       "division": "Tools",
       "name": "topocount",
@@ -14837,6 +14847,11 @@
       "packages/mcp-server/src/tomorrowio-tool.ts"
     ],
     [
+      "toolstats",
+      "toolstats MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/toolstats-tool.ts"
+    ],
+    [
       "topocount",
       "topocount MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/topocount-tool.ts"
@@ -16310,8 +16325,8 @@
     },
     {
       "source": "packages/mcp-server/src/abuseipdb-tool.ts",
-      "hash": "c3c7f2d8566c",
-      "bytes": 6263
+      "hash": "6a7d63c13669",
+      "bytes": 5830
     },
     {
       "source": "packages/mcp-server/src/ackermann-tool.ts",

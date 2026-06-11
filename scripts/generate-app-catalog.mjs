@@ -27,7 +27,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
+bucket("Developer & infra", ["toolstats", "github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -66,7 +66,7 @@ const NAME_OF = {
   openaq: "OpenAQ", openexchangerates: "Open Exchange Rates", openf1: "OpenF1",
   openfoodfacts: "Open Food Facts", openlibrary: "Open Library", openmeteo: "Open-Meteo",
   pandascore: "PandaScore", podcastindex: "Podcast Index", posthog: "PostHog", ptv: "PTV",
-  pushonly: "PushOnly", qc: "QC", radiobrowser: "Radio Browser", restcountries: "REST Countries",
+  pushonly: "PushOnly", qc: "QC", toolstats: "ToolStats", radiobrowser: "Radio Browser", restcountries: "REST Countries",
   seopass: "SEOPass", setlistfm: "Setlist.fm", sloppass: "SlopPass", testpass: "TestPass",
   thelott: "The Lott", tmdb: "TMDB", togetherai: "Together AI", tomorrowio: "Tomorrow.io",
   "unit-converter": "Unit Converter", urlscan: "urlscan.io", usgs: "USGS", uxpass: "UXPass",
@@ -287,6 +287,7 @@ const BLURB_OF = {
   pika: "Generate short video clips with Pika.",
   pushonly: "Run PushOnly wake-and-push policy.",
   qc: "Run quality-control checklists and copy audits.",
+  toolstats: "Read live per-tool reliability stats: errors, latency, retries, and circuit-breaker state.",
   raindrop: "Save and organise bookmarks in Raindrop.",
   readwise: "Read your Readwise highlights and documents.",
   runway: "Generate video with Runway models.",

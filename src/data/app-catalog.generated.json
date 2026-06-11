@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 671,
-  "toolCount": 1593,
+  "appCount": 672,
+  "toolCount": 1594,
   "categories": [
     "AI",
     "Books",
@@ -103,7 +103,7 @@
       "category": "Security",
       "blurb": "Check if an IP address has been reported for abuse.",
       "domain": null,
-      "network": "online",
+      "network": "offline",
       "toolCount": 3,
       "tools": [
         {
@@ -13461,6 +13461,23 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "toolstats",
+      "name": "ToolStats",
+      "category": "Developer & infra",
+      "blurb": "Read live per-tool reliability stats: errors, latency, retries, and circuit-breaker state.",
+      "domain": null,
+      "network": "offline",
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "tool_stats",
+          "description": "Read per-tool reliability telemetry for this MCP server process: call counts, error classes, latency, rate-limit hits, retries, and circuit-breaker state for connectors routed through the shared reliableFetch layer. Use it to triage flaky tools before retrying them. Stats are per process and reset on restart."
+        }
+      ],
+      "level": null,
+      "hardened": false
     },
     {
       "slug": "topocount",

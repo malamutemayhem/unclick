@@ -49,7 +49,7 @@
     "signals": {
       "hasTimeout": true,
       "handles429": true,
-      "hasRetry": false,
+      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,

@@ -1094,7 +1094,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L1 Wrapper | `securitypass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `xpass-aggregated-verdict` | - | - | - | - | - | not-hardened, no-rate-limit, no-memory, no-source-stamp |
 
-Also present (graded separately, not part of the connector program): 16 internal products, 2 infra, 7 local utilities.
+Also present (graded separately, not part of the connector program): 17 internal products, 2 infra, 7 local utilities.
 
 ## How to climb
 

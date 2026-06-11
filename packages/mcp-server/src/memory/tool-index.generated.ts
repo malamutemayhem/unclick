@@ -9234,6 +9234,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "toolstats",
+    "category": "ToolStats (reliable-fetch telemetry)",
+    "tools": [
+      {
+        "name": "tool_stats",
+        "description": "Read per-tool reliability telemetry for this MCP server process: call counts, error classes, latency, rate-limit hits, retries, and circuit-breaker state for connectors routed through the shared reliableFetch layer. Use it to triage flaky tools before retrying them. Stats are per process and reset on restart."
+      }
+    ]
+  },
+  {
     "app": "topocount",
     "category": "Existing tools (previously unwired)",
     "tools": [
