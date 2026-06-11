@@ -60,6 +60,37 @@ describe("smart home page claims stay verifiable", () => {
   });
 });
 
+describe("homepage trust section carries receipts, not vibes", () => {
+  const src = read("src/components/TrustSignals.tsx");
+
+  it("makes no unverifiable platform or uptime claims", () => {
+    for (const banned of ["99.9%", "uptime target", "Cloudflare Workers", "no cold starts"]) {
+      expect(src, `TrustSignals.tsx must not contain "${banned}"`).not.toContain(banned);
+    }
+  });
+
+  it("every signal card points at evidence", () => {
+    expect(src).toContain('evidence: { label: "Browse the catalog", href: "/tools" }');
+    expect(src).toContain("npmjs.com/package/@unclick/mcp-server");
+    expect(src).toContain('href: "/dogfood"');
+  });
+});
+
+describe("homepage problem section invents no benchmarks", () => {
+  it("ships no fabricated latency or token numbers", () => {
+    const src = read("src/components/Problem.tsx");
+    expect(src).not.toMatch(/~[\d,]+ms|~[\d,]+ tokens/);
+  });
+});
+
+describe("the 404 page keeps one tagline", () => {
+  it("restores the captured title instead of a hardcoded second product line", () => {
+    const src = read("src/pages/NotFound.tsx");
+    expect(src).not.toContain("App Store for AI Agents");
+    expect(src).toContain("document.title = prevTitle");
+  });
+});
+
 describe("crews page does not argue with itself", () => {
   const src = read("src/pages/Crews.tsx");
 

@@ -84,6 +84,9 @@ const CONVERTED_PAGES = [
   "src/pages/Developers.tsx",
   "src/pages/SmartHome.tsx",
   "src/pages/Crews.tsx",
+  "src/components/TrustSignals.tsx",
+  "src/components/Problem.tsx",
+  "src/pages/NotFound.tsx",
 ];
 
 describe("design canon: converted pages stay converted", () => {
