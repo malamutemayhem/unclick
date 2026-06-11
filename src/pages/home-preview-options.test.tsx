@@ -50,7 +50,7 @@ describe.each(OPTIONS)("HomePreview option $id", ({ Page, signature }) => {
   it("speaks plainly: no internal product jargon in its own sections", () => {
     const { container } = renderPage(Page);
     const main = container.querySelector("main");
-    expect(main?.textContent ?? "").not.toMatch(/ScopeGate|Orchestrator|Fishbowl/);
+    expect(main?.textContent ?? "").not.toMatch(/ScopeGate|Orchestrator|XGate|XPass/);
   });
 
   it("marks the preview noindex while it is a design sample", () => {
