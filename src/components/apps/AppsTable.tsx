@@ -15,7 +15,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
-import { actionLabel, APP_CATEGORIES, levelLabel, type AppEntry, type AppTool } from "@/lib/appCatalog";
+import {
+  actionLabel,
+  APP_CATEGORIES,
+  levelLabel,
+  NETWORK_META,
+  NETWORK_ORDER,
+  type AppEntry,
+  type AppTool,
+} from "@/lib/appCatalog";
 import { AppIcon } from "./AppIcon";
 import { useAppFilter, type AppSortKey } from "./useAppFilter";
 
@@ -32,6 +40,8 @@ interface AppsTableProps {
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
+  /** admin: makes the status pill a button (used to open the connect wizard). */
+  onStatusClick?: (app: AppEntry) => void;
   busy?: boolean;
 }
 
@@ -54,8 +64,8 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, busy }: AppsTableProps) {
-  const { query, setQuery, category, setCategory, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, busy }: AppsTableProps) {
+  const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showRaw, setShowRaw] = useState(false);
   const isAdmin = mode === "admin";
@@ -106,7 +116,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search apps or actions — try 'bmi', 'invoice', 'parcel'..."
+            placeholder="Search apps or actions - try 'bmi', 'invoice', 'parcel'..."
             className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/40 focus:outline-none"
           />
         </div>
@@ -152,6 +162,21 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
         <Chip label="All" active={category === null} onClick={() => setCategory(null)} />
         {APP_CATEGORIES.map((c) => (
           <Chip key={c} label={c} active={category === c} onClick={() => setCategory(category === c ? null : c)} />
+        ))}
+      </div>
+
+      {/* Network chips: does the app need internet? */}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">Internet</span>
+        <Chip label="Any" active={network === null} onClick={() => setNetwork(null)} />
+        {NETWORK_ORDER.map((n) => (
+          <Chip
+            key={n}
+            label={NETWORK_META[n].label}
+            title={NETWORK_META[n].description}
+            active={network === n}
+            onClick={() => setNetwork(network === n ? null : n)}
+          />
         ))}
       </div>
 
@@ -203,11 +228,11 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   onClick={(e) => e.stopPropagation()}
                   className="flex min-w-0 items-center gap-2"
                 >
-                  <AppIcon name={app.name} category={app.category} domain={app.domain} />
+                  <AppIcon name={app.name} category={app.category} domain={app.domain} slug={app.slug} />
                   <span className="truncate font-medium text-white hover:text-[#9be4e6]">{app.name}</span>
                 </Link>
                 <span className="truncate text-white/45">{app.category}</span>
-                <span className="truncate text-white/50">{app.blurb}</span>
+                <span className="truncate text-white/50" title={app.blurb}>{app.blurb}</span>
                 <span className="flex items-center justify-end gap-1 tabular-nums text-white/40">
                   <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90 text-[#61C1C4]" : "text-white/30"}`} />
                   {app.toolCount}
@@ -215,7 +240,20 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                 <div className="flex justify-end">
                   {isAdmin ? (
                     status ? (
-                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${status.tone}`}>{status.label}</span>
+                      onStatusClick ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onStatusClick(app);
+                          }}
+                          className={`rounded border px-1.5 py-0.5 text-[10px] font-medium transition-opacity hover:opacity-80 ${status.tone}`}
+                        >
+                          {status.label}
+                        </button>
+                      ) : (
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${status.tone}`}>{status.label}</span>
+                      )
                     ) : (
                       <span className="text-[10px] text-white/30">{on ? "On" : "Off"}</span>
                     )
@@ -227,10 +265,21 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                 </div>
               </div>
 
-              {/* Inline Actions — aligned under "What it does", columns stay locked */}
+              {/* Inline Actions - aligned under "What it does", columns stay locked */}
               {open && (
                 <div className={`grid ${cols} gap-3 bg-white/[0.015] px-3 pb-2`}>
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
+                    {/* Full, untruncated description first, so nothing is lost to the
+                        single-line row above. The internet badge rides along. */}
+                    <div className="flex flex-wrap items-center gap-2 py-1.5">
+                      <span className="text-[11px] leading-snug text-white/70">{app.blurb}</span>
+                      <span
+                        title={NETWORK_META[app.network].description}
+                        className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-white/55"
+                      >
+                        {NETWORK_META[app.network].label}
+                      </span>
+                    </div>
                     {app.tools.map((t) => (
                       <div key={t.name} className="border-t border-white/[0.04] py-1.5 first:border-t-0">
                         <span className="block text-[10px] font-medium text-white/85">{actionLabel(t)}</span>
@@ -254,10 +303,11 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
   );
 }
 
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function Chip({ label, active, onClick, title }: { label: string; active: boolean; onClick: () => void; title?: string }) {
   return (
     <button
       type="button"
+      title={title}
       onClick={onClick}
       className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
         active

@@ -15,9 +15,9 @@ import JobsBoardSample from "@/components/JobsBoardSample";
 import XGateGates from "@/components/XGateGates";
 import {
   Sparkles, Zap, Plug, RefreshCw,
-  Clock, Compass, Link2, MonitorSmartphone,
+  Clock, Compass, MonitorSmartphone,
   KeyRound, Puzzle, ShieldCheck, Lock,
-  Users, HeartPulse, Brain, SlidersHorizontal,
+  Users, HeartPulse, Brain, UserCog,
   Search, ShieldHalf,
   MessageSquare, Bot, Network, LayoutGrid, Code2, BadgeCheck, ClipboardList, GitMerge, Rocket, RotateCcw,
   Terminal, CreditCard, Ban,
@@ -60,34 +60,55 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   skills: {
     path: "/skills",
     eyebrow: "Skills",
-    title: <>Skills your agent can <GradientText>run</GradientText>.</>,
-    lede: "Ready-made recipes that teach your AI to do real tasks, end to end. Just ask, and it runs the right one.",
+    title: <>Skills your agent <span className="whitespace-nowrap">can <GradientText>run</GradientText>.</span></>,
+    lede: "Ready-made recipes that hand your AI a new skill in seconds. Just ask, and it runs the right one, start to finish.",
     primaryCta: GET_STARTED,
     secondaryCta: { label: "Browse apps", href: "/apps" },
+    showcase: (
+      <ExpandableImage
+        src="/skills_web.jpg"
+        alt="A robot instantly learning skills like combat, programming, stealth, and analysis, saying 'I know kung fu'."
+      />
+    ),
     featuresTitle: "Capability, on tap.",
     features: [
-      { icon: Sparkles, title: "Curated and trending", desc: "A growing library of the skills people actually use." },
-      { icon: Zap, title: "One-line trigger", desc: "No setup. Ask in plain English and your agent picks the skill." },
-      { icon: Plug, title: "Works everywhere", desc: "Any MCP client: Claude, ChatGPT, Cursor, and more." },
-      { icon: RefreshCw, title: "Kept fresh", desc: "New skills added often, refined from real use." },
+      { icon: Sparkles, title: "Curated and trending", desc: "A growing library of the skills people actually use, shaped by real work." },
+      { icon: Zap, title: "One-line trigger", desc: "No setup. Ask in plain English and your agent picks the right skill for the job." },
+      { icon: Hammer, title: "Runs the whole task", desc: "A skill does the job from start to finish, not just one small step along the way." },
+      { icon: ShieldCheck, title: "Reviewed, not wild west", desc: "Every skill is checked before it lands, so there are no hidden instructions or prompt-injection tricks." },
+      { icon: Plug, title: "Works everywhere", desc: "Any MCP client: Claude, ChatGPT, Cursor, and more, all share the same skills." },
+      { icon: RefreshCw, title: "Kept fresh", desc: "New skills are added often and updated as the tools behind them change." },
     ],
-    meta: { title: "Skills - UnClick", description: "Ready-made skills that teach your AI to do real tasks. Just ask." },
+    meta: { title: "Skills - UnClick", description: "Ready-made, reviewed skills that teach your AI to do real tasks end to end. Just ask." },
   },
   orchestrator: {
     path: "/orchestrator",
     eyebrow: "Orchestrator",
-    title: <>The running <GradientText>story</GradientText> of your work.</>,
+    title: (
+      <>
+        <span className="block">The running <GradientText>story</GradientText></span>
+        <span className="block">of your work.</span>
+      </>
+    ),
     lede: "Every job, receipt, and decision, written as one plain-English story you can follow. The same running story shows on each device and seat you connect.",
     primaryCta: GET_STARTED,
-    showcase: <OrchestratorStory />,
+    showcase: (
+      <ExpandableImage
+        src="/orchestrator_web.jpg"
+        alt="Conversations from many people, PCs, and phones merging into one continuous chained thread that flows into a glowing memory brain."
+      />
+    ),
     featuresTitle: "One story, everywhere you work.",
+    featuresCols: 2,
     features: [
-      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read, with the raw timeline underneath." },
-      { icon: MonitorSmartphone, title: "Every connected device", desc: "The same running story on each PC and seat you connect." },
-      { icon: Users, title: "Built for teams", desc: "Share an account and everyone follows the same story." },
-      { icon: Link2, title: "Any seat or account", desc: "Connect a seat or AI account and its work joins the story." },
+      { icon: Clock, title: "Story and timeline", desc: "A continuous, plain-English read of what happened, with the raw timeline underneath when you want the detail." },
+      { icon: Brain, title: "Context for your AI", desc: "The running story works together with your memory, so any seat picks up a job already knowing what has happened and what comes next." },
+      { icon: MonitorSmartphone, title: "Every device and seat", desc: "The same running story on each PC, phone, and AI seat you connect, so nothing is stuck on one machine." },
+      { icon: Users, title: "Built for teams", desc: "Share one account and everyone, people and AI alike, follows the exact same story." },
     ],
-    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team." },
+    tailTitle: "Follow along, as it happens.",
+    tail: <OrchestratorStory />,
+    meta: { title: "Orchestrator - UnClick", description: "The running, plain-English story of your work across your connected devices, seats, and team, feeding your AI's memory so it always has the full context." },
   },
   passport: {
     path: "/passport",
@@ -107,17 +128,30 @@ export const BROCHURE: Record<BrochureSlug, BrochureContent> = {
   seats: {
     path: "/seats",
     eyebrow: "Seats",
-    title: <>Give your AI a <GradientText>seat</GradientText> at the table.</>,
-    lede: "Add AI seats that work for you, each with a role, a heartbeat, and shared memory.",
+    title: (
+      <>
+        <span className="block">Give your AI a</span>
+        <span className="block"><GradientText>seat</GradientText> at the table.</span>
+      </>
+    ),
+    lede: "A seat is an AI worker on your account. Use one on your own, or sit a whole team around the table. Every seat has a clear job, wakes up on its own schedule, and shares the same memory, so nothing gets lost between them.",
     primaryCta: GET_STARTED,
-    featuresTitle: "Your AI team.",
+    showcase: (
+      <ExpandableImage
+        src="/seats_web.jpg"
+        alt="AI seats around a round table - ChatGPT, Claude, Ollama, CoPilot, Cursor, and Windsurf - all wired to one shared UnClick account in the middle."
+      />
+    ),
+    featuresTitle: "Built for one, or a whole team.",
+    featuresSubtitle: "Run UnClick on your own, or share one account so people and AI seats all pull in the same direction.",
+    featuresCols: 2,
     features: [
-      { icon: Users, title: "Role-based", desc: "Each seat has a clear job, so the right one handles each task." },
-      { icon: HeartPulse, title: "Heartbeat schedule", desc: "Seats wake on a schedule to keep work moving." },
-      { icon: Brain, title: "Shared memory", desc: "Every seat draws on the same memory you own." },
-      { icon: SlidersHorizontal, title: "Your rules", desc: "You set what each seat can and cannot do." },
+      { icon: Users, title: "Solo or a whole team", desc: "Run a single seat by yourself, or share one account so a team can build together. The setup is the same whether it is just you or a whole room of people." },
+      { icon: UserCog, title: "Every seat has a role", desc: "Give each seat a clear job, like research, building, or review, so the right seat picks up the right work. You decide what each one can and cannot do." },
+      { icon: HeartPulse, title: "Tethered to a heartbeat", desc: "Seats wake up on a schedule you set and check in on their own, so work keeps moving forward even while you are asleep or away from the desk." },
+      { icon: Brain, title: "One shared memory", desc: "ChatGPT, Claude, Cursor, and the rest all read and write the same memory you own, so the context follows you across every tool, seat, and device." },
     ],
-    meta: { title: "Seats - UnClick", description: "Add AI seats that work for you, each with a role, a heartbeat, and shared memory." },
+    meta: { title: "Seats - UnClick", description: "Run UnClick solo or as a team. AI seats each have a role, a heartbeat schedule, and one shared memory across every tool." },
   },
   autopilot: {
     path: "/autopilot",

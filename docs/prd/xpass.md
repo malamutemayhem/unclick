@@ -149,7 +149,7 @@ Legacy naming:
 
 - EnterprisePass is the old internal name for CompliancePass.
 - QualityPass is retired wording for SlopPass.
-- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
+- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless the operator explicitly promotes it.
 
 ## XPass product promotion ladder
 

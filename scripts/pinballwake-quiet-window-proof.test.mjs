@@ -68,8 +68,8 @@ describe("isAiSeatId", () => {
   });
 
   test("rejects human seats and garbage", () => {
-    assert.equal(isAiSeatId("human-chris"), false);
-    assert.equal(isAiSeatId("human-byrneck"), false);
+    assert.equal(isAiSeatId("human-alice"), false);
+    assert.equal(isAiSeatId("human-operator"), false);
     assert.equal(isAiSeatId(""), false);
     assert.equal(isAiSeatId(null), false);
     assert.equal(isAiSeatId(undefined), false);
@@ -81,7 +81,7 @@ describe("pickAutonomousCrumb", () => {
   test("picks first AI-authored crumb after `since`", () => {
     const since = new Date(Date.UTC(2026, 4, 15, 0, 0, 0));
     const crumbs = [
-      { authorId: "human-chris", createdAt: "2026-05-15T01:00:00Z" },
+      { authorId: "human-operator", createdAt: "2026-05-15T01:00:00Z" },
       { authorId: "random", createdAt: "2026-05-15T01:30:00Z" },
       { authorId: "claude-cowork-coordinator-seat", createdAt: "2026-05-15T02:00:00Z", commentId: "C1", step: 1 },
       { authorId: "pinballwake-job-runner", createdAt: "2026-05-15T03:00:00Z", commentId: "C2", step: 2 },
@@ -93,7 +93,7 @@ describe("pickAutonomousCrumb", () => {
   test("returns null when no AI crumb exists in window", () => {
     const since = new Date(Date.UTC(2026, 4, 15, 0, 0, 0));
     const crumbs = [
-      { authorId: "human-chris", createdAt: "2026-05-15T01:00:00Z" },
+      { authorId: "human-operator", createdAt: "2026-05-15T01:00:00Z" },
       { authorId: "claude-cowork", createdAt: "2026-05-14T23:00:00Z" }, // before `since`
     ];
     assert.equal(pickAutonomousCrumb({ crumbs, since }), null);
@@ -163,7 +163,7 @@ describe("proveQuietWindow", () => {
     const runTime = new Date(Date.UTC(2026, 4, 15, 2, 0, 0));
     const since = new Date(Date.UTC(2026, 4, 15, 0, 0, 0));
     const room = makeFakeRoom([
-      { authorId: "human-chris", createdAt: "2026-05-15T01:00:00Z", commentId: "C1" },
+      { authorId: "human-operator", createdAt: "2026-05-15T01:00:00Z", commentId: "C1" },
     ]);
     const r = await proveQuietWindow({
       heartbeatRunId: "HB-1",

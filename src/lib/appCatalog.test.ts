@@ -17,7 +17,18 @@ describe("app catalog integrity", () => {
       expect(app.category, `category for ${app.slug}`).toBeTruthy();
       expect(app.blurb, `blurb for ${app.slug}`).toBeTruthy();
       expect(app.toolCount, `toolCount for ${app.slug}`).toBe(app.tools.length);
+      expect(["offline", "online", "hybrid"], `network for ${app.slug}`).toContain(app.network);
     }
+  });
+
+  it("never ships the internal 'local' marker as a domain (it breaks the icon)", () => {
+    const bad = APP_CATALOG.filter((a) => a.domain === "local").map((a) => a.slug);
+    expect(bad, `apps with domain "local": ${bad.join(", ")}`).toEqual([]);
+  });
+
+  it("keeps the offline bucket honest: offline apps have no brand domain", () => {
+    const suspicious = APP_CATALOG.filter((a) => a.network === "offline" && a.domain).map((a) => a.slug);
+    expect(suspicious, `offline apps with a domain: ${suspicious.join(", ")}`).toEqual([]);
   });
 
   it("classifies every app into a real, user-facing category (none fall to Other)", () => {

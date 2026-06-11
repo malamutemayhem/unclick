@@ -1,9 +1,12 @@
 /**
  * UnClick Design System
  *
- * Canonical tokens, presets, and helpers for the Apple-inspired polish pass.
- * Locked 2026-05-28. Live tokens are CSS custom properties in src/index.css;
- * the values here are mirrored so TypeScript callers can reason about them.
+ * Canonical tokens, presets, and helpers. Locked 2026-05-28; canon merged
+ * 2026-06-11 (Creative Studio Council ruling): the deck grammar shipped on
+ * Hero and BrochurePage IS the system. The presets below encode it, so pages
+ * compose instead of hand-rolling. Live tokens are CSS custom properties in
+ * src/index.css; the values here are mirrored so TypeScript callers can
+ * reason about them.
  *
  * Rules of the system (do not break without an ADR):
  *
@@ -14,8 +17,13 @@
  *  5. One CTA per section. Strip the third button.
  *  6. Motion budget = discreet. One slow-drifting teal aurora on the dark
  *     canvas (16-24s) plus FadeIn on first paint. No marquee, no grain.
- *     (Updated 2026-06-07 per Chris: subtle, beautiful background movement.)
+ *     (Updated 2026-06-07: subtle, beautiful background movement.)
  *  7. No em dashes anywhere.
+ *  8. Headlines are extrabold with tight tracking; the primary CTA carries
+ *     the teal glow and lift; panels are glass (white tint + hairline +
+ *     blur), never opaque slabs. Compose from presets and the brand
+ *     primitives in src/components/brand; raw brand hexes belong only in
+ *     this file, src/index.css, and src/components/brand.
  */
 
 /** Raw token values. Mirror src/index.css. */
@@ -52,18 +60,16 @@ export const presets = {
   heroSection: "relative pt-28 pb-20 overflow-hidden px-6",
   heroInner: "relative z-10 mx-auto max-w-4xl text-center",
 
-  // Eyebrow pill
-  eyebrow:
-    "mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 " +
-    "bg-primary/[0.07] px-4 py-1.5 backdrop-blur-sm",
-  eyebrowText: "font-mono text-xs font-medium tracking-wide text-primary",
-
-  // Headlines
+  // Headlines. The display scale is the homepage hero; product pages
+  // (PageShell, BrochurePage) use the product scale. Same grammar both ways.
   h1:
-    "text-5xl font-semibold leading-[1.05] tracking-tight " +
+    "text-5xl font-extrabold leading-[1.03] tracking-[-0.025em] " +
     "sm:text-6xl md:text-7xl text-heading",
+  h1Product:
+    "text-4xl font-extrabold leading-[1.05] tracking-[-0.025em] " +
+    "sm:text-5xl md:text-6xl text-heading",
   h2:
-    "text-3xl font-semibold tracking-tight " +
+    "text-3xl font-bold tracking-tight " +
     "sm:text-4xl text-heading",
   h3:
     "text-lg font-semibold text-heading",
@@ -72,26 +78,35 @@ export const presets = {
   lede: "mt-6 text-lg text-body max-w-2xl mx-auto leading-relaxed",
   body: "text-sm text-body leading-relaxed",
 
-  // The single primary CTA
+  // The single primary CTA: teal glow, gentle lift on hover.
   ctaPrimary:
     "inline-flex items-center justify-center gap-2 rounded-lg " +
-    "bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground " +
-    "transition-opacity hover:opacity-90",
+    "bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground " +
+    "shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.55)] transition-all " +
+    "hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]",
 
-  // The optional secondary CTA - use sparingly. Often the page is stronger without it.
+  // The optional secondary CTA - glass, quiet. Often the page is stronger without it.
   ctaGhost:
-    "inline-flex items-center gap-1.5 rounded-lg border border-border/60 " +
-    "bg-card/40 px-6 py-3 text-sm font-medium text-heading " +
-    "backdrop-blur-sm transition-colors hover:bg-card/70",
+    "inline-flex items-center justify-center gap-2 rounded-lg " +
+    "border border-[#86dadd]/15 bg-white/[0.045] px-6 py-3.5 " +
+    "text-sm font-medium text-heading backdrop-blur-sm transition-all " +
+    "hover:border-primary/40 hover:bg-white/[0.07]",
 
-  // Product / feature tile (monochrome accent only)
+  // Product / feature tile: glass panel, teal hover (mirrors brand GlassCard).
   tile:
-    "group relative block h-full rounded-xl border border-border/60 " +
-    "bg-card/60 p-6 backdrop-blur-sm transition-all " +
-    "hover:border-primary/40 hover:bg-card/80 hover:shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.25)]",
+    "group relative block h-full rounded-[18px] border border-[#86dadd]/15 " +
+    "bg-white/[0.045] p-6 backdrop-blur-sm transition-all duration-300 " +
+    "hover:border-primary/40 hover:bg-white/[0.07] " +
+    "hover:shadow-[0_20px_60px_-24px_rgba(97,193,196,0.35)]",
   tileIcon:
-    "flex h-10 w-10 items-center justify-center rounded-lg " +
-    "bg-primary/10 text-primary mb-4",
+    "flex h-11 w-11 items-center justify-center rounded-xl " +
+    "border border-primary/30 bg-gradient-to-br from-primary/20 to-primary/[0.06] " +
+    "text-primary mb-4",
+
+  // Floating menu surface (nav dropdowns, popovers over content)
+  menu:
+    "rounded-2xl border border-primary/15 bg-popover/95 p-1.5 " +
+    "shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md",
 
   // Section wrapper
   section: "px-6 py-20",

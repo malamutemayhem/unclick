@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "npm run dev --workspace=apps/api",
-    "build": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build",
+    "build": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build && node scripts/prerender-routes.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -33,6 +33,9 @@
     "test:watch": "vitest",
     "test:api": "npm run test --workspace=apps/api",
     "review:dry-run": "node scripts/review-dry-run.mjs",
+    "boardroom:check": "node scripts/audit-fishbowl-naming.mjs --check",
+    "boardroom:baseline": "node scripts/audit-fishbowl-naming.mjs --update-baseline",
+    "test:boardroom-naming": "node --test scripts/audit-fishbowl-naming.test.mjs",
     "brainmap:generate": "node scripts/UnClick-brainmap.mjs",
     "brainmap:check": "node scripts/UnClick-brainmap.mjs --check",
     "eval:report": "tsx api/lib/eval/run-report.ts",

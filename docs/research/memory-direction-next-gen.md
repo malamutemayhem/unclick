@@ -50,7 +50,7 @@ These notes were verified from live public sources on 2026-05-10 UTC.
 
 ### 1. Profile Card
 
-Purpose: a compact, always-loaded card that tells a fresh AI Seat who Chris is, what UnClick is, what matters now, and what to avoid.
+Purpose: a compact, always-loaded card that tells a fresh AI Seat who the operator is, what UnClick is, what matters now, and what to avoid.
 
 Recommended fields:
 

@@ -2,7 +2,7 @@
 
 **Status:** Current operating template
 **Owner:** UnClick fleet
-**Use when:** Chris or a relay worker needs to push the whole fleet forward without creating duplicate work.
+**Use when:** the operator or a relay worker needs to push the whole fleet forward without creating duplicate work.
 
 This template is the safe default for mass worker pushes across Lenovo, Plex, cloud agents, scheduled automations, and future hosts.
 
@@ -35,10 +35,10 @@ Current focus:
 6. Improve fleet safety docs, proof checks, and no-stomp guardrails when an obvious gap appears.
 
 Known holds:
-- Do not touch secrets, env vars, auth, billing, DNS/domains, migrations, RLS, CSP, or destructive cleanup without Chris.
+- Do not touch secrets, env vars, auth, billing, DNS/domains, migrations, RLS, CSP, or destructive cleanup without the operator.
 - Do not print raw secret values.
 - Do not weaken TestPass, UIPass, UXPass, SecurityPass, CompliancePass, WakePass, or dogfood gates just to turn checks green.
-- Do not start broad new product lanes from old notes unless Chris explicitly reactivates them.
+- Do not start broad new product lanes from old notes unless the operator explicitly reactivates them.
 - Do not edit another worker's active files or force-push another worker's branch.
 - If a PR has incomplete verification, hold it with the exact missing proof.
 

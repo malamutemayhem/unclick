@@ -51,9 +51,7 @@ export function shouldSuppressNoopHeartbeatPost(input: QuietHeartbeatPostInput):
   const tags = normalizedTags(input.tags);
   if (tags.has("no-op-heartbeat")) return true;
 
-  const heartbeatTagged = tags.has("heartbeat") || tags.has("quiet") || tags.has("status");
-  const hasHeartbeatText = /\bheartbeat\b/.test(text) || /^unclick healthy\.?$/.test(text);
   const hasNoopText = NOOP_PATTERNS.some((pattern) => pattern.test(text));
 
-  return hasNoopText && (heartbeatTagged || hasHeartbeatText || /^unclick healthy\.?$/.test(text));
+  return hasNoopText;
 }

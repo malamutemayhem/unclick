@@ -17,6 +17,7 @@ import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import {
+  ArrowRightLeft,
   User,
   Brain,
   KeyRound,
@@ -32,6 +33,7 @@ import {
   BarChart3,
   Bell,
   Code2,
+  HardDrive,
   Terminal,
   ChevronRight,
   ChevronDown,
@@ -264,10 +266,26 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
     AUTOPILOT_LINKS.some((item) => location.pathname.startsWith(item.path));
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-1">
-      <SurfaceLink path="/admin/autopilot" label="AutoPilot" icon={Plane} onClick={onLinkClick} />
+    <div>
+      <NavLink
+        to="/admin/autopilot"
+        onClick={onLinkClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <Plane className="h-4 w-4 shrink-0" />
+        <span className="flex-1">AutoPilot</span>
+        {open
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {open && (
-        <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
           {AUTOPILOT_LINKS.map((item) => {
             if (item.hasChildren && item.path === "/admin/checks") {
               return <XPassNavItem key={item.path} onClick={onLinkClick} />;
@@ -408,28 +426,58 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+const SEATS_CHILDREN = [
+  { path: "/admin/agents/api",              label: "API",          icon: KeyRound   },
+  { path: "/admin/agents/api/routing",      label: "Routing",      icon: ArrowRightLeft },
+  { path: "/admin/agents/api/usage",        label: "Usage",        icon: BarChart3  },
+  { path: "/admin/agents/local",            label: "Local",        icon: HardDrive  },
+  { path: "/admin/agents/subscription",     label: "Subscription", icon: CreditCard },
+  { path: "/admin/agents/heartbeat",        label: "Heartbeat",    icon: HeartPulse },
+] as const;
+
 function SeatsNavItem({ onClick }: { onClick?: () => void }) {
   const location = useLocation();
   const isSeats = location.pathname === "/admin/agents" || location.pathname.startsWith("/admin/agents/");
-  const heartbeatActive = location.pathname === "/admin/agents/heartbeat";
 
   return (
     <div>
-      <SurfaceLink path="/admin/agents" label="Seats" icon={SeatsCascadeIcon} onClick={onClick} />
+      <NavLink
+        to="/admin/agents"
+        onClick={onClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <SeatsCascadeIcon className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Seats</span>
+        {isSeats
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {isSeats && (
         <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
-          <Link
-            to="/admin/agents/heartbeat"
-            onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              heartbeatActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-card/40 hover:text-body"
-            }`}
-          >
-            <HeartPulse className="h-3 w-3 shrink-0" />
-            Heartbeat
-          </Link>
+          {SEATS_CHILDREN.map(({ path, label, icon: Icon }) => {
+            const active = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClick}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                }`}
+              >
+                <Icon className="h-3 w-3 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -443,10 +491,27 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
   const storyActive = location.pathname === "/admin/orchestrator" ||
     location.pathname === "/admin/orchestrator/story";
   const timelineActive = location.pathname === "/admin/orchestrator/timeline";
+  const logActive = location.pathname === "/admin/orchestrator/log";
 
   return (
     <div>
-      <SurfaceLink path="/admin/orchestrator" label="Orchestrator" icon={Terminal} onClick={onClick} />
+      <NavLink
+        to="/admin/orchestrator"
+        onClick={onClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <Terminal className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Orchestrator</span>
+        {isOrchestrator
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {isOrchestrator && (
         <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
           <Link
@@ -472,6 +537,18 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
           >
             <Clock className="h-3 w-3 shrink-0" />
             Timeline
+          </Link>
+          <Link
+            to="/admin/orchestrator/log"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              logActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
+            }`}
+          >
+            <ScrollText className="h-3 w-3 shrink-0" />
+            Log
           </Link>
         </div>
       )}

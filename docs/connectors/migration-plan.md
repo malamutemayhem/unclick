@@ -178,7 +178,7 @@ This warning is user-visible and operationally important, but it currently names
 
 **Current**
 
-`AdminKeychain — BackstagePass admin surface (/admin/keychain)`
+`AdminKeychain - BackstagePass admin surface (/admin/keychain)`
 
 **Why this is optional**
 
@@ -186,7 +186,7 @@ This is not user-visible, so it is not required for Phase 0. Still, it will keep
 
 **Recommended replacement**
 
-`AdminKeychain — Connections admin surface (/admin/keychain)`
+`AdminKeychain - Connections admin surface (/admin/keychain)`
 
 Keep `AdminKeychain` and `/admin/keychain` unchanged for now; those are implementation names, not product copy.
 

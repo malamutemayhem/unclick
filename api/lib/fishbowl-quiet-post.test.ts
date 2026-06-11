@@ -39,6 +39,31 @@ describe("shouldSuppressNoopHeartbeatPost", () => {
     ).toBe(true);
   });
 
+  it("suppresses noop text even without heartbeat tags when opted in", () => {
+    expect(
+      shouldSuppressNoopHeartbeatPost({
+        text: "Nothing changed.",
+        tags: ["fyi"],
+        suppressNoopHeartbeat: true,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldSuppressNoopHeartbeatPost({
+        text: "State unchanged.",
+        suppressNoopHeartbeat: true,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldSuppressNoopHeartbeatPost({
+        text: "No change",
+        tags: ["status"],
+        suppressNoopHeartbeat: true,
+      }),
+    ).toBe(true);
+  });
+
   it("keeps action-needed heartbeat output visible", () => {
     expect(
       shouldSuppressNoopHeartbeatPost({

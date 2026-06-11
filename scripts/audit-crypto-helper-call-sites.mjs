@@ -172,7 +172,7 @@ async function main() {
   } else {
     console.log(renderText(report));
   }
-  // Exit 0 always — this is informational, not a gate. The migration PR sets its own success criteria.
+  // Exit 0 always. This is informational, not a gate. The migration PR sets its own success criteria.
   process.exit(0);
 }
 

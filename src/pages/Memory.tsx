@@ -52,7 +52,7 @@ const CAPTURE_FEED = [
   {
     time: "2:15 PM",
     tag: "Linked",
-    text: "\"Kate's birthday is 15 July\" to family",
+    text: "\"Jason's birthday is 15 July\" to family",
   },
   {
     time: "2:31 PM",
@@ -103,7 +103,7 @@ const Memory = () => {
       cta={{ label: "See how it works", href: "#how-it-works" }}
     >
       {/* Infographic: the eight pillars at a glance, high on the page */}
-      <section className={presets.section + " pb-0"}>
+      <section className="px-6 pb-0 -mt-8 sm:-mt-10">
         <div className="mx-auto max-w-5xl">
           <FadeIn>
             <ExpandableImage

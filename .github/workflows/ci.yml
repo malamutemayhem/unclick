@@ -26,14 +26,20 @@ jobs:
           cache: "npm"
       - run: npm ci --no-audit --no-fund
       - name: Lint
+        # Blocking since 2026-06-11: the 9 standing errors were fixed, so a
+        # red lint step now means a new regression, not old debt. Warnings
+        # do not fail eslint, only errors do.
         run: npm run lint
-        continue-on-error: true
       - name: Build
         run: npm run build
       - name: Brainmap stale guard
         run: |
           npm run brainmap:check
           npm run test:brainmap
+      - name: Boardroom naming ratchet (no new Fishbowl refs)
+        run: |
+          npm run boardroom:check
+          npm run test:boardroom-naming
       - name: Tests
         run: npm test --if-present
       - name: Continuous Improvement watch guard
@@ -59,5 +65,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Typecheck + build
         run: npm run build
+      - name: Orphan-module gate
+        run: npm run check:orphans
       - name: Tests
         run: npm test

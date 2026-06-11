@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.malamutemayhem/unclick",
   "title": "UnClick",
-  "description": "AI agent tool marketplace. 178+ tools for social, e-commerce, accounting, and messaging.",
+    "description": "UnClick is the universal remote for AI: one MCP install that gives any compatible agent 450+ callable endpoints across 60+ integrations, plus persistent cross-session memory.",
   "version": "0.3.110",
   "repository": {
     "url": "https://github.com/malamutemayhem/unclick.git",

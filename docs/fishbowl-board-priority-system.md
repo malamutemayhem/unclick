@@ -109,7 +109,7 @@ Use BLOCKED when work cannot move without a specific external input.
 
 Examples:
 
-- Secret/token/env change needed from Chris.
+- Secret/token/env change needed from the operator.
 - Auth, billing, DNS, domain, migration, or security approval needed.
 - Provider access missing.
 - Upstream CI or platform outage.
@@ -174,7 +174,7 @@ Preferred actions:
 - Drop one obsolete todo with evidence.
 - Add one lane comment to a vague todo.
 - Clarify one stale title.
-- Identify one blocker for Chris.
+- Identify one blocker for the operator.
 
 Avoid:
 

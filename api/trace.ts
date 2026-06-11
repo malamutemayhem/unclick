@@ -1,6 +1,6 @@
 /**
  * UnClick Trace API
- * Vercel serverless function — append-only trace log for agent activity.
+ * Vercel serverless function: append-only trace log for agent activity.
  *
  * POST /api/trace
  *   Authorization: Bearer <unclick_api_key>   (required)
@@ -27,7 +27,7 @@
  *   }
  *   Returns: { id, run_id, turn_number }
  *
- * This endpoint is intentionally lenient — missing optional fields are
+ * This endpoint is intentionally lenient. Missing optional fields are
  * stored as NULL. The only hard requirement is `run_id`, because without
  * a grouping identifier the data is useless for any later analysis.
  *
@@ -35,7 +35,7 @@
  * tune prompts / descriptions / context-assembly rules, we have a real
  * dataset to learn from instead of starting cold.
  *
- * Auth: same pattern as /api/credentials — a Bearer UnClick API key. We
+ * Auth: same pattern as /api/credentials, a Bearer UnClick API key. We
  * hash it (sha256) for segmentation but never persist the raw key.
  *
  * Required env vars:

@@ -1,4 +1,4 @@
-# CV Checklists — Round 2
+# CV Checklists: Round 2
 
 Companion to `cv-checklists.md`. Zero overlap with Round 1. Everything here is additive: deeper niches, rarer tells, harder-to-find advice, and the operational stuff most CV guides skip. No em dashes.
 
@@ -98,7 +98,7 @@ Companion to `cv-checklists.md`. Zero overlap with Round 1. Everything here is a
 - Use a signature with one phone, one email, one LinkedIn URL. No quotes, no slogans, no company logos.
 - BCC yourself for record-keeping.
 - If the portal allows additional documents: include a 1-page case study or work sample, not a 30-page portfolio.
-- Use a real email address with your real name. `chris.byrne@gmail.com` not `darklord1985@hotmail.com`.
+- Use a real email address with your real name. `jane.smith@gmail.com` not `darklord1985@hotmail.com`.
 
 ### G. Reference list management
 
@@ -276,7 +276,7 @@ Break it. Use two paragraphs, or five. Use a 1-sentence paragraph. Start with an
 
 ### F. The "fake humanising" tells (what people add to AI output to try to hide it)
 
-These are the moves people make to "make it sound more human" — and they all backfire:
+These are the moves people make to "make it sound more human", and they all backfire:
 
 - Adding a folksy phrase: "at the end of the day", "long story short", "to be honest".
 - Adding contractions inconsistently: contractions in some paragraphs, not others.

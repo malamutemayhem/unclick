@@ -176,7 +176,7 @@ function generate(slug) {
   const pkgName = `@unclick/${slug}-mcp`;
   const registryDescription = trimRegistryDescription(cfg);
 
-  // index.ts — a minimal MCP stdio server exposing just this connector
+  // index.ts: a minimal MCP stdio server exposing just this connector
   const index = `#!/usr/bin/env node
 // ${cfg.title}. Standalone MCP server by UnClick.
 // ${FUNNEL}
@@ -358,4 +358,4 @@ for (const slug of slugs) {
     console.log(`  ✗ ${slug}: ${err.message}`);
   }
 }
-console.log(`\nGenerated ${results.length}/${slugs.length}. Not published — run the publish step when ready.`);
+console.log(`\nGenerated ${results.length}/${slugs.length}. Not published yet; run the publish step when ready.`);

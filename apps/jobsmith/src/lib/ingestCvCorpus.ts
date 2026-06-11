@@ -49,7 +49,7 @@ export interface JobApplied {
 
 const MAX_WALK_DEPTH = 4;
 const CV_FOLDER_RE = /^(\d{4})(\d{2})(\d{2})\s+CV\s/i;
-const COVER_LETTER_FILE_RE = /Cover\s+Letter\s+-\s+([^,]+),\s+Christopher\s+Byrne/i;
+const COVER_LETTER_FILE_RE = /Cover\s+Letter\s+-\s+([^,]+),\s+.+/i;
 const DATED_FILE_PREFIX_RE = /^(\d{4})(\d{2})(\d{2})\s/;
 const JOB_APPLIED_NAME_RE = /^(.+?)\s+-\s+(.+?)\.(txt|md)$/i;
 

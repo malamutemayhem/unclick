@@ -3,15 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import { presets } from "@/lib/design-system";
 
 /**
- * Public site navigation (2026-06-07).
+ * Public site navigation (IA regrouped 2026-06-11, Council ruling).
  *
- *  - Mirrors the logged-in admin sidebar product surfaces, shown the same
- *    whether signed in or out. App surfaces resolve to /admin/* (login-gated
- *    for signed-out visitors); Apps, Memory, Docs, New to AI, and XPass have
- *    public pages.
- *  - Autopilot is a dropdown (desktop) / expandable group (mobile).
+ *  - Every destination stays reachable, but the top level carries eight
+ *    items instead of ten: the four platform pages group under one
+ *    dropdown, and XPass (the proof layer) earns its own marquee spot.
+ *  - Dropdowns are state-controlled and compose the shared menu preset.
  *  - Border appears only after scroll; otherwise the bar is translucent over
  *    the aurora canvas. "Boardroom" never appears as "Fishbowl".
  */
@@ -23,17 +23,14 @@ type NavItem = { label: string; href: string; children?: NavChild[] };
 // explains the product. The interactive surfaces live in the signed-in
 // dashboard at /admin/*, reached via "Get started" / "Dashboard".
 const NAV_ITEMS: NavItem[] = [
+  { label: "Why UnClick", href: "/why" },
   { label: "Apps", href: "/apps" },
-  { label: "Skills", href: "/skills" },
-  { label: "Orchestrator", href: "/orchestrator" },
-  { label: "Passport", href: "/passport" },
-  { label: "Seats", href: "/seats" },
   { label: "Memory", href: "/memory" },
+  { label: "XPass", href: "/xpass" },
   {
     label: "Autopilot",
     href: "/autopilot",
     children: [
-      { label: "XPass", href: "/xpass" },
       { label: "XGate", href: "/xgate" },
       { label: "Jobs", href: "/jobs" },
       { label: "Control Tower", href: "/control-tower" },
@@ -41,13 +38,94 @@ const NAV_ITEMS: NavItem[] = [
       { label: "Workers", href: "/workers" },
     ],
   },
+  {
+    label: "Platform",
+    href: "/skills",
+    children: [
+      { label: "Skills", href: "/skills" },
+      { label: "Orchestrator", href: "/orchestrator" },
+      { label: "Passport", href: "/passport" },
+      { label: "Seats", href: "/seats" },
+    ],
+  },
   { label: "Docs", href: "/docs" },
   { label: "Intro", href: "/new-to-ai" },
 ];
 
+/**
+ * Desktop dropdown for a nav item with children. State-controlled so it closes
+ * reliably: on child click, on route change, on mouse-leave, on focus leaving
+ * the group, and on Escape. (A pure CSS group-hover/focus-within dropdown stays
+ * stuck open after a click because the clicked link keeps focus.)
+ */
+function NavDropdown({
+  item,
+  linkClass,
+  isActive,
+}: {
+  item: NavItem;
+  linkClass: (href: string) => string;
+  isActive: (href: string) => boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setOpen(false);
+      }}
+    >
+      <Link
+        to={item.href}
+        className={`${linkClass(item.href)} gap-1`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onFocus={() => setOpen(true)}
+      >
+        {item.label}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </Link>
+      <div
+        className={`absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 transition-all duration-150 ${
+          open ? "visible opacity-100" : "invisible opacity-0"
+        }`}
+      >
+        <div className={`min-w-[190px] ${presets.menu}`}>
+          {item.children?.map((child) => (
+            <Link
+              key={child.label}
+              to={child.href}
+              onClick={() => setOpen(false)}
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                isActive(child.href)
+                  ? "bg-primary/10 text-primary"
+                  : "text-body hover:bg-white/[0.05] hover:text-heading"
+              }`}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [mobileAutopilotOpen, setMobileAutopilotOpen] = useState(false);
+  const [openMobileGroups, setOpenMobileGroups] = useState<Record<string, boolean>>({});
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -84,8 +162,7 @@ const Navbar = () => {
           <img
             src="/logo-wordmark.svg"
             alt="UnClick"
-            style={{ height: "3.3rem" }}
-            className="w-auto pt-2 pb-[3px]"
+            className="h-[3.3rem] w-auto pb-[3px] pt-2"
           />
         </Link>
 
@@ -93,29 +170,7 @@ const Navbar = () => {
         <div className="hidden items-center gap-x-5 xl:flex">
           {NAV_ITEMS.map((item) =>
             item.children ? (
-              <div key={item.label} className="group relative">
-                <Link to={item.href} className={`${linkClass(item.href)} gap-1`}>
-                  {item.label}
-                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                </Link>
-                <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                  <div className="min-w-[190px] rounded-2xl border border-[#86dadd]/15 bg-[#0a2c3c]/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.label}
-                        to={child.href}
-                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                          isActive(child.href)
-                            ? "bg-primary/10 text-primary"
-                            : "text-body hover:bg-white/[0.05] hover:text-heading"
-                        }`}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <NavDropdown key={item.label} item={item} linkClass={linkClass} isActive={isActive} />
             ) : (
               <Link key={item.label} to={item.href} className={linkClass(item.href)}>
                 {item.label}
@@ -142,7 +197,7 @@ const Navbar = () => {
               </Link>
               <a
                 href={installHref}
-                className="hidden min-h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
+                className="hidden min-h-9 items-center whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
               >
                 Get started
               </a>
@@ -198,17 +253,19 @@ const Navbar = () => {
                         {item.label}
                       </Link>
                       <button
-                        onClick={() => setMobileAutopilotOpen((v) => !v)}
+                        onClick={() =>
+                          setOpenMobileGroups((g) => ({ ...g, [item.label]: !g[item.label] }))
+                        }
                         aria-label={`Toggle ${item.label} submenu`}
-                        aria-expanded={mobileAutopilotOpen}
+                        aria-expanded={Boolean(openMobileGroups[item.label])}
                         className="flex h-8 w-8 items-center justify-center text-muted-foreground"
                       >
                         <ChevronDown
-                          className={`h-4 w-4 transition-transform ${mobileAutopilotOpen ? "rotate-180" : ""}`}
+                          className={`h-4 w-4 transition-transform ${openMobileGroups[item.label] ? "rotate-180" : ""}`}
                         />
                       </button>
                     </div>
-                    {mobileAutopilotOpen && (
+                    {openMobileGroups[item.label] && (
                       <div className="ml-3 flex flex-col gap-0.5 border-l border-border/40 pl-3">
                         {item.children.map((child) => (
                           <Link

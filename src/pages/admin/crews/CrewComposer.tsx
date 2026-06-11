@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import CrewsNav from "@/components/crews/CrewsNav";
 import AgentPickerTile from "@/components/crews/AgentPickerTile";
 import { AGENT_CATEGORIES } from "@/data/mockAgents";
-import { CREW_TEMPLATES } from "@/data/mockCrewTemplates";
+import { CREW_TEMPLATES } from "@/data/crewTemplates";
 import type { Agent } from "@/types/crews";
 import { useSession } from "@/lib/auth";
 import { Search, Save, Users, Play } from "lucide-react";

@@ -25,9 +25,9 @@ describe("jobsmith connector (local rules engine)", () => {
 
   it("summarizes the rule pack with real counts", async () => {
     const result = await jobsmithRules({}) as Record<string, any>;
-    expect(result.totalRules).toBe(229);
+    expect(result.totalRules).toBe(228);
     expect(result.automatedRules).toBeGreaterThan(0);
-    expect(result.automatedRules + result.reviewRules).toBe(229);
+    expect(result.automatedRules + result.reviewRules).toBe(228);
     expect(result.byCategory).toBeTruthy();
   });
 });

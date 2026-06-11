@@ -1,0 +1,37 @@
+name: pr-scope-guard
+
+# Fails a PR whose diff is grossly out of proportion to a reviewable change,
+# unless a human opts in via the "large-change-ok" label or a "scope-ok" marker
+# in the PR body. Catches stale-base / bulk-generated bloat like PR #1347
+# (see issue #1440). See scripts/check-pr-scope.mjs for thresholds.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  scope:
+    name: PR scope guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Check PR scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [ -f scripts/check-pr-scope.mjs ]; then
+            node scripts/check-pr-scope.mjs
+          else
+            echo "scripts/check-pr-scope.mjs not present on this PR branch (it predates the scope guard); skipping. Rebase on main to enable the check."
+          fi

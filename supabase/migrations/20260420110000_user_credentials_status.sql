@@ -11,11 +11,11 @@
 -- older MCP flows but is no longer read by the admin UI.
 --
 -- Defaults:
---   is_valid       DEFAULT TRUE   — credentials are assumed good at insert
+--   is_valid       DEFAULT TRUE   - credentials are assumed good at insert
 --                                   time; flipped to FALSE when a
 --                                   test-connection action fails.
---   last_tested_at DEFAULT NULL   — never tested until the UI pings it.
---   last_used_at   DEFAULT NULL   — set by the MCP vault-bridge when a
+--   last_tested_at DEFAULT NULL   - never tested until the UI pings it.
+--   last_used_at   DEFAULT NULL   - set by the MCP vault-bridge when a
 --                                   decrypt actually happens in the wild.
 
 ALTER TABLE user_credentials

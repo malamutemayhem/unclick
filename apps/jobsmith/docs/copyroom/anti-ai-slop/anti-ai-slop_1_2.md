@@ -1265,7 +1265,7 @@ Add new candidate rules to the consolidated CV checklist:
 - N2. Test for sentence-length variance: if the standard deviation of sentence word count across a paragraph is under 3, vary lengths.
 - N3. Test for negative-parallelism: search for "not just" and "not only…but also" and rewrite each instance.
 - N4. Test for "Bold term: explanation" formatting in any skills or experience section and remove it.
-- N5. Test for em dashes; in Chris's case, target zero per his existing rule 100.
+- N5. Test for em dashes; target zero per the project brand standard.
 - N6. Test for false ranges ("from X to Y"); rewrite as plain claims.
 - N7. Test for compulsive summaries at the end of any section; delete them.
 - N8. Personal-voice test: every paragraph should have something only the candidate would write. If a paragraph could appear on 50 other CVs, rewrite or cut.

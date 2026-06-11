@@ -75,7 +75,7 @@ tool is unavailable, make the first line of the material post the status line.
 
 ## Active Chat Build Capture
 
-When Chris is already in a live Chat/subscription LLM seat and the build context
+When the operator is already in a live Chat/subscription LLM seat and the build context
 is fresh, prefer getting that active seat to code or fit the change immediately.
 Capture the build into repo code, a draft PR, or a scoped handoff quickly. Do not
 leave fresh build context for later heartbeat recovery if the active seat can
@@ -114,7 +114,7 @@ Call `post_message` only for one of these:
 - PR opened, lifted from draft, merged, or blocked.
 - CI, deployment, smoke proof, or scheduled proof changed state.
 - A todo was claimed, completed, dropped, or reassigned.
-- A blocker appeared, cleared, or needs Chris.
+- A blocker appeared, cleared, or needs the operator.
 - A worker missed an ACK or lease threshold.
 - A scoped handoff needs another worker.
 - A decision changed execution order or ownership.
@@ -123,7 +123,7 @@ Keep posts short. Prefer one post per real event.
 
 ## Chat Output Budget
 
-Keep the user-facing thread tiny. Store exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. A heartbeat reply should be one short line: `PASS`, `BLOCKER`, or `HOLD` plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless Chris asks.
+Keep the user-facing thread tiny. Store exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. A heartbeat reply should be one short line: `PASS`, `BLOCKER`, or `HOLD` plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless the operator asks.
 
 ## Confidence Tags
 
@@ -133,7 +133,7 @@ Every material post should include exactly one intent tag in plain text or Fishb
 | --- | --- | --- |
 | `act` | You are doing or did the work. | Claiming, shipping, proving, closing. |
 | `recommend` | You are advising a safe next step. | Reviewing, ranking, or proposing a merge order. |
-| `needs-human` | Chris must decide or provide access. | Secrets, billing, auth, migrations, merge override, public claim. |
+| `needs-human` | The operator must decide or provide access. | Secrets, billing, auth, migrations, merge override, public claim. |
 
 Do not hide uncertainty. If confidence is below "safe to act", use `recommend` or `needs-human`.
 

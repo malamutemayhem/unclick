@@ -1540,7 +1540,7 @@ describe("PinballWake autonomous Runner seat", () => {
               context: {
                 seat_handshake: {
                   mode: "fresh-seat-pickup",
-                  active_decision: "Chris greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
+                  active_decision: "Operator greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
                   active_job: "urgent open: Orchestrator chip: PinballWake scheduled proof reads seat_handshake.",
                   recent_proof: "PASS: PR #653 shipped seat_handshake.",
                   active_blocker: null,
@@ -1649,7 +1649,7 @@ describe("PinballWake autonomous Runner seat", () => {
           return {
             context: {
               seat_handshake: {
-                active_decision: "Chris greenlit Orchestrator V1.",
+                active_decision: "Operator greenlit Orchestrator V1.",
                 active_job: "Orchestrator proof",
                 recent_proof: "PASS: proof exists.",
                 seat_freshness: ["PinballWake: Live"],
