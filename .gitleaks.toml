@@ -1,0 +1,29 @@
+# Gitleaks config for the Secret scan workflow (.github/workflows/secret-scan.yml).
+# Keep this allowlist tight: it should only cover fake fixtures, documented
+# example keys, and build output that mirrors them. Real secrets in source,
+# config, or env files must still trip the gate.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures, documented examples, and build output"
+paths = [
+  # Compiled mirrors of source and test fixtures.
+  '''(^|/)dist/''',
+  # Test files use fake credentials as detector fixtures.
+  '''\.test\.(ts|tsx|js|mjs|cjs)$''',
+  '''(^|/)__tests__/''',
+  # Docs quote documented example keys (e.g. AKIAIOSFODNN7EXAMPLE).
+  '''^docs/''',
+]
+regexes = [
+  # AWS's published documentation example access key.
+  '''AKIAIOSFODNN7EXAMPLE''',
+  # Connector catalog placeholder tokens shown to users.
+  '''xoxb-0{11}-0{11}-x{24}''',
+  # Key-derivation label constant, not a credential.
+  '''unclick-keychain-v1''',
+  # localStorage key name, not a credential.
+  '''jobsmith\.cvFacts\.v1''',
+]
