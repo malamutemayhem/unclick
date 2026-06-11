@@ -15454,6 +15454,10 @@
       "node --test scripts/tier2-rollback.test.mjs"
     ],
     [
+      "test:visibility-snapshot",
+      "node --test scripts/visibility-snapshot.test.mjs"
+    ],
+    [
       "test:watch",
       "vitest"
     ],
@@ -15565,8 +15569,8 @@
     },
     {
       "source": "package.json",
-      "hash": "0946c1ef23c5",
-      "bytes": 7326
+      "hash": "9c050b511a57",
+      "bytes": 7477
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
