@@ -330,7 +330,8 @@ export default function AdminPinballWake() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">PinballWake</h1>
             <p className="mt-1 max-w-2xl text-sm text-white/50">
-              Wake routes, clocks, ACK proof, and safe fallback paths for the worker fleet.
+              Autopilot's reliability layer: wake routes, clocks, ACK proof, and safe fallback
+              paths for the worker fleet. PinballWake is the internal name for this plumbing.
             </p>
           </div>
         </div>

@@ -101,14 +101,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
-| src/pages/admin/AdminJobs.tsx | 5417b324cff7 | 64232 |
+| src/pages/admin/AdminJobs.tsx | a88814efe22e | 64644 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
 | src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
 | src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
-| src/pages/admin/AdminPinballWake.tsx | 4dce3c986684 | 21769 |
+| src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |

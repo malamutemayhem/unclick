@@ -38,10 +38,10 @@ three jobs, in order:
 | /admin/autopilot | `AdminEcosystemPages.tsx` (AdminAutopilot) | Static hub, honest but inert | Tile grid that routes to the rooms; no live signal of what the engine is doing right now | Add a small live strip (open jobs, in-progress, blockers) fed by the existing orchestrator context API. Keep it one row, no new dashboard |
 | /admin/checks | `AdminXPassHub.tsx` | **Fixed 2026-06-11.** Was fabricating report history (hard-coded dates, modular-arithmetic PASS/WARN rows) | Replaced with recorded evidence only: real dogfood status, proof labels, honest WAITING rows, explicit "nothing simulated" note. TestPass product page now also lists real recorded runs from `list_testpass_runs` | Next: a UXPass run-list API action (`api/uxpass.ts` only has per-run status today), then the same panel for UXPass |
 | /admin/xgate | `AdminXGate.tsx` | Live (fetches `/api/xgate-check`) | Page shipped (Part 10) but gates (Parts 1-9) sit in draft PRs #1233-#1241 since Jun 2, so decisions list stays empty | Integrate XGate parts in the documented order: #1233 first, then 2-8, then 9. Operator decision needed to start the merge train |
-| /admin/boardroom | `Fishbowl.tsx` | Live | Solid explainer panel; busy but functional. Signal-noise cleanup is owned by PR #1291 (api side) | Hold UI changes until #1291 lands; then re-audit message density |
+| /admin/boardroom | `Fishbowl.tsx` | Live, audited 2026-06-11 | Clean: user-facing copy says Boardroom everywhere, all fishbowl strings are internal plumbing, plain-English explainer, lanes + thread grouping + mute prefs all real-data driven | Re-audit message density after #1291 lands |
 | /admin/jobs | `AdminJobs.tsx` | Live, sophisticated | Has plain-language simplifiers, stage strips, sync signals. Largest engine page (1.7k lines) | Re-audit after #1291; candidates: split helpers into a lib file, verify "needs proof after done" path matches truth-ladder rules |
 | /admin/orchestrator | `AdminOrchestrator.tsx` | Live | OWNED by PRs #1434 and #1345 (navy glass + type scale). Do not touch | Wait for merges, then re-audit |
-| /admin/pinballwake | `AdminPinballWake.tsx` | Live | Internal reliability surface; admin-gated, fine | Low priority; rename check only (user-facing copy should say Autopilot reliability) |
+| /admin/pinballwake | `AdminPinballWake.tsx` | Live | Internal reliability surface; admin-gated, fine | Done 2026-06-11: subtitle now says it is Autopilot's reliability layer and marks PinballWake as the internal name |
 | /admin/controltower | `AdminControlTower.tsx` | Live | Structure audited 2026-06-11: fetches real todos, posts real comments, stat tiles derive from live rows. No truth issues found | Deeper UX audit in phase 2 |
 | /admin/ledger | `AdminEcosystemPages.tsx` (AdminLedger) | Static stub | Tiles for Approvals/Receipts/Workers/Rollback link nowhere | Wire Activity + Audit links (done), leave the rest visibly "not built yet" rather than implying depth |
 | /admin/workers | `AdminEcosystemPages.tsx` (AdminWorkers) | Static, honest | 14 worker roles listed; research says collapse to 4 lanes (Build, Review, Verify, Product/Ops) plus skills | Ask-once decision: simplify the public worker list to the 4 lanes with roles as skills underneath |
@@ -122,6 +122,26 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 4):** Jobs room truth bugs, Boardroom audit, PinballWake naming.
+  - Jobs room (deep review): fixed two truth bugs. (1) A done job the backend
+    had already cleared (`proof_state` live or close_eligible) showed an amber
+    "Proof missing" alert whenever its text had no extractable link; it now
+    shows "Proof saved" with the backend reason. (2) The needs-proof fallback
+    treated ANY alert as a proof hold, so an unrelated deploy failure could
+    silently drag a completed job back into the active section; proof holds
+    now require an explicit proofHold flag set only by proof-related alerts.
+  - Estimated progress numbers in the stage strip now render with a tilde
+    (~55%) so status-based estimates are visibly different from recorded
+    pipeline progress.
+  - Jobs copy: "(talk to owning AI seat)" replaced with "Message the assigned
+    worker"; "Active + proof holds" reads "Active and proof holds"; folded
+    comments hint rewritten in plain English. Dead cappedJobs alias removed.
+  - Boardroom UI audited clean (user-facing copy says Boardroom; fishbowl
+    strings are internal only). PinballWake subtitle now says it is
+    Autopilot's reliability layer with PinballWake as the internal name.
+  - Homepage Stats section flagged: hard-coded "2.4M+ API calls last month",
+    "38ms avg response", "99.98% uptime SLA". Public quantitative claims are
+    operator-gated; needs Chris to confirm real numbers or approve removal.
 - **2026-06-11 (round 3):** Real run history and Control Tower audit.
   - `/admin/checks/testpass` now lists real recorded TestPass runs (from
     `list_testpass_runs`) with links into the full run log; honest empty

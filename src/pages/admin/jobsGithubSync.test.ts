@@ -64,11 +64,47 @@ describe("Jobs and GitHub sync helpers", () => {
     });
   });
 
+  it("trusts a backend-cleared proof state on done jobs without extractable links", () => {
+    expect(
+      buildJobGithubSyncSignal({
+        ...baseJob,
+        status: "done",
+        proof_state: "close_eligible",
+        proof_state_reason: "Runtime tool job verified by wake route receipt.",
+      }),
+    ).toEqual({
+      label: "Proof saved",
+      detail: "Runtime tool job verified by wake route receipt.",
+      tone: "done",
+    });
+
+    expect(
+      buildJobGithubSyncSignal({ ...baseJob, status: "done", proof_state: "live" }),
+    ).toEqual({
+      label: "Proof saved",
+      detail: "The backend proof check cleared this completed job.",
+      tone: "done",
+    });
+  });
+
+  it("never marks unrelated deploy failures as proof holds", () => {
+    const signal = buildJobGithubSyncSignal({
+      ...baseJob,
+      status: "done",
+      description: "deployment failed on https://unclick-preview.vercel.app/x",
+    });
+
+    expect(signal.label).toBe("Deploy issue");
+    expect(signal.tone).toBe("alert");
+    expect(signal.proofHold).toBeUndefined();
+  });
+
   it("expects completed jobs to keep proof attached", () => {
     expect(buildJobGithubSyncSignal({ ...baseJob, status: "done" })).toEqual({
       label: "Proof missing",
       detail: "Completed job needs a PR, run, or deployment link.",
       tone: "alert",
+      proofHold: true,
     });
     expect(
       buildJobGithubSyncSignal({
@@ -96,6 +132,7 @@ describe("Jobs and GitHub sync helpers", () => {
       label: "Proof reset",
       detail: "This job was reopened or blocked because proof is stale or missing.",
       tone: "alert",
+      proofHold: true,
     });
   });
 
@@ -114,6 +151,7 @@ describe("Jobs and GitHub sync helpers", () => {
       label: "UI proof",
       detail: "UI or browser proof is still missing.",
       tone: "alert",
+      proofHold: true,
     });
   });
 

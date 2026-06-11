@@ -85,7 +85,7 @@ type SortDirection = "asc" | "desc";
 type DisplayStatus = JobTodo["status"] | "needs_proof";
 
 const SECTION_LABELS: Record<JobSectionKey, string> = {
-  active: "Active + proof holds",
+  active: "Active and proof holds",
   next: "Next up",
   inline: "In line",
   done: "Completed",
@@ -146,7 +146,7 @@ const STATUS_STYLE: Record<DisplayStatus, string> = {
 };
 
 const ACTION_BUTTONS = {
-  stale: ["Push workers", "(talk to owning AI seat)", "Escalate"],
+  stale: ["Push workers", "Message the assigned worker", "Escalate"],
   unowned: ["Claim / assign", "Push workers", "Drop priority"],
 } as const;
 
@@ -316,7 +316,9 @@ function backendDisplayStatusFor(todo: JobTodo): DisplayStatus | null {
 function needsProofAfterDone(todo: JobTodo): boolean {
   const backendStatus = backendDisplayStatusFor(todo);
   if (backendStatus) return backendStatus === "needs_proof";
-  return todo.status === "done" && syncSignalFor(todo).tone === "alert";
+  // Only proof-related alerts hold a done job; an unrelated alert such as a
+  // failed deploy must not silently move it back into the active section.
+  return todo.status === "done" && syncSignalFor(todo).proofHold === true;
 }
 
 function displayStatusFor(todo: JobTodo): DisplayStatus {
@@ -341,6 +343,11 @@ function progressFor(todo: JobTodo): number {
   return defaultProgressForStatus(todo);
 }
 
+/** True when the shown percentage is a status-based estimate, not recorded pipeline progress. */
+function progressIsEstimated(todo: JobTodo): boolean {
+  return hasReopenedCompletionState(todo) || !Number.isFinite(todo.pipeline_progress);
+}
+
 function activeStageCount(todo: JobTodo): number {
   if (hasReopenedCompletionState(todo)) {
     return displayStatusFor(todo) === "in_progress" ? 2 : 1;
@@ -358,12 +365,13 @@ function activeStageCount(todo: JobTodo): number {
 function StageStrip({ todo }: { todo: JobTodo }) {
   const active = activeStageCount(todo);
   const progress = progressFor(todo);
+  const estimated = progressIsEstimated(todo);
   const source = todo.pipeline_source ?? "estimated from todo status";
   const displayStatus = displayStatusFor(todo);
   return (
     <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress" title={source}>
-      <span className="w-7 shrink-0 text-right text-[10px] font-semibold text-white/55">
-        {progress}%
+      <span className="w-9 shrink-0 text-right text-[10px] font-semibold text-white/55">
+        {estimated ? `~${progress}%` : `${progress}%`}
       </span>
       <div className="grid flex-1 grid-cols-5 gap-px overflow-hidden rounded-[3px]">
         {STAGES.map((stage, index) => (
@@ -929,7 +937,7 @@ function JobRow({
               </div>
             ) : (
               <p className="mt-2 text-xs text-white/35">
-                Worker receipts stay folded here so the page remains scannable.
+                Comments and receipts from workers are hidden until you open them.
               </p>
             )}
           </div>
@@ -982,19 +990,18 @@ function JobSection({
   const [sortKey, setSortKey] = useState<SortKey>("queue");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const open = sectionExpanded !== false;
-  const cappedJobs = jobs;
   const rankById = useMemo(
-    () => new Map(cappedJobs.map((job, index) => [job.id, index + 1])),
-    [cappedJobs],
+    () => new Map(jobs.map((job, index) => [job.id, index + 1])),
+    [jobs],
   );
   const sortedJobs = useMemo(
-    () => [...cappedJobs].sort((a, b) => compareSortedJobs(a, b, sortKey, sortDirection, rankById)),
-    [cappedJobs, rankById, sortDirection, sortKey],
+    () => [...jobs].sort((a, b) => compareSortedJobs(a, b, sortKey, sortDirection, rankById)),
+    [jobs, rankById, sortDirection, sortKey],
   );
-  const displayCount = Math.min(visibleCount ?? SECTION_PAGE_SIZE, cappedJobs.length);
+  const displayCount = Math.min(visibleCount ?? SECTION_PAGE_SIZE, jobs.length);
   const visibleJobs = sortedJobs.slice(0, displayCount);
-  const sectionTotal = Math.max(totalCount ?? cappedJobs.length, cappedJobs.length);
-  const canShowMore = displayCount < cappedJobs.length || hasMoreRemote === true;
+  const sectionTotal = Math.max(totalCount ?? jobs.length, jobs.length);
+  const canShowMore = displayCount < jobs.length || hasMoreRemote === true;
   const showLoading = loading === true && jobs.length === 0;
   const sectionAccent: Record<JobSectionKey, string> = {
     active: "bg-[#E2B93B]",

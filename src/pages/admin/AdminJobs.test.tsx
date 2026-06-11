@@ -211,7 +211,7 @@ describe("AdminJobs", () => {
     expect(await screen.findByText("Reopened truth job")).toBeInTheDocument();
     expect(screen.getByText("open")).toBeInTheDocument();
     expect(screen.getByText("live")).toBeInTheDocument();
-    expect(screen.getByText("10%")).toBeInTheDocument();
+    expect(screen.getByText("~10%")).toBeInTheDocument();
     expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
 
     const nextSection = screen.getByRole("button", { name: /Next up/i }).closest("section");
