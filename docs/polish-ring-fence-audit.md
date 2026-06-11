@@ -122,6 +122,31 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 7):** ecosystem truth pass (Keychain + Seats + Crews),
+  from two deep reviews.
+  - Keychain: test-connection button now disabled when no automated probe
+    exists (was firing fake test signals); copied secrets are cleared from
+    the clipboard after 60s to match the on-screen auto-hide promise; the
+    Advanced system inventory now states its statuses are a name-only audit,
+    not live checks; server errors scrub the internal "backstagepass" name;
+    the page subtitle explains what Passport is in one breath.
+  - Seats landing strip no longer shows compile-time zeros ("0 active
+    providers", "No spend tracked") as live state; cards now describe each
+    tier's purpose and say "Open to inspect". Subscription plan status is
+    honest and actionable ("Check your Claude Code account for plan
+    details"); the connected count states it covers the selected platform
+    only. Three more timeAgo/formatRelative duplicates migrated to the
+    shared relativeTime util (also fixes a null-unsafe variant that could
+    throw on missing model timestamps). Heartbeat page and live check-ins
+    panel each gained a one-sentence explainer.
+  - Crews: renamed `src/data/mockCrewTemplates.ts` to `crewTemplates.ts`;
+    the content is the real template catalog, only the filename implied mock.
+  - Deferred to next chips (logged): RotateValuesModal should reuse the
+    key-value form instead of raw JSON; AdminKeychain needs a test file
+    (auto-clear timer, masking, health priority, export password strength);
+    AdminSeatsApi credentialHealth needs unit tests; seat table "Ready"
+    defaults need a "manual planning guide" label or live check-in binding;
+    Keychain Export/Audit buttons should move to a secondary menu.
 - **2026-06-11 (rounds 5-6):** dedupe and UXPass run history.
   - One shared `src/lib/relativeTime.ts` (tested) replaces five drifting
     per-page copies in AdminJobs, AdminAgents, Boardroom, SignalsCatalog,

@@ -15771,28 +15771,28 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "fe9d0fede6a8",
-      "bytes": 39375
+      "hash": "40818d25dd16",
+      "bytes": 39038
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "f9548c19ddab",
-      "bytes": 11641
+      "hash": "78d5057027a1",
+      "bytes": 11750
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "a201c1e119a8",
-      "bytes": 37417
+      "hash": "720301565c67",
+      "bytes": 37209
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "hash": "57262eb562b5",
-      "bytes": 25229
+      "hash": "8511bc4559db",
+      "bytes": 25328
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "de72fd8f09c6",
-      "bytes": 48837
+      "hash": "f1bf54c8e56a",
+      "bytes": 49150
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15851,8 +15851,8 @@
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
-      "hash": "cd0198794cbc",
-      "bytes": 13912
+      "hash": "2d65d1f907b8",
+      "bytes": 13908
     },
     {
       "source": "src/pages/admin/crews/CrewRun.tsx",
@@ -15871,8 +15871,8 @@
     },
     {
       "source": "src/pages/admin/crews/CrewsCatalog.tsx",
-      "hash": "089b6c00af2e",
-      "bytes": 5949
+      "hash": "53d4116c6739",
+      "bytes": 5945
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
@@ -15891,8 +15891,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "982902265fb2",
-      "bytes": 77151
+      "hash": "cd97262430b0",
+      "bytes": 77897
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",

@@ -39,6 +39,11 @@ describe("relativeTime", () => {
     expect(relativeTime(ago(8 * 86_400_000))).toBe("8d ago");
   });
 
+  it("shows just now under a minute when asked", () => {
+    expect(relativeTime(ago(5_000), { justNow: true })).toBe("just now");
+    expect(relativeTime(ago(2 * 60_000), { justNow: true })).toBe("2m ago");
+  });
+
   it("handles missing and invalid timestamps honestly", () => {
     expect(relativeTime(null)).toBe("never");
     expect(relativeTime(undefined, { emptyLabel: "No check-in yet" })).toBe("No check-in yet");

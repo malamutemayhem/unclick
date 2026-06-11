@@ -89,30 +89,30 @@ const COMPUTE_TIER_SUMMARIES: ComputeTierSummary[] = [
     href: "/admin/agents/api",
     icon: KeyRound,
     accentClass: "border-sky-400/30 bg-sky-400/10 text-sky-300",
-    countLabel: "0 active providers",
-    metricLabel: "No spend tracked",
-    detailLabel: "0 tokens this month",
-    statusLabel: "Not configured",
+    countLabel: "Your own provider keys",
+    metricLabel: "Route AI calls using your own API keys (GPT, Claude, Gemini, and more).",
+    detailLabel: "Live provider health and usage are shown inside.",
+    statusLabel: "Open to inspect",
   },
   {
     title: "Local",
     href: "/admin/agents/local",
     icon: Cpu,
     accentClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
-    countLabel: "0 local endpoints",
-    metricLabel: "No model active",
-    detailLabel: "0 queries/hr",
-    statusLabel: "Not configured",
+    countLabel: "Models on your hardware",
+    metricLabel: "Run open models with Ollama on your own machine.",
+    detailLabel: "Live endpoint and model status are shown inside.",
+    statusLabel: "Open to inspect",
   },
   {
     title: "Subscription",
     href: "/admin/agents/subscription",
     icon: CreditCard,
     accentClass: "border-amber-400/30 bg-amber-400/10 text-amber-300",
-    countLabel: "0 platforms",
-    metricLabel: "No subscription linked",
-    detailLabel: "Connect Claude, ChatGPT, Cursor, or Copilot",
-    statusLabel: "Not configured",
+    countLabel: "Interactive chat seats",
+    metricLabel: "Use the Claude, ChatGPT, Cursor, or Copilot plans you already pay for.",
+    detailLabel: "Connection status per platform is shown inside.",
+    statusLabel: "Open to inspect",
   },
 ];
 
@@ -361,7 +361,7 @@ function AISeatsPanel() {
       ? "Checking live seats..."
       : profiles.length > 0
         ? `${profiles.length} live check-in${profiles.length === 1 ? "" : "s"} loaded`
-        : "No live seat check-ins loaded yet";
+        : "No live seat check-ins loaded yet. A check-in appears when an AI seat loads UnClick memory at the start of a session.";
 
   const loadProfiles = useCallback(async () => {
     if (sessionLoading) return;

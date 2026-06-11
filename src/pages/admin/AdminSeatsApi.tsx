@@ -1,3 +1,4 @@
+import { relativeTime } from "@/lib/relativeTime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -136,18 +137,7 @@ function daysUntil(iso: string | null | undefined): number | null {
   return Math.ceil((timestamp - Date.now()) / 86_400_000);
 }
 
-function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return "never";
-  const timestamp = new Date(iso).getTime();
-  if (Number.isNaN(timestamp)) return "unknown";
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
+const timeAgo = (iso: string | null | undefined) => relativeTime(iso, { justNow: true });
 
 function credentialHealth(credential: Credential): CredentialHealthStatus {
   if (credential.health_status) return credential.health_status;

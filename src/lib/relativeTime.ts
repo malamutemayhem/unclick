@@ -5,6 +5,8 @@ export interface RelativeTimeOptions {
   longForm?: boolean;
   /** Days before falling back to a plain date. Default 14. */
   maxDays?: number;
+  /** Show "just now" for anything under a minute. Default false. */
+  justNow?: boolean;
 }
 
 /**
@@ -13,14 +15,14 @@ export interface RelativeTimeOptions {
  * every surface stays consistent.
  */
 export function relativeTime(iso: string | null | undefined, options: RelativeTimeOptions = {}): string {
-  const { emptyLabel = "never", longForm = false, maxDays = 14 } = options;
+  const { emptyLabel = "never", longForm = false, maxDays = 14, justNow = false } = options;
   if (!iso) return emptyLabel;
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return "unknown";
   const diffSec = Math.max(1, Math.floor((Date.now() - then) / 1000));
   const unit = (value: number, short: string, long: string) =>
     longForm ? `${value} ${long}${value === 1 ? "" : "s"} ago` : `${value}${short} ago`;
-  if (diffSec < 60) return unit(diffSec, "s", "second");
+  if (diffSec < 60) return justNow ? "just now" : unit(diffSec, "s", "second");
   const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) return unit(diffMin, "m", "minute");
   const diffHr = Math.floor(diffMin / 60);

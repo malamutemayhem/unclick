@@ -112,7 +112,8 @@ export default function AdminSeatHeartbeatPage() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-heading">Heartbeat Master</h1>
           <p className="mt-1 max-w-2xl text-sm text-body">
-            Short launcher up top. Full seat induction below.
+            The heartbeat is the recurring prompt that wakes a seat to do scheduled work.
+            Copy the short launcher up top; the full seat induction lives below.
           </p>
         </div>
       </header>

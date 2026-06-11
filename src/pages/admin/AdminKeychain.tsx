@@ -395,7 +395,7 @@ export default function AdminKeychain() {
       const body = await res.json();
       setCredentials(body.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Passport");
+      setError(scrubInternalNames(err instanceof Error ? err.message : "Failed to load Passport"));
     } finally {
       setLoading(false);
     }
@@ -569,11 +569,21 @@ export default function AdminKeychain() {
     }
   }
 
+  /** Server errors can echo internal route names; users should only see Passport. */
+  function scrubInternalNames(message: string): string {
+    return message.replace(/backstagepass/gi, "Passport");
+  }
+
   async function copyToClipboard(field: string, value: string) {
     try {
       await navigator.clipboard.writeText(value);
       setCopiedField(field);
       window.setTimeout(() => setCopiedField((c) => (c === field ? null : c)), 2_000);
+      // The reveal auto-hides after 60s; honor the same promise for the
+      // clipboard so a copied secret does not outlive the on-screen value.
+      window.setTimeout(() => {
+        void navigator.clipboard.writeText("").catch(() => {});
+      }, 60_000);
     } catch {
       // no-op: browser blocked clipboard
     }
@@ -700,7 +710,8 @@ export default function AdminKeychain() {
         <div>
           <h1 className="text-2xl font-semibold text-white">Passport</h1>
           <p className="mt-1 text-sm text-[#888]">
-            Permissions, keys, logins, and health. {credentials.length} saved item{credentials.length === 1 ? "" : "s"}.
+            Passport keeps your service keys and logins in one safe place so your AI can use
+            them without you repeating them. {credentials.length} saved item{credentials.length === 1 ? "" : "s"}.
           </p>
         </div>
         <div className="flex gap-2">
@@ -952,7 +963,7 @@ export default function AdminKeychain() {
                           </button>
                           <button
                             onClick={() => void handleTestConnection(cred)}
-                            disabled={testing[cred.id]}
+                            disabled={testing[cred.id] || cred.supports_connection_test === false}
                             className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white disabled:opacity-40"
                             title={cred.supports_connection_test === false ? "No automated probe yet" : "Test connection"}
                           >
@@ -1083,6 +1094,7 @@ export default function AdminKeychain() {
         </summary>
         <p className="mt-2 text-xs leading-5 text-[#888]">
           Name-only map of the GitHub and Vercel runtime Passport entries that power workflows. This is for debugging and rotation planning, not day-to-day Passport setup.
+          The statuses below are not live: they come from a name-only audit and no real connection test has run against them.
         </p>
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           {(Object.keys(inventoryByProvider) as SystemCredentialProvider[]).map((provider) => (
