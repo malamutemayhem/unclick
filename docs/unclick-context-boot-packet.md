@@ -120,11 +120,21 @@ Use this as UnClick's internal SEO map when routing work:
 
 Scoreboard field map for AI seats:
 
-- `current_state_card.zero_touch_scoreboard`: autonomy health and human-touch leaks.
+- `current_state_card.zero_touch_scoreboard` (shipped): autonomy health and human-touch leaks.
+
+Planned scoreboards, not yet implemented (verified 2026-06-11: these fields do
+not exist in `api/lib/orchestrator-context.ts` or any live payload, so do not
+wait for them or report them as broken when absent):
+
 - `current_state_card.proof_debt_scoreboard`: completed-looking jobs that still need observable proof.
 - `current_state_card.continuous_improvement_scoreboard`: queue, owner, proof, blocker, automation, and naming friction turned into next actions.
 - `current_state_card.continuous_improvement_scoreboard.improvement_packet`: read-only Boardroom ScopePack seed with owned files, proof, risk controls, and create-todo payload.
-- Admin Orchestrator can turn that packet into a Boardroom job only through the explicit create action, which returns a todo receipt.
+- Admin Orchestrator turning that packet into a Boardroom job through an explicit create action that returns a todo receipt.
+
+Until those ship, seats should read proof-debt and improvement signals from the
+fields that are live today: the health verdict, truth reconciliation, the
+blocker list in `read_orchestrator_context`, and the `/api/eval-inspection`
+report.
 
 ## Terms To Use
 
