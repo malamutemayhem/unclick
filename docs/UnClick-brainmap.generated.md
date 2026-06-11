@@ -141,7 +141,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | 732d0646c356 | 19854 |
+| src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
