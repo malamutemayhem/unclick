@@ -122,6 +122,19 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (rounds 15-17):** last deferred chips + a CI truth lesson.
+  - Passport header: Export and Audit moved into a labelled More menu with
+    one-line descriptions, closing the last round-7 structure finding.
+  - Reveal expiry and clipboard wipe extracted as injectable helpers with
+    deterministic tests (a second reveal never resets the first one's
+    timer; a copied secret dies at the same 60s TTL as the on-screen one).
+  - Jobs copy/search helpers characterized in tests (dependency-bump
+    rewriting, casing, search matching, status labels) instead of a late
+    structural lib-split; the split stays a candidate for after #1291.
+  - CI lesson recorded: round 16 failed the brainmap stale guard because a
+    verify chain used grep -c (exit 1 on zero matches) before
+    brainmap:generate, silently skipping it. Verify brainmap standalone,
+    never behind a grep in an && chain.
 - **2026-06-11 (round 14, audit close):** SmartHome and DeveloperDocs
   audited clean (honest "sample of" labelling; developer-appropriate
   language on the docs page). With this, every public page and every
