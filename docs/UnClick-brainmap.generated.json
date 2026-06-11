@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1110,
-    "source_manifest": 227,
+    "inventory": 1111,
+    "source_manifest": 228,
     "pages": 94,
     "tools": 672,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 126
+      "count": 127
     },
     {
       "id": "ledgers-and-proof",
@@ -1878,6 +1878,16 @@
       "kind": "workflow",
       "meaning": "scheduled build self test GitHub automation workflow.",
       "source": ".github/workflows/scheduled-build-self-test.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-secret-scan-yml-github-workflows-secret-scan-yml-no-route",
+      "division": "Automations",
+      "name": "secret scan.yml",
+      "kind": "workflow",
+      "meaning": "secret scan GitHub automation workflow.",
+      "source": ".github/workflows/secret-scan.yml",
       "route": "",
       "tags": []
     },
@@ -16572,6 +16582,11 @@
       "source": ".github/workflows/scheduled-build-self-test.yml",
       "hash": "1362b535ff33",
       "bytes": 1024
+    },
+    {
+      "source": ".github/workflows/secret-scan.yml",
+      "hash": "6c02b3c6122f",
+      "bytes": 1143
     },
     {
       "source": ".github/workflows/seed-vault.yml",
