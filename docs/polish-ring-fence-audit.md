@@ -122,6 +122,41 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (Council quality: 180 skill seeds + auto-convene
+  mechanics, PR #1453 round 6):** dogfooding the live database showed
+  every one of the 180 system crew agents had seed_prompt = NULL, so
+  any Council run would have briefed each advisor with nothing more
+  than "You are {name}." The hats were empty.
+  - Migration 20260611100000_agent_skill_seed_prompts.sql composes a
+    detailed seed_prompt per agent from its existing hook/description
+    plus an authored skill set (4 to 6 concrete capabilities, stored in
+    subspecialty_tags, previously empty for all 180) and a
+    role-specific "You always challenge: ..." line. Anti yes-man
+    Council rules are baked into every prompt: open by interrogating
+    the operator's framing, disagree openly, never agree just to
+    agree, declare out-of-expertise plainly. Idempotent, system rows
+    only. Coverage locked by src/__tests__/crew-seed-coverage.test.ts
+    (exact roster match against MOCK_AGENTS, skills bounds, rules
+    present).
+  - New list_crews MCP tool closes the discovery gap that made
+    automatic convening impossible (this session previously could not
+    find a crew UUID from the tool surface at all). start_crew_run's
+    description now tells agents to proactively suggest a Council for
+    consequential, contested, or strategic operator questions.
+  - The premise-challenge rule is also enforced at the runner level in
+    both execution paths (sampling system prompts and the agent_guided
+    stage instructions).
+  - Mechanics clarification recorded: roster members are Council
+    advisors (deliberation personas), not autonomous workers; the
+    worker fleet is the separate Boardroom-seat system. tool_tags on
+    agents are display hints today, not tool grants. "Hats as
+    summonable workers" is a future lane.
+  - Boundary honored: a direct apply of the seed migration to the live
+    database was blocked by the permission system as an unauthorized
+    production write and was not retried; the migration ships through
+    the PR and the normal deploy path, or on the operator's explicit
+    go-ahead.
+
 - **2026-06-11 (Crews agent_guided mode, PR #1453 round 4):** Crews
   Council had never completed a run: it required MCP sampling, which no
   fleet seat supports (the only run ever attempted failed

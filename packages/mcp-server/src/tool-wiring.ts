@@ -1554,7 +1554,7 @@ import {
 import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
-import { crewsStartRun, crewsSubmitRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
+import { crewsStartRun, crewsSubmitRun, crewsGetRun, crewsListRuns, crewsListCrews } from "./crews-tool.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADDITIONAL_TOOLS
@@ -22805,7 +22805,7 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. Without sampling it returns an agent_guided protocol instead: YOU play each advisor in your own context per the returned guided_run prompts, then persist the output with submit_crew_run. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Starts a Crews Council run: independent specialist advisors debate the question, challenge its framing, peer-rank each other, and a Chairman synthesises a verdict with dissent on record. TRIGGER proactively (suggest it to the user) when the operator asks a consequential, contested, or strategic question where a single first-instinct answer would be a disservice: pricing, positioning, launch decisions, hiring, architecture bets, anything with real money or irreversibility attached. Use list_crews first to pick the right bench. In a sampling-capable MCP client this runs the whole Council automatically. Without sampling it returns an agent_guided protocol instead: YOU play each advisor in your own context per the returned guided_run prompts, then persist the output with submit_crew_run. Response card surfaces was_duplicate for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -22877,6 +22877,15 @@ export const ADDITIONAL_TOOLS = [
         run_id: { type: "string", description: "The run_id returned by start_crew_run" },
       },
       required: ["run_id"],
+    },
+  },
+  {
+    name: "list_crews",
+    description: "Lists the user's crews (the bench: Business Council, Decision Desk, Creative Studio, Launch Stress Test, plus any custom crews) with their crew_ids and member counts. Call this BEFORE start_crew_run to pick the right bench for the question, or when the user asks what crews, advisors, or specialist hats are available. Starter crews are seeded automatically on first call.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
     },
   },
   {
@@ -25550,4 +25559,5 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   submit_crew_run: (args) => crewsSubmitRun(args),
   get_run:         (args) => crewsGetRun(args),
   list_runs:       (args) => crewsListRuns(args),
+  list_crews:      (args) => crewsListCrews(args),
 };

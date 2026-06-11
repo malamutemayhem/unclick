@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { crewsStartRun, crewsSubmitRun, type GuidedCrewCard } from "./crews-tool.js";
+import { crewsStartRun, crewsSubmitRun, crewsListCrews, type GuidedCrewCard } from "./crews-tool.js";
 
 // Crews agent_guided mode contract: without MCP sampling, start_crew_run must
 // return a usable Council protocol (never a dead SAMPLING_NOT_SUPPORTED run),
@@ -95,6 +95,39 @@ describe("crews agent_guided mode", () => {
     const card = await crewsSubmitRun({ run_id: "run-1", opinions: [], synthesis: "" });
     expect(card.headline).toMatch(/needs opinions and a synthesis/i);
     expect(calls).toHaveLength(0);
+  });
+
+  it("bakes the premise-challenge rule into every guided advisor prompt", async () => {
+    stubAdminFetch([
+      {
+        status: 202,
+        json: { run_id: "run-1", was_duplicate: false, agents: [ADVISOR, CHAIRMAN], relevant_facts: [] },
+      },
+    ]);
+    const card = (await crewsStartRun(
+      { crew_id: "11111111-1111-4111-8111-111111111111", task_prompt: "Pick a launch date" },
+      { supportsSampling: false },
+    )) as GuidedCrewCard;
+    expect(card.guided_run?.advisors[0].system_prompt).toMatch(/strongest objection|clarifying question/i);
+    expect(card.guided_run?.advisors[0].system_prompt).toMatch(/never agree just to agree/i);
+    expect(card.guided_run?.stage_instructions.opinion).toMatch(/OPEN with the strongest objection/);
+  });
+
+  it("lists crews with their ids so an agent can convene the right bench", async () => {
+    stubAdminFetch([
+      {
+        json: {
+          data: [
+            { id: "crew-1", name: "Business Council", template: "council", agent_ids: ["a", "b", "c", "d", "e"] },
+            { id: "crew-2", name: "Decision Desk", template: "council", agent_ids: ["f", "g", "h", "i", "j"] },
+          ],
+        },
+      },
+    ]);
+    const card = await crewsListCrews({});
+    expect(card.headline).toMatch(/Found 2 crews/);
+    expect(card.keyFacts.join("\n")).toMatch(/Business Council \(5 members, council\): crew-1/);
+    expect(card.nextActions.join(" ")).toMatch(/start_crew_run/);
   });
 
   it("fails the run honestly when the agent aborts", async () => {

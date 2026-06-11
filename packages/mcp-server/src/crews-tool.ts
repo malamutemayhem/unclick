@@ -273,12 +273,12 @@ export async function crewsStartRun(
       advisors: advisors.map((agent) => ({
         agent_id: agent.id,
         name: agent.name,
-        system_prompt: `${agent.seed_prompt ?? `You are ${agent.name}.`}\n\nProvide your honest, specific opinion on the task. 150 to 250 words. Be direct and substantive.`,
+        system_prompt: `${agent.seed_prompt ?? `You are ${agent.name}.`}\n\nProvide your honest, specific opinion on the task. 150 to 250 words. Open with the strongest objection or the most important clarifying question about how the task is framed, then give your view. Disagree with the framing when your expertise says so; never agree just to agree. Be direct and substantive.`,
       })),
       chairman: chairman ? { agent_id: chairman.id, name: chairman.name } : null,
       stage_instructions: {
         opinion:
-          "For each advisor, write that advisor's opinion on the task in their distinct voice using their system_prompt. 150 to 250 words each. The advisors must genuinely disagree where their perspectives differ; do not converge them.",
+          "For each advisor, write that advisor's opinion on the task in their distinct voice using their system_prompt. 150 to 250 words each. Every opinion must OPEN with the strongest objection or the most important clarifying question about how the operator framed the task, then give the advisor's view. The advisors must genuinely disagree where their perspectives differ; do not converge them, and do not let any advisor agree just to agree.",
         peer_review:
           "Then, as each advisor, rank the OTHER advisors' opinions from 1 (most compelling) upward with a one-line rationale per ranking.",
         synthesis:
@@ -349,7 +349,7 @@ export async function crewsStartRun(
     if (!chairman) throw new Error("crew_has_no_chairman");
 
     const opinions: StageResult[] = await Promise.all(advisors.map(async (agent, index) => {
-      const system = `${agent.seed_prompt ?? `You are ${agent.name}.`}\n\nProvide your honest, specific opinion on the task. 150 to 250 words. Be direct and substantive.`;
+      const system = `${agent.seed_prompt ?? `You are ${agent.name}.`}\n\nProvide your honest, specific opinion on the task. 150 to 250 words. Open with the strongest objection or the most important clarifying question about how the task is framed, then give your view. Disagree with the framing when your expertise says so; never agree just to agree. Be direct and substantive.`;
       const user = `${memCtx}Task: ${taskPrompt}`;
       const sampled = await runSample(options.sample!, { system, user, maxTokens: MAX_PER_CALL });
       return {
@@ -533,6 +533,45 @@ export async function crewsGetRun(args: Record<string, unknown>): Promise<Conver
     summary: payload.message ?? (ok ? "No card returned." : "Admin API rejected the request."),
     keyFacts: [`http_status: ${status}`, `run_id: ${runId}`],
     nextActions: ["Verify the run_id belongs to your API key", "Check Vercel logs"],
+  });
+}
+
+type CrewListRow = {
+  id: string;
+  name?: string | null;
+  description?: string | null;
+  template?: string | null;
+  agent_ids?: string[] | null;
+};
+
+// Crew discovery is what makes automatic convening possible: an agent that can
+// see the bench (Business Council, Decision Desk, ...) can route a hard
+// operator question to the right crew without the operator hunting for UUIDs.
+export async function crewsListCrews(_args: Record<string, unknown>): Promise<ConversationalCard> {
+  const { ok, status, json } = await adminCall("list_crews", null, "GET");
+  const payload = (json ?? {}) as { data?: CrewListRow[]; error?: string; message?: string };
+  if (!ok || !Array.isArray(payload.data)) {
+    return buildCard({
+      headline: `list_crews failed (HTTP ${status})`,
+      summary: payload.message ?? "Admin API rejected the request.",
+      keyFacts: [`http_status: ${status}`, ...(payload.error ? [`error: ${payload.error}`] : [])],
+      nextActions: ["Check Vercel logs", "Confirm your UNCLICK_API_KEY is valid"],
+    });
+  }
+  const crews = payload.data;
+  return buildCard({
+    headline: crews.length > 0 ? `Found ${crews.length} crew${crews.length === 1 ? "" : "s"}` : "No crews yet",
+    summary: crews.length > 0
+      ? "Pick the crew whose bench fits the question, then call start_crew_run with its crew_id."
+      : "Starter crews seed automatically on first use; create more at /admin/crews.",
+    keyFacts: crews.slice(0, 12).map((crew) =>
+      `${crew.name ?? "Unnamed"} (${(crew.agent_ids ?? []).length} members, ${crew.template ?? "council"}): ${crew.id}`,
+    ),
+    nextActions: [
+      "Call start_crew_run with the chosen crew_id and the operator's question as task_prompt",
+      "Browse /admin/crews to edit members or create a new crew",
+    ],
+    deepLink: "/admin/crews",
   });
 }
 
