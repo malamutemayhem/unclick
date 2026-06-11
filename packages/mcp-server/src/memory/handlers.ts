@@ -45,6 +45,14 @@ import {
 } from "./corrections.js";
 import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
 import { savePlaybook, getPlaybook, listPlaybooks, recordPlaybookRun } from "./playbooks.js";
+import {
+  saveSchedule,
+  getSchedule,
+  listSchedules,
+  listDueSchedules,
+  setScheduleEnabled,
+  recordScheduleRun,
+} from "./schedules.js";
 import type {
   MemoryBackend,
   MemoryPassportBundle,
@@ -974,6 +982,33 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async record_playbook_run(args) {
     return recordPlaybookRun(args);
+  },
+
+  // Schedules: recurring job definitions for the AutoPilot Runner, stored
+  // as versioned library docs (category "schedule"). This module never
+  // executes anything; a separate opt-in runner polls list_due_schedules.
+  async save_schedule(args) {
+    return saveSchedule(args);
+  },
+
+  async get_schedule(args) {
+    return getSchedule(args);
+  },
+
+  async list_schedules(args) {
+    return listSchedules(args);
+  },
+
+  async list_due_schedules(args) {
+    return listDueSchedules(args);
+  },
+
+  async set_schedule_enabled(args) {
+    return setScheduleEnabled(args);
+  },
+
+  async record_schedule_run(args) {
+    return recordScheduleRun(args);
   },
 
   async refresh_taxonomy_snapshots(args) {

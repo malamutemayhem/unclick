@@ -25,8 +25,9 @@ const allowlistPath = join(here, "orphan-modules-allowlist.json");
 
 // Entry roots: anything the published server can start from. Keep this small
 // and explicit; a new genuine entrypoint should be added here on purpose.
-// "index.ts" is the published bin (unclick-mcp); "server.ts" is main/exports.
-const ROOTS = ["index.ts", "server.ts"]
+// "index.ts" is the published bin (unclick-mcp); "server.ts" is main/exports;
+// "cli.ts" is the published unclick CLI bin.
+const ROOTS = ["index.ts", "server.ts", "cli.ts"]
   .map((r) => join(srcDir, r))
   .filter((p) => existsSync(p));
 
