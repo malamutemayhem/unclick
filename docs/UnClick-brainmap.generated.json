@@ -15791,8 +15791,8 @@
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "f1bf54c8e56a",
-      "bytes": 49150
+      "hash": "a37a2518aa57",
+      "bytes": 49158
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15891,8 +15891,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "36e3d197945d",
-      "bytes": 75619
+      "hash": "7995a2ea8d11",
+      "bytes": 76955
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",

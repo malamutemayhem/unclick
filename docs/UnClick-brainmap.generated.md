@@ -83,7 +83,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
-| src/pages/admin/AdminAgents.tsx | f1bf54c8e56a | 49150 |
+| src/pages/admin/AdminAgents.tsx | a37a2518aa57 | 49158 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5960d9780504 | 64066 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | 36e3d197945d | 75619 |
+| src/pages/admin/AdminKeychain.tsx | 7995a2ea8d11 | 76955 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |

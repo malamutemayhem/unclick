@@ -1529,23 +1529,27 @@ function RotateValuesModal({
   onClose:    () => void;
   onSaved:    () => void;
 }) {
-  const [json, setJson] = useState("");
+  // Pre-fill rows from the connector's known fields so a non-technical user
+  // never has to hand-write JSON to rotate a key.
+  const [pairs, setPairs] = useState<Array<{ key: string; value: string; secret: boolean; locked: boolean }>>(() => {
+    const expected = cred.expected_fields ?? [];
+    if (expected.length > 0) {
+      return expected.map((field) => ({ key: field.name, value: "", secret: field.secret, locked: true }));
+    }
+    return [{ key: "", value: "", secret: true, locked: false }];
+  });
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState<string | null>(null);
 
   async function save() {
     setBusy(true); setErr(null);
     try {
-      let values: Record<string, string>;
-      try {
-        values = JSON.parse(json);
-        if (typeof values !== "object" || values === null || Array.isArray(values)) {
-          throw new Error("Values must be a JSON object of string fields.");
-        }
-      } catch (e) {
-        const parseError = new Error(e instanceof Error ? e.message : "Invalid JSON");
-        Object.assign(parseError, { cause: e });
-        throw parseError;
+      const values: Record<string, string> = {};
+      for (const pair of pairs) {
+        if (pair.key.trim() && pair.value) values[pair.key.trim()] = pair.value;
+      }
+      if (Object.keys(values).length === 0) {
+        throw new Error("Fill in at least one field with its new value.");
       }
 
       const apiKey = readLocalApiKey();
@@ -1569,22 +1573,41 @@ function RotateValuesModal({
   return (
     <ModalShell title={`Rotate ${cred.connector?.name ?? cred.platform} values`} onClose={onClose}>
       <p className="mb-3 text-xs text-[#888]">
-        Paste the new connection values as a JSON object. This replaces the stored values and re-encrypts with your UnClick API key.
+        Enter the new values. Saving replaces the stored values and re-encrypts them with your UnClick API key.
+        Fields left empty are not saved.
       </p>
-      <div className="mb-2 text-[10px] text-[#666]">Example:</div>
-      <pre className="mb-3 overflow-x-auto rounded border border-white/[0.04] bg-black/40 p-2 text-[10px] text-[#888]">
-{`{
-  "api_key": "sk-ant-…"
-}`}
-      </pre>
-      <textarea
-        value={json}
-        onChange={(e) => setJson(e.target.value)}
-        rows={6}
-        placeholder='{ "api_key": "..." }'
-        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
-        autoFocus
-      />
+      <div className="space-y-2" data-testid="rotate-pairs">
+        {pairs.map((pair, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              value={pair.key}
+              readOnly={pair.locked}
+              onChange={(e) =>
+                setPairs((current) => current.map((p, i) => (i === index ? { ...p, key: e.target.value } : p)))
+              }
+              placeholder="field name (e.g. api_key)"
+              className={`w-2/5 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none ${pair.locked ? "opacity-70" : ""}`}
+            />
+            <input
+              type={pair.secret ? "password" : "text"}
+              value={pair.value}
+              onChange={(e) =>
+                setPairs((current) => current.map((p, i) => (i === index ? { ...p, value: e.target.value } : p)))
+              }
+              placeholder="new value"
+              autoFocus={index === 0}
+              className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setPairs((current) => [...current, { key: "", value: "", secret: true, locked: false }])}
+        className="mt-2 text-[11px] font-medium text-[#E2B93B] hover:opacity-80"
+      >
+        + Add another field
+      </button>
       {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
       <div className="mt-4 flex justify-end gap-2">
         <button

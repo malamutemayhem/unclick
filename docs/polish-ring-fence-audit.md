@@ -122,6 +122,13 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 9):** rotate flow for humans, honest seat defaults.
+  - RotateValuesModal no longer demands hand-written JSON. It pre-fills the
+    connector's known fields (password inputs for secrets), supports extra
+    custom fields, and skips empty values. Same API contract.
+  - The four default seats no longer claim green "Ready" with nothing
+    verifying it; they start as "Standby" until someone sets them, since
+    seat status is a manual planning field.
 - **2026-06-11 (round 8):** Keychain helpers extracted and tested.
   - The health, masking, day-math, and export-password-strength rules that
     drive Passport's user-visible badges now live in
