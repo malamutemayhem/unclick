@@ -228,7 +228,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   onClick={(e) => e.stopPropagation()}
                   className="flex min-w-0 items-center gap-2"
                 >
-                  <AppIcon name={app.name} category={app.category} domain={app.domain} />
+                  <AppIcon name={app.name} category={app.category} domain={app.domain} slug={app.slug} />
                   <span className="truncate font-medium text-white hover:text-[#9be4e6]">{app.name}</span>
                 </Link>
                 <span className="truncate text-white/45">{app.category}</span>
