@@ -123,7 +123,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | ce60db85ef41 | 6592 |
+| src/pages/AppDetail.tsx | f6638bfd7203 | 6608 |
 | src/pages/Apps.tsx | f2fab29b2942 | 3137 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
