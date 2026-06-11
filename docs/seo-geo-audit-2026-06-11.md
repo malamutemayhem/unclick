@@ -80,6 +80,14 @@ Per the approved playbook pattern: paste-ready blocks for Chris's Claude browser
 > - Social preview: upload public/og-image.png from the repo
 > These match the playbook (#1459) Phase 0 spec exactly.
 
+## Overnight follow-up (same night, GEO tooling)
+
+Shipped in the same lane after the audit landed review:
+
+1. **GEO probe harness** (`scripts/geo-probe.mjs` + colocated test). The playbook's Phase 1 monthly probe is now a one-command, deterministic scoreboard: it asks a fixed neutral question set against every engine whose key is in the environment (Perplexity is the priority: it is web-grounded and the closest stand-in for a real answer engine), grades each answer correct/partial/wrong/absent with visible keyword rules, and upserts dated rows into `docs/geo-probe-log.json`. Attempted live tonight from this seat: no engine keys connected in the Keychain or environment, so the run exits 1 and writes nothing (status must be earned; an empty row is not evidence). First real run needs any seat with `PERPLEXITY_API_KEY` (or OpenAI/Anthropic/Groq keys) set, or the platforms connected via `keychain_secure_connect`.
+2. **IndexNow submitter** (`scripts/indexnow-submit.mjs` + colocated test). Pairs with the key file above. Any open-egress seat can run `node scripts/indexnow-submit.mjs` after a deploy; it finds the committed key, refuses foreign-origin URLs, and posts the core route list to api.indexnow.org (which fans out to all participating engines). This makes hand-off Block 2 executable by any fleet seat, not only the browser extension.
+3. **`public/.well-known/security.txt`** (RFC 9116). Scanners (the PolicyLayer recon chip included) check for it; absence reads as a missing trust signal. Points at the repo's SECURITY.md policy and hello@unclick.world, expires 2027-06-11 (refresh annually).
+
 ## Re-run protocol
 
 After #1423 and #1453 land, re-run from any seat:
