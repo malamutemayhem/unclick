@@ -188,17 +188,11 @@ export default function XPassPage() {
             </FadeIn>
             <FadeIn delay={0.15}>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  to="/admin/checks"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]"
-                >
+                <Link to="/admin/checks" className={presets.ctaPrimary}>
                   Open XPass in Admin
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  to="/dogfood"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#86dadd]/20 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-white/[0.07]"
-                >
+                <Link to="/dogfood" className={presets.ctaGhost}>
                   View public receipt
                   <ExternalLink className="h-4 w-4" />
                 </Link>

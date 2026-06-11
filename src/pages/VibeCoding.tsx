@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import FadeIn from "@/components/FadeIn";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Eyebrow } from "@/components/brand";
+import { presets } from "@/lib/design-system";
 
 const files = [
   {
@@ -58,18 +60,16 @@ const steps = [
 ];
 
 const VibeCoding = () => (
-  <div className="min-h-screen">
+  <div className={presets.page}>
     <Navbar />
 
     <main className="mx-auto max-w-4xl px-6 py-24">
       <FadeIn>
-        <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
-          Building with AI
-        </span>
+        <Eyebrow>Building with AI</Eyebrow>
       </FadeIn>
 
       <FadeIn delay={0.05}>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-heading sm:text-4xl">
           The UnClick Vibe Coding Framework
         </h1>
       </FadeIn>
@@ -90,16 +90,7 @@ const VibeCoding = () => (
         <div className="mt-16">
           <h2 className="text-lg font-semibold text-heading">The files</h2>
           <p className="mt-2 text-sm text-body">
-            Download individually or{" "}
-            <a
-              href="https://github.com/unclick-world/vibe-coding-framework"
-              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              clone the repo
-            </a>
-            .
+            Each file downloads from this site. Drop them straight into your project.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">

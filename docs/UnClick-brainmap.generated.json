@@ -16040,13 +16040,13 @@
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "672df3eeb92b",
-      "bytes": 18792
+      "hash": "e6d7b1813cc9",
+      "bytes": 12789
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
-      "hash": "9bfae679df42",
-      "bytes": 23493
+      "hash": "40631b01bc27",
+      "bytes": 21214
     },
     {
       "source": "src/pages/DeveloperSubmit.tsx",
@@ -16055,13 +16055,13 @@
     },
     {
       "source": "src/pages/VibeCoding.tsx",
-      "hash": "ef96865a608b",
-      "bytes": 7998
+      "hash": "295c737bad67",
+      "bytes": 7706
     },
     {
       "source": "src/pages/Developers.tsx",
-      "hash": "c31a8a187fac",
-      "bytes": 19126
+      "hash": "223fc9aa3196",
+      "bytes": 11567
     },
     {
       "source": "src/pages/Dispatch.tsx",
@@ -16090,8 +16090,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "21a0ef6af00d",
-      "bytes": 62621
+      "hash": "d0763d5d4c38",
+      "bytes": 62520
     },
     {
       "source": "src/pages/Login.tsx",
@@ -16140,8 +16140,8 @@
     },
     {
       "source": "src/pages/SmartHome.tsx",
-      "hash": "1d7898e16b70",
-      "bytes": 20719
+      "hash": "a4a3a90a94bc",
+      "bytes": 17797
     },
     {
       "source": "src/pages/Terms.tsx",
@@ -16165,8 +16165,8 @@
     },
     {
       "source": "src/pages/Tools.tsx",
-      "hash": "1b9bc9d666a7",
-      "bytes": 15377
+      "hash": "869de7f93568",
+      "bytes": 14806
     },
     {
       "source": "src/pages/HomepageSample.tsx",
@@ -16180,8 +16180,8 @@
     },
     {
       "source": "src/pages/XPass.tsx",
-      "hash": "8a95e39abdd4",
-      "bytes": 11982
+      "hash": "f463df200347",
+      "bytes": 11433
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",

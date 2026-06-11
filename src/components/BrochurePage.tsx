@@ -40,7 +40,7 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
               </div>
             </FadeIn>
             <FadeIn delay={0.05}>
-              <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-[-0.025em] text-heading sm:text-5xl md:text-6xl">
+              <h1 className={`mt-6 ${presets.h1Product}`}>
                 {page.title}
               </h1>
             </FadeIn>
@@ -53,18 +53,12 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
               <FadeIn delay={0.15}>
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                   {page.primaryCta && (
-                    <a
-                      href={page.primaryCta.href}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]"
-                    >
+                    <a href={page.primaryCta.href} className={presets.ctaPrimary}>
                       {page.primaryCta.label}
                     </a>
                   )}
                   {page.secondaryCta && (
-                    <Link
-                      to={page.secondaryCta.href}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#86dadd]/20 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-white/[0.07]"
-                    >
+                    <Link to={page.secondaryCta.href} className={presets.ctaGhost}>
                       {page.secondaryCta.label}
                       <ArrowRight className="h-4 w-4" />
                     </Link>

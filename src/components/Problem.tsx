@@ -12,7 +12,7 @@ const Problem = () => (
         <Eyebrow>Why this exists</Eyebrow>
       </FadeIn>
       <FadeIn delay={0.1}>
-        <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h2 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">
           AI agents need rails, not another dashboard.
         </h2>
       </FadeIn>
@@ -24,8 +24,8 @@ const Problem = () => (
       </FadeIn>
       <FadeIn delay={0.3}>
         <p className="mt-4 text-body leading-relaxed">
-          UnClick gives them the shared pieces they keep reaching for: tools, memory,
-          connections, crews, and Pass family checks. Call an endpoint. Get JSON back.
+          UnClick gives them the shared pieces they keep reaching for: Apps, Memory,
+          Connections, Crews, and XPass checks. Call an endpoint. Get JSON back.
           Prove the work before it ships.
         </p>
       </FadeIn>
@@ -48,9 +48,8 @@ const Problem = () => (
               <div className="line-through opacity-60">Wait for redirect</div>
               <div className="line-through opacity-60">Parse response</div>
             </div>
-            <div className="mt-3 flex justify-between font-mono text-xs text-destructive/50">
-              <span>~4,200ms</span>
-              <span>~18,000 tokens</span>
+            <div className="mt-3 font-mono text-xs text-destructive/50">
+              Six fragile steps to parse
             </div>
           </motion.div>
 
@@ -65,9 +64,8 @@ const Problem = () => (
               <div>POST /v1/schedule/events</div>
               <div className="text-primary">→ 201 Created</div>
             </div>
-            <div className="mt-3 flex justify-between font-mono text-xs text-primary/50">
-              <span>~38ms</span>
-              <span>~120 tokens</span>
+            <div className="mt-3 font-mono text-xs text-primary/50">
+              One call, one answer
             </div>
           </motion.div>
         </div>

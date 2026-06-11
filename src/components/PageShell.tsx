@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import FadeIn from "@/components/FadeIn";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Eyebrow } from "@/components/brand";
 import { presets } from "@/lib/design-system";
 
 interface PageShellProps {
@@ -61,15 +62,15 @@ const PageShell = ({
           <div className={presets.heroInner}>
             {eyebrow && (
               <FadeIn>
-                <div className={presets.eyebrow}>
-                  <span className={presets.eyebrowText}>{eyebrow}</span>
+                <div className="flex justify-center">
+                  <Eyebrow>{eyebrow}</Eyebrow>
                 </div>
               </FadeIn>
             )}
 
             {title && (
               <FadeIn delay={0.05}>
-                <h1 className={presets.h1}>
+                <h1 className={`mt-6 ${presets.h1Product}`}>
                   {accent && accentPosition === "before" ? (
                     <>
                       <span className="text-primary">{accent}</span>{" "}
