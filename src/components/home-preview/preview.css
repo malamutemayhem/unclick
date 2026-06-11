@@ -116,6 +116,25 @@
   }
 }
 
+/* Orbit rings (option J): rings spin, chip contents counter-spin so
+   labels stay upright. Still under reduced motion. */
+@keyframes hp-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hp-orbit-rev {
+  to { transform: rotate(-360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-orbit-a { animation: hp-orbit 52s linear infinite; }
+  .hp-orbit-a-item { animation: hp-orbit-rev 52s linear infinite; }
+  .hp-orbit-b { animation: hp-orbit-rev 76s linear infinite; }
+  .hp-orbit-b-item { animation: hp-orbit 76s linear infinite; }
+  .hp-orbit-c { animation: hp-orbit 104s linear infinite; }
+  .hp-orbit-c-item { animation: hp-orbit-rev 104s linear infinite; }
+}
+
 /* Blueprint crosshair corners on station cards. */
 .hp-cross {
   position: absolute;
