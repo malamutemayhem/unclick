@@ -558,7 +558,7 @@ export default function RunRail() {
             </span>
           </h2>
           <p className="mx-auto mt-5 max-w-md text-body [text-wrap:balance]">
-            Any AI, memory, gates, apps, proof, and a team that keeps going.
+            Any AI, memory, gates, apps, proof, and a team that keeps{"\u00A0"}going.
           </p>
           <MoatSeal />
         </motion.div>

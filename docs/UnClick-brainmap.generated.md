@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 9bcfa39e6e93 | 17638 |
+| src/App.tsx | e3627effb60b | 18253 |
 | src/pages/admin/AdminShell.tsx | 583495279a0e | 28506 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -137,8 +137,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
-| src/pages/HomePreviewB.tsx | 5472335568c4 | 14177 |
-| src/pages/HomePreview.tsx | a755d6c79296 | 8481 |
+| src/pages/HomePreviewB.tsx | 740b7c75ff4f | 13290 |
+| src/pages/HomePreviewC.tsx | 745b962b93bb | 7976 |
+| src/pages/HomePreviewD.tsx | bf9b808df797 | 13283 |
+| src/pages/HomePreviewE.tsx | 3e3475996100 | 10218 |
+| src/pages/HomePreviewF.tsx | 085701ab6ab6 | 9407 |
+| src/pages/HomePreviewG.tsx | 9cd9b1bd010d | 9388 |
+| src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
@@ -248,7 +253,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 38 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 43 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -365,6 +370,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /dogfood | Dogfood Report | Public dogfood proof report. | src/pages/DogfoodReport.tsx |
 | /faq | FAQ | User-facing page for FAQPage. | src/pages/FAQPage.tsx |
 | /home-preview-b | Home Preview B | User-facing page for Home Preview B. | src/pages/HomePreviewB.tsx |
+| /home-preview-c | Home Preview C | User-facing page for Home Preview C. | src/pages/HomePreviewC.tsx |
+| /home-preview-d | Home Preview D | User-facing page for Home Preview D. | src/pages/HomePreviewD.tsx |
+| /home-preview-e | Home Preview E | User-facing page for Home Preview E. | src/pages/HomePreviewE.tsx |
+| /home-preview-f | Home Preview F | User-facing page for Home Preview F. | src/pages/HomePreviewF.tsx |
+| /home-preview-g | Home Preview G | User-facing page for Home Preview G. | src/pages/HomePreviewG.tsx |
 | /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
@@ -1435,6 +1445,11 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
 | Public surfaces | public page | Home Preview | User-facing page for Home Preview. | /home-preview | src/pages/HomePreview.tsx |
 | Public surfaces | public page | Home Preview B | User-facing page for Home Preview B. | /home-preview-b | src/pages/HomePreviewB.tsx |
+| Public surfaces | public page | Home Preview C | User-facing page for Home Preview C. | /home-preview-c | src/pages/HomePreviewC.tsx |
+| Public surfaces | public page | Home Preview D | User-facing page for Home Preview D. | /home-preview-d | src/pages/HomePreviewD.tsx |
+| Public surfaces | public page | Home Preview E | User-facing page for Home Preview E. | /home-preview-e | src/pages/HomePreviewE.tsx |
+| Public surfaces | public page | Home Preview F | User-facing page for Home Preview F. | /home-preview-f | src/pages/HomePreviewF.tsx |
+| Public surfaces | public page | Home Preview G | User-facing page for Home Preview G. | /home-preview-g | src/pages/HomePreviewG.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |

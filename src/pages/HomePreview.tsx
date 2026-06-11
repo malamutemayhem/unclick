@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, Eye } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import OptionRibbon from "@/components/home-preview/OptionRibbon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FAQ from "@/components/FAQ";
@@ -124,21 +124,7 @@ const HomePreview = () => {
       <Navbar />
 
       {/* Preview ribbon: this route is a design demo, not the live home. */}
-      <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-[#071e29]/90 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-primary shadow-[0_18px_50px_-18px_rgba(0,0,0,0.8)] backdrop-blur-md transition-colors hover:bg-[#0a2c3c]"
-        >
-          <Eye className="h-3.5 w-3.5 shrink-0" />
-          <span className="whitespace-nowrap">current</span>
-        </Link>
-        <Link
-          to="/home-preview-b"
-          className="inline-flex items-center rounded-full border border-primary/30 bg-[#071e29]/90 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-primary shadow-[0_18px_50px_-18px_rgba(0,0,0,0.8)] backdrop-blur-md transition-colors hover:bg-[#0a2c3c]"
-        >
-          <span className="whitespace-nowrap">option b</span>
-        </Link>
-      </div>
+      <OptionRibbon active="a" />
 
       <main>
         {/* ── Hero: eight words and one ask ──────────────────────── */}
