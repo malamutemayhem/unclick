@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T04:56:04.429Z",
+  "updatedAt": "2026-06-11T05:45:00.000Z",
   "results": {
     "abn": {
       "status": "attention",
@@ -12,8 +12,8 @@
     },
     "abuseipdb": {
       "status": "attention",
-      "note": "IP reputation API; needs ABUSEIPDB_API_KEY.",
-      "testedAt": "2026-06-07T09:41:21.082Z",
+      "note": "IP reputation API; needs ABUSEIPDB_API_KEY. Not-connected card re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "abuseipdb_check_ip"
       ],
@@ -21,8 +21,8 @@
     },
     "adviceslip": {
       "status": "pass",
-      "note": "advice_random() returned a random advice slip with id and advice text. Free API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
+      "note": "advice_random() returned a random advice slip with id and advice text. Free API. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "advice_random"
       ]
@@ -59,8 +59,8 @@
     },
     "alphavantage": {
       "status": "attention",
-      "note": "not_connected; needs free API key from alphavantage.co. Set ALPHAVANTAGE_API_KEY.",
-      "testedAt": "2026-06-07T09:39:36.511Z",
+      "note": "not_connected; needs free API key from alphavantage.co. Set ALPHAVANTAGE_API_KEY. Not-connected card re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "stock_quote"
       ],
@@ -85,12 +85,11 @@
       "comment": ""
     },
     "animechan": {
-      "status": "pass",
-      "note": "animechan_random and animechan_search return anime quotes. Free, no key needed.",
-      "testedAt": "2026-06-08T09:00:00.000Z",
+      "status": "fail",
+      "note": "animechan_random: HTTP 404 HTML page; API moved to api.animechan.io/v1. Fix shipped; retest after deploy.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "animechan_random",
-        "animechan_search"
+        "animechan_random"
       ]
     },
     "amiibo": {
@@ -109,9 +108,9 @@
       "comment": ""
     },
     "aoe2": {
-      "status": "pass",
-      "note": "aoe2_civilizations() returned all AoE2 civilizations with bonuses. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
+      "status": "fail",
+      "note": "aoe2_civilizations returns Heroku 'No such app' 404; age-of-empires-2-api.herokuapp.com is gone. No drop-in replacement API known.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "aoe2_civilizations"
       ]
@@ -228,9 +227,9 @@
       "comment": ""
     },
     "bored": {
-      "status": "pass",
-      "note": "bored_random() returned activity suggestion with type and participants. Free public API.",
-      "testedAt": "2026-06-07T12:50:00.000Z",
+      "status": "fail",
+      "note": "bored_random: HTTP 404 'Cannot GET /api/activity'; bored-api.appbrewery.com moved to /random and /filter. Path fix shipped; retest after deploy.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "bored_random"
       ]
@@ -253,9 +252,9 @@
       "comment": ""
     },
     "breakingbad": {
-      "status": "pass",
-      "note": "breaking_bad_quote returns random Breaking Bad quotes. Free, no key needed.",
-      "testedAt": "2026-06-08T08:30:00.000Z",
+      "status": "attention",
+      "note": "breaking_bad_quote returns upstream rate-limit persistently from the shared deployment IP. Works but throttled; needs spacing between calls.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "breaking_bad_quote"
       ]
@@ -278,9 +277,10 @@
     },
     "calculator": {
       "status": "pass",
-      "note": "calc_tip returned correct tip calculation (bill=50, 15% tip = 7.50, total 57.50)",
-      "testedAt": "2026-06-07T03:01:02.000Z",
+      "note": "calc_tip returned correct tip calculation (bill=50, 15% tip = 7.50, total 57.50). Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
+        "calc_bmi",
         "calc_tip"
       ],
       "comment": ""
@@ -331,11 +331,11 @@
     },
     "catfacts": {
       "status": "pass",
-      "note": "New connector: Cat Facts API. Free public API, no key needed. Random facts and cat breed data. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
+      "note": "New connector: Cat Facts API. Free public API, no key needed. Random facts and cat breed data. 3 tools, all tests passing. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "cat_fact",
-        "cat_breeds"
+        "cat_breeds",
+        "cat_fact"
       ],
       "comment": ""
     },
@@ -360,11 +360,11 @@
     },
     "chucknorris": {
       "status": "pass",
-      "note": "New connector: Chuck Norris API. Free public API, no key needed. Random jokes, search, categories. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
+      "note": "New connector: Chuck Norris API. Free public API, no key needed. Random jokes, search, categories. 3 tools, all tests passing. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "chuck_random",
-        "chuck_categories"
+        "chuck_categories",
+        "chuck_random"
       ],
       "comment": ""
     },
@@ -530,8 +530,8 @@
     },
     "corporatebs": {
       "status": "pass",
-      "note": "corporate_bs_phrase returned a buzzword phrase; free, no key needed.",
-      "testedAt": "2026-06-08T03:57:15.086Z",
+      "note": "corporate_bs_phrase returned a buzzword phrase; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "corporate_bs_phrase"
       ]
@@ -629,12 +629,12 @@
     },
     "digimon": {
       "status": "pass",
-      "note": "digimon_all, digimon_by_name, digimon_by_level return Digimon data. Free, no key needed.",
-      "testedAt": "2026-06-08T08:30:00.000Z",
+      "note": "digimon_all, digimon_by_name, digimon_by_level return Digimon data. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "digimon_all",
-        "digimon_by_name",
-        "digimon_by_level"
+        "digimon_by_level",
+        "digimon_by_name"
       ]
     },
     "discogs": {
@@ -687,8 +687,8 @@
     },
     "dogfacts": {
       "status": "pass",
-      "note": "dog_fact_random returned a random dog fact. Free, no key needed.",
-      "testedAt": "2026-06-08T06:30:00.000Z",
+      "note": "dog_fact_random returned a random dog fact. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "dog_fact_random"
       ]
@@ -808,9 +808,9 @@
       "comment": ""
     },
     "evilinsult": {
-      "status": "pass",
-      "note": "evil_insult_random returned a random insult from evilinsult.com; free, no key needed.",
-      "testedAt": "2026-06-08T04:01:53.563Z",
+      "status": "fail",
+      "note": "evil_insult_random: HTTP 403 Cloudflare challenge page; evilinsult.com blocks server-side callers.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "evil_insult_random"
       ]
@@ -834,8 +834,8 @@
     },
     "excuser": {
       "status": "pass",
-      "note": "excuser_random returned a random excuse. Free, no key needed.",
-      "testedAt": "2026-06-08T06:30:00.000Z",
+      "note": "excuser_random returned a random excuse. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "excuser_random"
       ]
@@ -873,8 +873,8 @@
     },
     "finalspace": {
       "status": "pass",
-      "note": "final_space_characters returned Final Space character list. Free, no key needed.",
-      "testedAt": "2026-06-08T06:45:00.000Z",
+      "note": "final_space_characters returned Final Space character list. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "final_space_characters"
       ]
@@ -924,8 +924,8 @@
     },
     "frankfurter": {
       "status": "pass",
-      "note": "frankfurter_latest returned EUR exchange rates from ECB data; free, no key needed.",
-      "testedAt": "2026-06-08T03:51:41.572Z",
+      "note": "frankfurter_latest returned EUR exchange rates from ECB data; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "frankfurter_latest"
       ]
@@ -1042,8 +1042,8 @@
     },
     "hackernews": {
       "status": "pass",
-      "note": "hn_top_stories returned 3 stories with titles, URLs, scores, and comment counts from Firebase API",
-      "testedAt": "2026-06-07T03:49:32.000Z",
+      "note": "hn_top_stories returned 3 stories with titles, URLs, scores, and comment counts from Firebase API. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "hn_top_stories"
       ],
@@ -1202,8 +1202,8 @@
     },
     "iseven": {
       "status": "pass",
-      "note": "is_even checks if a number is even via isevenapi.xyz. Free, no key needed.",
-      "testedAt": "2026-06-08T08:00:00.000Z",
+      "note": "is_even checks if a number is even via isevenapi.xyz. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "is_even"
       ]
@@ -1254,8 +1254,8 @@
     },
     "kanye": {
       "status": "pass",
-      "note": "kanye_quote returned a Kanye West quote from api.kanye.rest; free, no key needed.",
-      "testedAt": "2026-06-08T03:51:41.572Z",
+      "note": "kanye_quote returned a Kanye West quote from api.kanye.rest; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "kanye_quote"
       ]
@@ -1358,8 +1358,8 @@
     },
     "lyrics": {
       "status": "pass",
-      "note": "lyrics_get fetches song lyrics from lyrics.ovh by artist and title. Free, no key needed.",
-      "testedAt": "2026-06-08T10:00:00.000Z",
+      "note": "lyrics_get fetches song lyrics from lyrics.ovh by artist and title. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "lyrics_get"
       ]
@@ -1373,8 +1373,8 @@
     },
     "makeup": {
       "status": "pass",
-      "note": "makeup_search returned product results from Makeup API. Free, no key needed.",
-      "testedAt": "2026-06-08T06:00:00.000Z",
+      "note": "makeup_search returned product results from Makeup API. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "makeup_search"
       ]
@@ -1569,8 +1569,8 @@
     },
     "numbers": {
       "status": "fail",
-      "note": "numbersapi.com returning HTTP 404. Service appears down. No code fix possible.",
-      "testedAt": "2026-06-07T09:37:28.711Z",
+      "note": "Confirmed still failing 2026-06-11: number_fact gets HTTP 404 from numbersapi.com over HTTPS. Switched base to HTTP (the API is HTTP-only); retest after deploy.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "number_fact"
       ],
@@ -1667,8 +1667,8 @@
     },
     "openmeteo": {
       "status": "pass",
-      "note": "weather_current returned Melbourne weather (16.7C, partly cloudy) - no auth needed",
-      "testedAt": "2026-06-07T04:25:00.000Z",
+      "note": "weather_current returned Melbourne weather (16.7C, partly cloudy) - no auth needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "weather_current"
       ],
@@ -1796,8 +1796,8 @@
     },
     "pokeapi": {
       "status": "pass",
-      "note": "New connector: PokeAPI. Free public API, no key needed. Get Pokemon by name/id, search, types, abilities, generations. 5 tools, all tests passing.",
-      "testedAt": "2026-06-07T09:55:00.000Z",
+      "note": "New connector: PokeAPI. Free public API, no key needed. Get Pokemon by name/id, search, types, abilities, generations. 5 tools, all tests passing. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "poke_get_pokemon",
         "poke_search_pokemon"
@@ -1872,9 +1872,9 @@
       ]
     },
     "punkapi": {
-      "status": "pass",
-      "note": "punkapi_random_beer returned a BrewDog craft beer recipe. Free, no key needed.",
-      "testedAt": "2026-06-08T06:15:00.000Z",
+      "status": "fail",
+      "note": "punkapi_random_beer: fetch failed; punkapi.com no longer resolves (Punk API shut down). Community mirror punkapi.online unverified.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "punkapi_random_beer"
       ]
@@ -1911,9 +1911,9 @@
       "comment": ""
     },
     "quotable": {
-      "status": "pass",
-      "note": "quote_random() returned a random quote with content, author, and tags. Free public API.",
-      "testedAt": "2026-06-07T12:45:00.000Z",
+      "status": "fail",
+      "note": "quote_random: 'Quotable network error: fetch failed'; api.quotable.io unreachable (known cert/hosting issues).",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "quote_random"
       ]
@@ -1947,8 +1947,8 @@
     },
     "randomfox": {
       "status": "pass",
-      "note": "random_fox_image returned a fox image URL from randomfox.ca; free, no key needed.",
-      "testedAt": "2026-06-08T03:57:15.086Z",
+      "note": "random_fox_image returned a fox image URL from randomfox.ca; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "random_fox_image"
       ]
@@ -2023,11 +2023,14 @@
       "comment": ""
     },
     "restcountries": {
-      "status": "pass",
-      "note": "country_by_name returned Australia with full metadata (population, currencies, timezones) - no auth needed",
-      "testedAt": "2026-06-07T04:45:00.000Z",
+      "status": "fail",
+      "note": "All endpoints broken live: country_by_name/by_region/all throw 'countries.map is not a function' (upstream now returns a non-array object). Defensive fix shipped; retest after deploy.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "country_by_name"
+        "country_by_name",
+        "country_by_code",
+        "country_by_region",
+        "country_all"
       ],
       "comment": ""
     },
@@ -2144,9 +2147,9 @@
       "comment": ""
     },
     "shibe": {
-      "status": "pass",
-      "note": "shibe_random_image returned random Shiba Inu image URLs. Free, no key needed.",
-      "testedAt": "2026-06-08T06:15:00.000Z",
+      "status": "fail",
+      "note": "shibe_random_image: fetch failed; shibe.online unreachable.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "shibe_random_image"
       ]
@@ -2199,12 +2202,11 @@
       ]
     },
     "spacex": {
-      "status": "pass",
-      "note": "spacex_latest_launch, spacex_launches, spacex_rockets fetch SpaceX data from api.spacexdata.com. Free, no key needed.",
-      "testedAt": "2026-06-08T11:00:00.000Z",
+      "status": "fail",
+      "note": "spacex_latest_launch and spacex_rockets time out (10s) on repeated calls; api.spacexdata.com (archived r/SpaceX API) is unresponsive.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "spacex_latest_launch",
-        "spacex_launches",
         "spacex_rockets"
       ]
     },
@@ -2316,9 +2318,9 @@
       "comment": ""
     },
     "tacofancy": {
-      "status": "pass",
-      "note": "random_taco generates random taco recipes from Taco Fancy API. Free, no key needed.",
-      "testedAt": "2026-06-08T08:30:00.000Z",
+      "status": "fail",
+      "note": "random_taco returns Heroku 'No such app' 404; taco-randomizer.herokuapp.com is gone.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "random_taco"
       ]
@@ -2357,9 +2359,9 @@
       "comment": ""
     },
     "thelott": {
-      "status": "fail",
-      "note": "POST endpoint at data.api.thelott.com returning \"Game or draw not found\". Product filter names may need adjustment.",
-      "testedAt": "2026-06-07T09:37:28.711Z",
+      "status": "pass",
+      "note": "Recovered: lott_jackpots and lott_results(game=Powerball) both returned valid live draw data on 2026-06-11 recheck.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "lott_results",
         "lott_jackpots"
@@ -2566,8 +2568,8 @@
     },
     "urbandictionary": {
       "status": "pass",
-      "note": "urban_define and urban_random look up slang definitions from urbandictionary.com. Free, no key needed.",
-      "testedAt": "2026-06-08T10:00:00.000Z",
+      "note": "urban_define and urban_random look up slang definitions from urbandictionary.com. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "urban_define",
         "urban_random"
@@ -2575,16 +2577,16 @@
     },
     "uselessfacts": {
       "status": "pass",
-      "note": "useless_fact_random returned a random fact from uselessfacts.jsph.pl; free, no key needed.",
-      "testedAt": "2026-06-08T03:57:15.086Z",
+      "note": "useless_fact_random returned a random fact from uselessfacts.jsph.pl; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "useless_fact_random"
       ]
     },
     "usgs": {
       "status": "pass",
-      "note": "usgs_recent_earthquakes returned 3 M5+ quakes from past day near Timor Leste - no auth needed",
-      "testedAt": "2026-06-07T05:05:00.000Z",
+      "note": "usgs_recent_earthquakes returned 3 M5+ quakes from past day near Timor Leste - no auth needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "usgs_recent_earthquakes"
       ],
@@ -2715,11 +2717,11 @@
     },
     "xkcd": {
       "status": "pass",
-      "note": "New connector: xkcd. Free public API, no key needed. Latest, by number, or random comics. 3 tools, all tests passing.",
-      "testedAt": "2026-06-07T12:25:00.000Z",
+      "note": "New connector: xkcd. Free public API, no key needed. Latest, by number, or random comics. 3 tools, all tests passing. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "xkcd_latest",
-        "xkcd_comic"
+        "xkcd_comic",
+        "xkcd_latest"
       ],
       "comment": ""
     },
@@ -2741,8 +2743,8 @@
     },
     "yesno": {
       "status": "pass",
-      "note": "yesno_random returned yes/no answer with GIF from yesno.wtf; free, no key needed.",
-      "testedAt": "2026-06-08T04:01:53.563Z",
+      "note": "yesno_random returned yes/no answer with GIF from yesno.wtf; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "yesno_random"
       ]
@@ -2763,16 +2765,16 @@
     },
     "zenquotes": {
       "status": "pass",
-      "note": "zen_quote_random returned an inspirational quote from zenquotes.io; free, no key needed.",
-      "testedAt": "2026-06-08T03:51:41.572Z",
+      "note": "zen_quote_random returned an inspirational quote from zenquotes.io; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "zen_quote_random"
       ]
     },
     "zippopotamus": {
       "status": "pass",
-      "note": "zip_lookup returned Beverly Hills for 90210 from zippopotam.us; free, no key needed.",
-      "testedAt": "2026-06-08T04:01:53.563Z",
+      "note": "zip_lookup returned Beverly Hills for 90210 from zippopotam.us; free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "zip_lookup"
       ]
@@ -2848,21 +2850,19 @@
     },
     "foodish": {
       "status": "pass",
-      "note": "foodish_random and foodish_by_category return food images from foodish-api.com. Free, no key needed.",
-      "testedAt": "2026-06-08T12:30:00.000Z",
+      "note": "foodish_random and foodish_by_category return food images from foodish-api.com. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "foodish_random",
-        "foodish_by_category"
+        "foodish_by_category",
+        "foodish_random"
       ]
     },
     "acnhapi": {
-      "status": "pass",
-      "note": "acnh_villagers, acnh_fish, acnh_bugs return Animal Crossing data from acnhapi.com. Free, no key needed.",
-      "testedAt": "2026-06-08T12:30:00.000Z",
+      "status": "fail",
+      "note": "acnh_villagers: fetch failed; acnhapi.com is dead (successor Nookipedia API needs a key).",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "acnh_villagers",
-        "acnh_fish",
-        "acnh_bugs"
+        "acnh_villagers"
       ]
     },
     "httpcat": {
@@ -2894,21 +2894,21 @@
     },
     "wheretheiss": {
       "status": "pass",
-      "note": "iss_position and iss_pass_times return ISS tracking data from wheretheiss.at. Free, no key needed.",
-      "testedAt": "2026-06-08T13:00:00.000Z",
+      "note": "iss_position and iss_pass_times return ISS tracking data from wheretheiss.at. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "iss_position",
-        "iss_pass_times"
+        "iss_pass_times",
+        "iss_position"
       ]
     },
     "coinlore": {
       "status": "pass",
-      "note": "coinlore_global, coinlore_tickers, coinlore_coin return crypto data from coinlore.net. Free, no key needed.",
-      "testedAt": "2026-06-08T13:00:00.000Z",
+      "note": "coinlore_global, coinlore_tickers, coinlore_coin return crypto data from coinlore.net. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
+        "coinlore_coin",
         "coinlore_global",
-        "coinlore_tickers",
-        "coinlore_coin"
+        "coinlore_tickers"
       ]
     },
     "openmeteo-airquality": {
@@ -3230,11 +3230,11 @@
     },
     "crates": {
       "status": "pass",
-      "note": "crates_search returns Rust crate listings from crates.io. Free, no key needed.",
-      "testedAt": "2026-06-08T16:00:00.000Z",
+      "note": "crates_search returns Rust crate listings from crates.io. Free, no key needed. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
-        "crates_search",
-        "crates_get"
+        "crates_get",
+        "crates_search"
       ]
     },
     "npm-registry": {
@@ -3325,9 +3325,9 @@
       ]
     },
     "isup": {
-      "status": "pass",
-      "note": "isup_check reports whether a domain is up or down via isitup.org. Free, no key needed.",
-      "testedAt": "2026-06-08T17:30:00.000Z",
+      "status": "fail",
+      "note": "isup_check returns 'isitup.org 404' for every domain (google.com included): isitup.org requires a User-Agent header. Fix shipped; retest after deploy.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "isup_check"
       ]
@@ -5085,8 +5085,8 @@
     },
     "twosat": {
       "status": "pass",
-      "note": "two_sat solves 2-SAT via implication graph and Kosaraju SCC. Local computation, all tests pass.",
-      "testedAt": "2026-06-09T02:43:00.000Z",
+      "note": "two_sat solves 2-SAT via implication graph and Kosaraju SCC. Local computation, all tests pass. Re-verified live 2026-06-11.",
+      "testedAt": "2026-06-11T05:45:00.000Z",
       "toolsTested": [
         "two_sat"
       ]
@@ -5532,5 +5532,5 @@
       ]
     }
   },
-  "note": "Maintained by the AppTesting loop. Each entry is the result of physically calling a representative action on that app MCP tools. The comment field is for admin notes and is preserved across loop runs. Apps not listed here are treated as untested. Statuses: pass | fail | attention | untested."
+  "note": "Includes a manual false-positive audit (44 apps physically re-called on 2026-06-11): 13 recorded passes were actually broken and are now fail; thelott recovered to pass."
 }

@@ -68,6 +68,11 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
   });
 
+  // The network filter chips and the connect wizard are covered by the cheap
+  // fixture-based tests in src/components/apps/ (AppsTable.test.tsx and
+  // ConnectAppModal.test.tsx); rendering the full catalog again here for each
+  // assertion is what stalls jsdom.
+
   // Note: the toggle->admin_set_app_state persistence path is covered by the
   // enforcement unit tests (tool-gating.test.ts) and the API handler; a full
   // render-and-click integration test over the real ~200-app catalog is too slow

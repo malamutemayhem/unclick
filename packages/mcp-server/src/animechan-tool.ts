@@ -1,7 +1,9 @@
 import { stampMeta } from "./connector-meta.js";
 
 const UA = "UnClick-MCP/1.0";
-const BASE = "https://animechan.io/api/v1";
+// The v1 API lives at api.animechan.io/v1; animechan.io itself is the website
+// and answers /api/v1/* with a 404 page.
+const BASE = "https://api.animechan.io/v1";
 const TIMEOUT_MS = 10_000;
 
 async function fetchJson(url: string): Promise<unknown> {

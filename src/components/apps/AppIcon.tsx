@@ -43,7 +43,11 @@ export function AppIcon({
   const [imgFailed, setImgFailed] = useState(false);
   const letter = (name.replace(/[^A-Za-z0-9]/g, "").charAt(0) || "?").toUpperCase();
   const tint = CATEGORY_TINT[category] ?? "#9ca3af";
-  const showImg = Boolean(domain) && !imgFailed;
+  // Only real, dotted hostnames get a favicon lookup. Anything else (null, the
+  // legacy "local" marker, bare words) falls straight back to the letter chip,
+  // because the favicon service answers unknown hosts with a generic placeholder
+  // instead of an error - which used to leave built-in apps with a junk icon.
+  const showImg = Boolean(domain && domain.includes(".")) && !imgFailed;
 
   return (
     <span

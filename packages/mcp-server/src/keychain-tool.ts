@@ -251,7 +251,9 @@ interface TestResult {
   auth_method:    string;
 }
 
-async function testCredential(
+// Exported so the web admin connect flow (api/memory-admin admin_connect_app)
+// can run the exact same live proof before storing a credential.
+export async function testCredential(
   platform:     string,
   credential:   string,
   testEndpoint: string | null

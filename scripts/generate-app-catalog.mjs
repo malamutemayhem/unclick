@@ -762,6 +762,9 @@ function capBlurb(text) {
 
 // Brand domains for the favicon icon. Known brands show a real favicon (framed
 // consistently); unknown apps fall back to the tinted letter chip at render time.
+// The special value "local" marks a connector with no real brand site (pure
+// local compute). It is emitted as domain: null so the icon never asks a favicon
+// service for a bogus host, and it feeds the offline/online/hybrid classifier.
 const DOMAIN_OF = {
   github: "github.com", gitlab: "gitlab.com", vercel: "vercel.com", netlify: "netlify.com",
   render: "render.com", flyio: "fly.io", digitalocean: "digitalocean.com", circleci: "circleci.com",
@@ -958,6 +961,27 @@ function titleCase(slug) {
   return slug.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
+// ─── Network classification (offline / online / hybrid) ────────────────────────
+// Read straight from each connector's source file: a connector that calls
+// fetch() needs the internet ("online"). A connector with no network call is
+// pure local compute ("offline"). A connector that does not fetch but builds
+// URLs pointing at an external service (QR Server, Placehold, RoboHash, ...)
+// is "hybrid": the action itself works offline, but its output needs internet.
+const MCP_SRC = path.join(ROOT, "packages/mcp-server/src");
+
+function classifyNetwork(slug) {
+  let src = "";
+  try {
+    src = fs.readFileSync(path.join(MCP_SRC, `${slug}-tool.ts`), "utf8");
+  } catch {
+    return "online"; // unknown source: assume the conservative case
+  }
+  if (/\bfetch\s*\(/.test(src)) return "online";
+  const domain = DOMAIN_OF[slug];
+  if (domain && domain !== "local") return "hybrid";
+  return "offline";
+}
+
 function build() {
   const toolIndex = Object.values(JSON.parse(fs.readFileSync(TOOL_INDEX, "utf8")));
   const ladder = JSON.parse(fs.readFileSync(LADDER, "utf8"));
@@ -971,12 +995,14 @@ function build() {
       const category = CATEGORY_OF[slug] ?? "Other";
       if (category === "Other") uncategorized.push(slug);
       const grade = levelOf.get(slug) ?? null;
+      const domain = DOMAIN_OF[slug] && DOMAIN_OF[slug] !== "local" ? DOMAIN_OF[slug] : null;
       return {
         slug,
         name: NAME_OF[slug] ?? titleCase(slug),
         category,
         blurb: BLURB_OF[slug] ?? capBlurb(tools[0]?.description ?? `${NAME_OF[slug] ?? titleCase(slug)} tools.`),
-        domain: DOMAIN_OF[slug] ?? null,
+        domain,
+        network: classifyNetwork(slug),
         toolCount: tools.length,
         tools: tools.map((t) => ({ name: t.name, description: t.description })),
         level: grade?.level ?? null,

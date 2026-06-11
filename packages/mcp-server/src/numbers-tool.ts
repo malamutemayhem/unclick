@@ -1,8 +1,8 @@
 // Numbers API integration - interesting facts about numbers, dates, and years.
 // No authentication required - completely free and open.
-// Base URL: https://numbersapi.com/
+// Base URL: http://numbersapi.com/ (the API is HTTP-only; its HTTPS host 404s)
 
-const NUMBERS_BASE = "https://numbersapi.com";
+const NUMBERS_BASE = "http://numbersapi.com";
 const NUMBERS_TIMEOUT_MS = Number(process.env.NUMBERS_TIMEOUT_MS) || 10000;
 
 const VALID_TYPES = ["trivia", "math", "date", "year"] as const;
