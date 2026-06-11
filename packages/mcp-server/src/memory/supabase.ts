@@ -26,6 +26,11 @@ import type {
   InvalidateFactInput,
   ForgetInput,
   ForgetReceipt,
+  ArchiveFactInput,
+  ArchiveFactResult,
+  RestoreFactInput,
+  RestoreFactResult,
+  RecycleBinEntry,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -1666,6 +1671,7 @@ export class SupabaseBackend implements MemoryBackend {
       last_accessed: now(),
       content_hash: hash,
       valid_from: data.valid_from ?? now(),
+      valid_to: data.valid_to ?? null,
       recorded_at: now(),
       extractor_id: data.extractor_id ?? "manual",
       prompt_version: data.prompt_version ?? null,
@@ -1814,6 +1820,100 @@ export class SupabaseBackend implements MemoryBackend {
     const auditTable = this.tenancy.mode === "managed" ? "mc_facts_audit" : "facts_audit";
     await this.client.from(auditTable).insert({ fact_id: factId, op, payload, actor: "agent", at: now() });
   }
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  private factsQueryForTenant() {
+    let query = this.client.from(this.tables.extracted_facts).select("id, fact, category, confidence, status, archived_at, decay_reason, updated_at");
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    return query;
+  }
+
+  private async updateFactForTenant(factId: string, update: Record<string, unknown>, context: string): Promise<void> {
+    let query = this.client.from(this.tables.extracted_facts).update(update).eq("id", factId);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { error } = await query;
+    if (error) throw pgError(context, error);
+  }
+
+  async archiveFact(input: ArchiveFactInput): Promise<ArchiveFactResult> {
+    const { data, error } = await this.factsQueryForTenant().eq("id", input.fact_id).maybeSingle();
+    if (error) throw pgError("recycle-bin archive read", error);
+    if (!data) throw new Error(`Fact ${input.fact_id} not found`);
+    const row = data as { status: string; archived_at: string | null; updated_at: string };
+    if (row.status === "archived") {
+      return { fact_id: input.fact_id, archived_at: row.archived_at ?? row.updated_at, already_archived: true };
+    }
+    if (row.status !== "active") {
+      throw new Error(`Fact ${input.fact_id} has status '${row.status}' and cannot be archived`);
+    }
+
+    const archivedAt = now();
+    await this.updateFactForTenant(
+      input.fact_id,
+      {
+        status: "archived",
+        archived_at: archivedAt,
+        decay_reason: input.reason ?? "recycle-bin:user_archive",
+        updated_at: archivedAt,
+      },
+      "recycle-bin archive update"
+    );
+    return { fact_id: input.fact_id, archived_at: archivedAt, already_archived: false };
+  }
+
+  async restoreFact(input: RestoreFactInput): Promise<RestoreFactResult> {
+    const { data, error } = await this.factsQueryForTenant().eq("id", input.fact_id).maybeSingle();
+    if (error) throw pgError("recycle-bin restore read", error);
+    if (!data) throw new Error(`Fact ${input.fact_id} not found`);
+    const row = data as { status: string; updated_at: string };
+    if (row.status === "active") {
+      return { fact_id: input.fact_id, restored_at: row.updated_at, was_archived: false };
+    }
+    if (row.status !== "archived") {
+      throw new Error(`Fact ${input.fact_id} has status '${row.status}' and cannot be restored`);
+    }
+
+    const restoredAt = now();
+    await this.updateFactForTenant(
+      input.fact_id,
+      { status: "active", archived_at: null, decay_reason: null, updated_at: restoredAt },
+      "recycle-bin restore update"
+    );
+    return { fact_id: input.fact_id, restored_at: restoredAt, was_archived: true };
+  }
+
+  async listArchivedFacts(limit = 100): Promise<RecycleBinEntry[]> {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, fact, category, confidence, archived_at, decay_reason")
+      .eq("status", "archived")
+      .order("archived_at", { ascending: false, nullsFirst: false })
+      .limit(Math.max(1, limit));
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query;
+    if (error) throw pgError("recycle-bin list", error);
+    return (data ?? []).map((row) => {
+      const entry = row as {
+        id: string; fact: string; category: string; confidence: number;
+        archived_at: string | null; decay_reason: string | null;
+      };
+      return {
+        id: entry.id,
+        fact: entry.fact,
+        category: entry.category,
+        confidence: entry.confidence,
+        archived_at: entry.archived_at ?? null,
+        archive_reason: entry.decay_reason ?? null,
+      };
+    });
+  }
+  // --- end recycle bin ---
 
   async invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const result = await this.rpc<Array<{ invalidated_at: string }>>(

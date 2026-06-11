@@ -32,6 +32,12 @@ export interface FactInput {
   // --- end lane-09 ---
   // Bi-temporal + provenance (Chunk 2)
   valid_from?: string;
+  /**
+   * Optional expiry (ISO 8601). Recall already filters facts whose valid_to
+   * has passed, so an expired fact drops out of every recall surface while
+   * remaining queryable with point-in-time `as_of` searches.
+   */
+  valid_to?: string;
   extractor_id?: string;
   prompt_version?: string;
   model_id?: string;
@@ -143,6 +149,40 @@ export interface ForgetInput {
   reason?: string;
   session_id?: string;
 }
+
+// --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+export interface ArchiveFactInput {
+  fact_id: string;
+  reason?: string;
+  session_id?: string;
+}
+
+export interface ArchiveFactResult {
+  fact_id: string;
+  archived_at: string;
+  already_archived: boolean;
+}
+
+export interface RestoreFactInput {
+  fact_id: string;
+  session_id?: string;
+}
+
+export interface RestoreFactResult {
+  fact_id: string;
+  restored_at: string;
+  was_archived: boolean;
+}
+
+export interface RecycleBinEntry {
+  id: string;
+  fact: string;
+  category: string;
+  confidence: number;
+  archived_at: string | null;
+  archive_reason: string | null;
+}
+// --- end recycle bin ---
 
 /**
  * Per-surface receipt describing what a forget swept. This is the contract the
@@ -618,6 +658,20 @@ export interface MemoryBackend {
    */
   forgetMemory(input: ForgetInput): Promise<ForgetReceipt>;
   // --- end lane-05 ---
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  /**
+   * Move an active fact into the recycle bin (status 'archived'). Archived
+   * facts are hidden from every recall surface but keep their content so they
+   * can be restored. Idempotent on already-archived facts.
+   */
+  archiveFact(input: ArchiveFactInput): Promise<ArchiveFactResult>;
+
+  /** Restore an archived fact to active recall. Idempotent on active facts. */
+  restoreFact(input: RestoreFactInput): Promise<RestoreFactResult>;
+
+  /** List recycle-bin contents (archived facts), newest archive first. */
+  listArchivedFacts(limit?: number): Promise<RecycleBinEntry[]>;
+  // --- end recycle bin ---
   // --- lane-10: eval harness and memory passport ---
   exportMemoryPassport(input?: MemoryPassportExportInput): Promise<MemoryPassportExportResult>;
   importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult>;
