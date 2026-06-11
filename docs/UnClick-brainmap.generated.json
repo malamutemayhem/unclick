@@ -16585,8 +16585,8 @@
     },
     {
       "source": ".github/workflows/secret-scan.yml",
-      "hash": "6c02b3c6122f",
-      "bytes": 1143
+      "hash": "437fe35aa550",
+      "bytes": 1158
     },
     {
       "source": ".github/workflows/seed-vault.yml",

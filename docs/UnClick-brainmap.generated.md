@@ -235,7 +235,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
-| .github/workflows/secret-scan.yml | 6c02b3c6122f | 1143 |
+| .github/workflows/secret-scan.yml | 437fe35aa550 | 1158 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
 | .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
