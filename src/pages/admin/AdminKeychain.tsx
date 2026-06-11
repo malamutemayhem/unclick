@@ -46,6 +46,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  ChevronDown,
   RefreshCw,
   RotateCw,
   Search,
@@ -659,18 +660,6 @@ export default function AdminKeychain() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => { setExportOpen(true); setExportPassword(""); setExportConfirm(""); setExportError(null); }}
-            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
-          >
-            Export Passport
-          </button>
-          <button
-            onClick={openAudit}
-            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
-          >
-            Audit log
-          </button>
-          <button
             onClick={() => void fetchList()}
             disabled={loading}
             title="Refresh"
@@ -678,6 +667,41 @@ export default function AdminKeychain() {
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
+          <details className="relative" data-testid="passport-more-menu">
+            <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B] [&::-webkit-details-marker]:hidden">
+              More
+              <ChevronDown className="h-3 w-3" />
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 w-64 rounded-lg border border-white/[0.1] bg-[#0b2230] p-1 shadow-xl shadow-black/40">
+              <button
+                onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  setExportOpen(true);
+                  setExportPassword("");
+                  setExportConfirm("");
+                  setExportError(null);
+                }}
+                className="block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
+              >
+                <span className="block text-xs font-semibold text-white">Export Passport</span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-[#888]">
+                  Download an encrypted backup of your saved access.
+                </span>
+              </button>
+              <button
+                onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  void openAudit();
+                }}
+                className="block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
+              >
+                <span className="block text-xs font-semibold text-white">Audit log</span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-[#888]">
+                  Every reveal, change, and delete, with time and source.
+                </span>
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
