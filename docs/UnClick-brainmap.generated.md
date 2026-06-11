@@ -110,7 +110,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
-| src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
+| src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
 | src/pages/admin/signals/SignalsCatalog.tsx | 5bbc2fe8c321 | 10370 |
 | src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
@@ -141,7 +141,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
+| src/pages/MemorySetup.tsx | 732d0646c356 | 19854 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
 | src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
@@ -255,7 +255,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 123 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 137 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1269,7 +1269,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
-| Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
 | Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |

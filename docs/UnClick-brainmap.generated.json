@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1108,
+    "inventory": 1107,
     "source_manifest": 227,
     "pages": 94,
     "tools": 672,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 137
+      "count": 136
     },
     {
       "id": "launch-and-onboarding",
@@ -2128,16 +2128,6 @@
       "kind": "automation module",
       "meaning": "Internal automation bolt-on for proof-first work motion.",
       "source": "AUTOPILOT.md",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "modules-and-apps-component-admin-settings-src-pages-adminsettings-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Admin Settings",
-      "kind": "component",
-      "meaning": "Account and admin configuration.",
-      "source": "src/pages/AdminSettings.tsx",
       "route": "",
       "tags": []
     },
@@ -15926,7 +15916,7 @@
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
-      "hash": "79f83645f7c9",
+      "hash": "2b6087890e54",
       "bytes": 10264
     },
     {
@@ -16081,7 +16071,7 @@
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "c46cb67d413e",
+      "hash": "732d0646c356",
       "bytes": 19854
     },
     {

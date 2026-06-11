@@ -147,7 +147,7 @@ export default function MemorySetupGuidePage() {
             </p>
           </div>
           <Link
-            to="/memory/admin"
+            to="/admin/memory"
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border/50 bg-card/40 px-3 py-1.5 text-xs text-body transition-colors hover:border-primary/40 hover:text-primary"
           >
             <ArrowLeft className="h-3 w-3" />

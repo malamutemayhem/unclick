@@ -122,6 +122,15 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 12):** memory setup flow audit + dead admin chain.
+  - MemorySetup audited: already a clean 3-step wizard, no simplification
+    needed. MemoryConnect audited: distinct job (Claude Code one-command
+    wiring), not overlap. Stale `/memory/admin` links in MemorySetup and
+    MemorySetupGuide now point straight at `/admin/memory`.
+  - Deleted a 700-line dead-code chain with zero importers: the unrouted
+    `src/pages/AdminSettings.tsx` (526 lines) plus both stray
+    `src/components/AdminShell.tsx` and `src/components/admin/AdminShell.tsx`
+    (the live shell is `src/pages/admin/AdminShell.tsx`).
 - **2026-06-11 (round 11):** Seats API deduped onto keychainHelpers.
   - AdminSeatsApi carried byte-identical copies of credentialHealth, the
     day-math helpers, thresholds, and a divergent star-mask maskValue. All
