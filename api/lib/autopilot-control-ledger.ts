@@ -77,6 +77,12 @@ export interface AutopilotZeroTouchMetrics {
   human_touch_count: number;
   automation_event_count: number;
   touch_reason_counts: Record<string, number>;
+  // Honesty self-disclosure: a 100% zero-touch score is only as strong as the
+  // instrumentation behind it. These fields let consumers tell "no human
+  // touches happened" apart from "no human touches could have been recorded".
+  touch_instrumentation_observed: boolean;
+  single_event_refs: number;
+  caveat: string | null;
   refs: AutopilotZeroTouchRefMetric[];
 }
 
@@ -344,6 +350,16 @@ export function createAutopilotZeroTouchMetrics(
     String(right.last_event_at ?? "").localeCompare(String(left.last_event_at ?? "")),
   );
 
+  const singleEventRefs = refMetrics.filter((metric) => metric.event_count === 1).length;
+  const touchInstrumentationObserved = humanTouchCount > 0;
+  let caveat: string | null = null;
+  if (refMetrics.length > 0 && !touchInstrumentationObserved) {
+    caveat =
+      singleEventRefs === refMetrics.length
+        ? "No human-touch events appear in this window and every ref has exactly one recorded event. The zero-touch rate reflects recorded events only; it cannot prove no human was involved."
+        : "No human-touch events appear in this window. The zero-touch rate reflects recorded events only; it cannot prove no human was involved.";
+  }
+
   return {
     total_refs: refMetrics.length,
     zero_touch_refs: refMetrics.filter((metric) => metric.zero_touch).length,
@@ -351,6 +367,9 @@ export function createAutopilotZeroTouchMetrics(
     human_touch_count: humanTouchCount,
     automation_event_count: automationEventCount,
     touch_reason_counts: touchReasonCounts,
+    touch_instrumentation_observed: touchInstrumentationObserved,
+    single_event_refs: singleEventRefs,
+    caveat,
     refs: refMetrics,
   };
 }

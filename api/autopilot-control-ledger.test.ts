@@ -393,13 +393,45 @@ describe("autopilot control ledger helpers", () => {
       human_touched_refs: 0,
       human_touch_count: 0,
       automation_event_count: 2,
+      touch_instrumentation_observed: false,
+      single_event_refs: 0,
     });
+    expect(metrics.caveat).toMatch(/cannot prove no human was involved/);
     expect(metrics.refs[0]).toMatchObject({
       ref_kind: "todo",
       ref_id: "todo-123",
       zero_touch: true,
       human_touch_count: 0,
     });
+  });
+
+  it("flags vacuous zero-touch windows where every ref has a single recorded event", () => {
+    const metrics = createAutopilotZeroTouchMetrics([
+      {
+        event_type: "proof_result",
+        actor_agent_id: "runner-a",
+        ref_kind: "run",
+        ref_id: "run-1",
+        payload: null,
+        created_at: "2026-06-10T00:00:00.000Z",
+      },
+      {
+        event_type: "proof_result",
+        actor_agent_id: "runner-b",
+        ref_kind: "run",
+        ref_id: "run-2",
+        payload: null,
+        created_at: "2026-06-10T00:01:00.000Z",
+      },
+    ]);
+
+    expect(metrics).toMatchObject({
+      total_refs: 2,
+      zero_touch_refs: 2,
+      touch_instrumentation_observed: false,
+      single_event_refs: 2,
+    });
+    expect(metrics.caveat).toMatch(/exactly one recorded event/);
   });
 
   it("counts operator chat and human actors as human touches", () => {
@@ -441,5 +473,7 @@ describe("autopilot control ledger helpers", () => {
       "trigger_source:operator_chat": 1,
       human_actor: 1,
     });
+    expect(metrics.touch_instrumentation_observed).toBe(true);
+    expect(metrics.caveat).toBeNull();
   });
 });

@@ -75,6 +75,7 @@ function proofTarget(result: DogfoodPassResult): string | null {
 
 export default function DogfoodReportPage() {
   const [report, setReport] = useState<DogfoodReportData>(fallbackReport);
+  const [reportSource, setReportSource] = useState<"pending" | "live" | "fallback">("pending");
 
   useCanonical("/dogfood");
   useMetaTags({
@@ -87,9 +88,18 @@ export default function DogfoodReportPage() {
 
   useEffect(() => {
     fetch("/dogfood/latest.json", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : fallbackReport))
-      .then((data: DogfoodReportData) => setReport(data))
-      .catch(() => setReport(fallbackReport));
+      .then((res) => {
+        if (!res.ok) throw new Error(`latest.json ${res.status}`);
+        return res.json();
+      })
+      .then((data: DogfoodReportData) => {
+        setReport(data);
+        setReportSource("live");
+      })
+      .catch(() => {
+        setReport(fallbackReport);
+        setReportSource("fallback");
+      });
   }, []);
 
   const counts = useMemo(() => ({
@@ -114,6 +124,14 @@ export default function DogfoodReportPage() {
               Public dogfood receipt
             </div>
           </FadeIn>
+
+          {reportSource === "fallback" && (
+            <FadeIn>
+              <p className="mt-4 inline-flex rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-500">
+                Showing a cached report generated {new Date(report.generatedAt).toLocaleDateString()}. The live receipt could not be loaded.
+              </p>
+            </FadeIn>
+          )}
 
           <FadeIn delay={0.05}>
             <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-end">

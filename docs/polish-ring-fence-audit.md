@@ -122,6 +122,57 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (beta-neutral + live-state truth session, PR #1453):**
+  hands-dirty pass driven by live UnClick state plus parallel reviewer
+  agents (new-user hat, skeptical-engineer hat) and a Boardroom/ledger
+  digest.
+  - Beta decision executed: the public site says nothing about pricing,
+    "free", or subscriptions. /pricing deleted (URL redirects home),
+    FAQ reframed to "How do I get access?" across component, prerender,
+    index.html JSON-LD and static HTML, llms.txt. Fabricated Passport
+    Free/$19/Enterprise tier table removed. Docs rate limits no longer
+    claim Free/Pro/Team tiers (nothing in api/ enforces per-plan
+    limits). Admin StorageBar's invented 500-fact cap and Upgrade to
+    Pro upsell removed. Terms reworded. Round 3 caught the stragglers
+    round 1 missed: FinalCTA, HowItWorks, ApiKeySignup, Scheduling and
+    Link-in-Bio CTAs, plus deleting two dead components that still
+    carried the old story (components/Pricing.tsx "Start free",
+    components/Stats.tsx with the retired 2.4M+/38ms/99.98% numbers).
+  - Count truth: /why no longer claims "900+ tools / 200+ apps"
+    (figures with no source of truth); it renders SITE_STATS like the
+    rest of the site. Measured reality recorded for the operator
+    decision: 671 connector files and 1,593 catalog tools vs the May 1
+    SITE_STATS 178/450.
+  - Live-state truth bugs found by dogfooding check_signals and the
+    zero-touch ledger:
+    1. Memory signals could emit action "fact_not_saved" with summary
+       "Fact saved: ..." when a write routed to episodic memory. Fixed:
+       classifyFactWriteSignal keeps action and summary in agreement
+       (fact_saved / fact_routed_to_episode / fact_routed_to_event /
+       fact_rejected), with 5 focused tests.
+    2. The AutoPilot zero-touch score read 250/250 zero-touch with
+       every ref carrying exactly one automation event and zero human
+       touches ever recorded: true by construction, not by evidence.
+       The metrics now self-disclose: touch_instrumentation_observed,
+       single_event_refs, a caveat when the window cannot prove the
+       claim, and window_truncated on the endpoint when the scan cap
+       was hit.
+  - DogfoodReport (/dogfood) no longer silently presents the cached
+    May 28 fallback as current: a visible notice names the cached
+    report date when /dogfood/latest.json cannot be loaded.
+  - Crews Council reality check: the only run ever attempted (run
+    3a23c50f) failed with SAMPLING_NOT_SUPPORTED, and the same failure
+    applies to every fleet seat today (Claude Code, Codex, web seats
+    are not sampling-capable MCP clients). The flagship deliberation
+    feature is unreachable from the environments where work happens;
+    queued as a product gap (server-side advisor execution, natural fit
+    for the AutoPilot Runner lane in PR #1452). Also noted: the hidden
+    meta-tools (unclick_search/call) are unreachable from schema-strict
+    MCP clients that cannot call unlisted tools.
+  - No-stomp honored: an AdminOrchestrator copy nit ("for free") was
+    found and deliberately NOT fixed here because PRs #1345/#1434 own
+    that file; left for that lane.
+
 - **2026-06-11 (round 21 + phase-6 sweep):** remaining public pages and
   the full-stack test pass.
   - FAQ page no longer advertises the hidden Arena in its meta

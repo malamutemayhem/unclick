@@ -16055,8 +16055,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "8608d2a82e46",
-      "bytes": 16679
+      "hash": "3ab3e3ba08ad",
+      "bytes": 17345
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -16085,8 +16085,8 @@
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "a64def7930d5",
-      "bytes": 20088
+      "hash": "913b402ef12b",
+      "bytes": 20113
     },
     {
       "source": "src/pages/Memory.tsx",
@@ -16125,13 +16125,13 @@
     },
     {
       "source": "src/pages/tools/LinkInBio.tsx",
-      "hash": "4f20852d63d4",
-      "bytes": 7831
+      "hash": "03af849d685c",
+      "bytes": 7826
     },
     {
       "source": "src/pages/tools/Scheduling.tsx",
-      "hash": "3e54b020fe15",
-      "bytes": 9647
+      "hash": "734393657338",
+      "bytes": 9642
     },
     {
       "source": "src/pages/tools/Solve.tsx",

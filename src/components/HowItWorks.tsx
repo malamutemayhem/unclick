@@ -5,17 +5,17 @@ const steps = [
   {
     number: "01",
     title: "Your agent already knows",
-    desc: "One key unlocks the full library. Your agent sees what's available and picks the right tool automatically -- no manual wiring, no tool selection menus. Ask it to book a meeting and it reaches for Schedule. Ask for a link page and it uses Links.",
+    desc: "One key opens the full library. Your agent sees what's available and picks the right tool automatically -- no manual wiring, no tool selection menus. Ask it to book a meeting and it reaches for Schedule. Ask for a link page and it uses Links.",
   },
   {
     number: "02",
-    title: "Sign up free",
-    desc: "Just your email. No credit card, no setup wizard, no 14-day trial. You'll get an API key that covers all live tools immediately.",
+    title: "Sign up",
+    desc: "Just your email. No setup wizard, no waiting. You'll get an API key that covers all live tools immediately.",
   },
   {
     number: "03",
     title: "Your AI gets to work",
-    desc: "Point your agent at the UnClick API. It calls endpoints directly and gets clean JSON responses. The whole thing takes under 100ms. No browser. No clicking.",
+    desc: "Point your agent at the UnClick API. It calls your tools directly and gets back clean, structured answers. No browser. No clicking.",
   },
 ];
 

@@ -9309,6 +9309,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }>;
         return res.status(200).json({
           events_scanned: rows.length,
+          // When the scan fills the limit, older history was cut off and the
+          // score only covers the newest page of events.
+          window_truncated: rows.length === limit,
           metrics: createAutopilotZeroTouchMetrics(rows),
         });
       }

@@ -135,13 +135,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
 | src/pages/Dispatch.tsx | 047ef00fef21 | 15432 |
 | src/pages/Docs.tsx | 8de0bf490b3b | 18579 |
-| src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
+| src/pages/DogfoodReport.tsx | 3ab3e3ba08ad | 17345 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 21a0ef6af00d | 62621 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
+| src/pages/MemorySetup.tsx | 913b402ef12b | 20113 |
 | src/pages/Memory.tsx | 9b3287148c55 | 19196 |
 | src/pages/NewToAI.tsx | c37c9a0c88dd | 13073 |
 | src/pages/Organiser.tsx | 37617bcb1aee | 16550 |
@@ -149,8 +149,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 1d7898e16b70 | 20719 |
 | src/pages/Terms.tsx | 21dead1e8fab | 9334 |
-| src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
-| src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
+| src/pages/tools/LinkInBio.tsx | 03af849d685c | 7826 |
+| src/pages/tools/Scheduling.tsx | 734393657338 | 9642 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
