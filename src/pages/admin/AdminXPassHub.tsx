@@ -309,7 +309,7 @@ function ProductCard({ product }: { product: XPassProduct }) {
       className="min-h-[132px] rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
     >
       <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30">
+        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.06]">
           <Icon className="h-4 w-4 text-[#61C1C4]" />
         </span>
         <div className="min-w-0">
@@ -349,7 +349,7 @@ function LatestEvidencePanel({ product, evidence }: { product: XPassProduct; evi
         {evidence.summary}
       </p>
       {evidence.evidence ? (
-        <p className="mt-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1.5 text-[11px] leading-4 text-white/55">
+        <p className="mt-2 rounded border border-white/[0.07] bg-white/[0.03] px-2 py-1.5 text-[11px] leading-4 text-white/55">
           Evidence: {evidence.evidence}
         </p>
       ) : null}
@@ -494,7 +494,7 @@ function RecordedRunsPanel({ productId }: { productId: XPassProductId }) {
         <div className="mt-2 space-y-1">
           {rows.map((row) => {
             const rowClass =
-              "grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1 text-left";
+              "grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-left";
             const content = (
               <>
                 <p className="truncate text-[10px] font-semibold text-white/55">{row.date}</p>
@@ -546,7 +546,7 @@ function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
           <div
             key={`${group.title}-${row.title}`}
             data-testid="xpass-check-row"
-            className="grid min-h-7 grid-cols-[minmax(96px,132px)_minmax(0,1fr)_68px] gap-2 border-b border-white/[0.06] bg-black/20 px-2 py-1 last:border-b-0 md:grid-cols-[28px_minmax(150px,220px)_minmax(0,1fr)_78px] md:items-center"
+            className="grid min-h-7 grid-cols-[minmax(96px,132px)_minmax(0,1fr)_68px] gap-2 border-b border-white/[0.06] bg-white/[0.03] px-2 py-1 last:border-b-0 md:grid-cols-[28px_minmax(150px,220px)_minmax(0,1fr)_78px] md:items-center"
           >
             <p className="hidden text-[11px] font-semibold text-white/35 md:block">{index + 1}</p>
             <p className="truncate text-xs font-semibold text-white">{row.title}</p>
@@ -566,7 +566,7 @@ function XPassHome() {
     <div className="space-y-8">
       <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06]">
             <LayoutGrid className="h-5 w-5 text-[#61C1C4]" />
           </span>
           <div className="min-w-0">
@@ -613,7 +613,7 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06]">
             <Icon className="h-5 w-5 text-[#61C1C4]" />
           </span>
           <div className="min-w-0">
@@ -621,14 +621,14 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
             <p className="mt-1 text-sm font-semibold text-white/70">{product.subtitle}</p>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/60">{product.description}</p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/55">
-              <span className="inline-flex min-h-7 items-center gap-1.5 rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+              <span className="inline-flex min-h-7 items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5">
                 <ListChecks className="h-3.5 w-3.5 text-[#61C1C4]" />
                 {checkCount} checklist rows
               </span>
-              <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+              <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5">
                 {groupCount} groups
               </span>
-              <span className="inline-flex min-h-7 max-w-full items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5 leading-4">
+              <span className="inline-flex min-h-7 max-w-full items-center rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 leading-4">
                 Green only when every relevant row is PASS or N/A
               </span>
             </div>

@@ -606,7 +606,7 @@ function CredentialCard({
           <p className="text-[11px] text-[#555]">Expected fields</p>
           <div className="mt-1 flex flex-wrap gap-1">
             {fields.map((field) => (
-              <span key={`${credential.id}-${field.name}`} className="rounded border border-white/[0.05] bg-black/20 px-1.5 py-0.5 font-mono text-[10px] text-[#aaa]">
+              <span key={`${credential.id}-${field.name}`} className="rounded border border-white/[0.05] bg-white/[0.03] px-1.5 py-0.5 font-mono text-[10px] text-[#aaa]">
                 {field.label || field.name}{field.secret ? " - secret" : ""}
               </span>
             ))}
@@ -646,7 +646,7 @@ function CredentialCard({
       )}
 
       {revealed && (
-        <div className="mt-3 space-y-1.5 rounded-lg border border-white/[0.04] bg-black/30 p-3">
+        <div className="mt-3 space-y-1.5 rounded-lg border border-white/[0.04] bg-white/[0.03] p-3">
           {Object.entries(revealed).map(([field, value]) => {
             const copyKey = `${credential.id}:${field}`;
             return (
@@ -794,7 +794,7 @@ function AddProviderModal({
           <select
             value={providerSlug}
             onChange={(event) => setProviderSlug(event.target.value)}
-            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white focus:border-[#E2B93B]/40 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-[#E2B93B]/40 focus:outline-none"
           >
             {AI_PROVIDER_CATALOG.map((item) => (
               <option key={item.slug} value={item.slug}>{item.name}</option>
@@ -812,7 +812,7 @@ function AddProviderModal({
             value={label}
             onChange={(event) => setLabel(event.target.value)}
             placeholder="default"
-            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
           />
         </label>
 
@@ -823,7 +823,7 @@ function AddProviderModal({
             onChange={(event) => setSecret(event.target.value)}
             type="password"
             placeholder={provider.placeholder}
-            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
           />
         </label>
 
@@ -912,7 +912,7 @@ function RotateCredentialModal({
         onChange={(event) => setSecret(event.target.value)}
         type="password"
         placeholder="New API key"
-        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+        className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
         autoFocus
       />
       {error && <p className="mt-2 text-[11px] text-red-400">{error}</p>}

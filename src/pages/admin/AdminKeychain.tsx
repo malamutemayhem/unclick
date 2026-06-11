@@ -803,7 +803,7 @@ export default function AdminKeychain() {
                 <button
                   key={cred.id}
                   onClick={() => setRotateTarget(cred)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2 text-left"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-left"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-xs font-medium text-white">{cred.connector?.name ?? cred.platform}</span>
@@ -978,7 +978,7 @@ export default function AdminKeychain() {
                             <p className="text-[#555]">Expected fields</p>
                             <div className="mt-1 flex flex-wrap gap-1">
                               {fields.map((field) => (
-                                <span key={`${field.name}-${field.label}`} className="rounded border border-white/[0.05] bg-black/20 px-1.5 py-0.5 font-mono text-[10px] text-[#aaa]">
+                                <span key={`${field.name}-${field.label}`} className="rounded border border-white/[0.05] bg-white/[0.03] px-1.5 py-0.5 font-mono text-[10px] text-[#aaa]">
                                   {field.label || field.name}{field.secret ? " · secret" : ""}
                                 </span>
                               ))}
@@ -1012,7 +1012,7 @@ export default function AdminKeychain() {
                       )}
 
                       {isOpen && plaintext && (
-                        <div className="mt-3 space-y-1.5 rounded-lg border border-white/[0.04] bg-black/30 p-3">
+                        <div className="mt-3 space-y-1.5 rounded-lg border border-white/[0.04] bg-white/[0.03] p-3">
                           {Object.entries(plaintext).map(([field, value]) => {
                             const key = `${cred.id}::${field}`;
                             return (
@@ -1062,7 +1062,7 @@ export default function AdminKeychain() {
         </p>
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           {(Object.keys(inventoryByProvider) as SystemCredentialProvider[]).map((provider) => (
-            <div key={provider} className="rounded-lg border border-white/[0.05] bg-black/20">
+            <div key={provider} className="rounded-lg border border-white/[0.05] bg-white/[0.03]">
               <div className="flex items-center justify-between border-b border-white/[0.05] px-3 py-2">
                 <p className="text-xs font-semibold text-white">{PROVIDER_LABELS[provider]}</p>
                 <p className="text-[10px] text-[#666]">{inventoryByProvider[provider].length} names</p>
@@ -1169,7 +1169,7 @@ export default function AdminKeychain() {
                   onChange={(e) => setExportPassword(e.target.value)}
                   minLength={12}
                   placeholder="Min 12 characters"
-                  className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
                   autoFocus
                 />
                 {pw.length > 0 && (
@@ -1196,7 +1196,7 @@ export default function AdminKeychain() {
                   value={exportConfirm}
                   onChange={(e) => setExportConfirm(e.target.value)}
                   placeholder="Re-enter password"
-                  className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
                 />
               </div>
             </div>
@@ -1270,7 +1270,7 @@ export default function AdminKeychain() {
                       placeholder="Search services..."
                       value={platformSearch}
                       onChange={(e) => setPlatformSearch(e.target.value)}
-                      className="w-full rounded-md border border-white/[0.08] bg-black/30 py-2 pl-8 pr-3 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+                      className="w-full rounded-md border border-white/[0.08] bg-white/[0.03] py-2 pl-8 pr-3 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1327,7 +1327,7 @@ export default function AdminKeychain() {
                         key={slug}
                         to={`/connect/${slug}`}
                         onClick={() => { setStarterOpen(false); resetAddModal(); }}
-                        className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2.5 transition-colors hover:border-[#E2B93B]/30 hover:bg-[#E2B93B]/5"
+                        className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5 transition-colors hover:border-[#E2B93B]/30 hover:bg-[#E2B93B]/5"
                       >
                         <div>
                           <p className="text-xs font-medium text-white">{name}</p>
@@ -1369,7 +1369,7 @@ export default function AdminKeychain() {
                       placeholder="e.g. GitHub, My Custom API"
                       value={manualPlatform}
                       onChange={(e) => setManualPlatform(e.target.value)}
-                      className="w-full rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+                      className="w-full rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -1379,7 +1379,7 @@ export default function AdminKeychain() {
                       placeholder="e.g. personal, work"
                       value={manualLabel}
                       onChange={(e) => setManualLabel(e.target.value)}
-                      className="w-full rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+                      className="w-full rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -1400,14 +1400,14 @@ export default function AdminKeychain() {
                             placeholder="key"
                             value={pair.key}
                             onChange={(e) => setManualKV((prev) => prev.map((p, i) => i === idx ? { ...p, key: e.target.value } : p))}
-                            className="w-2/5 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+                            className="w-2/5 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 font-mono text-[11px] text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
                           />
                           <input
                             type="password"
                             placeholder="value"
                             value={pair.value}
                             onChange={(e) => setManualKV((prev) => prev.map((p, i) => i === idx ? { ...p, value: e.target.value } : p))}
-                            className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+                            className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 font-mono text-[11px] text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
                           />
                           {manualKV.length > 1 && (
                             <button
@@ -1516,7 +1516,7 @@ function EditLabelModal({
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         placeholder="default"
-        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+        className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
         autoFocus
       />
       {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
@@ -1607,7 +1607,7 @@ function RotateValuesModal({
                 setPairs((current) => current.map((p, i) => (i === index ? { ...p, key: e.target.value } : p)))
               }
               placeholder="field name (e.g. api_key)"
-              className={`w-2/5 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none ${pair.locked ? "opacity-70" : ""}`}
+              className={`w-2/5 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none ${pair.locked ? "opacity-70" : ""}`}
             />
             <input
               type={pair.secret ? "password" : "text"}
@@ -1617,7 +1617,7 @@ function RotateValuesModal({
               }
               placeholder="new value"
               autoFocus={index === 0}
-              className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
+              className="min-w-0 flex-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 font-mono text-[11px] text-white placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
             />
           </div>
         ))}
