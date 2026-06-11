@@ -122,6 +122,30 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (navy glass sweep, PR #1453 rounds glass 1-5):**
+  operator-reported visual bug (the Orchestrator Context card still on
+  an opaque dark slab) turned into a systematic sweep of every admin
+  surface for the old dark-background patterns.
+  - Standard applied repo-wide: top-level panels bg-white/[0.02] with
+    hairline border and backdrop-blur-sm; inner tiles, rows, and inputs
+    bg-white/[0.03]; small control accents bg-white/[0.06].
+  - 125+ instances converted across 30 admin files, including
+    AdminOrchestrator (PR #1345's proven styling carried in with
+    credit; that lane had been stale and dirty since June 8 and the
+    operator requested the fix directly), Jobsmith, Express Build,
+    Keychain, XPass hub, You, Seats API, Control Tower (six opaque hex
+    slabs), TestPass surfaces, Boardroom, Ideas, Comments, CopyPass
+    catalog, heartbeat, brainmap pages, benchmarks, the Orchestrator
+    log, PinballWake's banner band, and the connect modal input.
+  - Deliberate dark stays where the role demands it: modal backdrops
+    and opaque modal bodies, code/output pre blocks (Jobsmith packet
+    views, Express Build brief preview, CodeTab code, seat config
+    preview), terminal mockups on public pages, AdminShell's
+    translucent navy chrome, and the Vanta canvas.
+  - Recommend closing PRs #1345/#1434 as superseded once #1453 merges
+    (#1434 also carries an AdminShell ContextPass link that needs its
+    own check before any cherry-pick).
+
 - **2026-06-11 (Council quality: 180 skill seeds + auto-convene
   mechanics, PR #1453 round 6):** dogfooding the live database showed
   every one of the 180 system crew agents had seed_prompt = NULL, so

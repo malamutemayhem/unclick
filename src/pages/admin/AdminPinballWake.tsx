@@ -413,7 +413,7 @@ export default function AdminPinballWake() {
         </div>
       </section>
 
-      <section className="mb-6 border-y border-[#61C1C4]/20 bg-[#061314] py-4">
+      <section className="mb-6 border-y border-[#61C1C4]/20 bg-white/[0.02] py-4 backdrop-blur-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex items-center gap-2">

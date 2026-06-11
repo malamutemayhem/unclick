@@ -108,7 +108,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | b4191d7021ae | 12951 |
 | src/pages/admin/AdminOrchestrator.tsx | c6a81f3b0ea0 | 94921 |
-| src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
+| src/pages/admin/AdminPinballWake.tsx | 2e5a90616e0e | 21886 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
 | src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
