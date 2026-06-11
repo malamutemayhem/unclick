@@ -2,7 +2,7 @@
   "name": "@unclick/mcp-server",
   "version": "0.3.110",
   "mcpName": "io.github.malamutemayhem/unclick",
-  "description": "MCP server for the UnClick tool marketplace - lets AI agents discover and use every UnClick tool",
+  "description": "One MCP install that gives AI agents 450+ callable endpoints across 60+ integrations plus persistent cross-session memory. Works with Claude, ChatGPT, Cursor, and any MCP-compatible client.",
   "type": "module",
   "bin": {
     "unclick-mcp": "./dist/index.js"
@@ -61,15 +61,29 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "unclick",
     "ai",
+    "ai-agents",
+    "agent-tools",
+    "ai-memory",
+    "persistent-memory",
+    "claude",
+    "chatgpt",
+    "cursor",
+    "llm",
+    "integrations",
     "tools",
     "utilities"
   ],
   "license": "MIT",
+  "homepage": "https://unclick.world",
   "repository": {
     "type": "git",
     "url": "https://github.com/malamutemayhem/unclick"
+  },
+  "bugs": {
+    "url": "https://github.com/malamutemayhem/unclick/issues"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "package": "@unclick/mcp-server",
+  "repo": "malamutemayhem/unclick",
+  "updated_at": "2026-06-11T11:48:12.245Z",
+  "snapshots": [
+    {
+      "date": "2026-06-11",
+      "npm_version": "0.3.99",
+      "npm_downloads_last_30d": 8900,
+      "github_stars": 4,
+      "github_forks": null,
+      "github_watchers": null,
+      "github_open_issues": null,
+      "notes": [
+        "npm_version fetched live from registry.npmjs.org",
+        "npm_downloads_last_30d is approximate (reported as ~8.9k in 2026-06-11 web research); api.npmjs.org returned HTTP 403 from the seeding environment",
+        "github_stars recorded manually from 2026-06-11 web research; api.github.com returned HTTP 403 from the seeding environment",
+        "future rows: run node scripts/visibility-snapshot.mjs from an environment with open egress for fully API-sourced numbers"
+      ]
+    }
+  ]
+}
