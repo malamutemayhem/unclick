@@ -14,7 +14,7 @@ const DATA: Record<MediaConvType, {
   fiber_to_fiber_mode: { throughput: 8, portCount: 3, reliability: 8, manageability: 3, convCost: 5, managed: false, forIndustrial: false, conversionType: "sm_mm_wavelength", bestUse: "multimode_singlemode_join" },
   poe_media_converter: { throughput: 7, portCount: 4, reliability: 7, manageability: 2, convCost: 5, managed: false, forIndustrial: false, conversionType: "fiber_poe_inject", bestUse: "remote_camera_poe_feed" },
   managed_snmp_conv: { throughput: 8, portCount: 6, reliability: 9, manageability: 10, convCost: 8, managed: true, forIndustrial: false, conversionType: "chassis_managed_slot", bestUse: "enterprise_managed_fleet" },
-  industrial_din_conv: { throughput: 7, portCount: 4, reliability: 10, durability: 10, manageability: 5, convCost: 9, managed: false, forIndustrial: true, conversionType: "hardened_din_fiber", bestUse: "factory_harsh_env_link" },
+  industrial_din_conv: { throughput: 7, portCount: 4, reliability: 10, manageability: 5, convCost: 9, managed: false, forIndustrial: true, conversionType: "hardened_din_fiber", bestUse: "factory_harsh_env_link" },
 };
 
 const get = (t: MediaConvType) => DATA[t];
