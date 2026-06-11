@@ -122,6 +122,14 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 11):** Seats API deduped onto keychainHelpers.
+  - AdminSeatsApi carried byte-identical copies of credentialHealth, the
+    day-math helpers, thresholds, and a divergent star-mask maskValue. All
+    now import from the tested keychainHelpers module; masked keys render
+    identically on Passport and Seats.
+  - Remaining unblocked-from-here work: judgment-level page simplification
+    (Connect, MemorySetup) is ask-once territory; UIPass screenshots need a
+    browser; Memory backend gaps sit in Builder A's assigned lane.
 - **2026-06-11 (round 10):** phase-5 mechanical sweep is green.
   - Repo-wide public-surface sweep found zero em dashes, zero retired names
     (Fishbowl/QualityPass/EnterprisePass/ApplyPass), and zero OS framing in
