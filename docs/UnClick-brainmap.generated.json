@@ -15771,8 +15771,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "40818d25dd16",
-      "bytes": 39038
+      "hash": "9356d99ba1e3",
+      "bytes": 37675
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",

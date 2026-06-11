@@ -19,14 +19,14 @@ export interface CredentialHealthInput {
   expires_at: string | null;
 }
 
-export function daysSince(iso: string | null): number | null {
+export function daysSince(iso: string | null | undefined): number | null {
   if (!iso) return null;
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return null;
   return Math.floor((Date.now() - t) / 86_400_000);
 }
 
-export function daysUntil(iso: string | null): number | null {
+export function daysUntil(iso: string | null | undefined): number | null {
   if (!iso) return null;
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return null;
