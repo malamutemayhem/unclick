@@ -2166,6 +2166,98 @@ export const CATALOG: ToolDef[] = [
         },
       },
       {
+        id: "memory.save_playbook",
+        name: "Save Playbook",
+        description: "Save Playbook - Distill a repeated multi-step tool workflow into a reusable, versioned Playbook. New playbooks start as draft; they become trusted after 3 successful recorded runs plus a PASS verification receipt.",
+        method: "POST",
+        path: "/v1/memory/playbooks/save",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Short label, e.g. 'Weekly revenue summary to Slack'" },
+            goal: { type: "string", description: "One sentence on what this playbook achieves" },
+            trigger: { type: "string", description: "When to reach for this playbook" },
+            steps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  tool: { type: "string" },
+                  action: { type: "string" },
+                  params_hint: { type: "string" },
+                  expect: { type: "string" },
+                },
+                required: ["tool"],
+              },
+            },
+            preconditions: { type: "array", items: { type: "string" } },
+            tags: { type: "array", items: { type: "string" } },
+            verification: {
+              type: "object",
+              properties: {
+                pass: { type: "string" },
+                receipt_id: { type: "string" },
+                verdict: { type: "string" },
+              },
+              required: ["receipt_id"],
+            },
+            agent_id: { type: "string" },
+            session_id: { type: "string" },
+          },
+          required: ["name", "goal", "steps"],
+        },
+      },
+      {
+        id: "memory.list_playbooks",
+        name: "List Playbooks",
+        description: "List Playbooks - List saved workflow playbooks with name, status (draft or trusted), and version.",
+        method: "POST",
+        path: "/v1/memory/playbooks/list",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            status: { type: "string", enum: ["draft", "trusted"] },
+          },
+        },
+      },
+      {
+        id: "memory.get_playbook",
+        name: "Get Playbook",
+        description: "Get Playbook - Fetch a playbook's full steps, stats, verification receipts, and trust status by slug or name.",
+        method: "POST",
+        path: "/v1/memory/playbooks/get",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string" },
+            name: { type: "string" },
+          },
+        },
+      },
+      {
+        id: "memory.record_playbook_run",
+        name: "Record Playbook Run",
+        description: "Record Playbook Run - Log a playbook execution outcome. Success/failure stats drive promotion to trusted (3 successes + a PASS receipt) and demotion back to draft.",
+        method: "POST",
+        path: "/v1/memory/playbooks/record-run",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string" },
+            name: { type: "string" },
+            outcome: { type: "string", enum: ["success", "failure"] },
+            receipt_id: { type: "string" },
+            pass: { type: "string" },
+            verdict: { type: "string" },
+          },
+          required: ["outcome"],
+        },
+      },
+      {
         id: "memory.refresh_taxonomy_snapshots",
         name: "Refresh Memory Taxonomy Snapshots",
         description: "Refresh Memory Taxonomy Snapshots - Build source-linked Memory Library taxonomy snapshots from active facts and sessions. Defaults to dry-run; pass dry_run=false to write snapshots.",

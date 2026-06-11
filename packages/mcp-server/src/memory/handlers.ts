@@ -44,6 +44,7 @@ import {
   emitCorrectionConsultMetric,
 } from "./corrections.js";
 import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
+import { savePlaybook, getPlaybook, listPlaybooks, recordPlaybookRun } from "./playbooks.js";
 import type {
   MemoryBackend,
   MemoryPassportBundle,
@@ -954,6 +955,25 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       tags: arr(args.tags),
     });
     return { message: msg };
+  },
+
+  // Playbooks: agent-distilled reusable workflows stored as versioned
+  // library docs (category "playbook"). Trust promotion is receipt-gated;
+  // see playbooks.ts for the promotion and demotion rules.
+  async save_playbook(args) {
+    return savePlaybook(args);
+  },
+
+  async get_playbook(args) {
+    return getPlaybook(args);
+  },
+
+  async list_playbooks(args) {
+    return listPlaybooks(args);
+  },
+
+  async record_playbook_run(args) {
+    return recordPlaybookRun(args);
   },
 
   async refresh_taxonomy_snapshots(args) {
