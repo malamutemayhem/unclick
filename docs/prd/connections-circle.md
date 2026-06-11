@@ -2,7 +2,21 @@
 
 Status: greenlit lane (operator, 2026-06-11). UX-first PRD; crypto changes remain operator-approval.
 Owner lane: Connections (admin) + this PRD. Companion: `docs/connectors/connections-hardening-plan.md`.
-Operator seed name: "Friends". Recommended product name: **Circle** (rationale below).
+Name: **Circle** (operator-confirmed 2026-06-11; seed name was "Friends").
+
+## The rename rule (no second Fishbowl)
+
+Operator requirement: the name must be easy to change later. Therefore the brand name never touches contracts. Internal identifiers are neutral and descriptive everywhere a rename would hurt:
+
+| Layer | Identifier style | Example |
+|---|---|---|
+| Database tables | neutral | `account_links`, `link_permissions`, `link_access_audit` |
+| API routes | neutral | `/api/account-links` |
+| MCP tool/action names | neutral | `link_invite`, `link_set_permission`, `link_revoke` |
+| Env vars / storage keys / generated artifacts | neutral | `ACCOUNT_LINKS_*` |
+| UI copy | display label from one module | `productName("circle")` from `src/config/product-names.ts` |
+
+"Circle" exists in exactly one file (`src/config/product-names.ts`, shipped with this PR). Renaming the feature is a one-line change plus a copy review: no migrations, no API breaks, no naming-ratchet program. "Members" is deliberately reserved for a possible future shared-workspace/org container, where membership-of-a-thing is the accurate word; Circle stays the flat peer-link vocabulary.
 
 ## Naming registry (operator-confirmed reservations, 2026-06-11)
 

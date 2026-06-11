@@ -99,7 +99,7 @@ Recommendation: C with A as the default posture. Migration path: on first use af
 ## Decision queue for the operator
 
 1. Vault crypto: confirm Option C (hybrid, server-recoverable by default) or pick A/B. Blocks H1. (G2)
-2. Circle naming: Circle vs Friends vs other. Blocks the first Circle PR's copy only.
+2. ~~Circle naming~~ RESOLVED 2026-06-11: Circle, with the no-second-Fishbowl rename rule (brand name lives only in `src/config/product-names.ts`; all contracts use neutral `account_links`-style identifiers).
 3. Two stores: converge or contract? Account-first migration is the natural moment to converge. (G4)
 4. H2 scoped seat keys: approve the delegation model. (G5, G6)
 5. Extension Phase 2 proof sites: pick the first 2-3 non-OAuth targets. (G7)
