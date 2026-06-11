@@ -4,6 +4,47 @@ Status: greenlit lane (operator, 2026-06-11). UX-first PRD; crypto changes remai
 Owner lane: Connections (admin) + this PRD. Companion: `docs/connectors/connections-hardening-plan.md`.
 Operator seed name: "Friends". Recommended product name: **Circle** (rationale below).
 
+## Naming registry (operator-confirmed reservations, 2026-06-11)
+
+| Term | Reserved for | Never used for |
+|---|---|---|
+| Crews | Hats system, council, agent packs | People-linking |
+| Rooms | Autopilot process stages (planning room, coding room) | Chat or social surfaces |
+| Seats | AI chairs at an account | Humans |
+| You | The human behind the account | - |
+| Circle (pending final call) | Linked human accounts | Agents |
+
+The clarifying rule: **humans have accounts, AIs have seats, and a seat belongs to exactly one human account.** "chris (Claude), james (ChatGPT), sam (DeepSeek local)" is three humans, three accounts, each with their own seats. Attribution everywhere is human-first, seat-second: thumbnail + name, then the AI badge ("Chris - Claude Code"). Audit rows, Boardroom posts, and shared-memory access logs all lead with the face.
+
+On Circle for a work-AND-personal product: "Team" fails at personal, "Friends" fails at work; Circle survives both registers (work circle, family circle). Runner-up: "People" (neutral, unmistakable). The name blocks UI copy only, nothing structural.
+
+## Admin menu structure (proposed)
+
+```
+You                         the anchor; the human IS the account
+  Profile                   NEW: display name + thumbnail, so Circle and audit
+                            rows show a face, not a key hash
+  Keys                      disposable UnClick keys: mint, label, kill; built
+                            for churn (keys are confetti, You is forever)
+  AI Style                  exists today
+
+Connections                 everything the account reaches OUT to
+  Apps                      provider connectors; the three types (OAuth /
+                            API key / local browser session)
+  Circle                    the humans: invite by email, sharing switches,
+                            sharing pill, access audit, panic switch
+  Health                    honest status pills, last-tested, rotation cues;
+                            the RotatePass surface
+
+Seats                       every AI chair at YOUR account
+  (per seat)                scoped key, last active, capability scope; the
+                            H2 scoped-seat-keys work lands here
+
+Crews / Rooms / Boardroom   untouched; reserved vocabulary stands
+```
+
+New requirement captured: **You -> Profile ships display name + human thumbnail** as part of the first Circle PR, because Circle attribution and sharing audit are face-first by design.
+
 ## The one structural decision everything hangs on
 
 **Your account (email) is who you are. UnClick API keys are disposable keycards.**
