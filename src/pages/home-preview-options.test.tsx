@@ -12,6 +12,11 @@ import HomePreviewI from "./HomePreviewI";
 import HomePreviewJ from "./HomePreviewJ";
 import HomePreviewK from "./HomePreviewK";
 import HomePreviewL from "./HomePreviewL";
+import HomePreviewM from "./HomePreviewM";
+import HomePreviewN from "./HomePreviewN";
+import HomePreviewO from "./HomePreviewO";
+import HomePreviewP from "./HomePreviewP";
+import HomePreviewQ from "./HomePreviewQ";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({ session: null }),
@@ -38,6 +43,11 @@ const OPTIONS = [
   { id: "j", Page: HomePreviewJ, signature: /Where AI/ },
   { id: "k", Page: HomePreviewK, signature: /One remote\./ },
   { id: "l", Page: HomePreviewL, signature: /one\s?room\./ },
+  { id: "m", Page: HomePreviewM, signature: /It just works\./ },
+  { id: "n", Page: HomePreviewN, signature: /Done\./ },
+  { id: "o", Page: HomePreviewO, signature: /Flip one/ },
+  { id: "p", Page: HomePreviewP, signature: /new\s?dock\./ },
+  { id: "q", Page: HomePreviewQ, signature: /Every tool\./ },
 ] as const;
 
 function renderPage(Page: React.ComponentType) {

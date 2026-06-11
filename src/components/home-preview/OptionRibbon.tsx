@@ -22,6 +22,11 @@ const OPTIONS = [
   { id: "j", label: "j", to: "/home-preview-j" },
   { id: "k", label: "k", to: "/home-preview-k" },
   { id: "l", label: "l", to: "/home-preview-l" },
+  { id: "m", label: "m", to: "/home-preview-m" },
+  { id: "n", label: "n", to: "/home-preview-n" },
+  { id: "o", label: "o", to: "/home-preview-o" },
+  { id: "p", label: "p", to: "/home-preview-p" },
+  { id: "q", label: "q", to: "/home-preview-q" },
 ] as const;
 
 export type OptionId = (typeof OPTIONS)[number]["id"];

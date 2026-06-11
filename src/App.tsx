@@ -19,6 +19,11 @@ import HomePreviewI from "./pages/HomePreviewI.tsx";
 import HomePreviewJ from "./pages/HomePreviewJ.tsx";
 import HomePreviewK from "./pages/HomePreviewK.tsx";
 import HomePreviewL from "./pages/HomePreviewL.tsx";
+import HomePreviewM from "./pages/HomePreviewM.tsx";
+import HomePreviewN from "./pages/HomePreviewN.tsx";
+import HomePreviewO from "./pages/HomePreviewO.tsx";
+import HomePreviewP from "./pages/HomePreviewP.tsx";
+import HomePreviewQ from "./pages/HomePreviewQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DocsPage from "./pages/Docs.tsx";
 import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
@@ -161,6 +166,11 @@ const App = () => (
           <Route path="/home-preview-j" element={<HomePreviewJ />} />
           <Route path="/home-preview-k" element={<HomePreviewK />} />
           <Route path="/home-preview-l" element={<HomePreviewL />} />
+          <Route path="/home-preview-m" element={<HomePreviewM />} />
+          <Route path="/home-preview-n" element={<HomePreviewN />} />
+          <Route path="/home-preview-o" element={<HomePreviewO />} />
+          <Route path="/home-preview-p" element={<HomePreviewP />} />
+          <Route path="/home-preview-q" element={<HomePreviewQ />} />
           <Route path="/uipass-home-sample" element={<HomepageSample />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />
