@@ -1,6 +1,6 @@
 {
   "name": "UnClick",
-  "description": "Agent rails for tools, memory, connections, crews, and Pass family checks. 450+ callable endpoints across 60+ integrations.",
+  "description": "One MCP install that gives AI agents 450+ callable endpoints across 60+ integrations plus persistent cross-session memory, with XPass verification checks. Works with Claude, ChatGPT, Cursor, and any MCP-compatible client.",
   "url": "https://unclick.world",
   "protocol": "mcp",
   "install": "npx @unclick/mcp-server",
@@ -24,6 +24,7 @@
   ],
   "categories": ["text", "data", "media", "time", "network", "generation", "storage", "platform", "social", "ecommerce", "finance", "developer", "security", "australian", "gaming", "messaging", "productivity", "ai"],
   "contact": "hello@unclick.world",
-  "github": "https://github.com/malamutemayhem/unclick-agent-native-endpoints",
-  "npm": "https://www.npmjs.com/package/@unclick/mcp-server"
+  "github": "https://github.com/malamutemayhem/unclick",
+  "npm": "https://www.npmjs.com/package/@unclick/mcp-server",
+  "llms_txt": "https://unclick.world/llms.txt"
 }
