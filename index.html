@@ -69,14 +69,8 @@
           "name": "UnClick",
           "applicationCategory": "DeveloperApplication",
           "operatingSystem": "Any",
-          "description": "Agent rails with 178+ tool files and 450+ callable endpoints, persistent memory, secure connections, crews, and Pass family QA checks. Works with Claude, ChatGPT, Cursor, and MCP-compatible AI agents.",
+          "description": "Agent rails with __UC_TOOL_COUNT__ callable tools across __UC_APP_COUNT__ apps, persistent memory, secure connections, crews, and Pass family QA checks. Works with Claude, ChatGPT, Cursor, and MCP-compatible AI agents.",
           "url": "https://unclick.world",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "description": "Free - agent tools, memory setup, and Pass family checks available without a credit card"
-          },
           "featureList": [
             "Telegram, Slack, Discord messaging integrations",
             "Reddit, Bluesky, Mastodon social media integrations",
@@ -105,8 +99,8 @@
           "@type": "ItemList",
           "@id": "https://unclick.world/#tools",
           "name": "UnClick Agent Tools",
-          "description": "178+ tool files and 450+ callable endpoints available for AI agents via MCP or REST API",
-          "numberOfItems": 178,
+          "description": "__UC_TOOL_COUNT__ callable tools across __UC_APP_COUNT__ apps available for AI agents via MCP or REST API",
+          "numberOfItems": __UC_TOOL_COUNT_RAW__,
           "itemListElement": [
             { "@type": "ListItem", "position": 1, "name": "URL Shortener", "description": "Shorten URLs with click tracking via POST /v1/shorten" },
             { "@type": "ListItem", "position": 2, "name": "Image Processing", "description": "Resize, convert, and compress images via POST /v1/image" },
@@ -141,7 +135,7 @@
       "name": "UnClick Agent Rails MCP Server",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any (Node.js)",
-      "description": "Agent rails with 450+ callable endpoints, persistent memory, secure connections, crews, and Pass family checks. Install once and discover capabilities dynamically through MCP.",
+      "description": "Agent rails with __UC_TOOL_COUNT__ callable tools, persistent memory, secure connections, crews, and Pass family checks. Install once and discover capabilities dynamically through MCP.",
       "url": "https://unclick.world",
       "downloadUrl": "https://www.npmjs.com/package/@unclick/mcp-server",
       "softwareVersion": "0.2.3",
@@ -176,7 +170,7 @@
           "name": "What is UnClick?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. Instead of building and maintaining integrations yourself, you point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup."
+            "text": "UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. Instead of building and maintaining integrations yourself, you point your AI agent at UnClick and it gets durable context, secure service access, and __UC_TOOL_COUNT__ real-world tools through one setup."
           }
         },
         {
@@ -184,15 +178,15 @@
           "name": "How does UnClick work?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the 178+ available tools with no per-integration setup required."
+            "text": "UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the __UC_TOOL_COUNT__ available tools with no per-integration setup required."
           }
         },
         {
           "@type": "Question",
-          "name": "Is UnClick free?",
+          "name": "How do I get access?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. UnClick has a free tier that gives you access to all 178+ tools with no upfront cost. Sign up with your email to get an API key and start using tools immediately."
+            "text": "UnClick is in beta. Sign up with your email to get an API key and start using all __UC_TOOL_COUNT__ tools immediately."
           }
         },
         {
@@ -216,7 +210,7 @@
           "name": "How is UnClick different from other MCP servers?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup. No infrastructure to run, no access setup to hand-roll, no integrations to maintain."
+            "text": "Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: __UC_TOOL_COUNT__ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup. No infrastructure to run, no access setup to hand-roll, no integrations to maintain."
           }
         }
       ]
@@ -282,14 +276,13 @@
             <p class="uc-boot__lede">
               UnClick gives your AI agent every tool it needs, memory that remembers,
               and built-in proof the work was done right. One install connects Claude,
-              ChatGPT, Cursor, and any MCP-compatible agent to 450+ callable endpoints
-              across 60+ integrations.
+              ChatGPT, Cursor, and any MCP-compatible agent to __UC_TOOL_COUNT__ callable tools
+              across __UC_APP_COUNT__ apps.
             </p>
             <nav class="uc-boot__nav" aria-label="Primary">
               <a href="/tools">Apps</a>
               <a href="/memory">Memory</a>
               <a href="/developers">Developers</a>
-              <a href="/pricing">Pricing</a>
               <a href="/why">Why UnClick</a>
               <a href="/faq">FAQ</a>
               <a href="/docs">Docs</a>
@@ -319,21 +312,20 @@
               UnClick is shared agent rails for tools, memory, connections, crews, and
               Pass family QA checks. Instead of building and maintaining integrations
               yourself, you point your AI agent at UnClick and it gets durable context,
-              secure service access, and 178+ real-world tools through one setup.
+              secure service access, and __UC_TOOL_COUNT__ real-world tools through one setup.
             </p>
             <h3>How does UnClick work?</h3>
             <p>
               UnClick exposes its tools over the Model Context Protocol (MCP), an open
               standard that lets AI agents discover and call external capabilities. You add
               UnClick's MCP endpoint to your agent's config, provide your API key, and your
-              agent can immediately start calling any of the 178+ available tools with no
+              agent can immediately start calling any of the __UC_TOOL_COUNT__ available tools with no
               per-integration setup required.
             </p>
-            <h3>Is UnClick free?</h3>
+            <h3>How do I get access?</h3>
             <p>
-              Yes. UnClick has a free tier that gives you access to all 178+ tools with no
-              upfront cost. Sign up with your email to get an API key and start using tools
-              immediately.
+              UnClick is in beta. Sign up with your email to get an API key and start using
+              all __UC_TOOL_COUNT__ tools immediately.
             </p>
             <h3>What AI agents work with UnClick?</h3>
             <p>
@@ -353,7 +345,7 @@
             <h3>How is UnClick different from other MCP servers?</h3>
             <p>
               Most MCP servers focus on one integration, like one database or one API.
-              UnClick is the shared layer behind your agent: 178+ tools, persistent memory,
+              UnClick is the shared layer behind your agent: __UC_TOOL_COUNT__ tools, persistent memory,
               Passport, crews, and Pass family checks in one managed setup. No infrastructure
               to run, no access setup to hand-roll, no integrations to maintain.
             </p>

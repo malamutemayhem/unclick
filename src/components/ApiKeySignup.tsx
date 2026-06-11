@@ -174,9 +174,9 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
         transition={{ duration: 0.3 }}
         className="rounded-xl border border-border/60 bg-card/30 p-5"
       >
-        <p className="text-sm font-medium text-heading mb-1">Get your free API key</p>
+        <p className="text-sm font-medium text-heading mb-1">Get your API key</p>
         <p className="text-xs text-muted-foreground mb-4">
-          No credit card. No waitlist. Covers all {SITE_STATS.TOOLS_DISPLAY} tools immediately.
+          No waitlist. Covers all {SITE_STATS.TOOLS_DISPLAY} tools immediately.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
           <input

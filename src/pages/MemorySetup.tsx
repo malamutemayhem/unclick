@@ -312,7 +312,7 @@ export default function MemorySetupPage() {
                   Create a project <ExternalLink className="h-3 w-3" />
                 </a>
                 , then copy the secret key called{" "}
-                <span className="font-mono text-xs text-heading">service_role</span> from Settings, then API.
+                <span className="font-mono text-xs text-heading">service_role</span> (the database admin key) from Settings, then API.
               </p>
 
               <div className="mt-6 space-y-5">

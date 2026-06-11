@@ -78,7 +78,7 @@ const COMPARISON = [
   { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", mem0: "No", letta: "No", zep: "No" },
   { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", mem0: "Yes", letta: "No", zep: "No" },
   { feature: "Cross platform", tip: "Works across Claude Code, Cowork, Cursor, and other MCP-compatible clients", unclick: "Yes", mem0: "Yes", letta: "Limited", zep: "Yes" },
-  { feature: "Price", tip: "Starting cost for production use", unclick: "Free", mem0: "$249/mo", letta: "Free self-host", zep: "Pay per credit" },
+  { feature: "Price", tip: "Starting cost for production use", unclick: "In beta", mem0: "$249/mo", letta: "Free self-host", zep: "Pay per credit" },
   { feature: "Lock in", tip: "How hard it is to leave and take your data with you", unclick: "Zero", mem0: "High", letta: "Medium", zep: "Medium" },
 ];
 

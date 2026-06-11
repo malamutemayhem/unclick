@@ -122,6 +122,137 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (navy glass sweep, PR #1453 rounds glass 1-5):**
+  operator-reported visual bug (the Orchestrator Context card still on
+  an opaque dark slab) turned into a systematic sweep of every admin
+  surface for the old dark-background patterns.
+  - Standard applied repo-wide: top-level panels bg-white/[0.02] with
+    hairline border and backdrop-blur-sm; inner tiles, rows, and inputs
+    bg-white/[0.03]; small control accents bg-white/[0.06].
+  - 125+ instances converted across 30 admin files, including
+    AdminOrchestrator (PR #1345's proven styling carried in with
+    credit; that lane had been stale and dirty since June 8 and the
+    operator requested the fix directly), Jobsmith, Express Build,
+    Keychain, XPass hub, You, Seats API, Control Tower (six opaque hex
+    slabs), TestPass surfaces, Boardroom, Ideas, Comments, CopyPass
+    catalog, heartbeat, brainmap pages, benchmarks, the Orchestrator
+    log, PinballWake's banner band, and the connect modal input.
+  - Deliberate dark stays where the role demands it: modal backdrops
+    and opaque modal bodies, code/output pre blocks (Jobsmith packet
+    views, Express Build brief preview, CodeTab code, seat config
+    preview), terminal mockups on public pages, AdminShell's
+    translucent navy chrome, and the Vanta canvas.
+  - Recommend closing PRs #1345/#1434 as superseded once #1453 merges
+    (#1434 also carries an AdminShell ContextPass link that needs its
+    own check before any cherry-pick).
+
+- **2026-06-11 (Council quality: 180 skill seeds + auto-convene
+  mechanics, PR #1453 round 6):** dogfooding the live database showed
+  every one of the 180 system crew agents had seed_prompt = NULL, so
+  any Council run would have briefed each advisor with nothing more
+  than "You are {name}." The hats were empty.
+  - Migration 20260611100000_agent_skill_seed_prompts.sql composes a
+    detailed seed_prompt per agent from its existing hook/description
+    plus an authored skill set (4 to 6 concrete capabilities, stored in
+    subspecialty_tags, previously empty for all 180) and a
+    role-specific "You always challenge: ..." line. Anti yes-man
+    Council rules are baked into every prompt: open by interrogating
+    the operator's framing, disagree openly, never agree just to
+    agree, declare out-of-expertise plainly. Idempotent, system rows
+    only. Coverage locked by src/__tests__/crew-seed-coverage.test.ts
+    (exact roster match against MOCK_AGENTS, skills bounds, rules
+    present).
+  - New list_crews MCP tool closes the discovery gap that made
+    automatic convening impossible (this session previously could not
+    find a crew UUID from the tool surface at all). start_crew_run's
+    description now tells agents to proactively suggest a Council for
+    consequential, contested, or strategic operator questions.
+  - The premise-challenge rule is also enforced at the runner level in
+    both execution paths (sampling system prompts and the agent_guided
+    stage instructions).
+  - Mechanics clarification recorded: roster members are Council
+    advisors (deliberation personas), not autonomous workers; the
+    worker fleet is the separate Boardroom-seat system. tool_tags on
+    agents are display hints today, not tool grants. "Hats as
+    summonable workers" is a future lane.
+  - Boundary honored: a direct apply of the seed migration to the live
+    database was blocked by the permission system as an unauthorized
+    production write and was not retried; the migration ships through
+    the PR and the normal deploy path, or on the operator's explicit
+    go-ahead.
+
+- **2026-06-11 (Crews agent_guided mode, PR #1453 round 4):** Crews
+  Council had never completed a run: it required MCP sampling, which no
+  fleet seat supports (the only run ever attempted failed
+  SAMPLING_NOT_SUPPORTED). Fix keeps the client as the model boundary
+  without sampling: start_crew_run now prepares an agent_guided run and
+  returns a guided_run protocol (advisor system prompts, stage
+  instructions, memory context); the calling agent plays each advisor
+  in its own context and persists the output through the new
+  submit_crew_run tool, which finishes the run via the same
+  finish_crew_run path as sampling mode, so both modes leave identical
+  records. Honest accounting: prompt-side tokens are unknown in this
+  mode and recorded as 0, only persisted output is counted; an
+  abort_reason path fails the run honestly instead of leaving it
+  running. Server accepts execution_mode "agent_guided" (status
+  running, prepared_for_agent_guided artifact); sampling-capable
+  clients are unchanged, and clients on older tool builds still get the
+  honest 409. Live-run caveat: this seat cannot end-to-end a real
+  Council until the change deploys (live MCP server and API still run
+  the old code), so the receipts are the 4-test protocol simulation in
+  crews-tool.test.ts plus full package and root suites.
+
+- **2026-06-11 (beta-neutral + live-state truth session, PR #1453):**
+  hands-dirty pass driven by live UnClick state plus parallel reviewer
+  agents (new-user hat, skeptical-engineer hat) and a Boardroom/ledger
+  digest.
+  - Beta decision executed: the public site says nothing about pricing,
+    "free", or subscriptions. /pricing deleted (URL redirects home),
+    FAQ reframed to "How do I get access?" across component, prerender,
+    index.html JSON-LD and static HTML, llms.txt. Fabricated Passport
+    Free/$19/Enterprise tier table removed. Docs rate limits no longer
+    claim Free/Pro/Team tiers (nothing in api/ enforces per-plan
+    limits). Admin StorageBar's invented 500-fact cap and Upgrade to
+    Pro upsell removed. Terms reworded. Round 3 caught the stragglers
+    round 1 missed: FinalCTA, HowItWorks, ApiKeySignup, Scheduling and
+    Link-in-Bio CTAs, plus deleting two dead components that still
+    carried the old story (components/Pricing.tsx "Start free",
+    components/Stats.tsx with the retired 2.4M+/38ms/99.98% numbers).
+  - Count truth: /why no longer claims "900+ tools / 200+ apps"
+    (figures with no source of truth); it renders SITE_STATS like the
+    rest of the site. Measured reality recorded for the operator
+    decision: 671 connector files and 1,593 catalog tools vs the May 1
+    SITE_STATS 178/450.
+  - Live-state truth bugs found by dogfooding check_signals and the
+    zero-touch ledger:
+    1. Memory signals could emit action "fact_not_saved" with summary
+       "Fact saved: ..." when a write routed to episodic memory. Fixed:
+       classifyFactWriteSignal keeps action and summary in agreement
+       (fact_saved / fact_routed_to_episode / fact_routed_to_event /
+       fact_rejected), with 5 focused tests.
+    2. The AutoPilot zero-touch score read 250/250 zero-touch with
+       every ref carrying exactly one automation event and zero human
+       touches ever recorded: true by construction, not by evidence.
+       The metrics now self-disclose: touch_instrumentation_observed,
+       single_event_refs, a caveat when the window cannot prove the
+       claim, and window_truncated on the endpoint when the scan cap
+       was hit.
+  - DogfoodReport (/dogfood) no longer silently presents the cached
+    May 28 fallback as current: a visible notice names the cached
+    report date when /dogfood/latest.json cannot be loaded.
+  - Crews Council reality check: the only run ever attempted (run
+    3a23c50f) failed with SAMPLING_NOT_SUPPORTED, and the same failure
+    applies to every fleet seat today (Claude Code, Codex, web seats
+    are not sampling-capable MCP clients). The flagship deliberation
+    feature is unreachable from the environments where work happens;
+    queued as a product gap (server-side advisor execution, natural fit
+    for the AutoPilot Runner lane in PR #1452). Also noted: the hidden
+    meta-tools (unclick_search/call) are unreachable from schema-strict
+    MCP clients that cannot call unlisted tools.
+  - No-stomp honored: an AdminOrchestrator copy nit ("for free") was
+    found and deliberately NOT fixed here because PRs #1345/#1434 own
+    that file; left for that lane.
+
 - **2026-06-11 (round 21 + phase-6 sweep):** remaining public pages and
   the full-stack test pass.
   - FAQ page no longer advertises the hidden Arena in its meta

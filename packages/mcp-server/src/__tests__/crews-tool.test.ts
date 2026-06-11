@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { crewsStartRun, type CrewSampler } from "../crews-tool.js";
+import { crewsStartRun, type CrewSampler, type GuidedCrewCard } from "../crews-tool.js";
 
 const runId = "11111111-1111-4111-8111-111111111111";
 const crewId = "22222222-2222-4222-8222-222222222222";
@@ -18,30 +18,32 @@ describe("Crews MCP tool", () => {
     vi.restoreAllMocks();
   });
 
-  it("keeps the explicit sampling gate when the client cannot sample", async () => {
+  it("falls back to an agent_guided run when the client cannot sample", async () => {
     vi.stubEnv("UNCLICK_API_KEY", "test-key");
     const fetchMock = vi.fn(async (_input: unknown, _init?: RequestInit) => jsonResponse({
-      error: "SAMPLING_NOT_SUPPORTED",
       run_id: runId,
-      card: {
-        headline: "Crews Council run needs MCP sampling",
-        summary: "Sampling is unavailable.",
-        keyFacts: [`run_id: ${runId}`, "status: failed (SAMPLING_NOT_SUPPORTED)"],
-        nextActions: ["Use a sampling-capable client"],
-        deepLink: `/admin/crews/runs/${runId}`,
-      },
-    }, 409));
+      was_duplicate: false,
+      agents: [
+        { id: "agent-a", slug: "pragmatist", name: "Pragmatist", category: "strategy", seed_prompt: "You are pragmatic." },
+        { id: "agent-c", slug: "chairman", name: "Chairman", category: "meta", seed_prompt: "You synthesize." },
+      ],
+      relevant_facts: [],
+    }, 202));
     vi.stubGlobal("fetch", fetchMock);
 
-    const card = await crewsStartRun({
+    const card = (await crewsStartRun({
       crew_id: crewId,
       task_prompt: "Should XPass use a Council pass?",
-    }, { supportsSampling: false });
+    }, { supportsSampling: false })) as GuidedCrewCard;
 
-    expect(card.headline).toBe("Crews Council run needs MCP sampling");
     const firstInit = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
     const body = JSON.parse(String(firstInit?.body ?? "{}"));
-    expect(body).not.toHaveProperty("execution_mode");
+    expect(body.execution_mode).toBe("agent_guided");
+    expect(card.headline).toMatch(/you are the Council/i);
+    expect(card.guided_run?.run_id).toBe(runId);
+    expect(card.guided_run?.advisors.map((advisor) => advisor.name)).toEqual(["Pragmatist"]);
+    expect(card.guided_run?.chairman?.name).toBe("Chairman");
+    expect(card.nextActions.join(" ")).toMatch(/submit_crew_run/);
   });
 
   it("runs advisor opinions, peer review, and synthesis through MCP sampling", async () => {

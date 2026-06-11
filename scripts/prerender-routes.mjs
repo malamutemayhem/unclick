@@ -26,6 +26,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Measured counts from the generated catalog so prerendered copy can never
+// drift from reality. Same source of truth as src/config/site-stats.ts.
+const CATALOG = JSON.parse(
+  readFileSync(join(__dirname, "..", "src", "data", "app-catalog.generated.json"), "utf8"),
+);
+const TOOLS_DISPLAY = `${CATALOG.toolCount.toLocaleString("en-US")}+`;
+const APPS_DISPLAY = `${CATALOG.appCount}+`;
 const distDir = join(__dirname, "..", "dist");
 const indexPath = join(distDir, "index.html");
 const ORIGIN = "https://unclick.world";
@@ -46,7 +54,6 @@ const NAV = [
   ["/tools", "Apps"],
   ["/memory", "Memory"],
   ["/developers", "Developers"],
-  ["/pricing", "Pricing"],
   ["/why", "Why UnClick"],
   ["/faq", "FAQ"],
   ["/docs", "Docs"],
@@ -122,7 +129,7 @@ const ROUTES = [
     ogDescription: "Browse built-in apps and connected services for AI agents.",
     h1: "Apps: every tool your agent needs",
     intro:
-      "Built-in apps work straight away. Connected apps sign in once and remember. UnClick gives your AI agent 450+ callable endpoints across 60+ integrations in one install, discovered and called over MCP.",
+      `Built-in apps work straight away. Connected apps sign in once and remember. UnClick gives your AI agent ${TOOLS_DISPLAY} callable tools across ${APPS_DISPLAY} apps in one install, discovered and called over MCP.`,
     sections: [
       {
         h2: "What your agent can connect",
@@ -165,31 +172,10 @@ const ROUTES = [
     ],
   },
   {
-    path: "/pricing",
-    title: "Pricing - UnClick",
-    description:
-      "Free forever for 100 tool calls/day. Pro at $29/mo unlocks unlimited calls, hosted memory, and priority support.",
-    ogTitle: "UnClick Pricing - Free to start, Pro when you need it",
-    ogDescription: "Free forever for 100 tool calls/day. Upgrade to Pro for unlimited access across 450+ tools.",
-    h1: "UnClick pricing",
-    intro:
-      "Free forever for 100 tool calls a day. Pro at $29/mo unlocks unlimited calls and hosted memory. Team at $79/mo adds seats and shared context.",
-    sections: [
-      {
-        h2: "Plans",
-        items: [
-          { title: "Free, $0 forever", desc: "178+ tools (100 calls/day), Arena browsing, self-hosted memory, and Passport with 5 access entries." },
-          { title: "Pro, $29/mo", desc: "Unlimited tool calls, managed memory with nightly fact extraction and decay, unlimited Passport, and priority support." },
-          { title: "Team, $79/mo", desc: "Everything in Pro, up to 5 seats, multi-user memory, shared business context, and role-based access." },
-        ],
-      },
-    ],
-  },
-  {
     path: "/why",
     title: "Why UnClick - the layer your AI plugs into",
     description:
-      "900+ vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.",
+      `${TOOLS_DISPLAY} vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.`,
     ogTitle: "Why UnClick",
     ogDescription:
       "Every tool. Your memory. Signed permissions. Built-in proof. One install. See what makes UnClick different.",
@@ -200,7 +186,7 @@ const ROUTES = [
       {
         h2: "The five-pillar moat",
         items: [
-          { title: "Every tool, one install", desc: "900+ tools and 200+ apps in a single MCP install. No wiring one integration at a time." },
+          { title: "Every tool, one install", desc: `${TOOLS_DISPLAY} vetted tools in a single MCP install. No wiring one integration at a time.` },
           { title: "Tools you can trust", desc: "Every tool is hardened and tested, stamps where its answer came from, and hands your agent the next step." },
           { title: "Memory that is yours", desc: "One memory across every assistant and device, kept in your own database, with zero lock-in." },
           { title: "Permissions and proof", desc: "Signed, scoped access plus built-in proof the work was done right. Evidence, not vibes." },
@@ -251,7 +237,7 @@ const ROUTES = [
       "API reference for UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.",
     ogTitle: "Docs - UnClick",
     ogDescription:
-      "API reference for all 178 UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.",
+      `API reference for all ${TOOLS_DISPLAY} UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.`,
     h1: "What can your AI do with UnClick?",
     intro:
       "API reference for UnClick tools. One key, and your agent gets instant access from Claude, ChatGPT, Cursor, and any MCP-compatible client.",
@@ -281,11 +267,11 @@ const ROUTES = [
       {
         h2: "Frequently asked questions",
         faq: [
-          { q: "What is UnClick?", a: "UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. You point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup." },
-          { q: "How does UnClick work?", a: "UnClick exposes its tools over the Model Context Protocol (MCP). You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can call any of the 178+ tools with no per-integration setup." },
-          { q: "Is UnClick free?", a: "Yes. UnClick has a free tier that gives you access to all 178+ tools with no upfront cost. Sign up with your email to get an API key." },
+          { q: "What is UnClick?", a: `UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. You point your AI agent at UnClick and it gets durable context, secure service access, and ${TOOLS_DISPLAY} real-world tools through one setup.` },
+          { q: "How does UnClick work?", a: `UnClick exposes its tools over the Model Context Protocol (MCP). You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can call any of the ${TOOLS_DISPLAY} tools with no per-integration setup.` },
+          { q: "How do I get access?", a: `UnClick is in beta. Sign up with your email to get an API key and start using all ${TOOLS_DISPLAY} tools immediately.` },
           { q: "What AI agents work with UnClick?", a: "Any agent that supports MCP, including Claude (Anthropic), ChatGPT, Cursor, OpenClaw, and any custom agent built with an MCP-compatible SDK." },
-          { q: "How is UnClick different from other MCP servers?", a: "Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup." },
+          { q: "How is UnClick different from other MCP servers?", a: `Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: ${TOOLS_DISPLAY} tools, persistent memory, Passport, crews, and Pass family checks in one managed setup.` },
         ],
       },
     ],

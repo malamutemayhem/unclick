@@ -269,7 +269,7 @@ function TreeNode({ node, icon: Icon }: { node: Node; icon?: typeof Brain }) {
           {node.children && (
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {node.children.map((child) => (
-                <div key={child.label} className="rounded-lg border border-white/[0.04] bg-black/20 px-3 py-2">
+                <div key={child.label} className="rounded-lg border border-white/[0.04] bg-white/[0.03] px-3 py-2">
                   <p className="text-xs font-semibold text-white/75">{child.label}</p>
                   <p className="mt-0.5 text-[11px] leading-4 text-white/35">{child.note}</p>
                 </div>

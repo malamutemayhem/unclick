@@ -336,7 +336,7 @@ export default function AdminControlTower() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
         <div className="space-y-4">
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-4">
             <label htmlFor="controltower-prompt" className="text-sm font-semibold text-white">
               Big job prompt
             </label>
@@ -344,7 +344,7 @@ export default function AdminControlTower() {
               id="controltower-prompt"
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              className="mt-3 min-h-[118px] w-full resize-y rounded-lg border border-white/10 bg-black/25 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-[#E2B93B]/55"
+              className="mt-3 min-h-[118px] w-full resize-y rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3 text-sm leading-6 text-white outline-none focus:border-[#E2B93B]/55"
             />
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/50">
               <ShieldCheck className="h-4 w-4 text-[#E2B93B]" />
@@ -352,7 +352,7 @@ export default function AdminControlTower() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-4">
             <label htmlFor="controltower-paste" className="text-sm font-semibold text-white">
               Paste intake
             </label>
@@ -361,7 +361,7 @@ export default function AdminControlTower() {
               value={pasteText}
               onChange={(event) => setPasteText(event.target.value)}
               placeholder="Paste messy updates, old chat notes, worker reports, proof links, or blockers here."
-              className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-black/25 px-3 py-3 text-sm leading-6 text-white outline-none placeholder:text-white/32 focus:border-[#E2B93B]/55"
+              className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3 text-sm leading-6 text-white outline-none placeholder:text-white/32 focus:border-[#E2B93B]/55"
             />
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -387,7 +387,7 @@ export default function AdminControlTower() {
         </div>
 
         <div className="space-y-4">
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-white">Master Copy Box</h2>
@@ -406,11 +406,11 @@ export default function AdminControlTower() {
               readOnly
               aria-label="Master Copy Box"
               value={plan.masterCopyBox}
-              className="mt-3 min-h-[322px] w-full resize-y rounded-lg border border-white/10 bg-black/30 px-3 py-3 font-mono text-xs leading-5 text-white/78 outline-none"
+              className="mt-3 min-h-[322px] w-full resize-y rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3 font-mono text-xs leading-5 text-white/78 outline-none"
             />
           </section>
 
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-4">
             <div className="flex items-start gap-3">
               <Users className="mt-0.5 h-5 w-5 text-[#E2B93B]" />
               <div className="min-w-0 flex-1">
@@ -421,7 +421,7 @@ export default function AdminControlTower() {
                   readOnly
                   aria-label="Claim receipt"
                   value={claimReceipt.text}
-                  className="mt-4 min-h-[218px] w-full resize-y rounded-lg border border-white/10 bg-black/30 px-3 py-3 font-mono text-xs leading-5 text-white/78 outline-none"
+                  className="mt-4 min-h-[218px] w-full resize-y rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3 font-mono text-xs leading-5 text-white/78 outline-none"
                 />
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <button
@@ -461,7 +461,7 @@ export default function AdminControlTower() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#10151f]">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-4">
           <div>
             <h2 className="text-sm font-semibold text-white">Worker lanes</h2>
@@ -476,7 +476,7 @@ export default function AdminControlTower() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-4">
         <h2 className="text-sm font-semibold text-white">Closeout checks</h2>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           {plan.xpassChecklist.map((item) => (

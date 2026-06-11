@@ -1554,7 +1554,7 @@ import {
 import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
-import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
+import { crewsStartRun, crewsSubmitRun, crewsGetRun, crewsListRuns, crewsListCrews } from "./crews-tool.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADDITIONAL_TOOLS
@@ -22805,7 +22805,7 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Starts a Crews Council run: independent specialist advisors debate the question, challenge its framing, peer-rank each other, and a Chairman synthesises a verdict with dissent on record. TRIGGER proactively (suggest it to the user) when the operator asks a consequential, contested, or strategic question where a single first-instinct answer would be a disservice: pricing, positioning, launch decisions, hiring, architecture bets, anything with real money or irreversibility attached. Use list_crews first to pick the right bench. In a sampling-capable MCP client this runs the whole Council automatically. Without sampling it returns an agent_guided protocol instead: YOU play each advisor in your own context per the returned guided_run prompts, then persist the output with submit_crew_run. Response card surfaces was_duplicate for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -22822,6 +22822,52 @@ export const ADDITIONAL_TOOLS = [
     },
   },
   {
+    name: "submit_crew_run",
+    description: "Call this tool to persist an agent_guided Crews Council run after start_crew_run returned a guided_run protocol. Provide the advisor opinions you generated (in each advisor's voice), the peer reviews, and the Chairman synthesis; the run is finished through the same path as sampling mode. Pass abort_reason instead to fail the run honestly when you cannot complete the Council.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by start_crew_run" },
+        opinions: {
+          type: "array",
+          description: "One entry per advisor: their opinion in their own voice (150-250 words each)",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              agent_id: { type: "string", description: "Advisor agent_id from guided_run.advisors" },
+              agent_name: { type: "string", description: "Optional advisor name for readability" },
+              content: { type: "string", description: "The advisor's opinion text" },
+            },
+            required: ["content"],
+          },
+        },
+        peer_reviews: {
+          type: "array",
+          description: "Optional: one entry per advisor ranking the other opinions",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              agent_id: { type: "string", description: "Reviewing advisor agent_id" },
+              agent_name: { type: "string", description: "Optional advisor name" },
+              content: { type: "string", description: "The rankings with one-line rationales" },
+            },
+            required: ["content"],
+          },
+        },
+        synthesis: { type: "string", description: "The Chairman synthesis in the FINAL ANSWER format" },
+        chairman_agent_id: { type: "string", description: "Chairman agent_id from guided_run.chairman" },
+        abort_reason: {
+          type: "string",
+          description: "Set instead of content to fail the run honestly when the Council cannot be completed",
+        },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
     name: "get_run",
     description: "Call this tool when the user wants the status of a specific Crews run. Returns a ConversationalCard summarising stage progress, token usage, and any failure artifact.",
     inputSchema: {
@@ -22831,6 +22877,15 @@ export const ADDITIONAL_TOOLS = [
         run_id: { type: "string", description: "The run_id returned by start_crew_run" },
       },
       required: ["run_id"],
+    },
+  },
+  {
+    name: "list_crews",
+    description: "Lists the user's crews (the bench: Business Council, Decision Desk, Creative Studio, Launch Stress Test, plus any custom crews) with their crew_ids and member counts. Call this BEFORE start_crew_run to pick the right bench for the question, or when the user asks what crews, advisors, or specialist hats are available. Starter crews are seeded automatically on first call.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
     },
   },
   {
@@ -25500,7 +25555,9 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   fidelitypass_verify_copy:(args) => fidelitypassVerifyCopy(args),
 
   // crews-tool.ts
-  start_crew_run: (args) => crewsStartRun(args),
-  get_run:        (args) => crewsGetRun(args),
-  list_runs:      (args) => crewsListRuns(args),
+  start_crew_run:  (args) => crewsStartRun(args),
+  submit_crew_run: (args) => crewsSubmitRun(args),
+  get_run:         (args) => crewsGetRun(args),
+  list_runs:       (args) => crewsListRuns(args),
+  list_crews:      (args) => crewsListCrews(args),
 };

@@ -100,7 +100,7 @@ const Hero = () => {
                 The <GradientText>rails</GradientText> your agent plugs into.
               </h2>
               <p className="mt-3 text-body">
-                One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
+                One layer that sits behind Claude, ChatGPT, Cursor, and every app that speaks MCP, the universal standard for AI tools.
                 Tools to act. Memory to remember. Connections to sign in. AutoPilot to move work. XPass to prove it.
               </p>
             </div>

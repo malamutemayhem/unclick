@@ -1,6 +1,6 @@
 # UnClick
 
-AI agent operating system. One npm install gives agents access to 450+ callable endpoints across 60+ integrations AND persistent cross-session memory, all via the MCP protocol.
+AI agent operating system. One npm install gives agents access to 1,500+ callable tools across 650+ apps (exact counts are measured into src/data/app-catalog.generated.json) AND persistent cross-session memory, all via the MCP protocol.
 
 ## Fleet alignment
 

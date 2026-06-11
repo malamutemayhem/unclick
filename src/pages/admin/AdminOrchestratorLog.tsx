@@ -252,7 +252,7 @@ export default function AdminOrchestratorLog() {
       </section>
 
       <section className="space-y-4">
-        <div className="flex flex-col gap-3 rounded-lg border border-white/[0.08] bg-black/20 p-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 md:flex-row md:items-center md:justify-between">
           <form onSubmit={handleSearch} className="flex min-w-0 flex-1 items-center gap-2">
             <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
@@ -275,7 +275,7 @@ export default function AdminOrchestratorLog() {
             <select
               value={limit}
               onChange={(event) => setLimit(Number(event.target.value) as (typeof LIMIT_OPTIONS)[number])}
-              className="rounded-md border border-white/[0.08] bg-[#081E27] px-2 py-2 text-sm text-white outline-none focus:border-primary/50"
+              className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-2 text-sm text-white outline-none focus:border-primary/50"
             >
               {LIMIT_OPTIONS.map((value) => (
                 <option key={value} value={value}>

@@ -1019,7 +1019,7 @@ export default function AdminYou() {
                 onChange={(e) => setAboutYou(e.target.value.slice(0, 1500))}
                 rows={6}
                 placeholder="e.g. I run a small creative studio. I prefer plain-English answers that lead with the recommendation, then the why. My stack is React, TypeScript, and Supabase, and I work Australian business hours."
-                className="mt-2 w-full resize-y rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-xs leading-5 text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
+                className="mt-2 w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs leading-5 text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
               />
             </div>
 
@@ -1121,7 +1121,7 @@ export default function AdminYou() {
                 onChange={(e) => setAiStyle((s) => ({ ...s, custom_instructions: e.target.value.slice(0, 600) }))}
                 rows={2}
                 placeholder="e.g. Australian spelling. Lead with the answer, then the why. Avoid jargon."
-                className="mt-2 w-full resize-none rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-xs leading-5 text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
+                className="mt-2 w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs leading-5 text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
               />
             </div>
 
@@ -1205,7 +1205,7 @@ export default function AdminYou() {
                   id="timezone-select"
                   value={timezoneInput || operatorTime?.timezone || detectedTimezone || "UTC"}
                   onChange={(event) => setTimezoneInput(event.target.value)}
-                  className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
+                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
                 >
                   {timezoneOptions.map((tz) => (
                     <option key={tz} value={tz} className="bg-white/[0.03] font-mono">
@@ -1257,7 +1257,7 @@ export default function AdminYou() {
                   </div>
                   <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white">
+                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white">
                       {keyRevealed ? generatedKey : maskValue(generatedKey)}
                     </code>
                     <div className="flex shrink-0 gap-2">
@@ -1288,7 +1288,7 @@ export default function AdminYou() {
                   </p>
                   <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Remote MCP Server URL</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/70">
+                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white/70">
                       https://unclick.world/api/mcp?key={keyRevealed ? generatedKey : maskValue(generatedKey)}
                     </code>
                     <button
@@ -1309,7 +1309,7 @@ export default function AdminYou() {
                 <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                    <code className="flex min-w-0 flex-1 items-center rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/60">
+                    <code className="flex min-w-0 flex-1 items-center rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white/60">
                       {profile.api_key.prefix}{"•".repeat(16)}
                     </code>
                     <button
@@ -1422,7 +1422,7 @@ export default function AdminYou() {
                   />
                 </label>
               </div>
-              <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] bg-black/15 p-3">
+              <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] bg-white/[0.03] p-3">
                 {importFileName && importPreview ? (
                   <div>
                     <p className="text-xs text-white/60">

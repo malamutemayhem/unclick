@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1110,
-    "source_manifest": 227,
-    "pages": 94,
+    "inventory": 1109,
+    "source_manifest": 226,
+    "pages": 93,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 36
+      "count": 35
     },
     {
       "id": "tools",
@@ -3849,16 +3849,6 @@
       "meaning": "User-facing page for Organiser.",
       "source": "src/pages/Organiser.tsx",
       "route": "/organiser",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-pricing-src-pages-pricing-tsx-pricing",
-      "division": "Public surfaces",
-      "name": "Pricing",
-      "kind": "public page",
-      "meaning": "Plans, billing, and packaging.",
-      "source": "src/pages/Pricing.tsx",
-      "route": "/pricing",
       "tags": []
     },
     {
@@ -11686,12 +11676,6 @@
       "src/pages/Organiser.tsx"
     ],
     [
-      "/pricing",
-      "Pricing",
-      "Plans, billing, and packaging.",
-      "src/pages/Pricing.tsx"
-    ],
-    [
       "/privacy",
       "Privacy",
       "Privacy policy.",
@@ -15506,8 +15490,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "14906b128315",
-      "bytes": 17394
+      "hash": "f77ebd0865b6",
+      "bytes": 17454
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -15516,8 +15500,8 @@
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "2bc870ebf30f",
-      "bytes": 21782
+      "hash": "70c0696acf2d",
+      "bytes": 21918
     },
     {
       "source": "src/lib/controltower.ts",
@@ -15786,18 +15770,18 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
-      "hash": "5bfc0414856f",
-      "bytes": 16509
+      "hash": "8ad812cf67f4",
+      "bytes": 16513
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "9356d99ba1e3",
-      "bytes": 37675
+      "hash": "8576cb33996f",
+      "bytes": 37699
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "78d5057027a1",
-      "bytes": 11750
+      "hash": "3ff5a42ce297",
+      "bytes": 11758
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
@@ -15806,8 +15790,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "hash": "8511bc4559db",
-      "bytes": 25328
+      "hash": "c8d49c4f8852",
+      "bytes": 25332
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -15836,8 +15820,8 @@
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "883d77d7b764",
-      "bytes": 22924
+      "hash": "08dfcb90860f",
+      "bytes": 23020
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
@@ -15846,18 +15830,18 @@
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
-      "hash": "d3f1d4d1e298",
-      "bytes": 25705
+      "hash": "29c05f34d7fb",
+      "bytes": 25709
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "60a5f41934b7",
-      "bytes": 37150
+      "hash": "97ba6f9f2d09",
+      "bytes": 37162
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "48525d7a37d1",
-      "bytes": 26608
+      "hash": "f2f51817f7a6",
+      "bytes": 26616
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -15866,8 +15850,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "64459f24dc61",
-      "bytes": 7324
+      "hash": "b79335afa04f",
+      "bytes": 7352
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -15906,13 +15890,13 @@
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
-      "hash": "fd2aad657f06",
-      "bytes": 54734
+      "hash": "3c40408681f6",
+      "bytes": 54822
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "d743c17f4412",
-      "bytes": 78086
+      "hash": "56429f82319e",
+      "bytes": 78146
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -15926,18 +15910,18 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestratorLog.tsx",
-      "hash": "af0abb526002",
-      "bytes": 12944
+      "hash": "b4191d7021ae",
+      "bytes": 12951
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "c6a81f3b0ea0",
+      "bytes": 94921
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
-      "hash": "c57ce13fa82d",
-      "bytes": 21866
+      "hash": "2e5a90616e0e",
+      "bytes": 21886
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
@@ -15966,13 +15950,13 @@
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
-      "hash": "ff6ef9aa1bfd",
-      "bytes": 10397
+      "hash": "2d3e8bee35b1",
+      "bytes": 10401
     },
     {
       "source": "src/pages/admin/AdminTestPass.tsx",
-      "hash": "22a59a8de00f",
-      "bytes": 27268
+      "hash": "5e0f8daf719a",
+      "bytes": 27280
     },
     {
       "source": "src/pages/admin/testpass/ReportDetail.tsx",
@@ -15981,13 +15965,13 @@
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "4412674f8382",
-      "bytes": 22000
+      "hash": "6623a70ea522",
+      "bytes": 22012
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
-      "hash": "ee00d5d30b04",
-      "bytes": 21877
+      "hash": "e1438b312d66",
+      "bytes": 21893
     },
     {
       "source": "src/pages/admin/AdminTruthRate.tsx",
@@ -16006,8 +15990,8 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "a0e051f56e86",
-      "bytes": 63243
+      "hash": "736ef79c6bf3",
+      "bytes": 63271
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -16061,18 +16045,18 @@
     },
     {
       "source": "src/pages/Dispatch.tsx",
-      "hash": "c2906a71ea43",
-      "bytes": 15439
+      "hash": "9a19c7e6018a",
+      "bytes": 15505
     },
     {
       "source": "src/pages/Docs.tsx",
-      "hash": "490548492455",
-      "bytes": 18580
+      "hash": "bf98c22d1326",
+      "bytes": 18605
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "8608d2a82e46",
-      "bytes": 16679
+      "hash": "3ab3e3ba08ad",
+      "bytes": 17345
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -16101,28 +16085,23 @@
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "a64def7930d5",
-      "bytes": 20088
+      "hash": "913b402ef12b",
+      "bytes": 20113
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "e1c923ee0c61",
-      "bytes": 19193
+      "hash": "9b3287148c55",
+      "bytes": 19196
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "4fdcf1fa25d2",
-      "bytes": 13105
+      "hash": "c37c9a0c88dd",
+      "bytes": 13073
     },
     {
       "source": "src/pages/Organiser.tsx",
-      "hash": "ae35be237d83",
-      "bytes": 16581
-    },
-    {
-      "source": "src/pages/Pricing.tsx",
-      "hash": "b9834637502c",
-      "bytes": 8724
+      "hash": "37617bcb1aee",
+      "bytes": 16550
     },
     {
       "source": "src/pages/Privacy.tsx",
@@ -16141,18 +16120,18 @@
     },
     {
       "source": "src/pages/Terms.tsx",
-      "hash": "4613736d1aa8",
-      "bytes": 9327
+      "hash": "21dead1e8fab",
+      "bytes": 9334
     },
     {
       "source": "src/pages/tools/LinkInBio.tsx",
-      "hash": "4f20852d63d4",
-      "bytes": 7831
+      "hash": "03af849d685c",
+      "bytes": 7826
     },
     {
       "source": "src/pages/tools/Scheduling.tsx",
-      "hash": "3e54b020fe15",
-      "bytes": 9647
+      "hash": "734393657338",
+      "bytes": 9642
     },
     {
       "source": "src/pages/tools/Solve.tsx",
@@ -16171,8 +16150,8 @@
     },
     {
       "source": "src/pages/Why.tsx",
-      "hash": "a210c068f422",
-      "bytes": 11101
+      "hash": "6e7ce6c78ce4",
+      "bytes": 11172
     },
     {
       "source": "src/pages/XPass.tsx",

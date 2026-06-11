@@ -74,6 +74,45 @@ type AddFactResultWithGate = {
 };
 // --- end lane-07 ---
 
+// Signal action and summary must agree about what actually happened: a write
+// routed to episode/event storage was still saved, just not as a fact row, so
+// it must never read as a failed save (the old "fact_not_saved" action paired
+// with a "Fact saved" summary contradicted itself in the signals feed).
+export function classifyFactWriteSignal(input: {
+  gateAction?: string;
+  sourceKind: string;
+  preview: string;
+}): { action: string; summary: string; deepLink: string } {
+  if (input.gateAction === "REJECT") {
+    return {
+      action: "fact_rejected",
+      summary: "Memory write rejected by admission gate",
+      deepLink: "/admin/memory",
+    };
+  }
+  if (input.gateAction === "ROUTE_EVENT") {
+    return {
+      action: "fact_routed_to_event",
+      summary: "Memory write routed to event store",
+      deepLink: "/admin/memory",
+    };
+  }
+  if (input.sourceKind === "fact") {
+    return {
+      action: "fact_saved",
+      summary: input.preview ? `Fact saved: ${input.preview}` : "Fact saved to memory",
+      deepLink: "/admin/memory?tab=facts",
+    };
+  }
+  return {
+    action: "fact_routed_to_episode",
+    summary: input.preview
+      ? `Saved to episodic memory: ${input.preview}`
+      : "Saved to episodic memory",
+    deepLink: "/admin/memory",
+  };
+}
+
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
@@ -812,21 +851,18 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     }
     const hash = currentApiKeyHash();
     if (hash) {
-      const preview = factText.slice(0, 80);
-      const action = result.write_gate?.action;
-      const signalSummary =
-        action === "ROUTE_EVENT"
-          ? "Memory write routed to event store"
-          : action === "REJECT"
-            ? "Memory write rejected by admission gate"
-            : preview ? `Fact saved: ${preview}` : "Fact saved to memory";
+      const signal = classifyFactWriteSignal({
+        gateAction: result.write_gate?.action,
+        sourceKind,
+        preview: factText.slice(0, 80),
+      });
       void emitSignal({
         apiKeyHash: hash,
         tool: "memory",
-        action: sourceKind === "fact" ? "fact_saved" : "fact_not_saved",
+        action: signal.action,
         severity: "info",
-        summary: signalSummary,
-        deepLink: "/admin/memory?tab=facts",
+        summary: signal.summary,
+        deepLink: signal.deepLink,
       });
     }
     return result;

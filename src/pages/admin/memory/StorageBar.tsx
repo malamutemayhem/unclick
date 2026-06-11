@@ -1,5 +1,4 @@
-import { Database, FileText, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Database, FileText } from "lucide-react";
 
 interface StorageBarProps {
   storage: {
@@ -14,8 +13,6 @@ interface StorageBarProps {
   loading: boolean;
 }
 
-const FACT_LIMIT_FREE = 500;
-
 export default function StorageBar({ storage, loading }: StorageBarProps) {
   if (loading) {
     return (
@@ -27,9 +24,6 @@ export default function StorageBar({ storage, loading }: StorageBarProps) {
   }
 
   if (!storage) return null;
-
-  const factPercent = Math.min(100, Math.round((storage.extracted_facts / FACT_LIMIT_FREE) * 100));
-  const showUpsell = factPercent >= 80;
 
   return (
     <div className="mb-6 space-y-4">
@@ -58,34 +52,10 @@ export default function StorageBar({ storage, loading }: StorageBarProps) {
           </div>
           <p className="mt-1 text-2xl font-semibold text-white">
             {storage.extracted_facts.toLocaleString()}
-            <span className="ml-1 text-sm text-white/30">/ {FACT_LIMIT_FREE}</span>
           </p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
-            <div
-              className={`h-full rounded-full transition-all ${
-                factPercent >= 90 ? "bg-red-500" : factPercent >= 80 ? "bg-amber-500" : "bg-amber-500/60"
-              }`}
-              style={{ width: `${factPercent}%` }}
-            />
-          </div>
-          <p className="mt-1 text-[10px] text-white/30">{factPercent}% used</p>
+          <p className="mt-1 text-[10px] text-white/30">Active facts extracted from your sessions</p>
         </div>
       </div>
-
-      {showUpsell && (
-        <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-          <p className="text-xs text-amber-500/90">
-            You're using {storage.extracted_facts} of {FACT_LIMIT_FREE} facts. Upgrade to Pro for unlimited storage.
-          </p>
-          <Link
-            to="/pricing"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-500 transition-opacity hover:opacity-80"
-          >
-            Upgrade to Pro
-            <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

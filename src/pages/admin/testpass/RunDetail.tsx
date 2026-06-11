@@ -225,7 +225,7 @@ function CheckCard({
                 {steps.map((step, idx) => {
                   const stepKey = `${item.id}-${idx}`;
                   return (
-                    <li key={stepKey} className="flex items-start gap-2 rounded-md border border-white/[0.08] bg-black/20 p-2.5">
+                    <li key={stepKey} className="flex items-start gap-2 rounded-md border border-white/[0.08] bg-white/[0.03] p-2.5">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-[10px] font-bold text-[#bbb]">
                         {idx + 1}
                       </span>
@@ -250,7 +250,7 @@ function CheckCard({
           </section>
 
           {hasRawEvidence && (
-            <details className="rounded-md border border-white/[0.08] bg-black/25 p-3">
+            <details className="rounded-md border border-white/[0.08] bg-white/[0.03] p-3">
               <summary className="cursor-pointer text-xs font-medium text-[#aaa]">See raw evidence</summary>
               <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-[#bbb]">
                 {JSON.stringify(raw, null, 2)}
@@ -457,7 +457,7 @@ export default function RunDetail() {
             ["Skipped", skippedCount, "text-gray-300"],
             ["Pending", pendingCount, "text-blue-300"],
           ].map(([label, value, color]) => (
-            <div key={label as string} className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2">
+            <div key={label as string} className="rounded-md border border-white/[0.06] bg-white/[0.03] px-3 py-2">
               <span className={`block text-lg font-bold ${color}`}>{value as number}</span>
               <span className="text-[#777]">{label as string}</span>
             </div>

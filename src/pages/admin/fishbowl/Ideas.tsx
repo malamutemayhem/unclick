@@ -103,14 +103,14 @@ function AddIdeaForm({
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-white/[0.08] bg-black/20 p-3">
+    <div className="space-y-2 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Short title"
         maxLength={200}
-        className="w-full rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
+        className="w-full rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
       />
       <textarea
         value={description}
@@ -118,7 +118,7 @@ function AddIdeaForm({
         placeholder="Why this idea? Optional but helpful."
         rows={3}
         maxLength={4000}
-        className="w-full resize-y rounded-md border border-white/[0.08] bg-black/30 px-2 py-1.5 text-xs text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
+        className="w-full resize-y rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-xs text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none"
       />
       <div className="flex items-center justify-end gap-2">
         {error && <span className="text-xs text-red-300">{error}</span>}
@@ -193,7 +193,7 @@ function IdeaRow({
   const isLocked = idea.status === "locked";
 
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-black/30 p-3">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
       <div className="flex items-start gap-3">
         <div className="flex flex-col items-center gap-0.5">
           <button
@@ -429,7 +429,7 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
           )}
 
           {ideas.length === 0 ? (
-            <p className="rounded-md border border-white/[0.04] bg-black/20 px-3 py-4 text-center text-xs text-[#666]">
+            <p className="rounded-md border border-white/[0.04] bg-white/[0.03] px-3 py-4 text-center text-xs text-[#666]">
               No ideas yet. Propose one above. Ideas are quick proposals you or
               your agents can vote on and promote to a TODO.
             </p>
@@ -438,7 +438,7 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
               {active.length > 0 ? (
                 <ul className="space-y-2">{active.map(renderIdea)}</ul>
               ) : (
-                <p className="rounded-md border border-white/[0.04] bg-black/20 px-3 py-3 text-center text-xs text-[#666]">
+                <p className="rounded-md border border-white/[0.04] bg-white/[0.03] px-3 py-3 text-center text-xs text-[#666]">
                   No active ideas. Everything below has either gone quiet or been
                   decided.
                 </p>

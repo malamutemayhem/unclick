@@ -103,7 +103,7 @@ export default function Comments({
           {comments.map((c) => (
             <li
               key={c.id}
-              className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-xs"
+              className="rounded-md border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs"
             >
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium text-[#ccc]">{c.author_agent_id}</span>
@@ -122,7 +122,7 @@ export default function Comments({
           placeholder={humanAgentId ? "Add a comment..." : "Setting up profile..."}
           rows={2}
           disabled={!humanAgentId || submitting}
-          className="w-full resize-y rounded-md border border-white/[0.08] bg-black/20 px-3 py-2 text-xs text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none disabled:opacity-50"
+          className="w-full resize-y rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none disabled:opacity-50"
         />
         <div className="flex items-center justify-between gap-2">
           {error ? (

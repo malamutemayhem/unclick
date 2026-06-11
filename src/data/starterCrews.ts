@@ -39,6 +39,6 @@ export const STARTER_CREWS: StarterCrew[] = [
     agent_slugs: ["first-principles", "pragmatist", "outsider", "executor", "chairman"],
     template_slug: "council",
     example_prompt:
-      "Should UnClick Pro be priced at 19, 29, or 39 AUD per month?",
+      "Should the next unclick.world launch lead with Memory, Apps, or XPass?",
   },
 ];

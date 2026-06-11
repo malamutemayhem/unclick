@@ -180,48 +180,6 @@ const SECURITY_BULLETS = [
   "Every connection attempt is logged for your audit trail.",
 ];
 
-const PRICING = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "",
-    features: [
-      "5 platform connections",
-      "1,000 API calls / month",
-      "AES-256-GCM encryption",
-      "Key validation on connect",
-    ],
-    highlight: false,
-    cta: "Get Started",
-  },
-  {
-    name: "Pro",
-    price: "$19",
-    period: "/mo",
-    features: [
-      "Unlimited connections",
-      "50,000 API calls / month",
-      "Priority support",
-      "Auto bug reporting",
-    ],
-    highlight: true,
-    cta: "Get Started",
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    features: [
-      "Custom call limits",
-      "SSO and audit logs",
-      "SLA guarantee",
-      "Dedicated support",
-    ],
-    highlight: false,
-    cta: "Contact Us",
-  },
-];
-
 export default function PassportPage() {
   useMetaTags({
     title: "Passport - Secure platform access | UnClick",
@@ -462,72 +420,6 @@ export const githubTools = [
               80% revenue split on every tool you build.
             </span>
           </div>
-        </FadeIn>
-      </section>
-
-      {/* ---- Pricing ---- */}
-      <section className="mx-auto max-w-5xl px-6 pb-24">
-        <FadeIn>
-          <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
-            Pricing
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading">
-            Simple, honest tiers
-          </h2>
-          <p className="mt-2 text-sm text-body">
-            All tiers are currently free during the launch period.
-          </p>
-        </FadeIn>
-
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
-          {PRICING.map((tier, i) => (
-            <FadeIn key={tier.name} delay={i * 0.07}>
-              <div
-                className={`flex h-full flex-col rounded-xl border p-6 ${
-                  tier.highlight
-                    ? "border-primary/40 bg-primary/[0.06]"
-                    : "border-border/40 bg-card/20"
-                }`}
-              >
-                {tier.highlight && (
-                  <span className="mb-3 self-start rounded border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] text-primary">
-                    Most popular
-                  </span>
-                )}
-                <p className="text-sm font-semibold text-heading">{tier.name}</p>
-                <div className="mt-2 flex items-baseline gap-0.5">
-                  <span className="text-3xl font-bold text-heading">{tier.price}</span>
-                  {tier.period && (
-                    <span className="text-sm text-muted-foreground">{tier.period}</span>
-                  )}
-                </div>
-                <ul className="mt-5 flex-1 space-y-2.5">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-                      <span className="text-sm text-body">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="#setup"
-                  className={`mt-6 rounded-md px-4 py-2 text-center text-sm font-medium transition-opacity hover:opacity-90 ${
-                    tier.highlight
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border/60 bg-card/20 text-heading hover:bg-card/40"
-                  }`}
-                >
-                  {tier.cta}
-                </a>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        <FadeIn delay={0.25}>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            All tiers include encryption, key validation, and auto bug-reporting. No credit card required to start.
-          </p>
         </FadeIn>
       </section>
 

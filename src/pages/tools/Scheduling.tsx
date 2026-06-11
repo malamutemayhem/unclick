@@ -84,7 +84,7 @@ const SchedulingPage = () => (
             href="/docs"
             className="rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            Get Started Free: Scheduling
+            Get Started: Scheduling
           </a>
           <a
             href="/docs#scheduling"

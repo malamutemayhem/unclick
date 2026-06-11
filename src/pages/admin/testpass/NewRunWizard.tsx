@@ -142,7 +142,7 @@ export default function NewRunWizard() {
           </p>
           <label className="block text-xs font-medium text-[#ccc] mb-2">MCP server URL</label>
           <input type="url" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)}
-            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white focus:border-[#61C1C4]/40 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white focus:border-[#61C1C4]/40 focus:outline-none"
             placeholder={EXAMPLE_TARGET_URL} />
           <p className="mt-2 text-xs text-[#666]">
             Pre-filled with the unclick.world MCP as an example. Replace it with your own server URL. The URL should respond to JSON-RPC 2.0 requests.

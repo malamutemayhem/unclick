@@ -403,7 +403,7 @@ export function AdminSeatsApiUsagePanel() {
                             [row.provider]: event.target.value,
                           }))}
                           placeholder="USD"
-                          className="h-8 border-white/[0.08] bg-black/20 text-sm text-white placeholder:text-[#555]"
+                          className="h-8 border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder:text-[#555]"
                         />
                       </div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">

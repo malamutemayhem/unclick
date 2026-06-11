@@ -64,7 +64,7 @@ function PackTile({
       </div>
       <button
         disabled
-        className="mt-auto flex items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs font-medium text-[#777]"
+        className="mt-auto flex items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.06] px-3 py-2 text-xs font-medium text-[#777]"
       >
         {cta}
       </button>
@@ -113,7 +113,7 @@ export default function CopyPassCatalog() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-[#61C1C4]/20 bg-[#0f1516] p-5">
+        <section className="rounded-lg border border-[#61C1C4]/20 bg-white/[0.02] backdrop-blur-sm p-5">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export default function CopyPassCatalog() {
                 {RECEIPT_CHECKPOINTS.map((checkpoint) => (
                   <div
                     key={checkpoint}
-                    className="rounded-md border border-[#61C1C4]/20 bg-black/20 px-2.5 py-2 text-center text-[11px] font-medium text-[#b6e2e4]"
+                    className="rounded-md border border-[#61C1C4]/20 bg-white/[0.03] px-2.5 py-2 text-center text-[11px] font-medium text-[#b6e2e4]"
                   >
                     {checkpoint}
                   </div>

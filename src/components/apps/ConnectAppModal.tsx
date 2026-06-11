@@ -166,7 +166,7 @@ export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved 
               }}
               placeholder={`Paste ${credentialLabel} here`}
               autoFocus
-              className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+              className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#E2B93B]/40 focus:outline-none"
             />
 
             {error && (

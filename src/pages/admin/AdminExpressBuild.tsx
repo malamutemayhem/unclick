@@ -190,7 +190,7 @@ export default function AdminExpressBuild() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-[#61C1C4]/20 bg-[#0f1717] p-5">
+      <section className="rounded-xl border border-[#61C1C4]/20 bg-white/[0.02] backdrop-blur-sm p-5">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -208,15 +208,15 @@ export default function AdminExpressBuild() {
             </p>
           </div>
           <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[420px]">
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Room</p>
               <p className="mt-1 font-semibold text-white">Front-line drafts</p>
             </div>
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Insert path</p>
               <p className="mt-1 font-semibold text-white">Jobs conveyor</p>
             </div>
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Done claims</p>
               <p className="mt-1 font-semibold text-white">Not here</p>
             </div>
@@ -233,7 +233,7 @@ export default function AdminExpressBuild() {
           <p className="text-sm leading-6 text-white/60">{EXPRESSROOM_INDUCTION_TEXT}</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {EXPRESSROOM_REQUIRED_FIELDS.map((field) => (
-              <div key={field} className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <div key={field} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <p className="text-xs uppercase tracking-wide text-white/35">Required</p>
                 <p className="mt-1 text-sm font-semibold text-white">{field}</p>
               </div>
@@ -264,7 +264,7 @@ export default function AdminExpressBuild() {
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {EXPRESSROOM_GUARDRAILS.map((guardrail) => (
-            <div key={guardrail} className="rounded-lg border border-red-300/15 bg-black/20 p-3 text-sm leading-6 text-red-100/75">
+            <div key={guardrail} className="rounded-lg border border-red-300/15 bg-white/[0.03] p-3 text-sm leading-6 text-red-100/75">
               {guardrail}
             </div>
           ))}
@@ -290,7 +290,7 @@ export default function AdminExpressBuild() {
               onChange={(event) => updateForm("job_name_mirror", event.target.value)}
               maxLength={200}
               placeholder="Same name as the official job, or the intended official name"
-              className="w-full rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
           <label className="space-y-2">
@@ -299,7 +299,7 @@ export default function AdminExpressBuild() {
               value={form.official_todo_id ?? ""}
               onChange={(event) => updateForm("official_todo_id", event.target.value || null)}
               placeholder="Optional existing Jobs Board id"
-              className="w-full rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
           <label className="space-y-2 lg:col-span-2">
@@ -309,7 +309,7 @@ export default function AdminExpressBuild() {
               onChange={(event) => updateForm("short_description", event.target.value)}
               maxLength={1000}
               placeholder="Quick read of what this Manual draft is trying to build"
-              className="w-full rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
           <label className="space-y-2">
@@ -319,7 +319,7 @@ export default function AdminExpressBuild() {
               onChange={(event) => updateForm("brief_markdown", event.target.value)}
               rows={10}
               placeholder="Paste the full chat intake here. Include what was visibly drafted while the context was fresh."
-              className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
+              className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
           <label className="space-y-2">
@@ -329,7 +329,7 @@ export default function AdminExpressBuild() {
               onChange={(event) => updateForm("supplied_code", event.target.value)}
               rows={10}
               placeholder="Paste draft code, patch notes, file contents, pseudocode, test outline, or say what was not supplied."
-              className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
+              className="w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -338,7 +338,7 @@ export default function AdminExpressBuild() {
               <select
                 value={form.supplied_code_status ?? "not_supplied"}
                 onChange={(event) => updateForm("supplied_code_status", event.target.value as ExpressRoomCodeStatus)}
-                className="w-full rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
+                className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
               >
                 {Object.entries(EXPRESSROOM_CODE_STATUS_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
@@ -350,7 +350,7 @@ export default function AdminExpressBuild() {
               <select
                 value={priority}
                 onChange={(event) => setPriority(event.target.value as Priority)}
-                className="w-full rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
+                className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none focus:border-[#61C1C4]/50"
               >
                 <option value="low">low</option>
                 <option value="normal">normal</option>
@@ -359,7 +359,7 @@ export default function AdminExpressBuild() {
               </select>
             </label>
           </div>
-          <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
             <div className="mb-2 flex items-center gap-2">
               <FileText className="h-4 w-4 text-[#61C1C4]" />
               <FieldLabel>Brief MD preview</FieldLabel>
@@ -436,22 +436,22 @@ export default function AdminExpressBuild() {
                   const description = buildExpressRoomOfficialJobDescription(draft);
                   return (
                     <tr key={draft.id} className="align-top">
-                      <td className="rounded-l-lg border-y border-l border-white/[0.06] bg-black/20 px-3 py-3">
+                      <td className="rounded-l-lg border-y border-l border-white/[0.06] bg-white/[0.03] px-3 py-3">
                         <p className="font-semibold text-white">{draft.job_name_mirror}</p>
                         <p className="mt-1 text-xs text-white/35">{formatDate(draft.updated_at)}</p>
                         <p className="mt-2 text-xs text-[#E2B93B]">
                           {EXPRESSROOM_DRAFT_STATUS_LABELS[draft.express_status]}
                         </p>
                       </td>
-                      <td className="border-y border-white/[0.06] bg-black/20 px-3 py-3 text-white/60">
+                      <td className="border-y border-white/[0.06] bg-white/[0.03] px-3 py-3 text-white/60">
                         {clip(draft.short_description, 220)}
                       </td>
-                      <td className="border-y border-white/[0.06] bg-black/20 px-3 py-3">
+                      <td className="border-y border-white/[0.06] bg-white/[0.03] px-3 py-3">
                         <pre className="max-h-28 max-w-[260px] overflow-auto whitespace-pre-wrap text-xs leading-5 text-white/50">
                           {clip(draft.brief_markdown, 420)}
                         </pre>
                       </td>
-                      <td className="border-y border-white/[0.06] bg-black/20 px-3 py-3">
+                      <td className="border-y border-white/[0.06] bg-white/[0.03] px-3 py-3">
                         <div className="mb-2 inline-flex rounded-full border border-white/[0.08] px-2 py-1 text-xs text-white/45">
                           {EXPRESSROOM_CODE_STATUS_LABELS[draft.supplied_code_status]}
                         </div>
@@ -459,7 +459,7 @@ export default function AdminExpressBuild() {
                           {draft.supplied_code.trim() ? clip(draft.supplied_code, 420) : "No code supplied."}
                         </pre>
                       </td>
-                      <td className="border-y border-white/[0.06] bg-black/20 px-3 py-3">
+                      <td className="border-y border-white/[0.06] bg-white/[0.03] px-3 py-3">
                         {draft.official_todo_id ? (
                           <Link
                             to={`/admin/jobs#todo-${draft.official_todo_id}`}
@@ -471,7 +471,7 @@ export default function AdminExpressBuild() {
                           <span className="text-white/35">Not inserted</span>
                         )}
                       </td>
-                      <td className="rounded-r-lg border-y border-r border-white/[0.06] bg-black/20 px-3 py-3">
+                      <td className="rounded-r-lg border-y border-r border-white/[0.06] bg-white/[0.03] px-3 py-3">
                         <button
                           type="button"
                           onClick={() => void promoteDraft(draft)}

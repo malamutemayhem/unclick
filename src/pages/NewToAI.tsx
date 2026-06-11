@@ -63,8 +63,8 @@ const FAQ = [
     a: "No. UnClick works through AI chat interfaces like Claude. You just talk normally.",
   },
   {
-    q: "Is it free?",
-    a: "Yes. The free plan gives you the full toolbox for everyday use. If you need more, Pro starts at $29 a month. See the pricing page for details.",
+    q: "How do I get access?",
+    a: "UnClick is in beta. You sign up with your email, get your key, and the full toolbox works right away.",
   },
   {
     q: "What AI does it work with?",
