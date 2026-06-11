@@ -16,3 +16,7 @@ Notes:
 - Flip decision: fused retrieval meets the master-plan gate (at or above baseline on every metric), so `MEMORY_FUSED_RETRIEVAL_ENABLED` now defaults ON with `0`/`false` as the kill switch.
 
 Reproduce: set the flag matrix and call `runMemoryHardeningEval(new LocalBackend())` (see `src/memory/__tests__/eval-harness.test.ts`).
+
+## Update (pass 4, same night)
+
+The scope-bleed fixture now writes the red marker with the real lane-4 scope fields (visibility private, foreign source_agent_id) instead of a bare category label. Under the full hardened flag set the suite scores 1.0 with scope_leakage 0 in both fusion configurations - all six fixtures pass.
