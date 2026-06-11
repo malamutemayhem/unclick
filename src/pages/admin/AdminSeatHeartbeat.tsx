@@ -167,7 +167,7 @@ export default function AdminSeatHeartbeatPage() {
           readOnly
           value={schedulePrompt}
           rows={4}
-          className="w-full resize-none rounded-md border border-border/40 bg-black/20 px-3 py-2 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
+          className="w-full resize-none rounded-md border border-border/40 bg-white/[0.03] px-3 py-2 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
         />
 
         <div className="grid gap-3 md:grid-cols-3">
@@ -198,7 +198,7 @@ export default function AdminSeatHeartbeatPage() {
           readOnly
           value={HEARTBEAT_MASTER_PROMPT}
           rows={10}
-          className="w-full resize-none rounded-md border border-border/30 bg-black/20 px-3 py-2 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
+          className="w-full resize-none rounded-md border border-border/30 bg-white/[0.03] px-3 py-2 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
         />
         <div className="grid gap-3 md:grid-cols-2">
           {HEARTBEAT_SOURCE_OF_TRUTH.map((item) => (

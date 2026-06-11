@@ -190,7 +190,7 @@ function CopyableBlock({ label, text }: { label: string; text: string }) {
     }
   }
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-black/30">
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03]">
       <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
         <span className="text-[11px] font-medium text-[#999]">{label}</span>
         <button

@@ -391,7 +391,7 @@ export default function AdminBrainmap() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search tools, rooms, workers, modules..."
-              className="h-10 w-full rounded-md border border-white/[0.08] bg-black/30 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#61C1C4]/60"
+              className="h-10 w-full rounded-md border border-white/[0.08] bg-white/[0.03] pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#61C1C4]/60"
             />
           </label>
         </div>
@@ -418,7 +418,7 @@ export default function AdminBrainmap() {
 
         <div className="space-y-5">
           {filteredGroups.map((division) => (
-            <section key={division.id} className="overflow-hidden rounded-lg border border-white/[0.06] bg-black/20">
+            <section key={division.id} className="overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03]">
               <div className="flex flex-col gap-2 border-b border-white/[0.06] bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-white">{division.name}</h3>

@@ -492,7 +492,7 @@ export default function AdminSeatsSubscription() {
               should stay on your own machine.
             </p>
           </div>
-          <div className="mt-5 rounded-lg border border-white/[0.06] bg-black/20 p-4 text-xs text-white/70">
+          <div className="mt-5 rounded-lg border border-white/[0.06] bg-white/[0.03] p-4 text-xs text-white/70">
             <p className="font-semibold text-white">Current selection</p>
             <p className="mt-1">{selectedGuide.included}</p>
             <p className="mt-2">{selectedGuide.metered}</p>
