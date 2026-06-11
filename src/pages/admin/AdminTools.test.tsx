@@ -53,6 +53,9 @@ describe("AdminTools (Apps library)", () => {
     );
   });
 
+  // Mounting the full generated catalog (671 apps) is slow on loaded CI
+  // runners; the default 10s timeout flaked on main (run 27328974941), so
+  // this render-heavy test gets an explicit budget.
   it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
     expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
@@ -60,7 +63,7 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.
     expect(screen.getByText("GitHub")).toBeInTheDocument();
-  });
+  }, 30000);
 
   it("links to Passport and the Skills Library instead of inlining everything", async () => {
     await renderAdminTools();
