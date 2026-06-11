@@ -1,6 +1,7 @@
 # Connections hardening plan (holistic)
 
-Status: active plan, operator-requested 2026-06-11 ("connections is a weak point in unclick and needs hardening wholistically")
+Status: **GREENLIT** by operator 2026-06-11 ("this is an important job and you are greenlit"). Crypto phases still require operator design approval before code. Product/UX companion: `docs/prd/connections-circle.md`.
+Origin: operator-requested 2026-06-11 ("connections is a weak point in unclick and needs hardening wholistically")
 Owner lane: Connections / BackstagePass / RotatePass / UnClick Local
 Companions: `docs/connectors/spec.md` (quality bar), `docs/rotatepass-local-phase0.md` (local boundary), `docs/prd/unclick-local-extension.md` (local lane Phase 1), the April 2026 source notes distilled in that PRD.
 
@@ -45,6 +46,27 @@ Two credential stores exist, with different properties:
 - **G6. No device/seat inventory or revocation.** Nothing answers "which seats can currently decrypt my vault?" and there is no revocation short of the rotation that G2 punishes.
 - **G7. Browser-login services have no safe lane yet.** Covered by the UnClick Local Phase 1 lane (PR #1470); listed here so the holistic picture is complete.
 
+## Design constraints added at greenlight (operator, 2026-06-11)
+
+1. **Account-first identity.** The email account is the durable identity; UnClick API keys are disposable keycards that churn rapidly (users mint a fresh key per MCP connection as normal behaviour). Nothing durable (vault, Circle links, memory, Boardroom) may be anchored to a key. This reframes G2: rotation stops being a migration event and becomes a non-event.
+2. **Super simple, Apple-vibes UX.** One screen, plain words, big switches, honest consequence copy. OAuth-first connect (one button, provider consent popup, no copy-paste) wherever the provider supports it; paste-once for API-key-only providers.
+3. **People-linking ("Circle", operator seed name "Friends")** with per-person, per-direction, both-sides-opt-in sharing permissions (Shared Memory, Shared Orchestrator at launch) and loud privacy visibility. Full spec in `docs/prd/connections-circle.md`.
+4. **Team default is individual accounts linked through Circle**, not a shared API key. Shared-account mode stays possible but discouraged in copy.
+
+## Compliance reality (plain English, for the record)
+
+The operator asked whether storing third-party API keys is illegal without a certified vault. It is not. There is no law requiring ISO 27001 or SOC 2 certification to store API keys; those are trust badges and sometimes customer-contract requirements, not licenses. PCI-DSS applies to card data, not API keys. What IS required is ordinary duty of care (encrypt at rest, control access, breach notification per privacy law such as the Australian Privacy Act / NDB scheme where applicable), and UnClick already exceeds the common baseline: credentials are AES-256-GCM encrypted with a key derived from a secret only the user holds, so UnClick servers cannot read stored credentials at all. The current weakness is operational (rotation orphans, audit gaps, key-anchored tenancy), not legal. Certifications can come later as a sales asset; CompliancePass can track readiness.
+
+## Vault crypto options for H1 (decision needed before any code)
+
+The current scheme derives the encryption key from the UnClick API key. Account-first identity plus key churn makes that untenable. Options, stated simply:
+
+- **Option A: server-side master key (industry standard).** Each account gets a random data key; the data key is encrypted by a master key UnClick holds (env/KMS). User keys can churn freely; rotation and recovery are trivial. Trade-off: UnClick can technically decrypt (mitigated by access controls and audit). This is how almost every SaaS does it.
+- **Option B: stable user vault passphrase.** Keep zero-knowledge, but derive from a long-lived vault passphrase that is NOT the churning API key. Trade-off: lose the passphrase, lose the vault; teams and recovery stay hard. Simple is sacrificed.
+- **Option C: hybrid (recommended).** Per-account random data key wrapped twice: once by the server master key (recovery, team simplicity, key churn immunity) and optionally by a user passphrase for users who want the stricter mode. Default experience is Option A simplicity; privacy-maximalists can opt up.
+
+Recommendation: C with A as the default posture. Migration path: on first use after upgrade, decrypt rows with the presented API key (today's scheme) and re-wrap under the account data key; rows untouched until their owner shows up with a working key.
+
 ## Hardening phases (buildable PRs, in order)
 
 **H0. Truth and visibility (no schema changes).**
@@ -76,7 +98,15 @@ Two credential stores exist, with different properties:
 
 ## Decision queue for the operator
 
-1. Two stores: converge or contract? (G4)
-2. H1 rotation flow: approve design before any crypto-adjacent code is written. (G2)
-3. H2 scoped seat keys: approve the delegation model. (G5, G6)
-4. Phase 2 extension proof sites: pick the first 2-3 non-OAuth targets. (G7)
+1. Vault crypto: confirm Option C (hybrid, server-recoverable by default) or pick A/B. Blocks H1. (G2)
+2. Circle naming: Circle vs Friends vs other. Blocks the first Circle PR's copy only.
+3. Two stores: converge or contract? Account-first migration is the natural moment to converge. (G4)
+4. H2 scoped seat keys: approve the delegation model. (G5, G6)
+5. Extension Phase 2 proof sites: pick the first 2-3 non-OAuth targets. (G7)
+
+## Build order after greenlight
+
+1. **H0 (audit parity + seat/key inventory)**: no schema risk, ships independently.
+2. **Circle PR 1** (per `docs/prd/connections-circle.md` acceptance sketch): account-to-account links and sharing toggles; touches no key handling, so it can ship before the crypto decision.
+3. **H1 (account-anchored vault + orphan-safe rotation)**: after decision 1. This is the single change that makes the operator's key-churn reality safe.
+4. **H2 (scoped seat keys)**, then **H3 (local lane integration)**.
