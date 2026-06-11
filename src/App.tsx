@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import HomepageSample from "./pages/HomepageSample.tsx";
+import HomePreview from "./pages/HomePreview.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DocsPage from "./pages/Docs.tsx";
 import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
@@ -137,6 +138,7 @@ const App = () => (
         <BetaBanner />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/home-preview" element={<HomePreview />} />
           <Route path="/uipass-home-sample" element={<HomepageSample />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />

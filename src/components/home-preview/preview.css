@@ -1,0 +1,157 @@
+/* ============================================================
+   Home preview (design demo) scoped styles.
+
+   Everything here is namespaced hp- so it cannot leak into the
+   live site. The demo keeps the navy + teal investor-deck canvas
+   and pushes the grid motif further: a perspective floor in the
+   hero, blueprint crosshairs, and a slow app ticker. All motion
+   stops under prefers-reduced-motion.
+   ============================================================ */
+
+/* Perspective floor grid: the hero "rails". A wide plane tilted
+   away from the viewer, teal hairlines, faded with a mask so it
+   reads as depth rather than decoration. */
+.hp-floor {
+  position: absolute;
+  left: 50%;
+  bottom: -12%;
+  width: 220%;
+  height: 72%;
+  transform: translateX(-50%) perspective(620px) rotateX(64deg);
+  transform-origin: center top;
+  background-image:
+    linear-gradient(to right, hsl(187 70% 70% / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(187 70% 70% / 0.13) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
+          mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-floor {
+    animation: hp-floor-pan 26s linear infinite;
+  }
+}
+
+@keyframes hp-floor-pan {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 0 56px, 0 56px; }
+}
+
+/* Blinking cursor for the console ask line. */
+.hp-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: hsl(182 46% 57% / 0.9);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-caret {
+    animation: hp-blink 1.05s steps(1) infinite;
+  }
+}
+
+@keyframes hp-blink {
+  50% { opacity: 0; }
+}
+
+/* Live dot pulse on the console header. */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-live-dot {
+    animation: hp-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes hp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(182 46% 57% / 0.55); }
+  60%      { box-shadow: 0 0 0 7px hsl(182 46% 57% / 0); }
+}
+
+/* Running spinner square (terminal flavored, not a circle). */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-running {
+    animation: hp-spin 0.9s steps(8) infinite;
+  }
+}
+
+@keyframes hp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* App ticker rows. Each row holds its list twice for a seamless
+   loop. Slow by design; pauses on hover and under reduced motion. */
+.hp-ticker {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.hp-ticker-row {
+  display: flex;
+  width: max-content;
+  gap: 2.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-ticker-row-a { animation: hp-scroll 56s linear infinite; }
+  .hp-ticker-row-b { animation: hp-scroll 72s linear infinite reverse; }
+  .hp-ticker:hover .hp-ticker-row { animation-play-state: paused; }
+}
+
+@keyframes hp-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Bento spotlight: a teal radial that follows the pointer.
+   Coordinates are set as CSS vars from React. */
+.hp-spot {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    260px circle at var(--hp-x, 50%) var(--hp-y, 50%),
+    hsl(184 60% 70% / 0.12),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.hp-card:hover .hp-spot {
+  opacity: 1;
+}
+
+/* Blueprint crosshair corners on bento cards and the console. */
+.hp-cross {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: hsl(187 60% 75% / 0.4);
+  pointer-events: none;
+}
+
+.hp-cross::before,
+.hp-cross::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.hp-cross::before {
+  left: 4px;
+  top: 0;
+  width: 1px;
+  height: 9px;
+}
+
+.hp-cross::after {
+  left: 0;
+  top: 4px;
+  width: 9px;
+  height: 1px;
+}
