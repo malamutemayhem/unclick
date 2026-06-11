@@ -66,6 +66,7 @@ describe("design canon: banned effects stay deleted", () => {
       "src/components/NetworkGraph.tsx",
       "src/components/VantaWavesBackground.tsx",
       "src/components/ForDevelopers.tsx",
+      "src/components/CodeBlock.tsx",
     ]) {
       expect(existsSync(resolve(process.cwd(), gone)), `${gone} should stay deleted`).toBe(false);
     }
@@ -80,6 +81,9 @@ describe("design canon: banned effects stay deleted", () => {
 const CONVERTED_PAGES = [
   "src/components/PageShell.tsx",
   "src/components/BrochurePage.tsx",
+  "src/pages/Developers.tsx",
+  "src/pages/SmartHome.tsx",
+  "src/pages/Crews.tsx",
 ];
 
 describe("design canon: converted pages stay converted", () => {
