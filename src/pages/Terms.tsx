@@ -120,8 +120,8 @@ const TermsPage = () => {
         <FadeIn delay={0.18}>
           <Section title="6. Payment">
             <p>
-              UnClick currently offers a free tier. Paid plans may be introduced in future, at which point we will notify users in advance and give you
-              a reasonable window to decide whether to upgrade or continue on a free tier.
+              UnClick is currently in beta and access does not require payment. Paid plans may be introduced in future, at which point we will notify users in advance and give you
+              a reasonable window to decide how you want to continue.
             </p>
             <p>
               If and when paid features are introduced, billing will be handled via Stripe. All prices will be listed in USD unless otherwise stated.

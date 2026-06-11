@@ -107,7 +107,7 @@ const COMPARISON = [
   },
   {
     feature: "Price",
-    unclick: "Free / $29 Pro",
+    unclick: "In beta",
     calendly: "$12 - $20/mo",
     cal: "Free - $120/mo",
     notion: "$10 - $20/mo",
@@ -152,10 +152,10 @@ const Organiser = () => {
           <FadeIn delay={0.2}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/"
                 className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Get Started Free
+                Get Started
               </Link>
               <a
                 href="#tools"
@@ -405,10 +405,10 @@ const Organiser = () => {
           <FadeIn delay={0.2}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/"
                 className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Get Started Free
+                Get Started
               </Link>
               <Link
                 to="/docs"

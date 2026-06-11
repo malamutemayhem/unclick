@@ -22,7 +22,7 @@ The package exposes 4 meta-tools:
 
 ## Common questions
 Q: What is UnClick? A: Shared agent rails for tools, memory, connections, crews, and Pass family QA checks. You point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup.
-Q: Is UnClick free? A: Yes. A free tier gives access to all 178+ tools. Sign up with your email to get an API key.
+Q: How do I get access? A: UnClick is in beta. Sign up with your email to get an API key and start using all 178+ tools.
 Q: What agents work with UnClick? A: Any MCP-compatible agent, including Claude (Anthropic), ChatGPT, Cursor, and OpenClaw.
 Q: How is UnClick different from other MCP servers? A: Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup.
 
@@ -34,7 +34,6 @@ Text processing, data utilities, media (image/QR/color), timestamps, networking,
 - Why UnClick: https://unclick.world/why
 - Apps: https://unclick.world/tools
 - Memory: https://unclick.world/memory
-- Pricing: https://unclick.world/pricing
 - FAQ: https://unclick.world/faq
 - Developer platform: https://unclick.world/developers
 - GitHub: https://github.com/malamutemayhem/unclick

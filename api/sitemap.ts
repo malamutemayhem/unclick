@@ -36,7 +36,6 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/arena",               changefreq: "daily",   priority: "0.9" },
   { path: "/arena/leaderboard",   changefreq: "daily",   priority: "0.7" },
   { path: "/docs",                changefreq: "weekly",  priority: "0.9" },
-  { path: "/pricing",             changefreq: "monthly", priority: "0.8" },
   { path: "/memory",              changefreq: "weekly",  priority: "0.8" },
   { path: "/backstagepass",       changefreq: "monthly", priority: "0.7" },
   { path: "/faq",                 changefreq: "monthly", priority: "0.7" },

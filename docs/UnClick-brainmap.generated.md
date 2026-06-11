@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 14906b128315 | 17394 |
+| src/App.tsx | f77ebd0865b6 | 17454 |
 | src/pages/admin/AdminShell.tsx | 583495279a0e | 28506 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -133,8 +133,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | ef96865a608b | 7998 |
 | src/pages/Developers.tsx | c31a8a187fac | 19126 |
-| src/pages/Dispatch.tsx | c2906a71ea43 | 15439 |
-| src/pages/Docs.tsx | 490548492455 | 18580 |
+| src/pages/Dispatch.tsx | 047ef00fef21 | 15432 |
+| src/pages/Docs.tsx | 8de0bf490b3b | 18579 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
@@ -142,20 +142,19 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
-| src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
-| src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
-| src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/Pricing.tsx | b9834637502c | 8724 |
+| src/pages/Memory.tsx | 9b3287148c55 | 19196 |
+| src/pages/NewToAI.tsx | c37c9a0c88dd | 13073 |
+| src/pages/Organiser.tsx | 37617bcb1aee | 16550 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 1d7898e16b70 | 20719 |
-| src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
+| src/pages/Terms.tsx | 21dead1e8fab | 9334 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/Why.tsx | a210c068f422 | 11101 |
+| src/pages/Why.tsx | 98510edb7393 | 11060 |
 | src/pages/XPass.tsx | 8a95e39abdd4 | 11982 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -246,7 +245,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -371,7 +370,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /memory | Memory | Public memory product page. | src/pages/Memory.tsx |
 | /new-to-ai | New To AI | Beginner-friendly AI orientation. | src/pages/NewToAI.tsx |
 | /organiser | Organiser | User-facing page for Organiser. | src/pages/Organiser.tsx |
-| /pricing | Pricing | Plans, billing, and packaging. | src/pages/Pricing.tsx |
 | /privacy | Privacy | Privacy policy. | src/pages/Privacy.tsx |
 | /signup | Signup | Sign-up page. | src/pages/Signup.tsx |
 | /smarthome | Smart Home | User-facing page for Smart Home. | src/pages/SmartHome.tsx |
@@ -1441,7 +1439,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Memory Setup Guide | User-facing page for Memory Setup Guide. | /memory/setup-guide | src/pages/MemorySetupGuide.tsx |
 | Public surfaces | public page | New To AI | Beginner-friendly AI orientation. | /new-to-ai | src/pages/NewToAI.tsx |
 | Public surfaces | public page | Organiser | User-facing page for Organiser. | /organiser | src/pages/Organiser.tsx |
-| Public surfaces | public page | Pricing | Plans, billing, and packaging. | /pricing | src/pages/Pricing.tsx |
 | Public surfaces | public page | Privacy | Privacy policy. | /privacy | src/pages/Privacy.tsx |
 | Public surfaces | public page | Scheduling | Tool page for Scheduling. | /tools/scheduling | src/pages/tools/Scheduling.tsx |
 | Public surfaces | public page | Signup | Sign-up page. | /signup | src/pages/Signup.tsx |

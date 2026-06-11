@@ -30,7 +30,6 @@ import MemoryPage from "./pages/Memory.tsx";
 import MemorySetupPage from "./pages/MemorySetup.tsx";
 import MemoryConnectPage from "./pages/MemoryConnect.tsx";
 import MemorySetupGuidePage from "./pages/MemorySetupGuide.tsx";
-import PricingPage from "./pages/Pricing.tsx";
 import OrganiserPage from "./pages/Organiser.tsx";
 import DispatchPage from "./pages/Dispatch.tsx";
 import CrewsPage from "./pages/Crews.tsx";
@@ -275,7 +274,8 @@ const App = () => (
           <Route path="/new-to-ai" element={<NewToAIPage />} />
           <Route path="/why" element={<WhyPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
-          <Route path="/pricing" element={<PricingPage />} />
+          {/* Pricing is intentionally absent while UnClick is in beta; keep old URL alive */}
+          <Route path="/pricing" element={<Navigate to="/" replace />} />
           {/* Install ticket recovery: fresh 24h code for returning users */}
           <Route path="/i" element={<InstallRecoverPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

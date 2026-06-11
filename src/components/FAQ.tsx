@@ -23,8 +23,8 @@ const faqData = [
         a: `UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the ${SITE_STATS.TOOLS_DISPLAY} available tools with no per-integration setup required.`,
       },
       {
-        q: "Is UnClick free?",
-        a: `Yes. UnClick has a free tier that gives you access to all ${SITE_STATS.TOOLS_DISPLAY} tools with no upfront cost. Simply sign up with your email to get an API key and start using tools immediately.`,
+        q: "How do I get access?",
+        a: `UnClick is in beta. Simply sign up with your email to get an API key and start using all ${SITE_STATS.TOOLS_DISPLAY} tools immediately.`,
       },
       {
         q: "What AI agents work with UnClick?",
@@ -57,7 +57,7 @@ const faqData = [
       },
       {
         q: "How do I use UnClick tools with my AI agent?",
-        a: "Get your free API key from UnClick, then add UnClick's MCP server URL to your agent's configuration. For Claude Desktop, Cursor, or OpenClaw, this is a simple JSON config snippet. For custom agents, point your MCP client at the UnClick endpoint and pass your API key as a header. Your agent will automatically discover all available tools.",
+        a: "Get your API key from UnClick, then add UnClick's MCP server URL to your agent's configuration. For Claude Desktop, Cursor, or OpenClaw, this is a simple JSON config snippet. For custom agents, point your MCP client at the UnClick endpoint and pass your API key as a header. Your agent will automatically discover all available tools.",
       },
     ],
   },
@@ -66,11 +66,11 @@ const faqData = [
     items: [
       {
         q: "Do I need an API key?",
-        a: "You can browse available tools without an API key. To actually call tools from your AI agent, you'll need a free API key. Sign up with your email on the UnClick homepage to get one instantly.",
+        a: "You can browse available tools without an API key. To actually call tools from your AI agent, you'll need an API key. Sign up with your email on the UnClick homepage to get one instantly.",
       },
       {
         q: "Is there a rate limit?",
-        a: "The free tier includes a generous rate limit suitable for development and moderate production use. If you need higher throughput for a large-scale deployment, reach out to the UnClick team about higher-tier access.",
+        a: "During the beta there is a generous rate limit suitable for development and moderate production use. If you need higher throughput for a large-scale deployment, reach out to the UnClick team.",
       },
       {
         q: "What's the difference between UnClick and other MCP servers?",

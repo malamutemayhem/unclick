@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 const PUBLIC_COPY_FILES = [
   "../pages/BackstagePass.tsx",
   "../pages/Dispatch.tsx",
-  "../pages/Pricing.tsx",
   "../pages/NewToAI.tsx",
   "../pages/Crews.tsx",
   "../pages/Connect.tsx",

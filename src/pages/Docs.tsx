@@ -221,7 +221,7 @@ const DocsPage = () => {
           <p className="mt-2 text-sm text-body">
             Pass your API key as a Bearer token:{" "}
             <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">Authorization: Bearer YOUR_API_KEY</code>.
-            Get a free key at <a href="/" className="text-primary underline underline-offset-4">unclick.world</a>.
+            Get a key at <a href="/" className="text-primary underline underline-offset-4">unclick.world</a>.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {["links:read", "links:write", "schedule:read", "schedule:write", "webhooks:read", "webhooks:write", "keys:read", "keys:write"].map((scope) => (
@@ -256,7 +256,7 @@ const DocsPage = () => {
         <div className="mt-16 rounded-lg border border-border/40 bg-card/30 p-6">
           <h2 className="text-lg font-semibold text-heading">Rate limits</h2>
           <p className="mt-2 text-sm text-body">
-            Free: 60 req/min. Pro: 300 req/min. Team: 1,000 req/min. Rate limit headers are included in every response.
+            During the beta, every key gets a generous per-minute limit. Rate limit headers are included in every response.
             Exceeded limits return <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">429 Too Many Requests</code>.
           </p>
         </div>

@@ -353,7 +353,7 @@ const Dispatch = () => {
           <FadeIn delay={0.1}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/"
                 className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
                 Get API Key

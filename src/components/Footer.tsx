@@ -17,7 +17,6 @@ const PRODUCT_LINKS = [
 const RESOURCES_LINKS = [
   { label: "Docs", href: "/docs" },
   { label: "FAQ", href: "/faq" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Intro", href: "/new-to-ai" },
 ];
 
