@@ -33,6 +33,12 @@ export interface FactInput {
   // --- end lane-09 ---
   // Bi-temporal + provenance (Chunk 2)
   valid_from?: string;
+  /**
+   * Optional expiry (ISO 8601). Recall already filters facts whose valid_to
+   * has passed, so an expired fact drops out of every recall surface while
+   * remaining queryable with point-in-time `as_of` searches.
+   */
+  valid_to?: string;
   extractor_id?: string;
   prompt_version?: string;
   model_id?: string;

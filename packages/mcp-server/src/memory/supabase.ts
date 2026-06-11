@@ -1692,6 +1692,7 @@ export class SupabaseBackend implements MemoryBackend {
       last_accessed: now(),
       content_hash: hash,
       valid_from: data.valid_from ?? now(),
+      valid_to: data.valid_to ?? null,
       recorded_at: now(),
       extractor_id: data.extractor_id ?? "manual",
       prompt_version: data.prompt_version ?? null,

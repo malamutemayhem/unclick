@@ -1,0 +1,5 @@
+Contact: mailto:hello@unclick.world
+Expires: 2027-06-11T00:00:00.000Z
+Policy: https://github.com/malamutemayhem/unclick/blob/main/SECURITY.md
+Canonical: https://unclick.world/.well-known/security.txt
+Preferred-Languages: en
