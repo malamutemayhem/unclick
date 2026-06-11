@@ -9,7 +9,6 @@ import {
   Brain,
   Calendar,
   Users,
-  Trophy,
   ArrowRight,
   CheckCircle2,
   MessageSquare,
@@ -65,7 +64,7 @@ const FAQ = [
   },
   {
     q: "Is it free?",
-    a: "Yes. The free plan gives you the full toolbox. Paid options will come later.",
+    a: "Yes. The free plan gives you the full toolbox for everyday use. If you need more, Pro starts at $29 a month. See the pricing page for details.",
   },
   {
     q: "What AI does it work with?",
@@ -126,12 +125,6 @@ const PRODUCTS = [
     desc: "Teams of AI agents working together on complex projects.",
     link: "/crews",
     icon: Users,
-  },
-  {
-    name: "Arena",
-    desc: "Test and compare different AI models side by side.",
-    link: "/arena",
-    icon: Trophy,
   },
 ];
 

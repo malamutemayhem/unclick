@@ -68,11 +68,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I start free and upgrade later?",
-    a: "Yes. Your memory, tools, and Arena reputation all carry over when you upgrade.",
+    a: "Yes. Your memory and tools all carry over when you upgrade.",
   },
   {
     q: "Do I need a Supabase account?",
-    a: "For Memory, yes (free tier is fine). Tools and Arena work without one.",
+    a: "For Memory, yes (free tier is fine). Tools work without one.",
   },
   {
     q: "What's the difference between direct and proxy mode?",

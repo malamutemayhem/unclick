@@ -75,7 +75,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 87bc594da785 | 1598 |
+| src/pages/Index.tsx | 6ba14c5445bf | 1542 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
@@ -143,9 +143,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | 732d0646c356 | 19854 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
-| src/pages/NewToAI.tsx | e2d14ccf9af9 | 13179 |
+| src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
-| src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
+| src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 1d7898e16b70 | 20719 |

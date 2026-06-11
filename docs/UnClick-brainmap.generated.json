@@ -15741,8 +15741,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "87bc594da785",
-      "bytes": 1598
+      "hash": "6ba14c5445bf",
+      "bytes": 1542
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -16081,8 +16081,8 @@
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "e2d14ccf9af9",
-      "bytes": 13179
+      "hash": "4fdcf1fa25d2",
+      "bytes": 13105
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -16091,8 +16091,8 @@
     },
     {
       "source": "src/pages/Pricing.tsx",
-      "hash": "0830c034b4a3",
-      "bytes": 8753
+      "hash": "b9834637502c",
+      "bytes": 8724
     },
     {
       "source": "src/pages/Privacy.tsx",

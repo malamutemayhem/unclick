@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Problem from "@/components/Problem";
 import InstallSection from "@/components/InstallSection";
-import Stats from "@/components/Stats";
 import TrustSignals from "@/components/TrustSignals";
 import FinalCTA from "@/components/FinalCTA";
 import FAQ from "@/components/FAQ";
@@ -37,7 +36,6 @@ const Index = () => {
       <Hero />
       <Problem />
       <InstallSection />
-      <Stats />
       <TrustSignals />
       <FinalCTA />
       <FAQ />
