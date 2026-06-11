@@ -98,7 +98,7 @@ Recommendation: C with A as the default posture. Migration path: on first use af
 
 ## Decision queue for the operator
 
-1. Vault crypto: confirm Option C (hybrid, server-recoverable by default) or pick A/B. Blocks H1. (G2)
+1. ~~Vault crypto~~ RESOLVED 2026-06-11: **Option C** (hybrid: per-account data key, server-wrapped by default, optional user passphrase mode), operator-approved with the recorded condition "no vault issues, iso issues" - satisfied because no certification is required for this pattern (see "Compliance reality" above; ISO/SOC are optional trust badges, not licenses). H1 is unblocked: next step is the H1 design note (key hierarchy, wrap/unwrap flow, migration from key-derived rows, no plaintext in logs) reviewed before implementation. (G2)
 2. ~~Circle naming~~ RESOLVED 2026-06-11: Circle, with the rename-safe rule (Boardroom-rename lesson: brand name lives only in `src/config/product-names.ts`; all contracts use neutral `account_links`-style identifiers).
 3. Two stores: converge or contract? Account-first migration is the natural moment to converge. (G4)
 4. H2 scoped seat keys: approve the delegation model. (G5, G6)
