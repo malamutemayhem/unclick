@@ -122,6 +122,21 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 21 + phase-6 sweep):** remaining public pages and
+  the full-stack test pass.
+  - FAQ page no longer advertises the hidden Arena in its meta
+    description or lede. Organiser drops "unified behind a single MCP
+    interface" and "AI-native" for plain calendar wording. Dispatch's
+    "Session bridge protocol" reads "Your context travels with you
+    between apps". SmartHome and Docs audited: appropriately technical
+    for their audiences, no changes. CopyPass PASS 100 (run 35817b69).
+  - Phase-6 entry: full-stack sweep run covering the website suite and
+    the MCP package suite (both required-check surfaces) plus build and
+    brainmap gates; results recorded in the round-21 commit message.
+  - Remaining phase-6 queue: UIPass browser-screenshot evidence on key
+    pages (needs a browser-capable seat), mobile pass, fresh dogfood
+    report regeneration after the next merge.
+
 - **2026-06-11 (round 20):** Connect page judgment copy. The success
   state says what actually happened ("Saved. Your AI can use {app} from
   now on, with no extra steps") instead of "MCP tool calls will use them

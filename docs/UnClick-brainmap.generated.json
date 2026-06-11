@@ -16061,8 +16061,8 @@
     },
     {
       "source": "src/pages/Dispatch.tsx",
-      "hash": "cbe1263c226f",
-      "bytes": 15459
+      "hash": "c2906a71ea43",
+      "bytes": 15439
     },
     {
       "source": "src/pages/Docs.tsx",
@@ -16076,8 +16076,8 @@
     },
     {
       "source": "src/pages/FAQPage.tsx",
-      "hash": "507e1ed5789c",
-      "bytes": 712
+      "hash": "40edfe371870",
+      "bytes": 690
     },
     {
       "source": "src/pages/InstallRecover.tsx",
@@ -16116,8 +16116,8 @@
     },
     {
       "source": "src/pages/Organiser.tsx",
-      "hash": "a439fcf2092f",
-      "bytes": 16578
+      "hash": "ae35be237d83",
+      "bytes": 16581
     },
     {
       "source": "src/pages/Pricing.tsx",

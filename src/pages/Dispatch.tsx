@@ -72,7 +72,7 @@ const SETUP_STEPS = [
   {
     step: 2,
     title: "Add CLAUDE.md to project root",
-    desc: "Session bridge protocol - context travels between environments",
+    desc: "Your context travels with you between apps",
   },
   {
     step: 3,
