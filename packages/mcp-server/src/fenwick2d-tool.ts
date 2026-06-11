@@ -92,7 +92,7 @@ export async function fenwick2D(args: Record<string, unknown>) {
       }
       results.push(rectSum(r1, c1, r2, c2));
     } else {
-      throw new Error(`Unknown operation type: ${(op as any).type}`);
+      throw new Error(`Unknown operation type: ${(op as { type?: unknown }).type}`);
     }
   }
 
