@@ -167,7 +167,7 @@ const ROUTES = [
     path: "/why",
     title: "Why UnClick - the layer your AI plugs into",
     description:
-      "900+ vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.",
+      "178+ vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.",
     ogTitle: "Why UnClick",
     ogDescription:
       "Every tool. Your memory. Signed permissions. Built-in proof. One install. See what makes UnClick different.",
@@ -178,7 +178,7 @@ const ROUTES = [
       {
         h2: "The five-pillar moat",
         items: [
-          { title: "Every tool, one install", desc: "900+ tools and 200+ apps in a single MCP install. No wiring one integration at a time." },
+          { title: "Every tool, one install", desc: "178+ vetted tools in a single MCP install. No wiring one integration at a time." },
           { title: "Tools you can trust", desc: "Every tool is hardened and tested, stamps where its answer came from, and hands your agent the next step." },
           { title: "Memory that is yours", desc: "One memory across every assistant and device, kept in your own database, with zero lock-in." },
           { title: "Permissions and proof", desc: "Signed, scoped access plus built-in proof the work was done right. Evidence, not vibes." },

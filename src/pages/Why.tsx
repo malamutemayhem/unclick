@@ -4,6 +4,7 @@ import ExpandableImage from "@/components/ExpandableImage";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { presets } from "@/lib/design-system";
+import { SITE_STATS } from "@/config/site-stats";
 import {
   Package,
   ShieldCheck,
@@ -36,7 +37,7 @@ const REASONS: Reason[] = [
   {
     icon: Package,
     title: "Every tool, one install",
-    desc: "900+ tools and 200+ apps added in a single MCP install. No wiring or securing one integration at a time.",
+    desc: `${SITE_STATS.TOOLS_DISPLAY} vetted tools added in a single MCP install. No wiring or securing one integration at a time.`,
   },
   {
     icon: ShieldCheck,
@@ -68,7 +69,7 @@ const REASONS: Reason[] = [
 const SHINE = [
   { dim: "Time to value", tip: "How fast you go from nothing to working", unclick: "One install, inside the AI you already use", other: "Clone, configure, host, and secure a process" },
   { dim: "Ops and security", tip: "Who keeps it running and safe", unclick: "Managed, nothing to patch", other: "You own hosting, updates, and the attack surface" },
-  { dim: "Tools", tip: "How you get capabilities", unclick: "900+ tools, one standard, vetted", other: "Wire and vet each tool yourself" },
+  { dim: "Tools", tip: "How you get capabilities", unclick: `${SITE_STATS.TOOLS_DISPLAY} tools, one standard, vetted`, other: "Wire and vet each tool yourself" },
   { dim: "Memory", tip: "Where your memory lives and travels", unclick: "Yours, in your database, across every client", other: "Per-runtime, assembled from plugins" },
   { dim: "Cost shape", tip: "How the bill behaves", unclick: "No token meter running in the background", other: "Metered tokens that can spike if untuned" },
   { dim: "Portability", tip: "How easily you move and leave", unclick: "Follows you everywhere, zero lock-in", other: "Centered on the runtime you operate" },
@@ -102,7 +103,7 @@ const Why = () => {
   useMetaTags({
     title: "Why UnClick - the layer your AI plugs into",
     description:
-      "900+ vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.",
+      `${SITE_STATS.TOOLS_DISPLAY} vetted tools, a memory that stays in your own database, signed permissions, and built-in proof, in one install. An honest look at where UnClick beats wiring up a self-hosted agent, and where those agents still lead.`,
     ogTitle: "Why UnClick",
     ogDescription:
       "Every tool. Your memory. Signed permissions. Built-in proof. One install. See what makes UnClick different.",
