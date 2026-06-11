@@ -19,6 +19,11 @@ import type {
   InvalidateFactInput,
   ForgetInput,
   ForgetReceipt,
+  ArchiveFactInput,
+  ArchiveFactResult,
+  RestoreFactInput,
+  RestoreFactResult,
+  RecycleBinEntry,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -1262,6 +1267,65 @@ export class LocalBackend implements MemoryBackend {
       fact_decay_tiers: tiers,
     };
   }
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  async archiveFact(input: ArchiveFactInput): Promise<ArchiveFactResult> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === input.fact_id);
+    if (!fact) throw new Error(`Fact ${input.fact_id} not found`);
+    if (fact.status === "archived") {
+      return { fact_id: fact.id, archived_at: fact.archived_at ?? fact.updated_at, already_archived: true };
+    }
+    if (fact.status !== "active") {
+      throw new Error(`Fact ${input.fact_id} has status '${fact.status}' and cannot be archived`);
+    }
+
+    const archivedAt = now();
+    fact.status = "archived";
+    fact.archived_at = archivedAt;
+    fact.decay_reason = input.reason ?? "recycle-bin:user_archive";
+    fact.updated_at = archivedAt;
+    writeTable("extracted_facts", rows);
+    return { fact_id: fact.id, archived_at: archivedAt, already_archived: false };
+  }
+
+  async restoreFact(input: RestoreFactInput): Promise<RestoreFactResult> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === input.fact_id);
+    if (!fact) throw new Error(`Fact ${input.fact_id} not found`);
+    if (fact.status === "active") {
+      return { fact_id: fact.id, restored_at: fact.updated_at, was_archived: false };
+    }
+    if (fact.status !== "archived") {
+      throw new Error(`Fact ${input.fact_id} has status '${fact.status}' and cannot be restored`);
+    }
+
+    const restoredAt = now();
+    fact.status = "active";
+    fact.archived_at = null;
+    fact.decay_reason = null;
+    fact.updated_at = restoredAt;
+    writeTable("extracted_facts", rows);
+    return { fact_id: fact.id, restored_at: restoredAt, was_archived: true };
+  }
+
+  async listArchivedFacts(limit = 100): Promise<RecycleBinEntry[]> {
+    return readTable<FactRow>("extracted_facts")
+      .filter((row) => row.status === "archived")
+      .sort((a, b) =>
+        new Date(b.archived_at ?? b.updated_at).getTime() - new Date(a.archived_at ?? a.updated_at).getTime()
+      )
+      .slice(0, Math.max(1, limit))
+      .map((row) => ({
+        id: row.id,
+        fact: row.fact,
+        category: row.category,
+        confidence: row.confidence,
+        archived_at: row.archived_at ?? null,
+        archive_reason: row.decay_reason ?? null,
+      }));
+  }
+  // --- end recycle bin ---
 
   async invalidateFact(_input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const rows = readTable<FactRow>("extracted_facts");

@@ -31,6 +31,7 @@ import {
 } from "./consolidation.js";
 import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
 import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
+import { isRecycleBinEnabled, MEMORY_RECYCLE_BIN_FLAG, EMPTY_BIN_MAX_BATCH } from "./recycle-bin.js";
 import {
   isCorrectionsEnabled,
   CORRECTIONS_CATEGORY,
@@ -1105,6 +1106,21 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     const reason = typeof args.reason === "string" ? args.reason : undefined;
     const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
 
+    // Recycle-bin model: forget moves the fact into the bin instead of
+    // deleting; empty_recycle_bin is the only permanent deletion path.
+    if (isRecycleBinEnabled()) {
+      const archived = await db.archiveFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "recycle_bin_archive",
+        flag: MEMORY_RECYCLE_BIN_FLAG,
+        flag_enabled: true,
+        ...archived,
+        note: archived.already_archived
+          ? "Fact was already in the recycle bin. Use empty_recycle_bin to delete it permanently."
+          : "Fact moved to the recycle bin and hidden from recall. Use restore_memory to bring it back or empty_recycle_bin to delete it permanently.",
+      };
+    }
+
     // Default OFF: fall back to the existing soft invalidate so production
     // behaviour is unchanged until the coordinator flips the flag.
     if (!isHardForgetEnabled()) {
@@ -1152,6 +1168,94 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
     return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
   },
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  async archive_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { archived: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("archive_memory requires fact_id (or memory_id)");
+    const result = await db.archiveFact({
+      fact_id: factId,
+      reason: typeof args.reason === "string" ? args.reason : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async restore_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { restored: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("restore_memory requires fact_id (or memory_id)");
+    const result = await db.restoreFact({
+      fact_id: factId,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async list_archived(args) {
+    if (!isRecycleBinEnabled()) {
+      return { entries: [], flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const entries = await db.listArchivedFacts(num(args.limit ?? args.max_results, 100));
+    return { entries, count: entries.length, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async empty_recycle_bin(args) {
+    if (!isRecycleBinEnabled()) {
+      return { deleted: 0, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const requestedIds = arr(args.fact_ids);
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    const archived = await db.listArchivedFacts(EMPTY_BIN_MAX_BATCH);
+    const targets = requestedIds.length > 0
+      ? archived.filter((entry) => requestedIds.includes(entry.id))
+      : archived;
+
+    const receipts = [];
+    for (const entry of targets) {
+      const receipt = await db.forgetMemory({
+        fact_id: entry.id,
+        reason: "recycle-bin:empty",
+        session_id: sessionId,
+      });
+      receipts.push({
+        fact_id: entry.id,
+        verified_clean: receipt.verified_clean,
+        forget_compliance: forgetComplianceScore(receipt),
+      });
+    }
+
+    const hash = currentApiKeyHash();
+    if (hash && receipts.length > 0) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "recycle_bin_emptied",
+        severity: "info",
+        summary: `Recycle bin emptied: ${receipts.length} memories permanently deleted`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return {
+      deleted: receipts.length,
+      receipts,
+      flag: MEMORY_RECYCLE_BIN_FLAG,
+      flag_enabled: true,
+      note: "Permanent deletion ran the lane-05 forget cascade per fact (embeddings, typed links, snapshots, episodes).",
+    };
+  },
+  // --- end recycle bin ---
 
   async save_correction(args) {
     if (!isCorrectionsEnabled()) {
