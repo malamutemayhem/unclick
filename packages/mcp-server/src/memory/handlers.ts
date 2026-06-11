@@ -700,6 +700,19 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return db.searchTypedLinks(str(args.query), num(args.max_results, 10));
   },
 
+  // Memory time machine: changelog between two instants (companion to the
+  // as_of recall path in search_memory). Read-only. Accepts ISO timestamps
+  // or relative durations like "7d" / "12h"; defaults to the last 7 days.
+  async memory_diff(args) {
+    const db = await getBackend();
+    return db.memoryDiff({
+      from: typeof args.from === "string" ? args.from : typeof args.since === "string" ? args.since : undefined,
+      to: typeof args.to === "string" ? args.to : undefined,
+      limit: typeof args.limit === "number" ? args.limit : undefined,
+      include_sessions: bool(args.include_sessions, true),
+    });
+  },
+
   // --- lane-09: typed memory split ---
   async list_session_events(args) {
     if (!isTypedMemorySplitEnabled()) return [];
