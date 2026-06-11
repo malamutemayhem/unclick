@@ -4,7 +4,7 @@ import {
   clusterKey,
   findDuplicateProfileAgentIds,
   CLUSTER_FRESH_THRESHOLD_MS,
-  type FishbowlProfileForCluster,
+  type BoardroomProfileForCluster,
 } from "./clusterProfiles";
 
 const NOW = new Date("2026-04-27T12:00:00Z").getTime();
@@ -14,7 +14,7 @@ function profile(
   emoji: string,
   display_name: string | null,
   ageMs: number,
-): FishbowlProfileForCluster {
+): BoardroomProfileForCluster {
   return {
     agent_id,
     emoji,
@@ -91,7 +91,7 @@ describe("clusterProfiles", () => {
   });
 
   it("treats null last_seen_at as stale", () => {
-    const profiles: FishbowlProfileForCluster[] = [
+    const profiles: BoardroomProfileForCluster[] = [
       { agent_id: "fresh-1", emoji: "🐠", display_name: "Fishy", last_seen_at: new Date(NOW - 1_000).toISOString() },
       { agent_id: "never-seen", emoji: "🐠", display_name: "Fishy", last_seen_at: null },
     ];

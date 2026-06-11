@@ -5,12 +5,12 @@
 // reload, and applied to the live surfaces (Now Playing strip, message feed,
 // connected agents). The pure helpers below are unit-tested in prefs.test.ts.
 //
-// Note: "Fishbowl" is the load-bearing internal name (storage key, file paths).
-// The user-facing surface is always called the Boardroom.
+// Note: the localStorage key below intentionally keeps the legacy "fishbowl"
+// string so existing saved prefs keep working. See docs/fishbowl-compat-map.md.
 
 import { useCallback, useEffect, useState } from "react";
 
-export interface FishbowlViewPrefs {
+export interface BoardroomViewPrefs {
   /** Hide agents that have no current status and have gone quiet. */
   hideIdleAgents: boolean;
   /** When non-empty, the feed only shows messages carrying one of these tags. */
@@ -19,7 +19,7 @@ export interface FishbowlViewPrefs {
   mutedAgentIds: string[];
 }
 
-export const DEFAULT_VIEW_PREFS: FishbowlViewPrefs = {
+export const DEFAULT_VIEW_PREFS: BoardroomViewPrefs = {
   hideIdleAgents: false,
   tagFilters: [],
   mutedAgentIds: [],
@@ -43,12 +43,12 @@ export const CANONICAL_TAGS = [
   "fyi",
 ] as const;
 
-export function loadViewPrefs(): FishbowlViewPrefs {
+export function loadViewPrefs(): BoardroomViewPrefs {
   if (typeof window === "undefined") return DEFAULT_VIEW_PREFS;
   try {
     const raw = window.localStorage.getItem(VIEW_PREFS_STORAGE_KEY);
     if (!raw) return DEFAULT_VIEW_PREFS;
-    const parsed = JSON.parse(raw) as Partial<FishbowlViewPrefs>;
+    const parsed = JSON.parse(raw) as Partial<BoardroomViewPrefs>;
     return {
       hideIdleAgents: Boolean(parsed.hideIdleAgents),
       tagFilters: Array.isArray(parsed.tagFilters) ? parsed.tagFilters : [],
@@ -59,7 +59,7 @@ export function loadViewPrefs(): FishbowlViewPrefs {
   }
 }
 
-export function saveViewPrefs(prefs: FishbowlViewPrefs): void {
+export function saveViewPrefs(prefs: BoardroomViewPrefs): void {
   try {
     window.localStorage.setItem(VIEW_PREFS_STORAGE_KEY, JSON.stringify(prefs));
   } catch {
@@ -73,7 +73,7 @@ export interface FeedFilterMessage {
 }
 
 export function isAgentMuted(
-  prefs: FishbowlViewPrefs,
+  prefs: BoardroomViewPrefs,
   agentId: string | null | undefined,
 ): boolean {
   if (!agentId) return false;
@@ -86,7 +86,7 @@ export function isAgentMuted(
  */
 export function filterFeedByPrefs<T extends FeedFilterMessage>(
   messages: T[],
-  prefs: FishbowlViewPrefs,
+  prefs: BoardroomViewPrefs,
 ): T[] {
   return messages.filter((m) => {
     if (isAgentMuted(prefs, m.author_agent_id)) return false;
@@ -105,22 +105,22 @@ export interface MutableProfile {
 /** Remove muted agents from a list of profiles (used for presence surfaces). */
 export function filterProfilesByPrefs<T extends MutableProfile>(
   profiles: T[],
-  prefs: FishbowlViewPrefs,
+  prefs: BoardroomViewPrefs,
 ): T[] {
   if (prefs.mutedAgentIds.length === 0) return profiles;
   return profiles.filter((p) => !isAgentMuted(prefs, p.agent_id));
 }
 
 /** React hook that loads, exposes, and persists the viewer's Boardroom prefs. */
-export function useFishbowlViewPrefs() {
-  const [prefs, setPrefs] = useState<FishbowlViewPrefs>(loadViewPrefs);
+export function useBoardroomViewPrefs() {
+  const [prefs, setPrefs] = useState<BoardroomViewPrefs>(loadViewPrefs);
 
   useEffect(() => {
     saveViewPrefs(prefs);
   }, [prefs]);
 
   const update = useCallback(
-    <K extends keyof FishbowlViewPrefs>(key: K, value: FishbowlViewPrefs[K]) => {
+    <K extends keyof BoardroomViewPrefs>(key: K, value: BoardroomViewPrefs[K]) => {
       setPrefs((prev) => ({ ...prev, [key]: value }));
     },
     [],

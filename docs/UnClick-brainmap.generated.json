@@ -522,12 +522,12 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-fishbowl-tsx-admin-boardroom",
+      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-boardroom-tsx-admin-boardroom",
       "division": "Admin surfaces",
       "name": "Boardroom",
       "kind": "admin page",
-      "meaning": "Boardroom discussion surface for worker coordination.",
-      "source": "src/pages/admin/Fishbowl.tsx",
+      "meaning": "Admin surface for Boardroom.",
+      "source": "src/pages/admin/Boardroom.tsx",
       "route": "/admin/boardroom",
       "tags": []
     },
@@ -2252,12 +2252,12 @@
       "tags": []
     },
     {
-      "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
+      "id": "modules-and-apps-component-comments-src-pages-admin-boardroom-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
       "kind": "component",
       "meaning": "Admin surface for Comments.",
-      "source": "src/pages/admin/fishbowl/Comments.tsx",
+      "source": "src/pages/admin/boardroom/Comments.tsx",
       "route": "",
       "tags": []
     },
@@ -2302,12 +2302,12 @@
       "tags": []
     },
     {
-      "id": "modules-and-apps-component-ideas-src-pages-admin-fishbowl-ideas-tsx-no-route",
+      "id": "modules-and-apps-component-ideas-src-pages-admin-boardroom-ideas-tsx-no-route",
       "division": "Modules and apps",
       "name": "Ideas",
       "kind": "component",
       "meaning": "Admin surface for Ideas.",
-      "source": "src/pages/admin/fishbowl/Ideas.tsx",
+      "source": "src/pages/admin/boardroom/Ideas.tsx",
       "route": "",
       "tags": []
     },
@@ -2392,12 +2392,12 @@
       "tags": []
     },
     {
-      "id": "modules-and-apps-component-settings-src-pages-admin-fishbowl-settings-tsx-no-route",
+      "id": "modules-and-apps-component-settings-src-pages-admin-boardroom-settings-tsx-no-route",
       "division": "Modules and apps",
       "name": "Settings",
       "kind": "component",
       "meaning": "Admin surface for Settings.",
-      "source": "src/pages/admin/fishbowl/Settings.tsx",
+      "source": "src/pages/admin/boardroom/Settings.tsx",
       "route": "",
       "tags": []
     },
@@ -11298,8 +11298,8 @@
     [
       "/admin/boardroom",
       "Boardroom",
-      "Boardroom discussion surface for worker coordination.",
-      "src/pages/admin/Fishbowl.tsx"
+      "Admin surface for Boardroom.",
+      "src/pages/admin/Boardroom.tsx"
     ],
     [
       "/admin/brainmap",
@@ -15418,6 +15418,10 @@
       "node --test scripts/api-lib-esm-extension-guard.test.mjs"
     ],
     [
+      "test:boardroom-naming",
+      "node --test scripts/audit-fishbowl-naming.test.mjs"
+    ],
+    [
       "test:brainmap",
       "node --test scripts/UnClick-brainmap.test.mjs"
     ],
@@ -15506,8 +15510,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "14906b128315",
-      "bytes": 17394
+      "hash": "c48d9420334e",
+      "bytes": 17397
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -15546,8 +15550,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ab9a444f7506",
-      "bytes": 1731
+      "hash": "5fe8ef28e93c",
+      "bytes": 1882
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -15561,8 +15565,8 @@
     },
     {
       "source": "package.json",
-      "hash": "adbb13d02beb",
-      "bytes": 7084
+      "hash": "0946c1ef23c5",
+      "bytes": 7326
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -15811,8 +15815,8 @@
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "a37a2518aa57",
-      "bytes": 49158
+      "hash": "6df58623daf6",
+      "bytes": 49162
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15850,9 +15854,9 @@
       "bytes": 25705
     },
     {
-      "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "60a5f41934b7",
-      "bytes": 37150
+      "source": "src/pages/admin/Boardroom.tsx",
+      "hash": "61d332b5a15e",
+      "bytes": 37186
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
@@ -15901,8 +15905,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "f71137a020fc",
-      "bytes": 64094
+      "hash": "de0b5baf0534",
+      "bytes": 64097
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",

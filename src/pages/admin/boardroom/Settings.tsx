@@ -1,22 +1,19 @@
-// src/pages/admin/fishbowl/Settings.tsx
+// src/pages/admin/boardroom/Settings.tsx
 //
 // Boardroom "View settings" panel - collapsible, dark theme.
 //
 // This used to be a placebo: it wrote prefs to localStorage that nothing read.
-// It is now fully controlled by the parent page via the useFishbowlViewPrefs
+// It is now fully controlled by the parent page via the useBoardroomViewPrefs
 // hook, and every control here actually changes what the viewer sees (the feed
 // and the agent presence surfaces). Controls that the viewer could not
 // influence (pulse cadence, an unbuilt events bot) were removed.
-//
-// "Fishbowl" is the load-bearing internal name; the user-facing surface is the
-// Boardroom.
 
 import { useMemo } from "react";
 import { ChevronDown, ChevronRight, Settings as SettingsIcon } from "lucide-react";
 import { findDuplicateProfileAgentIds } from "./clusterProfiles";
-import { CANONICAL_TAGS, type FishbowlViewPrefs } from "./prefs";
+import { CANONICAL_TAGS, type BoardroomViewPrefs } from "./prefs";
 
-interface FishbowlProfile {
+interface BoardroomProfile {
   agent_id: string;
   emoji: string;
   display_name: string | null;
@@ -24,8 +21,8 @@ interface FishbowlProfile {
 }
 
 interface SettingsProps {
-  profiles: FishbowlProfile[];
-  prefs: FishbowlViewPrefs;
+  profiles: BoardroomProfile[];
+  prefs: BoardroomViewPrefs;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onToggleHideIdle: (value: boolean) => void;
@@ -34,7 +31,7 @@ interface SettingsProps {
   onClearTags: () => void;
 }
 
-export default function FishbowlSettings({
+export default function BoardroomSettings({
   profiles,
   prefs,
   collapsed,

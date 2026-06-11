@@ -36,7 +36,7 @@ import {
   mapProfilesToSeats,
   unmatchedRecentProfiles,
   type AISeat,
-  type FishbowlProfile,
+  type BoardroomProfile,
   type SeatRoutingPolicy,
 } from "./AdminAgentsSeatUtils";
 import { useSession } from "@/lib/auth";
@@ -322,7 +322,7 @@ function ComputeTierSummaryStrip() {
   );
 }
 
-function profileDisplayName(profile: FishbowlProfile): string {
+function profileDisplayName(profile: BoardroomProfile): string {
   const name = profile.display_name?.trim();
   if (name) return name;
   return profile.agent_id
@@ -338,7 +338,7 @@ function AISeatsPanel() {
   const { session, loading: sessionLoading } = useSession();
   const authToken = session?.access_token ?? getApiKey();
   const [seats, setSeats] = useState<AISeat[]>(() => loadSeatOverrides());
-  const [profiles, setProfiles] = useState<FishbowlProfile[]>([]);
+  const [profiles, setProfiles] = useState<BoardroomProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
   const [profilesError, setProfilesError] = useState<string | null>(null);
   const [editingSeatId, setEditingSeatId] = useState<string | null>(null);
@@ -373,7 +373,7 @@ function AISeatsPanel() {
     setProfilesLoading(true);
     setProfilesError(null);
     try {
-      const res = await api<{ profiles?: FishbowlProfile[] }>("fishbowl_read", {
+      const res = await api<{ profiles?: BoardroomProfile[] }>("fishbowl_read", {
         method: "POST",
         body: JSON.stringify({
           limit: 20,

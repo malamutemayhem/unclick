@@ -9,7 +9,7 @@ import {
 
 const message = (id: string, tags: string[] | null) => ({ id, tags });
 
-describe("Fishbowl message lanes", () => {
+describe("Boardroom message lanes", () => {
   it("moves heartbeat-only and event-only chatter out of the main feed", () => {
     const messages = [
       message("heartbeat", ["heartbeat"]),

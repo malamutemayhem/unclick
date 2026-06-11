@@ -2,22 +2,22 @@ import { relativeTime as relativeTimeBase } from "@/lib/relativeTime";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import FishbowlIdeas from "./fishbowl/Ideas";
-import FishbowlSettings from "./fishbowl/Settings";
-import { clusterProfiles, type ProfileCluster } from "./fishbowl/clusterProfiles";
+import BoardroomIdeas from "./boardroom/Ideas";
+import BoardroomSettings from "./boardroom/Settings";
+import { clusterProfiles, type ProfileCluster } from "./boardroom/clusterProfiles";
 import {
   getActionQueueMessages,
   getLaneMessages,
   getMainFeedMessages,
   isHandoffMessage,
-} from "./fishbowl/messageLanes";
+} from "./boardroom/messageLanes";
 import {
   filterFeedByPrefs,
   filterProfilesByPrefs,
-  useFishbowlViewPrefs,
-} from "./fishbowl/prefs";
+  useBoardroomViewPrefs,
+} from "./boardroom/prefs";
 
-interface FishbowlMessage {
+interface BoardroomMessage {
   id: string;
   author_emoji: string;
   author_name: string | null;
@@ -30,11 +30,11 @@ interface FishbowlMessage {
 }
 
 interface ThreadGroup {
-  parent: FishbowlMessage;
-  replies: FishbowlMessage[];
+  parent: BoardroomMessage;
+  replies: BoardroomMessage[];
 }
 
-interface FishbowlProfile {
+interface BoardroomProfile {
   agent_id: string;
   emoji: string;
   display_name: string | null;
@@ -53,13 +53,13 @@ const STALE_IDLE_VISIBILITY_MS = 24 * 60 * 60 * 1000;
 const FEED_PAGE_SIZE = 20;
 const AGENT_PAGE_SIZE = 6;
 
-interface FishbowlResponse {
+interface BoardroomResponse {
   room: { id: string; slug: string; name: string } | null;
-  messages: FishbowlMessage[];
-  profiles: FishbowlProfile[];
+  messages: BoardroomMessage[];
+  profiles: BoardroomProfile[];
 }
 
-const EXPLAINER_STORAGE_KEY = "unclick.fishbowl.explainer.collapsed";
+const EXPLAINER_STORAGE_KEY = "unclick.boardroom.explainer.collapsed";
 
 function isHumanAgentId(id: string | null | undefined): boolean {
   return typeof id === "string" && id.startsWith("human-");
@@ -176,12 +176,12 @@ function ExplainerPanel() {
   );
 }
 
-function isStale(profile: FishbowlProfile, nowMs: number): boolean {
+function isStale(profile: BoardroomProfile, nowMs: number): boolean {
   if (!profile.last_seen_at) return true;
   return nowMs - new Date(profile.last_seen_at).getTime() > STALE_THRESHOLD_MS;
 }
 
-function hasVisibleNowPlayingState(profile: FishbowlProfile, nowMs: number): boolean {
+function hasVisibleNowPlayingState(profile: BoardroomProfile, nowMs: number): boolean {
   const statusText = profile.current_status?.trim();
   if (statusText) return true;
 
@@ -196,7 +196,7 @@ function hasVisibleNowPlayingState(profile: FishbowlProfile, nowMs: number): boo
   return isMia && nowMs - checkinMs <= STALE_IDLE_VISIBILITY_MS;
 }
 
-function isIdleOnly(profile: FishbowlProfile, nowMs: number): boolean {
+function isIdleOnly(profile: BoardroomProfile, nowMs: number): boolean {
   if (profile.current_status?.trim()) return false;
   const checkinMs = profile.next_checkin_at ? new Date(profile.next_checkin_at).getTime() : null;
   const seenMs = profile.last_seen_at ? new Date(profile.last_seen_at).getTime() : 0;
@@ -210,8 +210,8 @@ function NowPlayingStrip({
   clusters,
   hideIdle = false,
 }: {
-  profiles: FishbowlProfile[];
-  clusters: ProfileCluster<FishbowlProfile>[];
+  profiles: BoardroomProfile[];
+  clusters: ProfileCluster<BoardroomProfile>[];
   hideIdle?: boolean;
 }) {
   // Re-render every 30s so the relative timestamps and stale state stay fresh
@@ -369,11 +369,11 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
 
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-      <label htmlFor="fishbowl-post" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[#888]">
+      <label htmlFor="boardroom-post" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[#888]">
         Post to your Boardroom
       </label>
       <textarea
-        id="fishbowl-post"
+        id="boardroom-post"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -419,7 +419,7 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
   );
 }
 
-function MessageBody({ m }: { m: FishbowlMessage }) {
+function MessageBody({ m }: { m: BoardroomMessage }) {
   const human = isHumanAgentId(m.author_agent_id);
   return (
     <>
@@ -466,7 +466,7 @@ function MessageLane({
 }: {
   title: string;
   icon: string;
-  messages: FishbowlMessage[];
+  messages: BoardroomMessage[];
   defaultExpanded?: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -512,9 +512,9 @@ function MessageLane({
   );
 }
 
-function groupMessagesByThread(messages: FishbowlMessage[]): ThreadGroup[] {
+function groupMessagesByThread(messages: BoardroomMessage[]): ThreadGroup[] {
   const idSet = new Set(messages.map((m) => m.id));
-  const repliesByParent = new Map<string, FishbowlMessage[]>();
+  const repliesByParent = new Map<string, BoardroomMessage[]>();
   for (const m of messages) {
     if (m.thread_id && idSet.has(m.thread_id)) {
       const arr = repliesByParent.get(m.thread_id) ?? [];
@@ -534,7 +534,7 @@ function groupMessagesByThread(messages: FishbowlMessage[]): ThreadGroup[] {
   return result;
 }
 
-export default function Fishbowl() {
+export default function Boardroom() {
   const { session } = useSession();
   const token = session?.access_token;
   const authHeader = useMemo(
@@ -542,8 +542,8 @@ export default function Fishbowl() {
     [token],
   );
 
-  const [messages, setMessages] = useState<FishbowlMessage[]>([]);
-  const [profiles, setProfiles] = useState<FishbowlProfile[]>([]);
+  const [messages, setMessages] = useState<BoardroomMessage[]>([]);
+  const [profiles, setProfiles] = useState<BoardroomProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -553,7 +553,7 @@ export default function Fishbowl() {
   const [agentsExpanded, setAgentsExpanded] = useState(false);
   const [settingsCollapsed, setSettingsCollapsed] = useState(true);
 
-  const { prefs, update, toggleTag, toggleMute } = useFishbowlViewPrefs();
+  const { prefs, update, toggleTag, toggleMute } = useBoardroomViewPrefs();
 
   const heartbeatMessages = useMemo(
     () => getLaneMessages(messages, "heartbeat"),
@@ -607,7 +607,7 @@ export default function Fishbowl() {
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 100 }),
       });
-      const body = (await res.json().catch(() => ({}))) as Partial<FishbowlResponse> & { error?: string };
+      const body = (await res.json().catch(() => ({}))) as Partial<BoardroomResponse> & { error?: string };
       if (!res.ok) throw new Error(body.error ?? "Failed to load Boardroom");
       setMessages(body.messages ?? []);
       setProfiles(body.profiles ?? []);
@@ -620,7 +620,7 @@ export default function Fishbowl() {
   }, [token, authHeader]);
 
   // Claim a human profile for the signed-in admin so they can post into the
-  // Fishbowl as themselves. Idempotent (UNIQUE on api_key_hash, agent_id).
+  // Boardroom as themselves. Idempotent (UNIQUE on api_key_hash, agent_id).
   const claimHumanProfile = useCallback(async () => {
     if (!token) return;
     try {
@@ -629,7 +629,7 @@ export default function Fishbowl() {
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      const body = (await res.json().catch(() => ({}))) as { profile?: FishbowlProfile; error?: string };
+      const body = (await res.json().catch(() => ({}))) as { profile?: BoardroomProfile; error?: string };
       if (res.ok && body.profile) {
         setHumanAgentId(body.profile.agent_id);
       }
@@ -914,7 +914,7 @@ export default function Fishbowl() {
         </div>
       )}
 
-      <FishbowlIdeas authHeader={authHeader} humanAgentId={humanAgentId} />
+      <BoardroomIdeas authHeader={authHeader} humanAgentId={humanAgentId} />
 
       {/* Routine chatter: agent housekeeping, de-emphasised and collapsed. */}
       <div className="space-y-2">
@@ -927,7 +927,7 @@ export default function Fishbowl() {
         </div>
       </div>
 
-      <FishbowlSettings
+      <BoardroomSettings
         profiles={profiles}
         prefs={prefs}
         collapsed={settingsCollapsed}

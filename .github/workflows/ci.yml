@@ -34,6 +34,10 @@ jobs:
         run: |
           npm run brainmap:check
           npm run test:brainmap
+      - name: Boardroom naming ratchet (no new Fishbowl refs)
+        run: |
+          npm run boardroom:check
+          npm run test:boardroom-naming
       - name: Tests
         run: npm test --if-present
       - name: Continuous Improvement watch guard

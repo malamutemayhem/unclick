@@ -5,7 +5,7 @@
 // yet, so we keep the user's on/off choices in localStorage instead of inventing
 // a backend contract that does not exist. Same shape as the Apps surface (we
 // only ever store the DISABLED slugs, so any skill we add later is on by
-// default automatically). Mirrors the fishbowl/prefs.ts idiom.
+// default automatically). Mirrors the boardroom/prefs.ts idiom.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
