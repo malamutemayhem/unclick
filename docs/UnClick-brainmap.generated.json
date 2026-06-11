@@ -15791,8 +15791,8 @@
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
-      "hash": "681342e77f86",
-      "bytes": 49250
+      "hash": "de72fd8f09c6",
+      "bytes": 48837
     },
     {
       "source": "src/pages/admin/AdminAnalytics.tsx",
@@ -15831,8 +15831,8 @@
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "076fd12c1831",
-      "bytes": 37563
+      "hash": "60a5f41934b7",
+      "bytes": 37150
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
@@ -15881,8 +15881,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "a88814efe22e",
-      "bytes": 64644
+      "hash": "5960d9780504",
+      "bytes": 64066
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -15936,8 +15936,8 @@
     },
     {
       "source": "src/pages/admin/signals/SignalsCatalog.tsx",
-      "hash": "f5332dd8f38e",
-      "bytes": 10865
+      "hash": "5bbc2fe8c321",
+      "bytes": 10370
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",

@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import { relativeTime } from "@/lib/relativeTime";
 import Comments from "./fishbowl/Comments";
 import {
   buildJobGithubSyncSignal,
@@ -254,21 +255,6 @@ function displayCopyFor(todo: JobTodo): JobDisplayCopy {
   };
 }
 
-function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return "never";
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  if (!Number.isFinite(then)) return "unknown";
-  const diffSec = Math.max(1, Math.floor((now - then) / 1000));
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 14) return `${diffDay}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 function ownerLabel(todo: JobTodo): string {
   const raw = todo.assigned_to_agent_id?.trim();

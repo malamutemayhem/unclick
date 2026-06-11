@@ -83,7 +83,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatHeartbeat.tsx | f9548c19ddab | 11641 |
 | src/pages/admin/AdminSeatsLocal.tsx | a201c1e119a8 | 37417 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 57262eb562b5 | 25229 |
-| src/pages/admin/AdminAgents.tsx | 681342e77f86 | 49250 |
+| src/pages/admin/AdminAgents.tsx | de72fd8f09c6 | 48837 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
@@ -91,7 +91,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
-| src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
+| src/pages/admin/Fishbowl.tsx | 60a5f41934b7 | 37150 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
@@ -101,7 +101,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
-| src/pages/admin/AdminJobs.tsx | a88814efe22e | 64644 |
+| src/pages/admin/AdminJobs.tsx | 5960d9780504 | 64066 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
 | src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
@@ -112,7 +112,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
-| src/pages/admin/signals/SignalsCatalog.tsx | f5332dd8f38e | 10865 |
+| src/pages/admin/signals/SignalsCatalog.tsx | 5bbc2fe8c321 | 10370 |
 | src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
