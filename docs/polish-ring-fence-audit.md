@@ -122,6 +122,17 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 10):** phase-5 mechanical sweep is green.
+  - Repo-wide public-surface sweep found zero em dashes, zero retired names
+    (Fishbowl/QualityPass/EnterprisePass/ApplyPass), and zero OS framing in
+    `src/pages/*.tsx`, `src/components`, and `src/data`. Brochure copy
+    already encodes the style rules in its header.
+  - What remains for phase 5 is judgment-level simplification only (pages
+    with too much happening), not mechanical cleanup. Candidates by size:
+    Connect (800 lines), MemorySetup/MemoryConnect (~500 each).
+  - Dogfood receipt: SEOPass on the live homepage, PASS, score 100,
+    verdict ready, 9/9 checks (run seopass-a5193fa0). robots.txt, a
+    40-URL sitemap, and llms.txt all verified live.
 - **2026-06-11 (round 9):** rotate flow for humans, honest seat defaults.
   - RotateValuesModal no longer demands hand-written JSON. It pre-fills the
     connector's known fields (password inputs for secrets), supports extra
