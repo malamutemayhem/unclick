@@ -295,7 +295,7 @@ export default function TestPassCatalog() {
                         </tr>
 
                         {expandable && expanded && (
-                          <tr className="border-b border-white/[0.04] bg-black/20">
+                          <tr className="border-b border-white/[0.04] bg-white/[0.03]">
                             <td colSpan={8} className="px-12 py-3">
                               <ExpandedTimeline
                                 runs={cachedRuns}
@@ -368,7 +368,7 @@ function PackTile({ pack, onStart, onEdit }: { pack: PackCard; onStart: () => vo
         </button>
         <button
           onClick={onEdit}
-          className="flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs text-[#888] hover:text-white"
+          className="flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white"
         >
           <Settings2 className="h-3 w-3" /> Edit YAML
         </button>
@@ -430,7 +430,7 @@ function RunsEmptyState({
             <button
               key={p.id}
               onClick={() => onPickPack(p.id)}
-              className="rounded-xl border border-white/[0.06] bg-black/20 p-4 text-left transition-colors hover:border-[#61C1C4]/40 hover:bg-[#61C1C4]/5"
+              className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:border-[#61C1C4]/40 hover:bg-[#61C1C4]/5"
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-semibold text-white">{p.name}</h3>
@@ -505,7 +505,7 @@ function ExpandedTimeline({
           <li key={run.id}>
             <button
               onClick={() => onRunClick(run.id)}
-              className="w-full flex items-center gap-3 rounded-md border border-white/[0.04] bg-black/20 px-3 py-2 text-xs text-left hover:border-white/[0.12] hover:bg-white/[0.02]"
+              className="w-full flex items-center gap-3 rounded-md border border-white/[0.04] bg-white/[0.03] px-3 py-2 text-xs text-left hover:border-white/[0.12] hover:bg-white/[0.02]"
             >
               <span className="font-mono text-[#888] w-12 shrink-0">Run {run.run_number}</span>
               <span className={`rounded-full border px-2 py-0.5 text-[10px] ${STATUS_PILL[run.status] ?? STATUS_PILL.pending}`}>

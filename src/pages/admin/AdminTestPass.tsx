@@ -495,7 +495,7 @@ export default function AdminTestPass() {
         <div className="mt-4 flex gap-2">
           <button
             onClick={validateYaml}
-            className="rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-xs font-medium text-[#ccc] transition-colors hover:border-[#61C1C4]/30 hover:text-[#61C1C4]"
+            className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-2 text-xs font-medium text-[#ccc] transition-colors hover:border-[#61C1C4]/30 hover:text-[#61C1C4]"
           >
             Validate YAML
           </button>
@@ -522,12 +522,12 @@ export default function AdminTestPass() {
             placeholder="https://api.example.com/mcp"
             value={targetUrl}
             onChange={(e) => setTargetUrl(e.target.value)}
-            className="rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
+            className="rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-[#555] focus:border-[#61C1C4]/40 focus:outline-none"
           />
           <select
             value={profile}
             onChange={(e) => setProfile(e.target.value as "smoke" | "standard" | "deep")}
-            className="rounded-md border border-white/[0.08] bg-black/30 px-3 py-2 text-xs text-white focus:border-[#61C1C4]/40 focus:outline-none"
+            className="rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white focus:border-[#61C1C4]/40 focus:outline-none"
           >
             <option value="smoke">smoke</option>
             <option value="standard">standard</option>

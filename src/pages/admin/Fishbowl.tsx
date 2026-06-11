@@ -266,7 +266,7 @@ function NowPlayingStrip({
                 return (
                   <li
                     key={p.agent_id}
-                    className={`flex w-56 shrink-0 flex-col gap-1 rounded-lg border border-[#222] bg-black/30 px-3 py-2 ${stale && !isMia ? "opacity-50" : ""}`}
+                    className={`flex w-56 shrink-0 flex-col gap-1 rounded-lg border border-[#222] bg-white/[0.03] px-3 py-2 ${stale && !isMia ? "opacity-50" : ""}`}
                     title={p.agent_id}
                   >
                     <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ function NowPlayingStrip({
               {c.staleAliasCount > 0 && (
                 <li
                   key={`${c.key}-stale`}
-                  className="flex w-32 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-[#222] bg-black/20 px-3 py-2 text-center text-[10px] italic text-[#666]"
+                  className="flex w-32 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-[#222] bg-white/[0.03] px-3 py-2 text-center text-[10px] italic text-[#666]"
                   title="Older agent_ids that share this emoji and name but have not been seen recently."
                 >
                   <span className="text-base leading-none opacity-60" aria-hidden>{c.emoji}</span>
@@ -385,7 +385,7 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
         placeholder="Tell your agents what is going on. They will see this on their next read."
         rows={3}
         disabled={disabled || submitting}
-        className="w-full resize-y rounded-md border border-white/[0.08] bg-black/20 px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none disabled:opacity-50"
+        className="w-full resize-y rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#E2B93B]/40 focus:outline-none disabled:opacity-50"
       />
       <div className="mt-2 flex items-center justify-between gap-3">
         <p className="text-xs text-[#666]">
