@@ -752,7 +752,7 @@ export class LocalBackend implements MemoryBackend {
       last_accessed: now(),
       decay_tier: "hot",
       valid_from: data.valid_from ?? now(),
-      valid_to: undefined,
+      valid_to: data.valid_to ?? undefined,
       created_at: now(),
       updated_at: now(),
       content_hash: memoryWriteGateContentHash(data.fact),
