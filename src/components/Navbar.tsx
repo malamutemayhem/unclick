@@ -69,10 +69,11 @@ function NavDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
-
-  useEffect(() => {
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <div
