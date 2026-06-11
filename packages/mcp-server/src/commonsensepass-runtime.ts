@@ -46,10 +46,19 @@ export interface CommonSensePassResult {
 
 export type TodoStatus =
   | "actionable"
+  | "open"
   | "in_progress"
   | "blocked"
   | "queued"
   | "done";
+
+// Boardroom todos arrive with status "open"; treating only "actionable"
+// as backlog let quiet/no_work claims slip past R1 with real work queued.
+const R1_BACKLOG_STATUSES: ReadonlySet<TodoStatus> = new Set([
+  "actionable",
+  "open",
+  "queued",
+]);
 
 export interface TodoSnapshot {
   id: string;
@@ -508,7 +517,7 @@ function checkR1(input: ClaimInput): CommonSensePassResult | null {
   const todos = input.context.todos ?? [];
   const now = input.context.now_ms;
 
-  const actionable = todos.filter((todo) => todo.status === "actionable");
+  const actionable = todos.filter((todo) => R1_BACKLOG_STATUSES.has(todo.status));
   const inProgressFresh = todos.filter(
     (todo) =>
       todo.status === "in_progress" &&
