@@ -15,7 +15,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | AUTOPILOT.md | 18863a2e935a | 18077 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
-| docs/unclick-context-boot-packet.md | acef86fc8bfb | 11686 |
+| docs/unclick-context-boot-packet.md | 5af15b7b3c7e | 11552 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
