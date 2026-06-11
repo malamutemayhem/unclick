@@ -274,37 +274,37 @@ const STATIONS: StationDef[] = [
   {
     id: "any-ai",
     label: "any ai",
-    headline: "Bring the AI you already use.",
+    headline: "Bring the AI you already use.",
     vignette: () => <AnyAIVignette />,
   },
   {
     id: "memory",
     label: "memory",
-    headline: "It already knows how you work.",
+    headline: "It already knows how you work.",
     vignette: () => <MemoryVignette />,
   },
   {
     id: "gate",
     label: "the gate",
-    headline: "Checked before it runs.",
+    headline: "Checked before it runs.",
     vignette: () => <GateVignette />,
   },
   {
     id: "apps",
     label: "apps",
-    headline: "Every app you already use.",
+    headline: "Every app you already use.",
     vignette: () => <AppsVignette />,
   },
   {
     id: "proof",
     label: "proof",
-    headline: "Checked after, with a receipt.",
+    headline: "Checked after, with a receipt.",
     vignette: (reduced) => <ProofVignette reduced={reduced} />,
   },
   {
     id: "team",
     label: "the team",
-    headline: "Not one bot. A whole team.",
+    headline: "Not one bot. A whole team.",
     vignette: () => <TeamVignette />,
   },
 ];
@@ -350,7 +350,7 @@ function Station({
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/70">
             {String(index + 1).padStart(2, "0")} · {station.label}
           </p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.02em] text-heading sm:text-3xl">
+          <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.02em] text-heading [text-wrap:balance] sm:text-3xl">
             {station.headline}
           </h2>
           <div className={cn("relative mt-5 max-w-md", onRight ? "" : "lg:ml-auto")}>
@@ -557,8 +557,8 @@ export default function RunRail() {
               The system isn't.
             </span>
           </h2>
-          <p className="mx-auto mt-5 max-w-md text-body">
-            Any AI, memory, gates, apps, proof, and a team that keeps going.
+          <p className="mx-auto mt-5 max-w-md text-body [text-wrap:balance]">
+            Any AI, memory, gates, apps, proof, and a team that keeps going.
           </p>
           <MoatSeal />
         </motion.div>

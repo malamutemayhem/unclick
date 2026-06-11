@@ -109,6 +109,13 @@
   to   { transform: translateX(-50%); }
 }
 
+/* System map signal dots stand still under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .hp-map-dot {
+    display: none;
+  }
+}
+
 /* Blueprint crosshair corners on station cards. */
 .hp-cross {
   position: absolute;

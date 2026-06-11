@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1111,
-    "source_manifest": 228,
-    "pages": 95,
+    "inventory": 1112,
+    "source_manifest": 229,
+    "pages": 96,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 37
+      "count": 38
     },
     {
       "id": "tools",
@@ -3739,6 +3739,16 @@
       "meaning": "User-facing page for Home Preview.",
       "source": "src/pages/HomePreview.tsx",
       "route": "/home-preview",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-b-src-pages-homepreviewb-tsx-home-preview-b",
+      "division": "Public surfaces",
+      "name": "Home Preview B",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview B.",
+      "source": "src/pages/HomePreviewB.tsx",
+      "route": "/home-preview-b",
       "tags": []
     },
     {
@@ -11642,6 +11652,12 @@
       "src/pages/FAQPage.tsx"
     ],
     [
+      "/home-preview-b",
+      "Home Preview B",
+      "User-facing page for Home Preview B.",
+      "src/pages/HomePreviewB.tsx"
+    ],
+    [
       "/home-preview",
       "Home Preview",
       "User-facing page for Home Preview.",
@@ -15526,8 +15542,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "fb63add0574f",
-      "bytes": 17515
+      "hash": "9bcfa39e6e93",
+      "bytes": 17638
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -16100,9 +16116,14 @@
       "bytes": 690
     },
     {
+      "source": "src/pages/HomePreviewB.tsx",
+      "hash": "5472335568c4",
+      "bytes": 14177
+    },
+    {
       "source": "src/pages/HomePreview.tsx",
-      "hash": "b4d5e25efea2",
-      "bytes": 8088
+      "hash": "a755d6c79296",
+      "bytes": 8481
     },
     {
       "source": "src/pages/InstallRecover.tsx",
