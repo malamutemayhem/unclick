@@ -2,7 +2,7 @@
   "name": "@unclick/mcp-server",
   "version": "0.3.110",
   "mcpName": "io.github.malamutemayhem/unclick",
-  "description": "MCP server for the UnClick tool marketplace - lets AI agents discover and use every UnClick tool",
+    "description": "UnClick is the universal remote for AI: one MCP install that gives any compatible agent 450+ callable endpoints across 60+ integrations, plus persistent cross-session memory.",
   "type": "module",
   "bin": {
     "unclick-mcp": "./dist/index.js"
