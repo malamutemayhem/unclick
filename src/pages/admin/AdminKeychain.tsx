@@ -23,6 +23,15 @@
  * Backend: /api/backstagepass?action={list,reveal,update,delete,audit}
  */
 
+import { relativeTime } from "@/lib/relativeTime";
+import {
+  credentialHealth,
+  exportPasswordStrength,
+  maskValue,
+  daysSince,
+  ROTATION_WARNING_DAYS,
+  type CredentialHealthStatus,
+} from "./keychainHelpers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
@@ -139,21 +148,6 @@ interface Credential {
   } | null;
 }
 
-type CredentialHealthStatus = "healthy" | "untested" | "failing" | "stale" | "needs_rotation";
-
-// Rotation-reminder threshold. Credentials whose last_rotated_at is
-// older than this show an inline warning pill in the admin list. Kept
-// as a module constant so it is easy to find and tune.
-const ROTATION_WARNING_DAYS = 90;
-const STALE_TEST_DAYS = 30;
-
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.floor((Date.now() - t) / 86_400_000);
-}
-
 interface AuditEntry {
   id:            string;
   action:        string;
@@ -169,17 +163,7 @@ interface AuditEntry {
 
 // Helpers
 
-function timeAgo(iso: string | null): string {
-  if (!iso) return "never";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1)  return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
+const timeAgo = (iso: string | null) => relativeTime(iso, { justNow: true });
 
 function readLocalApiKey(): string | null {
   try {
@@ -188,35 +172,6 @@ function readLocalApiKey(): string | null {
   } catch {
     return null;
   }
-}
-
-function maskValue(v: string): string {
-  if (v.length <= 8) return "•".repeat(Math.max(v.length, 4));
-  return `${v.slice(0, 4)}${"•".repeat(8)}${v.slice(-4)}`;
-}
-
-function daysUntil(iso: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.ceil((t - Date.now()) / 86_400_000);
-}
-
-function credentialHealth(cred: Credential): CredentialHealthStatus {
-  if (cred.health_status) return cred.health_status;
-
-  const expiresIn = daysUntil(cred.expires_at);
-  if (expiresIn !== null && expiresIn <= 14) return "needs_rotation";
-
-  const rotationAge = daysSince(cred.last_rotated_at);
-  if (rotationAge !== null && rotationAge >= ROTATION_WARNING_DAYS) return "needs_rotation";
-
-  if (!cred.is_valid) return "failing";
-
-  const testAge = daysSince(cred.last_tested_at);
-  if (testAge === null) return "untested";
-  if (testAge >= STALE_TEST_DAYS) return "stale";
-  return "healthy";
 }
 
 export function credentialLastCheckDisplay(cred: Pick<Credential, "last_checked_at" | "last_tested_at" | "supports_connection_test">): {
@@ -645,18 +600,6 @@ export default function AdminKeychain() {
     } finally {
       setExporting(false);
     }
-  }
-
-  function exportPasswordStrength(pw: string): { label: string; color: string } {
-    if (pw.length < 12) return { label: "Weak",   color: "bg-red-500" };
-    const hasUpper  = /[A-Z]/.test(pw);
-    const hasLower  = /[a-z]/.test(pw);
-    const hasDigit  = /[0-9]/.test(pw);
-    const hasSymbol = /[^A-Za-z0-9]/.test(pw);
-    const variety   = [hasUpper, hasLower, hasDigit, hasSymbol].filter(Boolean).length;
-    if (pw.length >= 16 && variety >= 3) return { label: "Strong", color: "bg-green-500" };
-    if (pw.length >= 12 && variety >= 2) return { label: "Good",   color: "bg-[#E2B93B]" };
-    return { label: "Weak", color: "bg-red-500" };
   }
 
   const credentialByPlatform = useMemo(() => {

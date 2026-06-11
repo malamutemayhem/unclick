@@ -122,6 +122,13 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 8):** Keychain helpers extracted and tested.
+  - The health, masking, day-math, and export-password-strength rules that
+    drive Passport's user-visible badges now live in
+    `src/pages/admin/keychainHelpers.ts` with 13 unit tests (priority order,
+    thresholds at the documented boundaries, masking leak checks).
+  - A sixth drifting timeAgo copy (inside AdminKeychain) migrated to the
+    shared relativeTime util.
 - **2026-06-11 (round 7):** ecosystem truth pass (Keychain + Seats + Crews),
   from two deep reviews.
   - Keychain: test-connection button now disabled when no automated probe
