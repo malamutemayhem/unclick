@@ -6,6 +6,7 @@ import type {
 } from "./consolidation.js";
 import type { MemoryTypedLinkCandidate, MemoryTypedLinkSearchResult } from "./typed-links.js";
 import type { MemoryVisibility } from "./scopes.js";
+import type { MemoryDiffInput, MemoryDiffReport } from "./diff.js";
 
 /**
  * Shared types for UnClick Memory backends (local + Supabase).
@@ -676,6 +677,14 @@ export interface MemoryBackend {
   exportMemoryPassport(input?: MemoryPassportExportInput): Promise<MemoryPassportExportResult>;
   importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult>;
   // --- end lane-10 ---
+  // --- memory time machine (bi-temporal diff) ---
+  /**
+   * Changelog of memory between two instants: facts added, superseded,
+   * invalidated, archived, and sessions saved. Read-only companion to the
+   * as_of recall path in searchMemory.
+   */
+  memoryDiff(input?: MemoryDiffInput): Promise<MemoryDiffReport>;
+  // --- end memory time machine ---
 }
 
 // --- lane-01: retrieval fusion (read path) ---

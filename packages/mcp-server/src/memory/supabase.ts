@@ -122,6 +122,17 @@ import {
   SESSION_EVENTS_TABLE_MANAGED,
 } from "./forget.js";
 // --- end lane-05 ---
+// --- memory time machine (bi-temporal diff) ---
+import {
+  buildMemoryDiffReport,
+  normalizeMemoryDiffBucketLimit,
+  resolveMemoryDiffWindow,
+  type MemoryDiffFactSourceRow,
+  type MemoryDiffInput,
+  type MemoryDiffReport,
+  type MemoryDiffSessionSourceRow,
+} from "./diff.js";
+// --- end memory time machine ---
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -769,6 +780,16 @@ function isTypedLinkSchemaUnavailable(err: unknown): boolean {
   );
 }
 
+/** A relation or column referenced by the query does not exist in this schema. */
+function isMissingColumnError(err: unknown): boolean {
+  const e = (err ?? {}) as { code?: string; message?: string };
+  return (
+    e.code === "42703" ||
+    e.code === "42P01" ||
+    /column .* does not exist/i.test(e.message ?? "")
+  );
+}
+
 // ─── Free-tier caps ──────────────────────────────────────────────────────
 // Starting values from the v2 build plan. Adjust with real data later.
 // Pro tier removes all caps. Caps only apply in managed cloud mode (BYOD
@@ -1085,6 +1106,7 @@ export class SupabaseBackend implements MemoryBackend {
           category: r.category,
           confidence: r.confidence,
           created_at: r.created_at,
+          valid_from: r.valid_from ?? null,
           score: s,
         };
       });
@@ -1914,6 +1936,202 @@ export class SupabaseBackend implements MemoryBackend {
     });
   }
   // --- end recycle bin ---
+
+  // --- memory time machine (bi-temporal diff) ---
+  // invalidation_reason is intentionally absent: no repo schema creates that
+  // column (the invalidate RPCs keep the reason in the audit payload), so the
+  // diff reports reason: null on Supabase and the full reason on local.
+  private static readonly DIFF_FACT_COLUMNS =
+    "id, fact, category, confidence, status, created_at, updated_at, valid_to, invalidated_at, superseded_by, archived_at, decay_reason";
+  // Columns every known extracted_facts schema has, used as the retry set when
+  // a BYOD installer database predates the bi-temporal ALTERs.
+  private static readonly DIFF_FACT_CORE_COLUMNS =
+    "id, fact, category, confidence, status, created_at, updated_at";
+  private static readonly DIFF_SCOPE_COLUMNS =
+    "visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at";
+
+  private diffFactsBetween(
+    columns: string,
+    windowColumn: string,
+    from: string,
+    to: string,
+    fetchCap: number,
+    extra?: { supersededOnly?: boolean; notSuperseded?: boolean; archivedOnly?: boolean }
+  ) {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select(columns, { count: "exact" })
+      .gte(windowColumn, from)
+      .lte(windowColumn, to);
+    if (extra?.supersededOnly) query = query.not("superseded_by", "is", null);
+    if (extra?.notSuperseded) query = query.is("superseded_by", null);
+    if (extra?.archivedOnly) query = query.eq("status", "archived");
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    return query.order(windowColumn, { ascending: false }).limit(fetchCap);
+  }
+
+  private async runDiffFactBucket(params: {
+    context: string;
+    columns: string;
+    windowColumn: string;
+    from: string;
+    to: string;
+    fetchCap: number;
+    extra?: { supersededOnly?: boolean; notSuperseded?: boolean; archivedOnly?: boolean };
+    /** Reduced column set to retry with on a missing-column error; omit to mark the bucket unavailable instead. */
+    fallbackColumns?: string;
+  }): Promise<{ rows: MemoryDiffFactSourceRow[]; count: number | null; unavailable: boolean }> {
+    const attempt = await this.diffFactsBetween(
+      params.columns,
+      params.windowColumn,
+      params.from,
+      params.to,
+      params.fetchCap,
+      params.extra
+    );
+    if (!attempt.error) {
+      return {
+        rows: (attempt.data ?? []) as unknown as MemoryDiffFactSourceRow[],
+        count: attempt.count ?? null,
+        unavailable: false,
+      };
+    }
+    if (!isMissingColumnError(attempt.error)) throw pgError(params.context, attempt.error);
+    if (params.fallbackColumns) {
+      const retry = await this.diffFactsBetween(
+        params.fallbackColumns,
+        params.windowColumn,
+        params.from,
+        params.to,
+        params.fetchCap,
+        params.extra
+      );
+      if (!retry.error) {
+        return {
+          rows: (retry.data ?? []) as unknown as MemoryDiffFactSourceRow[],
+          count: retry.count ?? null,
+          unavailable: false,
+        };
+      }
+      if (!isMissingColumnError(retry.error)) throw pgError(params.context, retry.error);
+    }
+    return { rows: [], count: null, unavailable: true };
+  }
+
+  async memoryDiff(input: MemoryDiffInput = {}): Promise<MemoryDiffReport> {
+    const window = resolveMemoryDiffWindow(input.from, input.to);
+    // Fetch one row past the per-bucket cap so the report can flag truncation
+    // even without the exact counts.
+    const fetchCap = normalizeMemoryDiffBucketLimit(input.limit) + 1;
+    const scopesActive = scopesEnabled();
+    const factColumns = scopesActive
+      ? `${SupabaseBackend.DIFF_FACT_COLUMNS}, ${SupabaseBackend.DIFF_SCOPE_COLUMNS}`
+      : SupabaseBackend.DIFF_FACT_COLUMNS;
+    const core = SupabaseBackend.DIFF_FACT_CORE_COLUMNS;
+
+    const [added, invalidated, superseded, archived] = await Promise.all([
+      this.runDiffFactBucket({
+        context: "memoryDiff facts added",
+        columns: factColumns,
+        windowColumn: "created_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        fallbackColumns: core,
+      }),
+      // notSuperseded keeps the exact count aligned with the builder bucket,
+      // which routes superseded facts to their own bucket.
+      this.runDiffFactBucket({
+        context: "memoryDiff facts invalidated",
+        columns: factColumns,
+        windowColumn: "invalidated_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { notSuperseded: true },
+      }),
+      // The supersede RPCs set updated_at but not valid_to, so the window
+      // filter runs on updated_at; the builder falls back the same way.
+      this.runDiffFactBucket({
+        context: "memoryDiff facts superseded",
+        columns: factColumns,
+        windowColumn: "updated_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { supersededOnly: true },
+        fallbackColumns: `${core}, superseded_by`,
+      }),
+      this.runDiffFactBucket({
+        context: "memoryDiff facts archived",
+        columns: factColumns,
+        windowColumn: "archived_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { archivedOnly: true },
+        fallbackColumns: `${core}, archived_at, decay_reason`,
+      }),
+    ]);
+
+    const scopeContext = scopesActive ? resolveScopeContext() : null;
+    const allRows = [...added.rows, ...invalidated.rows, ...superseded.rows, ...archived.rows];
+    const facts = scopeContext
+      ? allRows.filter((row) => isFactInScope(row as MemoryFactScopeFields, scopeContext))
+      : allRows;
+
+    let sessions: MemoryDiffSessionSourceRow[] = [];
+    let sessionCount: number | null = null;
+    if (input.include_sessions !== false) {
+      let sessionQuery = this.client
+        .from(this.tables.session_summaries)
+        .select("session_id, platform, summary, topics, decisions, created_at", { count: "exact" })
+        .gte("created_at", window.from)
+        .lte("created_at", window.to)
+        .order("created_at", { ascending: false })
+        .limit(fetchCap);
+      if (this.tenancy.mode === "managed") {
+        sessionQuery = sessionQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const sessionResult = await sessionQuery;
+      if (sessionResult.error) throw pgError("memoryDiff sessions", sessionResult.error);
+      sessions = (sessionResult.data ?? []) as unknown as MemoryDiffSessionSourceRow[];
+      sessionCount = sessionResult.count ?? null;
+    }
+
+    // Exact counts come from the count queries. When scope filtering is
+    // active the counts must reflect the filtered rows instead, so the
+    // overrides are dropped and the builder counts what it can see.
+    const exactCounts = scopeContext
+      ? undefined
+      : {
+          ...(added.count !== null ? { facts_added: added.count } : {}),
+          ...(invalidated.count !== null ? { facts_invalidated: invalidated.count } : {}),
+          ...(superseded.count !== null ? { facts_superseded: superseded.count } : {}),
+          ...(archived.count !== null ? { facts_archived: archived.count } : {}),
+          ...(sessionCount !== null ? { sessions_saved: sessionCount } : {}),
+        };
+
+    const unavailableBuckets = [
+      ...(added.unavailable ? ["facts_added"] : []),
+      ...(invalidated.unavailable ? ["facts_invalidated"] : []),
+      ...(superseded.unavailable ? ["facts_superseded"] : []),
+      ...(archived.unavailable ? ["facts_archived"] : []),
+    ];
+
+    return buildMemoryDiffReport({
+      facts,
+      sessions,
+      window,
+      limit: input.limit,
+      include_sessions: input.include_sessions,
+      exact_counts: exactCounts,
+      unavailable_buckets: unavailableBuckets,
+    });
+  }
+  // --- end memory time machine ---
 
   async invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const result = await this.rpc<Array<{ invalidated_at: string }>>(

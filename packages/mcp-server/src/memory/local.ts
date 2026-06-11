@@ -49,6 +49,12 @@ import {
   verifyMemoryPassportBundle,
 } from "./passport.js";
 import {
+  buildMemoryDiffReport,
+  resolveMemoryDiffWindow,
+  type MemoryDiffInput,
+  type MemoryDiffReport,
+} from "./diff.js";
+import {
   filterAndRankMemoryTypedLinks,
   type MemoryTypedLinkCandidate,
   type MemoryTypedLinkSearchResult,
@@ -505,6 +511,7 @@ export class LocalBackend implements MemoryBackend {
           category: fact.category,
           confidence: fact.confidence,
           created_at: fact.created_at,
+          valid_from: fact.valid_from ?? null,
           score,
         };
       });
@@ -1326,6 +1333,27 @@ export class LocalBackend implements MemoryBackend {
       }));
   }
   // --- end recycle bin ---
+
+  // --- memory time machine (bi-temporal diff) ---
+  async memoryDiff(input: MemoryDiffInput = {}): Promise<MemoryDiffReport> {
+    const window = resolveMemoryDiffWindow(input.from, input.to);
+    // FactRow and SessionRow are structural supersets of the diff source row
+    // shapes, so whole tables pass straight through; the builder reads only
+    // the fields it needs and ignores rows outside the window.
+    const scopeContext = scopesEnabled() ? resolveScopeContext() : null;
+    const allFacts = readTable<FactRow>("extracted_facts");
+    const facts = scopeContext
+      ? allFacts.filter((row) => isFactInScope(row, scopeContext))
+      : allFacts;
+    return buildMemoryDiffReport({
+      facts,
+      sessions: readTable<SessionRow>("session_summaries"),
+      window,
+      limit: input.limit,
+      include_sessions: input.include_sessions,
+    });
+  }
+  // --- end memory time machine ---
 
   async invalidateFact(_input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const rows = readTable<FactRow>("extracted_facts");
