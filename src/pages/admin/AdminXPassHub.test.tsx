@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import AdminXPassHub from "./AdminXPassHub";
+import { dogfoodReport } from "@/data/dogfoodReport";
 
 function renderHub(path = "/admin/checks") {
   render(
@@ -34,33 +35,37 @@ describe("AdminXPassHub", () => {
 
     expect(screen.getByRole("heading", { name: "SecurityPass" })).toBeInTheDocument();
     expect(screen.getByText("Is it safe enough?")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Recent reports" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Latest recorded evidence" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Secrets and auth" })).toBeInTheDocument();
     expect(screen.getByText("No secret exposure")).toBeInTheDocument();
     expect(screen.getByText("Database scope is tenant-safe")).toBeInTheDocument();
     expect(screen.getAllByText(/Green only when every relevant row is PASS or N\/A/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Alert")).toBeInTheDocument();
-    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(55);
+    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(50);
     expect(screen.getByTestId("xpass-checklist-results")).toContainElement(screen.getByText("Secrets and auth"));
   });
 
-  it("uses date-sorted clickable reports to populate checklist results", () => {
+  it("shows only recorded evidence instead of fabricated report history", () => {
     renderHub("/admin/checks/securitypass");
 
-    const reports = screen.getAllByTestId("xpass-report-option");
-    expect(reports).toHaveLength(6);
-    expect(reports[0]).toHaveTextContent("31 May 2026");
-    expect(reports[1]).toHaveTextContent("30 May 2026");
-    expect(reports[2]).toHaveTextContent("29 May 2026");
-    expect(reports[0]).toHaveClass("min-h-7");
-    expect(screen.getByRole("button", { name: /Load 3 more/i })).toBeInTheDocument();
-    expect(screen.getByText(/Selected report: 31 May 2026/i)).toBeInTheDocument();
+    // The latest-evidence summary must come from the real dogfood report.
+    const recorded = dogfoodReport.results.find((result) => result.id === "securitypass");
+    expect(recorded).toBeDefined();
+    expect(screen.getByTestId("xpass-evidence-summary")).toHaveTextContent(recorded!.summary.slice(0, 40));
 
-    fireEvent.click(reports[1]);
+    // The honesty note is always present and there is no invented history list.
+    expect(screen.getByText(/Only recorded runs appear here/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("xpass-report-option")).not.toBeInTheDocument();
+    expect(screen.queryByText(/checklist refresh/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/evidence replay/i)).not.toBeInTheDocument();
+  });
 
-    expect(reports[1]).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByText(/30 May 2026 \/ SecurityPass checklist refresh/i).length).toBeGreaterThan(0);
-    expect(within(screen.getByTestId("xpass-checklist-results")).getAllByText("PASS").length).toBeGreaterThan(30);
+  it("keeps unscored checklist rows visibly WAITING instead of pretending green", () => {
+    renderHub("/admin/checks/securitypass");
+
+    const rows = screen.getAllByTestId("xpass-check-row");
+    const waiting = rows.filter((row) => within(row).queryByText("Waiting"));
+    expect(waiting.length).toBeGreaterThan(10);
   });
 
   it("splits UIPass visual checks from UXPass journey checks", () => {

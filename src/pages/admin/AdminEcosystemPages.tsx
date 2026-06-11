@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminXPassHub from "./AdminXPassHub";
+import { useSession } from "@/lib/auth";
 import {
   AppWindow,
   Archive,
@@ -112,6 +114,85 @@ export function AdminProjects() {
   );
 }
 
+type EngineQueueMetrics = {
+  active: number;
+  open_backlog: number;
+  done: number;
+};
+
+/**
+ * Live numbers from the Jobs queue. Renders nothing until real metrics
+ * arrive; a failed or unauthenticated fetch shows no strip rather than
+ * invented zeroes.
+ */
+function EngineNowStrip() {
+  const { session } = useSession();
+  const token = session?.access_token;
+  const [metrics, setMetrics] = useState<EngineQueueMetrics | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/memory-admin?action=fishbowl_list_todos", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ agent_id: "admin-jobs-ui", include_description: false, limit: 1 }),
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          queue_metrics?: { active?: unknown; open_backlog?: unknown; done?: unknown };
+        };
+        if (!res.ok || cancelled) return;
+        const qm = body.queue_metrics;
+        if (
+          qm &&
+          typeof qm.active === "number" &&
+          typeof qm.open_backlog === "number" &&
+          typeof qm.done === "number"
+        ) {
+          setMetrics({ active: qm.active, open_backlog: qm.open_backlog, done: qm.done });
+        }
+      } catch {
+        // Stay silent: no strip beats fake numbers.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  if (!token || !metrics) return null;
+
+  const items = [
+    { label: "in progress", value: metrics.active },
+    { label: "open in backlog", value: metrics.open_backlog },
+    { label: "done", value: metrics.done },
+  ];
+
+  return (
+    <Link
+      to="/admin/jobs"
+      data-testid="engine-now-strip"
+      className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] px-4 py-3 transition-colors hover:border-[#61C1C4]/40"
+    >
+      <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#61C1C4]">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#61C1C4]/60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#61C1C4]" />
+        </span>
+        Engine now
+      </span>
+      {items.map((item) => (
+        <span key={item.label} className="text-sm text-white/70">
+          <span className="font-semibold text-white">{item.value.toLocaleString()}</span> {item.label}
+        </span>
+      ))}
+      <span className="ml-auto text-xs text-white/40">Live from the Jobs queue</span>
+    </Link>
+  );
+}
+
 export function AdminAutopilot() {
   return (
     <PageShell
@@ -119,6 +200,7 @@ export function AdminAutopilot() {
       title="AutoPilot"
       subtitle="AutoPilot is the controlled work hub for projects. It gives people and companies a safe bubble to plan, build, check, route, and prove work using UnClick's tools and automation."
     >
+      <EngineNowStrip />
       <TileGrid
         items={[
           { title: "Boardroom", body: "Shared room for decisions, handoffs, and short updates from people and AI workers.", icon: MessagesSquare, href: "/admin/boardroom" },
