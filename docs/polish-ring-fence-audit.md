@@ -50,13 +50,13 @@ three jobs, in order:
 
 ### Engine truth debt (cross-page)
 
-- "Coming soon" stubs: `/admin/system-health`, `/admin/audit-log`,
-  `/admin/users`, `/admin/moderation`. Honest but empty; each needs either a
-  real minimal view or removal from nav until built.
+- "Coming soon" stubs: `/admin/system-health` and `/admin/audit-log` now
+  point to today's real surfaces (done 2026-06-11). `/admin/users` and
+  `/admin/moderation` stay honest stubs until their backends exist.
 - `AdminBenchmarks` shows "Sample data" label: acceptable, keep the label.
-- `src/pages/MemoryAdmin.tsx` is a placeholder page whose route now redirects
-  into the admin shell; candidate for deletion after confirming nothing links
-  to it.
+- `src/pages/MemoryAdmin.tsx`: deleted 2026-06-11 (zero importers).
+- `/admin/dashboard`: "What needs you" wired to live queue counts
+  (done 2026-06-11).
 
 ## Open PR lanes that ring-fence files (no-stomp map, 2026-06-11)
 
@@ -121,6 +121,23 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
   pass, full TestPass sweep, then a fresh dogfood report regeneration.
 
 ## Session findings log
+
+- **2026-06-11 (round 2):** Engine truth, dashboard and stubs.
+  - `/admin/dashboard`: the "What needs you" panel was static advice dressed
+    as a live queue. It now shows real Jobs queue counts (via the new shared
+    `useJobsQueueMetrics` hook) and falls back to a clearly labelled
+    "Standing habits" list when no live data is available.
+  - `/admin/ledger`: Receipts now links to TestPass (where real receipts
+    live), Workers links to the worker roles page, and Approvals plus
+    Rollback are visibly marked "Not built yet" instead of implying depth.
+  - `/admin/audit-log` and `/admin/system-health` stubs now point to where
+    the same answers live today (Activity + Orchestrator log; Signals +
+    TestPass).
+  - Deleted `src/pages/MemoryAdmin.tsx`: a 465-line placeholder with zero
+    importers since `/memory/admin` started redirecting into the admin shell.
+  - Dogfood receipts recorded: UXPass on `/xpass` (run adeca3da) and `/why`
+    (run 7d02d877), both fetch-only score 100 with the standing note that
+    browser screenshots are still needed for visual claims.
 
 - **2026-06-11:** XPass hub (`/admin/checks`) rewritten to show recorded
   evidence only. Removed the fabricated "Recent reports" list (9 synthetic

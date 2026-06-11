@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminXPassHub from "./AdminXPassHub";
-import { useSession } from "@/lib/auth";
+import { useJobsQueueMetrics } from "@/hooks/useJobsQueueMetrics";
 import {
   AppWindow,
   Archive,
@@ -114,55 +113,15 @@ export function AdminProjects() {
   );
 }
 
-type EngineQueueMetrics = {
-  active: number;
-  open_backlog: number;
-  done: number;
-};
-
 /**
  * Live numbers from the Jobs queue. Renders nothing until real metrics
  * arrive; a failed or unauthenticated fetch shows no strip rather than
  * invented zeroes.
  */
 function EngineNowStrip() {
-  const { session } = useSession();
-  const token = session?.access_token;
-  const [metrics, setMetrics] = useState<EngineQueueMetrics | null>(null);
+  const metrics = useJobsQueueMetrics();
 
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=fishbowl_list_todos", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ agent_id: "admin-jobs-ui", include_description: false, limit: 1 }),
-        });
-        const body = (await res.json().catch(() => ({}))) as {
-          queue_metrics?: { active?: unknown; open_backlog?: unknown; done?: unknown };
-        };
-        if (!res.ok || cancelled) return;
-        const qm = body.queue_metrics;
-        if (
-          qm &&
-          typeof qm.active === "number" &&
-          typeof qm.open_backlog === "number" &&
-          typeof qm.done === "number"
-        ) {
-          setMetrics({ active: qm.active, open_backlog: qm.open_backlog, done: qm.done });
-        }
-      } catch {
-        // Stay silent: no strip beats fake numbers.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  if (!token || !metrics) return null;
+  if (!metrics) return null;
 
   const items = [
     { label: "in progress", value: metrics.active },
@@ -299,10 +258,10 @@ export function AdminLedger() {
       <TileGrid
         items={[
           { title: "Activity", body: "What happened and when.", icon: ReceiptText, href: "/admin/activity" },
-          { title: "Approvals", body: "Trusted PASS, BLOCKER, and HOLD decisions.", icon: BadgeCheck },
-          { title: "Receipts", body: "Proof checks and completion evidence.", icon: ClipboardCheck },
-          { title: "Workers", body: "Trusted worker identity registry.", icon: Users },
-          { title: "Rollback", body: "Undo and recovery record.", icon: RefreshCw },
+          { title: "Approvals", body: "Trusted PASS, BLOCKER, and HOLD decisions.", icon: BadgeCheck, mote: "Not built yet" },
+          { title: "Receipts", body: "Proof checks and completion evidence. TestPass run receipts live here today.", icon: ClipboardCheck, href: "/admin/testpass" },
+          { title: "Workers", body: "The worker roles and lanes that produce trusted work.", icon: Users, href: "/admin/workers" },
+          { title: "Rollback", body: "Undo and recovery record.", icon: RefreshCw, mote: "Not built yet" },
           { title: "Audit", body: "Full immutable history for trust and investigation.", icon: FileText, href: "/admin/audit-log" },
         ]}
       />

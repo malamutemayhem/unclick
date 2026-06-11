@@ -87,9 +87,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
-| src/pages/admin/AdminAuditLog.tsx | 947f6c4d8c10 | 877 |
+| src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
-| src/pages/admin/AdminEcosystemPages.tsx | 78b8923af0dd | 14979 |
+| src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Fishbowl.tsx | 076fd12c1831 | 37563 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
@@ -100,7 +100,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
-| src/pages/admin/AdminDashboard.tsx | c6c9093d733d | 5303 |
+| src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5417b324cff7 | 64232 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
 | src/pages/admin/AdminKeychain.tsx | 982902265fb2 | 77151 |
@@ -113,7 +113,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
 | src/pages/admin/signals/SignalsCatalog.tsx | f5332dd8f38e | 10865 |
-| src/pages/admin/AdminSystemHealth.tsx | 4ddaaf1282db | 870 |
+| src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
 | src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
@@ -255,7 +255,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 123 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 138 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 137 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -1288,7 +1288,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Info Card | Memory admin panel for Info Card. | - | src/pages/admin/memory/InfoCard.tsx |
 | Modules and apps | component | Library Tab | Memory admin panel for Library Tab. | - | src/pages/admin/memory/LibraryTab.tsx |
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
-| Modules and apps | component | Memory Admin | User-facing page for Memory Admin. | - | src/pages/MemoryAdmin.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
 | Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |

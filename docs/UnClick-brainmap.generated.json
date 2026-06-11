@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1109,
+    "inventory": 1108,
     "source_manifest": 227,
     "pages": 94,
     "tools": 672,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 138
+      "count": 137
     },
     {
       "id": "launch-and-onboarding",
@@ -2318,16 +2318,6 @@
       "kind": "component",
       "meaning": "Memory admin panel for Memory Activity Tab.",
       "source": "src/pages/admin/memory/MemoryActivityTab.tsx",
-      "route": "",
-      "tags": []
-    },
-    {
-      "id": "modules-and-apps-component-memory-admin-src-pages-memoryadmin-tsx-no-route",
-      "division": "Modules and apps",
-      "name": "Memory Admin",
-      "kind": "component",
-      "meaning": "User-facing page for Memory Admin.",
-      "source": "src/pages/MemoryAdmin.tsx",
       "route": "",
       "tags": []
     },
@@ -15821,8 +15811,8 @@
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
-      "hash": "947f6c4d8c10",
-      "bytes": 877
+      "hash": "905775a1985d",
+      "bytes": 1446
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
@@ -15831,8 +15821,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "78b8923af0dd",
-      "bytes": 14979
+      "hash": "a43f559b89c3",
+      "bytes": 13821
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -15886,8 +15876,8 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "c6c9093d733d",
-      "bytes": 5303
+      "hash": "e38f909e6d5b",
+      "bytes": 7090
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -15951,8 +15941,8 @@
     },
     {
       "source": "src/pages/admin/AdminSystemHealth.tsx",
-      "hash": "4ddaaf1282db",
-      "bytes": 870
+      "hash": "00a2e7a8cd3e",
+      "bytes": 1421
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
