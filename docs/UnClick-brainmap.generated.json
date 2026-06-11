@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1110,
-    "source_manifest": 227,
-    "pages": 94,
+    "inventory": 1111,
+    "source_manifest": 228,
+    "pages": 95,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 36
+      "count": 37
     },
     {
       "id": "tools",
@@ -3729,6 +3729,16 @@
       "meaning": "User-facing page for FAQPage.",
       "source": "src/pages/FAQPage.tsx",
       "route": "/faq",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-src-pages-homepreview-tsx-home-preview",
+      "division": "Public surfaces",
+      "name": "Home Preview",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview.",
+      "source": "src/pages/HomePreview.tsx",
+      "route": "/home-preview",
       "tags": []
     },
     {
@@ -11632,6 +11642,12 @@
       "src/pages/FAQPage.tsx"
     ],
     [
+      "/home-preview",
+      "Home Preview",
+      "User-facing page for Home Preview.",
+      "src/pages/HomePreview.tsx"
+    ],
+    [
       "/i",
       "Install Recover",
       "User-facing page for Install Recover.",
@@ -15510,8 +15526,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "c48d9420334e",
-      "bytes": 17397
+      "hash": "fb63add0574f",
+      "bytes": 17515
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -16082,6 +16098,11 @@
       "source": "src/pages/FAQPage.tsx",
       "hash": "40edfe371870",
       "bytes": 690
+    },
+    {
+      "source": "src/pages/HomePreview.tsx",
+      "hash": "608d674c000e",
+      "bytes": 11423
     },
     {
       "source": "src/pages/InstallRecover.tsx",

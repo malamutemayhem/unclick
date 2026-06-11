@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | c48d9420334e | 17397 |
+| src/App.tsx | fb63add0574f | 17515 |
 | src/pages/admin/AdminShell.tsx | 583495279a0e | 28506 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -137,6 +137,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
+| src/pages/HomePreview.tsx | 608d674c000e | 11423 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
@@ -246,7 +247,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 37 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -362,6 +363,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /docs | Docs | User-facing page for Docs. | src/pages/Docs.tsx |
 | /dogfood | Dogfood Report | Public dogfood proof report. | src/pages/DogfoodReport.tsx |
 | /faq | FAQ | User-facing page for FAQPage. | src/pages/FAQPage.tsx |
+| /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
 | /login | Login | Sign-in page. | src/pages/Login.tsx |
@@ -1429,6 +1431,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Docs | User-facing page for Docs. | /docs | src/pages/Docs.tsx |
 | Public surfaces | public page | Dogfood Report | Public dogfood proof report. | /dogfood | src/pages/DogfoodReport.tsx |
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
+| Public surfaces | public page | Home Preview | User-facing page for Home Preview. | /home-preview | src/pages/HomePreview.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
