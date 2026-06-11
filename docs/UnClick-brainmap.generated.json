@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
+    "inventory": 611,
     "source_manifest": 190,
     "pages": 82,
     "tools": 219,
@@ -69,7 +69,7 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 6
+      "count": 7
     },
     {
       "id": "source-of-truth",
@@ -1818,6 +1818,16 @@
       "kind": "ledger",
       "meaning": "Structured evidence, proof freshness, receipts, and DONE trust surface.",
       "source": "docs/agent-observability.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-proof-module-ledger-api-lib-xgate-ledger-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "ledger",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/ledger.ts",
       "route": "",
       "tags": []
     },
