@@ -369,7 +369,7 @@ export default function ConnectPage() {
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-body text-sm">
             {pageState.kind === "callback"
-              ? "Exchanging tokens..."
+              ? "Finishing the secure sign-in..."
               : `Connecting to ${connector.name}...`}
           </p>
         </div>
@@ -440,7 +440,7 @@ export default function ConnectPage() {
 
       const data = (await res.json()) as { state?: string; error?: string };
       if (!res.ok || !data.state) {
-        setPageState({ kind: "error", message: data.error ?? "Failed to initialize OAuth." });
+        setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
       }
 
@@ -501,7 +501,7 @@ export default function ConnectPage() {
                   </span>
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-heading">
-                      {resettingKey ? "Minting fresh key..." : "Mint a fresh key"}
+                      {resettingKey ? "Making a new key..." : "Make a new key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       Replaces the old key. Any other devices using it will need the new one.

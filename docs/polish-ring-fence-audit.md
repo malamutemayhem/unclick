@@ -122,6 +122,16 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 13):** Connect page copy audit.
+  - Connect (the OAuth surface) audited copy-only; logic untouched. Three
+    jargon strings humanized: "Exchanging tokens..." reads "Finishing the
+    secure sign-in...", "Failed to initialize OAuth." reads "Could not
+    start the sign-in. Please try again.", and "Mint a fresh key" reads
+    "Make a new key". Everything else already plain English.
+  - CI note: TestPass smoke failures during rapid pushes are the
+    superseded-preview race (Vercel cancels outdated preview builds and
+    TestPass fails closed against them); the run against the surviving
+    head goes green on its own.
 - **2026-06-11 (round 12):** memory setup flow audit + dead admin chain.
   - MemorySetup audited: already a clean 3-step wizard, no simplification
     needed. MemoryConnect audited: distinct job (Claude Code one-command
