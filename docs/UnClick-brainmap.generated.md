@@ -85,8 +85,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | a37a2518aa57 | 49158 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
-| src/pages/admin/AdminAppTesting.tsx | 90c9377b4bab | 10945 |
-| src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
+| src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
+| src/pages/admin/AdminTools.tsx | e837ee6a6e33 | 7846 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
@@ -123,8 +123,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | 5d2ee9cd8690 | 5401 |
-| src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
+| src/pages/AppDetail.tsx | ce60db85ef41 | 6592 |
+| src/pages/Apps.tsx | f2fab29b2942 | 3137 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | 4879515ad320 | 29609 |
@@ -196,7 +196,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/amber-tool.ts | 635b10e30a39 | 7078 |
 | packages/mcp-server/src/amiibo-tool.ts | 81076c40936a | 2101 |
 | packages/mcp-server/src/angleconv-tool.ts | 6e8ddaf9344f | 1663 |
-| packages/mcp-server/src/animechan-tool.ts | f77b9af84d81 | 1735 |
+| packages/mcp-server/src/animechan-tool.ts | 52c851f21185 | 1856 |
 | packages/mcp-server/src/anthropic-tool.ts | 72906c764b43 | 9657 |
 | packages/mcp-server/src/aoe2-tool.ts | 13377d4c8ad0 | 3685 |
 | packages/mcp-server/src/apifootball-tool.ts | ff6ec8c8d646 | 3682 |

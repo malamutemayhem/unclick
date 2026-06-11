@@ -30,7 +30,8 @@
       "name": "2-SAT Solver",
       "category": "Utilities",
       "blurb": "2-SAT boolean satisfiability solver using implication graph and SCC.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -46,7 +47,8 @@
       "name": "3D Convex Hull",
       "category": "Utilities",
       "blurb": "Compute the 3D convex hull of a point set returning triangular faces.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -62,7 +64,8 @@
       "name": "A* Pathfinding",
       "category": "Utilities",
       "blurb": "Find the shortest path on a 2D grid using the A* algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -79,6 +82,7 @@
       "category": "Travel, maps & local",
       "blurb": "Look up an Australian Business Number (ABN).",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -99,6 +103,7 @@
       "category": "Security",
       "blurb": "Check if an IP address has been reported for abuse.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -122,7 +127,8 @@
       "name": "Ackermann Function",
       "category": "Utilities",
       "blurb": "Compute the Ackermann function A(m,n) with closed-form optimization.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -138,7 +144,8 @@
       "name": "Acronym Generator",
       "category": "Utilities",
       "blurb": "Generate an acronym from a phrase, skipping small words by default.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -154,7 +161,8 @@
       "name": "Activation Functions",
       "category": "Utilities",
       "blurb": "Compute activation functions (sigmoid, tanh, relu, etc.) and their derivatives.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -171,6 +179,7 @@
       "category": "Utilities",
       "blurb": "Get random advice or search advice by topic.",
       "domain": "api.adviceslip.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -195,6 +204,7 @@
       "category": "Utilities",
       "blurb": "Get random positive affirmations for daily motivation.",
       "domain": "affirmations.dev",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -211,6 +221,7 @@
       "category": "Games & esports",
       "blurb": "Browse Age of Empires II civilizations, units, and technologies.",
       "domain": "age-of-empires-2-api.herokuapp.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -242,7 +253,8 @@
       "name": "Aho-Corasick",
       "category": "Utilities",
       "blurb": "Multi-pattern string search using the Aho-Corasick automaton.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -259,6 +271,7 @@
       "category": "Productivity",
       "blurb": "Read and update records across your Airtable bases.",
       "domain": "airtable.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -275,6 +288,7 @@
       "category": "Books",
       "blurb": "Read Quran verses and surahs with English translation.",
       "domain": "alquran.cloud",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -295,6 +309,7 @@
       "category": "Developer & infra",
       "blurb": "Search an Algolia index for records matching a query.",
       "domain": "algolia.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -323,6 +338,7 @@
       "category": "Markets & crypto",
       "blurb": "Get a real-time stock quote from Alpha Vantage.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -359,6 +375,7 @@
       "category": "Shopping",
       "blurb": "Search for products on Amazon.",
       "domain": "amazon.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -387,6 +404,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get Amber Electric sites for the authenticated user.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -411,6 +429,7 @@
       "category": "Games & esports",
       "blurb": "Search Nintendo Amiibo figures by name, series, or type.",
       "domain": "amiiboapi.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -434,7 +453,8 @@
       "name": "Angle Converter",
       "category": "Utilities",
       "blurb": "Convert between degrees, radians, gradians, and turns with trig values.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -451,6 +471,7 @@
       "category": "Games & esports",
       "blurb": "Animal Crossing: New Horizons villagers, fish, and bugs data.",
       "domain": "acnhapi.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -475,6 +496,7 @@
       "category": "Social",
       "blurb": "Get random anime quotes or search by anime title.",
       "domain": "animechan.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -495,6 +517,7 @@
       "category": "AI",
       "blurb": "Chat completions from Claude models.",
       "domain": "anthropic.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -514,7 +537,8 @@
       "name": "Area Calculator",
       "category": "Utilities",
       "blurb": "Area and perimeter of circles, rectangles, triangles, trapezoids, ellipses, and more.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -531,6 +555,7 @@
       "category": "News & reading",
       "blurb": "Search and explore artworks from the Art Institute of Chicago collection.",
       "domain": "artic.edu",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -551,6 +576,7 @@
       "category": "Books",
       "blurb": "Search scientific preprints on arXiv by keyword, title, or author.",
       "domain": "arxiv.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -567,6 +593,7 @@
       "category": "Productivity",
       "blurb": "List all Asana workspaces accessible by the authenticated user.",
       "domain": "asana.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -606,7 +633,8 @@
       "name": "Aspect Ratio Calculator",
       "category": "Developer & infra",
       "blurb": "Calculate the simplified aspect ratio for any width and height.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -623,6 +651,7 @@
       "category": "AI",
       "blurb": "Submit an audio or video file for transcription with AssemblyAI.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -658,7 +687,8 @@
       "name": "Atbash Cipher",
       "category": "Utilities",
       "blurb": "Apply the Atbash cipher (A=Z, B=Y) to text. Self-inverse.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -675,6 +705,7 @@
       "category": "Travel, maps & local",
       "blurb": "Track an Australia Post parcel by tracking number.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -698,7 +729,8 @@
       "name": "AVL Tree",
       "category": "Utilities",
       "blurb": "Self-balancing BST with O(log n) insert, search, and height guarantees.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -714,7 +746,8 @@
       "name": "Baby-step Giant-step",
       "category": "Utilities",
       "blurb": "Discrete logarithm solver using baby-step giant-step method.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -731,6 +764,7 @@
       "category": "Utilities",
       "blurb": "Generate meat-themed lorem ipsum placeholder text.",
       "domain": "baconipsum.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -747,6 +781,7 @@
       "category": "Games & esports",
       "blurb": "NBA player stats, team info, and game scores.",
       "domain": "balldontlie.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -771,6 +806,7 @@
       "category": "Events & tickets",
       "blurb": "Get an artist profile from Bandsintown.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -794,7 +830,8 @@
       "name": "Base Converter",
       "category": "Utilities",
       "blurb": "Convert numbers between any bases (binary, octal, decimal, hex, base 2-36).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -810,7 +847,8 @@
       "name": "Base64 Codec",
       "category": "Developer & infra",
       "blurb": "Encode and decode text to/from Base64.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -830,7 +868,8 @@
       "name": "Bellman-Ford",
       "category": "Utilities",
       "blurb": "Single-source shortest paths with negative edge weight support (Bellman-Ford).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -846,7 +885,8 @@
       "name": "Berlekamp-Massey",
       "category": "Utilities",
       "blurb": "Find the shortest linear recurrence for a sequence using Berlekamp-Massey.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -862,7 +902,8 @@
       "name": "Bezier Clip",
       "category": "Utilities",
       "blurb": "Extract a Bezier sub-curve for a parameter range using de Casteljau subdivision.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -878,7 +919,8 @@
       "name": "Bezier Curve",
       "category": "Utilities",
       "blurb": "Compute Bezier curves from control points with arc length and evaluation.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -894,7 +936,8 @@
       "name": "BFS Search",
       "category": "Utilities",
       "blurb": "Breadth-first search for shortest unweighted paths and reachability.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -911,6 +954,7 @@
       "category": "Security",
       "blurb": "BGP/ASN lookup: network details, IP prefixes, and routing data.",
       "domain": "bgpview.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -935,6 +979,7 @@
       "category": "Books",
       "blurb": "Look up Bible verses and passages, or get a random verse.",
       "domain": "bible-api.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -954,7 +999,8 @@
       "name": "Binomial Probability",
       "category": "Utilities",
       "blurb": "Binomial distribution probability, cumulative probabilities, mean, and variance.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -970,7 +1016,8 @@
       "name": "Bipartite Check",
       "category": "Utilities",
       "blurb": "Check if a graph is bipartite and return the vertex partition or odd cycle.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -986,7 +1033,8 @@
       "name": "Bit Count",
       "category": "Utilities",
       "blurb": "Count set bits, convert between decimal/binary/hex/octal, detect powers of two.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1003,6 +1051,7 @@
       "category": "Developer & infra",
       "blurb": "Browse Bitbucket repositories and pull requests.",
       "domain": "bitbucket.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1026,7 +1075,8 @@
       "name": "Bitmask Ops",
       "category": "Utilities",
       "blurb": "Bitmask operations: submasks, supersets, next permutation, and bit info.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1042,7 +1092,8 @@
       "name": "Bitwise Calculator",
       "category": "Developer & infra",
       "blurb": "Perform bitwise operations (AND, OR, XOR, NOT, shifts) on integers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1058,7 +1109,8 @@
       "name": "Bloom Filter",
       "category": "Utilities",
       "blurb": "Probabilistic set membership testing with configurable false positive rate.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1075,6 +1127,7 @@
       "category": "Social",
       "blurb": "Post, read, search, and follow on Bluesky.",
       "domain": "bsky.app",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -1091,6 +1144,7 @@
       "category": "Games & esports",
       "blurb": "Search BoardGameGeek for board games by name.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -1122,7 +1176,8 @@
       "name": "Booth's Rotation",
       "category": "Utilities",
       "blurb": "Find the lexicographically smallest rotation of a string in O(n).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1139,6 +1194,7 @@
       "category": "Utilities",
       "blurb": "Get random activity suggestions when you need inspiration.",
       "domain": "bored-api.appbrewery.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1162,7 +1218,8 @@
       "name": "Braille Converter",
       "category": "Utilities",
       "blurb": "Convert text to Braille Unicode dots or decode Braille to text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1179,6 +1236,7 @@
       "category": "Social",
       "blurb": "Get random Breaking Bad quotes.",
       "domain": "breakingbadquotes.xyz",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -1195,6 +1253,7 @@
       "category": "Messaging & email",
       "blurb": "Read Brevo contacts, email campaigns, and account.",
       "domain": "brevo.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1218,7 +1277,8 @@
       "name": "Bucket Sort",
       "category": "Utilities",
       "blurb": "Distribution-based sort dividing elements into buckets then merging.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1235,6 +1295,7 @@
       "category": "Games & esports",
       "blurb": "Search for a Destiny 2 player by display name.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -1262,7 +1323,8 @@
       "name": "Burrows-Wheeler",
       "category": "Utilities",
       "blurb": "Burrows-Wheeler Transform for text compression preprocessing.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1279,6 +1341,7 @@
       "category": "AI",
       "blurb": "Run a C-Suite multi-perspective analysis on a business scenario.",
       "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1295,6 +1358,7 @@
       "category": "Productivity",
       "blurb": "Get the authenticated Cal.com user's profile.",
       "domain": "cal.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1319,6 +1383,7 @@
       "category": "Utilities",
       "blurb": "Calculate tip amount and total for a bill.",
       "domain": null,
+      "network": "offline",
       "toolCount": 5,
       "tools": [
         {
@@ -1351,6 +1416,7 @@
       "category": "Productivity",
       "blurb": "Get the authenticated Calendly user profile.",
       "domain": "calendly.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -1383,6 +1449,7 @@
       "category": "Weather & science",
       "blurb": "UK national grid carbon intensity - current, forecast, and generation mix.",
       "domain": "carbonintensity.org.uk",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1407,6 +1474,7 @@
       "category": "Weather & science",
       "blurb": "Estimate carbon emissions for a flight.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1430,7 +1498,8 @@
       "name": "Cartesian Tree",
       "category": "Utilities",
       "blurb": "Cartesian tree construction from an array for range minimum queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1446,7 +1515,8 @@
       "name": "Case Converter",
       "category": "Utilities",
       "blurb": "Convert between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1463,6 +1533,7 @@
       "category": "Images",
       "blurb": "Random cat images with optional text overlay and tags.",
       "domain": "cataas.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1483,6 +1554,7 @@
       "category": "Utilities",
       "blurb": "Get random cat facts and browse cat breeds.",
       "domain": "catfact.ninja",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1506,7 +1578,8 @@
       "name": "Catalan Numbers",
       "category": "Utilities",
       "blurb": "Compute the nth Catalan number with combinatorial interpretations.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1522,7 +1595,8 @@
       "name": "Catmull-Rom Spline",
       "category": "Utilities",
       "blurb": "Evaluate Catmull-Rom splines through control points with configurable alpha.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1538,7 +1612,8 @@
       "name": "Centroid Decomposition",
       "category": "Utilities",
       "blurb": "Centroid decomposition of trees for efficient path queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1554,7 +1629,8 @@
       "name": "Character Codes",
       "category": "Utilities",
       "blurb": "Convert characters to Unicode code points in decimal, hex, or binary.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1570,7 +1646,8 @@
       "name": "Character Frequency",
       "category": "Developer & infra",
       "blurb": "Analyze character frequency and type breakdown for any text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1587,6 +1664,7 @@
       "category": "Games & esports",
       "blurb": "Compare game deals across Steam, GOG, and other stores.",
       "domain": "cheapshark.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1607,6 +1685,7 @@
       "category": "Games & esports",
       "blurb": "Get a Chess.com player profile.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -1638,7 +1717,8 @@
       "name": "Chinese Remainder",
       "category": "Utilities",
       "blurb": "Solve simultaneous congruences using the generalised Chinese Remainder Theorem.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1654,7 +1734,8 @@
       "name": "Chinese Remainder Theorem",
       "category": "Utilities",
       "blurb": "Solve simultaneous congruences using the Chinese Remainder Theorem.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1670,7 +1751,8 @@
       "name": "Chromatic Number",
       "category": "Utilities",
       "blurb": "Exact chromatic number computation using inclusion-exclusion (up to 20 vertices).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1687,6 +1769,7 @@
       "category": "Utilities",
       "blurb": "Get random Chuck Norris jokes by category.",
       "domain": "api.chucknorris.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1710,7 +1793,8 @@
       "name": "CIDR Calculator",
       "category": "Developer & infra",
       "blurb": "Calculate subnet details from CIDR notation (network, broadcast, hosts).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1727,6 +1811,7 @@
       "category": "Security",
       "blurb": "CVE vulnerability lookup and recent CVE feed from CIRCL.",
       "domain": "cve.circl.lu",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1747,6 +1832,7 @@
       "category": "Developer & infra",
       "blurb": "List CircleCI pipelines for a project or organization. Optionally filter by branch.",
       "domain": "circleci.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -1783,6 +1869,7 @@
       "category": "Travel, maps & local",
       "blurb": "Browse bike-sharing networks and station availability worldwide.",
       "domain": "citybik.es",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1803,6 +1890,7 @@
       "category": "Productivity",
       "blurb": "Read and update ClickUp tasks, lists, and spaces.",
       "domain": "clickup.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -1819,6 +1907,7 @@
       "category": "Productivity",
       "blurb": "Track time and read Clockify projects and reports.",
       "domain": "clockify.me",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -1835,6 +1924,7 @@
       "category": "Developer & infra",
       "blurb": "List your Cloudinary media and check usage.",
       "domain": "cloudinary.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1855,6 +1945,7 @@
       "category": "Weather & science",
       "blurb": "Filter cocktails by ingredient and get ingredient details.",
       "domain": "thecocktaildb.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -1875,6 +1966,7 @@
       "category": "Productivity",
       "blurb": "Read your Coda docs, tables, and rows.",
       "domain": "coda.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1899,6 +1991,7 @@
       "category": "AI",
       "blurb": "Chat with a Cohere Command model. Supports system preamble and conversation history.",
       "domain": "cohere.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -1934,7 +2027,8 @@
       "name": "Coin Change",
       "category": "Utilities",
       "blurb": "Minimum coins and combination count for a target amount using DP.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -1951,6 +2045,7 @@
       "category": "Markets & crypto",
       "blurb": "Real-time cryptocurrency market data, asset prices, and exchange rates.",
       "domain": "coincap.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -1975,6 +2070,7 @@
       "category": "Markets & crypto",
       "blurb": "Get cryptocurrency prices from CoinGecko.",
       "domain": "coingecko.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -2011,6 +2107,7 @@
       "category": "Markets & crypto",
       "blurb": "Cryptocurrency market overview, tickers, and coin details from Coinlore.",
       "domain": "coinlore.net",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -2035,6 +2132,7 @@
       "category": "Markets & crypto",
       "blurb": "Get latest cryptocurrency listings from CoinMarketCap.",
       "domain": "coinmarketcap.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -2067,6 +2165,7 @@
       "category": "Markets & crypto",
       "blurb": "Cryptocurrency market data, coin info, and live tickers.",
       "domain": "coinpaprika.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -2090,7 +2189,8 @@
       "name": "Collatz Sequence",
       "category": "Utilities",
       "blurb": "Compute the Collatz (3n+1) sequence for any positive integer.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2107,6 +2207,7 @@
       "category": "Utilities",
       "blurb": "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once.",
       "domain": null,
+      "network": "offline",
       "toolCount": 5,
       "tools": [
         {
@@ -2138,7 +2239,8 @@
       "name": "Color Blender",
       "category": "Developer & infra",
       "blurb": "Blend two hex colors together and generate gradient palettes.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2154,7 +2256,8 @@
       "name": "Color Converter",
       "category": "Utilities",
       "blurb": "Convert hex colors to RGB and HSL values locally.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2171,6 +2274,7 @@
       "category": "Utilities",
       "blurb": "Find the closest named color for any hex code.",
       "domain": "color.pizza",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2191,6 +2295,7 @@
       "category": "AI",
       "blurb": "Generate AI-powered 5-color palettes for design.",
       "domain": "colormind.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2211,6 +2316,7 @@
       "category": "Images",
       "blurb": "Get random color palettes from colr.org.",
       "domain": "colr.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -2226,7 +2332,8 @@
       "name": "Combinations",
       "category": "Utilities",
       "blurb": "Calculate combinations C(n,r) for unordered selections.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2243,6 +2350,7 @@
       "category": "Quality (XPass)",
       "blurb": "Sanity-gate a worker before it claims it is done.",
       "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -2262,7 +2370,8 @@
       "name": "Complex Numbers",
       "category": "Utilities",
       "blurb": "Complex number arithmetic: add, subtract, multiply, divide, polar form.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2279,6 +2388,7 @@
       "category": "Quality (XPass)",
       "blurb": "Check a repo for compliance readiness and gaps.",
       "domain": null,
+      "network": "offline",
       "toolCount": 4,
       "tools": [
         {
@@ -2307,6 +2417,7 @@
       "category": "Productivity",
       "blurb": "Search and read Confluence pages and spaces.",
       "domain": "atlassian.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -2331,6 +2442,7 @@
       "category": "Content & CMS",
       "blurb": "List Contentful entries, optionally filtered by content_type or full-text query.",
       "domain": "contentful.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -2358,7 +2470,8 @@
       "name": "Continued Fractions",
       "category": "Utilities",
       "blurb": "Convert rational numbers to continued fraction representation with convergents.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2375,6 +2488,7 @@
       "category": "Messaging & email",
       "blurb": "List all subscribers in a ConvertKit account.",
       "domain": "convertkit.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -2410,7 +2524,8 @@
       "name": "Convex Hull",
       "category": "Utilities",
       "blurb": "Compute the convex hull of 2D points with area and perimeter.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2426,7 +2541,8 @@
       "name": "Convolution",
       "category": "Utilities",
       "blurb": "Compute discrete convolution of a signal with a kernel (full/same/valid).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2443,6 +2559,7 @@
       "category": "Quality (XPass)",
       "blurb": "Review AI-written copy for quality and clarity.",
       "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -2463,6 +2580,7 @@
       "category": "Utilities",
       "blurb": "Generate random corporate buzzword phrases.",
       "domain": "corporatebs-generator.sameerkumar.website",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -2478,7 +2596,8 @@
       "name": "Correlation",
       "category": "Utilities",
       "blurb": "Compute Pearson correlation, r-squared, covariance, and regression line.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2494,7 +2613,8 @@
       "name": "Cosine Similarity",
       "category": "Utilities",
       "blurb": "Calculate cosine similarity between two texts using word frequency vectors.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2510,7 +2630,8 @@
       "name": "Countdown Calculator",
       "category": "Utilities",
       "blurb": "Calculate days and weeks until or since any date.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2526,7 +2647,8 @@
       "name": "Counting Sort",
       "category": "Utilities",
       "blurb": "Integer sorting in O(n+k) time with frequency analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2543,6 +2665,7 @@
       "category": "Images",
       "blurb": "Get country flag images by ISO code.",
       "domain": "flagcdn.com",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -2559,6 +2682,7 @@
       "category": "Travel, maps & local",
       "blurb": "Detect country from an IP address using country.is.",
       "domain": "country.is",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -2575,6 +2699,7 @@
       "category": "Developer & infra",
       "blurb": "Search and look up Rust crates on crates.io.",
       "domain": "crates.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2594,7 +2719,8 @@
       "name": "CRC32 Checksum",
       "category": "Utilities",
       "blurb": "Calculate CRC32 checksums for data integrity verification.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2611,6 +2737,7 @@
       "category": "Productivity",
       "blurb": "Run a multi-advisor Crews council on a task.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -2638,7 +2765,8 @@
       "name": "Cron Explainer",
       "category": "Developer & infra",
       "blurb": "Explain cron expressions in human-readable terms.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2654,7 +2782,8 @@
       "name": "Cross Product",
       "category": "Utilities",
       "blurb": "Cross product of two 3D vectors with magnitude and parallelism check.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2671,6 +2800,7 @@
       "category": "Books",
       "blurb": "Academic paper metadata and DOI lookup from Crossref.",
       "domain": "crossref.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2690,7 +2820,8 @@
       "name": "CSV Parser",
       "category": "Developer & infra",
       "blurb": "Parse CSV text into structured JSON with headers and row objects.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2707,6 +2838,7 @@
       "category": "Markets & crypto",
       "blurb": "Free currency exchange rates from fawazahmed0 currency API via jsDelivr CDN.",
       "domain": "cdn.jsdelivr.net",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2727,6 +2859,7 @@
       "category": "Games & esports",
       "blurb": "Browse D&D 5e classes, spells, and monster stat blocks.",
       "domain": "dnd5eapi.co",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -2763,6 +2896,7 @@
       "category": "Utilities",
       "blurb": "Random dad jokes - search, browse, or get a random groaner.",
       "domain": "icanhazdadjoke.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -2786,7 +2920,8 @@
       "name": "Damerau-Levenshtein",
       "category": "Utilities",
       "blurb": "Calculate Damerau-Levenshtein distance (edits plus transpositions).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2803,6 +2938,7 @@
       "category": "Developer & infra",
       "blurb": "List Datadog monitors (alerts) with optional name or tag filters.",
       "domain": "datadoghq.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -2839,6 +2975,7 @@
       "category": "Utilities",
       "blurb": "Find words by meaning, rhyme, sound, or spelling pattern.",
       "domain": "datamuse.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2859,6 +2996,7 @@
       "category": "Utilities",
       "blurb": "Get the current date and time, optionally in a specific timezone.",
       "domain": null,
+      "network": "offline",
       "toolCount": 7,
       "tools": [
         {
@@ -2899,6 +3037,7 @@
       "category": "Books",
       "blurb": "Computer science publication and author search from DBLP.",
       "domain": "dblp.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -2918,7 +3057,8 @@
       "name": "de Bruijn Sequence",
       "category": "Utilities",
       "blurb": "Generate de Bruijn sequences containing every k-ary substring of length n.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -2935,6 +3075,7 @@
       "category": "Utilities",
       "blurb": "Create, shuffle, and draw from virtual card decks.",
       "domain": "deckofcardsapi.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -2959,6 +3100,7 @@
       "category": "AI",
       "blurb": "Translate text into another language using DeepL's neural translation engine.",
       "domain": "deepl.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -2987,6 +3129,7 @@
       "category": "Music & video",
       "blurb": "Search Deezer for tracks, artists, or albums.",
       "domain": "deezer.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -3022,7 +3165,8 @@
       "name": "Derangement",
       "category": "Utilities",
       "blurb": "Count and enumerate derangements (permutations with no fixed points).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3038,7 +3182,8 @@
       "name": "Descriptive Stats",
       "category": "Utilities",
       "blurb": "Full descriptive statistics: mean, median, mode, std, skewness, kurtosis, IQR.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3054,7 +3199,8 @@
       "name": "DFS Search",
       "category": "Utilities",
       "blurb": "Depth-first search with path finding, reachability, and cycle detection.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3071,6 +3217,7 @@
       "category": "Utilities",
       "blurb": "Generate secure random passphrases from a word list.",
       "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3087,6 +3234,7 @@
       "category": "Utilities",
       "blurb": "Look up word definitions, phonetics, and examples.",
       "domain": "dictionaryapi.dev",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -3107,6 +3255,7 @@
       "category": "Social",
       "blurb": "Browse Digimon by name or evolution level.",
       "domain": "digimon-api.vercel.app",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -3130,7 +3279,8 @@
       "name": "Digit DP",
       "category": "Utilities",
       "blurb": "Count integers up to N with a given digit sum using digit DP.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3147,6 +3297,7 @@
       "category": "Developer & infra",
       "blurb": "List DigitalOcean droplets (signals when any are powered off).",
       "domain": "digitalocean.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -3174,7 +3325,8 @@
       "name": "Dijkstra Shortest Path",
       "category": "Utilities",
       "blurb": "Find the shortest path between two nodes in a weighted graph.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3190,7 +3342,8 @@
       "name": "Dinic Max Flow",
       "category": "Utilities",
       "blurb": "Maximum flow computation using Dinic's blocking flow algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3207,6 +3360,7 @@
       "category": "Music & video",
       "blurb": "Search for music releases on Discogs.",
       "domain": "discogs.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -3243,6 +3397,7 @@
       "category": "Messaging & email",
       "blurb": "Send a message to a Discord channel.",
       "domain": "discord.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -3283,6 +3438,7 @@
       "category": "Weather & science",
       "blurb": "Global and per-country COVID-19 statistics and vaccine data.",
       "domain": "disease.sh",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -3307,6 +3463,7 @@
       "category": "Social",
       "blurb": "Search and browse Disney characters.",
       "domain": "disneyapi.dev",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -3327,6 +3484,7 @@
       "category": "Developer & infra",
       "blurb": "Resolve DNS records (A, AAAA, MX, TXT, CNAME) via Google DNS-over-HTTPS.",
       "domain": "dns.google",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -3343,6 +3501,7 @@
       "category": "Images",
       "blurb": "Get random dog images and browse breeds.",
       "domain": "dog.ceo",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -3371,6 +3530,7 @@
       "category": "Utilities",
       "blurb": "Random dog facts and trivia.",
       "domain": "dogapi.dog",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -3387,6 +3547,7 @@
       "category": "Travel, maps & local",
       "blurb": "Search Australian property listings on Domain.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -3411,6 +3572,7 @@
       "category": "Developer & infra",
       "blurb": "Search registered domain names and browse TLDs.",
       "domain": "domainsdb.info",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -3430,7 +3592,8 @@
       "name": "Dot Product",
       "category": "Utilities",
       "blurb": "Dot product of two vectors with angle and orthogonality detection.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3447,6 +3610,7 @@
       "category": "Productivity",
       "blurb": "Browse, search, and read your Dropbox files.",
       "domain": "dropbox.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -3471,6 +3635,7 @@
       "category": "Images",
       "blurb": "Generate placeholder image URLs with custom size, colors, and text.",
       "domain": "dummyimage.com",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -3487,6 +3652,7 @@
       "category": "Developer & infra",
       "blurb": "Fake products, quotes, and users for testing and prototyping.",
       "domain": "dummyjson.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -3514,7 +3680,8 @@
       "name": "Duval / Lyndon",
       "category": "Utilities",
       "blurb": "Lyndon factorization of a string using Duval's O(n) algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3531,6 +3698,7 @@
       "category": "Shopping",
       "blurb": "Search eBay listings via the Browse API.",
       "domain": "ebay.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -3559,6 +3727,7 @@
       "category": "Weather & science",
       "blurb": "Get recent bird observations from eBird.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -3582,7 +3751,8 @@
       "name": "Edit Distance",
       "category": "Utilities",
       "blurb": "Full edit distance with backtrace of insert, delete, and replace operations.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3598,7 +3768,8 @@
       "name": "Edmonds-Karp",
       "category": "Utilities",
       "blurb": "Compute maximum flow and minimum cut via BFS-augmenting paths.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3614,7 +3785,8 @@
       "name": "Eertree",
       "category": "Utilities",
       "blurb": "Palindromic tree (eertree) for counting distinct palindromic substrings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3631,6 +3803,7 @@
       "category": "AI",
       "blurb": "List all available voices in ElevenLabs.",
       "domain": "elevenlabs.io",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -3663,6 +3836,7 @@
       "category": "Messaging & email",
       "blurb": "Send an email via Gmail/IMAP.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -3698,7 +3872,8 @@
       "name": "Emoji Lookup",
       "category": "Utilities",
       "blurb": "Search emojis by name or keyword.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3715,6 +3890,7 @@
       "category": "Utilities",
       "blurb": "Browse emojis by category with HTML and Unicode codes.",
       "domain": "emojihub.yurace.pro",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -3734,7 +3910,8 @@
       "name": "Entropy Calculator",
       "category": "Utilities",
       "blurb": "Calculate Shannon entropy to measure text randomness and information density.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3750,7 +3927,8 @@
       "name": "Epoch Converter",
       "category": "Developer & infra",
       "blurb": "Convert Unix epoch timestamps to ISO 8601 and human-readable formats.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -3771,6 +3949,7 @@
       "category": "Games & esports",
       "blurb": "Get current NFL scores from ESPN.",
       "domain": null,
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -3811,6 +3990,7 @@
       "category": "Shopping",
       "blurb": "Search active Etsy listings by keyword.",
       "domain": "etsy.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -3842,7 +4022,8 @@
       "name": "Euler Path",
       "category": "Utilities",
       "blurb": "Check whether a graph has an Eulerian path or circuit via degree analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3858,7 +4039,8 @@
       "name": "Euler Totient",
       "category": "Utilities",
       "blurb": "Compute Euler's totient phi(n) counting integers coprime to n.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3874,7 +4056,8 @@
       "name": "Euler Tour",
       "category": "Utilities",
       "blurb": "Euler tour of a tree with tin/tout timestamps, depths, and subtree sizes.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -3891,6 +4074,7 @@
       "category": "News & reading",
       "blurb": "Search millions of European cultural heritage objects from museums and archives.",
       "domain": "europeana.eu",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -3911,6 +4095,7 @@
       "category": "Events & tickets",
       "blurb": "Search for events on Eventbrite.",
       "domain": "eventbrite.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -3947,6 +4132,7 @@
       "category": "Utilities",
       "blurb": "Random insults for entertainment (multi-language).",
       "domain": "evilinsult.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -3963,6 +4149,7 @@
       "category": "Markets & crypto",
       "blurb": "Get latest currency exchange rates for a base currency. Works without API key using the free tier.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -3991,6 +4178,7 @@
       "category": "Markets & crypto",
       "blurb": "Open exchange rates from ExchangeRate-API (no key needed).",
       "domain": "open.er-api.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4007,6 +4195,7 @@
       "category": "Utilities",
       "blurb": "Get random excuses by category for fun or testing.",
       "domain": "excuser-three.vercel.app",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4022,7 +4211,8 @@
       "name": "Exponential Growth",
       "category": "Utilities",
       "blurb": "Exponential growth and decay with doubling time and half-life.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4038,7 +4228,8 @@
       "name": "Extended GCD",
       "category": "Utilities",
       "blurb": "Extended Euclidean algorithm returning GCD, Bezout coefficients, and modular inverse.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4055,6 +4246,7 @@
       "category": "Developer & infra",
       "blurb": "Fake e-commerce products and categories for testing and prototyping.",
       "domain": "fakestoreapi.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -4079,6 +4271,7 @@
       "category": "Developer & infra",
       "blurb": "Generate fake persons, companies, and text data for testing and prototyping.",
       "domain": "fakerapi.it",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -4103,6 +4296,7 @@
       "category": "Games & esports",
       "blurb": "Get Fantasy Premier League bootstrap data (players, teams, etc.).",
       "domain": null,
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -4143,6 +4337,7 @@
       "category": "News & reading",
       "blurb": "Perform a Feedly action: get_feedly_feeds, get_feedly_streams, search_feedly, get_feedly_categories, mark_as_read.",
       "domain": "feedly.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4158,7 +4353,8 @@
       "name": "Fenwick 2D",
       "category": "Utilities",
       "blurb": "2D Fenwick tree for point updates and rectangle sum queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4174,7 +4370,8 @@
       "name": "Fenwick Range",
       "category": "Utilities",
       "blurb": "Fenwick tree supporting both range update and range query operations.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4190,7 +4387,8 @@
       "name": "Fenwick Tree",
       "category": "Utilities",
       "blurb": "Fenwick tree (BIT) for efficient prefix sums and point updates.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4206,7 +4404,8 @@
       "name": "FFT (Fast Fourier Transform)",
       "category": "Utilities",
       "blurb": "Fast Fourier Transform (Cooley-Tukey radix-2) for frequency analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4222,7 +4421,8 @@
       "name": "Fibonacci Generator",
       "category": "Utilities",
       "blurb": "Generate Fibonacci sequences and check if a number is Fibonacci.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4239,6 +4439,7 @@
       "category": "Quality (XPass)",
       "blurb": "Prove exact-copy work with a verified receipt.",
       "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -4259,6 +4460,7 @@
       "category": "Productivity",
       "blurb": "Get a Figma file's structure and metadata - pages, frames, and component count.",
       "domain": "figma.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -4299,6 +4501,7 @@
       "category": "Social",
       "blurb": "Browse Final Space characters and episodes.",
       "domain": "finalspaceapi.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -4319,6 +4522,7 @@
       "category": "Weather & science",
       "blurb": "NOAA FishWatch species data with sustainability and nutrition info.",
       "domain": "fishwatch.gov",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -4339,6 +4543,7 @@
       "category": "Quality (XPass)",
       "blurb": "Check a user journey end to end for gaps.",
       "domain": null,
+      "network": "offline",
       "toolCount": 7,
       "tools": [
         {
@@ -4378,7 +4583,8 @@
       "name": "Floyd-Warshall",
       "category": "Utilities",
       "blurb": "All-pairs shortest paths via Floyd-Warshall algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4395,6 +4601,7 @@
       "category": "Developer & infra",
       "blurb": "List all Fly.io apps in your organization.",
       "domain": "fly.io",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -4427,6 +4634,7 @@
       "category": "Weather & science",
       "blurb": "Random food images by category (pizza, burger, pasta, and more).",
       "domain": "foodish-api.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -4447,6 +4655,7 @@
       "category": "Travel, maps & local",
       "blurb": "Search for places on Foursquare.",
       "domain": "foursquare.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -4479,6 +4688,7 @@
       "category": "Markets & crypto",
       "blurb": "Currency exchange rates from ECB data - convert and historical.",
       "domain": "frankfurter.app",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -4507,6 +4717,7 @@
       "category": "Games & esports",
       "blurb": "Browse and search free-to-play games across platforms.",
       "domain": "freetogame.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -4526,7 +4737,8 @@
       "name": "Frequency Analysis",
       "category": "Utilities",
       "blurb": "Analyse character or bigram frequencies in text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4543,6 +4755,7 @@
       "category": "Weather & science",
       "blurb": "Look up fruit nutrition facts including calories, sugar, and protein.",
       "domain": "fruityvice.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -4563,6 +4776,7 @@
       "category": "Utilities",
       "blurb": "Translate text into Yoda, Pirate, Shakespeare, and more.",
       "domain": "funtranslations.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4578,7 +4792,8 @@
       "name": "Gabow SCC",
       "category": "Utilities",
       "blurb": "Strongly connected components via Gabow's path-based algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4594,7 +4809,8 @@
       "name": "Game of Life",
       "category": "Games & esports",
       "blurb": "Run Conway's Game of Life simulation locally with customizable grids.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4610,7 +4826,8 @@
       "name": "Gaussian Elimination",
       "category": "Utilities",
       "blurb": "Solve systems of linear equations via Gaussian elimination with partial pivoting.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4627,6 +4844,7 @@
       "category": "Weather & science",
       "blurb": "Global biodiversity species search and occurrence records from GBIF.",
       "domain": "gbif.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -4650,7 +4868,8 @@
       "name": "GCD/LCM Calculator",
       "category": "Utilities",
       "blurb": "Compute the greatest common divisor and least common multiple of integers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4666,7 +4885,8 @@
       "name": "GCD/LCM Calculator",
       "category": "Developer & infra",
       "blurb": "Calculate greatest common divisor and least common multiple of integers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4683,6 +4903,7 @@
       "category": "News & reading",
       "blurb": "Search world news and event trends.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -4711,6 +4932,7 @@
       "category": "Utilities",
       "blurb": "Predict gender from a first name with probability score.",
       "domain": "genderize.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4727,6 +4949,7 @@
       "category": "Music & video",
       "blurb": "Search Genius for songs and lyrics.",
       "domain": "genius.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -4755,6 +4978,7 @@
       "category": "Travel, maps & local",
       "blurb": "IP geolocation with country, city, and coordinates from GeoJS.",
       "domain": "geojs.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4770,7 +4994,8 @@
       "name": "Geometric Series",
       "category": "Utilities",
       "blurb": "Finite and infinite sums of geometric series.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4787,6 +5012,7 @@
       "category": "Quality (XPass)",
       "blurb": "Run GEOPass against a public URL.",
       "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -4807,6 +5033,7 @@
       "category": "Content & CMS",
       "blurb": "Read posts, pages, and tags from your Ghost site.",
       "domain": "ghost.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -4831,6 +5058,7 @@
       "category": "Images",
       "blurb": "Search trending and random GIFs on Giphy.",
       "domain": "giphy.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -4855,6 +5083,7 @@
       "category": "Developer & infra",
       "blurb": "Manage repos, issues, pull requests, and Actions.",
       "domain": "github.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4871,6 +5100,7 @@
       "category": "Utilities",
       "blurb": "Browse all GitHub emoji names and image URLs.",
       "domain": "github.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4887,6 +5117,7 @@
       "category": "Developer & infra",
       "blurb": "Manage GitLab repos, issues, and merge requests.",
       "domain": "gitlab.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -4902,7 +5133,8 @@
       "name": "Goertzel DFT",
       "category": "Utilities",
       "blurb": "Compute a single DFT frequency bin efficiently without a full FFT.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4918,7 +5150,8 @@
       "name": "Graph Analyze",
       "category": "Utilities",
       "blurb": "Analyze graph structure: nodes, edges, components, density, and degrees.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4934,7 +5167,8 @@
       "name": "Graph Coloring",
       "category": "Utilities",
       "blurb": "Greedy vertex coloring of an undirected graph with color groups.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4950,7 +5184,8 @@
       "name": "Graph Condensation",
       "category": "Utilities",
       "blurb": "SCC condensation of directed graphs into a DAG using Kosaraju's algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4966,7 +5201,8 @@
       "name": "Gray Code",
       "category": "Utilities",
       "blurb": "Convert between binary and Gray code or generate full n-bit Gray code sequences.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -4983,6 +5219,7 @@
       "category": "AI",
       "blurb": "Run a fast LLM inference with Groq. Supports Llama 3, Mixtral, Gemma, and other open models at high speed.",
       "domain": "groq.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5003,6 +5240,7 @@
       "category": "News & reading",
       "blurb": "Search for articles on The Guardian.",
       "domain": "theguardian.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -5035,6 +5273,7 @@
       "category": "Money & payments",
       "blurb": "List all products in a Gumroad account.",
       "domain": "gumroad.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -5067,6 +5306,7 @@
       "category": "Books",
       "blurb": "Search and browse 70,000+ free ebooks from Project Gutenberg.",
       "domain": "gutendex.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5086,7 +5326,8 @@
       "name": "Haar Wavelet",
       "category": "Utilities",
       "blurb": "Haar wavelet transform (forward and inverse) on power-of-2 length arrays.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5103,6 +5344,7 @@
       "category": "Social",
       "blurb": "Get the top stories from Hacker News.",
       "domain": "ycombinator.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -5142,7 +5384,8 @@
       "name": "Hamming Distance",
       "category": "Utilities",
       "blurb": "Calculate Hamming distance between equal-length strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5158,7 +5401,8 @@
       "name": "Harmonic Series",
       "category": "Utilities",
       "blurb": "Partial sums of the harmonic series with ln approximation.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5175,6 +5419,7 @@
       "category": "Social",
       "blurb": "Harry Potter characters, students, staff, and houses.",
       "domain": "hp-api.onrender.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -5202,7 +5447,8 @@
       "name": "Hash Generator",
       "category": "Developer & infra",
       "blurb": "Generate and compare cryptographic hashes (MD5, SHA-256, SHA-512).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -5223,6 +5469,7 @@
       "category": "Security",
       "blurb": "Check if an email account has been in a data breach.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -5246,7 +5493,8 @@
       "name": "Heap Sort",
       "category": "Utilities",
       "blurb": "In-place O(n log n) sorting using a binary heap with swap tracking.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5262,7 +5510,8 @@
       "name": "Heavy-Light Decomposition",
       "category": "Utilities",
       "blurb": "Heavy-light decomposition of trees for efficient path queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5279,6 +5528,7 @@
       "category": "AI",
       "blurb": "Generate avatar videos and list voices.",
       "domain": "heygen.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -5307,6 +5557,7 @@
       "category": "AI",
       "blurb": "Generate images and video from prompts.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -5334,7 +5585,8 @@
       "name": "Histogram",
       "category": "Utilities",
       "blurb": "Create a histogram from numeric data with configurable bins and ASCII chart.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5350,7 +5602,8 @@
       "name": "Hopcroft-Karp",
       "category": "Utilities",
       "blurb": "Maximum bipartite matching via Hopcroft-Karp in O(E * sqrt(V)).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5366,7 +5619,8 @@
       "name": "HTML Stripper",
       "category": "Developer & infra",
       "blurb": "Strip HTML tags and decode entities to plain text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5383,6 +5637,7 @@
       "category": "Images",
       "blurb": "Get a cat image for any HTTP status code from http.cat.",
       "domain": "http.cat",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -5399,6 +5654,7 @@
       "category": "Images",
       "blurb": "Dog images for HTTP status codes (like httpcat but with dogs).",
       "domain": "http.dog",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -5415,6 +5671,7 @@
       "category": "Developer & infra",
       "blurb": "HTTP request and response testing service for developers.",
       "domain": "httpbin.org",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -5447,6 +5704,7 @@
       "category": "Productivity",
       "blurb": "Read and update CRM contacts, companies, and deals.",
       "domain": "hubspot.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -5482,7 +5740,8 @@
       "name": "Huffman Coding",
       "category": "Utilities",
       "blurb": "Build Huffman codes and analyze compression ratio and entropy.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5498,7 +5757,8 @@
       "name": "Hungarian Assignment",
       "category": "Utilities",
       "blurb": "Optimally assign workers to tasks using the Hungarian algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5515,6 +5775,7 @@
       "category": "Security",
       "blurb": "Find email addresses for a domain using Hunter.io.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -5538,7 +5799,8 @@
       "name": "Hypothesis Test",
       "category": "Utilities",
       "blurb": "Run z-test, t-test, or chi-squared hypothesis tests with p-values.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5555,6 +5817,7 @@
       "category": "Social",
       "blurb": "Browse characters, houses, and books from Game of Thrones.",
       "domain": "anapioficeandfire.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -5579,6 +5842,7 @@
       "category": "Games & esports",
       "blurb": "Search the IGDB games database by name.",
       "domain": "igdb.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -5611,6 +5875,7 @@
       "category": "Quality (XPass)",
       "blurb": "Run IgniteOnly policy checks and receipts.",
       "domain": null,
+      "network": "offline",
       "toolCount": 3,
       "tools": [
         {
@@ -5635,6 +5900,7 @@
       "category": "Images",
       "blurb": "Browse the top 100 popular meme templates from Imgflip.",
       "domain": "imgflip.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5651,6 +5917,7 @@
       "category": "News & reading",
       "blurb": "Save and read articles in Instapaper.",
       "domain": "instapaper.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5666,7 +5933,8 @@
       "name": "Integer Partition",
       "category": "Utilities",
       "blurb": "Count integer partitions with optional part size and count constraints.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5683,6 +5951,7 @@
       "category": "Messaging & email",
       "blurb": "List recent Intercom conversations.",
       "domain": "intercom.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -5711,6 +5980,7 @@
       "category": "News & reading",
       "blurb": "Search the Internet Archive for books, movies, audio, and software.",
       "domain": "archive.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5730,7 +6000,8 @@
       "name": "Interpolation",
       "category": "Utilities",
       "blurb": "Linear interpolation and extrapolation between two points.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5746,7 +6017,8 @@
       "name": "Interval Merge",
       "category": "Utilities",
       "blurb": "Merge overlapping intervals and report gaps and total coverage.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5763,6 +6035,7 @@
       "category": "Developer & infra",
       "blurb": "IP address geolocation, ISP, and timezone lookup via ipwho.is.",
       "domain": "ipwho.is",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5779,6 +6052,7 @@
       "category": "Travel, maps & local",
       "blurb": "Look up geolocation for an IP address.",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5799,6 +6073,7 @@
       "category": "Travel, maps & local",
       "blurb": "Search Australian trademarks via IP Australia.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -5822,7 +6097,8 @@
       "name": "IP Validator",
       "category": "Developer & infra",
       "blurb": "Validate and classify IP addresses as public, private, or loopback.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5839,6 +6115,7 @@
       "category": "Developer & infra",
       "blurb": "Get your public IP address (IPv4 or IPv6).",
       "domain": "ipify.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5855,6 +6132,7 @@
       "category": "Developer & infra",
       "blurb": "IP geolocation, ISP, and organization info for any IP address.",
       "domain": "ipinfo.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5871,6 +6149,7 @@
       "category": "Developer & infra",
       "blurb": "Check if a website or domain is currently up or down.",
       "domain": "isitup.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5887,6 +6166,7 @@
       "category": "Utilities",
       "blurb": "Check whether a number is even (the novelty API).",
       "domain": "isevenapi.xyz",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5903,6 +6183,7 @@
       "category": "Weather & science",
       "blurb": "Get upcoming ISS flyover times for any location on Earth.",
       "domain": "open-notify.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -5919,6 +6200,7 @@
       "category": "Weather & science",
       "blurb": "Track the ISS location and see who is in space right now.",
       "domain": "open-notify.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5939,6 +6221,7 @@
       "category": "Weather & science",
       "blurb": "USDA taxonomic species search and full classification records.",
       "domain": "itis.gov",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -5958,7 +6241,8 @@
       "name": "Jaccard Similarity",
       "category": "Utilities",
       "blurb": "Calculate Jaccard similarity index between two texts.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -5975,6 +6259,7 @@
       "category": "Music & video",
       "blurb": "Search anime, manga, and characters from MyAnimeList.",
       "domain": "jikan.moe",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -6007,6 +6292,7 @@
       "category": "Productivity",
       "blurb": "Search, read, and create issues across your projects.",
       "domain": "atlassian.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -6039,6 +6325,7 @@
       "category": "Books",
       "blurb": "Search the Jisho.org Japanese-English dictionary for words and kanji.",
       "domain": "jisho.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -6055,6 +6342,7 @@
       "category": "Productivity",
       "blurb": "Check a CV or cover letter against JobSmith's quality rules.",
       "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -6075,6 +6363,7 @@
       "category": "Utilities",
       "blurb": "Get random jokes by category from JokeAPI.",
       "domain": "jokeapi.dev",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -6094,7 +6383,8 @@
       "name": "Josephus Problem",
       "category": "Utilities",
       "blurb": "Solve the Josephus problem - find the survivor in a circle elimination game.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6110,7 +6400,8 @@
       "name": "JSON Format",
       "category": "Developer & infra",
       "blurb": "Parse, pretty-print, and analyze JSON structure with element counts.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6126,7 +6417,8 @@
       "name": "JSON Formatter",
       "category": "Developer & infra",
       "blurb": "Prettify or minify JSON text with configurable indentation.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6143,6 +6435,7 @@
       "category": "Developer & infra",
       "blurb": "Fake REST API for testing - posts, comments, and users.",
       "domain": "jsonplaceholder.typicode.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -6170,7 +6463,8 @@
       "name": "JWT Decoder",
       "category": "Developer & infra",
       "blurb": "Decode JWT tokens to inspect header and payload claims (no signature verification).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6186,7 +6480,8 @@
       "name": "K-Means Clustering",
       "category": "Utilities",
       "blurb": "Partition data points into k clusters using the k-means algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6203,6 +6498,7 @@
       "category": "Utilities",
       "blurb": "Random Kanye West quotes.",
       "domain": "api.kanye.rest",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -6219,6 +6515,7 @@
       "category": "Developer & infra",
       "blurb": "Connect and manage your app logins and keys.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -6251,6 +6548,7 @@
       "category": "Messaging & email",
       "blurb": "List Klaviyo lists.",
       "domain": "klaviyo.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -6279,6 +6577,7 @@
       "category": "AI",
       "blurb": "Generate video clips from text or images.",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -6298,7 +6597,8 @@
       "name": "KMP Automaton",
       "category": "Utilities",
       "blurb": "Build a full KMP DFA transition table for streaming pattern matching.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6314,7 +6614,8 @@
       "name": "KMP Search",
       "category": "Utilities",
       "blurb": "Single-pattern string search using Knuth-Morris-Pratt algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6330,7 +6631,8 @@
       "name": "Knapsack Solver",
       "category": "Utilities",
       "blurb": "Solve the 0-1 knapsack optimization problem for items with weight and value.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6346,7 +6648,8 @@
       "name": "Kosaraju SCC",
       "category": "Utilities",
       "blurb": "Find strongly connected components via Kosaraju's two-pass algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6363,6 +6666,7 @@
       "category": "Utilities",
       "blurb": "Grammar, spelling, and style checking for 30+ languages.",
       "domain": "languagetool.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -6383,6 +6687,7 @@
       "category": "Music & video",
       "blurb": "Get Last.fm artist info.",
       "domain": "last.fm",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -6422,7 +6727,8 @@
       "name": "LCS (Longest Common Subsequence)",
       "category": "Utilities",
       "blurb": "Find the longest common subsequence of two strings with similarity score.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6439,6 +6745,7 @@
       "category": "Quality (XPass)",
       "blurb": "Spot legal issues in text with guardrails.",
       "domain": null,
+      "network": "offline",
       "toolCount": 5,
       "tools": [
         {
@@ -6471,6 +6778,7 @@
       "category": "Games & esports",
       "blurb": "Search LEGO sets by name/theme (Rebrickable).",
       "domain": "lego.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -6510,7 +6818,8 @@
       "name": "Lehmer Code",
       "category": "Utilities",
       "blurb": "Convert between permutations and Lehmer codes for ranking and unranking.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6527,6 +6836,7 @@
       "category": "Money & payments",
       "blurb": "List all Lemon Squeezy stores on your account.",
       "domain": "lemonsqueezy.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -6563,6 +6873,7 @@
       "category": "Utilities",
       "blurb": "Open-source text translation, language detection, and supported language listing.",
       "domain": "libretranslate.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -6587,6 +6898,7 @@
       "category": "Games & esports",
       "blurb": "Get a Lichess user profile.",
       "domain": "lichess.org",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -6619,6 +6931,7 @@
       "category": "Messaging & email",
       "blurb": "Send a text message to a LINE user, group, or room.",
       "domain": "line.me",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -6654,7 +6967,8 @@
       "name": "Line Equation",
       "category": "Utilities",
       "blurb": "Line equation from two points in slope-intercept and standard form.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6670,7 +6984,8 @@
       "name": "Line Sorter",
       "category": "Utilities",
       "blurb": "Sort, deduplicate, and reverse lines of text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6687,6 +7002,7 @@
       "category": "Productivity",
       "blurb": "Interact with the Linear GraphQL API: list and search issues, create issues, get project details, and list teams.",
       "domain": "linear.app",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -6702,7 +7018,8 @@
       "name": "Linear Regression",
       "category": "Utilities",
       "blurb": "Fit a linear regression to x/y data and get slope, intercept, R-squared.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6718,7 +7035,8 @@
       "name": "Linear Solver",
       "category": "Utilities",
       "blurb": "Solve systems of linear equations Ax = b with partial pivoting.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6734,7 +7052,8 @@
       "name": "Link-Cut Tree",
       "category": "Utilities",
       "blurb": "Dynamic forest connectivity with link, cut, and path queries via splay trees.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6750,7 +7069,8 @@
       "name": "LIS Solver",
       "category": "Utilities",
       "blurb": "Find longest increasing subsequence in O(n log n) time.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6766,7 +7086,8 @@
       "name": "Logarithm Calculator",
       "category": "Utilities",
       "blurb": "Logarithm with any base, plus natural log, log10, and log2.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6783,6 +7104,7 @@
       "category": "Travel, maps & local",
       "blurb": "Country details and long weekends from Nager.Date.",
       "domain": "date.nager.at",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -6802,7 +7124,8 @@
       "name": "Longest Common Prefix",
       "category": "Utilities",
       "blurb": "Find the longest common prefix among an array of strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6819,6 +7142,7 @@
       "category": "Social",
       "blurb": "Browse Lord of the Rings books, characters, and movie quotes.",
       "domain": "the-one-api.dev",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -6842,7 +7166,8 @@
       "name": "Lorem Ipsum Generator",
       "category": "Utilities",
       "blurb": "Generate lorem ipsum placeholder text by paragraph count.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6859,6 +7184,7 @@
       "category": "Images",
       "blurb": "Random placeholder photos with custom dimensions and effects.",
       "domain": "picsum.photos",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -6882,7 +7208,8 @@
       "name": "Lowest Common Ancestor",
       "category": "Utilities",
       "blurb": "Lowest common ancestor with binary lifting and tree distance queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6898,7 +7225,8 @@
       "name": "LRU Cache Sim",
       "category": "Utilities",
       "blurb": "Simulate an LRU cache over access sequences and analyze hit/miss rates.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6914,7 +7242,8 @@
       "name": "Lucas' Theorem",
       "category": "Utilities",
       "blurb": "Compute large binomial coefficients mod prime using Lucas' theorem.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6930,7 +7259,8 @@
       "name": "Luhn Validator",
       "category": "Utilities",
       "blurb": "Validate or generate a Luhn check digit for credit cards and IMEI.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -6947,6 +7277,7 @@
       "category": "Music & video",
       "blurb": "Look up song lyrics by artist and title.",
       "domain": "lyrics.ovh",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -6963,6 +7294,7 @@
       "category": "Games & esports",
       "blurb": "Search Magic: The Gathering cards, sets, and types.",
       "domain": "magicthegathering.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -6987,6 +7319,7 @@
       "category": "Messaging & email",
       "blurb": "List all Mailchimp audiences (lists) in the account.",
       "domain": "mailchimp.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -7027,6 +7360,7 @@
       "category": "Shopping",
       "blurb": "Search makeup products by brand, type, category, or tags.",
       "domain": "makeup-api.herokuapp.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7042,7 +7376,8 @@
       "name": "Manacher Palindrome",
       "category": "Utilities",
       "blurb": "Find longest palindromic substring in linear time.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7059,6 +7394,7 @@
       "category": "Travel, maps & local",
       "blurb": "Convert an address or place name to coordinates using Mapbox.",
       "domain": "mapbox.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -7090,7 +7426,8 @@
       "name": "Markdown Table",
       "category": "Utilities",
       "blurb": "Convert CSV or TSV text into a Markdown table.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7106,7 +7443,8 @@
       "name": "Markdown Tools",
       "category": "Developer & infra",
       "blurb": "Convert Markdown to HTML and analyze document structure.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -7126,7 +7464,8 @@
       "name": "Markov Chain",
       "category": "Utilities",
       "blurb": "Generate text using a Markov chain trained on input text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7143,6 +7482,7 @@
       "category": "Social",
       "blurb": "Post, read, and search on Mastodon.",
       "domain": "joinmastodon.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7158,7 +7498,8 @@
       "name": "Matrix Calculator",
       "category": "Utilities",
       "blurb": "Perform matrix operations: add, multiply, transpose, determinant.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7174,7 +7515,8 @@
       "name": "Matrix Chain",
       "category": "Utilities",
       "blurb": "Find optimal parenthesization for matrix chain multiplication.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7190,7 +7532,8 @@
       "name": "Matrix Decomposition",
       "category": "Utilities",
       "blurb": "Matrix decomposition and analysis: LU, transpose, trace, rank.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7206,7 +7549,8 @@
       "name": "Matrix Exponentiation",
       "category": "Utilities",
       "blurb": "Matrix exponentiation via fast binary method with optional modular arithmetic.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7222,7 +7566,8 @@
       "name": "Matrix Inverse",
       "category": "Utilities",
       "blurb": "Compute the inverse and determinant of a square matrix.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7238,7 +7583,8 @@
       "name": "Matrix Rank",
       "category": "Utilities",
       "blurb": "Compute matrix rank using Gaussian elimination with partial pivoting.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7254,7 +7600,8 @@
       "name": "Max Independent Set",
       "category": "Utilities",
       "blurb": "Exact maximum independent set via bitmask enumeration (up to 20 vertices).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7271,6 +7618,7 @@
       "category": "Games & esports",
       "blurb": "Check Minecraft server status, player count, and MOTD.",
       "domain": "mcsrvstat.us",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7287,6 +7635,7 @@
       "category": "Weather & science",
       "blurb": "Search for meals/recipes by name.",
       "domain": null,
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -7327,6 +7676,7 @@
       "category": "Images",
       "blurb": "Generate meme images from templates via memegen.link.",
       "domain": "memegen.link",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -7347,6 +7697,7 @@
       "category": "News & reading",
       "blurb": "Search the Met Museum collection and get artwork details.",
       "domain": "metmuseum.github.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -7370,7 +7721,8 @@
       "name": "Metaphone",
       "category": "Utilities",
       "blurb": "Encode words with the Metaphone phonetic algorithm and compare word sounds.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7386,7 +7738,8 @@
       "name": "Midpoint & Distance",
       "category": "Utilities",
       "blurb": "Midpoint, Euclidean distance, slope, and angle between two 2D points.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7402,7 +7755,8 @@
       "name": "Miller-Rabin",
       "category": "Utilities",
       "blurb": "Deterministic Miller-Rabin primality test with multiple witnesses.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7418,7 +7772,8 @@
       "name": "Min Cost Max Flow",
       "category": "Utilities",
       "blurb": "Minimum cost maximum flow using successive shortest paths.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7434,7 +7789,8 @@
       "name": "Min Spanning Tree",
       "category": "Utilities",
       "blurb": "Find the minimum spanning tree of a weighted graph (Kruskal's algorithm).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7450,7 +7806,8 @@
       "name": "Min Vertex Cover",
       "category": "Utilities",
       "blurb": "Exact minimum vertex cover via bitmask enumeration (up to 20 vertices).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7467,6 +7824,7 @@
       "category": "Productivity",
       "blurb": "List Miro boards and read what is on them.",
       "domain": "miro.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -7491,6 +7849,7 @@
       "category": "AI",
       "blurb": "Run a chat completion with a Mistral AI model (mistral-small, mistral-medium, mistral-large, etc.).",
       "domain": "mistral.ai",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -7515,6 +7874,7 @@
       "category": "Developer & infra",
       "blurb": "Track a custom event in Mixpanel.",
       "domain": "mixpanel.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -7546,7 +7906,8 @@
       "name": "Mo's Algorithm",
       "category": "Utilities",
       "blurb": "Offline range query processing with sqrt decomposition (sum and distinct count).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7562,7 +7923,8 @@
       "name": "Modular Arithmetic",
       "category": "Utilities",
       "blurb": "Modular exponentiation, modular inverse, and modular reduction.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7578,7 +7940,8 @@
       "name": "Moebius Function",
       "category": "Utilities",
       "blurb": "Compute Moebius function values and Mertens function using linear sieve.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7595,6 +7958,7 @@
       "category": "Productivity",
       "blurb": "List boards in a Monday.com account.",
       "domain": "monday.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -7631,6 +7995,7 @@
       "category": "Productivity",
       "blurb": "Manage contacts and reminders in Monica CRM.",
       "domain": "monicahq.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7647,6 +8012,7 @@
       "category": "Games & esports",
       "blurb": "Browse Monster Hunter World monsters, weapons, and armor.",
       "domain": "mhw-db.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -7666,7 +8032,8 @@
       "name": "Monte Carlo",
       "category": "Utilities",
       "blurb": "Monte Carlo estimation of pi or definite integrals via random sampling.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7682,7 +8049,8 @@
       "name": "Morse Code",
       "category": "Utilities",
       "blurb": "Encode text to Morse code or decode Morse code to text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7699,6 +8067,7 @@
       "category": "Images",
       "blurb": "Generate unique deterministic avatar images from any string.",
       "domain": "multiavatar.com",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -7715,6 +8084,7 @@
       "category": "Music & video",
       "blurb": "Search for artists on MusicBrainz.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -7747,6 +8117,7 @@
       "category": "Utilities",
       "blurb": "Free text translation between 100+ languages via MyMemory.",
       "domain": "mymemory.translated.net",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7762,7 +8133,8 @@
       "name": "N-gram Extractor",
       "category": "Utilities",
       "blurb": "Extract and count n-grams (word or character level) from text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7779,6 +8151,7 @@
       "category": "Utilities",
       "blurb": "Predict age, gender, and nationality from a first name.",
       "domain": "agify.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -7803,6 +8176,7 @@
       "category": "Weather & science",
       "blurb": "Get NASA Astronomy Picture of the Day.",
       "domain": "nasa.gov",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -7835,6 +8209,7 @@
       "category": "Utilities",
       "blurb": "Predict likely nationalities from a first name.",
       "domain": "nationalize.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7850,7 +8225,8 @@
       "name": "NATO Phonetic Alphabet",
       "category": "Utilities",
       "blurb": "Convert text to NATO phonetic alphabet or decode NATO words.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7866,7 +8242,8 @@
       "name": "Necklace Count",
       "category": "Utilities",
       "blurb": "Count distinct necklaces and bracelets using Burnside's lemma.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -7883,6 +8260,7 @@
       "category": "Developer & infra",
       "blurb": "List all Neon Serverless Postgres projects in your account.",
       "domain": "neon.tech",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -7919,6 +8297,7 @@
       "category": "Developer & infra",
       "blurb": "List sites and deploys, and catch failed builds.",
       "domain": "netlify.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -7947,6 +8326,7 @@
       "category": "News & reading",
       "blurb": "Get top headlines from NewsAPI.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -7971,6 +8351,7 @@
       "category": "Utilities",
       "blurb": "Simplify, derive, integrate, and factor math expressions via Newton API.",
       "domain": "newton.now.sh",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -7987,6 +8368,7 @@
       "category": "Travel, maps & local",
       "blurb": "Decode vehicle VINs and search safety recalls from NHTSA.",
       "domain": "nhtsa.gov",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8007,6 +8389,7 @@
       "category": "News & reading",
       "blurb": "Search Nobel Prize winners, categories, and award history.",
       "domain": "nobelprize.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8027,6 +8410,7 @@
       "category": "Travel, maps & local",
       "blurb": "OpenStreetMap geocoding: convert addresses to coordinates and back.",
       "domain": "openstreetmap.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8046,7 +8430,8 @@
       "name": "Normal Distribution",
       "category": "Utilities",
       "blurb": "Normal (Gaussian) distribution PDF, CDF, survival, and percentile.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8063,6 +8448,7 @@
       "category": "Productivity",
       "blurb": "Read and write pages and databases in your workspace.",
       "domain": "notion.so",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8079,6 +8465,7 @@
       "category": "Developer & infra",
       "blurb": "Search and look up npm packages on the npm registry.",
       "domain": "npmjs.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8098,7 +8485,8 @@
       "name": "Nth Root",
       "category": "Utilities",
       "blurb": "Nth root of a number with verification and integer detection.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8114,7 +8502,8 @@
       "name": "NTT",
       "category": "Utilities",
       "blurb": "Polynomial multiplication using Number Theoretic Transform (mod 998244353).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8131,6 +8520,7 @@
       "category": "Quality (XPass)",
       "blurb": "Run NudgeOnly nudge policy and receipts.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8154,7 +8544,8 @@
       "name": "Number Base Converter",
       "category": "Developer & infra",
       "blurb": "Convert numbers between binary, octal, decimal, hex, and any base 2-36.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8171,6 +8562,7 @@
       "category": "Utilities",
       "blurb": "Get an interesting fact about a number.",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8190,7 +8582,8 @@
       "name": "Numerical Differentiation",
       "category": "Utilities",
       "blurb": "Numerical differentiation using five-point stencil (1st through 4th order).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8206,7 +8599,8 @@
       "name": "Numerical Integration",
       "category": "Utilities",
       "blurb": "Numerical integration using Simpson, trapezoid, or midpoint rule.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8223,6 +8617,7 @@
       "category": "Security",
       "blurb": "Get details for a specific CVE by ID.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8246,7 +8641,8 @@
       "name": "ODE Solver",
       "category": "Utilities",
       "blurb": "Solve ordinary differential equations numerically via Euler or RK4.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8263,6 +8659,7 @@
       "category": "Weather & science",
       "blurb": "Search the Online Encyclopedia of Integer Sequences by sequence or keyword.",
       "domain": "oeis.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8279,6 +8676,7 @@
       "category": "Utilities",
       "blurb": "Random jokes by type (general, programming, knock-knock).",
       "domain": "official-joke-api.appspot.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8303,6 +8701,7 @@
       "category": "Music & video",
       "blurb": "Search movies/TV shows on OMDB.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8327,6 +8726,7 @@
       "category": "Travel, maps & local",
       "blurb": "Search and browse breweries worldwide.",
       "domain": "openbrewerydb.org",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -8355,6 +8755,7 @@
       "category": "Travel, maps & local",
       "blurb": "Find EV charging stations worldwide with connector and operator details.",
       "domain": "openchargemap.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8371,6 +8772,7 @@
       "category": "Travel, maps & local",
       "blurb": "Elevation lookup in meters for any coordinates on Earth.",
       "domain": "open-elevation.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8387,6 +8789,7 @@
       "category": "Markets & crypto",
       "blurb": "Get latest forex exchange rates from Open Exchange Rates.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -8415,6 +8818,7 @@
       "category": "Weather & science",
       "blurb": "Search for food products on Open Food Facts.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8439,6 +8843,7 @@
       "category": "Books",
       "blurb": "Search books on Open Library.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -8475,6 +8880,7 @@
       "category": "Utilities",
       "blurb": "Trivia questions by category, difficulty, and type from Open Trivia DB.",
       "domain": "opentdb.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8495,6 +8901,7 @@
       "category": "Weather & science",
       "blurb": "Get current weather for a location from Open-Meteo (no API key required).",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8519,6 +8926,7 @@
       "category": "Weather & science",
       "blurb": "Current and forecast air quality index and pollutant levels.",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8539,6 +8947,7 @@
       "category": "Weather & science",
       "blurb": "Climate normal projections (temperature and precipitation) from Open-Meteo.",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8555,6 +8964,7 @@
       "category": "Weather & science",
       "blurb": "River discharge flood forecast from Open-Meteo.",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8571,6 +8981,7 @@
       "category": "Weather & science",
       "blurb": "Historical daily weather data from 1940 to present via Open-Meteo archive.",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8587,6 +8998,7 @@
       "category": "Weather & science",
       "blurb": "Ocean wave height, swell, and marine weather forecast.",
       "domain": "open-meteo.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8603,6 +9015,7 @@
       "category": "AI",
       "blurb": "Chat, embeddings, images, and transcription from OpenAI.",
       "domain": "openai.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -8635,6 +9048,7 @@
       "category": "Books",
       "blurb": "Open scholarly metadata: works, authors, and citation data from OpenAlex.",
       "domain": "openalex.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8659,6 +9073,7 @@
       "category": "Weather & science",
       "blurb": "Get air quality data for a location from OpenAQ.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8683,6 +9098,7 @@
       "category": "Games & esports",
       "blurb": "Dota 2 hero stats, win rates, and pro match results from OpenDota.",
       "domain": "opendota.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8707,6 +9123,7 @@
       "category": "Games & esports",
       "blurb": "Get Formula 1 sessions from OpenF1.",
       "domain": null,
+      "network": "online",
       "toolCount": 8,
       "tools": [
         {
@@ -8751,6 +9168,7 @@
       "category": "Weather & science",
       "blurb": "Search FDA drug labels, recalls, and adverse event reports.",
       "domain": "api.fda.gov",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -8775,6 +9193,7 @@
       "category": "Markets & crypto",
       "blurb": "Map financial instrument identifiers (ticker, ISIN, CUSIP) to FIGI codes.",
       "domain": "openfigi.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8795,6 +9214,7 @@
       "category": "Utilities",
       "blurb": "Validate IBANs and get BIC/bank information via OpenIBAN.",
       "domain": "openiban.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -8811,6 +9231,7 @@
       "category": "Travel, maps & local",
       "blurb": "Live aircraft tracking: positions, altitudes, and flight history worldwide.",
       "domain": "opensky-network.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8830,7 +9251,8 @@
       "name": "PageRank",
       "category": "Utilities",
       "blurb": "Compute PageRank scores for nodes in a directed link graph.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8847,6 +9269,7 @@
       "category": "Developer & infra",
       "blurb": "List PagerDuty incidents. Filter by status (triggered, acknowledged, resolved), service, or date range.",
       "domain": "pagerduty.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -8886,7 +9309,8 @@
       "name": "Palindrome Checker",
       "category": "Utilities",
       "blurb": "Check if text is a palindrome and find longest palindromic substring.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8903,6 +9327,7 @@
       "category": "Games & esports",
       "blurb": "Get esports matches from PandaScore.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -8934,7 +9359,8 @@
       "name": "Pascal's Triangle",
       "category": "Utilities",
       "blurb": "Generate rows of Pascal's triangle or fetch a specific row.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8950,7 +9376,8 @@
       "name": "Password Generator",
       "category": "Developer & infra",
       "blurb": "Generate cryptographically secure random passwords with configurable options.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -8967,6 +9394,7 @@
       "category": "Money & payments",
       "blurb": "Create or retrieve a PayPal order.",
       "domain": "paypal.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -8986,7 +9414,8 @@
       "name": "Percentage Calculator",
       "category": "Developer & infra",
       "blurb": "Perform percentage calculations: of, change, increase, decrease.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9002,7 +9431,8 @@
       "name": "Percentile",
       "category": "Utilities",
       "blurb": "Compute percentiles (p5-p99) and find the percentile rank of a value.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9018,7 +9448,8 @@
       "name": "Permutations",
       "category": "Utilities",
       "blurb": "Calculate permutations P(n,r) for ordered arrangements.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9035,6 +9466,7 @@
       "category": "AI",
       "blurb": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web.",
       "domain": "perplexity.ai",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -9050,7 +9482,8 @@
       "name": "Persistent Array",
       "category": "Utilities",
       "blurb": "Persistent array with version-controlled get/set operations.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9066,7 +9499,8 @@
       "name": "Phonetic Alphabet",
       "category": "Utilities",
       "blurb": "Spell out text using NATO or IPA phonetic alphabet.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9082,7 +9516,8 @@
       "name": "Pi Approximation",
       "category": "Utilities",
       "blurb": "Approximate pi using Leibniz, Nilakantha, and Wallis formulas.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9098,7 +9533,8 @@
       "name": "Pig Latin Translator",
       "category": "Utilities",
       "blurb": "Translate text to Pig Latin or decode Pig Latin back to English.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9115,6 +9551,7 @@
       "category": "AI",
       "blurb": "Generate short video clips with Pika.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -9139,6 +9576,7 @@
       "category": "Developer & infra",
       "blurb": "List all Pinecone vector indexes in the project.",
       "domain": "pinecone.io",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -9171,6 +9609,7 @@
       "category": "Social",
       "blurb": "List Pinterest boards for the authenticated user.",
       "domain": "pinterest.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -9207,6 +9646,7 @@
       "category": "Productivity",
       "blurb": "Read deals, contacts, and companies in your Pipedrive CRM.",
       "domain": "pipedrive.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -9235,6 +9675,7 @@
       "category": "Images",
       "blurb": "Bear placeholder image URLs at custom dimensions.",
       "domain": "placebear.com",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -9251,6 +9692,7 @@
       "category": "Images",
       "blurb": "Placeholder image URL builder with custom size, colors, and text.",
       "domain": "placehold.co",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -9267,6 +9709,7 @@
       "category": "Images",
       "blurb": "Generate placeholder image URLs with custom dimensions.",
       "domain": "placekitten.com",
+      "network": "hybrid",
       "toolCount": 2,
       "tools": [
         {
@@ -9287,6 +9730,7 @@
       "category": "Money & payments",
       "blurb": "Get accounts for a Plaid-linked item.",
       "domain": "plaid.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -9319,6 +9763,7 @@
       "category": "Music & video",
       "blurb": "Search for podcasts on Podcast Index.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -9355,6 +9800,7 @@
       "category": "Books",
       "blurb": "Search poems by author or title, or get random poems from PoetryDB.",
       "domain": "poetrydb.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -9378,7 +9824,8 @@
       "name": "Poisson Distribution",
       "category": "Utilities",
       "blurb": "Poisson distribution PMF and CDF for modeling rare events.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9395,6 +9842,7 @@
       "category": "Games & esports",
       "blurb": "Look up Pokemon stats, types, abilities, and generations.",
       "domain": "pokeapi.co",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -9427,6 +9875,7 @@
       "category": "Games & esports",
       "blurb": "Search Pokemon Trading Card Game cards and sets.",
       "domain": "pokemontcg.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -9446,7 +9895,8 @@
       "name": "Pollard's Rho",
       "category": "Utilities",
       "blurb": "Integer factorization using Pollard's rho with Miller-Rabin primality testing.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9462,7 +9912,8 @@
       "name": "Polygon Calculator",
       "category": "Utilities",
       "blurb": "Calculate area, perimeter, angles, apothem, and circumradius of regular polygons.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9478,7 +9929,8 @@
       "name": "Polynomial Ops",
       "category": "Utilities",
       "blurb": "Evaluate, differentiate, integrate, add, or multiply polynomials.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9495,6 +9947,7 @@
       "category": "Travel, maps & local",
       "blurb": "UK postcode lookup with lat/lon, region, and constituency data.",
       "domain": "postcodes.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -9515,6 +9968,7 @@
       "category": "Developer & infra",
       "blurb": "Read product analytics, insights, and feature flags.",
       "domain": "posthog.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -9543,6 +9997,7 @@
       "category": "Developer & infra",
       "blurb": "Interact with the Postman API: list and retrieve collections, list environments, and list monitors.",
       "domain": "postman.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -9559,6 +10014,7 @@
       "category": "Messaging & email",
       "blurb": "Send a transactional email via Postmark. Supports HTML and plain text.",
       "domain": "postmarkapp.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -9594,7 +10050,8 @@
       "name": "Power Iteration",
       "category": "Utilities",
       "blurb": "Find the dominant eigenvalue and eigenvector of a square matrix.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9610,7 +10067,8 @@
       "name": "Power Set",
       "category": "Utilities",
       "blurb": "Generate all subsets of a set using bitmask enumeration.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9626,7 +10084,8 @@
       "name": "Prefix Function",
       "category": "Utilities",
       "blurb": "Compute the KMP prefix/failure function with optional pattern matching.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9642,7 +10101,8 @@
       "name": "Pressure Converter",
       "category": "Developer & infra",
       "blurb": "Convert pressure between Pa, bar, atm, psi, torr, and more.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9658,7 +10118,8 @@
       "name": "Prime Checker",
       "category": "Utilities",
       "blurb": "Check primality, get prime factorization, and find adjacent primes.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9674,7 +10135,8 @@
       "name": "Prime Factorization",
       "category": "Utilities",
       "blurb": "Find the prime factorization of any integer up to one trillion.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9691,6 +10153,7 @@
       "category": "Books",
       "blurb": "Search and read free ebooks from Project Gutenberg.",
       "domain": "gutendex.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -9710,7 +10173,8 @@
       "name": "Proportion Solver",
       "category": "Utilities",
       "blurb": "Solve a proportion a/b = c/d given any three of the four values.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9727,6 +10191,7 @@
       "category": "Travel, maps & local",
       "blurb": "Live Melbourne train, tram, and bus departures and disruptions.",
       "domain": "ptv.vic.gov.au",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -9759,6 +10224,7 @@
       "category": "Weather & science",
       "blurb": "Search chemical compounds and molecular properties from PubChem.",
       "domain": "pubchem.ncbi.nlm.nih.gov",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -9779,6 +10245,7 @@
       "category": "Developer & infra",
       "blurb": "Search and browse the directory of free public APIs.",
       "domain": "api.publicapis.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -9803,6 +10270,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get public holidays, long weekends, and country calendars.",
       "domain": "date.nager.at",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -9831,6 +10299,7 @@
       "category": "Weather & science",
       "blurb": "Browse and search BrewDog craft beer recipes.",
       "domain": "punkapi.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -9855,6 +10324,7 @@
       "category": "Quality (XPass)",
       "blurb": "Run PushOnly wake-and-push policy.",
       "domain": null,
+      "network": "offline",
       "toolCount": 3,
       "tools": [
         {
@@ -9879,6 +10349,7 @@
       "category": "Messaging & email",
       "blurb": "Send a push notification via Pushover.",
       "domain": "pushover.net",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -9911,6 +10382,7 @@
       "category": "Developer & infra",
       "blurb": "Look up Python packages and version metadata from PyPI.",
       "domain": "pypi.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -9931,6 +10403,7 @@
       "category": "Quality (XPass)",
       "blurb": "Run quality-control checklists and copy audits.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -9955,6 +10428,7 @@
       "category": "Developer & infra",
       "blurb": "Generate QR code image URLs for any text or URL.",
       "domain": "goqr.me",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -9970,7 +10444,8 @@
       "name": "Quadratic Solver",
       "category": "Utilities",
       "blurb": "Solve quadratic equations with real or complex roots, discriminant, and vertex.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -9987,6 +10462,7 @@
       "category": "Money & payments",
       "blurb": "Query QuickBooks Online customers.",
       "domain": "quickbooks.intuit.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -10015,6 +10491,7 @@
       "category": "Utilities",
       "blurb": "Browse and search inspirational quotes by author or tag.",
       "domain": "quotable.io",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -10046,7 +10523,8 @@
       "name": "Rabin-Karp Search",
       "category": "Utilities",
       "blurb": "Find all pattern occurrences in text using Rabin-Karp rolling hash.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10063,6 +10541,7 @@
       "category": "Music & video",
       "blurb": "Search for radio stations via Radio Browser.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10098,7 +10577,8 @@
       "name": "Radix Sort",
       "category": "Utilities",
       "blurb": "Non-comparative integer sort using digit-by-digit bucketing.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10114,7 +10594,8 @@
       "name": "Rail Fence Cipher",
       "category": "Utilities",
       "blurb": "Encrypt or decrypt text using the rail fence zigzag cipher.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10131,6 +10612,7 @@
       "category": "News & reading",
       "blurb": "Save and organise bookmarks in Raindrop.",
       "domain": "raindrop.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -10147,6 +10629,7 @@
       "category": "Utilities",
       "blurb": "Generate a random UUID.",
       "domain": null,
+      "network": "offline",
       "toolCount": 8,
       "tools": [
         {
@@ -10191,6 +10674,7 @@
       "category": "Images",
       "blurb": "Random duck images from random-d.uk.",
       "domain": "random-d.uk",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -10211,6 +10695,7 @@
       "category": "Images",
       "blurb": "Random fox images for fun or as placeholders.",
       "domain": "randomfox.ca",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -10226,7 +10711,8 @@
       "name": "Random Name Generator",
       "category": "Utilities",
       "blurb": "Generate random placeholder names with optional email addresses.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10243,6 +10729,7 @@
       "category": "Developer & infra",
       "blurb": "Generate realistic random user profiles with photos and addresses.",
       "domain": "randomuser.me",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -10258,7 +10745,8 @@
       "name": "Ratio Simplifier",
       "category": "Utilities",
       "blurb": "Simplify ratios to lowest terms with decimal and percentage forms.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10275,6 +10763,7 @@
       "category": "Games & esports",
       "blurb": "Search for video games on RAWG.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10311,6 +10800,7 @@
       "category": "Security",
       "blurb": "Domain and IP registration data via the RDAP protocol (WHOIS replacement).",
       "domain": "rdap.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -10330,7 +10820,8 @@
       "name": "Readability Analyzer",
       "category": "Utilities",
       "blurb": "Analyze text readability with Flesch-Kincaid grade and reading ease scores.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10346,7 +10837,8 @@
       "name": "Readability Score",
       "category": "Utilities",
       "blurb": "Calculate Flesch-Kincaid readability scores and reading level for text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10363,6 +10855,7 @@
       "category": "News & reading",
       "blurb": "Read your Readwise highlights and documents.",
       "domain": "readwise.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -10378,7 +10871,8 @@
       "name": "Red-Black Tree",
       "category": "Utilities",
       "blurb": "Red-black tree simulation with insert, inorder traversal, and validity check.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10395,6 +10889,7 @@
       "category": "Social",
       "blurb": "Read public posts from a Reddit subreddit. OAuth is optional for public reads.",
       "domain": "reddit.com",
+      "network": "online",
       "toolCount": 8,
       "tools": [
         {
@@ -10438,7 +10933,8 @@
       "name": "Regex Tester",
       "category": "Developer & infra",
       "blurb": "Test regex patterns against text and get match positions.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10455,6 +10951,7 @@
       "category": "Developer & infra",
       "blurb": "List all Render services (web services, static sites, cron jobs, etc.).",
       "domain": "render.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10491,6 +10988,7 @@
       "category": "AI",
       "blurb": "List public models available on Replicate.",
       "domain": "replicate.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10527,6 +11025,7 @@
       "category": "Developer & infra",
       "blurb": "Realistic fake REST API for frontend testing with users and resources.",
       "domain": "reqres.in",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -10551,6 +11050,7 @@
       "category": "Messaging & email",
       "blurb": "Send an email using Resend.",
       "domain": "resend.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -10574,7 +11074,8 @@
       "name": "Reservoir Sampling",
       "category": "Utilities",
       "blurb": "Select k random items from a list with equal probability (reservoir sampling).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10591,6 +11092,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get all countries from REST Countries.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10627,6 +11129,7 @@
       "category": "Social",
       "blurb": "Search Rick and Morty characters, episodes, and locations.",
       "domain": "rickandmortyapi.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -10659,6 +11162,7 @@
       "category": "Games & esports",
       "blurb": "Get a League of Legends summoner by name.",
       "domain": "riotgames.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -10691,6 +11195,7 @@
       "category": "Security",
       "blurb": "Network information and ASN peering data from RIPE NCC.",
       "domain": "stat.ripe.net",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -10710,7 +11215,8 @@
       "name": "RLE Numeric",
       "category": "Utilities",
       "blurb": "Run-length encode or decode numeric arrays for compression analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10726,7 +11232,8 @@
       "name": "RMQ Sparse Table",
       "category": "Utilities",
       "blurb": "Build a sparse table for O(1) range minimum/maximum queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10743,6 +11250,7 @@
       "category": "Images",
       "blurb": "Generate unique robot, monster, or cat avatars from any text.",
       "domain": "robohash.org",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -10758,7 +11266,8 @@
       "name": "Roman Numerals",
       "category": "Utilities",
       "blurb": "Convert between Roman numerals and decimal numbers (1-3999).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10774,7 +11283,8 @@
       "name": "Root Finder",
       "category": "Utilities",
       "blurb": "Find roots of expressions using Newton's method or bisection.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10790,7 +11300,8 @@
       "name": "ROT13 Cipher",
       "category": "Utilities",
       "blurb": "Apply ROT13 or ROT-N Caesar cipher to text.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10806,7 +11317,8 @@
       "name": "Run-Length Encoding",
       "category": "Utilities",
       "blurb": "Run-length encode and decode strings for compression analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10822,7 +11334,8 @@
       "name": "Run-Length Encoding",
       "category": "Utilities",
       "blurb": "Run-length encode or decode text (e.g. aaabbb to 3a3b).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10838,7 +11351,8 @@
       "name": "Running Stats",
       "category": "Utilities",
       "blurb": "Compute sliding-window running mean, std, min, and max over numeric data.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10855,6 +11369,7 @@
       "category": "AI",
       "blurb": "Generate video with Runway models.",
       "domain": "runwayml.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -10878,7 +11393,8 @@
       "name": "Scientific Notation",
       "category": "Utilities",
       "blurb": "Convert numbers to scientific and engineering notation.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -10895,6 +11411,7 @@
       "category": "Events & tickets",
       "blurb": "Search for events on SeatGeek.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -10931,6 +11448,7 @@
       "category": "Quality (XPass)",
       "blurb": "Start a scope-gated SecurityPass scan against a registered pack or target URL.",
       "domain": null,
+      "network": "offline",
       "toolCount": 7,
       "tools": [
         {
@@ -10971,6 +11489,7 @@
       "category": "Developer & infra",
       "blurb": "Track a custom event in Segment. Use for recording user actions like 'Signed Up', 'Item Purchased', etc.",
       "domain": "segment.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -11002,7 +11521,8 @@
       "name": "Segment Intersection",
       "category": "Utilities",
       "blurb": "Find pairwise intersections among 2D line segments.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11018,7 +11538,8 @@
       "name": "Segment Tree",
       "category": "Utilities",
       "blurb": "Segment tree for range queries (sum/min/max) with point updates.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11034,7 +11555,8 @@
       "name": "Semver Tools",
       "category": "Developer & infra",
       "blurb": "Parse and compare semantic version strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -11055,6 +11577,7 @@
       "category": "Messaging & email",
       "blurb": "Send a transactional email via SendGrid.",
       "domain": "sendgrid.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -11091,6 +11614,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get a shipping quote from Sendle.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -11115,6 +11639,7 @@
       "category": "Developer & infra",
       "blurb": "Interact with the Sentry REST API: list projects and issues, get issue details and events, and resolve issues.",
       "domain": "sentry.io",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -11131,6 +11656,7 @@
       "category": "Quality (XPass)",
       "blurb": "Check a page for search-visibility issues.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -11158,7 +11684,8 @@
       "name": "Set Operations",
       "category": "Utilities",
       "blurb": "Perform set operations: union, intersection, difference, subset checks.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11175,6 +11702,7 @@
       "category": "Music & video",
       "blurb": "Search for an artist on Setlist.fm.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -11202,7 +11730,8 @@
       "name": "Shell Sort",
       "category": "Utilities",
       "blurb": "Shell sort with gap sequence tracking, comparison and swap counts.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11219,6 +11748,7 @@
       "category": "Images",
       "blurb": "Random Shiba Inu, cat, or bird images.",
       "domain": "shibe.online",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -11235,6 +11765,7 @@
       "category": "Security",
       "blurb": "Search Shodan for internet-connected devices.",
       "domain": "shodan.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -11259,6 +11790,7 @@
       "category": "Shopping",
       "blurb": "Get products from a Shopify store.",
       "domain": "shopify.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -11299,6 +11831,7 @@
       "category": "Productivity",
       "blurb": "Search stories, projects, and epics in Shortcut.",
       "domain": "shortcut.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -11326,7 +11859,8 @@
       "name": "Shunting-Yard",
       "category": "Utilities",
       "blurb": "Convert infix math expressions to postfix (RPN) and evaluate using the shunting-yard algorithm.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11342,7 +11876,8 @@
       "name": "Sieve of Eratosthenes",
       "category": "Utilities",
       "blurb": "Generate all prime numbers up to N using the Sieve of Eratosthenes.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11358,7 +11893,8 @@
       "name": "Simplex LP",
       "category": "Utilities",
       "blurb": "Solve linear programming problems (maximize subject to constraints) via simplex.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11374,7 +11910,8 @@
       "name": "Skip List",
       "category": "Utilities",
       "blurb": "Probabilistic sorted data structure with O(log n) search.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11391,6 +11928,7 @@
       "category": "Messaging & email",
       "blurb": "Send and read messages across your channels.",
       "domain": "slack.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -11407,6 +11945,7 @@
       "category": "Games & esports",
       "blurb": "Get the current NFL state from Sleeper.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -11443,6 +11982,7 @@
       "category": "Quality (XPass)",
       "blurb": "Catch AI-code slop and quality issues.",
       "domain": null,
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -11458,7 +11998,8 @@
       "name": "Slug Generator",
       "category": "Developer & infra",
       "blurb": "Convert text into URL-safe slugs with configurable separators.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11475,6 +12016,7 @@
       "category": "Weather & science",
       "blurb": "Browse planets, moons, asteroids, and comets in the solar system.",
       "domain": "le-systeme-solaire.net",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -11494,7 +12036,8 @@
       "name": "SOS DP",
       "category": "Utilities",
       "blurb": "Sum over Subsets (SOS) dynamic programming and zeta transform on bitmasks.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11510,7 +12053,8 @@
       "name": "Soundex",
       "category": "Utilities",
       "blurb": "Encode words with the Soundex phonetic algorithm and compare name similarity.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11527,6 +12071,7 @@
       "category": "News & reading",
       "blurb": "Latest spaceflight news articles, blog posts, and reports.",
       "domain": "spaceflightnewsapi.net",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -11551,6 +12096,7 @@
       "category": "Weather & science",
       "blurb": "SpaceX launches, rockets, and mission data.",
       "domain": "spacex.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -11574,7 +12120,8 @@
       "name": "Sparse Table",
       "category": "Utilities",
       "blurb": "Build a sparse table for O(1) range minimum or maximum queries.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11591,6 +12138,7 @@
       "category": "Games & esports",
       "blurb": "Search for games on Speedrun.com by name. No API key required.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -11622,7 +12170,8 @@
       "name": "Spline Interpolation",
       "category": "Utilities",
       "blurb": "Natural cubic spline interpolation through data points with evaluation.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11639,6 +12188,7 @@
       "category": "Money & payments",
       "blurb": "Perform a Splitwise action: get_groups, get_expenses, get_balances, create_expense, get_friends.",
       "domain": "splitwise.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -11655,6 +12205,7 @@
       "category": "Music & video",
       "blurb": "Search Spotify for tracks, albums, artists, or playlists.",
       "domain": "spotify.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -11695,6 +12246,7 @@
       "category": "Money & payments",
       "blurb": "List or create Square payments.",
       "domain": "squareup.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -11723,6 +12275,7 @@
       "category": "AI",
       "blurb": "Generate images from a text prompt using Stability AI.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -11751,6 +12304,7 @@
       "category": "Developer & infra",
       "blurb": "Search Stack Overflow and Stack Exchange Q&A by keyword or question ID.",
       "domain": "stackoverflow.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -11771,6 +12325,7 @@
       "category": "Social",
       "blurb": "Search Star Trek characters, species, and starships.",
       "domain": "stapi.co",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -11795,6 +12350,7 @@
       "category": "Games & esports",
       "blurb": "Look up Star Wars characters, planets, and starships.",
       "domain": "swapi.dev",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -11830,7 +12386,8 @@
       "name": "Statistics Calculator",
       "category": "Developer & infra",
       "blurb": "Calculate mean, median, mode, standard deviation for a set of numbers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11847,6 +12404,7 @@
       "category": "Games & esports",
       "blurb": "Get Steam player profile summaries for one or more Steam IDs.",
       "domain": "steampowered.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -11878,7 +12436,8 @@
       "name": "Stern-Brocot Tree",
       "category": "Utilities",
       "blurb": "Best rational approximation via the Stern-Brocot tree and continued fractions.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11894,7 +12453,8 @@
       "name": "Stirling Numbers",
       "category": "Utilities",
       "blurb": "Compute Stirling numbers of the first or second kind via dynamic programming.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11910,7 +12470,8 @@
       "name": "String Case Converter",
       "category": "Developer & infra",
       "blurb": "Convert text between camelCase, snake_case, kebab-case, PascalCase, and more.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11926,7 +12487,8 @@
       "name": "String Distance",
       "category": "Developer & infra",
       "blurb": "Calculate Levenshtein edit distance and similarity between two strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -11943,6 +12505,7 @@
       "category": "Money & payments",
       "blurb": "Look up customers, charges, invoices, and subscriptions.",
       "domain": "stripe.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -11979,6 +12542,7 @@
       "category": "Social",
       "blurb": "Browse Studio Ghibli films and characters.",
       "domain": "ghibliapi.vercel.app",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -11998,7 +12562,8 @@
       "name": "Suffix Array",
       "category": "Utilities",
       "blurb": "Build a suffix array for a string with optional LCP array.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12014,7 +12579,8 @@
       "name": "Suffix Automaton",
       "category": "Utilities",
       "blurb": "Suffix automaton construction with distinct substring counting.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12030,7 +12596,8 @@
       "name": "Suffix Tree",
       "category": "Utilities",
       "blurb": "Suffix tree construction via Ukkonen's algorithm with substring analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12047,6 +12614,7 @@
       "category": "Weather & science",
       "blurb": "Sunrise and sunset times for any GPS coordinates.",
       "domain": "sunrise-sunset.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -12063,6 +12631,7 @@
       "category": "Games & esports",
       "blurb": "Get a Clash of Clans player by tag.",
       "domain": null,
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -12103,6 +12672,7 @@
       "category": "Utilities",
       "blurb": "Look up comic book superhero and villain stats and bios.",
       "domain": "akabab.github.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -12127,6 +12697,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get TAB race meetings for a date.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -12151,6 +12722,7 @@
       "category": "Utilities",
       "blurb": "Generate random taco recipes with layers and seasonings.",
       "domain": "taco-randomizer.herokuapp.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -12166,7 +12738,8 @@
       "name": "Tarjan SCC",
       "category": "Utilities",
       "blurb": "Find all strongly connected components in a directed graph (Tarjan's algorithm).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12183,6 +12756,7 @@
       "category": "Utilities",
       "blurb": "Draw tarot cards and look up card meanings.",
       "domain": "tarotapi.dev",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -12206,7 +12780,8 @@
       "name": "Taylor Series",
       "category": "Utilities",
       "blurb": "Taylor series approximation for exp, sin, cos, ln(1+x), and atan.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12223,6 +12798,7 @@
       "category": "Messaging & email",
       "blurb": "Send a Telegram message.",
       "domain": "telegram.org",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -12258,7 +12834,8 @@
       "name": "Temperature Converter",
       "category": "Utilities",
       "blurb": "Convert temperature between Celsius, Fahrenheit, Kelvin, and Rankine.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12274,7 +12851,8 @@
       "name": "Ternary Search",
       "category": "Utilities",
       "blurb": "Ternary search on sorted arrays or unimodal extremum finding.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12291,6 +12869,7 @@
       "category": "Quality (XPass)",
       "blurb": "List TestPass packs available to the caller, including system packs and the caller's custom packs.",
       "domain": null,
+      "network": "online",
       "toolCount": 10,
       "tools": [
         {
@@ -12343,6 +12922,7 @@
       "category": "Utilities",
       "blurb": "Analyse text (word count, sentences, readability).",
       "domain": null,
+      "network": "offline",
       "toolCount": 7,
       "tools": [
         {
@@ -12382,7 +12962,8 @@
       "name": "Text Diff",
       "category": "Developer & infra",
       "blurb": "Compare two texts line by line and show added/removed lines.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12398,7 +12979,8 @@
       "name": "Text Reverser",
       "category": "Utilities",
       "blurb": "Reverse text by characters, words, lines, or sentences.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12414,7 +12996,8 @@
       "name": "Text Wrapper",
       "category": "Utilities",
       "blurb": "Hard-wrap text to a specified column width for display or formatting.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12430,7 +13013,8 @@
       "name": "TF-IDF",
       "category": "Utilities",
       "blurb": "Calculate TF-IDF scores to rank documents by relevance to a query.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12447,6 +13031,7 @@
       "category": "Images",
       "blurb": "Random cat images and breed information from The Cat API.",
       "domain": "thecatapi.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12467,6 +13052,7 @@
       "category": "Images",
       "blurb": "Detailed color information and scheme generation for any hex color.",
       "domain": "thecolorapi.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12487,6 +13073,7 @@
       "category": "Images",
       "blurb": "Random dog images and breed information from The Dog API.",
       "domain": "thedogapi.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12507,6 +13094,7 @@
       "category": "Travel, maps & local",
       "blurb": "Get Australian lottery results from The Lott.",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12527,6 +13115,7 @@
       "category": "Weather & science",
       "blurb": "Search cocktail recipes, ingredients, and categories.",
       "domain": "thecocktaildb.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -12563,6 +13152,7 @@
       "category": "Games & esports",
       "blurb": "Search teams, players, leagues, and upcoming events across all sports.",
       "domain": "thesportsdb.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -12591,6 +13181,7 @@
       "category": "Events & tickets",
       "blurb": "Search for events on Ticketmaster.",
       "domain": "ticketmaster.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -12623,6 +13214,7 @@
       "category": "Social",
       "blurb": "Get the authenticated TikTok user profile (follower count, video count, etc.).",
       "domain": "tiktok.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -12647,6 +13239,7 @@
       "category": "Utilities",
       "blurb": "Current time and timezone lookup via timeapi.io.",
       "domain": "timeapi.io",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12666,7 +13259,8 @@
       "name": "Timezone Reference",
       "category": "Utilities",
       "blurb": "Look up timezone abbreviations, UTC offsets, and full names.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12683,6 +13277,7 @@
       "category": "Music & video",
       "blurb": "Search for movies on TMDB.",
       "domain": "themoviedb.org",
+      "network": "online",
       "toolCount": 8,
       "tools": [
         {
@@ -12727,6 +13322,7 @@
       "category": "Productivity",
       "blurb": "List, create, and complete your Todoist tasks.",
       "domain": "todoist.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -12755,6 +13351,7 @@
       "category": "AI",
       "blurb": "Run a chat completion with any Together AI model. Supports Llama, Mistral, Qwen, and 100+ open-source models.",
       "domain": null,
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -12783,6 +13380,7 @@
       "category": "Productivity",
       "blurb": "Get Toggl time entries.",
       "domain": "toggl.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -12811,6 +13409,7 @@
       "category": "Travel, maps & local",
       "blurb": "Find the nearest public toilets to a location (Australia).",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12830,7 +13429,8 @@
       "name": "Token Counter",
       "category": "Utilities",
       "blurb": "Estimate token counts for text across different LLM tokenizers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12847,6 +13447,7 @@
       "category": "Weather & science",
       "blurb": "Get realtime weather from Tomorrow.io.",
       "domain": "tomorrow.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -12870,7 +13471,8 @@
       "name": "Topo Order Count",
       "category": "Utilities",
       "blurb": "Count distinct topological orderings of a directed acyclic graph.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12886,7 +13488,8 @@
       "name": "Topological Sort",
       "category": "Utilities",
       "blurb": "Topological sort of a directed graph with cycle detection.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12902,7 +13505,8 @@
       "name": "Treap",
       "category": "Utilities",
       "blurb": "Randomized BST combining tree and heap properties.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12919,6 +13523,7 @@
       "category": "Productivity",
       "blurb": "Manage Trello boards, lists, and cards.",
       "domain": "trello.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -12934,7 +13539,8 @@
       "name": "Triangle Solver",
       "category": "Utilities",
       "blurb": "Solve triangles from three side lengths: angles, area, inradius, circumradius.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12950,7 +13556,8 @@
       "name": "Trie",
       "category": "Utilities",
       "blurb": "Prefix tree for word search, prefix counting, and autocomplete.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -12967,6 +13574,7 @@
       "category": "Utilities",
       "blurb": "Get trivia questions from Open Trivia DB.",
       "domain": null,
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -12987,6 +13595,7 @@
       "category": "News & reading",
       "blurb": "Search the National Library of Australia's Trove.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13010,7 +13619,8 @@
       "name": "TSP Solver",
       "category": "Utilities",
       "blurb": "Find a short tour visiting all cities (traveling salesman, nearest-neighbor heuristic).",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13027,6 +13637,7 @@
       "category": "Developer & infra",
       "blurb": "List all databases in a Turso organization.",
       "domain": "turso.tech",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -13059,6 +13670,7 @@
       "category": "Music & video",
       "blurb": "Search TV shows, get details, and browse schedules.",
       "domain": "tvmaze.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13083,6 +13695,7 @@
       "category": "Messaging & email",
       "blurb": "Send an SMS via Twilio.",
       "domain": "twilio.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -13123,6 +13736,7 @@
       "category": "Social",
       "blurb": "Search for live streams on Twitch.",
       "domain": "twitch.tv",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -13163,6 +13777,7 @@
       "category": "Productivity",
       "blurb": "List your Typeform forms.",
       "domain": "typeform.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13187,6 +13802,7 @@
       "category": "Images",
       "blurb": "Generate text-based avatar images from initials.",
       "domain": "ui-avatars.com",
+      "network": "hybrid",
       "toolCount": 1,
       "tools": [
         {
@@ -13203,6 +13819,7 @@
       "category": "Security",
       "blurb": "UK police forces and street-level crime data from data.police.uk.",
       "domain": "data.police.uk",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13222,7 +13839,8 @@
       "name": "Union-Find",
       "category": "Utilities",
       "blurb": "Merge elements and query connectivity using union-find with path compression.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13239,6 +13857,7 @@
       "category": "Utilities",
       "blurb": "Convert between length units.",
       "domain": null,
+      "network": "offline",
       "toolCount": 7,
       "tools": [
         {
@@ -13279,6 +13898,7 @@
       "category": "Images",
       "blurb": "Search and fetch free Unsplash photos.",
       "domain": "unsplash.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13303,6 +13923,7 @@
       "category": "Weather & science",
       "blurb": "Search for beers on Untappd.",
       "domain": null,
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -13335,6 +13956,7 @@
       "category": "Shopping",
       "blurb": "Look up products by UPC/EAN barcode or search by name.",
       "domain": "upcitemdb.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13355,6 +13977,7 @@
       "category": "Developer & infra",
       "blurb": "Get the value of a key from an Upstash Redis database.",
       "domain": "upstash.com",
+      "network": "online",
       "toolCount": 7,
       "tools": [
         {
@@ -13395,6 +14018,7 @@
       "category": "Developer & infra",
       "blurb": "Check your monitors and get alerted when one is down.",
       "domain": "uptimerobot.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13415,6 +14039,7 @@
       "category": "Utilities",
       "blurb": "Look up slang definitions or browse trending words.",
       "domain": "urbandictionary.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13434,7 +14059,8 @@
       "name": "URL Encoder",
       "category": "Developer & infra",
       "blurb": "URL percent-encode and decode text for query strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 2,
       "tools": [
         {
@@ -13455,6 +14081,7 @@
       "category": "Security",
       "blurb": "Check URLs against the URLhaus malware database.",
       "domain": "urlhaus.abuse.ch",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13475,6 +14102,7 @@
       "category": "Security",
       "blurb": "Submit a URL for scanning on urlscan.io.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13499,6 +14127,7 @@
       "category": "Utilities",
       "blurb": "Random interesting but useless facts.",
       "domain": "uselessfacts.jsph.pl",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13519,6 +14148,7 @@
       "category": "Weather & science",
       "blurb": "Get recent earthquakes from USGS.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13542,7 +14172,8 @@
       "name": "UUID Generator",
       "category": "Developer & infra",
       "blurb": "Generate cryptographically random UUID v4 strings.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13559,6 +14190,7 @@
       "category": "Quality (XPass)",
       "blurb": "Check a page's UI and UX for usability issues.",
       "domain": null,
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -13594,7 +14226,8 @@
       "name": "Variance Calculator",
       "category": "Utilities",
       "blurb": "Population/sample variance, standard deviation, median, range, and CV.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13611,6 +14244,7 @@
       "category": "Markets & crypto",
       "blurb": "EU VAT rates and member state data from VATcomply.",
       "domain": "vatcomply.com",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13631,6 +14265,7 @@
       "category": "Developer & infra",
       "blurb": "Perform a vault action: vault_init, vault_store, vault_retrieve, vault_list, vault_delete, vault_rotate, vault_audit.",
       "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13647,6 +14282,7 @@
       "category": "Developer & infra",
       "blurb": "List Vercel deployments for a project.",
       "domain": "vercel.com",
+      "network": "online",
       "toolCount": 8,
       "tools": [
         {
@@ -13690,7 +14326,8 @@
       "name": "Vigenere Cipher",
       "category": "Utilities",
       "blurb": "Encrypt or decrypt text using the Vigenere polyalphabetic cipher.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13707,6 +14344,7 @@
       "category": "Security",
       "blurb": "Submit a URL for scanning on VirusTotal.",
       "domain": "virustotal.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -13734,7 +14372,8 @@
       "name": "Wavelength Converter",
       "category": "Utilities",
       "blurb": "Convert between wavelength and frequency with energy and EM spectrum band.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13750,7 +14389,8 @@
       "name": "Wavelet Tree",
       "category": "Utilities",
       "blurb": "Wavelet tree for range kth-smallest queries on integer arrays.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13767,6 +14407,7 @@
       "category": "News & reading",
       "blurb": "Check if a URL has been archived by the Wayback Machine.",
       "domain": "web.archive.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -13783,6 +14424,7 @@
       "category": "Content & CMS",
       "blurb": "List Webflow sites for the account.",
       "domain": "webflow.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -13810,7 +14452,8 @@
       "name": "Weighted Mean",
       "category": "Utilities",
       "blurb": "Weighted, arithmetic, geometric, and harmonic means of a value set.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -13827,6 +14470,7 @@
       "category": "Weather & science",
       "blurb": "Browse exercises, muscle groups, and workout categories.",
       "domain": "wger.de",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13851,6 +14495,7 @@
       "category": "Messaging & email",
       "blurb": "Send a text message via WhatsApp Business Cloud API.",
       "domain": "whatsapp.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -13883,6 +14528,7 @@
       "category": "Weather & science",
       "blurb": "Track the International Space Station position in real time.",
       "domain": "wheretheiss.at",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13903,6 +14549,7 @@
       "category": "News & reading",
       "blurb": "Structured knowledge base: search and retrieve entity data from Wikidata.",
       "domain": "wikidata.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -13923,6 +14570,7 @@
       "category": "News & reading",
       "blurb": "Search Wikipedia and read article summaries.",
       "domain": "wikipedia.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13947,6 +14595,7 @@
       "category": "Books",
       "blurb": "Look up word definitions in Wiktionary (multi-language).",
       "domain": "wiktionary.org",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -13963,6 +14612,7 @@
       "category": "Weather & science",
       "blurb": "Get weather forecast from WillyWeather for an Australian location.",
       "domain": null,
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -13987,6 +14637,7 @@
       "category": "Money & payments",
       "blurb": "Get exchange rates from Wise.",
       "domain": "wise.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -14015,6 +14666,7 @@
       "category": "Shopping",
       "blurb": "List or get WooCommerce products.",
       "domain": "woocommerce.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -14038,7 +14690,8 @@
       "name": "Word Counter",
       "category": "Utilities",
       "blurb": "Count words, characters, sentences, and estimate reading time.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14054,7 +14707,8 @@
       "name": "Word Frequency",
       "category": "Utilities",
       "blurb": "Analyse word frequencies in text with counts and top-word ranking.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14071,6 +14725,7 @@
       "category": "Content & CMS",
       "blurb": "Read posts and pages from your WordPress site.",
       "domain": "wordpress.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -14095,6 +14750,7 @@
       "category": "Weather & science",
       "blurb": "Country profiles and economic indicators from the World Bank.",
       "domain": "worldbank.org",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {
@@ -14115,6 +14771,7 @@
       "category": "Weather & science",
       "blurb": "Current time by timezone or IP address with UTC offset.",
       "domain": "worldtimeapi.org",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -14139,6 +14796,7 @@
       "category": "News & reading",
       "blurb": "Search universities worldwide by name or country.",
       "domain": "universities.hipolabs.com",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -14155,6 +14813,7 @@
       "category": "Money & payments",
       "blurb": "Get invoices from Xero.",
       "domain": "xero.com",
+      "network": "online",
       "toolCount": 8,
       "tools": [
         {
@@ -14199,6 +14858,7 @@
       "category": "Social",
       "blurb": "Read xkcd comics - latest, by number, or random.",
       "domain": "xkcd.com",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -14222,7 +14882,8 @@
       "name": "XOR Basis",
       "category": "Utilities",
       "blurb": "Compute a linear basis over GF(2) (XOR basis) for a set of integers.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14239,6 +14900,7 @@
       "category": "Quality (XPass)",
       "blurb": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA.",
       "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14255,6 +14917,7 @@
       "category": "Travel, maps & local",
       "blurb": "Search for businesses on Yelp.",
       "domain": "yelp.com",
+      "network": "online",
       "toolCount": 5,
       "tools": [
         {
@@ -14287,6 +14950,7 @@
       "category": "Utilities",
       "blurb": "Random yes/no answers with animated GIFs for fun decisions.",
       "domain": "yesno.wtf",
+      "network": "online",
       "toolCount": 1,
       "tools": [
         {
@@ -14303,6 +14967,7 @@
       "category": "Social",
       "blurb": "Search YouTube for videos, channels, or playlists.",
       "domain": "youtube.com",
+      "network": "online",
       "toolCount": 6,
       "tools": [
         {
@@ -14338,7 +15003,8 @@
       "name": "Z-Algorithm",
       "category": "Utilities",
       "blurb": "Z-array computation and linear-time pattern matching.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14354,7 +15020,8 @@
       "name": "Z-Function",
       "category": "Utilities",
       "blurb": "Z-function string algorithm for pattern matching and prefix analysis.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14370,7 +15037,8 @@
       "name": "Z-Score Calculator",
       "category": "Utilities",
       "blurb": "Calculate z-scores, cumulative probabilities, and percentiles.",
-      "domain": "local",
+      "domain": null,
+      "network": "offline",
       "toolCount": 1,
       "tools": [
         {
@@ -14387,6 +15055,7 @@
       "category": "Utilities",
       "blurb": "Inspirational and motivational quotes of the day.",
       "domain": "zenquotes.io",
+      "network": "online",
       "toolCount": 3,
       "tools": [
         {
@@ -14411,6 +15080,7 @@
       "category": "Messaging & email",
       "blurb": "Search, read, and reply to support tickets.",
       "domain": "zendesk.com",
+      "network": "online",
       "toolCount": 4,
       "tools": [
         {
@@ -14439,6 +15109,7 @@
       "category": "Developer & infra",
       "blurb": "Look up zip and postal codes for city, state, and country.",
       "domain": "zippopotam.us",
+      "network": "online",
       "toolCount": 2,
       "tools": [
         {

@@ -118,6 +118,10 @@ export default function AdminAppTesting() {
           manual check rather than fired automatically. The Comments column holds admin notes and is
           preserved across runs.
         </p>
+        <p className="mt-1">
+          Apps with an <span className="text-red-300">Issue</span> status are hidden from the public Apps
+          store until a retest passes; this page is their system of record while they are out.
+        </p>
       </div>
 
       {/* Progress + status counts */}
@@ -167,7 +171,14 @@ export default function AdminAppTesting() {
           <div className="divide-y divide-white/[0.04]">
             {filtered.map(({ app, result }) => (
               <div key={app.slug} className={`grid ${COLS} items-start gap-3 px-3 py-2 text-xs`}>
-                <div><StatusBadge status={result.status} /></div>
+                <div className="flex flex-col items-start gap-1">
+                  <StatusBadge status={result.status} />
+                  {result.status === "fail" && (
+                    <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white/40">
+                      Hidden from store
+                    </span>
+                  )}
+                </div>
                 <Link to={`/apps/${app.slug}`} className="truncate font-medium text-white hover:text-[#9be4e6]">
                   {app.name}
                 </Link>

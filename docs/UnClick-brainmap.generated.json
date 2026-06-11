@@ -15805,13 +15805,13 @@
     },
     {
       "source": "src/pages/admin/AdminAppTesting.tsx",
-      "hash": "90c9377b4bab",
-      "bytes": 10945
+      "hash": "5ba37cf2abff",
+      "bytes": 11567
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "5d2838bcd848",
-      "bytes": 6470
+      "hash": "e837ee6a6e33",
+      "bytes": 7846
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -15995,13 +15995,13 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "5d2ee9cd8690",
-      "bytes": 5401
+      "hash": "ce60db85ef41",
+      "bytes": 6592
     },
     {
       "source": "src/pages/Apps.tsx",
-      "hash": "1ccab2a4ccad",
-      "bytes": 2647
+      "hash": "f2fab29b2942",
+      "bytes": 3137
     },
     {
       "source": "src/pages/AuthCallback.tsx",
@@ -16360,8 +16360,8 @@
     },
     {
       "source": "packages/mcp-server/src/animechan-tool.ts",
-      "hash": "f77b9af84d81",
-      "bytes": 1735
+      "hash": "52c851f21185",
+      "bytes": 1856
     },
     {
       "source": "packages/mcp-server/src/anthropic-tool.ts",
