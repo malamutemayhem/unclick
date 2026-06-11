@@ -66,6 +66,26 @@ type StageResult = {
   tokensOut: number;
 };
 
+// agent_guided mode: the calling agent is the model boundary. The card carries
+// this protocol so the agent can play each advisor in its own context and then
+// persist the Council output with submit_crew_run.
+export type GuidedRunProtocol = {
+  run_id: string;
+  crew_id: string;
+  task_prompt: string;
+  memory_context: string[];
+  advisors: Array<{ agent_id: string; name: string; system_prompt: string }>;
+  chairman: { agent_id: string; name: string } | null;
+  stage_instructions: {
+    opinion: string;
+    peer_review: string;
+    synthesis: string;
+  };
+  submit_with: "submit_crew_run";
+};
+
+export type GuidedCrewCard = ConversationalCard & { guided_run?: GuidedRunProtocol };
+
 function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
   if (!key) return unclickNotConfigured();
@@ -181,7 +201,7 @@ async function finishRun(
   });
 }
 
-function unsupportedStartBody(
+function baseStartBody(
   crewId: string,
   taskPrompt: string,
   tokenBudget?: number,
@@ -219,22 +239,76 @@ export async function crewsStartRun(
   }
 
   if (!options.supportsSampling || !options.sample) {
-    const { ok, status, json } = await adminCall(
-      "start_crew_run",
-      unsupportedStartBody(crewId, taskPrompt, tokenBudget, taskId),
-      "POST",
-    );
+    // No MCP sampling available. Instead of parking a dead failed run, prepare
+    // an agent_guided run: the calling agent generates every Council turn in
+    // its own context (so the client stays the model boundary) and persists
+    // the output with submit_crew_run.
+    const body = baseStartBody(crewId, taskPrompt, tokenBudget, taskId);
+    body.execution_mode = "agent_guided";
+    const { ok, status, json } = await adminCall("start_crew_run", body, "POST");
     const payload = (json ?? {}) as AdminCard;
-    if (payload.card) return payload.card;
-    return buildCard({
-      headline: `start_crew_run failed (HTTP ${status})`,
-      summary: payload.message ?? (ok ? "No card returned." : "The admin API rejected the request."),
-      keyFacts: [
-        `http_status: ${status}`,
-        ...(payload.error ? [`error: ${payload.error}`] : []),
-      ],
-      nextActions: ["Check Vercel logs", "Confirm your UNCLICK_API_KEY is valid"],
-    });
+    if (payload.was_duplicate && payload.card) return payload.card;
+    if (!ok || !payload.run_id) {
+      if (payload.card) return payload.card;
+      return buildCard({
+        headline: `start_crew_run failed (HTTP ${status})`,
+        summary: payload.message ?? (ok ? "No card returned." : "The admin API rejected the request."),
+        keyFacts: [
+          `http_status: ${status}`,
+          ...(payload.error ? [`error: ${payload.error}`] : []),
+        ],
+        nextActions: ["Check Vercel logs", "Confirm your UNCLICK_API_KEY is valid"],
+      });
+    }
+
+    const agents = Array.isArray(payload.agents) ? payload.agents : [];
+    const advisors = agents.filter((agent) => agent.category !== "meta");
+    const chairman = agents.find((agent) => agent.slug === "chairman") ?? null;
+    const memoryContext = Array.isArray(payload.relevant_facts) ? payload.relevant_facts : [];
+    const guided: GuidedRunProtocol = {
+      run_id: payload.run_id,
+      crew_id: crewId,
+      task_prompt: taskPrompt,
+      memory_context: memoryContext,
+      advisors: advisors.map((agent) => ({
+        agent_id: agent.id,
+        name: agent.name,
+        system_prompt: `${agent.seed_prompt ?? `You are ${agent.name}.`}\n\nProvide your honest, specific opinion on the task. 150 to 250 words. Be direct and substantive.`,
+      })),
+      chairman: chairman ? { agent_id: chairman.id, name: chairman.name } : null,
+      stage_instructions: {
+        opinion:
+          "For each advisor, write that advisor's opinion on the task in their distinct voice using their system_prompt. 150 to 250 words each. The advisors must genuinely disagree where their perspectives differ; do not converge them.",
+        peer_review:
+          "Then, as each advisor, rank the OTHER advisors' opinions from 1 (most compelling) upward with a one-line rationale per ranking.",
+        synthesis:
+          "Finally, as the Chairman, synthesise all opinions into one answer using exactly this format:\n\nFINAL ANSWER:\n[Your conclusion, 200 to 350 words]\n\nWHAT DIDN'T MAKE THE CONSENSUS:\n[Minority views not incorporated, 1 to 3 bullet points starting with -. If full consensus, write: No significant dissents.]",
+      },
+      submit_with: "submit_crew_run",
+    };
+    const guidedCard: GuidedCrewCard = {
+      ...buildCard({
+        headline: "Crews Council run prepared: you are the Council",
+        summary:
+          "This client has no MCP sampling, so you, the calling agent, run the Council in your own context. Play each advisor honestly in their voice (they should disagree where their perspectives differ), run the peer rankings, write the Chairman synthesis, then persist everything with submit_crew_run. Do not skip stages and do not summarise advisors into one voice.",
+        keyFacts: [
+          `run_id: ${payload.run_id}`,
+          "mode: agent_guided",
+          `advisors: ${advisors.map((agent) => agent.name).join(", ") || "none"}`,
+          `chairman: ${chairman?.name ?? "none"}`,
+          `memory_context_facts: ${memoryContext.length}`,
+        ],
+        nextActions: [
+          "Write each advisor opinion per guided_run.advisors and stage_instructions.opinion",
+          "Write each advisor's peer rankings per stage_instructions.peer_review",
+          "Write the Chairman synthesis per stage_instructions.synthesis",
+          "Call submit_crew_run with run_id, opinions, peer_reviews, and synthesis",
+        ],
+        deepLink: `/admin/crews/runs/${payload.run_id}`,
+      }),
+      guided_run: guided,
+    };
+    return guidedCard;
   }
 
   const body: Record<string, unknown> = {
@@ -351,6 +425,89 @@ export async function crewsStartRun(
       stages: stageSummary(messages),
     });
   }
+}
+
+type SubmittedTurn = { agent_id?: unknown; agent_name?: unknown; content?: unknown };
+
+function submittedTurns(value: unknown): Array<{ agentId: string | null; content: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw) => {
+      const item = (raw ?? {}) as SubmittedTurn;
+      const content = typeof item.content === "string" ? item.content.trim() : "";
+      const agentId = typeof item.agent_id === "string" && item.agent_id ? item.agent_id : null;
+      return { agentId, content };
+    })
+    .filter((turn) => turn.content.length > 0);
+}
+
+// Persists an agent_guided Council run. The calling agent already generated
+// the opinions, peer reviews, and synthesis in its own context; this tool
+// validates the shape and finishes the run through the same finish_crew_run
+// path the sampling mode uses, so both modes leave identical records.
+export async function crewsSubmitRun(args: Record<string, unknown>): Promise<ConversationalCard> {
+  const runId = String(args.run_id ?? "").trim();
+  if (!runId) {
+    return buildCard({
+      headline: "submit_crew_run needs a run_id",
+      summary: "Provide the run_id returned by start_crew_run in agent_guided mode.",
+      keyFacts: ["missing: run_id"],
+      nextActions: ["Call start_crew_run first, then submit its run_id here"],
+    });
+  }
+
+  const abortReason = typeof args.abort_reason === "string" ? args.abort_reason.trim() : "";
+  if (abortReason) {
+    return finishRun(runId, "failed", [], 0, {
+      error: "AGENT_GUIDED_ABORTED",
+      mode: "agent_guided",
+      message: abortReason.slice(0, 500),
+    });
+  }
+
+  const opinions = submittedTurns(args.opinions);
+  const peerReviews = submittedTurns(args.peer_reviews);
+  const synthesis = typeof args.synthesis === "string" ? args.synthesis.trim() : "";
+  const chairmanAgentId =
+    typeof args.chairman_agent_id === "string" && args.chairman_agent_id ? args.chairman_agent_id : null;
+
+  if (opinions.length === 0 || !synthesis) {
+    return buildCard({
+      headline: "submit_crew_run needs opinions and a synthesis",
+      summary:
+        "Provide at least one advisor opinion and the Chairman synthesis. Each opinion needs non-empty content; peer_reviews are recommended but optional.",
+      keyFacts: [
+        `run_id: ${runId}`,
+        `opinions_received: ${opinions.length}`,
+        `synthesis_received: ${synthesis ? "yes" : "no"}`,
+      ],
+      nextActions: [
+        "Generate the missing stages per the guided_run protocol from start_crew_run",
+        "Retry submit_crew_run with opinions[] and synthesis",
+      ],
+    });
+  }
+
+  const messages: CrewMessage[] = [];
+  let tokensUsed = 0;
+  const pushMessage = (agentId: string | null, role: string, stage: string, content: string) => {
+    // The agent's own context did the generation, so prompt-side token use is
+    // unknown from here; only the persisted output is counted, never invented.
+    const tokensOut = estimateTokens(content);
+    tokensUsed += tokensOut;
+    messages.push({ agent_id: agentId, role, stage, content, tokens_in: 0, tokens_out: tokensOut });
+  };
+  for (const opinion of opinions) pushMessage(opinion.agentId, "advisor", "opinion", opinion.content);
+  for (const review of peerReviews) pushMessage(review.agentId, "advisor", "peer_review", review.content);
+  pushMessage(chairmanAgentId, "chairman", "synthesis", synthesis);
+
+  return finishRun(runId, "complete", messages, tokensUsed, {
+    status: "complete",
+    mode: "agent_guided",
+    advisor_count: opinions.length,
+    message_count: messages.length,
+    stages: stageSummary(messages),
+  });
 }
 
 export async function crewsGetRun(args: Record<string, unknown>): Promise<ConversationalCard> {

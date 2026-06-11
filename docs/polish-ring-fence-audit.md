@@ -122,6 +122,27 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (Crews agent_guided mode, PR #1453 round 4):** Crews
+  Council had never completed a run: it required MCP sampling, which no
+  fleet seat supports (the only run ever attempted failed
+  SAMPLING_NOT_SUPPORTED). Fix keeps the client as the model boundary
+  without sampling: start_crew_run now prepares an agent_guided run and
+  returns a guided_run protocol (advisor system prompts, stage
+  instructions, memory context); the calling agent plays each advisor
+  in its own context and persists the output through the new
+  submit_crew_run tool, which finishes the run via the same
+  finish_crew_run path as sampling mode, so both modes leave identical
+  records. Honest accounting: prompt-side tokens are unknown in this
+  mode and recorded as 0, only persisted output is counted; an
+  abort_reason path fails the run honestly instead of leaving it
+  running. Server accepts execution_mode "agent_guided" (status
+  running, prepared_for_agent_guided artifact); sampling-capable
+  clients are unchanged, and clients on older tool builds still get the
+  honest 409. Live-run caveat: this seat cannot end-to-end a real
+  Council until the change deploys (live MCP server and API still run
+  the old code), so the receipts are the 4-test protocol simulation in
+  crews-tool.test.ts plus full package and root suites.
+
 - **2026-06-11 (beta-neutral + live-state truth session, PR #1453):**
   hands-dirty pass driven by live UnClick state plus parallel reviewer
   agents (new-user hat, skeptical-engineer hat) and a Boardroom/ledger

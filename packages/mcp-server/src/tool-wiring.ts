@@ -1554,7 +1554,7 @@ import {
 import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
-import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
+import { crewsStartRun, crewsSubmitRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADDITIONAL_TOOLS
@@ -22805,7 +22805,7 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. Without sampling it returns an agent_guided protocol instead: YOU play each advisor in your own context per the returned guided_run prompts, then persist the output with submit_crew_run. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -22819,6 +22819,52 @@ export const ADDITIONAL_TOOLS = [
         },
       },
       required: ["crew_id", "task_prompt"],
+    },
+  },
+  {
+    name: "submit_crew_run",
+    description: "Call this tool to persist an agent_guided Crews Council run after start_crew_run returned a guided_run protocol. Provide the advisor opinions you generated (in each advisor's voice), the peer reviews, and the Chairman synthesis; the run is finished through the same path as sampling mode. Pass abort_reason instead to fail the run honestly when you cannot complete the Council.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by start_crew_run" },
+        opinions: {
+          type: "array",
+          description: "One entry per advisor: their opinion in their own voice (150-250 words each)",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              agent_id: { type: "string", description: "Advisor agent_id from guided_run.advisors" },
+              agent_name: { type: "string", description: "Optional advisor name for readability" },
+              content: { type: "string", description: "The advisor's opinion text" },
+            },
+            required: ["content"],
+          },
+        },
+        peer_reviews: {
+          type: "array",
+          description: "Optional: one entry per advisor ranking the other opinions",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              agent_id: { type: "string", description: "Reviewing advisor agent_id" },
+              agent_name: { type: "string", description: "Optional advisor name" },
+              content: { type: "string", description: "The rankings with one-line rationales" },
+            },
+            required: ["content"],
+          },
+        },
+        synthesis: { type: "string", description: "The Chairman synthesis in the FINAL ANSWER format" },
+        chairman_agent_id: { type: "string", description: "Chairman agent_id from guided_run.chairman" },
+        abort_reason: {
+          type: "string",
+          description: "Set instead of content to fail the run honestly when the Council cannot be completed",
+        },
+      },
+      required: ["run_id"],
     },
   },
   {
@@ -25500,7 +25546,8 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   fidelitypass_verify_copy:(args) => fidelitypassVerifyCopy(args),
 
   // crews-tool.ts
-  start_crew_run: (args) => crewsStartRun(args),
-  get_run:        (args) => crewsGetRun(args),
-  list_runs:      (args) => crewsListRuns(args),
+  start_crew_run:  (args) => crewsStartRun(args),
+  submit_crew_run: (args) => crewsSubmitRun(args),
+  get_run:         (args) => crewsGetRun(args),
+  list_runs:       (args) => crewsListRuns(args),
 };

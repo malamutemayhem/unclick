@@ -1929,7 +1929,11 @@
     "tools": [
       {
         "name": "start_crew_run",
-        "description": "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id."
+        "description": "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. Without sampling it returns an agent_guided protocol instead: YOU play each advisor in your own context per the returned guided_run prompts, then persist the output with submit_crew_run. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id."
+      },
+      {
+        "name": "submit_crew_run",
+        "description": "Call this tool to persist an agent_guided Crews Council run after start_crew_run returned a guided_run protocol. Provide the advisor opinions you generated (in each advisor's voice), the peer reviews, and the Chairman synthesis; the run is finished through the same path as sampling mode. Pass abort_reason instead to fail the run honestly when you cannot complete the Council."
       },
       {
         "name": "get_run",

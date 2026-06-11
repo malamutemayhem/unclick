@@ -7630,6 +7630,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const trimmedPrompt = task_prompt.trim();
         const isMcpSampling = execution_mode === "mcp_sampling";
+        // agent_guided keeps the client as the model boundary without MCP
+        // sampling: the calling agent generates each Council turn in its own
+        // context and persists the output via finish_crew_run.
+        const isAgentGuided = execution_mode === "agent_guided";
+        const isLiveExecution = isMcpSampling || isAgentGuided;
         const templateVersion =
           typeof template_version === "string" && template_version.trim()
             ? template_version.trim()
@@ -7658,7 +7663,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           crew_id,
           task_prompt: trimmedPrompt,
           token_budget: token_budget ?? 150000,
-          status: isMcpSampling ? "running" : "failed",
+          status: isLiveExecution ? "running" : "failed",
           template_key: crewContext.templateKey,
           template_version: crewContext.templateVersion,
           resolved_agent_ids: crewContext.resolvedAgentIds,
@@ -7669,6 +7674,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           insertPayload.result_artifact = {
             status: "prepared_for_mcp_sampling",
             message: "Run prepared. The MCP client must persist opinions, reviews, and synthesis.",
+          };
+        } else if (isAgentGuided) {
+          insertPayload.started_at = now;
+          insertPayload.result_artifact = {
+            status: "prepared_for_agent_guided",
+            message:
+              "Run prepared. The calling agent generates each advisor opinion, the peer reviews, and the Chairman synthesis in its own context, then persists them via finish_crew_run.",
           };
         } else {
           insertPayload.result_artifact = {
@@ -7719,27 +7731,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const card: ConversationalCard = buildCard({
           headline: wasDuplicate
             ? "Crews Council run already created"
-            : isMcpSampling
+            : isLiveExecution
               ? "Crews Council run prepared"
               : "Crews Council run needs MCP sampling",
           summary: wasDuplicate
             ? "A run with this task_id already exists for your tenant. Returning the original run_id; no new row was created."
             : isMcpSampling
               ? "The run row is ready. The MCP client should now ask each advisor, collect peer reviews, and persist the Chairman synthesis."
-              : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client such as Claude Desktop using the start_crew_run MCP tool.",
+              : isAgentGuided
+                ? "The run row is ready. The calling agent now plays each advisor in its own context, collects peer reviews, writes the Chairman synthesis, and persists everything via finish_crew_run."
+                : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client such as Claude Desktop using the start_crew_run MCP tool.",
           keyFacts: [
             `run_id: ${resolvedRunId}`,
             `crew_id: ${crew_id}`,
             `agents: ${crewContext.agents.map((agent) => agent.name).join(", ")}`,
             ...(wasDuplicate
               ? ["was_duplicate: true"]
-              : isMcpSampling
-                ? ["status: running", `config_hash: ${crewContext.configHash}`]
+              : isLiveExecution
+                ? ["status: running", `config_hash: ${crewContext.configHash}`, `mode: ${isMcpSampling ? "mcp_sampling" : "agent_guided"}`]
                 : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
           ],
           nextActions: wasDuplicate
             ? ["Call get_run with the run_id to inspect the original run"]
-            : isMcpSampling
+            : isLiveExecution
               ? ["Run advisor opinions", "Run peer review", "Persist the Chairman synthesis with finish_crew_run"]
               : [
                   "Install the UnClick MCP server in a sampling-capable client",
@@ -7747,8 +7761,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 ],
           deepLink: `/admin/crews/runs/${resolvedRunId}`,
         });
-        return res.status(wasDuplicate ? 200 : isMcpSampling ? 202 : 409).json({
-          error: wasDuplicate || isMcpSampling ? undefined : "SAMPLING_NOT_SUPPORTED",
+        return res.status(wasDuplicate ? 200 : isLiveExecution ? 202 : 409).json({
+          error: wasDuplicate || isLiveExecution ? undefined : "SAMPLING_NOT_SUPPORTED",
           run_id: resolvedRunId,
           was_duplicate: wasDuplicate,
           task_id: normalizedTaskId ?? null,
