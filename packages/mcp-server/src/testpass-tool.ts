@@ -7,11 +7,28 @@
  * caller's user id from that token and enforces actor_user_id scoping.
  */
 
+import { createHash } from "node:crypto";
 import { unclickNotConfigured } from "./connection-help.js";
 import { type NotConnectedResult } from "./connection-help.js";
 
 const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+// The API rejects non-UUID task_ids with HTTP 400, but agents routinely pass
+// human-readable idempotency strings. Derive a deterministic UUIDv5-shaped id
+// from any non-UUID value so the same input string still maps to the same
+// task_id (idempotent retry preserved) instead of failing the run.
+const TASK_ID_NAMESPACE = "unclick-testpass-task-id-v1";
+
+export function normalizeTaskId(raw: string): string {
+  if (UUID_RE.test(raw)) return raw;
+  const digest = createHash("sha1").update(`${TASK_ID_NAMESPACE}:${raw}`).digest("hex");
+  const bytes = digest.slice(0, 32).split("");
+  bytes[12] = "5";
+  bytes[16] = ((parseInt(bytes[16], 16) & 0x3) | 0x8).toString(16);
+  const hex = bytes.join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
 
 function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
@@ -44,7 +61,8 @@ export async function testpassRun(args: Record<string, unknown>): Promise<unknow
   const targetUrl = String(args.target_url ?? "");
   const packId = String(args.pack_id ?? "testpass-core");
   const profile = String(args.profile ?? "smoke");
-  const taskId = typeof args.task_id === "string" && args.task_id ? args.task_id : undefined;
+  const taskId =
+    typeof args.task_id === "string" && args.task_id ? normalizeTaskId(args.task_id) : undefined;
   if (!targetUrl) return { error: "target_url is required" };
 
   const apiKey = getApiKey();
