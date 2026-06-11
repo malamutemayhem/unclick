@@ -87,6 +87,11 @@ const CONVERTED_PAGES = [
   "src/components/TrustSignals.tsx",
   "src/components/Problem.tsx",
   "src/pages/NotFound.tsx",
+  "src/components/Navbar.tsx",
+  "src/pages/XPass.tsx",
+  "src/pages/VibeCoding.tsx",
+  "src/pages/Jobsmith.tsx",
+  "src/pages/Tools.tsx",
 ];
 
 describe("design canon: converted pages stay converted", () => {

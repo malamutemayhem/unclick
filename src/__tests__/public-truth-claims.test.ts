@@ -91,6 +91,21 @@ describe("the 404 page keeps one tagline", () => {
   });
 });
 
+describe("tools page ships no hand-set counts", () => {
+  it("category tiles carry no count fields and no device-count claims", () => {
+    const src = read("src/pages/Tools.tsx");
+    expect(src).not.toMatch(/count: \d+,/);
+    expect(src).not.toContain("2,000+");
+  });
+});
+
+describe("vibe coding page links only to real destinations", () => {
+  it("does not link a repo under a fabricated org", () => {
+    const src = read("src/pages/VibeCoding.tsx");
+    expect(src).not.toContain("github.com/unclick-world");
+  });
+});
+
 describe("crews page does not argue with itself", () => {
   const src = read("src/pages/Crews.tsx");
 

@@ -103,6 +103,11 @@ export const presets = {
     "border border-primary/30 bg-gradient-to-br from-primary/20 to-primary/[0.06] " +
     "text-primary mb-4",
 
+  // Floating menu surface (nav dropdowns, popovers over content)
+  menu:
+    "rounded-2xl border border-primary/15 bg-popover/95 p-1.5 " +
+    "shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md",
+
   // Section wrapper
   section: "px-6 py-20",
   sectionInner: "mx-auto max-w-5xl",
