@@ -15500,8 +15500,8 @@
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "2bc870ebf30f",
-      "bytes": 21782
+      "hash": "70c0696acf2d",
+      "bytes": 21918
     },
     {
       "source": "src/lib/controltower.ts",
@@ -15770,18 +15770,18 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
-      "hash": "5bfc0414856f",
-      "bytes": 16509
+      "hash": "8ad812cf67f4",
+      "bytes": 16513
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "9356d99ba1e3",
-      "bytes": 37675
+      "hash": "8576cb33996f",
+      "bytes": 37699
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "78d5057027a1",
-      "bytes": 11750
+      "hash": "3ff5a42ce297",
+      "bytes": 11758
     },
     {
       "source": "src/pages/admin/AdminSeatsLocal.tsx",
@@ -15790,8 +15790,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "hash": "8511bc4559db",
-      "bytes": 25328
+      "hash": "c8d49c4f8852",
+      "bytes": 25332
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -15820,8 +15820,8 @@
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "883d77d7b764",
-      "bytes": 22924
+      "hash": "08dfcb90860f",
+      "bytes": 23020
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
@@ -15830,18 +15830,18 @@
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
-      "hash": "d3f1d4d1e298",
-      "bytes": 25705
+      "hash": "29c05f34d7fb",
+      "bytes": 25709
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "60a5f41934b7",
-      "bytes": 37150
+      "hash": "97ba6f9f2d09",
+      "bytes": 37162
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "48525d7a37d1",
-      "bytes": 26608
+      "hash": "f2f51817f7a6",
+      "bytes": 26616
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -15850,8 +15850,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "64459f24dc61",
-      "bytes": 7324
+      "hash": "b79335afa04f",
+      "bytes": 7352
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -15890,13 +15890,13 @@
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
-      "hash": "fd2aad657f06",
-      "bytes": 54734
+      "hash": "3c40408681f6",
+      "bytes": 54822
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "d743c17f4412",
-      "bytes": 78086
+      "hash": "56429f82319e",
+      "bytes": 78146
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -15910,13 +15910,13 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestratorLog.tsx",
-      "hash": "af0abb526002",
-      "bytes": 12944
+      "hash": "b4191d7021ae",
+      "bytes": 12951
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "c6a81f3b0ea0",
+      "bytes": 94921
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
@@ -15950,13 +15950,13 @@
     },
     {
       "source": "src/pages/admin/testpass/NewRunWizard.tsx",
-      "hash": "ff6ef9aa1bfd",
-      "bytes": 10397
+      "hash": "2d3e8bee35b1",
+      "bytes": 10401
     },
     {
       "source": "src/pages/admin/AdminTestPass.tsx",
-      "hash": "22a59a8de00f",
-      "bytes": 27268
+      "hash": "5e0f8daf719a",
+      "bytes": 27280
     },
     {
       "source": "src/pages/admin/testpass/ReportDetail.tsx",
@@ -15965,13 +15965,13 @@
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "4412674f8382",
-      "bytes": 22000
+      "hash": "6623a70ea522",
+      "bytes": 22012
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
-      "hash": "ee00d5d30b04",
-      "bytes": 21877
+      "hash": "e1438b312d66",
+      "bytes": 21893
     },
     {
       "source": "src/pages/admin/AdminTruthRate.tsx",
@@ -15990,8 +15990,8 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "a0e051f56e86",
-      "bytes": 63243
+      "hash": "736ef79c6bf3",
+      "bytes": 63271
     },
     {
       "source": "src/pages/AppDetail.tsx",
