@@ -4,9 +4,9 @@ Status: greenlit lane (operator, 2026-06-11). UX-first PRD; crypto changes remai
 Owner lane: Connections (admin) + this PRD. Companion: `docs/connectors/connections-hardening-plan.md`.
 Name: **Circle** (operator-confirmed 2026-06-11; seed name was "Friends").
 
-## The rename rule (no second Fishbowl)
+## The rename rule (lesson of the Boardroom rename)
 
-Operator requirement: the name must be easy to change later. Therefore the brand name never touches contracts. Internal identifiers are neutral and descriptive everywhere a rename would hurt:
+Operator requirement: the name must be easy to change later, with no repeat of the staged rename program the Boardroom transition required. Therefore the brand name never touches contracts. Internal identifiers are neutral and descriptive everywhere a rename would hurt:
 
 | Layer | Identifier style | Example |
 |---|---|---|

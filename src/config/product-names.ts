@@ -1,9 +1,9 @@
 /**
  * Single source of truth for user-facing product/feature names.
  *
- * The Fishbowl rule: a brand name must never be baked into contracts
- * (database tables, API routes, tool/action names, env vars, storage
- * keys, generated artifacts). Those stay neutral and descriptive
+ * Lesson of the Boardroom rename: a brand name must never be baked into
+ * contracts (database tables, API routes, tool/action names, env vars,
+ * storage keys, generated artifacts). Those stay neutral and descriptive
  * (account_links, link_permissions, ...). UI copy imports the label
  * from here, so renaming a feature is a one-line change in this file
  * plus a copy review, never a migration.
