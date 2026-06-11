@@ -119,6 +119,39 @@ describe("AdminXPassHub", () => {
     expect(rows[1]).toHaveTextContent("2 FAIL");
   });
 
+  it("shows real recorded UXPass runs with scores when the runs API responds", async () => {
+    sessionState.session = { access_token: "test-token" };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        runs: [
+          {
+            id: "ux-1",
+            target_url: "https://unclick.world/why",
+            status: "complete",
+            ux_score: 100,
+            started_at: "2026-06-11T01:57:00Z",
+            breakdown: { pass: 16, fail: 0 },
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderHub("/admin/checks/uxpass");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("recorded-runs-panel")).toBeInTheDocument();
+    });
+    const rows = screen.getAllByTestId("recorded-run-row");
+    expect(rows[0]).toHaveTextContent("https://unclick.world/why");
+    expect(rows[0]).toHaveTextContent("100/100");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/uxpass?action=list_runs&limit=6",
+      expect.objectContaining({ headers: { Authorization: "Bearer test-token" } }),
+    );
+  });
+
   it("does not show a recorded-runs panel for Passes without run history", async () => {
     sessionState.session = { access_token: "test-token" };
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ runs: [] }) });

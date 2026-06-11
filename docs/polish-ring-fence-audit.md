@@ -122,6 +122,14 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (rounds 5-6):** dedupe and UXPass run history.
+  - One shared `src/lib/relativeTime.ts` (tested) replaces five drifting
+    per-page copies in AdminJobs, AdminAgents, Boardroom, SignalsCatalog,
+    and Boardroom Comments.
+  - `api/uxpass.ts` gains `GET ?action=list_runs` (caller-scoped, clamped
+    limit, fails closed with 502 instead of inventing an empty history).
+  - The XPass hub recorded-runs panel is now config-driven and covers both
+    TestPass and UXPass; UXPass rows show target URL and real score.
 - **2026-06-11 (round 4):** Jobs room truth bugs, Boardroom audit, PinballWake naming.
   - Jobs room (deep review): fixed two truth bugs. (1) A done job the backend
     had already cleared (`proof_state` live or close_eligible) showed an amber

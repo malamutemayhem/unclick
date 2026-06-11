@@ -373,7 +373,16 @@ function LatestEvidencePanel({ product, evidence }: { product: XPassProduct; evi
   );
 }
 
-type RecordedRun = {
+type RecordedRunRow = {
+  key: string;
+  date: string;
+  label: string;
+  badgeText: string;
+  badgeClass: string;
+  href?: string;
+};
+
+type TestPassRunDto = {
   id: string;
   pack_name: string | null;
   started_at: string;
@@ -381,27 +390,85 @@ type RecordedRun = {
   verdict_summary?: { check?: number; fail?: number; na?: number; pending?: number } | null;
 };
 
+type UxPassRunDto = {
+  id: string;
+  target_url: string;
+  status: string;
+  ux_score: number | null;
+  started_at: string;
+  breakdown?: { fail?: number } | null;
+};
+
+const BADGE_GREEN = "bg-[#46c76f] text-black";
+const BADGE_RED = "bg-red-500 text-white";
+const BADGE_QUIET = "bg-white/12 text-white/70";
+
+const RUN_HISTORY: Partial<
+  Record<XPassProductId, { endpoint: string; startNote: string; logHref?: string; mapRows: (body: unknown) => RecordedRunRow[] }>
+> = {
+  testpass: {
+    endpoint: "/api/memory-admin?action=list_testpass_runs&limit=6",
+    startNote: "Start one from the TestPass tool and it appears here.",
+    logHref: "/admin/testpass",
+    mapRows: (body) => {
+      const runs = (body as { runs?: TestPassRunDto[] }).runs;
+      if (!Array.isArray(runs)) return [];
+      return runs.map((run) => {
+        const fails = run.verdict_summary?.fail ?? 0;
+        const checks = run.verdict_summary?.check ?? 0;
+        return {
+          key: run.id,
+          date: formatEvidenceDate(run.started_at),
+          label: run.pack_name ?? "TestPass run",
+          badgeText: fails > 0 ? `${fails} FAIL` : run.status === "complete" ? `${checks} PASS` : run.status,
+          badgeClass: fails > 0 ? BADGE_RED : run.status === "complete" ? BADGE_GREEN : BADGE_QUIET,
+          href: `/admin/testpass/runs/${run.id}`,
+        };
+      });
+    },
+  },
+  uxpass: {
+    endpoint: "/api/uxpass?action=list_runs&limit=6",
+    startNote: "Run uxpass_run against a page and it appears here.",
+    mapRows: (body) => {
+      const runs = (body as { runs?: UxPassRunDto[] }).runs;
+      if (!Array.isArray(runs)) return [];
+      return runs.map((run) => {
+        const fails = run.breakdown?.fail ?? 0;
+        const complete = run.status === "complete";
+        return {
+          key: run.id,
+          date: formatEvidenceDate(run.started_at),
+          label: run.target_url,
+          badgeText: fails > 0 ? `${fails} FAIL` : complete && run.ux_score != null ? `${Math.round(run.ux_score)}/100` : run.status,
+          badgeClass: fails > 0 ? BADGE_RED : complete ? BADGE_GREEN : BADGE_QUIET,
+        };
+      });
+    },
+  },
+};
+
 /**
- * Real recorded TestPass runs from the runs table. Only rendered for Passes
- * that actually keep run history today (TestPass). Renders nothing while
- * logged out or on fetch failure; shows an honest empty state when the
- * account simply has no recorded runs yet.
+ * Real recorded runs for Passes that keep run history today (TestPass and
+ * UXPass). Renders nothing while logged out or on fetch failure; shows an
+ * honest empty state when the account simply has no recorded runs yet.
  */
-function RecordedRunsPanel() {
+function RecordedRunsPanel({ productId }: { productId: XPassProductId }) {
+  const source = RUN_HISTORY[productId];
   const { session } = useSession();
   const token = session?.access_token;
   const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : null), [token]);
-  const [runs, setRuns] = useState<RecordedRun[] | null>(null);
+  const [rows, setRows] = useState<RecordedRunRow[] | null>(null);
 
   useEffect(() => {
-    if (!authHeader) return;
+    if (!authHeader || !source) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/memory-admin?action=list_testpass_runs&limit=6", { headers: authHeader });
-        const body = (await res.json().catch(() => ({}))) as { runs?: RecordedRun[] };
+        const res = await fetch(source.endpoint, { headers: authHeader });
+        const body = (await res.json().catch(() => ({}))) as unknown;
         if (!res.ok || cancelled) return;
-        setRuns(Array.isArray(body.runs) ? body.runs : []);
+        setRows(source.mapRows(body));
       } catch {
         // Stay hidden: an unreadable history beats an invented one.
       }
@@ -409,9 +476,9 @@ function RecordedRunsPanel() {
     return () => {
       cancelled = true;
     };
-  }, [authHeader]);
+  }, [authHeader, source]);
 
-  if (!authHeader || runs === null) return null;
+  if (!source || !authHeader || rows === null) return null;
 
   return (
     <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3" data-testid="recorded-runs-panel">
@@ -419,43 +486,50 @@ function RecordedRunsPanel() {
         <h2 className="text-sm font-semibold text-white">Recorded runs</h2>
         <p className="text-[11px] font-medium text-white/40">Newest first</p>
       </div>
-      {runs.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="mt-2 text-[11px] leading-4 text-white/45">
-          No recorded runs for this account yet. Start one from the TestPass tool and it appears here.
+          No recorded runs for this account yet. {source.startNote}
         </p>
       ) : (
         <div className="mt-2 space-y-1">
-          {runs.map((run) => {
-            const fails = run.verdict_summary?.fail ?? 0;
-            const checks = run.verdict_summary?.check ?? 0;
-            return (
-              <Link
-                key={run.id}
-                to={`/admin/testpass/runs/${run.id}`}
-                data-testid="recorded-run-row"
-                className="grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1 text-left transition-colors hover:border-[#61C1C4]/40"
-              >
-                <p className="truncate text-[10px] font-semibold text-white/55">{formatEvidenceDate(run.started_at)}</p>
-                <p className="truncate text-[11px] leading-4 text-white/70">{run.pack_name ?? "TestPass run"}</p>
-                <span
-                  className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                    fails > 0 ? "bg-red-500 text-white" : run.status === "complete" ? "bg-[#46c76f] text-black" : "bg-white/12 text-white/70"
-                  }`}
-                >
-                  {fails > 0 ? `${fails} FAIL` : run.status === "complete" ? `${checks} PASS` : run.status}
+          {rows.map((row) => {
+            const rowClass =
+              "grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1 text-left";
+            const content = (
+              <>
+                <p className="truncate text-[10px] font-semibold text-white/55">{row.date}</p>
+                <p className="truncate text-[11px] leading-4 text-white/70">{row.label}</p>
+                <span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${row.badgeClass}`}>
+                  {row.badgeText}
                 </span>
+              </>
+            );
+            return row.href ? (
+              <Link
+                key={row.key}
+                to={row.href}
+                data-testid="recorded-run-row"
+                className={`${rowClass} transition-colors hover:border-[#61C1C4]/40`}
+              >
+                {content}
               </Link>
+            ) : (
+              <div key={row.key} data-testid="recorded-run-row" className={rowClass}>
+                {content}
+              </div>
             );
           })}
         </div>
       )}
-      <Link
-        to="/admin/testpass"
-        className="mt-3 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
-      >
-        Open the full run log
-        <ExternalLink className="h-3.5 w-3.5" />
-      </Link>
+      {source.logHref ? (
+        <Link
+          to={source.logHref}
+          className="mt-3 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
+        >
+          Open the full run log
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Link>
+      ) : null}
     </section>
   );
 }
@@ -573,7 +647,7 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
       </section>
         <div className="min-w-0 space-y-5">
           <LatestEvidencePanel product={product} evidence={evidence} />
-          {product.id === "testpass" ? <RecordedRunsPanel /> : null}
+          <RecordedRunsPanel productId={product.id} />
         </div>
       </div>
 
