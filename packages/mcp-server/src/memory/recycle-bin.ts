@@ -17,10 +17,13 @@
 
 export const MEMORY_RECYCLE_BIN_FLAG = "MEMORY_RECYCLE_BIN_ENABLED";
 
-/** Reversible feature flag. Default OFF until the coordinator flips it. */
+/**
+ * Default ON since the 2026-06-11 greenlight. Setting the env var to "0" or
+ * "false" is the kill switch that restores the pre-bin forget behavior.
+ */
 export function isRecycleBinEnabled(): boolean {
   const raw = (process.env[MEMORY_RECYCLE_BIN_FLAG] ?? "").trim().toLowerCase();
-  return raw === "1" || raw === "true";
+  return raw !== "0" && raw !== "false";
 }
 
 /** decay_reason marker distinguishing user archives from lane-08 TTL archives. */
