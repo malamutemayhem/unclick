@@ -59,6 +59,34 @@ Crews / Rooms / Boardroom   untouched; reserved vocabulary stands
 
 New requirement captured: **You -> Profile ships display name + human thumbnail** as part of the first Circle PR, because Circle attribution and sharing audit are face-first by design.
 
+## Two-block sidebar (operator-requested split, planned 2026-06-11)
+
+The admin sidebar (one component: `src/pages/admin/AdminShell.tsx`, flat list today) splits into two titled master divisions plus the existing gated internal submenu. Sorting rule: **who owns the thing - the human, or the workforce?**
+
+```
+Dashboard          stays alone at top (overview of both worlds)
+
+HUMAN              your identity, data, accounts, money
+  You              profile, keys, AI style
+  Memory           yours; agents only borrow it
+  Orchestrator     your story / timeline / log
+  Connections      Apps + Passport + Circle (groups the account surfaces)
+  Signals          your attention inbox
+  Settings
+  Billing
+
+AGENTS             the workforce and its factory
+  Seats            API, Routing, Usage, Local, Subscription, Heartbeat
+  Skills
+  Autopilot        DraftRoom, Boardroom, Jobs, Control Tower, Projects, Ledger, Workers
+  XPass            all passes
+  XGate            all gates
+
+INTERNAL           super-admin submenu, unchanged
+```
+
+Block names: "Human" and "Agents" (one word each; operator's seed names were "Human" and "AI Automation/Agentic AI"). Judgment calls recorded: Memory/Orchestrator/Connections sit under Human by the ownership rule even though agents use them (this reinforces "memory that is yours"); Boardroom is the workers' floor so it stays under Agents; Dashboard belongs to neither. Routes do not change; this is presentation-layer only. Estimated as a one-day chip; natural to ship with or right after Circle PR 1 since the Connections grouping overlaps. Verified at planning time: no open PR touches AdminShell.tsx.
+
 ## The one structural decision everything hangs on
 
 **Your account (email) is who you are. UnClick API keys are disposable keycards.**
