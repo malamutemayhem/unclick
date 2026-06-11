@@ -8,7 +8,7 @@ import FAQ from "@/components/FAQ";
 import InstallSection from "@/components/InstallSection";
 import FadeIn from "@/components/FadeIn";
 import { Eyebrow, GradientText } from "@/components/brand";
-import RunRail, { ASK } from "@/components/home-preview/RunRail";
+import RunRail from "@/components/home-preview/RunRail";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import "@/components/home-preview/preview.css";
@@ -31,23 +31,56 @@ import "@/components/home-preview/preview.css";
  * noindex while it is a design sample.
  */
 
+/* Birds-eye, not one worked example: the bubble cycles through varied
+   asks so the system reads as the subject, never a single use case. */
+const ASKS = [
+  "Chase that overdue invoice",
+  "Plan my week",
+  "Fix the broken link on my site",
+  "Find me a cheaper flight",
+];
+
 function TypedAsk() {
   const reduced = useReducedMotion() ?? false;
-  const [chars, setChars] = useState(reduced ? ASK.length : 0);
-  const done = chars >= ASK.length;
+  const [askIdx, setAskIdx] = useState(0);
+  const [chars, setChars] = useState(reduced ? ASKS[0].length : 0);
+  const ask = ASKS[askIdx % ASKS.length];
+  const done = chars >= ask.length;
 
+  // Type an ask, hold it, untype it, move to the next: the system
+  // handles anything, so the bubble never settles on one use case.
   useEffect(() => {
     if (reduced) return;
-    let i = 0;
-    const start = window.setTimeout(() => {
-      const tick = window.setInterval(() => {
-        i += 1;
+    let cancelled = false;
+    const timers: number[] = [];
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => {
+        timers.push(window.setTimeout(resolve, ms));
+      });
+
+    (async () => {
+      setChars(0);
+      await sleep(askIdx === 0 ? 700 : 350);
+      for (let i = 1; i <= ask.length; i++) {
+        if (cancelled) return;
         setChars(i);
-        if (i >= ASK.length) window.clearInterval(tick);
-      }, 45);
-    }, 700);
-    return () => window.clearTimeout(start);
-  }, [reduced]);
+        await sleep(40);
+      }
+      await sleep(2400);
+      for (let i = ask.length - 1; i >= 0; i--) {
+        if (cancelled) return;
+        setChars(i);
+        await sleep(13);
+      }
+      await sleep(220);
+      if (!cancelled) setAskIdx((v) => v + 1);
+    })();
+
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, [askIdx, ask, reduced]);
 
   // A chat bubble, not a terminal: this is something you say to your
   // AI. Right-aligned with a tail, like every messaging app.
@@ -56,10 +89,10 @@ function TypedAsk() {
       <span className="pr-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
         you, to your AI
       </span>
-      <div className="rounded-2xl rounded-br-md border border-primary/35 bg-primary/[0.12] px-5 py-3 text-left shadow-[0_24px_70px_-28px_rgba(0,0,0,0.85),0_0_50px_-22px_rgba(97,193,196,0.4)] backdrop-blur-md">
+      <div className="flex min-h-[3.25rem] items-center rounded-2xl rounded-br-md border border-primary/35 bg-primary/[0.12] px-5 py-3 text-left shadow-[0_24px_70px_-28px_rgba(0,0,0,0.85),0_0_50px_-22px_rgba(97,193,196,0.4)] backdrop-blur-md">
         <span className="text-base text-heading sm:text-lg">
-          {ASK.slice(0, chars)}
-          {!done && <span className="hp-caret" aria-hidden="true" />}
+          {ask.slice(0, chars)}
+          {!reduced && !done && <span className="hp-caret" aria-hidden="true" />}
         </span>
       </div>
     </div>
@@ -103,7 +136,7 @@ const HomePreview = () => {
 
       <main>
         {/* ── Hero: eight words and one ask ──────────────────────── */}
-        <section className="relative flex min-h-[88svh] items-center overflow-hidden px-6 pb-20 pt-28 sm:min-h-[92svh]">
+        <section className="relative flex min-h-[min(88svh,760px)] items-center overflow-hidden px-6 pb-16 pt-28 sm:min-h-[min(92svh,860px)]">
           <div className="hp-floor" aria-hidden="true" />
           <div
             className="pointer-events-none absolute left-1/2 top-0 h-[300px] w-[700px] -translate-x-1/2 rounded-full bg-primary/[0.06] blur-[100px]"

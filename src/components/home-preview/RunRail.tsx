@@ -29,15 +29,11 @@ import AppRail from "@/components/home-preview/AppRail";
  * prefers-reduced-motion everything renders complete and still.
  */
 
-/* The ask is deliberately vague ("that invoice"); station one shows
-   memory resolving it to Acme, which is the point of memory. */
-export const ASK = "Chase that overdue invoice";
-
 /* Rail x-position: left edge on small screens, centered from lg up. */
 const RAIL_X = "left-5 lg:left-1/2 lg:-translate-x-1/2";
 
 function MemoryVignette() {
-  const facts = ["the overdue one is Acme, net-30 terms", "friendly tone, firm on dates"];
+  const facts = ["how you like things done", "what you said last time"];
   return (
     <div className="space-y-2">
       {facts.map((fact, i) => (
@@ -64,7 +60,7 @@ function GateVignette() {
       <div className="flex items-center gap-2.5 font-mono text-[12px]">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-amber-300/90" />
         <span className="text-amber-200/90">permission check</span>
-        <span className="truncate text-amber-100/60">allowed · invoices and email only</span>
+        <span className="truncate text-amber-100/60">only what you've allowed</span>
         <motion.span
           initial={{ scale: 0, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
@@ -80,9 +76,9 @@ function GateVignette() {
 }
 
 const CALLS = [
-  { app: "Xero", action: "found the Acme invoice" },
-  { app: "Gmail", action: "sent a polite reminder" },
-  { app: "Boardroom", action: "kept a note of it" },
+  { app: "Gmail", action: "your email" },
+  { app: "Xero", action: "your books" },
+  { app: "Slack", action: "your messages" },
 ];
 
 function AppsVignette() {
@@ -115,8 +111,8 @@ function AppsVignette() {
 function ReceiptVignette({ reduced }: { reduced: boolean }) {
   return (
     <div className="relative rounded-lg border border-primary/30 bg-primary/[0.06] p-3.5 pr-24">
-      <p className="font-mono text-[12px] leading-5 text-body">reminder sent, follow-up booked</p>
-      <p className="font-mono text-[12px] leading-5 text-body">receipt saved for you</p>
+      <p className="font-mono text-[12px] leading-5 text-body">work checked before it ships</p>
+      <p className="font-mono text-[12px] leading-5 text-body">a receipt for every job</p>
       <motion.div
         initial={reduced ? false : { scale: 1.9, opacity: 0, rotate: 4 }}
         whileInView={{ scale: 1, opacity: 1, rotate: -6 }}
@@ -134,9 +130,9 @@ function ReceiptVignette({ reduced }: { reduced: boolean }) {
 }
 
 const JOBS = [
-  { name: "chase Acme invoice", state: "done" },
-  { name: "send Monday's report", state: "running" },
-  { name: "follow up in 3 days", state: "queued" },
+  { name: "finished while you slept", state: "done" },
+  { name: "running right now", state: "running" },
+  { name: "queued for later", state: "queued" },
 ] as const;
 
 function AutopilotVignette() {
@@ -236,8 +232,8 @@ function Station({
 
       <div
         className={cn(
-          "pl-12 lg:w-[calc(50%-3rem)] lg:pl-0",
-          onRight ? "lg:ml-[calc(50%+3rem)]" : "lg:mr-[calc(50%+3rem)] lg:text-right",
+          "pl-12 lg:w-[calc(50%-4.5rem)] lg:pl-0",
+          onRight ? "lg:ml-[calc(50%+4.5rem)]" : "lg:mr-[calc(50%+4.5rem)] lg:text-right",
         )}
       >
         <motion.div
@@ -393,7 +389,7 @@ export default function RunRail() {
           >
             <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-[#071e29]/95 py-1.5 pl-3 pr-2.5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8),0_0_24px_-6px_hsl(182_46%_57%/0.5)] backdrop-blur-md">
               <ChevronRight className="h-3 w-3 text-primary" />
-              <span className="whitespace-nowrap font-mono text-[11px] text-heading">{ASK}</span>
+              <span className="whitespace-nowrap font-mono text-[11px] text-heading">your ask</span>
               <span className="ml-1 flex items-center gap-1">
                 {STATIONS.map((s, i) => (
                   <span
