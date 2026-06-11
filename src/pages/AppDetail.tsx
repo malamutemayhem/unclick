@@ -1,11 +1,12 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, KeyRound, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowLeft, KeyRound, Sparkles } from "lucide-react";
 import PageShell from "../components/PageShell";
 import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
 import { useMetaTags } from "../hooks/useMetaTags";
 import { presets } from "../lib/design-system";
-import { actionLabel, getApp, levelLabel } from "@/lib/appCatalog";
+import { actionLabel, getApp, levelLabel, NETWORK_META } from "@/lib/appCatalog";
+import { getAppTestResult } from "@/lib/appTestResults";
 import { AppIcon } from "@/components/apps/AppIcon";
 import { APP_DETAIL_EXTRAS } from "@/components/apps/appDetailExtras";
 
@@ -38,6 +39,9 @@ const AppDetail = () => {
 
   const Extra = APP_DETAIL_EXTRAS[app.slug];
   const quality = levelLabel(app.level);
+  // Failing apps are hidden from the store list, but deep links still resolve.
+  // Be upfront here instead of pretending the app works.
+  const testResult = getAppTestResult(app.slug);
 
   return (
     <PageShell eyebrow={app.category} title={app.name} lede={app.blurb} halo={false}>
@@ -54,6 +58,12 @@ const AppDetail = () => {
                 <h2 className="text-xl font-semibold text-white">{app.name}</h2>
                 <p className="text-xs text-white/45">
                   {app.category} · {app.toolCount} actions
+                  <span
+                    title={NETWORK_META[app.network].description}
+                    className="ml-2 inline-flex items-center rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-white/55"
+                  >
+                    {NETWORK_META[app.network].label}
+                  </span>
                   {quality === "Smart" && (
                     <span className="ml-2 inline-flex items-center gap-1 rounded border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#9be4e6]">
                       <Sparkles className="h-3 w-3" /> Smart
@@ -62,6 +72,16 @@ const AppDetail = () => {
                 </p>
               </div>
             </div>
+
+            {testResult.status === "fail" && (
+              <div className="mt-6 flex items-start gap-2 rounded-xl border border-red-400/25 bg-red-400/[0.07] p-4 text-xs leading-5 text-red-100">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+                <span>
+                  {app.name} is currently not working: its last live test failed, so it is hidden from the
+                  Apps store until a retest passes. Your AI will not rely on it in the meantime.
+                </span>
+              </div>
+            )}
 
             {/* How your AI uses it - super simple English */}
             <div className="mt-6 rounded-2xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] p-5">

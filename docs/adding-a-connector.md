@@ -202,6 +202,7 @@ Only after the connector file **and its test** exist, regenerate in this order:
 cd packages/mcp-server && node scripts/generate-tool-index.mjs   # tool surface
 node scripts/connector-depth-ladder.mjs                          # quality grades (depends on the test existing)
 cd ../.. && node scripts/generate-app-catalog.mjs                # Apps catalog (depends on the ladder)
+node scripts/generate-connector-setup.mjs                        # connect-wizard setup data (when CONNECTOR_SETUP changed)
 node scripts/UnClick-brainmap.mjs                                # brainmap (hashes EVERY source file)
 ```
 
@@ -209,6 +210,13 @@ Why the order: the depth ladder marks a connector "hardened/L5" only if its
 colocated test exists; the app catalog reads the ladder's level; the brainmap
 records a content hash of every file (so it goes stale on **any** edit,
 including docs). If you skip a regen, a `--check` guard fails in CI.
+
+The app catalog also derives each app's `network` field (offline / online /
+hybrid) by scanning the connector source for `fetch(`: no fetch and no brand
+domain = offline; no fetch but a real domain (URL-builder apps) = hybrid;
+anything that fetches = online. In `DOMAIN_OF`, the special value `"local"`
+means "no brand site": it is emitted as `domain: null` so the icon falls back
+to the letter chip instead of asking the favicon service for a bogus host.
 
 ---
 
@@ -257,6 +265,6 @@ are doing the full OAuth flow. Confirm the slug is not already in
 - [ ] `connector-setup.ts`: `CONNECTOR_SETUP` row
 - [ ] `generate-app-catalog.mjs`: category bucket (+ name/blurb/domain)
 - [ ] (optional) L3 registry / L4 signal
-- [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> brainmap
+- [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> connector-setup -> brainmap
 - [ ] `tsc` + MCP `test` chain + `brainmap:check` + app-catalog `--check` + frontend catalog tests
 - [ ] Branch, push, draft PR, auto-merge

@@ -11,12 +11,16 @@ export interface AppTool {
   label?: string;
 }
 
+/** Whether an app needs the internet: derived from its connector source at generation time. */
+export type AppNetwork = "offline" | "online" | "hybrid";
+
 export interface AppEntry {
   slug: string;
   name: string;
   category: string;
   blurb: string;
   domain: string | null;
+  network: AppNetwork;
   toolCount: number;
   tools: AppTool[];
   level: number | null;
@@ -46,6 +50,15 @@ export const LEVEL_LABEL: Record<number, string> = {
 export function levelLabel(level: number | null): string {
   return level ? LEVEL_LABEL[level] ?? "" : "";
 }
+
+// Simple-English copy for the offline/online/hybrid filter and badges.
+export const NETWORK_META: Record<AppNetwork, { label: string; description: string }> = {
+  offline: { label: "Works offline", description: "Runs entirely on the server with no internet calls." },
+  online: { label: "Uses internet", description: "Calls an external service, so it needs internet access." },
+  hybrid: { label: "Hybrid", description: "Works without internet, but its output (like an image URL) needs internet to use." },
+};
+
+export const NETWORK_ORDER: AppNetwork[] = ["offline", "online", "hybrid"];
 
 // Tokens that read better fully upper-cased in an auto-generated Action label.
 const ACRONYMS = new Set([

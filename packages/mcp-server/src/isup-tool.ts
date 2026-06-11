@@ -7,7 +7,11 @@ export async function isupCheck(args: Record<string, unknown>) {
   const domain = String(args.domain ?? "").trim();
   if (!domain) return { error: "domain is required" };
   const url = `${BASE}/${encodeURIComponent(domain)}.json`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT) });
+  // isitup.org rejects requests without a custom User-Agent (returns 404).
+  const res = await fetch(url, {
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
+    signal: AbortSignal.timeout(TIMEOUT),
+  });
   if (!res.ok) throw new Error(`isitup.org ${res.status}`);
   const data = await res.json();
   return stampMeta(data, {

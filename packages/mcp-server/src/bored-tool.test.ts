@@ -35,4 +35,20 @@ describe("bored connector resilience (L2)", () => {
     expect(r.activity).toBe("Learn a new recipe");
     expect(r.unclick_meta).toBeDefined();
   });
+
+  it("hits the App Brewery /random and /filter paths (old /api/activity is gone)", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: unknown) => ({
+      ok: true, status: 200,
+      json: async () => [{ activity: "Go hiking", type: "recreational" }],
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await boredByType({ type: "recreational" }) as Record<string, unknown>;
+    expect(fetchMock.mock.calls[0][0]).toBe("https://bored-api.appbrewery.com/filter?type=recreational");
+    // /filter returns an array; the tool wraps it so unclick_meta has a home.
+    expect(r.count).toBe(1);
+    expect(Array.isArray(r.activities)).toBe(true);
+
+    await boredRandom({});
+    expect(fetchMock.mock.calls[1][0]).toBe("https://bored-api.appbrewery.com/random");
+  });
 });

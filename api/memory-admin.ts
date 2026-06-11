@@ -110,6 +110,8 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { encrypt as keychainEncrypt, hashKeyFull as keychainHashKeyFull } from "../packages/mcp-server/src/keychain-crypto.js";
+import { testCredential as keychainTestCredential } from "../packages/mcp-server/src/keychain-tool.js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
@@ -5295,6 +5297,80 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         if (upErr) throw upErr;
         return res.status(200).json({ success: true, disabled_apps: disabled });
+      }
+
+      // Connect an app from the admin Apps page: live-test the credential against
+      // the platform's test endpoint FIRST, store it (keychain-compatible
+      // encryption into platform_credentials) only when the test passes. A
+      // platform without a usable test endpoint is stored but reported as
+      // unproven (ok: null) so the UI never shows a green tick without proof.
+      case "admin_connect_app": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const platform = typeof body.platform === "string" ? body.platform.trim().toLowerCase() : "";
+        const credential = typeof body.credential === "string" ? body.credential.trim() : "";
+        const apiKey = typeof body.api_key === "string" ? body.api_key.trim() : "";
+        const label = typeof body.label === "string" && body.label.trim() ? body.label.trim() : "default";
+        if (!platform) return res.status(400).json({ error: "platform is required" });
+        if (!credential) return res.status(400).json({ error: "credential is required" });
+        if (!apiKey) return res.status(400).json({ error: "api_key is required for encryption" });
+        if (keychainHashKeyFull(apiKey) !== tenant.apiKeyHash) {
+          return res.status(403).json({ error: "api_key does not match your account." });
+        }
+
+        const { data: connRows } = await supabase
+          .from("platform_connectors")
+          .select("id, name, test_endpoint")
+          .eq("id", platform)
+          .limit(1);
+        const connectorRow = (connRows ?? [])[0] as { id: string; name: string; test_endpoint: string | null } | undefined;
+        if (!connectorRow) return res.status(404).json({ error: `Unknown platform "${platform}".` });
+
+        const test = await keychainTestCredential(platform, credential, connectorRow.test_endpoint ?? null);
+
+        if (!test.passed) {
+          // Live test failed: store nothing, surface the provider's verdict.
+          return res.status(200).json({
+            ok: false,
+            platform,
+            tested: !test.skipped,
+            status_code: test.status_code ?? null,
+            message: test.message,
+          });
+        }
+
+        const enc = keychainEncrypt(credential, apiKey);
+        const now = new Date().toISOString();
+        const { error: connErr } = await supabase
+          .from("platform_credentials")
+          .upsert(
+            {
+              key_hash: tenant.apiKeyHash,
+              platform,
+              label,
+              encrypted_value: enc.encrypted_value,
+              iv: enc.iv,
+              auth_tag: enc.auth_tag,
+              is_valid: true,
+              // Only a real probe earns a test stamp. A skipped test stays null
+              // so the UI shows "Key saved", not a false "Connected".
+              last_tested_at: test.skipped ? null : now,
+              created_at: now,
+            },
+            { onConflict: "key_hash,platform,label" },
+          );
+        if (connErr) throw connErr;
+
+        return res.status(200).json({
+          ok: test.skipped ? null : true,
+          platform,
+          tested: !test.skipped,
+          tested_at: test.skipped ? null : now,
+          message: test.message,
+        });
       }
 
       case "admin_update_fact": {

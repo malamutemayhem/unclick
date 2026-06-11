@@ -1,10 +1,11 @@
 // Bored API - activity suggestions.
 // No API key required - completely free and open.
-// Base URL: https://bored-api.appbrewery.com/api/
+// Base URL: https://bored-api.appbrewery.com/ (the App Brewery mirror serves
+// /random and /filter; the old boredapi.com /api/activity paths are gone)
 
 import { stampMeta } from "./connector-meta.js";
 
-const BASE = "https://bored-api.appbrewery.com/api";
+const BASE = "https://bored-api.appbrewery.com";
 const TIMEOUT_MS = Number(process.env.BORED_TIMEOUT_MS) || 10000;
 
 async function boredFetch<T>(path: string): Promise<T> {
@@ -37,9 +38,15 @@ async function boredFetch<T>(path: string): Promise<T> {
 
 const META = { source: "bored-api.appbrewery.com" };
 
+// /filter returns an array of matching activities; /random returns one object.
+function wrapActivities(data: unknown): unknown {
+  if (Array.isArray(data)) return { count: data.length, activities: data };
+  return data;
+}
+
 export async function boredRandom(_args: Record<string, unknown>): Promise<unknown> {
   try {
-    const data = await boredFetch("/activity");
+    const data = await boredFetch("/random");
     return stampMeta(data, { ...META, fetched_at: new Date().toISOString(), next_steps: ["Use bored_by_type to filter activities by type.", "Use bored_by_participants to filter by participant count."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
@@ -50,8 +57,8 @@ export async function boredByType(args: Record<string, unknown>): Promise<unknow
   const type = String(args.type ?? "").toLowerCase();
   if (!type) return { error: "type is required (education, recreational, social, diy, charity, cooking, relaxation, music, busywork)." };
   try {
-    const data = await boredFetch(`/activity?type=${encodeURIComponent(type)}`);
-    return stampMeta(data, { ...META, fetched_at: new Date().toISOString(), next_steps: ["Use bored_random for any activity."] });
+    const data = await boredFetch(`/filter?type=${encodeURIComponent(type)}`);
+    return stampMeta(wrapActivities(data), { ...META, fetched_at: new Date().toISOString(), next_steps: ["Use bored_random for any activity."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -61,8 +68,8 @@ export async function boredByParticipants(args: Record<string, unknown>): Promis
   const participants = Number(args.participants ?? 0);
   if (!participants || participants < 1) return { error: "participants is required (positive integer)." };
   try {
-    const data = await boredFetch(`/activity?participants=${participants}`);
-    return stampMeta(data, { ...META, fetched_at: new Date().toISOString(), next_steps: ["Use bored_by_type to filter by activity type."] });
+    const data = await boredFetch(`/filter?participants=${participants}`);
+    return stampMeta(wrapActivities(data), { ...META, fetched_at: new Date().toISOString(), next_steps: ["Use bored_by_type to filter by activity type."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
