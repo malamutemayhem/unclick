@@ -122,6 +122,14 @@ Hidden-by-design (do not resurrect without an operator yes): Arena routes,
 
 ## Session findings log
 
+- **2026-06-11 (round 14, audit close):** SmartHome and DeveloperDocs
+  audited clean (honest "sample of" labelling; developer-appropriate
+  language on the docs page). With this, every public page and every
+  unowned admin surface has at least a structure-level audit recorded in
+  this file, and all safe fixes from those audits are applied. Remaining
+  work requires the operator (stats, XGate train, #1177, #1445), a
+  browser (UIPass screenshots), another lane (#1432 memory backend), or
+  review of PR #1447 itself.
 - **2026-06-11 (round 13):** Connect page copy audit.
   - Connect (the OAuth surface) audited copy-only; logic untouched. Three
     jargon strings humanized: "Exchanging tokens..." reads "Finishing the
