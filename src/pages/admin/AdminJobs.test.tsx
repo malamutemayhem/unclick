@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminJobs, {
   JOBS_REFRESH_INTERVAL_MS,
   displayCopyFor,
+  dueBadge,
   matchesJobSearch,
   simplifyJobTitle,
   statusLabel,
@@ -375,5 +376,28 @@ describe("AdminJobs copy and search helpers (characterization)", () => {
     expect(statusLabel("needs_proof")).toBe("needs proof");
     expect(statusLabel("in_progress")).toBe("active");
     expect(statusLabel("open")).toBe("open");
+  });
+
+  it("dueBadge speaks plain English: overdue, due today, due tomorrow", () => {
+    const now = new Date(2026, 5, 12, 9, 0, 0);
+    const withDue = (dueAt: string) => ({ ...baseTodo, due_at: dueAt }) as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(withDue(new Date(2026, 5, 11, 23, 59).toISOString()), now)?.label).toBe("overdue");
+    expect(dueBadge(withDue(new Date(2026, 5, 12, 23, 59).toISOString()), now)?.label).toBe("due today");
+    expect(dueBadge(withDue(new Date(2026, 5, 13, 23, 59).toISOString()), now)?.label).toBe("due tomorrow");
+    expect(dueBadge(withDue(new Date(2026, 5, 20, 23, 59).toISOString()), now)?.label).toMatch(/^due /);
+  });
+
+  it("dueBadge stays quiet when there is nothing to chase", () => {
+    expect(dueBadge(baseTodo)).toBeNull();
+    const doneTodo = {
+      ...baseTodo,
+      status: "done",
+      effective_status: "done",
+      completed_at: "2026-06-10T02:00:00Z",
+      due_at: "2026-06-01T00:00:00Z",
+    } as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(doneTodo)).toBeNull();
+    const badDate = { ...baseTodo, due_at: "not-a-date" } as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(badDate)).toBeNull();
   });
 });

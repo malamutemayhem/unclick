@@ -864,6 +864,11 @@ export const VISIBLE_TOOLS = [
         description: { type: "string", description: "Optional longer description (max 4000 chars)" },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
         assigned_to_agent_id: { type: "string", description: "Optional agent_id of the agent who should own this todo" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day.",
+        },
       },
       required: ["agent_id", "title"],
     },
@@ -938,7 +943,7 @@ export const VISIBLE_TOOLS = [
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
-      "Update a todo's title, description, priority, status, or assignee. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
+      "Update a todo's title, description, priority, status, assignee, or due date. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -950,6 +955,11 @@ export const VISIBLE_TOOLS = [
         status: { type: "string", enum: ["open", "in_progress", "done", "dropped"] },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
         assigned_to_agent_id: { type: "string", description: "Pass empty string to unassign" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day. Pass empty string to clear.",
+        },
       },
       required: ["agent_id", "todo_id"],
     },
