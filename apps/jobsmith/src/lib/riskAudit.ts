@@ -36,6 +36,15 @@ const GPT_TELL_STEMS: string[] = [
   "nuanc",
   "multifacet",
   "synerg",
+  "spearhead",
+  "cultivat",
+  "empower",
+  "streamlin",
+  "elevat",
+  "transformativ",
+  "groundbreak",
+  "paradigm",
+  "vibrant",
 ];
 
 export function scanTone(text: string): ToneFinding[] {
