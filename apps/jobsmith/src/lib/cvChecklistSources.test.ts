@@ -16,13 +16,14 @@ import {
 const jobsmithRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 describe("JobSmith CV checklist CopyRoom manifest", () => {
-  test("declares the five exact source files supplied", () => {
+  test("declares the five source rounds plus the consolidated list", () => {
     expect(getExpectedCvChecklistFileNames()).toEqual([
       "cv-checklists_1.md",
       "cv-checklists_1a.md",
       "cv-checklists_1b.md",
       "cv-checklists_2.md",
       "cv-checklists_3.md",
+      "cv-checklist-consolidated-v1.md",
     ]);
   });
 
@@ -75,6 +76,7 @@ describe("JobSmith CV checklist CopyRoom manifest", () => {
 
   test("looks up a copied source by file name", () => {
     expect(getCvChecklistSource("cv-checklists_1b.md")?.round).toBe("round-1b");
+    expect(getCvChecklistSource("cv-checklist-consolidated-v1.md")?.round).toBe("consolidated");
     expect(getCvChecklistSource("missing.md")).toBeUndefined();
   });
 });

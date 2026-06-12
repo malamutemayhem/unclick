@@ -27,6 +27,14 @@ describe("scanTone", () => {
     expect(tells.length).toBeGreaterThanOrEqual(4);
   });
 
+  test("flags newer tell words from the consolidated checklist", () => {
+    const findings = scanTone(
+      "Spearheaded a transformative paradigm to empower and elevate streamlined workflows.",
+    );
+    const tells = findings.filter((f) => f.kind === "gpt-tell");
+    expect(tells.length).toBeGreaterThanOrEqual(5);
+  });
+
   test("returns nothing for clean copy", () => {
     expect(scanTone("I led the design team and shipped the product.")).toEqual(
       [],

@@ -9,12 +9,27 @@ This folder is the rule-pack lane for Jobsmith.
 
 ## Engine status
 
-These files are the canonical 232-rule pack source for the next deterministic
-check-engine slice. They are not proof that the engine is fully wired yet.
+These files are the canonical 232-rule pack source. The check engine
+(`apps/jobsmith/src/lib/checkEngine.ts`) loads the full pack and automates
+rules along two paths:
+
+- Spec-derived checkers: `regex` and `keyword_list` specs that compile
+  directly (about 25 rules).
+- Curated checkers: `CUSTOM_RULE_MATCHERS`, a hand-written registry for rules
+  whose spec is prose but whose intent is deterministic (16 rules, including
+  the blocking markdown-residue, placeholder-text, results-driven, and
+  current-salary checks, plus the count-based long-sentence and repeated
+  bullet-opener checks).
+
+Everything else (human_review, format_check needing DOCX/PDF structure,
+semantic_check needing JD comparison) stays in the review-needed bucket and
+surfaces through decision cards. The MCP connector
+(`packages/mcp-server/src/jobsmith-tool.ts`) ports both paths and must stay in
+lockstep when either registry changes.
 
 The earlier Cursor seed work used a smaller Band-ID rule pack to prove the
-engine pattern. The follow-up builder must map the engine to the `JS-CAT-NN`
-ids in this folder before Jobsmith can claim the full rule pack is active.
+engine pattern; the engine now runs against the `JS-CAT-NN` ids in this
+folder.
 
 ## Source trace
 

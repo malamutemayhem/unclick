@@ -86,7 +86,7 @@ export interface RuleFinding {
   match: string;
   start: number;
   end: number;
-  checkType: Extract<RuleCheckMethodType, "regex" | "keyword_list">;
+  checkType: Extract<RuleCheckMethodType, "regex" | "keyword_list" | "count_threshold">;
   needsRefresh: boolean;
 }
 
@@ -232,7 +232,59 @@ export function ruleNeedsRefresh(rule: JobsmithRule, now: Date = new Date()): bo
 
 type TextChecker = (text: string) => RuleFinding[];
 
+type FindingCheckType = RuleFinding["checkType"];
+
+interface CustomMatch {
+  match: string;
+  start: number;
+  end: number;
+}
+
+type CustomMatcher = (text: string) => CustomMatch[];
+
+// Hand-curated checkers for rules whose YAML spec is prose (so the generic
+// spec-to-regex path cannot compile it) but whose intent is deterministic.
+// Each entry is faithful to the rule's spec; anything needing document
+// structure, metadata, or judgement stays in the review-needed bucket.
+const CUSTOM_RULE_MATCHERS: Record<string, CustomMatcher> = {
+  // Season-year date tokens (Summer 2023) are the deterministic half of the
+  // date-format rule; bare-year auditing needs role structure and stays manual.
+  "JS-ATS-04": regexMatcher(/\b(?:spring|summer|autumn|fall|winter)\s+\d{4}\b/gi),
+  "JS-ATS-11": regexMatcher(/[▪▸◆◇★►‣⁃]/g),
+  "JS-AIDETECT-08": regexMatcher(
+    /\*\*[^*\n]+\*\*|^#{1,6}\s|`[^`\n]+`|\[[^\]\n]+\]\([^)\n]+\)|^---$|^>/gim,
+  ),
+  "JS-AIDETECT-10": regexMatcher(/\?/g),
+  "JS-AIDETECT-12": regexMatcher(
+    /\bit[’']?s (?:worth|important) (?:noting|to note|mentioning)\b|\bmay potentially\b|\bcould potentially\b|\bmight be able to\b/gi,
+  ),
+  "JS-AIDETECT-14": regexMatcher(/\bresults-(?:driven|oriented)\b/gi),
+  "JS-AIDETECT-24": consecutiveSentenceStartMatcher(/^I\b/, 3),
+  "JS-COVER-01": regexMatcher(
+    /\bto whom it may concern\b|\bdear sir\s*\/\s*madam\b|\bdear sir or madam\b/gi,
+  ),
+  "JS-PRIVACY-08": regexMatcher(/\bcurrent salary\b|\bsalary:\s*\$/gi),
+  "JS-TRUTH-11": regexMatcher(/\btop\s+\d+(?:\.\d+)?\s*%/gi),
+  "JS-TRUTH-18": regexMatcher(
+    /\b100\s*(?:%|percent)\s+(?:improvement|increase|growth|reduction|gain)\b/gi,
+  ),
+  "JS-VISUAL-19": regexMatcher(/\[company\]|\[role\]|\[hiring manager\]|lorem ipsum/gi),
+  "JS-VOICE-10": regexMatcher(
+    /^[ \t]*(?:career[ \t]+)?objective[ \t]*$|\bseeking a challenging opportunity\b/gim,
+  ),
+  "JS-VOICE-11": regexMatcher(/\breferences available (?:up)?on request\b/gi),
+  "JS-VOICE-19": repeatedBulletOpenerMatcher(3),
+  "JS-VOICE-21": longSentenceMatcher(35),
+};
+
 function buildTextChecker(rule: JobsmithRule, now: Date): TextChecker | null {
+  const custom = CUSTOM_RULE_MATCHERS[rule.rule_id];
+  if (custom) {
+    const checkType: FindingCheckType =
+      rule.check_method.type === "count_threshold" ? "count_threshold" : "regex";
+    return (text: string): RuleFinding[] =>
+      custom(text).map((m) => findingFromMatch(rule, m.match, m.start, m.end, checkType, now));
+  }
   if (rule.check_method.type === "regex") {
     const pattern = patternFromRegexSpec(rule.check_method.spec);
     return pattern ? regexChecker(rule, pattern, now) : null;
@@ -243,6 +295,102 @@ function buildTextChecker(rule: JobsmithRule, now: Date): TextChecker | null {
     return keywords.length > 0 ? keywordChecker(rule, keywords, now) : null;
   }
   return null;
+}
+
+function regexMatcher(pattern: RegExp): CustomMatcher {
+  return (text: string): CustomMatch[] => {
+    const matches: CustomMatch[] = [];
+    const re = new RegExp(pattern.source, pattern.flags);
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(text)) !== null) {
+      matches.push({ match: match[0], start: match.index, end: match.index + match[0].length });
+      if (match[0].length === 0) re.lastIndex += 1;
+    }
+    return matches;
+  };
+}
+
+interface TextSegment {
+  text: string;
+  start: number;
+  end: number;
+}
+
+function sentenceSegments(text: string): TextSegment[] {
+  const segments: TextSegment[] = [];
+  const re = /[^.!?\n]+[.!?]?/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(text)) !== null) {
+    const trimmed = match[0].trim();
+    if (trimmed.length === 0) continue;
+    const offset = match[0].indexOf(trimmed);
+    segments.push({
+      text: trimmed,
+      start: match.index + offset,
+      end: match.index + offset + trimmed.length,
+    });
+  }
+  return segments;
+}
+
+// One finding per sentence longer than maxWords (JS-VOICE-21).
+function longSentenceMatcher(maxWords: number): CustomMatcher {
+  return (text: string): CustomMatch[] =>
+    sentenceSegments(text)
+      .filter((s) => s.text.split(/\s+/).filter(Boolean).length > maxWords)
+      .map((s) => ({ match: s.text, start: s.start, end: s.end }));
+}
+
+// One finding per run of minRun+ consecutive sentences opening the same way
+// (JS-AIDETECT-24: three "I ..." sentences in a row).
+function consecutiveSentenceStartMatcher(opener: RegExp, minRun: number): CustomMatcher {
+  return (text: string): CustomMatch[] => {
+    const matches: CustomMatch[] = [];
+    let run = 0;
+    for (const sentence of sentenceSegments(text)) {
+      run = opener.test(sentence.text) ? run + 1 : 0;
+      if (run === minRun) {
+        matches.push({ match: sentence.text, start: sentence.start, end: sentence.end });
+      }
+    }
+    return matches;
+  };
+}
+
+// One finding per run of minRun+ consecutive bullets opening with the same
+// word (JS-VOICE-19).
+function repeatedBulletOpenerMatcher(minRun: number): CustomMatcher {
+  return (text: string): CustomMatch[] => {
+    const matches: CustomMatch[] = [];
+    let previousOpener = "";
+    let run = 0;
+    const lineRe = /^.*$/gm;
+    let lineMatch: RegExpExecArray | null;
+    while ((lineMatch = lineRe.exec(text)) !== null) {
+      const line = lineMatch[0];
+      const bullet = line.match(/^[ \t]*(?:[-*•])[ \t]+([A-Za-z][A-Za-z'-]*)/);
+      if (!bullet) {
+        if (line.trim().length > 0) {
+          previousOpener = "";
+          run = 0;
+        }
+        continue;
+      }
+      const opener = bullet[1].toLowerCase();
+      run = opener === previousOpener ? run + 1 : 1;
+      previousOpener = opener;
+      if (run === minRun) {
+        const openerStart = lineMatch.index + line.indexOf(bullet[1]);
+        matches.push({
+          match: bullet[1],
+          start: openerStart,
+          end: openerStart + bullet[1].length,
+        });
+      }
+      if (lineRe.lastIndex === lineMatch.index) lineRe.lastIndex += 1;
+    }
+    return matches;
+  };
 }
 
 function regexChecker(rule: JobsmithRule, pattern: RegExp, now: Date): TextChecker {
@@ -279,7 +427,7 @@ function findingFromMatch(
   match: string,
   start: number,
   end: number,
-  checkType: Extract<RuleCheckMethodType, "regex" | "keyword_list">,
+  checkType: FindingCheckType,
   now: Date,
 ): RuleFinding {
   return {
