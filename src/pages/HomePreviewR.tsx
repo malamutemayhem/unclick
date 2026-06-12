@@ -53,8 +53,8 @@ type FaceProps = {
   variant: "sam" | "priya" | "you" | "leo" | "mia";
 };
 
-/* Our own faces with a bit more character: still pure clean
-   geometry (arcs, dots, single-stroke hair hints), no realism. */
+/* Head-shaped line portraits in the reference's vibe: tapered jaw,
+   hair with a part, sparse features, soft glow. Our own designs. */
 function Face({ variant }: FaceProps) {
   const stroke = "#9fe3e6";
   return (
@@ -63,69 +63,77 @@ function Face({ variant }: FaceProps) {
       className="h-full w-full [filter:drop-shadow(0_0_5px_rgba(134,218,221,0.7))]"
       fill="none"
       stroke={stroke}
-      strokeWidth="2.5"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="32" cy="33" r="17" strokeWidth={variant === "you" ? 3 : 2.5} />
+      {/* Head: egg with a tapered jaw, never a circle */}
+      <path d="M20.5 27.5 Q20.5 14.5 32 14.5 Q43.5 14.5 43.5 27.5 L43.5 32.5 Q43.5 41 38.5 45 Q35.5 47.3 32 47.3 Q28.5 47.3 25.5 45 Q20.5 41 20.5 32.5 Z" />
 
-      {/* Hair hints: one clean stroke each */}
-      {variant === "sam" && <path d="M19 26 Q24 18 33 18.5 Q41 19 45 25" />}
+      {/* Hair, one design each */}
+      {variant === "sam" && (
+        <>
+          <path d="M20.5 27 Q20 16 30 15 L26.5 21.5 Q33 18.5 43 22 Q44 24 43.5 27" />
+        </>
+      )}
       {variant === "priya" && (
         <>
-          <path d="M17.5 38 Q14.5 20 28 17" />
-          <path d="M46.5 38 Q49.5 20 36 17" />
+          <path d="M20.5 30 Q18.5 15 32 14.5 Q45.5 15 43.5 30" />
+          <path d="M20.5 24 Q17 30 18 40 M43.5 24 Q47 30 46 40" />
+          <path d="M24 20.5 Q32 17.5 41 21" />
         </>
       )}
-      {variant === "you" && <path d="M21 23 L24.5 18.5 M28 21 L31 16.5 M35.5 20.5 L39 16.5 M42 23 L45 19.5" strokeWidth="2.3" />}
-      {variant === "leo" && <path d="M19.5 24 L44.5 24 M22 24 Q22 19 27 18.5 L38 18.5 Q42.5 19 42.5 24" strokeWidth="2.3" />}
-      {variant === "mia" && <path d="M45.5 30 Q46 17.5 32 17.5 Q21 17.5 19 27" />}
+      {variant === "you" && (
+        <>
+          <path d="M20.5 26 Q21 17 27 15.5 L29 19 L33 14.5 L36 18.5 L40.5 16 Q43.5 19 43.5 26" />
+        </>
+      )}
+      {variant === "leo" && (
+        <>
+          <path d="M20.5 25 L20.5 18.5 Q27 14 37 14.5 L43.5 18 L43.5 25 Q38 20.5 30 20.5 Q24 20.5 20.5 25" />
+        </>
+      )}
+      {variant === "mia" && (
+        <>
+          <path d="M20.5 29 Q19 15 32 14.5 Q45 15 43.5 29" />
+          <path d="M32 15 L32 19.5 M32 19 Q26 19.5 22.5 24 M32 19 Q38 19.5 41.5 24" />
+        </>
+      )}
 
       {/* Brows */}
-      {variant !== "priya" && (
-        <>
-          <path d="M22.5 27.5 Q25.5 26 28.5 27.5" strokeWidth="2" />
-          <path d="M35.5 27.5 Q38.5 26 41.5 27.5" strokeWidth="2" />
-        </>
-      )}
+      <path d="M23.5 28.5 Q26 27.2 28.5 28.5" strokeWidth="1.9" />
+      <path d="M35.5 28.5 Q38 27.2 40.5 28.5" strokeWidth="1.9" />
 
       {/* Eyes */}
       {variant === "priya" ? (
         <>
-          <path d="M22.5 32 Q25.5 29 28.5 32" strokeWidth="2.3" />
-          <path d="M35.5 32 Q38.5 29 41.5 32" strokeWidth="2.3" />
-        </>
-      ) : variant === "leo" ? (
-        <>
-          <circle cx="25.5" cy="32" r="4.2" strokeWidth="2" />
-          <circle cx="38.5" cy="32" r="4.2" strokeWidth="2" />
-          <path d="M29.7 32 L34.3 32" strokeWidth="2" />
-          <circle cx="25.5" cy="32" r="1.2" fill={stroke} stroke="none" />
-          <circle cx="38.5" cy="32" r="1.2" fill={stroke} stroke="none" />
+          <path d="M23.8 33 Q26 30.8 28.2 33" strokeWidth="2.1" />
+          <path d="M35.8 33 Q38 30.8 40.2 33" strokeWidth="2.1" />
         </>
       ) : (
         <>
-          <circle cx="25.5" cy="31.5" r="1.6" fill={stroke} stroke="none" />
-          <circle cx="38.5" cy="31.5" r="1.6" fill={stroke} stroke="none" />
+          <circle cx="26" cy="32.5" r="1.5" fill={stroke} stroke="none" />
+          <circle cx="38" cy="32.5" r="1.5" fill={stroke} stroke="none" />
         </>
       )}
+
+      {/* Nose hint */}
+      <path d="M32 35.5 L31.2 38.5" strokeWidth="1.8" />
 
       {/* Cheeks for Mia */}
       {variant === "mia" && (
         <>
-          <circle cx="21.5" cy="38" r="1.5" fill={stroke} stroke="none" opacity="0.45" />
-          <circle cx="42.5" cy="38" r="1.5" fill={stroke} stroke="none" opacity="0.45" />
+          <circle cx="23.5" cy="38.5" r="1.3" fill={stroke} stroke="none" opacity="0.4" />
+          <circle cx="40.5" cy="38.5" r="1.3" fill={stroke} stroke="none" opacity="0.4" />
         </>
       )}
 
-      {/* Smiles: varied */}
+      {/* Smiles */}
       {variant === "you" ? (
-        <path d="M24.5 39 Q32 46 39.5 39" />
-      ) : variant === "sam" ? (
-        <path d="M25.5 40 Q32 44 38.5 40 Q35.5 42.5 32 42.5 Q28.5 42.5 25.5 40 Z" fill={stroke} stroke="none" opacity="0.9" />
+        <path d="M26 41 Q32 45.5 38 41" />
       ) : (
-        <path d="M26 39.5 Q32 44 38 39.5" />
+        <path d="M27 41.5 Q32 44.5 37 41.5" />
       )}
     </svg>
   );
@@ -339,7 +347,7 @@ function JourneyField() {
   const peopleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const peoplePathRefs = useRef<(SVGPathElement | null)[]>([]);
-  const stagePathRef = useRef<SVGPathElement | null>(null);
+  const stageRopeRefs = useRef<(SVGPathElement | null)[]>([]);
 
   useEffect(() => {
     if (reduced) return;
@@ -355,10 +363,21 @@ function JourneyField() {
     let cy = window.innerHeight * 0.38;
     let cs = 1;
     let sp = 0;
-    let ax = window.innerWidth / 2;
-    let ay = window.innerHeight * 0.5;
-    let pax = ax;
-    let pay = ay; // smoothed progress: the soul of the relaxed motion
+    let lastNow = performance.now();
+    type Rope = {
+      idx: number;
+      phase: "idle" | "out" | "hold" | "reel";
+      prog: number;
+      sx: number;
+      sy: number;
+      ex: number;
+      ey: number;
+    };
+    const ropes: [Rope, Rope] = [
+      { idx: -1, phase: "idle", prog: 0, sx: 0, sy: 0, ex: 0, ey: 0 },
+      { idx: -1, phase: "idle", prog: 0, sx: 0, sy: 0, ex: 0, ey: 0 },
+    ];
+    let activeStage = -1; // smoothed progress: the soul of the relaxed motion
 
     const tick = (now: number) => {
       const t = (now - start) / 1000;
@@ -373,26 +392,29 @@ function JourneyField() {
 
       // Smooth the progress itself, then ease positions on top:
       // double damping means the bubble glides, never jerks.
-      sp += (p - sp) * (sm ? 0.028 : 0.016);
+      sp += (p - sp) * (sm ? 0.03 : 0.022);
 
       const xPct = interp(
         sp,
-        [0, 0.1, 0.24, 0.4, 0.56, 0.72, 0.85, 0.94, 1],
+        [0, 0.05, 0.18, 0.36, 0.54, 0.72, 0.85, 0.94, 1],
         [0.5, 0.5, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, 0.5, 0.5, 0.5],
       );
-      const yPct = interp(sp, [0, 0.1, 0.24, 0.94, 1], [0, 0, 0.42, 0.44, 0.46]);
+      const yPct = interp(sp, [0, 0.05, 0.18, 0.94, 1], [0, 0, 0.42, 0.44, 0.46]);
       // Hold a big presence through memory, apps, and the gate, then
       // taper from the proof stage to the pop.
       const scale = interp(
         sp,
-        [0, 0.1, 0.24, 0.68, 0.8, 0.9, 0.975],
+        [0, 0.05, 0.18, 0.68, 0.8, 0.9, 0.975],
         [1, 1, 0.82, 0.76, 0.55, 0.28, 0],
       );
 
       const heroRect = heroSceneRef.current?.getBoundingClientRect();
       const heroCx = heroRect ? heroRect.left + heroRect.width / 2 : vw / 2;
       const heroCy = heroRect ? heroRect.top + base * 0.5 + 8 : vh * 0.36;
-      const heroBlend = interp(sp, [0.1, 0.24], [1, 0]);
+      // Detach reads RAW progress so the bubble lets go with your
+      // scroll instead of playing late catch-up; easing still smooths
+      // the ride down.
+      const heroBlend = interp(p, [0.04, 0.15], [1, 0]);
 
       const driftX = Math.sin(t * 0.24) * vw * 0.006;
       const driftY = Math.sin(t * 0.17 + 1.3) * vh * 0.008;
@@ -400,7 +422,7 @@ function JourneyField() {
       const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX * (1 - heroBlend) + driftX * heroBlend;
       const targetY = heroBlend * heroCy + (1 - heroBlend) * yPct * vh + driftY;
 
-      const ease = sm ? 0.04 : 0.028;
+      const ease = sm ? 0.055 : 0.045;
       cx += (targetX - cx) * ease;
       cy += (targetY - cy) * ease;
       cs += (scale - cs) * (ease + 0.007);
@@ -417,7 +439,7 @@ function JourneyField() {
 
       // Hero bundle to the people.
       const gatherY = cy + (base * cs) / 2 - 6;
-      const peopleAlpha = interp(sp, [0.08, 0.2], [1, 0]);
+      const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]);
       peopleRefs.current.forEach((el, i) => {
         const path = peoplePathRefs.current[i];
         if (!el || !path) return;
@@ -436,15 +458,18 @@ function JourneyField() {
         path.setAttribute("stroke", `hsl(183 50% 62% / ${0.5 * peopleAlpha})`);
       });
 
-      // One tether that travels: the attach point glides between
-      // anchors (out to a new card, back toward the bubble between
-      // cards) and fades with travel speed, so handovers feel like
-      // motion, never a cut.
-      const stagePath = stagePathRef.current;
-      if (stagePath) {
-        const stageAlpha = interp(sp, [0.1, 0.18, 0.88, 0.94], [0, 1, 1, 0]);
-        let bestI = -1;
-        let bestD = Infinity;
+      // Two-handed web-slinging: as the bubble travels, a fresh rope
+      // shoots out to the next stage while the old one releases and
+      // reels home. Both ease and fade; nothing ever cuts.
+      const dt = Math.min(0.05, (now - lastNow) / 1000);
+      lastNow = now;
+      const mouthX = cx;
+      const mouthY = cy + (base * cs) / 2 - 8;
+      const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]);
+
+      let bestI = -1;
+      let bestD = Infinity;
+      if (windowAlpha > 0.01) {
         stageRefs.current.forEach((el, i) => {
           if (!el) return;
           const r = el.getBoundingClientRect();
@@ -455,31 +480,72 @@ function JourneyField() {
             bestI = i;
           }
         });
-        const el = bestI >= 0 ? stageRefs.current[bestI] : null;
-        if (!el || stageAlpha <= 0.01) {
-          // Reel the string back into the bubble, then go quiet.
-          ax += (cx - ax) * 0.08;
-          ay += (cy + (base * cs) / 2 - ay) * 0.08;
-          const slack = Math.hypot(ax - cx, ay - cy);
-          if (slack < 24) stagePath.setAttribute("d", "");
-        } else {
-          const r = el.getBoundingClientRect();
-          const tx = r.left + r.width / 2;
-          const ty = r.top + r.height / 2;
-          ax += (tx - ax) * 0.055;
-          ay += (ty - ay) * 0.055;
-        }
-        const speed = Math.hypot(ax - pax, ay - pay);
-        pax = ax;
-        pay = ay;
-        const speedFade = Math.max(0.3, 1 - speed / 36);
-        if (stageAlpha > 0.01 || Math.hypot(ax - cx, ay - cy) >= 24) {
-          const midX = (cx + ax) / 2 + Math.sin(t * 0.5) * 5;
-          const midY = (cy + ay) / 2 + Math.min(90, Math.abs(ax - cx) * 0.25);
-          stagePath.setAttribute("d", `M ${cx} ${cy + (base * cs) / 2 - 8} Q ${midX} ${midY} ${ax} ${ay}`);
-          stagePath.setAttribute("stroke", `hsl(183 52% 64% / ${0.6 * Math.max(stageAlpha, 0.2) * speedFade})`);
-        }
       }
+
+      if (bestI >= 0 && bestI !== activeStage) {
+        // Old rope lets go and reels in from wherever it is.
+        const holding = ropes.find((rope) => rope.phase === "hold" || rope.phase === "out");
+        if (holding) {
+          holding.phase = "reel";
+          holding.prog = 0;
+          holding.sx = holding.ex;
+          holding.sy = holding.ey;
+        }
+        // A free hand shoots the new web.
+        const free = ropes.find((rope) => rope !== holding) ?? ropes[0];
+        free.idx = bestI;
+        free.phase = "out";
+        free.prog = 0;
+        free.sx = mouthX;
+        free.sy = mouthY;
+        activeStage = bestI;
+      }
+
+      const easeOutCubic = (v: number) => 1 - Math.pow(1 - v, 3);
+      const easeInCubic = (v: number) => v * v * v;
+
+      ropes.forEach((rope, ri) => {
+        const path = stageRopeRefs.current[ri];
+        if (!path) return;
+        if (rope.phase === "idle") {
+          path.setAttribute("d", "");
+          return;
+        }
+        const el = rope.idx >= 0 ? stageRefs.current[rope.idx] : null;
+        const r = el?.getBoundingClientRect();
+        const axp = r ? r.left + r.width / 2 : mouthX;
+        const ayp = r ? r.top + r.height / 2 : mouthY;
+        let alpha = 0.6 * windowAlpha;
+
+        if (rope.phase === "out") {
+          rope.prog = Math.min(1, rope.prog + dt / 0.7);
+          const k = easeOutCubic(rope.prog);
+          rope.ex = rope.sx + (axp - rope.sx) * k;
+          rope.ey = rope.sy + (ayp - rope.sy) * k;
+          alpha *= 0.25 + 0.75 * k;
+          if (rope.prog >= 1) rope.phase = "hold";
+        } else if (rope.phase === "hold") {
+          rope.ex = axp;
+          rope.ey = ayp;
+        } else if (rope.phase === "reel") {
+          rope.prog = Math.min(1, rope.prog + dt / 0.6);
+          const k = easeInCubic(rope.prog);
+          rope.ex = rope.sx + (mouthX - rope.sx) * k;
+          rope.ey = rope.sy + (mouthY - rope.sy) * k;
+          alpha *= 1 - rope.prog;
+          if (rope.prog >= 1) {
+            rope.phase = "idle";
+            rope.idx = -1;
+            path.setAttribute("d", "");
+            return;
+          }
+        }
+
+        const midX = (mouthX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
+        const midY = (mouthY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - mouthX) * 0.25);
+        path.setAttribute("d", `M ${mouthX} ${mouthY} Q ${midX} ${midY} ${rope.ex} ${rope.ey}`);
+        path.setAttribute("stroke", `hsl(183 52% 64% / ${Math.max(0, alpha)})`);
+      });
 
       raf = requestAnimationFrame(tick);
     };
@@ -503,7 +569,17 @@ function JourneyField() {
                 strokeLinecap="round"
               />
             ))}
-            <path ref={stagePathRef} fill="none" strokeWidth="2" strokeLinecap="round" />
+            {[0, 1].map((ri) => (
+              <path
+                key={`rope-${ri}`}
+                ref={(el) => {
+                  stageRopeRefs.current[ri] = el;
+                }}
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            ))}
           </svg>
 
           <div
@@ -533,13 +609,15 @@ function JourneyField() {
                 <span className="absolute left-[16%] top-[10%] h-[20%] w-[34%] rotate-[-18deg] rounded-[50%] bg-white/30 blur-[7px]" />
                 <span className="absolute bottom-[14%] right-[18%] h-[7%] w-[14%] rounded-[50%] bg-white/10 blur-[5px]" />
                 <span className="absolute inset-[7%] rounded-full border border-[#bdeff0]/12" />
-                <span className="relative flex w-[62%] flex-col items-center">
+                <span className="relative flex w-[62%] flex-col">
                   <img src="/logo-wordmark.svg" alt="UnClick" className="w-full" />
-                  <span className="mt-2 text-[13px] font-bold tracking-tight text-heading sm:text-[16px]">
-                    Where AI Belongs
-                  </span>
-                  <span className="mt-0.5 text-[11px] font-semibold text-primary sm:text-[13px]">
-                    Humans welcome
+                  <span className="ml-[29%] mt-1.5 flex flex-col items-start">
+                    <span className="text-[13px] font-bold tracking-tight text-heading sm:text-[16px]">
+                      Where AI Belongs
+                    </span>
+                    <span className="mt-0.5 text-[11px] font-semibold text-primary sm:text-[13px]">
+                      Humans welcome
+                    </span>
                   </span>
                 </span>
               </div>
@@ -556,9 +634,13 @@ function JourneyField() {
         {reduced && (
           <div className="absolute left-1/2 top-2 -translate-x-1/2">
             <div className="flex h-[290px] w-[290px] flex-col items-center justify-center rounded-full border border-[#86dadd]/50 bg-primary/[0.08] sm:h-[380px] sm:w-[380px]">
-              <img src="/logo-wordmark.svg" alt="UnClick" className="w-[62%]" />
-              <span className="mt-2 text-[14px] font-bold text-heading">Where AI Belongs</span>
-              <span className="text-[12px] font-semibold text-primary">Humans welcome</span>
+              <span className="flex w-[62%] flex-col">
+                <img src="/logo-wordmark.svg" alt="UnClick" className="w-full" />
+                <span className="ml-[29%] mt-1.5 flex flex-col items-start">
+                  <span className="text-[14px] font-bold text-heading">Where AI Belongs</span>
+                  <span className="text-[12px] font-semibold text-primary">Humans welcome</span>
+                </span>
+              </span>
             </div>
           </div>
         )}
