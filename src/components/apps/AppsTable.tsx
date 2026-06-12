@@ -22,6 +22,7 @@ import {
   NETWORK_META,
   NETWORK_ORDER,
   type AppEntry,
+  type AppNetwork,
   type AppTool,
 } from "@/lib/appCatalog";
 import { AppIcon } from "./AppIcon";
@@ -111,16 +112,42 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
 
   return (
     <div>
-      {/* Controls */}
-      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search apps or actions - try 'bmi', 'invoice', 'parcel'..."
-            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/40 focus:outline-none"
-          />
+      {/* Controls: one row - search, compact Category/Internet dropdowns, toggles.
+          (Was a search row plus two chip-cloud rows; the dropdowns reclaim the
+          vertical space without losing any filter.) */}
+      <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex w-full flex-wrap items-center gap-2 lg:flex-1">
+          <div className="relative min-w-[200px] flex-1 sm:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search apps or actions - try 'bmi', 'invoice', 'parcel'..."
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/40 focus:outline-none"
+            />
+          </div>
+          <select
+            value={category ?? ""}
+            onChange={(e) => setCategory(e.target.value || null)}
+            aria-label="Filter by category"
+            className="rounded-lg border border-white/[0.08] bg-[#0b2533] px-2.5 py-2 text-xs text-white/70 focus:border-[#61C1C4]/40 focus:outline-none"
+          >
+            <option value="">All categories</option>
+            {APP_CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <select
+            value={network ?? ""}
+            onChange={(e) => setNetwork((e.target.value || null) as AppNetwork | null)}
+            aria-label="Filter by internet use"
+            className="rounded-lg border border-white/[0.08] bg-[#0b2533] px-2.5 py-2 text-xs text-white/70 focus:border-[#61C1C4]/40 focus:outline-none"
+          >
+            <option value="">Internet: any</option>
+            {NETWORK_ORDER.map((n) => (
+              <option key={n} value={n}>{NETWORK_META[n].label}</option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-white/40">
           <label className="flex cursor-pointer select-none items-center gap-1.5">
@@ -157,29 +184,6 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
             <span>{filtered.length} apps</span>
           )}
         </div>
-      </div>
-
-      {/* Category chips */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        <Chip label="All" active={category === null} onClick={() => setCategory(null)} />
-        {APP_CATEGORIES.map((c) => (
-          <Chip key={c} label={c} active={category === c} onClick={() => setCategory(category === c ? null : c)} />
-        ))}
-      </div>
-
-      {/* Network chips: does the app need internet? */}
-      <div className="mb-3 flex flex-wrap items-center gap-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">Internet</span>
-        <Chip label="Any" active={network === null} onClick={() => setNetwork(null)} />
-        {NETWORK_ORDER.map((n) => (
-          <Chip
-            key={n}
-            label={NETWORK_META[n].label}
-            title={NETWORK_META[n].description}
-            active={network === n}
-            onClick={() => setNetwork(network === n ? null : n)}
-          />
-        ))}
       </div>
 
       {/* Header row */}
@@ -322,23 +326,6 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
         )}
       </div>
     </div>
-  );
-}
-
-function Chip({ label, active, onClick, title }: { label: string; active: boolean; onClick: () => void; title?: string }) {
-  return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-        active
-          ? "border-[#61C1C4]/40 bg-[#61C1C4]/15 text-[#9be4e6]"
-          : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white/65"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
 
