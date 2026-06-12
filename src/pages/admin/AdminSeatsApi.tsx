@@ -717,7 +717,7 @@ function ModalShell({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-[#111] p-5 shadow-2xl"
+        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-[#0b2533] p-5 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -1006,7 +1006,7 @@ function AuditDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70" onClick={onClose}>
       <aside
-        className="h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-[#111] p-5"
+        className="h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-[#0b2533] p-5"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
