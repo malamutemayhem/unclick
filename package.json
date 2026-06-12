@@ -42,7 +42,9 @@
     "eval:check": "tsx api/lib/eval/run-report.ts --check",
     "dogfood:commonsensepass": "npm run dogfood --workspace=@unclick/commonsensepass",
     "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs",
-    "uxpass:visual": "node scripts/uxpass-visual-audit.mjs"
+    "uxpass:visual": "node scripts/uxpass-visual-audit.mjs",
+    "visibility:snapshot": "node scripts/visibility-snapshot.mjs",
+    "test:visibility-snapshot": "node --test scripts/visibility-snapshot.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",

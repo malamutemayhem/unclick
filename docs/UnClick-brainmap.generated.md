@@ -33,7 +33,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | 0946c1ef23c5 | 7326 |
+| package.json | 9c050b511a57 | 7477 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
@@ -2277,6 +2277,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:memory-eval | node --test scripts/memory-retrieval-eval.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:tier2-rollback | node --test scripts/tier2-rollback.test.mjs |
+| test:visibility-snapshot | node --test scripts/visibility-snapshot.test.mjs |
 | test:watch | vitest |
 | test:writerlane-live-catalog | node --test scripts/pinballwake-writerlane-live-catalog.test.mjs |
 
