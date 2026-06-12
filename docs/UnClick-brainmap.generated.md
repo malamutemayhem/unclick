@@ -153,7 +153,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
 | src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
 | src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
-| src/pages/HomePreviewR.tsx | 060e69692f5c | 14159 |
+| src/pages/HomePreviewR.tsx | 1585da9f8839 | 11384 |
 | src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
