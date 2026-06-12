@@ -11,33 +11,49 @@
 
 /* Perspective floor grid: the hero "rails". A wide plane tilted
    away from the viewer, teal hairlines, faded with a mask so it
-   reads as depth rather than decoration. */
+   reads as depth rather than decoration. The grid pattern lives on
+   a ::after layer panned with a transform: animating
+   background-position repaints the whole plane every frame, while
+   a transform loop runs on the compositor for free. */
 .hp-floor {
   position: absolute;
   left: 50%;
   bottom: -12%;
   width: 220%;
   height: 72%;
+  overflow: hidden;
   transform: translateX(-50%) perspective(620px) rotateX(64deg);
   transform-origin: center top;
-  background-image:
-    linear-gradient(to right, hsl(187 70% 70% / 0.13) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(187 70% 70% / 0.13) 1px, transparent 1px);
-  background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
           mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
   pointer-events: none;
 }
 
+.hp-floor::after {
+  content: "";
+  position: absolute;
+  inset: -56px 0 0 0;
+  background-image:
+    linear-gradient(to right, hsl(187 70% 70% / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(187 70% 70% / 0.13) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .hp-floor {
+  .hp-floor::after {
     animation: hp-floor-pan 26s linear infinite;
+    will-change: transform;
+  }
+  /* Lite mode (set by the journey engine on devices that cannot hold
+     full quality at full speed): the grid stands still. */
+  .hp-lite .hp-floor::after {
+    animation: none;
   }
 }
 
 @keyframes hp-floor-pan {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 0 56px, 0 56px; }
+  from { transform: translateY(0); }
+  to   { transform: translateY(56px); }
 }
 
 /* Blinking cursor for the typed ask. */
