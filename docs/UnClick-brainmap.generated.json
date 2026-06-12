@@ -15525,8 +15525,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "583495279a0e",
-      "bytes": 28506
+      "hash": "6f7e8b14abd9",
+      "bytes": 30194
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15915,8 +15915,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "de0b5baf0534",
-      "bytes": 64097
+      "hash": "e891d0a7df9e",
+      "bytes": 65839
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",

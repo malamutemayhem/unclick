@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ArrowDown,
   ArrowDownUp,
@@ -26,6 +27,7 @@ import {
   type JobProofState,
 } from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
+import { laneOfAssignee, humanAssigneeName, parseLaneFilter, matchesLane, type JobLaneFilter } from "./jobLanes";
 
 interface BoardroomProfile {
   agent_id: string;
@@ -259,6 +261,7 @@ export function displayCopyFor(todo: JobTodo): JobDisplayCopy {
 function ownerLabel(todo: JobTodo): string {
   const raw = todo.assigned_to_agent_id?.trim();
   if (!raw) return "Unassigned";
+  if (laneOfAssignee(raw) === "human") return `${humanAssigneeName(raw)} (human)`;
   const known: Record<string, string> = {
     master: "Coordinator",
     "chatgpt-codex-worker2": "Codex Worker 2",
@@ -423,6 +426,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
 function ownerEmoji(todo: JobTodo): string | null {
   const raw = todo.assigned_to_agent_id?.trim();
   if (!raw) return null;
+  if (laneOfAssignee(raw) === "human") return "👤";
   const known: Record<string, string> = {
     master: "🧭",
     "chatgpt-codex-worker2": "🛠️",
@@ -1217,6 +1221,22 @@ export default function AdminJobs() {
   const [manualOrder, setManualOrder] = useState<ManualOrder>(() => loadManualOrder());
   const [sectionPrefs, setSectionPrefs] = useState<SectionPreferences>(() => loadSectionPreferences());
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const laneFilter = parseLaneFilter(searchParams.get("lane"));
+  const setLaneFilter = useCallback(
+    (lane: JobLaneFilter) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (lane === "all") next.delete("lane");
+          else next.set("lane", lane);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
   const jobsReadAgentId = humanAgentId ?? (token ? ADMIN_JOBS_READ_AGENT_ID : null);
 
   useEffect(() => {
@@ -1319,9 +1339,11 @@ export default function AdminJobs() {
       const byId = new Map<string, JobTodo>();
       for (const todo of todos) byId.set(todo.id, todo);
       for (const todo of completedHistory) byId.set(todo.id, todo);
-      return Array.from(byId.values()).filter((todo) => matchesJobSearch(todo, searchQuery));
+      return Array.from(byId.values()).filter(
+        (todo) => matchesLane(todo.assigned_to_agent_id, laneFilter) && matchesJobSearch(todo, searchQuery),
+      );
     },
-    [completedHistory, searchQuery, todos],
+    [completedHistory, laneFilter, searchQuery, todos],
   );
   const grouped = useMemo(() => groupJobs(filteredTodos), [filteredTodos]);
   const orderedGrouped = useMemo(
@@ -1550,6 +1572,28 @@ export default function AdminJobs() {
       )}
 
       <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        <div className="mb-2 flex items-center gap-1.5" role="tablist" aria-label="Job lane">
+          {([
+            ["all", "All"],
+            ["agent", "Jobs (AI)"],
+            ["human", "Jobs (Human)"],
+          ] as const).map(([lane, label]) => (
+            <button
+              key={lane}
+              type="button"
+              role="tab"
+              aria-selected={laneFilter === lane}
+              onClick={() => setLaneFilter(lane)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                laneFilter === lane
+                  ? "bg-[#61C1C4]/15 text-[#9FE0E2]"
+                  : "text-white/40 hover:bg-white/[0.05] hover:text-white/70"
+              }`}
+            >
+              {lane === "human" ? `👤 ${label}` : label}
+            </button>
+          ))}
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-white/30" />
           <input
@@ -1576,7 +1620,7 @@ export default function AdminJobs() {
         <span className="inline-flex items-center gap-1.5">
           {initialLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#61C1C4]" />}
           {firstLoadDone
-            ? searchQuery.trim()
+            ? searchQuery.trim() || laneFilter !== "all"
               ? `${filteredTodos.length} of ${visibleJobCount} jobs match`
               : `${visibleJobCount} visible jobs`
             : "Loading jobs"}
