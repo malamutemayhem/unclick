@@ -43,49 +43,42 @@ import "@/components/home-preview/preview.css";
 /* ── Friendly faces, drawn in SVG ───────────────────────────── */
 
 type FaceProps = {
-  skin: string;
-  hair: string;
-  style: "crop" | "curls" | "bob" | "long" | "messy";
+  style: "crop" | "flat" | "bob" | "long" | "messy";
 };
 
-function Face({ skin, hair, style }: FaceProps) {
+/* Glowing teal line-art faces, matching the reference: thin strokes,
+   soft neon glow, no fills. */
+function Face({ style }: FaceProps) {
+  const stroke = "#9fe3e6";
+  const lw = 2.6;
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden="true">
-      {/* Back hair for bob and long */}
-      {style === "bob" && <path d="M14 30 Q14 12 32 12 Q50 12 50 30 L50 44 Q44 40 42 32 L22 32 Q20 40 14 44 Z" fill={hair} />}
-      {style === "long" && <path d="M13 30 Q13 11 32 11 Q51 11 51 30 L51 52 Q46 48 44 40 L20 40 Q18 48 13 52 Z" fill={hair} />}
+    <svg
+      viewBox="0 0 64 64"
+      className="h-full w-full [filter:drop-shadow(0_0_5px_rgba(134,218,221,0.75))]"
+      fill="none"
+      stroke={stroke}
+      strokeWidth={lw}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Jaw and face outline (open at the top, hair closes it) */}
+      <path d="M17 30 Q17 47 32 49 Q47 47 47 30" />
 
-      {/* Face */}
-      <circle cx="32" cy="34" r="19" fill={skin} />
-
-      {/* Front hair */}
-      {style === "crop" && <path d="M14.5 32 Q14 14 32 14 Q50 14 49.5 32 Q44 22 32 21.5 Q20 22 14.5 32 Z" fill={hair} />}
-      {style === "curls" && (
-        <g fill={hair}>
-          <circle cx="20" cy="22" r="7" />
-          <circle cx="30" cy="17" r="8" />
-          <circle cx="41" cy="20" r="7" />
-          <circle cx="47" cy="27" r="5.5" />
-          <circle cx="16" cy="29" r="5.5" />
-        </g>
-      )}
-      {style === "bob" && <path d="M15 31 Q15 14 32 14 Q49 14 49 31 Q43 21 32 20.5 Q21 21 15 31 Z" fill={hair} />}
-      {style === "long" && <path d="M14 31 Q14 13 32 13 Q50 13 50 31 Q43 20.5 32 20 Q21 20.5 14 31 Z" fill={hair} />}
-      {style === "messy" && (
-        <path
-          d="M14 31 Q13 19 21 15 L24 19 L27 13.5 L31 18 L35 13 L39 18 L43 14.5 Q50 19 50 31 Q43 21 32 20.5 Q21 21 14 31 Z"
-          fill={hair}
-        />
-      )}
+      {/* Hair */}
+      {style === "crop" && <path d="M16.5 31 Q15 14 32 13.5 Q49 14 47.5 31 Q44 21 32 20.5 Q24 21 20 25" />}
+      {style === "flat" && <path d="M16.5 30 L17 17 Q24 13 40 13.5 L47.5 19 L47.5 30 Q45 22 39 20.5 L21 21 Q18 24 16.5 30" />}
+      {style === "bob" && <path d="M16 36 Q12.5 14 32 13 Q51.5 14 48 36 Q47 24 41 21 Q34 18.5 26 21 Q17 24 16 36" />}
+      {style === "long" && <path d="M15 44 Q12 14 32 13 Q52 14 49 44 M17 27 Q26 23 30 18.5 M47 27 Q38 23 34 18.5" />}
+      {style === "messy" && <path d="M16.5 30 Q15 16 22 14.5 L25 18 L29 13.5 L34 17.5 L38 13.5 L43 16.5 Q48.5 19 47.5 30 Q43 21 32 20.5 Q21 21 16.5 30" />}
 
       {/* Eyes */}
-      <circle cx="25.5" cy="34" r="2.1" fill="#0a1c26" />
-      <circle cx="38.5" cy="34" r="2.1" fill="#0a1c26" />
-      {/* Cheeks */}
-      <circle cx="22.5" cy="40" r="2.4" fill="#e98a7a" opacity="0.35" />
-      <circle cx="41.5" cy="40" r="2.4" fill="#e98a7a" opacity="0.35" />
+      <circle cx="25.5" cy="33.5" r="1.4" fill={stroke} stroke="none" />
+      <circle cx="38.5" cy="33.5" r="1.4" fill={stroke} stroke="none" />
+      {/* Nose hint */}
+      <path d="M32 36 L31 39.5" strokeWidth="2" />
       {/* Smile */}
-      <path d="M26 41.5 Q32 46.5 38 41.5" stroke="#0a1c26" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <path d="M27 43 Q32 46.5 37 43" />
     </svg>
   );
 }
@@ -96,11 +89,11 @@ const PEOPLE: {
   you?: boolean;
   face: FaceProps;
 }[] = [
-  { name: "Sam", ai: "ChatGPT", face: { skin: "#e8b48c", hair: "#2c2128", style: "crop" } },
-  { name: "Priya", ai: "Cursor", face: { skin: "#c98a5e", hair: "#1d1722", style: "long" } },
-  { name: "You", ai: "Claude", you: true, face: { skin: "#f0c8a0", hair: "#3a4a55", style: "messy" } },
-  { name: "Leo", ai: "Copilot", face: { skin: "#a8704a", hair: "#171219", style: "curls" } },
-  { name: "Mia", ai: "local model", face: { skin: "#f3d4b4", hair: "#5a3a28", style: "bob" } },
+  { name: "Sam", ai: "ChatGPT", face: { style: "crop" } },
+  { name: "Priya", ai: "Cursor", face: { style: "long" } },
+  { name: "You", ai: "Claude", you: true, face: { style: "messy" } },
+  { name: "Leo", ai: "Copilot", face: { style: "flat" } },
+  { name: "Mia", ai: "local model", face: { style: "bob" } },
 ];
 
 /* Piecewise-linear interpolation over [0..1] progress. */
@@ -139,10 +132,10 @@ function PersonChip({
         />
         <span
           className={cn(
-            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border sm:h-[4.5rem] sm:w-[4.5rem]",
+            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-[#07212d]/85 sm:h-[4.5rem] sm:w-[4.5rem]",
             person.you
-              ? "border-primary/70 bg-primary/[0.16] shadow-[0_0_30px_-5px_hsl(182_46%_57%/0.75)]"
-              : "border-white/[0.16] bg-[#0a2c3c]/90",
+              ? "scale-[1.07] border-primary/80 shadow-[0_0_34px_-4px_hsl(182_46%_57%/0.85)]"
+              : "border-primary/45 shadow-[0_0_22px_-6px_hsl(182_46%_57%/0.6)]",
           )}
         >
           <span className="h-[88%] w-[88%]">
@@ -318,7 +311,7 @@ function JourneyField() {
 
       // Smooth the progress itself, then ease positions on top:
       // double damping means the bubble glides, never jerks.
-      sp += (p - sp) * 0.03;
+      sp += (p - sp) * 0.016;
 
       const sm = vw < 640;
       const base = sm ? 290 : 400;
@@ -326,7 +319,7 @@ function JourneyField() {
       const xPct = interp(
         sp,
         [0, 0.1, 0.24, 0.4, 0.56, 0.72, 0.85, 0.94, 1],
-        [0.5, 0.5, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, 0.5, 0.5, 0.5],
+        [0.5, 0.5, sm ? 0.47 : 0.45, sm ? 0.53 : 0.55, sm ? 0.47 : 0.45, sm ? 0.53 : 0.55, 0.5, 0.5, 0.5],
       );
       const yPct = interp(sp, [0, 0.1, 0.24, 0.94, 1], [0, 0, 0.42, 0.44, 0.46]);
       // Travelling bubble roughly double the old size.
@@ -341,15 +334,15 @@ function JourneyField() {
       const heroCy = heroRect ? heroRect.top + base * 0.5 + 8 : vh * 0.36;
       const heroBlend = interp(sp, [0.1, 0.24], [1, 0]);
 
-      const driftX = Math.sin(t * 0.32) * vw * 0.01;
-      const driftY = Math.sin(t * 0.22 + 1.3) * vh * 0.012;
+      const driftX = Math.sin(t * 0.24) * vw * 0.006;
+      const driftY = Math.sin(t * 0.17 + 1.3) * vh * 0.008;
 
       const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX * (1 - heroBlend) + driftX * heroBlend;
       const targetY = heroBlend * heroCy + (1 - heroBlend) * yPct * vh + driftY;
 
-      cx += (targetX - cx) * 0.045;
-      cy += (targetY - cy) * 0.045;
-      cs += (scale - cs) * 0.05;
+      cx += (targetX - cx) * 0.028;
+      cy += (targetY - cy) * 0.028;
+      cs += (scale - cs) * 0.035;
 
       const visible = cs > 0.015 && sp < 0.985;
       bubble.style.opacity = visible ? "1" : "0";
