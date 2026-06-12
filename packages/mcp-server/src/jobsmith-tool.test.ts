@@ -35,6 +35,29 @@ describe("jobsmith connector (local rules engine)", () => {
     expect(result.blocked).toBe(true);
   });
 
+  it("scores the recruiter first-glance scan alongside the rules", async () => {
+    const cv = [
+      "Jane Smith",
+      "Melbourne VIC | jane.smith@example.com",
+      "Senior Product Designer",
+      "Design systems across fintech; 23% retention lift on the last launch.",
+      "",
+      "Work Experience",
+      "",
+      "Senior Product Designer, Finlode",
+      "Jan 2022 - Present",
+      "- Led the checkout redesign; 23% retention lift over 7 days",
+    ].join("\n");
+    const job = "Senior Product Designer to own our design system and checkout experience and lift retention. Design systems required. Checkout retention design focus.";
+    const result = await jobsmithCheck({ text: cv, job_text: job }) as Record<string, any>;
+    expect(result.firstGlance.verdict).toBe("yes-pile");
+    expect(result.firstGlance.firstBullet).toMatch(/^Led the checkout redesign/);
+    expect(result.firstGlance.matchedJdKeywords.length).toBeGreaterThan(0);
+
+    const generic = await jobsmithCheck({ text: "I am a passionate team player with a proven track record of supporting projects and working with stakeholders to deliver solutions in fast-paced environments over many years of dedicated service." }) as Record<string, any>;
+    expect(generic.firstGlance.verdict).toBe("needs-work");
+  });
+
   it("summarizes the rule pack with real counts", async () => {
     const result = await jobsmithRules({}) as Record<string, any>;
     expect(result.totalRules).toBe(228);

@@ -5,6 +5,7 @@
 // (scripts/generate-jobsmith-rules.mjs), so these are the SAME rules the app uses.
 
 import { stampMeta } from "./connector-meta.js";
+import { auditFirstGlance } from "./jobsmith-glance.js";
 import { JOBSMITH_RULE_PACK, type JobsmithRawRule, type JobsmithRuleSeverity } from "./jobsmith-rules.generated.js";
 
 const JOBSMITH_SOURCE = `JobSmith rules engine v${JOBSMITH_RULE_PACK.version}`;
@@ -293,13 +294,19 @@ function runChecks(text: string, now = new Date()) {
 export async function jobsmithCheck(args: Record<string, unknown>): Promise<unknown> {
   const text = String(args.text ?? "").trim();
   if (!text) return { error: "text is required (paste a CV or cover letter to check)." };
+  const jobText = String(args.job_text ?? "").trim();
   const result = runChecks(text);
-  return stampMeta(result, {
+  // The recruiter's first-pass scan (top third, first bullet, JD keywords,
+  // layout) is scored separately from the rule findings; see jobsmith-glance.
+  const firstGlance = auditFirstGlance(text, jobText);
+  return stampMeta({ ...result, firstGlance }, {
     source: JOBSMITH_SOURCE,
     fetched_at: new Date().toISOString(),
     next_steps: result.blocked
       ? ["Fix the ERROR findings first (they block), then re-run jobsmith_check."]
-      : ["Use jobsmith_rules to see every rule, including the ones that need a human eye."],
+      : firstGlance.verdict !== "yes-pile"
+        ? ["Rules pass, but the 8-second first-glance scan is not in the yes pile yet; fix the failed firstGlance findings."]
+        : ["Use jobsmith_rules to see every rule, including the ones that need a human eye."],
   });
 }
 

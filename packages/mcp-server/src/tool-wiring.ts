@@ -18074,12 +18074,13 @@ export const ADDITIONAL_TOOLS = [
   // ── jobsmith-tool.ts ──────────────────────────────────────────────────────────
   {
     name: "jobsmith_check",
-    description: "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed.",
+    description: "Run JobSmith's CV / cover-letter quality rules over a piece of text, plus a recruiter first-glance (8-second scan) score. No key needed.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         text: { type: "string", description: "The CV or cover-letter text to check" },
+        job_text: { type: "string", description: "Optional job-ad text; adds JD keyword coverage to the first-glance scan" },
       },
       required: ["text"],
     },

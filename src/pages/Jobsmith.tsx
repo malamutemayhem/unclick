@@ -48,6 +48,11 @@ import {
   scanAgeSignals,
   scanTone,
 } from "@jobsmith/lib/riskAudit";
+import {
+  auditFirstGlance,
+  type FirstGlanceReport,
+  type GlanceVerdict,
+} from "@jobsmith/lib/firstGlance";
 import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
 import {
   buildDecisionCards,
@@ -320,6 +325,68 @@ function LevelBadge({ level }: { level: ReadinessLevel }) {
       <Icon className="h-3.5 w-3.5" />
       {LEVEL_LABELS[level]}
     </span>
+  );
+}
+
+const GLANCE_VERDICT_LABELS: Record<GlanceVerdict, string> = {
+  "yes-pile": "Yes pile",
+  "maybe-pile": "Maybe pile",
+  "needs-work": "Needs work",
+};
+
+const GLANCE_VERDICT_STYLES: Record<GlanceVerdict, string> = {
+  "yes-pile": "border-emerald-300/40 bg-emerald-300/10 text-emerald-100",
+  "maybe-pile": "border-[#E2B93B]/40 bg-[#E2B93B]/10 text-[#F4D36B]",
+  "needs-work": "border-rose-300/25 bg-rose-300/10 text-rose-100",
+};
+
+function FirstGlancePanel({ report }: { report: FirstGlanceReport }) {
+  return (
+    <section
+      aria-label="First glance scan"
+      className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
+    >
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+            First glance: the 8-second scan
+          </h2>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${GLANCE_VERDICT_STYLES[report.verdict]}`}
+        >
+          {GLANCE_VERDICT_LABELS[report.verdict]} ({report.score}/100)
+        </span>
+      </div>
+      <p className="mb-4 text-xs leading-5 text-white/50">
+        Recruiters thin-slice: about 3 seconds on the top third, 2 on your most
+        recent role, 2 pattern-matching the job ad, 1 on layout, then a
+        yes/maybe/no verdict. The first bullet of your most recent role is the
+        most-read line on the whole CV. This scores only what they see in that
+        first pass.
+      </p>
+      <ul className="space-y-2">
+        {report.findings.map((finding, index) => (
+          <li
+            key={index}
+            className="flex items-start gap-2 rounded-lg border border-white/[0.06] bg-black/20 p-3"
+          >
+            {finding.ok ? (
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+            ) : (
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F4D36B]" />
+            )}
+            <p className="text-xs leading-5 text-white/70">{finding.label}</p>
+          </li>
+        ))}
+      </ul>
+      {report.firstBullet && (
+        <p className="mt-3 text-xs leading-5 text-white/45">
+          Most-read line right now: &quot;{report.firstBullet}&quot;
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -787,6 +854,10 @@ export default function JobsmithPage() {
   const managedRunText = useMemo(
     () => [jobText, letterText, cvText].filter((part) => part.trim().length > 0).join("\n\n"),
     [cvText, jobText, letterText],
+  );
+  const firstGlance = useMemo(
+    () => (cvText.trim().length > 0 ? auditFirstGlance(cvText, jobText) : null),
+    [cvText, jobText],
   );
   const checkResult = useMemo(
     () => runJobsmithChecks(managedRunText || jobText, JOBSMITH_RULE_PACK_V1),
@@ -1293,6 +1364,8 @@ export default function JobsmithPage() {
                   </p>
                 </section>
               )}
+
+              {firstGlance && <FirstGlancePanel report={firstGlance} />}
 
               {letterDraft && (
                 <section
