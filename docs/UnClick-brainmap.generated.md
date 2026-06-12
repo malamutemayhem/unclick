@@ -138,7 +138,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
+| src/pages/Jobsmith.tsx | 1649f1592866 | 65315 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |

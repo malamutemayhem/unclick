@@ -4463,7 +4463,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "jobsmith_check",
-        "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed."
+        "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text, plus a recruiter first-glance (8-second scan) score. No key needed."
       },
       {
         "name": "jobsmith_rules",
