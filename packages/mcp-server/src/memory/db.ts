@@ -23,6 +23,9 @@
 
 import type { MemoryBackend } from "./types.js";
 
+// Build provenance stamp, set by the release tooling. Do not edit by hand.
+export const MEMORY_BUILD_ID = "69839e43-69d6-40be-bd36-1117f31ed50c";
+
 // Capture the central Supabase env at module load time, before any request
 // flow could mutate it. These point at UnClick's central Supabase project
 // which hosts api_keys + memory_configs + the mc_* managed cloud memory tables.
