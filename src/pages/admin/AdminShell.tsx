@@ -17,6 +17,7 @@ import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import { LENSES, parseAppLens } from "@/components/apps/appLenses";
+import UserAvatar from "@/components/UserAvatar";
 import {
   ArrowRightLeft,
   User,
@@ -798,9 +799,7 @@ export default function AdminShell() {
 
         <div className="border-t border-border/40 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <User className="h-4 w-4" />
-            </div>
+            <UserAvatar user={user} className="h-8 w-8" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium text-foreground">
                 {user?.email ?? "Unknown"}
@@ -878,8 +877,9 @@ export default function AdminShell() {
           <div className="mt-3 border-t border-border/40 pt-3">
             <BugReportButton />
           </div>
-          <div className="mt-2 border-t border-border/40 pt-2">
-            <p className="truncate px-3 text-xs text-muted-foreground">
+          <div className="mt-2 flex items-center gap-2 border-t border-border/40 px-3 pt-2">
+            <UserAvatar user={user} className="h-6 w-6" />
+            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
               {user?.email ?? "Unknown"}
             </p>
           </div>

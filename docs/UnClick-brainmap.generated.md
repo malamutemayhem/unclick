@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | c48d9420334e | 17397 |
-| src/pages/admin/AdminShell.tsx | 25f79523e680 | 33137 |
+| src/App.tsx | 7fc4bfe09997 | 19606 |
+| src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -75,7 +75,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 6ba14c5445bf | 1542 |
+| src/pages/Index.tsx | a509edc689ae | 1073 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
@@ -122,7 +122,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
+| src/pages/admin/AdminYou.tsx | 9d9c719dae1b | 69998 |
 | src/pages/AppDetail.tsx | f6638bfd7203 | 6608 |
 | src/pages/Apps.tsx | f2fab29b2942 | 3137 |
 | src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
@@ -137,6 +137,24 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
+| src/pages/HomePreviewB.tsx | 740b7c75ff4f | 13290 |
+| src/pages/HomePreviewC.tsx | 745b962b93bb | 7976 |
+| src/pages/HomePreviewD.tsx | bf9b808df797 | 13283 |
+| src/pages/HomePreviewE.tsx | 3e3475996100 | 10218 |
+| src/pages/HomePreviewF.tsx | 085701ab6ab6 | 9407 |
+| src/pages/HomePreviewG.tsx | 9cd9b1bd010d | 9388 |
+| src/pages/HomePreviewH.tsx | a3506c10e904 | 7657 |
+| src/pages/HomePreviewI.tsx | ce585ce705e2 | 9188 |
+| src/pages/HomePreviewJ.tsx | c3775593c542 | 7366 |
+| src/pages/HomePreviewK.tsx | 061b8829d918 | 8386 |
+| src/pages/HomePreviewL.tsx | bfdc7b2435c3 | 8572 |
+| src/pages/HomePreviewM.tsx | e233bb1fcb74 | 7140 |
+| src/pages/HomePreviewN.tsx | 2eb6467f0845 | 6730 |
+| src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
+| src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
+| src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
+| src/pages/HomePreviewR.tsx | a9c7e1529e7a | 1315 |
+| src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | c3b16f3ec268 | 8416 |
@@ -247,7 +265,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 54 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -363,6 +381,24 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /docs | Docs | User-facing page for Docs. | src/pages/Docs.tsx |
 | /dogfood | Dogfood Report | Public dogfood proof report. | src/pages/DogfoodReport.tsx |
 | /faq | FAQ | User-facing page for FAQPage. | src/pages/FAQPage.tsx |
+| /home-preview-b | Home Preview B | User-facing page for Home Preview B. | src/pages/HomePreviewB.tsx |
+| /home-preview-c | Home Preview C | User-facing page for Home Preview C. | src/pages/HomePreviewC.tsx |
+| /home-preview-d | Home Preview D | User-facing page for Home Preview D. | src/pages/HomePreviewD.tsx |
+| /home-preview-e | Home Preview E | User-facing page for Home Preview E. | src/pages/HomePreviewE.tsx |
+| /home-preview-f | Home Preview F | User-facing page for Home Preview F. | src/pages/HomePreviewF.tsx |
+| /home-preview-g | Home Preview G | User-facing page for Home Preview G. | src/pages/HomePreviewG.tsx |
+| /home-preview-h | Home Preview H | User-facing page for Home Preview H. | src/pages/HomePreviewH.tsx |
+| /home-preview-i | Home Preview I | User-facing page for Home Preview I. | src/pages/HomePreviewI.tsx |
+| /home-preview-j | Home Preview J | User-facing page for Home Preview J. | src/pages/HomePreviewJ.tsx |
+| /home-preview-k | Home Preview K | User-facing page for Home Preview K. | src/pages/HomePreviewK.tsx |
+| /home-preview-l | Home Preview L | User-facing page for Home Preview L. | src/pages/HomePreviewL.tsx |
+| /home-preview-m | Home Preview M | User-facing page for Home Preview M. | src/pages/HomePreviewM.tsx |
+| /home-preview-n | Home Preview N | User-facing page for Home Preview N. | src/pages/HomePreviewN.tsx |
+| /home-preview-o | Home Preview O | User-facing page for Home Preview O. | src/pages/HomePreviewO.tsx |
+| /home-preview-p | Home Preview P | User-facing page for Home Preview P. | src/pages/HomePreviewP.tsx |
+| /home-preview-q | Home Preview Q | User-facing page for Home Preview Q. | src/pages/HomePreviewQ.tsx |
+| /home-preview-r | Home Preview R | User-facing page for Home Preview R. | src/pages/HomePreviewR.tsx |
+| /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
 | /login | Login | Sign-in page. | src/pages/Login.tsx |
@@ -1431,6 +1467,24 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Docs | User-facing page for Docs. | /docs | src/pages/Docs.tsx |
 | Public surfaces | public page | Dogfood Report | Public dogfood proof report. | /dogfood | src/pages/DogfoodReport.tsx |
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
+| Public surfaces | public page | Home Preview | User-facing page for Home Preview. | /home-preview | src/pages/HomePreview.tsx |
+| Public surfaces | public page | Home Preview B | User-facing page for Home Preview B. | /home-preview-b | src/pages/HomePreviewB.tsx |
+| Public surfaces | public page | Home Preview C | User-facing page for Home Preview C. | /home-preview-c | src/pages/HomePreviewC.tsx |
+| Public surfaces | public page | Home Preview D | User-facing page for Home Preview D. | /home-preview-d | src/pages/HomePreviewD.tsx |
+| Public surfaces | public page | Home Preview E | User-facing page for Home Preview E. | /home-preview-e | src/pages/HomePreviewE.tsx |
+| Public surfaces | public page | Home Preview F | User-facing page for Home Preview F. | /home-preview-f | src/pages/HomePreviewF.tsx |
+| Public surfaces | public page | Home Preview G | User-facing page for Home Preview G. | /home-preview-g | src/pages/HomePreviewG.tsx |
+| Public surfaces | public page | Home Preview H | User-facing page for Home Preview H. | /home-preview-h | src/pages/HomePreviewH.tsx |
+| Public surfaces | public page | Home Preview I | User-facing page for Home Preview I. | /home-preview-i | src/pages/HomePreviewI.tsx |
+| Public surfaces | public page | Home Preview J | User-facing page for Home Preview J. | /home-preview-j | src/pages/HomePreviewJ.tsx |
+| Public surfaces | public page | Home Preview K | User-facing page for Home Preview K. | /home-preview-k | src/pages/HomePreviewK.tsx |
+| Public surfaces | public page | Home Preview L | User-facing page for Home Preview L. | /home-preview-l | src/pages/HomePreviewL.tsx |
+| Public surfaces | public page | Home Preview M | User-facing page for Home Preview M. | /home-preview-m | src/pages/HomePreviewM.tsx |
+| Public surfaces | public page | Home Preview N | User-facing page for Home Preview N. | /home-preview-n | src/pages/HomePreviewN.tsx |
+| Public surfaces | public page | Home Preview O | User-facing page for Home Preview O. | /home-preview-o | src/pages/HomePreviewO.tsx |
+| Public surfaces | public page | Home Preview P | User-facing page for Home Preview P. | /home-preview-p | src/pages/HomePreviewP.tsx |
+| Public surfaces | public page | Home Preview Q | User-facing page for Home Preview Q. | /home-preview-q | src/pages/HomePreviewQ.tsx |
+| Public surfaces | public page | Home Preview R | User-facing page for Home Preview R. | /home-preview-r | src/pages/HomePreviewR.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
