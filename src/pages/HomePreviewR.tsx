@@ -4,10 +4,16 @@ import {
   AppWindow,
   BadgeCheck,
   Bot,
-  BrainCircuit,
+  Brain,
+  CalendarDays,
   Check,
+  CreditCard,
+  Figma,
+  Github,
   Link2,
+  Mail,
   ShieldCheck,
+  Slack,
   Sparkles,
   Workflow,
 } from "lucide-react";
@@ -18,6 +24,7 @@ import InstallSection from "@/components/InstallSection";
 import FadeIn from "@/components/FadeIn";
 import { Eyebrow, GradientText } from "@/components/brand";
 import OptionRibbon from "@/components/home-preview/OptionRibbon";
+import { SITE_STATS } from "@/config/site-stats";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { cn } from "@/lib/utils";
@@ -43,11 +50,11 @@ import "@/components/home-preview/preview.css";
 /* ── Friendly faces, drawn in SVG ───────────────────────────── */
 
 type FaceProps = {
-  variant: "plain" | "happy" | "bright" | "glasses" | "blush";
+  variant: "sam" | "priya" | "you" | "leo" | "mia";
 };
 
-/* Our own faces: pure geometry, nothing uncanny. A glowing circle,
-   dot or arc eyes, a smile, one simple accent per person. */
+/* Our own faces with a bit more character: still pure clean
+   geometry (arcs, dots, single-stroke hair hints), no realism. */
 function Face({ variant }: FaceProps) {
   const stroke = "#9fe3e6";
   return (
@@ -56,45 +63,70 @@ function Face({ variant }: FaceProps) {
       className="h-full w-full [filter:drop-shadow(0_0_5px_rgba(134,218,221,0.7))]"
       fill="none"
       stroke={stroke}
-      strokeWidth="2.6"
+      strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {/* Head */}
-      <circle cx="32" cy="32" r="17" strokeWidth={variant === "bright" ? 3 : 2.6} />
+      <circle cx="32" cy="33" r="17" strokeWidth={variant === "you" ? 3 : 2.5} />
+
+      {/* Hair hints: one clean stroke each */}
+      {variant === "sam" && <path d="M19 26 Q24 18 33 18.5 Q41 19 45 25" />}
+      {variant === "priya" && (
+        <>
+          <path d="M17.5 38 Q14.5 20 28 17" />
+          <path d="M46.5 38 Q49.5 20 36 17" />
+        </>
+      )}
+      {variant === "you" && <path d="M21 23 L24.5 18.5 M28 21 L31 16.5 M35.5 20.5 L39 16.5 M42 23 L45 19.5" strokeWidth="2.3" />}
+      {variant === "leo" && <path d="M19.5 24 L44.5 24 M22 24 Q22 19 27 18.5 L38 18.5 Q42.5 19 42.5 24" strokeWidth="2.3" />}
+      {variant === "mia" && <path d="M45.5 30 Q46 17.5 32 17.5 Q21 17.5 19 27" />}
+
+      {/* Brows */}
+      {variant !== "priya" && (
+        <>
+          <path d="M22.5 27.5 Q25.5 26 28.5 27.5" strokeWidth="2" />
+          <path d="M35.5 27.5 Q38.5 26 41.5 27.5" strokeWidth="2" />
+        </>
+      )}
 
       {/* Eyes */}
-      {variant === "happy" ? (
+      {variant === "priya" ? (
         <>
-          <path d="M22.5 30.5 Q25.5 27.5 28.5 30.5" strokeWidth="2.4" />
-          <path d="M35.5 30.5 Q38.5 27.5 41.5 30.5" strokeWidth="2.4" />
+          <path d="M22.5 32 Q25.5 29 28.5 32" strokeWidth="2.3" />
+          <path d="M35.5 32 Q38.5 29 41.5 32" strokeWidth="2.3" />
         </>
-      ) : variant === "glasses" ? (
+      ) : variant === "leo" ? (
         <>
-          <circle cx="25.5" cy="30.5" r="4.4" strokeWidth="2" />
-          <circle cx="38.5" cy="30.5" r="4.4" strokeWidth="2" />
-          <path d="M29.9 30.5 L34.1 30.5" strokeWidth="2" />
-          <circle cx="25.5" cy="30.5" r="1.2" fill={stroke} stroke="none" />
-          <circle cx="38.5" cy="30.5" r="1.2" fill={stroke} stroke="none" />
+          <circle cx="25.5" cy="32" r="4.2" strokeWidth="2" />
+          <circle cx="38.5" cy="32" r="4.2" strokeWidth="2" />
+          <path d="M29.7 32 L34.3 32" strokeWidth="2" />
+          <circle cx="25.5" cy="32" r="1.2" fill={stroke} stroke="none" />
+          <circle cx="38.5" cy="32" r="1.2" fill={stroke} stroke="none" />
         </>
       ) : (
         <>
-          <circle cx="25.5" cy="29.5" r="1.6" fill={stroke} stroke="none" />
-          <circle cx="38.5" cy="29.5" r="1.6" fill={stroke} stroke="none" />
+          <circle cx="25.5" cy="31.5" r="1.6" fill={stroke} stroke="none" />
+          <circle cx="38.5" cy="31.5" r="1.6" fill={stroke} stroke="none" />
         </>
       )}
 
-      {/* Blush */}
-      {variant === "blush" && (
+      {/* Cheeks for Mia */}
+      {variant === "mia" && (
         <>
-          <circle cx="21.5" cy="36" r="1.6" fill={stroke} stroke="none" opacity="0.45" />
-          <circle cx="42.5" cy="36" r="1.6" fill={stroke} stroke="none" opacity="0.45" />
+          <circle cx="21.5" cy="38" r="1.5" fill={stroke} stroke="none" opacity="0.45" />
+          <circle cx="42.5" cy="38" r="1.5" fill={stroke} stroke="none" opacity="0.45" />
         </>
       )}
 
-      {/* Smile */}
-      <path d="M25 38 Q32 43.5 39 38" />
+      {/* Smiles: varied */}
+      {variant === "you" ? (
+        <path d="M24.5 39 Q32 46 39.5 39" />
+      ) : variant === "sam" ? (
+        <path d="M25.5 40 Q32 44 38.5 40 Q35.5 42.5 32 42.5 Q28.5 42.5 25.5 40 Z" fill={stroke} stroke="none" opacity="0.9" />
+      ) : (
+        <path d="M26 39.5 Q32 44 38 39.5" />
+      )}
     </svg>
   );
 }
@@ -105,11 +137,11 @@ const PEOPLE: {
   you?: boolean;
   face: FaceProps;
 }[] = [
-  { name: "Sam", ai: "ChatGPT", face: { variant: "plain" } },
-  { name: "Priya", ai: "Cursor", face: { variant: "happy" } },
-  { name: "You", ai: "Claude", you: true, face: { variant: "bright" } },
-  { name: "Leo", ai: "Copilot", face: { variant: "glasses" } },
-  { name: "Mia", ai: "local model", face: { variant: "blush" } },
+  { name: "Sam", ai: "ChatGPT", face: { variant: "sam" } },
+  { name: "Priya", ai: "Cursor", face: { variant: "priya" } },
+  { name: "You", ai: "Claude", you: true, face: { variant: "you" } },
+  { name: "Leo", ai: "Copilot", face: { variant: "leo" } },
+  { name: "Mia", ai: "local model", face: { variant: "mia" } },
 ];
 
 /* Piecewise-linear interpolation over [0..1] progress. */
@@ -182,7 +214,7 @@ function Stage({
   children,
 }: {
   n: string;
-  icon: typeof BrainCircuit;
+  icon: typeof Brain;
   label: string;
   headline: string;
   side: "left" | "right";
@@ -280,7 +312,14 @@ const GATES = [
   { name: "secrets", ok: false },
 ] as const;
 
-const APPS = ["Gmail", "Xero", "Slack", "GitHub", "Stripe", "Calendar"];
+const APPS = [
+  { name: "Gmail", icon: Mail },
+  { name: "Slack", icon: Slack },
+  { name: "GitHub", icon: Github },
+  { name: "Figma", icon: Figma },
+  { name: "Stripe", icon: CreditCard },
+  { name: "Calendar", icon: CalendarDays },
+];
 
 const STORY = [
   { when: "yesterday", what: "invoice chased, replied in your tone", done: true },
@@ -315,7 +354,11 @@ function JourneyField() {
     let cx = window.innerWidth / 2;
     let cy = window.innerHeight * 0.38;
     let cs = 1;
-    let sp = 0; // smoothed progress: the soul of the relaxed motion
+    let sp = 0;
+    let ax = window.innerWidth / 2;
+    let ay = window.innerHeight * 0.5;
+    let pax = ax;
+    let pay = ay; // smoothed progress: the soul of the relaxed motion
 
     const tick = (now: number) => {
       const t = (now - start) / 1000;
@@ -325,20 +368,25 @@ function JourneyField() {
       const total = rect.height - vh * 0.55;
       const p = Math.min(1, Math.max(0, -rect.top / Math.max(total, 1)));
 
-      // Smooth the progress itself, then ease positions on top:
-      // double damping means the bubble glides, never jerks.
-      sp += (p - sp) * 0.012;
-
       const sm = vw < 640;
       const base = sm ? 290 : 400;
 
-      const xPct = 0.5;
+      // Smooth the progress itself, then ease positions on top:
+      // double damping means the bubble glides, never jerks.
+      sp += (p - sp) * (sm ? 0.028 : 0.016);
+
+      const xPct = interp(
+        sp,
+        [0, 0.1, 0.24, 0.4, 0.56, 0.72, 0.85, 0.94, 1],
+        [0.5, 0.5, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, sm ? 0.36 : 0.3, sm ? 0.64 : 0.7, 0.5, 0.5, 0.5],
+      );
       const yPct = interp(sp, [0, 0.1, 0.24, 0.94, 1], [0, 0, 0.42, 0.44, 0.46]);
-      // Travelling bubble roughly double the old size.
+      // Hold a big presence through memory, apps, and the gate, then
+      // taper from the proof stage to the pop.
       const scale = interp(
         sp,
-        [0, 0.1, 0.24, 0.4, 0.56, 0.72, 0.85, 0.93, 0.975],
-        [1, 1, 0.82, 0.72, 0.64, 0.56, 0.46, 0.22, 0],
+        [0, 0.1, 0.24, 0.68, 0.8, 0.9, 0.975],
+        [1, 1, 0.82, 0.76, 0.55, 0.28, 0],
       );
 
       const heroRect = heroSceneRef.current?.getBoundingClientRect();
@@ -346,15 +394,16 @@ function JourneyField() {
       const heroCy = heroRect ? heroRect.top + base * 0.5 + 8 : vh * 0.36;
       const heroBlend = interp(sp, [0.1, 0.24], [1, 0]);
 
-      const driftX = Math.sin(t * 0.24) * vw * 0.004;
+      const driftX = Math.sin(t * 0.24) * vw * 0.006;
       const driftY = Math.sin(t * 0.17 + 1.3) * vh * 0.008;
 
       const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX * (1 - heroBlend) + driftX * heroBlend;
       const targetY = heroBlend * heroCy + (1 - heroBlend) * yPct * vh + driftY;
 
-      cx += (targetX - cx) * 0.02;
-      cy += (targetY - cy) * 0.02;
-      cs += (scale - cs) * 0.028;
+      const ease = sm ? 0.04 : 0.028;
+      cx += (targetX - cx) * ease;
+      cy += (targetY - cy) * ease;
+      cs += (scale - cs) * (ease + 0.007);
 
       const visible = cs > 0.015 && sp < 0.985;
       bubble.style.opacity = visible ? "1" : "0";
@@ -387,10 +436,13 @@ function JourneyField() {
         path.setAttribute("stroke", `hsl(183 50% 62% / ${0.5 * peopleAlpha})`);
       });
 
-      // One lazy tether to the stage being passed.
+      // One tether that travels: the attach point glides between
+      // anchors (out to a new card, back toward the bubble between
+      // cards) and fades with travel speed, so handovers feel like
+      // motion, never a cut.
       const stagePath = stagePathRef.current;
       if (stagePath) {
-        const stageAlpha = interp(sp, [0.16, 0.26, 0.88, 0.94], [0, 1, 1, 0]);
+        const stageAlpha = interp(sp, [0.1, 0.18, 0.88, 0.94], [0, 1, 1, 0]);
         let bestI = -1;
         let bestD = Infinity;
         stageRefs.current.forEach((el, i) => {
@@ -405,15 +457,27 @@ function JourneyField() {
         });
         const el = bestI >= 0 ? stageRefs.current[bestI] : null;
         if (!el || stageAlpha <= 0.01) {
-          stagePath.setAttribute("d", "");
+          // Reel the string back into the bubble, then go quiet.
+          ax += (cx - ax) * 0.08;
+          ay += (cy + (base * cs) / 2 - ay) * 0.08;
+          const slack = Math.hypot(ax - cx, ay - cy);
+          if (slack < 24) stagePath.setAttribute("d", "");
         } else {
           const r = el.getBoundingClientRect();
-          const px = r.left + r.width / 2;
-          const py = r.top + r.height / 2;
-          const midX = (cx + px) / 2 + Math.sin(t * 0.5) * 5;
-          const midY = (cy + py) / 2 + Math.min(90, Math.abs(px - cx) * 0.25);
-          stagePath.setAttribute("d", `M ${cx} ${cy + (base * cs) / 2 - 8} Q ${midX} ${midY} ${px} ${py}`);
-          stagePath.setAttribute("stroke", `hsl(183 52% 64% / ${0.6 * stageAlpha})`);
+          const tx = r.left + r.width / 2;
+          const ty = r.top + r.height / 2;
+          ax += (tx - ax) * 0.055;
+          ay += (ty - ay) * 0.055;
+        }
+        const speed = Math.hypot(ax - pax, ay - pay);
+        pax = ax;
+        pay = ay;
+        const speedFade = Math.max(0.3, 1 - speed / 36);
+        if (stageAlpha > 0.01 || Math.hypot(ax - cx, ay - cy) >= 24) {
+          const midX = (cx + ax) / 2 + Math.sin(t * 0.5) * 5;
+          const midY = (cy + ay) / 2 + Math.min(90, Math.abs(ax - cx) * 0.25);
+          stagePath.setAttribute("d", `M ${cx} ${cy + (base * cs) / 2 - 8} Q ${midX} ${midY} ${ax} ${ay}`);
+          stagePath.setAttribute("stroke", `hsl(183 52% 64% / ${0.6 * Math.max(stageAlpha, 0.2) * speedFade})`);
         }
       }
 
@@ -469,10 +533,13 @@ function JourneyField() {
                 <span className="absolute left-[16%] top-[10%] h-[20%] w-[34%] rotate-[-18deg] rounded-[50%] bg-white/30 blur-[7px]" />
                 <span className="absolute bottom-[14%] right-[18%] h-[7%] w-[14%] rounded-[50%] bg-white/10 blur-[5px]" />
                 <span className="absolute inset-[7%] rounded-full border border-[#bdeff0]/12" />
-                <span className="relative flex flex-col items-center">
-                  <span className="text-3xl font-extrabold tracking-tight text-heading sm:text-4xl">UnClick</span>
-                  <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.26em] text-primary/75 sm:text-[10px]">
-                    where AI belongs
+                <span className="relative flex w-[62%] flex-col items-center">
+                  <img src="/logo-wordmark.svg" alt="UnClick" className="w-full" />
+                  <span className="mt-2 text-[13px] font-bold tracking-tight text-heading sm:text-[16px]">
+                    Where AI Belongs
+                  </span>
+                  <span className="mt-0.5 text-[11px] font-semibold text-primary sm:text-[13px]">
+                    Humans welcome
                   </span>
                 </span>
               </div>
@@ -488,8 +555,10 @@ function JourneyField() {
 
         {reduced && (
           <div className="absolute left-1/2 top-2 -translate-x-1/2">
-            <div className="flex h-[290px] w-[290px] items-center justify-center rounded-full border border-[#86dadd]/50 bg-primary/[0.08] sm:h-[380px] sm:w-[380px]">
-              <span className="text-3xl font-extrabold tracking-tight text-heading">UnClick</span>
+            <div className="flex h-[290px] w-[290px] flex-col items-center justify-center rounded-full border border-[#86dadd]/50 bg-primary/[0.08] sm:h-[380px] sm:w-[380px]">
+              <img src="/logo-wordmark.svg" alt="UnClick" className="w-[62%]" />
+              <span className="mt-2 text-[14px] font-bold text-heading">Where AI Belongs</span>
+              <span className="text-[12px] font-semibold text-primary">Humans welcome</span>
             </div>
           </div>
         )}
@@ -511,7 +580,7 @@ function JourneyField() {
       <div className="mx-auto max-w-6xl">
         <Stage
           n="01"
-          icon={BrainCircuit}
+          icon={Brain}
           label="memory"
           headline="It already knows how you work."
           side="left"
@@ -546,22 +615,27 @@ function JourneyField() {
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
             {APPS.map((app) => (
               <div
-                key={app}
+                key={app.name}
                 className="flex flex-col items-center gap-1.5 rounded-xl border border-white/[0.09] bg-[#06202c]/75 px-2 py-3"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/25 bg-gradient-to-b from-[#11394c] to-[#082230] text-[13px] font-extrabold text-primary/90">
-                  {app[0]}
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/25 bg-gradient-to-b from-[#11394c] to-[#082230] text-primary/90">
+                  <app.icon className="h-[18px] w-[18px]" />
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground/70">
-                  {app}
+                  {app.name}
                 </span>
               </div>
             ))}
           </div>
-          <p className="mt-3.5 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground/65">
-            <Link2 className="h-3.5 w-3.5 text-primary/70" />
-            sign in once · yours to allow
-          </p>
+          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground/65">
+              <Link2 className="h-3.5 w-3.5 text-primary/70" />
+              sign in once · yours to allow
+            </p>
+            <span className="rounded-full border border-primary/30 bg-primary/[0.08] px-2.5 py-1 font-mono text-[10.5px] font-bold tracking-[0.08em] text-primary">
+              {SITE_STATS.ENDPOINTS_DISPLAY} actions · {SITE_STATS.TOOLS_DISPLAY} apps
+            </span>
+          </div>
         </Stage>
 
         <Stage
@@ -684,20 +758,7 @@ function JourneyField() {
               Same memory. Same rules. Same{" "}receipts.
             </h2>
           </FadeIn>
-          <FadeIn delay={0.15}>
-            <div className="mt-9 flex justify-center">
-              <a
-                href="#install"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("install")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]"
-              >
-                Grab a string
-              </a>
-            </div>
-          </FadeIn>
+
         </div>
       </section>
     </div>
@@ -754,7 +815,23 @@ const HomePreviewR = () => {
         {/* ── The journey ────────────────────────────────────────── */}
         <JourneyField />
 
-        <InstallSection />
+        {/* The call to action, given its stage lights */}
+        <section className="relative px-6 pt-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <FadeIn>
+              <h2 className="text-4xl font-extrabold leading-[1.04] tracking-[-0.025em] text-heading sm:text-6xl">
+                Grab a <GradientText>string.</GradientText>
+              </h2>
+            </FadeIn>
+          </div>
+        </section>
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute inset-x-4 inset-y-6 -z-10 rounded-[2rem] border border-primary/25 bg-primary/[0.04] shadow-[0_0_90px_-30px_hsl(182_46%_57%/0.55),inset_0_0_60px_-40px_hsl(182_46%_57%/0.4)] sm:inset-x-10"
+            aria-hidden="true"
+          />
+          <InstallSection />
+        </div>
         <FAQ />
       </main>
 
