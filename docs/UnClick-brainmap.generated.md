@@ -75,7 +75,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 6ba14c5445bf | 1542 |
+| src/pages/Index.tsx | a509edc689ae | 1073 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
@@ -153,7 +153,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
 | src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
 | src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
-| src/pages/HomePreviewR.tsx | 24cbf7b2d072 | 31537 |
+| src/pages/HomePreviewR.tsx | a9c7e1529e7a | 1315 |
 | src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |

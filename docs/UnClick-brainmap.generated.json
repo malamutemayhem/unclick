@@ -16063,8 +16063,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "6ba14c5445bf",
-      "bytes": 1542
+      "hash": "a509edc689ae",
+      "bytes": 1073
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -16453,8 +16453,8 @@
     },
     {
       "source": "src/pages/HomePreviewR.tsx",
-      "hash": "24cbf7b2d072",
-      "bytes": 31537
+      "hash": "a9c7e1529e7a",
+      "bytes": 1315
     },
     {
       "source": "src/pages/HomePreview.tsx",
