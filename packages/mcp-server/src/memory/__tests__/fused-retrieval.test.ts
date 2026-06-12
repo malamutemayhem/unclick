@@ -202,7 +202,7 @@ describe("Supabase searchMemory: keyword + vector fusion", () => {
     const snap = snapshot([FLAG, ...EMBED_KEYS]);
     try {
       for (const key of EMBED_KEYS) delete process.env[key];
-      delete process.env[FLAG];
+      process.env[FLAG] = "0"; // kill switch
       process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = "true";
       const backend = await makeBackend();
       const results = await backend.searchMemory(QUERY, 10);

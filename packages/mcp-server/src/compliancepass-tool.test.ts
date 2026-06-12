@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   compliancepassReportJson,
@@ -68,5 +69,35 @@ describe("compliancepass-tool", () => {
       repo_path: process.cwd(),
       target_sha: " ",
     })).resolves.toMatchObject({ error: "target_sha must be a non-empty string when provided" });
+  });
+
+  it("warns when the scan root is not a repository root so missing-file gaps are not trusted", async () => {
+    const run = await compliancepassRun({ repo_path: process.cwd() }) as {
+      run_id?: string;
+      scan_root?: { kind?: string; is_repository_root?: boolean; warning?: string };
+      compliancepass_receipt_v1?: { action_needed?: string[] };
+    };
+
+    expect(run.scan_root).toMatchObject({
+      kind: "explicit_repo_path",
+      is_repository_root: false,
+    });
+    expect(run.scan_root?.warning).toMatch(/missing-file gaps may be false/i);
+    expect(run.compliancepass_receipt_v1?.action_needed?.[0]).toMatch(/missing-file gaps may be false/i);
+
+    const status = await compliancepassStatus({ run_id: run.run_id }) as {
+      scan_root?: { is_repository_root?: boolean };
+    };
+    expect(status.scan_root?.is_repository_root).toBe(false);
+  });
+
+  it("reports a clean scan root for a full repository checkout", async () => {
+    const repoRoot = path.resolve(process.cwd(), "..", "..");
+    const run = await compliancepassRun({ repo_path: repoRoot }) as {
+      scan_root?: { is_repository_root?: boolean; warning?: string };
+    };
+
+    expect(run.scan_root?.is_repository_root).toBe(true);
+    expect(run.scan_root?.warning).toBeUndefined();
   });
 });

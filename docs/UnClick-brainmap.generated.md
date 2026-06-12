@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 18863a2e935a | 18077 |
+| AUTOPILOT.md | 969ddb05e2d3 | 18609 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
 | docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
@@ -23,17 +23,17 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 7fc4bfe09997 | 19606 |
-| src/pages/admin/AdminShell.tsx | eea655b792cb | 28531 |
+| src/pages/admin/AdminShell.tsx | 3d9ba80a47e9 | 30219 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 5fe8ef28e93c | 1882 |
+| .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | 0946c1ef23c5 | 7326 |
+| package.json | 9c050b511a57 | 7477 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
@@ -86,7 +86,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | e837ee6a6e33 | 7846 |
+| src/pages/admin/AdminTools.tsx | be784ae91b3f | 9616 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
@@ -101,9 +101,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 53d4116c6739 | 5945 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
-| src/pages/admin/AdminJobs.tsx | de0b5baf0534 | 64097 |
+| src/pages/admin/AdminJobs.tsx | e891d0a7df9e | 65839 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | d743c17f4412 | 78086 |
+| src/pages/admin/AdminKeychain.tsx | b8e0f75ecee7 | 78511 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
@@ -253,8 +253,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
+| .github/workflows/secret-scan.yml | 437fe35aa550 | 1158 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
+| .github/workflows/testpass-pr-check.yml | ab425e8d32b7 | 20467 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
 | .github/workflows/tier2-rollback.yml | 1468c05586fb | 1495 |
@@ -270,7 +271,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 126 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 127 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
@@ -1280,6 +1281,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | publish standalone mcps.yml | publish standalone mcps GitHub automation workflow. | - | .github/workflows/publish-standalone-mcps.yml |
 | Automations | workflow | review enforcement warning.yml | review enforcement warning GitHub automation workflow. | - | .github/workflows/review-enforcement-warning.yml |
 | Automations | workflow | scheduled build self test.yml | scheduled build self test GitHub automation workflow. | - | .github/workflows/scheduled-build-self-test.yml |
+| Automations | workflow | secret scan.yml | secret scan GitHub automation workflow. | - | .github/workflows/secret-scan.yml |
 | Automations | workflow | seed vault.yml | seed vault GitHub automation workflow. | - | .github/workflows/seed-vault.yml |
 | Automations | workflow | testpass pr check.yml | testpass pr check GitHub automation workflow. | - | .github/workflows/testpass-pr-check.yml |
 | Automations | workflow | testpass scheduled smoke.yml | testpass scheduled smoke GitHub automation workflow. | - | .github/workflows/testpass-scheduled-smoke.yml |
@@ -2329,6 +2331,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:memory-eval | node --test scripts/memory-retrieval-eval.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:tier2-rollback | node --test scripts/tier2-rollback.test.mjs |
+| test:visibility-snapshot | node --test scripts/visibility-snapshot.test.mjs |
 | test:watch | vitest |
 | test:writerlane-live-catalog | node --test scripts/pinballwake-writerlane-live-catalog.test.mjs |
 

@@ -100,6 +100,46 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
   );
 }
 
+/** Titled master division in the sidebar: HUMAN (your stuff) vs AGENTS (the workforce). */
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30 first:mt-0">
+      {label}
+    </div>
+  );
+}
+
+/**
+ * Jobs links carry a lane query (?lane=human / ?lane=agent) over the same
+ * /admin/jobs route, so active state must consider the search string, which
+ * NavLink ignores. One todo substrate, two queues; see jobLanes.ts.
+ */
+function JobsLaneLink({ lane, label, icon: Icon, onClick }: {
+  lane: "human" | "agent";
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  onClick?: () => void;
+}) {
+  const location = useLocation();
+  const active =
+    location.pathname === "/admin/jobs" &&
+    new URLSearchParams(location.search).get("lane") === lane;
+  return (
+    <NavLink
+      to={`/admin/jobs?lane=${lane}`}
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+        active
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="flex-1">{label}</span>
+    </NavLink>
+  );
+}
+
 function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -293,6 +333,9 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
             }
             if (item.hasChildren && item.path === "/admin/xgate") {
               return <XGateNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            if (item.path === "/admin/jobs") {
+              return <JobsLaneLink key={item.path} lane="agent" label="Jobs (AI)" icon={item.icon} onClick={onLinkClick} />;
             }
             return (
               <SurfaceLink
@@ -569,17 +612,23 @@ function SidebarNav({
   return (
     <>
       <SurfaceLink path="/admin/dashboard" label="Dashboard"               icon={LayoutDashboard} onClick={onLinkClick} />
+
+      <SectionHeader label="Human" />
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
-      <SeatsNavItem onClick={onLinkClick} />
-      <AutopilotNavGroup onLinkClick={onLinkClick} />
+      <JobsLaneLink lane="human" label="Jobs (Human)" icon={ListTodo} onClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
       <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings}  onClick={onLinkClick} />
       <SurfaceLink path="/admin/billing"  label="Billing"                  icon={CreditCard} onClick={onLinkClick} />
+
+      <SectionHeader label="Agents" />
+      <SeatsNavItem onClick={onLinkClick} />
+      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
+      <AutopilotNavGroup onLinkClick={onLinkClick} />
+
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}
     </>
   );

@@ -56,7 +56,7 @@ export async function convexHull3D(args: Record<string, unknown>) {
 
   // Find initial tetrahedron
   // Pick 4 non-coplanar points
-  let i0 = 0;
+  const i0 = 0;
   let i1 = -1;
   for (let i = 1; i < pts.length; i++) {
     if (norm(sub(pts[i], pts[i0])) > 1e-10) {

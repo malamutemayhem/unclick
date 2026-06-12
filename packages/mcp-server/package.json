@@ -2,7 +2,7 @@
   "name": "@unclick/mcp-server",
   "version": "0.3.110",
   "mcpName": "io.github.malamutemayhem/unclick",
-  "description": "MCP server for the UnClick tool marketplace - lets AI agents discover and use every UnClick tool",
+  "description": "UnClick is the universal remote for AI: one MCP install that gives any compatible agent 450+ callable endpoints across 60+ integrations, plus persistent cross-session memory.",
   "type": "module",
   "bin": {
     "unclick-mcp": "./dist/index.js"
@@ -24,7 +24,7 @@
     "build": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsc",
     "dev": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx src/index.ts",
     "start": "node dist/index.js",
-    "test": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx --test src/memory/__tests__/typed-links.test.ts src/memory/__tests__/typed-memory.test.ts src/memory/__tests__/hybrid-search.test.ts src/memory/__tests__/business-context-search.test.ts src/memory/__tests__/fused-retrieval.test.ts src/memory/__tests__/bitemporal.test.ts src/memory/__tests__/reconcile.test.ts src/memory/__tests__/response-bounds.test.ts src/memory/__tests__/load-memory-invalidation.test.ts src/memory/__tests__/snapshot-taxonomy.test.ts src/memory/__tests__/local-backend.test.ts src/memory/__tests__/session-inspection-trigger.test.ts src/memory/__tests__/provenance.test.ts src/memory/__tests__/decay-policy.test.ts src/memory/__tests__/consolidation.test.ts src/memory/__tests__/scopes.test.ts src/memory/__tests__/write-gate.test.ts src/memory/__tests__/forget-propagation.test.ts src/memory/__tests__/corrections.test.ts src/memory/__tests__/eval-harness.test.ts src/memory/__tests__/passport.test.ts src/memory/__tests__/auto-capture.test.ts src/memory/__tests__/playbooks.test.ts && vitest run && node --test scripts/connector-depth-ladder.test.mjs && node scripts/generate-tool-index.mjs --check && node scripts/connector-depth-ladder.mjs --check && node scripts/check-standalone-registry.mjs",
+    "test": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx --test src/memory/__tests__/typed-links.test.ts src/memory/__tests__/typed-memory.test.ts src/memory/__tests__/hybrid-search.test.ts src/memory/__tests__/business-context-search.test.ts src/memory/__tests__/fused-retrieval.test.ts src/memory/__tests__/bitemporal.test.ts src/memory/__tests__/reconcile.test.ts src/memory/__tests__/response-bounds.test.ts src/memory/__tests__/load-memory-invalidation.test.ts src/memory/__tests__/snapshot-taxonomy.test.ts src/memory/__tests__/local-backend.test.ts src/memory/__tests__/session-inspection-trigger.test.ts src/memory/__tests__/provenance.test.ts src/memory/__tests__/decay-policy.test.ts src/memory/__tests__/consolidation.test.ts src/memory/__tests__/scopes.test.ts src/memory/__tests__/write-gate.test.ts src/memory/__tests__/forget-propagation.test.ts src/memory/__tests__/corrections.test.ts src/memory/__tests__/eval-harness.test.ts src/memory/__tests__/passport.test.ts src/memory/__tests__/auto-capture.test.ts src/memory/__tests__/playbooks.test.ts src/memory/__tests__/criteria.test.ts src/memory/__tests__/ops-coverage.test.ts src/memory/__tests__/recycle-bin.test.ts src/memory/__tests__/pass2-features.test.ts && vitest run && node --test scripts/connector-depth-ladder.test.mjs && node scripts/generate-tool-index.mjs --check && node scripts/connector-depth-ladder.mjs --check && node scripts/check-standalone-registry.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -61,15 +61,29 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "unclick",
     "ai",
+    "ai-agents",
+    "agent-tools",
+    "ai-memory",
+    "persistent-memory",
+    "claude",
+    "chatgpt",
+    "cursor",
+    "llm",
+    "integrations",
     "tools",
     "utilities"
   ],
   "license": "MIT",
+  "homepage": "https://unclick.world",
   "repository": {
     "type": "git",
     "url": "https://github.com/malamutemayhem/unclick"
+  },
+  "bugs": {
+    "url": "https://github.com/malamutemayhem/unclick/issues"
   }
 }
