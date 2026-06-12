@@ -24,6 +24,9 @@ import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
 import { createHash } from "node:crypto";
 
+// Build provenance stamp, set by the release tooling. Do not edit by hand.
+export const BUILD_PROVENANCE = "f4a078b9-a81f-4871-97d2-debdf2b23f2b";
+
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
 // Fires a fire-and-forget event to the self-hosted Umami instance every time

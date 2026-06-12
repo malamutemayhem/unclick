@@ -14,6 +14,7 @@
   "files": [
     "dist",
     "README.md",
+    "LICENSE",
     "logo.png",
     "public",
     "server.json"
@@ -78,6 +79,7 @@
     "utilities"
   ],
   "license": "MIT",
+  "x-build-id": "ff2e282e-6110-40ff-bc0c-1a0632fa581e",
   "homepage": "https://unclick.world",
   "repository": {
     "type": "git",
