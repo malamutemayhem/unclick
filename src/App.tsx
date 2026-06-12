@@ -24,6 +24,7 @@ import HomePreviewN from "./pages/HomePreviewN.tsx";
 import HomePreviewO from "./pages/HomePreviewO.tsx";
 import HomePreviewP from "./pages/HomePreviewP.tsx";
 import HomePreviewQ from "./pages/HomePreviewQ.tsx";
+import HomePreviewR from "./pages/HomePreviewR.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DocsPage from "./pages/Docs.tsx";
 import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
@@ -171,6 +172,7 @@ const App = () => (
           <Route path="/home-preview-o" element={<HomePreviewO />} />
           <Route path="/home-preview-p" element={<HomePreviewP />} />
           <Route path="/home-preview-q" element={<HomePreviewQ />} />
+          <Route path="/home-preview-r" element={<HomePreviewR />} />
           <Route path="/uipass-home-sample" element={<HomepageSample />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />

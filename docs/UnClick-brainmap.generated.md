@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | d3fcb9ec88d3 | 19483 |
+| src/App.tsx | 7fc4bfe09997 | 19606 |
 | src/pages/admin/AdminShell.tsx | 583495279a0e | 28506 |
 | src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -153,6 +153,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
 | src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
 | src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
+| src/pages/HomePreviewR.tsx | 060e69692f5c | 14159 |
 | src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
@@ -263,7 +264,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 53 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 54 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -395,6 +396,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /home-preview-o | Home Preview O | User-facing page for Home Preview O. | src/pages/HomePreviewO.tsx |
 | /home-preview-p | Home Preview P | User-facing page for Home Preview P. | src/pages/HomePreviewP.tsx |
 | /home-preview-q | Home Preview Q | User-facing page for Home Preview Q. | src/pages/HomePreviewQ.tsx |
+| /home-preview-r | Home Preview R | User-facing page for Home Preview R. | src/pages/HomePreviewR.tsx |
 | /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
@@ -1480,6 +1482,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Home Preview O | User-facing page for Home Preview O. | /home-preview-o | src/pages/HomePreviewO.tsx |
 | Public surfaces | public page | Home Preview P | User-facing page for Home Preview P. | /home-preview-p | src/pages/HomePreviewP.tsx |
 | Public surfaces | public page | Home Preview Q | User-facing page for Home Preview Q. | /home-preview-q | src/pages/HomePreviewQ.tsx |
+| Public surfaces | public page | Home Preview R | User-facing page for Home Preview R. | /home-preview-r | src/pages/HomePreviewR.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
