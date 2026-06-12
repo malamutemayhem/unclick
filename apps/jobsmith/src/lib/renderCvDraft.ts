@@ -36,7 +36,7 @@ const JD_STOPWORDS = new Set([
   "well", "also", "etc", "such", "plus", "per", "via", "not", "but", "out",
 ]);
 
-function extractJdKeywords(text: string): string[] {
+export function extractJdKeywords(text: string): string[] {
   const tokens = text.toLowerCase().split(/[^a-z0-9+#]+/).filter(Boolean);
   const keywords = new Set<string>();
   for (const token of tokens) {
