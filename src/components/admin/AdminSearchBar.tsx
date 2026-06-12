@@ -48,6 +48,10 @@ const TARGETS: Record<SearchHit["type"], string> = {
 export default function AdminSearchBar() {
   const navigate = useNavigate();
   const { session } = useSession();
+  // Depend on the token string, never the session object: providers (and test
+  // mocks) may return a fresh object per render, and an object dep here turns
+  // the debounce effect into an infinite re-render loop.
+  const accessToken = session?.access_token ?? null;
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -97,7 +101,7 @@ export default function AdminSearchBar() {
       // Same auth as every other admin surface: the signed-in session token.
       // The legacy localStorage api key remains a fallback for keyed setups.
       // (The old key-only path made search silently dead for normal sign-ins.)
-      const token = session?.access_token ?? localStorage.getItem(API_KEY_STORAGE) ?? "";
+      const token = accessToken ?? localStorage.getItem(API_KEY_STORAGE) ?? "";
       if (!token) {
         setResults([]);
         setAuthMissing(true);
@@ -124,7 +128,7 @@ export default function AdminSearchBar() {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [query, session]);
+  }, [query, accessToken]);
 
   const pick = useCallback(
     (hit: SearchHit) => {
