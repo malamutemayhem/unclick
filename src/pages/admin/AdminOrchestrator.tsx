@@ -1407,7 +1407,7 @@ function OrchestratorStoryPanel({
               return (
                 <li key={chapter.key} className="group relative pb-9 last:pb-0">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-xl font-semibold leading-7 text-white sm:text-2xl">
+                    <h3 className="text-base font-semibold leading-6 text-white sm:text-lg">
                       <span className="mr-2">{chapter.emoji}</span>
                       {chapter.title}
                     </h3>
@@ -1419,7 +1419,7 @@ function OrchestratorStoryPanel({
                       {formatRelative(chapter.endedAt)}
                     </time>
                   </div>
-                  <p className="mt-3 text-base leading-8 text-white/82 sm:text-[17px]">
+                  <p className="mt-2 text-sm leading-6 text-white/75">
                     {shownStory}
                   </p>
                   {nativeNotes && (
@@ -1958,7 +1958,7 @@ function OrchestratorContextCard({
     .slice(0, 4);
 
   return (
-    <section className="rounded-2xl border border-[#61C1C4]/20 bg-[#101818] p-4">
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
       <header className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">

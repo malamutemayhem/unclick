@@ -7,7 +7,7 @@ Companions: `docs/connections-ia.md` (PR #1476, the umbrella tree; this doc supe
 
 1. **One list, many lenses.** There is exactly one Apps list. Every view (Connected, Popular, Key apps...) is a filter of that list, never a fork or a second page.
 2. **One filter state, two controls.** The left rail and the top chips render from the same lens definition array and read/write the same state. Selecting anywhere updates everywhere. State lives in the URL (`?lens=...`) so views are linkable and survive refresh.
-3. **Buttons say the action, pills say the truth.** Status pills report proven state (green Connected only after a real test). The action button says what clicking does: Connect (sign-in apps), Add key (key apps), Manage (already connected). Built-in apps need nothing and show no button.
+3. **One chip per row: it states the truth AND does the action** (operator caught the original two-element design saying the same thing twice on unconnected rows). Unconnected: the chip is the action (Connect for sign-in apps, Add key for key apps). Connected: the chip is the proven status (green Connected only after a real test; Key saved when stored but untested) and clicking it manages the connection. Built-in apps show a plain Built-in pill with no action.
 4. **Three setup kinds, plain names.** Sign-in apps (OAuth popup: click, approve, done), Key apps (paste a key once), Built-in (work immediately). Derived from connector `auth_type`: oauth2 -> sign-in; api_key / bot_token -> key; no connector -> built-in.
 5. **Truth-locked lenses.** "Popular" is a curated starter set until real usage data exists (the code says so in a comment); "Connected" means a working credential is on file (the pill still distinguishes proven vs saved-untested).
 

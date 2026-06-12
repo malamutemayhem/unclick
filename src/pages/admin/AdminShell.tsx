@@ -16,6 +16,7 @@ import { useSession, signOut } from "@/lib/auth";
 import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
+import { LENSES, parseAppLens } from "@/components/apps/appLenses";
 import UserAvatar from "@/components/UserAvatar";
 import {
   ArrowRightLeft,
@@ -54,7 +55,7 @@ import {
   MessagesSquare,
   BellRing,
   LayoutDashboard,
-  AppWindow,
+  PlugZap,
   FolderKanban,
   Plane,
   ListTodo,
@@ -97,6 +98,81 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
         </span>
       )}
     </NavLink>
+  );
+}
+
+/**
+ * Connections group: everything the account reaches OUT to, per the operator's
+ * IA (docs/connections-ia.md + docs/prd/connections-apps-holistic.md).
+ * Apps is THE list; the lens sublinks are views of it (?lens=), sourced from
+ * the same LENSES array the page renders, so the sidebar can never drift from
+ * the page. Passport remains until the P3 dissolve; Websites ships with the
+ * extension surface and is shown as planned, not linked.
+ */
+function ConnectionsNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
+  const location = useLocation();
+  const onApps = location.pathname === "/admin/apps";
+  const open = onApps || location.pathname.startsWith("/admin/keychain");
+  const activeLens = parseAppLens(new URLSearchParams(location.search).get("lens"));
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/apps"
+        onClick={onLinkClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive || open
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <PlugZap className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Connections</span>
+        {open
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {open && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          <Link
+            to="/admin/apps"
+            onClick={onLinkClick}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-card/40 ${
+              onApps && activeLens === "all" ? "text-primary" : "text-muted-foreground hover:text-body"
+            }`}
+          >
+            Apps
+          </Link>
+          {LENSES.filter((l) => l.id !== "all").map(({ id, label }) => (
+            <Link
+              key={id}
+              to={`/admin/apps?lens=${id}`}
+              onClick={onLinkClick}
+              className={`rounded-md py-1.5 pl-6 pr-3 text-xs font-medium transition-colors hover:bg-card/40 ${
+                onApps && activeLens === id ? "text-primary" : "text-muted-foreground/80 hover:text-body"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          <Link
+            to="/admin/keychain"
+            onClick={onLinkClick}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-card/40 ${
+              location.pathname.startsWith("/admin/keychain") ? "text-primary" : "text-muted-foreground hover:text-body"
+            }`}
+          >
+            Passport
+          </Link>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground/40">
+            Websites
+            <span className="rounded border border-white/10 px-1 py-px text-[9px] uppercase tracking-wide">soon</span>
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -617,8 +693,7 @@ function SidebarNav({
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
-      <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
+      <ConnectionsNavGroup onLinkClick={onLinkClick} />
       <JobsLaneLink lane="human" label="Jobs (Human)" icon={ListTodo} onClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
       <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings}  onClick={onLinkClick} />

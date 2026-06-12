@@ -183,27 +183,20 @@ export default function AdminToolsPage() {
         </div>
       )}
 
-      <div className="xl:grid xl:grid-cols-[180px_1fr] xl:gap-6">
-        <aside className="hidden xl:block">
-          <AppLensBar variant="rail" lens={lens} counts={counts} onSelect={selectLens} />
-        </aside>
-        <div className="min-w-0">
-          <div className="mb-3">
-            <AppLensBar variant="chips" lens={lens} counts={counts} onSelect={selectLens} />
-          </div>
-          <AppsTable
-            apps={lensedApps}
-            mode="admin"
-            enabled={enabled}
-            onToggle={handleToggle}
-            onToggleAll={handleToggleAll}
-            statusOf={statusOf}
-            onStatusClick={handleStatusClick}
-            actionOf={actionOf}
-            busy={saving}
-          />
-        </div>
+      <div className="mb-3">
+        <AppLensBar lens={lens} counts={counts} onSelect={selectLens} />
       </div>
+      <AppsTable
+        apps={lensedApps}
+        mode="admin"
+        enabled={enabled}
+        onToggle={handleToggle}
+        onToggleAll={handleToggleAll}
+        statusOf={statusOf}
+        onStatusClick={handleStatusClick}
+        actionOf={actionOf}
+        busy={saving}
+      />
 
       {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (
         <ConnectAppModal
