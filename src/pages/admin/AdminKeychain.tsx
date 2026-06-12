@@ -348,7 +348,7 @@ export default function AdminKeychain() {
       const res = await fetch("/api/backstagepass?action=list", { headers: authHeader });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `List failed with ${res.status}`);
+        throw new Error(body.error ?? `Temporary error loading your connections (HTTP ${res.status}). Please retry.`);
       }
       const body = await res.json();
       setCredentials(body.data ?? []);
@@ -821,8 +821,16 @@ export default function AdminKeychain() {
 
       {/* List */}
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
-          {error}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void fetchList()}
+            disabled={loading}
+            className="shrink-0 rounded-lg border border-red-500/30 px-3 py-1.5 font-medium text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Retry
+          </button>
         </div>
       )}
 
