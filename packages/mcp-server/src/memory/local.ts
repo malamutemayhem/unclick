@@ -19,6 +19,11 @@ import type {
   InvalidateFactInput,
   ForgetInput,
   ForgetReceipt,
+  ArchiveFactInput,
+  ArchiveFactResult,
+  RestoreFactInput,
+  RestoreFactResult,
+  RecycleBinEntry,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -43,6 +48,12 @@ import {
   buildMemoryPassportImportResult,
   verifyMemoryPassportBundle,
 } from "./passport.js";
+import {
+  buildMemoryDiffReport,
+  resolveMemoryDiffWindow,
+  type MemoryDiffInput,
+  type MemoryDiffReport,
+} from "./diff.js";
 import {
   filterAndRankMemoryTypedLinks,
   type MemoryTypedLinkCandidate,
@@ -500,6 +511,7 @@ export class LocalBackend implements MemoryBackend {
           category: fact.category,
           confidence: fact.confidence,
           created_at: fact.created_at,
+          valid_from: fact.valid_from ?? null,
           score,
         };
       });
@@ -747,7 +759,7 @@ export class LocalBackend implements MemoryBackend {
       last_accessed: now(),
       decay_tier: "hot",
       valid_from: data.valid_from ?? now(),
-      valid_to: undefined,
+      valid_to: data.valid_to ?? undefined,
       created_at: now(),
       updated_at: now(),
       content_hash: memoryWriteGateContentHash(data.fact),
@@ -1262,6 +1274,86 @@ export class LocalBackend implements MemoryBackend {
       fact_decay_tiers: tiers,
     };
   }
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  async archiveFact(input: ArchiveFactInput): Promise<ArchiveFactResult> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === input.fact_id);
+    if (!fact) throw new Error(`Fact ${input.fact_id} not found`);
+    if (fact.status === "archived") {
+      return { fact_id: fact.id, archived_at: fact.archived_at ?? fact.updated_at, already_archived: true };
+    }
+    if (fact.status !== "active") {
+      throw new Error(`Fact ${input.fact_id} has status '${fact.status}' and cannot be archived`);
+    }
+
+    const archivedAt = now();
+    fact.status = "archived";
+    fact.archived_at = archivedAt;
+    fact.decay_reason = input.reason ?? "recycle-bin:user_archive";
+    fact.updated_at = archivedAt;
+    writeTable("extracted_facts", rows);
+    return { fact_id: fact.id, archived_at: archivedAt, already_archived: false };
+  }
+
+  async restoreFact(input: RestoreFactInput): Promise<RestoreFactResult> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === input.fact_id);
+    if (!fact) throw new Error(`Fact ${input.fact_id} not found`);
+    if (fact.status === "active") {
+      return { fact_id: fact.id, restored_at: fact.updated_at, was_archived: false };
+    }
+    if (fact.status !== "archived") {
+      throw new Error(`Fact ${input.fact_id} has status '${fact.status}' and cannot be restored`);
+    }
+
+    const restoredAt = now();
+    fact.status = "active";
+    fact.archived_at = null;
+    fact.decay_reason = null;
+    fact.updated_at = restoredAt;
+    writeTable("extracted_facts", rows);
+    return { fact_id: fact.id, restored_at: restoredAt, was_archived: true };
+  }
+
+  async listArchivedFacts(limit = 100): Promise<RecycleBinEntry[]> {
+    return readTable<FactRow>("extracted_facts")
+      .filter((row) => row.status === "archived")
+      .sort((a, b) =>
+        new Date(b.archived_at ?? b.updated_at).getTime() - new Date(a.archived_at ?? a.updated_at).getTime()
+      )
+      .slice(0, Math.max(1, limit))
+      .map((row) => ({
+        id: row.id,
+        fact: row.fact,
+        category: row.category,
+        confidence: row.confidence,
+        archived_at: row.archived_at ?? null,
+        archive_reason: row.decay_reason ?? null,
+      }));
+  }
+  // --- end recycle bin ---
+
+  // --- memory time machine (bi-temporal diff) ---
+  async memoryDiff(input: MemoryDiffInput = {}): Promise<MemoryDiffReport> {
+    const window = resolveMemoryDiffWindow(input.from, input.to);
+    // FactRow and SessionRow are structural supersets of the diff source row
+    // shapes, so whole tables pass straight through; the builder reads only
+    // the fields it needs and ignores rows outside the window.
+    const scopeContext = scopesEnabled() ? resolveScopeContext() : null;
+    const allFacts = readTable<FactRow>("extracted_facts");
+    const facts = scopeContext
+      ? allFacts.filter((row) => isFactInScope(row, scopeContext))
+      : allFacts;
+    return buildMemoryDiffReport({
+      facts,
+      sessions: readTable<SessionRow>("session_summaries"),
+      window,
+      limit: input.limit,
+      include_sessions: input.include_sessions,
+    });
+  }
+  // --- end memory time machine ---
 
   async invalidateFact(_input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const rows = readTable<FactRow>("extracted_facts");

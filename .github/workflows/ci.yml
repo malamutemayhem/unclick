@@ -26,8 +26,10 @@ jobs:
           cache: "npm"
       - run: npm ci --no-audit --no-fund
       - name: Lint
+        # Blocking since 2026-06-11: the 9 standing errors were fixed, so a
+        # red lint step now means a new regression, not old debt. Warnings
+        # do not fail eslint, only errors do.
         run: npm run lint
-        continue-on-error: true
       - name: Build
         run: npm run build
       - name: Brainmap stale guard

@@ -1,5 +1,9 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
+
+// AdminJobs reads the job lane from the URL (?lane=human|agent), so renders need a Router.
+const render = (ui: React.ReactElement) => rtlRender(React.createElement(MemoryRouter, null, ui));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminJobs, {
   JOBS_REFRESH_INTERVAL_MS,

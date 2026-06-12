@@ -235,6 +235,10 @@ describe("forget handler flag gating (MEMORY_HARD_FORGET_ENABLED)", () => {
       saved[key] = process.env[key];
       delete process.env[key]; // force the zero-config local backend, no network
     }
+    // Pin the recycle bin (default ON) off so this suite exercises the
+    // MEMORY_HARD_FORGET_ENABLED gating underneath it.
+    saved.MEMORY_RECYCLE_BIN_ENABLED = process.env.MEMORY_RECYCLE_BIN_ENABLED;
+    process.env.MEMORY_RECYCLE_BIN_ENABLED = "0";
   });
 
   afterEach(() => {
@@ -243,6 +247,8 @@ describe("forget handler flag gating (MEMORY_HARD_FORGET_ENABLED)", () => {
       if (saved[key] === undefined) delete process.env[key];
       else process.env[key] = saved[key];
     }
+    if (saved.MEMORY_RECYCLE_BIN_ENABLED === undefined) delete process.env.MEMORY_RECYCLE_BIN_ENABLED;
+    else process.env.MEMORY_RECYCLE_BIN_ENABLED = saved.MEMORY_RECYCLE_BIN_ENABLED;
     if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
     tempDir = "";
   });

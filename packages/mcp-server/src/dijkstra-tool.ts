@@ -75,7 +75,7 @@ export async function dijkstraPath(args: Record<string, unknown>) {
   const distance = dist.get(target)!;
   const reachable = distance !== Infinity;
 
-  let path: string[] = [];
+  const path: string[] = [];
   if (reachable) {
     let node: string | null = target;
     while (node !== null) {

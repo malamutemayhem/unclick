@@ -53,7 +53,6 @@ export async function powerIteration(args: Record<string, unknown>) {
     const newV = w.map(x => x / norm);
 
     if (Math.abs(newEigenvalue - eigenvalue) < tolerance) {
-      eigenvalue = newEigenvalue;
       v = newV;
       break;
     }
