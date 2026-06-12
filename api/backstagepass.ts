@@ -462,6 +462,18 @@ async function fetchConnectorMap(
 // ─── Handler ───────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    return await handleBackstagePass(req, res);
+  } catch (err) {
+    // Crash safety: without this, an upstream throw (Supabase hiccup, network
+    // timeout) becomes a naked non-JSON 500 and the admin page can only show
+    // "List failed with 500". Always hand the UI a readable error instead.
+    console.error("backstagepass: unhandled error:", err instanceof Error ? err.message : String(err));
+    return res.status(500).json({ error: "Temporary error loading your connections. Please retry." });
+  }
+}
+
+async function handleBackstagePass(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
