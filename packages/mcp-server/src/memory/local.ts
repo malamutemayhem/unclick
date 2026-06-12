@@ -511,6 +511,7 @@ export class LocalBackend implements MemoryBackend {
           category: fact.category,
           confidence: fact.confidence,
           created_at: fact.created_at,
+          valid_from: fact.valid_from ?? null,
           score,
         };
       });

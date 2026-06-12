@@ -55,8 +55,11 @@ jobs:
         uses: actions/github-script@v9
         env:
           VERCEL_STATUS_CONTEXT: Vercel
-          VERCEL_WAIT_SECONDS: "600"
-          VERCEL_WAIT_INTERVAL_SECONDS: "10"
+          # 2026-06-11: Vercel preview queues twice exceeded the old 600s
+          # window on PR #1464, failing TestPass for timing alone and
+          # needing manual reruns. 1800s covers observed queue delays.
+          VERCEL_WAIT_SECONDS: "1800"
+          VERCEL_WAIT_INTERVAL_SECONDS: "15"
         with:
           script: |
             const { pathToFileURL } = require('node:url');

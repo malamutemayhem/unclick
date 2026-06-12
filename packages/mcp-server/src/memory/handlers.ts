@@ -32,6 +32,7 @@ import {
 import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
 import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
 import { isRecycleBinEnabled, MEMORY_RECYCLE_BIN_FLAG, EMPTY_BIN_MAX_BATCH } from "./recycle-bin.js";
+import { applyMemoryRetrievalCriteria, parseMemoryRetrievalCriteria } from "./criteria.js";
 import {
   isPatternPromotionEnabled,
   MEMORY_PATTERN_PROMOTION_FLAG,
@@ -781,7 +782,23 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     const db = await getBackend();
     const asOf = typeof args.as_of === "string" ? args.as_of : undefined;
     const query = str(args.query);
-    const results = await db.searchMemory(query, num(args.max_results, 10), asOf);
+    const maxResults = num(args.max_results, 10);
+
+    // Criteria retrieval: caller-supplied deterministic re-rank. Over-fetch a
+    // candidate pool so criteria bias relevance instead of replacing it. No
+    // criteria passed means byte-identical legacy behavior.
+    const criteria = parseMemoryRetrievalCriteria(args.criteria);
+    if (criteria) {
+      const pool = await db.searchMemory(query, Math.min(50, Math.max(30, maxResults * 3)), asOf);
+      const reranked = applyMemoryRetrievalCriteria(
+        Array.isArray(pool) ? pool as Parameters<typeof applyMemoryRetrievalCriteria>[0] : [],
+        criteria,
+        maxResults
+      );
+      return bool(args.full_content, false) ? reranked : compactSearchMemoryForStrictClients(reranked);
+    }
+
+    const results = await db.searchMemory(query, maxResults, asOf);
     const boundedResults = bool(args.full_content, false)
       ? results
       : compactSearchMemoryForStrictClients(results);

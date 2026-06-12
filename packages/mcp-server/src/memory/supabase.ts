@@ -1106,6 +1106,7 @@ export class SupabaseBackend implements MemoryBackend {
           category: r.category,
           confidence: r.confidence,
           created_at: r.created_at,
+          valid_from: r.valid_from ?? null,
           score: s,
         };
       });

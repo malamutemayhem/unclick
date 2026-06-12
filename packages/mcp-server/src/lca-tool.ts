@@ -66,7 +66,7 @@ export async function lowestCommonAncestor(args: Record<string, unknown>) {
     let a = u;
     let b = v;
     if (depth[a] < depth[b]) [a, b] = [b, a];
-    let diff = depth[a] - depth[b];
+    const diff = depth[a] - depth[b];
     for (let k = 0; k < LOG; k++) {
       if ((diff >> k) & 1) a = up[k][a];
     }
