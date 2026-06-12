@@ -49,107 +49,21 @@ import "@/components/home-preview/preview.css";
 
 /* ── Friendly faces, drawn in SVG ───────────────────────────── */
 
-type FaceProps = {
-  variant: "sam" | "priya" | "you" | "leo" | "mia";
-};
-
-/* Head-shaped line portraits in the reference's vibe: tapered jaw,
-   hair with a part, sparse features, soft glow. Our own designs. */
-function Face({ variant }: FaceProps) {
-  const stroke = "#9fe3e6";
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      className="h-full w-full [filter:drop-shadow(0_0_5px_rgba(134,218,221,0.7))]"
-      fill="none"
-      stroke={stroke}
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {/* Head: egg with a tapered jaw, never a circle */}
-      <path d="M20.5 27.5 Q20.5 14.5 32 14.5 Q43.5 14.5 43.5 27.5 L43.5 32.5 Q43.5 41 38.5 45 Q35.5 47.3 32 47.3 Q28.5 47.3 25.5 45 Q20.5 41 20.5 32.5 Z" />
-
-      {/* Hair, one design each */}
-      {variant === "sam" && (
-        <>
-          <path d="M20.5 27 Q20 16 30 15 L26.5 21.5 Q33 18.5 43 22 Q44 24 43.5 27" />
-        </>
-      )}
-      {variant === "priya" && (
-        <>
-          <path d="M20.5 30 Q18.5 15 32 14.5 Q45.5 15 43.5 30" />
-          <path d="M20.5 24 Q17 30 18 40 M43.5 24 Q47 30 46 40" />
-          <path d="M24 20.5 Q32 17.5 41 21" />
-        </>
-      )}
-      {variant === "you" && (
-        <>
-          <path d="M20.5 26 Q21 17 27 15.5 L29 19 L33 14.5 L36 18.5 L40.5 16 Q43.5 19 43.5 26" />
-        </>
-      )}
-      {variant === "leo" && (
-        <>
-          <path d="M20.5 25 L20.5 18.5 Q27 14 37 14.5 L43.5 18 L43.5 25 Q38 20.5 30 20.5 Q24 20.5 20.5 25" />
-        </>
-      )}
-      {variant === "mia" && (
-        <>
-          <path d="M20.5 29 Q19 15 32 14.5 Q45 15 43.5 29" />
-          <path d="M32 15 L32 19.5 M32 19 Q26 19.5 22.5 24 M32 19 Q38 19.5 41.5 24" />
-        </>
-      )}
-
-      {/* Brows */}
-      <path d="M23.5 28.5 Q26 27.2 28.5 28.5" strokeWidth="1.9" />
-      <path d="M35.5 28.5 Q38 27.2 40.5 28.5" strokeWidth="1.9" />
-
-      {/* Eyes */}
-      {variant === "priya" ? (
-        <>
-          <path d="M23.8 33 Q26 30.8 28.2 33" strokeWidth="2.1" />
-          <path d="M35.8 33 Q38 30.8 40.2 33" strokeWidth="2.1" />
-        </>
-      ) : (
-        <>
-          <circle cx="26" cy="32.5" r="1.5" fill={stroke} stroke="none" />
-          <circle cx="38" cy="32.5" r="1.5" fill={stroke} stroke="none" />
-        </>
-      )}
-
-      {/* Nose hint */}
-      <path d="M32 35.5 L31.2 38.5" strokeWidth="1.8" />
-
-      {/* Cheeks for Mia */}
-      {variant === "mia" && (
-        <>
-          <circle cx="23.5" cy="38.5" r="1.3" fill={stroke} stroke="none" opacity="0.4" />
-          <circle cx="40.5" cy="38.5" r="1.3" fill={stroke} stroke="none" opacity="0.4" />
-        </>
-      )}
-
-      {/* Smiles */}
-      {variant === "you" ? (
-        <path d="M26 41 Q32 45.5 38 41" />
-      ) : (
-        <path d="M27 41.5 Q32 44.5 37 41.5" />
-      )}
-    </svg>
-  );
-}
+/* Portraits: DiceBear "notionists" (CC0 1.0), generated to static
+   SVGs in public/faces and restyled to the deck palette (navy line
+   work on a light teal disc). No hand-drawn curves, no uncanny. */
 
 const PEOPLE: {
   name: string;
   ai: string;
-  you?: boolean;
-  face: FaceProps;
+  lead?: boolean;
+  img: string;
 }[] = [
-  { name: "Sam", ai: "ChatGPT", face: { variant: "sam" } },
-  { name: "Priya", ai: "Cursor", face: { variant: "priya" } },
-  { name: "You", ai: "Claude", you: true, face: { variant: "you" } },
-  { name: "Leo", ai: "Copilot", face: { variant: "leo" } },
-  { name: "Mia", ai: "local model", face: { variant: "mia" } },
+  { name: "Sam", ai: "ChatGPT", img: "/faces/sam.svg" },
+  { name: "Priya", ai: "Cursor", img: "/faces/priya.svg" },
+  { name: "Sarah", ai: "Claude", lead: true, img: "/faces/sarah.svg" },
+  { name: "Leo", ai: "Copilot", img: "/faces/leo.svg" },
+  { name: "Mia", ai: "local model", img: "/faces/mia.svg" },
 ];
 
 /* Piecewise-linear interpolation over [0..1] progress. */
@@ -188,17 +102,15 @@ function PersonChip({
         />
         <span
           className={cn(
-            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-[#07212d]/85 sm:h-[4.5rem] sm:w-[4.5rem]",
-            person.you
+            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border sm:h-[4.5rem] sm:w-[4.5rem]",
+            person.lead
               ? "scale-[1.07] border-primary/80 shadow-[0_0_34px_-4px_hsl(182_46%_57%/0.85)]"
               : "border-primary/45 shadow-[0_0_22px_-6px_hsl(182_46%_57%/0.6)]",
           )}
         >
-          <span className="h-[88%] w-[88%]">
-            <Face {...person.face} />
-          </span>
+          <img src={person.img} alt="" className="h-full w-full" />
         </span>
-        <span className={cn("mt-2 text-[14px] font-semibold", person.you ? "text-heading" : "text-body")}>
+        <span className={cn("mt-2 text-[14px] font-semibold", person.lead ? "text-heading" : "text-body")}>
           {person.name}
         </span>
         <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-[#06202c]/90 px-2.5 py-1 font-mono text-[11px] text-body/85">
@@ -609,16 +521,8 @@ function JourneyField() {
                 <span className="absolute left-[16%] top-[10%] h-[20%] w-[34%] rotate-[-18deg] rounded-[50%] bg-white/30 blur-[7px]" />
                 <span className="absolute bottom-[14%] right-[18%] h-[7%] w-[14%] rounded-[50%] bg-white/10 blur-[5px]" />
                 <span className="absolute inset-[7%] rounded-full border border-[#bdeff0]/12" />
-                <span className="relative flex w-[62%] flex-col">
-                  <img src="/logo-wordmark.svg" alt="UnClick" className="w-full" />
-                  <span className="ml-[29%] mt-1.5 flex flex-col items-start">
-                    <span className="text-[13px] font-bold tracking-tight text-heading sm:text-[16px]">
-                      Where AI Belongs
-                    </span>
-                    <span className="mt-0.5 text-[11px] font-semibold text-primary sm:text-[13px]">
-                      Humans welcome
-                    </span>
-                  </span>
+                <span className="relative flex w-[64%] flex-col">
+                  <img src="/logo-lockup.svg" alt="UnClick. Where AI Belongs. Humans welcome." className="w-full" />
                 </span>
               </div>
             </div>
@@ -634,13 +538,7 @@ function JourneyField() {
         {reduced && (
           <div className="absolute left-1/2 top-2 -translate-x-1/2">
             <div className="flex h-[290px] w-[290px] flex-col items-center justify-center rounded-full border border-[#86dadd]/50 bg-primary/[0.08] sm:h-[380px] sm:w-[380px]">
-              <span className="flex w-[62%] flex-col">
-                <img src="/logo-wordmark.svg" alt="UnClick" className="w-full" />
-                <span className="ml-[29%] mt-1.5 flex flex-col items-start">
-                  <span className="text-[14px] font-bold text-heading">Where AI Belongs</span>
-                  <span className="text-[12px] font-semibold text-primary">Humans welcome</span>
-                </span>
-              </span>
+              <img src="/logo-lockup.svg" alt="UnClick. Where AI Belongs. Humans welcome." className="w-[64%]" />
             </div>
           </div>
         )}
