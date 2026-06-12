@@ -150,7 +150,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed left-0 right-0 z-50 transition-colors duration-200 ${
+      className={`site-navbar fixed left-0 right-0 z-50 transition-colors duration-200 ${
         scrolled
           ? "border-b border-border/40 bg-background/85 backdrop-blur-md"
           : "border-b border-transparent bg-background/60 backdrop-blur-sm"
