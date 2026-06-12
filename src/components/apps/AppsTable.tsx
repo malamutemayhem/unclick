@@ -40,6 +40,8 @@ interface AppsTableProps {
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
+  /** Admin mode: explicit action button next to the status pill. Buttons say the action (Connect / Add key / Manage); pills say the truth. null = nothing to do. */
+  actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** admin: makes the status pill a button (used to open the connect wizard). */
   onStatusClick?: (app: AppEntry) => void;
   busy?: boolean;
@@ -64,7 +66,7 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, busy }: AppsTableProps) {
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showRaw, setShowRaw] = useState(false);
@@ -237,7 +239,27 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90 text-[#61C1C4]" : "text-white/30"}`} />
                   {app.toolCount}
                 </span>
-                <div className="flex justify-end">
+                <div className="flex items-center justify-end gap-1.5">
+                  {isAdmin && actionOf && (() => {
+                    const action = actionOf(app);
+                    if (!action) return null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          action.onClick();
+                        }}
+                        className={`rounded-md px-2 py-0.5 text-[10px] font-semibold transition-colors ${
+                          action.label === "Manage"
+                            ? "bg-white/[0.05] text-white/55 hover:bg-white/[0.09] hover:text-white/80"
+                            : "bg-[#61C1C4]/15 text-[#9FE0E2] hover:bg-[#61C1C4]/25"
+                        }`}
+                      >
+                        {action.label}
+                      </button>
+                    );
+                  })()}
                   {isAdmin ? (
                     status ? (
                       onStatusClick ? (
