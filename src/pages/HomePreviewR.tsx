@@ -47,11 +47,11 @@ import "@/components/home-preview/preview.css";
  *   close, install, or FAQ.
  */
 
-/* ── Friendly faces, drawn in SVG ───────────────────────────── */
+/* ── Friendly faces, hand-drawn line art ────────────────────── */
 
-/* Portraits: DiceBear "notionists" (CC0 1.0), generated to static
-   SVGs in public/faces and restyled to the deck palette (navy line
-   work on a light teal disc). No hand-drawn curves, no uncanny. */
+/* Portraits: cropped from the operator-supplied vector face sheet
+   (Freepik line-art set, PDF converted to SVG), ink recolored to
+   glowing teal so the faces float on their dark holder discs. */
 
 const PEOPLE: {
   name: string;
@@ -102,13 +102,17 @@ function PersonChip({
         />
         <span
           className={cn(
-            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border sm:h-[4.5rem] sm:w-[4.5rem]",
+            "mt-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-[#07212d]/85 sm:h-[4.5rem] sm:w-[4.5rem]",
             person.lead
               ? "scale-[1.07] border-primary/80 shadow-[0_0_34px_-4px_hsl(182_46%_57%/0.85)]"
               : "border-primary/45 shadow-[0_0_22px_-6px_hsl(182_46%_57%/0.6)]",
           )}
         >
-          <img src={person.img} alt="" className="h-full w-full" />
+          <img
+            src={person.img}
+            alt=""
+            className="h-full w-full [filter:drop-shadow(0_0_4px_rgba(134,218,221,0.55))]"
+          />
         </span>
         <span className={cn("mt-2 text-[14px] font-semibold", person.lead ? "text-heading" : "text-body")}>
           {person.name}
