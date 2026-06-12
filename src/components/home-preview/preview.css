@@ -164,3 +164,18 @@
   width: 9px;
   height: 1px;
 }
+
+/* Gentle bob for stage decor (option R stages). */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-bob {
+    animation: hp-bob 6s ease-in-out infinite;
+  }
+  .hp-bob-late {
+    animation: hp-bob 7s ease-in-out 1.6s infinite;
+  }
+}
+
+@keyframes hp-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
