@@ -15822,8 +15822,8 @@
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "2bc870ebf30f",
-      "bytes": 21782
+      "hash": "4c84cc958957",
+      "bytes": 21800
     },
     {
       "source": "src/lib/controltower.ts",
@@ -16097,8 +16097,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "9356d99ba1e3",
-      "bytes": 37675
+      "hash": "0ba01613eeed",
+      "bytes": 37681
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
@@ -16217,8 +16217,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "b8e0f75ecee7",
-      "bytes": 78511
+      "hash": "c72e09c40746",
+      "bytes": 78137
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -16237,8 +16237,8 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "3f9cf6999160",
+      "bytes": 94729
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",

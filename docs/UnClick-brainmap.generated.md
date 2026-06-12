@@ -24,7 +24,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 7fc4bfe09997 | 19606 |
 | src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
-| src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
+| src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
@@ -79,7 +79,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | 9356d99ba1e3 | 37675 |
+| src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
@@ -103,11 +103,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | b8e0f75ecee7 | 78511 |
+| src/pages/admin/AdminKeychain.tsx | c72e09c40746 | 78137 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
-| src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
+| src/pages/admin/AdminOrchestrator.tsx | 3f9cf6999160 | 94729 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
 | src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |

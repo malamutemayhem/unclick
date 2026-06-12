@@ -41,7 +41,7 @@ interface AppsTableProps {
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
-  /** Admin mode: explicit action button next to the status pill. Buttons say the action (Connect / Add key / Manage); pills say the truth. null = nothing to do. */
+  /** Admin mode: the single status-column chip. It states the truth AND does the action: Connect / Add key when unconnected, the proven status label (Connected / Key saved) when connected, click always opens the wizard. null = built-in, falls back to the plain status pill. */
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** admin: makes the status pill a button (used to open the connect wizard). */
   onStatusClick?: (app: AppEntry) => void;
@@ -244,29 +244,33 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   {app.toolCount}
                 </span>
                 <div className="flex items-center justify-end gap-1.5">
-                  {isAdmin && actionOf && (() => {
-                    const action = actionOf(app);
-                    if (!action) return null;
-                    return (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          action.onClick();
-                        }}
-                        className={`rounded-md px-2 py-0.5 text-[10px] font-semibold transition-colors ${
-                          action.label === "Manage"
-                            ? "bg-white/[0.05] text-white/55 hover:bg-white/[0.09] hover:text-white/80"
-                            : "bg-[#61C1C4]/15 text-[#9FE0E2] hover:bg-[#61C1C4]/25"
-                        }`}
-                      >
-                        {action.label}
-                      </button>
-                    );
-                  })()}
-                  {isAdmin ? (
-                    status ? (
-                      onStatusClick ? (
+                  {/* One chip per row: it states the truth AND does the action.
+                      (Was an action button next to a status pill; for unconnected
+                      rows the pair said the same thing twice.) */}
+                  {isAdmin ? (() => {
+                    const action = actionOf?.(app) ?? null;
+                    if (action) {
+                      const connected = action.label !== "Connect" && action.label !== "Add key";
+                      return (
+                        <button
+                          type="button"
+                          title={connected ? "Click to manage this connection" : undefined}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            action.onClick();
+                          }}
+                          className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold transition-opacity hover:opacity-80 ${
+                            connected && status
+                              ? status.tone
+                              : "border-[#61C1C4]/25 bg-[#61C1C4]/15 text-[#9FE0E2]"
+                          }`}
+                        >
+                          {connected && status ? status.label : action.label}
+                        </button>
+                      );
+                    }
+                    if (status) {
+                      return onStatusClick ? (
                         <button
                           type="button"
                           onClick={(e) => {
@@ -279,11 +283,10 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                         </button>
                       ) : (
                         <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${status.tone}`}>{status.label}</span>
-                      )
-                    ) : (
-                      <span className="text-[10px] text-white/30">{on ? "On" : "Off"}</span>
-                    )
-                  ) : quality === "Smart" ? (
+                      );
+                    }
+                    return <span className="text-[10px] text-white/30">{on ? "On" : "Off"}</span>;
+                  })() : quality === "Smart" ? (
                     <span className="rounded border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#9be4e6]">Smart</span>
                   ) : (
                     <span className="text-[10px] text-white/25">Ready</span>
