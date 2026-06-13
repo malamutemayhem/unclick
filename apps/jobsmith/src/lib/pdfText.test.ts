@@ -8,10 +8,10 @@ import { makeMinimalPdf } from "../test/makePdf";
 describe("stripPdfArtifacts", () => {
   test("preserves a single page unchanged apart from trimming", () => {
     const out = stripPdfArtifacts([
-      "Dear Hiring Manager,\n\nI am writing to express my interest.\n\nSincerely,\nChristopher Byrne",
+      "Dear Hiring Manager,\n\nI am writing to express my interest.\n\nSincerely,\nJane Smith",
     ]);
     expect(out).toContain("Dear Hiring Manager,");
-    expect(out).toContain("Christopher Byrne");
+    expect(out).toContain("Jane Smith");
   });
 
   test("strips bare page-number lines", () => {
@@ -29,14 +29,14 @@ describe("stripPdfArtifacts", () => {
 
   test("strips running headers that repeat across pages", () => {
     const pages = [
-      "Christopher Byrne CV\nProfile summary line one\nMore detail",
-      "Christopher Byrne CV\nWork experience section\nEven more detail",
-      "Christopher Byrne CV\nEducation section\nClosing detail",
+      "Jane Smith CV\nProfile summary line one\nMore detail",
+      "Jane Smith CV\nWork experience section\nEven more detail",
+      "Jane Smith CV\nEducation section\nClosing detail",
     ];
     const out = stripPdfArtifacts(pages);
     expect(out).toContain("Profile summary line one");
     expect(out).toContain("Education section");
-    expect(out).not.toMatch(/Christopher Byrne CV/);
+    expect(out).not.toMatch(/Jane Smith CV/);
   });
 
   test("keeps a line that only appears on one page", () => {
@@ -55,13 +55,13 @@ describe("extractPdfText", () => {
     const pdf = makeMinimalPdf([
       "Dear Hiring Manager,",
       "I am writing to express my interest in the role.",
-      "Sincerely, Christopher Byrne",
+      "Sincerely, Jane Smith",
     ]);
     const { text, pageCount } = await extractPdfText(pdf);
     expect(pageCount).toBe(1);
     expect(text).toMatch(/Dear Hiring Manager/);
     expect(text).toMatch(/express my interest/);
-    expect(text).toMatch(/Christopher Byrne/);
+    expect(text).toMatch(/Jane Smith/);
   });
 
   test("rejects on input that is not a PDF", async () => {

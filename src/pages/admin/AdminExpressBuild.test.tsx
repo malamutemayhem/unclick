@@ -80,9 +80,11 @@ describe("AdminExpressBuild", () => {
 
     expect(screen.getByRole("heading", { name: "DraftRoom" })).toBeInTheDocument();
     expect(screen.getByText("Manual DraftRoom")).toBeInTheDocument();
-    expect(screen.getByText(/first station in the UnClick build line/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/first station in the UnClick build line/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/warm smart chat seat should build or fit/i)).toBeInTheDocument();
     expect(screen.getByText(/Do not claim DONE from DraftRoom/i)).toBeInTheDocument();
-    expect(screen.getByText(/Build while context is fresh/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/build or fit the smallest safe draft/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/exact blocker and next build step/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Manual draft alarm bells")).toBeInTheDocument();
     expect(screen.getAllByText(/Supplied code is untrusted/i).length).toBeGreaterThan(0);
     expect(await screen.findByText("Proof Ledger v2")).toBeInTheDocument();
@@ -93,7 +95,7 @@ describe("AdminExpressBuild", () => {
 
     fireEvent.change(screen.getByLabelText("Job name mirror"), { target: { value: "Worker Registry score panel" } });
     fireEvent.change(screen.getByLabelText("Short description"), { target: { value: "Build a small score panel." } });
-    fireEvent.change(screen.getByLabelText("Detailed intake brief"), { target: { value: "Chris asked for a ranked worker score table." } });
+    fireEvent.change(screen.getByLabelText("Detailed intake brief"), { target: { value: "User asked for a ranked worker score table." } });
     fireEvent.change(screen.getByLabelText("Supplied code"), { target: { value: "export const score = 88;" } });
     fireEvent.change(screen.getByLabelText("Code state"), { target: { value: "complete" } });
 

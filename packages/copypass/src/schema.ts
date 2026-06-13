@@ -23,6 +23,7 @@ export const CopyPassCheckIdSchema = z.enum([
   "ai-slop-language",
   "misleading-urgency",
   "ui-honesty-gap",
+  "display-copy-widow",
 ]);
 
 export const CopyPassBlockKindSchema = z.enum([

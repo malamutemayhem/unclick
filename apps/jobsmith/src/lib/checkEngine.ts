@@ -1,7 +1,7 @@
 // apps/jobsmith/src/lib/checkEngine.ts
 //
 // Deterministic JobSmith rules engine.
-// The 229-rule pack is copied from the source of truth and loaded as data.
+// The 232-rule pack is copied from the source of truth and loaded as data.
 // This file validates that data, runs safe text checks, and leaves anything
 // requiring document parsing or judgement in a review-needed bucket.
 

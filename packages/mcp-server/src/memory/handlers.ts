@@ -14,25 +14,73 @@ import {
   reportToolDetections,
 } from "./tool-awareness.js";
 import { resolveAgent, filterContextByLayers } from "./agent.js";
+import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
+import { isTypedMemorySplitEnabled, normalizeMemoryClass } from "./typed-memory.js";
+import {
+  autoCaptureFromTurn,
+  codeAutoCaptureEnabled,
+  libraryAutoCaptureEnabled,
+} from "./auto-capture.js";
+import {
+  isFlagEnabled,
+  MEMORY_CONSOLIDATION_FLAG,
+  MEMORY_DECAY_V2_FLAG,
+} from "./consolidation.js";
+import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
+import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
+import { isRecycleBinEnabled, MEMORY_RECYCLE_BIN_FLAG, EMPTY_BIN_MAX_BATCH } from "./recycle-bin.js";
+import { applyMemoryRetrievalCriteria, parseMemoryRetrievalCriteria } from "./criteria.js";
+import {
+  isPatternPromotionEnabled,
+  MEMORY_PATTERN_PROMOTION_FLAG,
+  clusterEpisodes,
+  buildPatternFactText,
+} from "./pattern-promotion.js";
+import {
+  isCorrectionsEnabled,
+  CORRECTIONS_CATEGORY,
+  CORRECTION_PRIORITY,
+  MAX_CORRECTION_LINES,
+  correctionKey,
+  buildCorrectionValue,
+  buildCorrectionDoNotRepeatLines,
+  selectRelevantCorrections,
+  countCorrections,
+  emitCorrectionConsultMetric,
+} from "./corrections.js";
+import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
+import { savePlaybook, getPlaybook, listPlaybooks, recordPlaybookRun } from "./playbooks.js";
 import type {
   MemoryBackend,
+  MemoryPassportBundle,
   MemoryProfileCard,
   MemoryProfileCardReceipt,
   MemoryProfileCardSourceKind,
   MemoryRetrievalPlan,
   MemoryReceiptRedactionState,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
 } from "./types.js";
+import type { MemoryWriteGateResultSourceKind } from "./write-gate.js";
 import type { MemoryTypedLinkSourceKind } from "./typed-links.js";
+import { receiptProvenanceFields } from "./provenance.js";
 
 function currentApiKeyHash(): string | null {
   return process.env.UNCLICK_API_KEY_HASH ?? null;
 }
 
 type Args = Record<string, unknown>;
+
+// --- lane-07: write-gate admission ---
+type AddFactResultWithGate = {
+  id: string;
+  write_gate?: AdmissionDecision;
+  source_kind?: MemoryWriteGateResultSourceKind;
+};
+// --- end lane-07 ---
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -46,8 +94,39 @@ function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.map(String) : [];
 }
 
+/**
+ * Recall reinforcement: bump access_count for fact rows genuinely surfaced by
+ * the search_memory op. Fire-and-forget so recall latency is unaffected, and
+ * handler-level so internal candidate searches (write gate, eval harness,
+ * consolidation) never inflate the counter (the 5663x lesson, migration
+ * 20260607010000). Powers the Recall Check 1x/2x/3x counters.
+ */
+function reinforceSurfacedFacts(db: MemoryBackend, results: unknown): void {
+  if (!Array.isArray(results)) return;
+  const ids = results
+    .filter((row): row is { id: string; source?: string } =>
+      !!row && typeof row === "object" && typeof (row as { id?: unknown }).id === "string"
+    )
+    .filter((row) => (row.source ?? "fact") === "fact")
+    .map((row) => row.id);
+  if (ids.length === 0) return;
+  void db.recordRecallAccess(ids).catch(() => {});
+}
+
+/** Parse an expiry argument into a normalized ISO timestamp, or undefined. */
+function parseExpiry(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.trim()) return undefined;
+  const parsed = Date.parse(v);
+  if (Number.isNaN(parsed)) throw new Error(`expires_at must be an ISO 8601 timestamp, got: ${v}`);
+  return new Date(parsed).toISOString();
+}
+
 function bool(v: unknown, fallback = false): boolean {
   return typeof v === "boolean" ? v : fallback;
+}
+
+function memoryPassportSigningSecret(): string | undefined {
+  return process.env.MEMORY_PASSPORT_SIGNING_SECRET;
 }
 
 function capText(text: string, max: number): string {
@@ -212,6 +291,10 @@ function profileReceipt(
   if (typeof row.confidence === "number" && Number.isFinite(row.confidence)) {
     receipt.confidence = row.confidence;
   }
+  // --- lane-03: surface provenance on the receipt (flag-gated; honours redaction_state) ---
+  const provenance = receiptProvenanceFields(row, receipt.redaction_state);
+  if (provenance) Object.assign(receipt, provenance);
+  // --- end lane-03 ---
   return receipt;
 }
 
@@ -358,7 +441,16 @@ function buildMemoryProfileCard(params: {
     ].filter((item) => item.line && GUARDRAIL_PATTERN.test(item.line)),
     3
   );
-  const doNotRepeat = guardrailItems.map((item) => item.line);
+  // --- lane-05: corrections are always-loaded standing rules pinned to the top ---
+  const doNotRepeat = isCorrectionsEnabled()
+    ? Array.from(
+        new Set([
+          ...buildCorrectionDoNotRepeatLines(businessRows),
+          ...guardrailItems.map((item) => item.line),
+        ])
+      ).slice(0, MAX_CORRECTION_LINES)
+    : guardrailItems.map((item) => item.line);
+  // --- end lane-05 ---
 
   const sourceReceipts: MemoryProfileCardReceipt[] = [];
   const receiptIds = new Set<string>();
@@ -455,6 +547,15 @@ export function normalizeActiveFactsForLoadMemory(value: unknown): unknown {
   return { ...context, active_facts: activeFacts };
 }
 
+// Always-on operator preferences set on /admin/you. These are pinned into the
+// compact startup payload so they reach every session regardless of how many
+// higher-priority standing rules an account has accumulated.
+const ALWAYS_ON_BUSINESS_KEYS = new Set(["ai_style", "about_you"]);
+function isAlwaysOnPreference(row: unknown): boolean {
+  const r = asRecord(row);
+  return r !== null && typeof r.key === "string" && ALWAYS_ON_BUSINESS_KEYS.has(r.key);
+}
+
 export function compactStartupContextForStrictClients(
   value: unknown,
   includeSessionSummaries = false
@@ -469,9 +570,20 @@ export function compactStartupContextForStrictClients(
   const facts = Array.isArray(context.active_facts) ? context.active_facts : [];
   const startupFacts = facts.filter(isEligibleStartupFact);
 
-  out.business_context = business.slice(0, 6).map((row) => {
+  // The operator's always-on preferences (AI style + About You, set on
+  // /admin/you) must reach every session. They sit at a modest priority, so on
+  // an account with many higher-priority standing rules they would otherwise be
+  // pushed past the compact top-6 cut and never load. Pin them in past the cut
+  // and give them a roomier value cap so the directive/About-You text survives.
+  const topBusiness = business.slice(0, 6);
+  const pinnedBusiness = business.filter(
+    (row) => isAlwaysOnPreference(row) && !topBusiness.includes(row)
+  );
+  const compactBusiness = [...topBusiness, ...pinnedBusiness];
+  out.business_context = compactBusiness.map((row) => {
     const r = asRecord(row) ?? {};
-    return { category: r.category, key: r.key, value: compactJsonValue(r.value, 130), priority: r.priority };
+    const valueCap = isAlwaysOnPreference(r) ? 360 : 130;
+    return { category: r.category, key: r.key, value: compactJsonValue(r.value, valueCap), priority: r.priority };
   });
   out.profile_card = buildMemoryProfileCard({ business, facts: startupFacts, sessions, includeSessionSummaries });
   out.active_facts = startupFacts.slice(0, 12).map((row) => {
@@ -499,7 +611,7 @@ export function compactStartupContextForStrictClients(
   out.retrieval_plan = buildMemoryRetrievalPlan();
   out.response_bounds = {
     compact: true,
-    business_context_returned: Math.min(business.length, 6),
+    business_context_returned: compactBusiness.length,
     knowledge_library_returned: Math.min(library.length, 6),
     recent_sessions_returned: includeSessionSummaries ? Math.min(sessions.length, 3) : 0,
     recent_sessions_available_in_loaded_window: sessions.length,
@@ -529,6 +641,10 @@ export function compactSearchMemoryForStrictClients(value: unknown): unknown {
 
 export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> = {
   async get_startup_context(args) {
+    // Always-on inspection: fire and forget on every session start. Off unless
+    // UNCLICK_SESSION_INSPECTION=1; never blocks or breaks load_memory.
+    triggerSessionInspection();
+
     const db = await getBackend();
     const slug = typeof args.agent_slug === "string" ? args.agent_slug : undefined;
     const id = typeof args.agent_id === "string" ? args.agent_id : undefined;
@@ -592,11 +708,118 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return result;
   },
 
+  /**
+   * Prompt-ready context block (Zep Context Block parity on cheap-first
+   * layers): one call returns compact markdown with standing rules, profile,
+   * durable facts, and optional query-relevant memories, under a char budget.
+   */
+  async get_context_block(args) {
+    const db = await getBackend();
+    const maxChars = Math.max(500, Math.min(num(args.max_chars, 4000), 20000));
+    const query = typeof args.query === "string" ? args.query.trim() : "";
+
+    const raw = await db.getStartupContext(3);
+    const compact = compactStartupContextForStrictClients(normalizeActiveFactsForLoadMemory(raw)) as {
+      business_context?: Array<{ category?: string; key?: string; value?: unknown }>;
+      profile_card?: {
+        profile_summary?: string[];
+        working_now?: string[];
+        do_not_repeat?: string[];
+        timezone_context?: string;
+      };
+      active_facts?: Array<{ fact?: string; category?: string }>;
+    };
+
+    const lines: string[] = ["# Memory context"];
+    const rules = compact.business_context ?? [];
+    if (rules.length > 0) {
+      lines.push("", "## Standing rules");
+      for (const row of rules) {
+        lines.push(`- [${row.category ?? "rule"}] ${row.key ?? ""}: ${stringifyForProfile(row.value, 200)}`);
+      }
+    }
+    const card = compact.profile_card;
+    if (card) {
+      lines.push("", "## Profile");
+      if (card.timezone_context) lines.push(`- ${card.timezone_context}`);
+      for (const item of card.profile_summary ?? []) lines.push(`- ${item}`);
+      const avoid = card.do_not_repeat ?? [];
+      if (avoid.length > 0) {
+        lines.push("", "## Do not repeat");
+        for (const item of avoid) lines.push(`- ${item}`);
+      }
+      const workingNow = card.working_now ?? [];
+      if (workingNow.length > 0) {
+        lines.push("", "## Working now");
+        for (const item of workingNow) lines.push(`- ${item}`);
+      }
+    }
+    const facts = compact.active_facts ?? [];
+    if (facts.length > 0) {
+      lines.push("", "## Durable facts");
+      for (const row of facts) {
+        if (row.fact) lines.push(`- [${row.category ?? "general"}] ${row.fact}`);
+      }
+    }
+
+    let queryMatches = 0;
+    if (query) {
+      const results = await db.searchMemory(query, num(args.max_results, 5)) as Array<{
+        content?: string;
+        source?: string;
+      }>;
+      const rows = Array.isArray(results) ? results.filter((row) => row.content) : [];
+      queryMatches = rows.length;
+      if (rows.length > 0) {
+        lines.push("", `## Relevant to: ${query}`);
+        for (const row of rows) {
+          lines.push(`- [${row.source ?? "memory"}] ${String(row.content).slice(0, 300)}`);
+        }
+      }
+    }
+
+    // Enforce the char budget by dropping whole trailing lines, never
+    // mid-line, so the block stays valid markdown.
+    const block: string[] = [];
+    let used = 0;
+    for (const line of lines) {
+      if (used + line.length + 1 > maxChars) break;
+      block.push(line);
+      used += line.length + 1;
+    }
+
+    return {
+      context_block: block.join("\n"),
+      char_count: used,
+      max_chars: maxChars,
+      truncated: block.length < lines.length,
+      query_matches: queryMatches,
+    };
+  },
+
   async search_memory(args) {
     const db = await getBackend();
     const asOf = typeof args.as_of === "string" ? args.as_of : undefined;
     const query = str(args.query);
-    const results = await db.searchMemory(query, num(args.max_results, 10), asOf);
+    const maxResults = num(args.max_results, 10);
+
+    // Criteria retrieval: caller-supplied deterministic re-rank. Over-fetch a
+    // candidate pool so criteria bias relevance instead of replacing it. No
+    // criteria passed means byte-identical legacy behavior.
+    const criteria = parseMemoryRetrievalCriteria(args.criteria);
+    if (criteria) {
+      const pool = await db.searchMemory(query, Math.min(50, Math.max(30, maxResults * 3)), asOf);
+      const reranked = applyMemoryRetrievalCriteria(
+        Array.isArray(pool) ? pool as Parameters<typeof applyMemoryRetrievalCriteria>[0] : [],
+        criteria,
+        maxResults
+      );
+      reinforceSurfacedFacts(db, reranked);
+      return bool(args.full_content, false) ? reranked : compactSearchMemoryForStrictClients(reranked);
+    }
+
+    const results = await db.searchMemory(query, maxResults, asOf);
+    reinforceSurfacedFacts(db, results);
     const boundedResults = bool(args.full_content, false)
       ? results
       : compactSearchMemoryForStrictClients(results);
@@ -617,6 +840,32 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     const db = await getBackend();
     return db.searchTypedLinks(str(args.query), num(args.max_results, 10));
   },
+
+  // Memory time machine: changelog between two instants (companion to the
+  // as_of recall path in search_memory). Read-only. Accepts ISO timestamps
+  // or relative durations like "7d" / "12h"; defaults to the last 7 days.
+  async memory_diff(args) {
+    const db = await getBackend();
+    return db.memoryDiff({
+      from: typeof args.from === "string" ? args.from : typeof args.since === "string" ? args.since : undefined,
+      to: typeof args.to === "string" ? args.to : undefined,
+      limit: typeof args.limit === "number" ? args.limit : undefined,
+      include_sessions: bool(args.include_sessions, true),
+    });
+  },
+
+  // --- lane-09: typed memory split ---
+  async list_session_events(args) {
+    if (!isTypedMemorySplitEnabled()) return [];
+    const db = await getBackend();
+    return db.listSessionEvents({
+      query: typeof args.query === "string" ? args.query : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : undefined,
+      limit: num(args.limit ?? args.max_results, 20),
+    });
+  },
+  // --- end lane-09 ---
 
   async search_library(args) {
     const db = await getBackend();
@@ -660,7 +909,96 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async add_fact(args) {
     const db = await getBackend();
+    const factText = str(args.fact);
     const result = await db.addFact({
+      fact: factText,
+      category: str(args.category, "general"),
+      confidence: num(args.confidence, 0.9),
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+      valid_from: typeof args.valid_from === "string" ? args.valid_from : undefined,
+      valid_to: parseExpiry(args.expires_at ?? args.valid_until ?? args.valid_to),
+      extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+      prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+      model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+      preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
+      commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+      pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      // --- lane-03: provenance pass-through (persisted only when MEMORY_PROVENANCE_ENABLED) ---
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+      // --- end lane-03 ---
+      // --- lane-09: typed memory split ---
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class) : undefined,
+      // --- end lane-09 ---
+      // --- lane-04: optional row-level scope (honored when MEMORY_SCOPES_ENABLED) ---
+      // source_agent_id is threaded by lane-03 (provenance); consumed here.
+      visibility: typeof args.visibility === "string" ? args.visibility : undefined,
+      boardroom_id: typeof args.boardroom_id === "string" ? args.boardroom_id : undefined,
+      credential_scope: typeof args.credential_scope === "string" ? args.credential_scope : undefined,
+      // --- end lane-04 ---
+    }) as AddFactResultWithGate;
+
+    // --- lane-07 + lane-09: classify the write result.
+    // lane-09 routes episodes (routed_to_episode); lane-07 may set source_kind.
+    // Typed links + the "fact_saved" signal only apply to real fact writes. ---
+    const routedToEpisode = (result as { routed_to_episode?: boolean }).routed_to_episode === true;
+    const sourceKind = result.source_kind ?? (routedToEpisode ? "episode" : "fact");
+    if (result.write_gate) {
+      logMemoryLoadEvent({
+        tool_name: "memory.write_gate",
+        params: {
+          action: result.write_gate.action,
+          reason: result.write_gate.reason,
+          route_target: result.write_gate.route_target,
+          duplicate_rate: result.write_gate.metrics.duplicate_rate,
+          write_precision: result.write_gate.metrics.write_precision,
+          source_kind: sourceKind,
+        },
+      });
+    }
+    // --- end lane-07 + lane-09 ---
+
+    if (sourceKind === "fact") {
+      await persistTypedLinksForMemoryWrite(db, {
+        source_kind: "fact",
+        source_id: result.id,
+        text: factText,
+      });
+    }
+    const hash = currentApiKeyHash();
+    if (hash) {
+      const preview = factText.slice(0, 80);
+      const action = result.write_gate?.action;
+      const signalSummary =
+        action === "ROUTE_EVENT"
+          ? "Memory write routed to event store"
+          : action === "REJECT"
+            ? "Memory write rejected by admission gate"
+            : preview ? `Fact saved: ${preview}` : "Fact saved to memory";
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: sourceKind === "fact" ? "fact_saved" : "fact_not_saved",
+        severity: "info",
+        summary: signalSummary,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+    return result;
+  },
+
+  // --- lane-04: quarantine memory derived from a revoked credential ---
+  async quarantine_credential_memory(args) {
+    const db = await getBackend();
+    const scope = str(args.credential_scope ?? args.platform);
+    return db.quarantineCredentialMemory(scope);
+  },
+  // --- end lane-04 ---
+  // --- lane-07: write-gate admission ---
+  async admit_write(args) {
+    const db = await getBackend();
+    return db.admitWrite({
       fact: str(args.fact),
       category: str(args.category, "general"),
       confidence: num(args.confidence, 0.9),
@@ -673,25 +1011,8 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
     });
-    await persistTypedLinksForMemoryWrite(db, {
-      source_kind: "fact",
-      source_id: result.id,
-      text: str(args.fact),
-    });
-    const hash = currentApiKeyHash();
-    if (hash) {
-      const preview = str(args.fact).slice(0, 80);
-      void emitSignal({
-        apiKeyHash: hash,
-        tool: "memory",
-        action: "fact_saved",
-        severity: "info",
-        summary: preview ? `Fact saved: ${preview}` : "Fact saved to memory",
-        deepLink: "/admin/memory?tab=facts",
-      });
-    }
-    return result;
   },
+  // --- end lane-07 ---
 
   async supersede_fact(args) {
     const db = await getBackend();
@@ -717,8 +1038,36 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       source_id: receipt.receipt_id,
       text: str(args.content),
     });
+    // Auto-capture (flag-gated, default off, best-effort). When both flags are
+    // off this is a no-op and the write path is byte-identical to before.
+    if (codeAutoCaptureEnabled() || libraryAutoCaptureEnabled()) {
+      await autoCaptureFromTurn(db, {
+        session_id: str(args.session_id),
+        role: str(args.role),
+        content: str(args.content),
+      }).catch(() => undefined);
+    }
     return receipt;
   },
+
+  // --- lane-09: typed memory split ---
+  async add_session_event(args) {
+    if (!isTypedMemorySplitEnabled()) {
+      return { enabled: false, skipped: "MEMORY_TYPED_SPLIT_ENABLED is off" };
+    }
+    const db = await getBackend();
+    return db.addSessionEvent({
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : "episodic",
+      event_kind: str(args.event_kind, "episode"),
+      content: str(args.content),
+      summary: typeof args.summary === "string" ? args.summary : undefined,
+      payload: asRecord(args.payload) ?? undefined,
+      source_fact_id: typeof args.source_fact_id === "string" ? args.source_fact_id : undefined,
+      source_session_summary_id: typeof args.source_session_summary_id === "string" ? args.source_session_summary_id : undefined,
+    });
+  },
+  // --- end lane-09 ---
 
   async get_conversation_detail(args) {
     const db = await getBackend();
@@ -764,6 +1113,25 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return { message: msg };
   },
 
+  // Playbooks: agent-distilled reusable workflows stored as versioned
+  // library docs (category "playbook"). Trust promotion is receipt-gated;
+  // see playbooks.ts for the promotion and demotion rules.
+  async save_playbook(args) {
+    return savePlaybook(args);
+  },
+
+  async get_playbook(args) {
+    return getPlaybook(args);
+  },
+
+  async list_playbooks(args) {
+    return listPlaybooks(args);
+  },
+
+  async record_playbook_run(args) {
+    return recordPlaybookRun(args);
+  },
+
   async refresh_taxonomy_snapshots(args) {
     const db = await getBackend();
     return db.refreshTaxonomySnapshots({
@@ -779,10 +1147,67 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return getEmbeddingState();
   },
 
-  async manage_decay() {
+  async manage_decay(args) {
     const db = await getBackend();
+    if (isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const result = await db.manageDecayV2({
+        dry_run: bool(args.dry_run, false),
+        max_candidates: num(args.max_candidates, 1000),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source: str(args.source, "manual"),
+      });
+      recordMemoryMetric("hot_set_staleness", result.metrics.hot_set_staleness, {
+        source: str(args.source, "manual"),
+        dry_run: bool(args.dry_run, false),
+      });
+      return { ...result, flag: MEMORY_DECAY_V2_FLAG };
+    }
     return db.manageDecay();
   },
+
+  // --- lane-08: sleep-time consolidation ---
+  async consolidate(args) {
+    if (!isFlagEnabled(MEMORY_CONSOLIDATION_FLAG)) {
+      return {
+        skipped: "flag_disabled",
+        flag: MEMORY_CONSOLIDATION_FLAG,
+      };
+    }
+    const db = await getBackend();
+    const source = str(args.source, "manual");
+    const dryRun = bool(args.dry_run, false);
+    const result = await db.consolidateMemory({
+      dry_run: dryRun,
+      max_candidates: num(args.max_candidates, 250),
+      now: typeof args.now === "string" ? args.now : undefined,
+      source,
+      similarity_threshold: num(args.similarity_threshold, 0.92),
+      same_subject_threshold: num(args.same_subject_threshold, 0.5),
+    });
+    recordMemoryMetric("dedup_collapse_rate", result.metrics.dedup_collapse_rate, {
+      source,
+      dry_run: dryRun,
+    });
+    if (bool(args.run_decay, true) && isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const decay = await db.manageDecayV2({
+        dry_run: dryRun,
+        max_candidates: num(args.max_candidates, 250),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source,
+      });
+      recordMemoryMetric("hot_set_staleness", decay.metrics.hot_set_staleness, {
+        source,
+        dry_run: dryRun,
+      });
+      return { ...result, decay, flag: MEMORY_CONSOLIDATION_FLAG };
+    }
+    return {
+      ...result,
+      decay_skipped: isFlagEnabled(MEMORY_DECAY_V2_FLAG) ? "run_decay_false" : "decay_flag_disabled",
+      flag: MEMORY_CONSOLIDATION_FLAG,
+    };
+  },
+  // --- end lane-08 ---
 
   async memory_status() {
     const db = await getBackend();
@@ -805,4 +1230,403 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       session_id: typeof args.session_id === "string" ? args.session_id : undefined,
     });
   },
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  async reconcile_fact(args) {
+    const db = await getBackend();
+    const result = await db.reconcileFact(
+      {
+        fact: str(args.fact),
+        category: str(args.category, "general"),
+        confidence: num(args.confidence, 0.9),
+        source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+        extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+        model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+        prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+        commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+        pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      },
+      {
+        session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+        dry_run: bool(args.dry_run, false),
+      }
+    );
+
+    // Lane-2 closeout: surface a genuine contradiction as exactly one signal
+    // so agents and the user see the conflict instead of a silent resolution.
+    if (result.contradiction && result.classification === "contradiction") {
+      const hash = currentApiKeyHash();
+      if (hash) {
+        void emitSignal({
+          apiKeyHash: hash,
+          tool: "memory",
+          action: "memory_contradiction",
+          severity: "action_needed",
+          summary:
+            `Memory contradiction on "${result.contradiction.subject}": ` +
+            `incoming "${result.contradiction.incoming.fact}" vs existing ` +
+            `"${result.contradiction.existing.fact}" (resolution: ${result.contradiction.resolution})`,
+          deepLink: "/admin/memory?tab=facts",
+        });
+      }
+    }
+    return result;
+  },
+  // --- end lane-02 ---
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  async forget(args) {
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("forget requires fact_id (or memory_id)");
+    const reason = typeof args.reason === "string" ? args.reason : undefined;
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    // Recycle-bin model: forget moves the fact into the bin instead of
+    // deleting; empty_recycle_bin is the only permanent deletion path.
+    if (isRecycleBinEnabled()) {
+      const archived = await db.archiveFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "recycle_bin_archive",
+        flag: MEMORY_RECYCLE_BIN_FLAG,
+        flag_enabled: true,
+        ...archived,
+        note: archived.already_archived
+          ? "Fact was already in the recycle bin. Use empty_recycle_bin to delete it permanently."
+          : "Fact moved to the recycle bin and hidden from recall. Use restore_memory to bring it back or empty_recycle_bin to delete it permanently.",
+      };
+    }
+
+    // Default OFF: fall back to the existing soft invalidate so production
+    // behaviour is unchanged until the coordinator flips the flag.
+    if (!isHardForgetEnabled()) {
+      const soft = await db.invalidateFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "soft_invalidate",
+        flag: "MEMORY_HARD_FORGET_ENABLED",
+        flag_enabled: false,
+        fact_id: factId,
+        invalidated_at: soft.invalidated_at,
+        note: "Hard forget is flag-gated off; fell back to reversible soft invalidate.",
+      };
+    }
+
+    const receipt = await db.forgetMemory({ fact_id: factId, reason, session_id: sessionId });
+    const forget_compliance = forgetComplianceScore(receipt);
+
+    // Emit the lane-05 metric so Worker 10's harness can score forget_compliance.
+    logMemoryLoadEvent({
+      tool_name: "memory.forget",
+      params: {
+        fact_id: factId,
+        forget_compliance,
+        verified_clean: receipt.verified_clean,
+        typed_links_deleted: receipt.typed_links_deleted,
+        snapshots_regenerated: receipt.snapshots_regenerated,
+        snapshots_neutralized: receipt.snapshots_neutralized,
+        history_entries_purged: receipt.history_entries_purged,
+        session_events_deleted: receipt.session_events_deleted ?? 0,
+        backend: receipt.backend,
+      },
+    });
+
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "memory_forgotten",
+        severity: "info",
+        summary: `Memory forgotten and swept from ${receipt.surfaces_swept.length} derived surfaces`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
+  },
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  async archive_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { archived: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("archive_memory requires fact_id (or memory_id)");
+    const result = await db.archiveFact({
+      fact_id: factId,
+      reason: typeof args.reason === "string" ? args.reason : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async restore_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { restored: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("restore_memory requires fact_id (or memory_id)");
+    const result = await db.restoreFact({
+      fact_id: factId,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async list_archived(args) {
+    if (!isRecycleBinEnabled()) {
+      return { entries: [], flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const entries = await db.listArchivedFacts(num(args.limit ?? args.max_results, 100));
+    return { entries, count: entries.length, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async empty_recycle_bin(args) {
+    if (!isRecycleBinEnabled()) {
+      return { deleted: 0, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const requestedIds = arr(args.fact_ids);
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    const archived = await db.listArchivedFacts(EMPTY_BIN_MAX_BATCH);
+    const targets = requestedIds.length > 0
+      ? archived.filter((entry) => requestedIds.includes(entry.id))
+      : archived;
+
+    const receipts = [];
+    for (const entry of targets) {
+      const receipt = await db.forgetMemory({
+        fact_id: entry.id,
+        reason: "recycle-bin:empty",
+        session_id: sessionId,
+      });
+      receipts.push({
+        fact_id: entry.id,
+        verified_clean: receipt.verified_clean,
+        forget_compliance: forgetComplianceScore(receipt),
+      });
+    }
+
+    const hash = currentApiKeyHash();
+    if (hash && receipts.length > 0) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "recycle_bin_emptied",
+        severity: "info",
+        summary: `Recycle bin emptied: ${receipts.length} memories permanently deleted`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return {
+      deleted: receipts.length,
+      receipts,
+      flag: MEMORY_RECYCLE_BIN_FLAG,
+      flag_enabled: true,
+      note: "Permanent deletion ran the lane-05 forget cascade per fact (embeddings, typed links, snapshots, episodes).",
+    };
+  },
+  // --- end recycle bin ---
+
+  // --- pattern promotion (MEMORY_PATTERN_PROMOTION_ENABLED) ---
+  async promote_patterns(args) {
+    if (!isPatternPromotionEnabled()) {
+      return { enabled: false, flag: MEMORY_PATTERN_PROMOTION_FLAG, promoted: 0 };
+    }
+    if (!isTypedMemorySplitEnabled()) {
+      return {
+        enabled: true,
+        flag: MEMORY_PATTERN_PROMOTION_FLAG,
+        promoted: 0,
+        note: "Typed memory split is disabled; there is no episode store to mine for patterns.",
+      };
+    }
+
+    const db = await getBackend();
+    const minOccurrences = Math.max(2, num(args.min_occurrences, 3));
+    const threshold = Math.min(0.95, Math.max(0.2, num(args.similarity_threshold, 0.5)));
+    const dryRun = bool(args.dry_run, false);
+
+    const rows = await db.listSessionEvents({ limit: num(args.limit, 200) }) as Array<{
+      id: string;
+      content?: string;
+      memory_class?: string;
+    }>;
+    const episodes = (Array.isArray(rows) ? rows : [])
+      .filter((row) => typeof row.content === "string" && row.content.trim())
+      .map((row) => ({ id: row.id, content: String(row.content) }));
+
+    const clusters = clusterEpisodes(episodes, threshold).filter(
+      (cluster) => cluster.occurrences >= minOccurrences
+    );
+
+    const proposals = [];
+    for (const cluster of clusters) {
+      const factText = buildPatternFactText(cluster);
+      if (dryRun) {
+        proposals.push({ fact: factText, occurrences: cluster.occurrences, event_ids: cluster.event_ids });
+        continue;
+      }
+      // Idempotency guard: an identical pattern fact from a previous run is
+      // reused, never duplicated (the local backend only hash-dedups when the
+      // write gate flag is on, so the guard cannot rely on addFact alone).
+      const existing = await db.searchFacts(factText) as Array<{ id: string; fact: string; status?: string }>;
+      const match = (Array.isArray(existing) ? existing : []).find(
+        (row) => row.fact === factText && (row.status === undefined || row.status === "active")
+      );
+      if (match) {
+        proposals.push({
+          fact_id: match.id,
+          fact: factText,
+          occurrences: cluster.occurrences,
+          event_ids: cluster.event_ids,
+        });
+        continue;
+      }
+      const written = await db.addFact({
+        fact: factText,
+        category: "preference",
+        confidence: 0.7,
+        startup_fact_kind: "durable",
+        memory_class: "semantic",
+        extractor_id: "pattern-promotion-v1",
+        source_agent_id: "memory-pattern-promotion",
+        source_ref: `pattern:${cluster.occurrences}-episodes`,
+      }) as { id?: string };
+      proposals.push({
+        fact_id: written.id,
+        fact: factText,
+        occurrences: cluster.occurrences,
+        event_ids: cluster.event_ids,
+      });
+    }
+
+    return {
+      enabled: true,
+      flag: MEMORY_PATTERN_PROMOTION_FLAG,
+      dry_run: dryRun,
+      scanned_events: episodes.length,
+      qualifying_clusters: clusters.length,
+      promoted: dryRun ? 0 : proposals.length,
+      proposals,
+    };
+  },
+  // --- end pattern promotion ---
+
+  async save_correction(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        saved: false,
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const correction = str(args.correction) || str(args.text) || str(args.fact);
+    if (!correction) throw new Error("save_correction requires a correction");
+    const input = {
+      correction,
+      mistake: typeof args.mistake === "string" ? args.mistake : undefined,
+      key: typeof args.key === "string" ? args.key : undefined,
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+    };
+    const key = correctionKey(input);
+    await db.setBusinessContext(
+      CORRECTIONS_CATEGORY,
+      key,
+      buildCorrectionValue(input, new Date().toISOString()),
+      CORRECTION_PRIORITY,
+    );
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "correction_saved",
+        severity: "info",
+        summary: `Correction saved: ${correction.slice(0, 80)}`,
+        deepLink: "/admin/memory?tab=business-context",
+      });
+    }
+    return { saved: true, category: CORRECTIONS_CATEGORY, key, flag_enabled: true };
+  },
+
+  async list_corrections() {
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const corrections = rows
+      .filter((r) => String(r.category ?? "").toLowerCase() === CORRECTIONS_CATEGORY)
+      .map((r) => ({ key: r.key, value: r.value, priority: r.priority }));
+    return { corrections, count: corrections.length, flag_enabled: isCorrectionsEnabled() };
+  },
+
+  async consult_corrections(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        corrections: [],
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const query = str(args.query) || str(args.context) || str(args.draft);
+    const relevant = selectRelevantCorrections(rows, query, num(args.max_results, 5));
+    const total = countCorrections(rows);
+    emitCorrectionConsultMetric(query, relevant.length, total);
+    return { corrections: relevant, count: relevant.length, total, flag_enabled: true };
+  },
+  // --- end lane-05 ---
+  // --- lane-10: eval harness and memory passport ---
+  async export_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const db = await getBackend();
+    return db.exportMemoryPassport({
+      subject_id: typeof args.subject_id === "string" ? args.subject_id : undefined,
+      include_sessions: bool(args.include_sessions, true),
+      signing_secret: signingSecret,
+    });
+  },
+
+  async import_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const bundle = args.bundle as MemoryPassportBundle | undefined;
+    if (!bundle || typeof bundle !== "object") {
+      throw new Error("bundle is required for import_memory_passport");
+    }
+    const db = await getBackend();
+    return db.importMemoryPassport({
+      bundle,
+      dry_run: bool(args.dry_run, false),
+      signing_secret: signingSecret,
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+    });
+  },
+  // --- end lane-10 ---
 };

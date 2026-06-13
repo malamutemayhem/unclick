@@ -26,6 +26,18 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
       source_of_truth: "Boardroom Jobs",
       queue_state: "quiet",
     });
+    expect(context.current_state_card.scene_builder_packet).toMatchObject({
+      packet_id: "receipt-first-scene-builder-v0",
+      job_id: null,
+      source_of_truth: "Boardroom Jobs",
+      proof_state: "proof_not_needed",
+      risk_level: "low",
+      copyroom_required: false,
+      source_receipts: [],
+    });
+    expect(context.current_state_card.scene_builder_packet.memory_lease_expires_at).toBe(
+      "2026-05-12T12:30:00.000Z",
+    );
   });
 
   it("emits a BLOCKER verdict when open todos sit in the queue", () => {
@@ -88,6 +100,42 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
       ]),
     );
     expect(context.current_state_card.harness_card.copyroom_rule).toContain("CopyRoom/source packets");
+    expect(context.current_state_card.scene_builder_packet).toMatchObject({
+      packet_id: "receipt-first-scene-builder-v0",
+      job_id: "todo-actionable",
+      source_of_truth: "Boardroom Jobs",
+      proof_state: "proof_missing",
+      risk_level: "high",
+      copyroom_required: true,
+      source_receipts: [
+        {
+          source_kind: "todo",
+          source_id: "todo-actionable",
+          deep_link: "/admin/jobs#todo-todo-actionable",
+          created_at: NOW,
+        },
+      ],
+    });
+    expect(context.current_state_card.scene_builder_packet.next_safe_action).toContain(
+      "never mark DONE from status text alone",
+    );
+    expect(context.current_state_card.scene_builder_packet.stop_conditions).toContain(
+      "refresh the memory lease before acting after expiry",
+    );
+    expect(
+      context.current_state_card.scene_builder_packet.copyroom_receipt_contract.expected_fields,
+    ).toEqual(
+      expect.arrayContaining([
+        "source_kind",
+        "source_uri",
+        "target_uri",
+        "worker_agent_id",
+        "timestamp",
+      ]),
+    );
+    expect(
+      context.current_state_card.scene_builder_packet.copyroom_receipt_contract.missing_receipt_blocker,
+    ).toBe("COPYROOM_MISSING");
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
     expect(context.current_state_card.active_jobs).toBe(0);

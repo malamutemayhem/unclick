@@ -8,6 +8,9 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+// --- lane-02: reconciliation drives the supersession path tested here ---
+import { classifyAgainst } from "../reconcile.js";
+// --- end lane-02 ---
 
 // ---- Pure unit helpers (no I/O) ----
 
@@ -172,5 +175,19 @@ describe("Supabase bi-temporal integration", { skip: !LIVE }, () => {
 
   after(async () => {
     // Best-effort: nothing to clean up since invalidated facts stay in DB
+  });
+});
+
+// --- lane-02: reconciliation classification gates the supersede/invalidate path ---
+// A contradiction is what should trigger a newest-wins supersede (old row gets
+// valid_to / superseded_by set, the bi-temporal history this file checks). A
+// duplicate must NOT supersede, so no spurious valid_to churn is introduced.
+describe("reconciliation classification (supersession trigger)", () => {
+  it("flags a changed value as a contradiction (supersede)", () => {
+    assert.equal(classifyAgainst("Timezone is PST", "Timezone is EST").classification, "contradiction");
+  });
+
+  it("flags an identical restatement as a duplicate (no supersede)", () => {
+    assert.equal(classifyAgainst("Timezone is PST", "Timezone is PST").classification, "duplicate");
   });
 });

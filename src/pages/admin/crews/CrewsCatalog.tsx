@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CrewsNav from "@/components/crews/CrewsNav";
 import TemplateCard from "@/components/crews/TemplateCard";
-import { CREW_TEMPLATES } from "@/data/mockCrewTemplates";
+import { CREW_TEMPLATES } from "@/data/crewTemplates";
 import { STARTER_CREWS } from "@/data/starterCrews";
 import type { CrewTemplate, Agent } from "@/types/crews";
 import { useSession } from "@/lib/auth";

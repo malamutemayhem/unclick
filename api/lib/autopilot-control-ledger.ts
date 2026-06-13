@@ -107,11 +107,26 @@ export interface AutoPilotKitRecommendationLedgerInput {
   now?: Date;
 }
 
+export interface AutopilotIqOutcomeLedgerInput {
+  actorAgentId: string;
+  refId: string;
+  refKind?: AutopilotRefKind | string;
+  source?: string;
+  outcome?: string | null;
+  learnedSignal?: string | null;
+  proofRefs?: Array<Record<string, unknown> | string> | null;
+  rewardDelta?: number | null;
+  penaltyDelta?: number | null;
+  confidence?: number | null;
+  staleAfterDays?: number | null;
+  now?: Date;
+}
+
 const EVENT_TYPE_SET = new Set<string>(AUTOPILOT_EVENT_TYPES);
 const REF_KIND_SET = new Set<string>(AUTOPILOT_REF_KINDS);
 const SENSITIVE_KEY_RE = /(api[_-]?key|secret|token|password|credential|authorization|cookie)/i;
 const SENSITIVE_TEXT_RE =
-  /(authorization:\s*bearer\s+\S+|uc_[a-f0-9]{16,}|sk-[a-z0-9_-]{12,}|gh[pousr]_[a-z0-9_]{20,})/i;
+  /(authorization:\s*bearer\s+\S+|uc_[a-f0-9]{16,}|sk-[a-z0-9_-]{12,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|xox[bpra]-[a-z0-9-]{10,}|AKIA[A-Z0-9]{16,}|gh[pousr]_[a-z0-9_]{20,})/i;
 
 function compact(value: unknown, max = 500): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -155,9 +170,14 @@ function incrementCount(map: Record<string, number>, key: string): void {
   map[key] = (map[key] ?? 0) + 1;
 }
 
-const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|^chris$|^malamutemayhem$|\boperator\b|\bhuman\b)/i;
+function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.max(min, Math.min(max, value));
+}
+
+const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|\boperator\b|\bhuman\b)/i;
 const HUMAN_TOUCH_RE =
-  /\b(human|operator|chris|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
+  /\b(human|operator|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
 const HUMAN_TOUCH_BOOLEAN_KEYS = new Set([
   "human_touch",
   "operator_touch",
@@ -495,6 +515,100 @@ export function planAutoPilotKitRecommendationLedgerEvents(
       } satisfies AutopilotEventInput;
     })
     .filter((event): event is AutopilotEventInput => event !== null);
+}
+
+function normalizeAutopilotIqOutcome(value: unknown): string {
+  const outcome = lowerText(value);
+  if (["win", "miss", "blocked", "stale", "neutral"].includes(outcome)) return outcome;
+  return "neutral";
+}
+
+function normalizeProofRefs(
+  proofRefs: Array<Record<string, unknown> | string> | null | undefined,
+): Array<Record<string, unknown>> {
+  if (!Array.isArray(proofRefs)) return [];
+  return proofRefs
+    .map((proofRef) => {
+      if (typeof proofRef === "string") {
+        const ref = compact(proofRef, 160);
+        return ref ? { kind: "receipt", ref } : null;
+      }
+      if (!proofRef || typeof proofRef !== "object") return null;
+      const kind = compact(proofRef.kind ?? "receipt", 40);
+      const ref = compact(proofRef.ref ?? proofRef.id ?? proofRef.url ?? "", 160);
+      const note = compact(proofRef.note ?? "", 240);
+      if (!ref && !note) return null;
+      return {
+        kind: kind || "receipt",
+        ref: ref || null,
+        note: note || null,
+      };
+    })
+    .filter((proofRef): proofRef is Record<string, unknown> => proofRef !== null)
+    .slice(0, 8);
+}
+
+function defaultRewardDelta(outcome: string): number {
+  if (outcome === "win") return 1;
+  if (outcome === "neutral") return 0;
+  return 0;
+}
+
+function defaultPenaltyDelta(outcome: string): number {
+  if (outcome === "miss" || outcome === "blocked" || outcome === "stale") return 1;
+  return 0;
+}
+
+export function planAutopilotIqOutcomeLedgerEvent(input: AutopilotIqOutcomeLedgerInput): AutopilotEventInput {
+  const now = input.now ?? new Date();
+  const outcome = normalizeAutopilotIqOutcome(input.outcome);
+  const proofRefs = normalizeProofRefs(input.proofRefs);
+  const rewardDelta = boundedNumber(input.rewardDelta, defaultRewardDelta(outcome), -10, 10);
+  const penaltyDelta = boundedNumber(input.penaltyDelta, defaultPenaltyDelta(outcome), -10, 10);
+  const requestedConfidence = boundedNumber(input.confidence, proofRefs.length > 0 ? 0.65 : 0.25, 0, 1);
+  const confidence = proofRefs.length > 0 ? requestedConfidence : Math.min(requestedConfidence, 0.25);
+  const staleAfterDays = Math.round(boundedNumber(input.staleAfterDays, 14, 1, 90));
+  const staleAfter = new Date(now.getTime() + staleAfterDays * 24 * 60 * 60 * 1000).toISOString();
+  const quarantineReasons: string[] = [];
+
+  if (proofRefs.length === 0) quarantineReasons.push("missing_proof_refs");
+  if (outcome === "miss" || outcome === "blocked" || outcome === "stale") {
+    quarantineReasons.push("non_win_outcome");
+  }
+  if (confidence < 0.5) quarantineReasons.push("low_confidence");
+  if (penaltyDelta > rewardDelta) quarantineReasons.push("penalty_exceeds_reward");
+
+  return {
+    apiKeyHash: "",
+    eventType: "proof_result",
+    actorAgentId: input.actorAgentId,
+    refKind: input.refKind ?? "todo",
+    refId: input.refId,
+    now,
+    payload: {
+      schema_version: "autopilotiq_outcome_v1",
+      source: compact(input.source ?? "autopilotiq", 120),
+      storage: "mc_autopilot_events",
+      capture_mode: "shadow",
+      advisory: true,
+      execute: false,
+      applies_to_future_routing: false,
+      outcome,
+      learned_signal: compact(input.learnedSignal ?? "outcome captured for later replay", 240),
+      reward_delta: rewardDelta,
+      penalty_delta: penaltyDelta,
+      confidence,
+      proof_refs: proofRefs,
+      stale_after: staleAfter,
+      quarantine: quarantineReasons.length > 0,
+      bad_learning_prevention: {
+        shadow_mode_only: true,
+        requires_proof_refs: true,
+        stale_after_required: true,
+        quarantine_reasons: quarantineReasons,
+      },
+    },
+  };
 }
 
 export async function recordAutopilotEvent(

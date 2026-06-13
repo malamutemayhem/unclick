@@ -311,13 +311,13 @@ export default function ConnectPage() {
               {connector.name} connected
             </h2>
             <p className="text-sm text-body mt-1">
-              Access details stored securely. MCP tool calls will use them automatically.
+              Saved. Your AI can use {connector.name} from now on, with no extra steps.
             </p>
           </div>
 
           <div className="bg-card/40 border border-border/60 rounded-lg p-4 text-left space-y-2">
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
-              Optional: also store in local vault for offline use
+              Optional, advanced: keep a local copy for offline use
             </p>
             {vaultCommands.map((cmd) => (
               <code key={cmd} className="block text-xs font-mono text-primary bg-background/60 px-3 py-1.5 rounded">
@@ -369,7 +369,7 @@ export default function ConnectPage() {
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-body text-sm">
             {pageState.kind === "callback"
-              ? "Exchanging tokens..."
+              ? "Finishing the secure sign-in..."
               : `Connecting to ${connector.name}...`}
           </p>
         </div>
@@ -440,7 +440,7 @@ export default function ConnectPage() {
 
       const data = (await res.json()) as { state?: string; error?: string };
       if (!res.ok || !data.state) {
-        setPageState({ kind: "error", message: data.error ?? "Failed to initialize OAuth." });
+        setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
       }
 
@@ -501,7 +501,7 @@ export default function ConnectPage() {
                   </span>
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-heading">
-                      {resettingKey ? "Minting fresh key..." : "Mint a fresh key"}
+                      {resettingKey ? "Making a new key..." : "Make a new key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       Replaces the old key. Any other devices using it will need the new one.
@@ -790,7 +790,7 @@ function ConnectShell({
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            Saved access details are encrypted with AES-256-GCM using your API key before storage.
+            Your login details are stored encrypted. Only your API key can read them back.
           </p>
         </div>
       </main>

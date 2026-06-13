@@ -10,6 +10,7 @@
 
 import { encrypt, decrypt, hashKeyFull } from "./keychain-crypto.js";
 import { resolveCredential } from "./keychain-secure-input.js";
+import { scopesEnabled } from "./memory/scopes.js";
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 
@@ -250,7 +251,9 @@ interface TestResult {
   auth_method:    string;
 }
 
-async function testCredential(
+// Exported so the web admin connect flow (api/memory-admin admin_connect_app)
+// can run the exact same live proof before storing a credential.
+export async function testCredential(
   platform:     string,
   credential:   string,
   testEndpoint: string | null
@@ -527,10 +530,27 @@ async function keychainDisconnect(args: Record<string, unknown>): Promise<unknow
     return { error: `Failed to remove credential (HTTP ${status}).` };
   }
 
+  // --- lane-04: quarantine memory derived from the revoked credential.
+  // Best-effort: the disconnect still succeeds if quarantine fails. No-op
+  // unless MEMORY_SCOPES_ENABLED is on. ---
+  let memory_quarantined = 0;
+  if (scopesEnabled()) {
+    try {
+      const { getBackend } = await import("./memory/db.js");
+      const backend = await getBackend();
+      const result = await backend.quarantineCredentialMemory(platform);
+      memory_quarantined = result?.quarantined ?? 0;
+    } catch (err) {
+      console.error("[keychain_disconnect] memory quarantine failed:", err);
+    }
+  }
+  // --- end lane-04 ---
+
   return {
     platform,
     label:  label ?? "all",
     status: "disconnected",
+    memory_quarantined,
   };
 }
 

@@ -9,7 +9,7 @@
 --
 -- Scheme: AES-256-GCM. The user's UnClick API key is the encryption key
 -- (PBKDF2-derived with a per-row salt). We store only the SHA-256 hash
--- of the API key for lookups — the key itself is never persisted.
+-- of the API key for lookups; the key itself is never persisted.
 -- Read/write happens server-side via SUPABASE_SERVICE_ROLE_KEY, never
 -- from the anon client.
 

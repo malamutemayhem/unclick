@@ -11,7 +11,7 @@ Paired with the PR template from Build E (`.github/PULL_REQUEST_TEMPLATE.md`). R
 ## 1. Helper reuse
 
 - [ ] Does this PR introduce a function/class that duplicates logic already in `api/lib/`, `src/lib/`, or `scripts/`? If yes, prefer importing the existing helper or refactoring it.
-- [ ] Are crypto helpers (PBKDF2, AES-GCM, HMAC) imported from `api/lib/crypto-helpers.ts`? Inline implementations of these are not acceptable — they drift.
+- [ ] Are crypto helpers (PBKDF2, AES-GCM, HMAC) imported from `api/lib/crypto-helpers.ts`? Inline implementations of these are not acceptable. They drift.
 - [ ] Are date / time / timezone helpers imported from a single source (whichever the repo standardises on)?
 - [ ] Are auth / session checks consolidated, not re-implemented per route?
 
@@ -19,7 +19,7 @@ Paired with the PR template from Build E (`.github/PULL_REQUEST_TEMPLATE.md`). R
 
 - [ ] Imports inside `api/` should not reach into `src/` private internals (and vice versa). Use the public surface only.
 - [ ] No relative imports across package boundaries (e.g. `import x from "../../../src/lib/y"`). Use the package's exported name.
-- [ ] Tests for `api/testpass.ts` should not import from `testpass/internals/*` — go through the public exports.
+- [ ] Tests for `api/testpass.ts` should not import from `testpass/internals/*`. Go through the public exports.
 - [ ] If the PR adds an internal helper that two packages want, the helper belongs in a shared lib, not duplicated.
 
 ## 3. New abstraction discipline
@@ -56,7 +56,7 @@ Paired with the PR template from Build E (`.github/PULL_REQUEST_TEMPLATE.md`). R
 ## 8. Failure / error surfaces
 
 - [ ] New errors have stable `code` strings (or equivalent) so callers can branch without parsing messages.
-- [ ] Async functions either propagate or surface errors meaningfully — silent `try { ... } catch {}` is reviewer-flag material unless commented.
+- [ ] Async functions either propagate or surface errors meaningfully. Silent `try { ... } catch {}` is reviewer-flag material unless commented.
 - [ ] Sensitive values (tokens, keys, ciphertext) never appear in error messages thrown to clients.
 
 ---
@@ -66,9 +66,9 @@ Paired with the PR template from Build E (`.github/PULL_REQUEST_TEMPLATE.md`). R
 1. Open the PR.
 2. In the Review tab, paste the headers you care about (often just §1, §2, §6) as a comment.
 3. Tick the items that pass. For items that don't, leave inline comments on the offending lines.
-4. If everything passes, the standard `Reviewer PASS <SHA>` comment is enough — no need to re-paste the checklist.
+4. If everything passes, the standard `Reviewer PASS <SHA>` comment is enough. No need to re-paste the checklist.
 
-A short PR (≤50 LOC) usually only triggers §1, §6, §7. A larger PR likely touches more sections — pick the ones that apply.
+A short PR (≤50 LOC) usually only triggers §1, §6, §7. A larger PR likely touches more sections. Pick the ones that apply.
 
 ## When to escalate to a parent ScopePack
 

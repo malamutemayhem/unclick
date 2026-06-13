@@ -54,9 +54,6 @@ export default function SignupPage() {
     try {
       await signInWithMagicLink(trimmed);
       setSent(true);
-      // TODO(posthog-migration): remove umami call once PostHog validated
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).umami?.track("signup", { method: "magic_link" });
       posthog.capture("signup_started", { method: "magic_link" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
@@ -69,9 +66,6 @@ export default function SignupPage() {
     setError("");
     setBusy(provider);
     track("signup_started", { method: provider });
-    // TODO(posthog-migration): remove umami call once PostHog validated
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).umami?.track("signup", { method: provider });
     posthog.capture("signup_started", { method: provider });
     try {
       await signInWithOAuth(provider);

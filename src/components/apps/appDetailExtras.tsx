@@ -28,12 +28,6 @@ function JobsmithPanel(): ReactNode {
         >
           <ExternalLink className="h-3.5 w-3.5" /> Open JobSmith
         </Link>
-        <Link
-          to="/admin/jobsmith"
-          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/60 transition-colors hover:bg-white/[0.07]"
-        >
-          Manage in admin
-        </Link>
       </div>
     </div>
   );

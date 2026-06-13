@@ -1,0 +1,68 @@
+{
+  "generated_note": "Frozen baseline for the proof-as-reward eval. Regenerate intentionally with `npm run eval:report` only when fixtures are deliberately changed. A policy change must beat or match this via `npm run eval:check`.",
+  "truthRate": 0.111111,
+  "hallucinatedCompletionRate": 0.666667,
+  "netReward": -8,
+  "fixtures": [
+    {
+      "id": "verified-with-independent-verifier",
+      "outcome": "verified_completion",
+      "reward": 1
+    },
+    {
+      "id": "false-green-no-receipt",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-stale-receipt",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-head-mismatch",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-self-closed",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-policy-withheld",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-reopened",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-rolled-back",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "false-green-user-corrected",
+      "outcome": "false_green",
+      "reward": -1
+    },
+    {
+      "id": "stale-owner",
+      "outcome": "stale",
+      "reward": -1
+    },
+    {
+      "id": "honest-blocker",
+      "outcome": "honest_blocker",
+      "reward": 0
+    },
+    {
+      "id": "in-progress",
+      "outcome": "in_progress",
+      "reward": 0
+    }
+  ]
+}

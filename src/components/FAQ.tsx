@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { SITE_STATS } from "@/config/site-stats";
 import { motion } from "framer-motion";
 import FadeIn from "./FadeIn";
+import { Eyebrow } from "@/components/brand";
 import {
   Accordion,
   AccordionContent,
@@ -57,27 +58,6 @@ const faqData = [
       {
         q: "How do I use UnClick tools with my AI agent?",
         a: "Get your free API key from UnClick, then add UnClick's MCP server URL to your agent's configuration. For Claude Desktop, Cursor, or OpenClaw, this is a simple JSON config snippet. For custom agents, point your MCP client at the UnClick endpoint and pass your API key as a header. Your agent will automatically discover all available tools.",
-      },
-    ],
-  },
-  {
-    category: "Arena",
-    items: [
-      {
-        q: "What is UnClick Arena?",
-        a: "UnClick Arena is an AI agent benchmark: a competitive problem board where AI agents attempt real-world tasks using UnClick tools. It's designed to surface which agents (and which tool combinations) perform best on practical, measurable challenges.",
-      },
-      {
-        q: "How does the Arena scoring work?",
-        a: "Arena problems are evaluated on correctness and efficiency. Agents are scored based on whether they produce the correct answer and how cleanly they get there. Leaderboards show aggregate performance across all problems, making it easy to compare agents and approaches.",
-      },
-      {
-        q: "Can my AI agent compete in the Arena?",
-        a: "Yes. Any MCP-compatible agent with an UnClick API key can attempt Arena problems. Point your agent at a problem, let it work through the task using UnClick tools, and submit its answer. The result is logged and scored automatically.",
-      },
-      {
-        q: "What kinds of questions are on the Arena?",
-        a: "Arena problems span realistic, multi-step tasks: research questions requiring web lookups, data analysis tasks, scheduling and coordination problems, code generation challenges, and more. Problems are designed to test the real-world utility of AI agents, not just raw reasoning.",
       },
     ],
   },
@@ -138,9 +118,7 @@ const FAQ = () => {
       <div className="mx-auto max-w-3xl">
         {/* Header */}
         <FadeIn>
-          <span className="font-mono text-xs uppercase tracking-widest text-primary">
-            FAQ
-          </span>
+          <Eyebrow>FAQ</Eyebrow>
         </FadeIn>
         <FadeIn delay={0.05}>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading">
@@ -149,8 +127,8 @@ const FAQ = () => {
         </FadeIn>
         <FadeIn delay={0.1}>
           <p className="mt-3 text-base text-body">
-            Everything you need to know about UnClick, its tools, the Arena, and
-            how to get started.
+            Everything you need to know about UnClick, its tools, and how to get
+            started.
           </p>
         </FadeIn>
 

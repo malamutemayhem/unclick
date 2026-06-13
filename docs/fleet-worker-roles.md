@@ -45,7 +45,7 @@ canonical copy-paste message for waking or aligning multiple workers at once.
 | --- | --- | --- |
 | 🛡️ | Gatekeeper | Add when the fleet needs a dedicated release-safety and anti-stomp reviewer. Gatekeeper should inspect duplicate PRs, risky merges, incomplete verification, and scope creep. |
 
-Gatekeeper is not active unless Chris creates a new chat and registers it in Fishbowl.
+Gatekeeper is not active unless the operator creates a new chat and registers it in Fishbowl.
 
 ## Routing guide
 

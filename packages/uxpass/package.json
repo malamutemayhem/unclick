@@ -9,7 +9,8 @@
     "./schema": "./dist/schema.js",
     "./types": "./dist/types.js",
     "./visual-audit": "./dist/visual-audit.js",
-    "./design-director": "./dist/design-director.js"
+    "./design-director": "./dist/design-director.js",
+    "./ui-toolbox": "./dist/ui-toolbox.js"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",

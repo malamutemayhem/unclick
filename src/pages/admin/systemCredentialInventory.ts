@@ -111,14 +111,14 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "Wake dispatch proof is the safe health signal.",
-    rotationImpact: "Changing this can break WakePass and Fishbowl routing dispatch until the wake router is updated.",
+    rotationImpact: "Changing this can break WakePass and Boardroom routing dispatch until the wake router is updated.",
   },
   {
     provider: "github",
     source: "github_actions_secret",
     name: "FISHBOWL_AUTOCLOSE_TOKEN",
     scope: "repository actions secret",
-    workload: "Fishbowl todo auto-close on PR merge",
+    workload: "Boardroom todo auto-close on PR merge",
     risk: "high",
     expected: true,
     docsHint: "Auto-close workflow success proves the credential path without exposing it.",
@@ -476,7 +476,7 @@ function healthEvidenceLabelFor(entry: SystemCredentialInventoryEntry): string {
   if (entry.name === "TESTPASS_CRON_SECRET") return "Use scheduled TestPass smoke receipt.";
   if (entry.name === "UXPASS_TOKEN") return "Use UXPass dogfood capture receipt.";
   if (entry.name === "FISHBOWL_WAKE_TOKEN") return "Use Wake Router dispatch proof.";
-  if (entry.name === "FISHBOWL_AUTOCLOSE_TOKEN") return "Use Fishbowl auto-close workflow result.";
+  if (entry.name === "FISHBOWL_AUTOCLOSE_TOKEN") return "Use the Boardroom auto-close workflow result.";
   if (entry.name === "OPENROUTER_API_KEY") return "Use static classifier dry-run proof.";
   if (entry.name === "SUPABASE_SERVICE_ROLE_KEY") return "Use human-reviewed admin/server health proof.";
   if (entry.name === "CRON_SECRET") return "Use scheduled route gate receipt.";
@@ -509,7 +509,7 @@ function verificationNoteFor(entry: SystemCredentialInventoryEntry): string {
   if (entry.name === "TESTPASS_CRON_SECRET") return "After rotation, trigger the scheduled TestPass smoke.";
   if (entry.name === "UXPASS_TOKEN") return "After rotation, run the UXPass dogfood capture.";
   if (entry.name === "FISHBOWL_WAKE_TOKEN") return "After rotation, run a dry WakePass route proof.";
-  if (entry.name === "FISHBOWL_AUTOCLOSE_TOKEN") return "After rotation, verify the Fishbowl todo auto-close workflow.";
+  if (entry.name === "FISHBOWL_AUTOCLOSE_TOKEN") return "After rotation, verify the Boardroom todo auto-close workflow.";
   if (entry.name === "OPENROUTER_API_KEY") return "After rotation, run a static wake classifier dry-run.";
   if (entry.name === "SUPABASE_SERVICE_ROLE_KEY") return "After rotation, verify privileged admin/server health with human review.";
   if (entry.name === "CRON_SECRET") return "After rotation, verify scheduled route gates and Pass receipts.";

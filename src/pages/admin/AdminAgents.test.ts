@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
   AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+  buildSeatCapabilityNotes,
   buildSeatOverrideStoragePayload,
   buildSeatPerformanceScores,
   latestProfileCheckInAt,
@@ -13,7 +15,7 @@ import {
   profileMatchesSeat,
   unmatchedRecentProfiles,
   type AISeat,
-  type FishbowlProfile,
+  type BoardroomProfile,
 } from "./AdminAgentsSeatUtils";
 
 vi.mock("@/lib/auth", () => ({
@@ -26,7 +28,7 @@ function seat(patch: Partial<AISeat>): AISeat {
     name: "AI Seat 1",
     emoji: "💻",
     provider: "Codex Desktop",
-    device: "Chris laptop",
+    device: "Office laptop",
     status: "Ready",
     state: "Cycle-share capacity",
     load: 25,
@@ -37,7 +39,7 @@ function seat(patch: Partial<AISeat>): AISeat {
   };
 }
 
-function profile(patch: Partial<FishbowlProfile>): FishbowlProfile {
+function profile(patch: Partial<BoardroomProfile>): BoardroomProfile {
   return {
     agent_id: "chatgpt-codex-seat",
     emoji: "🤖",
@@ -54,7 +56,7 @@ function profile(patch: Partial<FishbowlProfile>): FishbowlProfile {
 
 describe("AdminAgents seat check-ins", () => {
   it("shows Seats without the old Workers section", () => {
-    render(React.createElement(AdminAgentsPage));
+    render(React.createElement(MemoryRouter, null, React.createElement(AdminAgentsPage)));
 
     expect(screen.getByRole("heading", { name: "Seats" })).toBeInTheDocument();
     expect(screen.getByText("AI Seats")).toBeInTheDocument();
@@ -70,8 +72,8 @@ describe("AdminAgents seat check-ins", () => {
   it("matches a live profile to a named physical seat", () => {
     expect(
       profileMatchesSeat(
-        profile({ display_name: "Chris laptop Codex" }),
-        seat({ id: "chris-laptop-seat", name: "Chris laptop" }),
+        profile({ display_name: "Office laptop Codex" }),
+        seat({ id: "office-laptop-seat", name: "Office laptop" }),
       ),
     ).toBe(true);
   });
@@ -204,5 +206,103 @@ describe("AdminAgents seat check-ins", () => {
     expect(scores[1].reasons).toContain("missed check-in");
     expect(scores[2].status).toBe("blocked");
     expect(scores[2].reasons).toContain("blocked for routing");
+  });
+
+  it("builds deterministic seat capability notes for routing and reliability hints", () => {
+    const now = Date.parse("2026-05-09T10:00:00.000Z");
+    const notes = buildSeatCapabilityNotes(
+      [
+        seat({
+          id: "codex-seat",
+          name: "Codex Seat",
+          provider: "Codex Desktop",
+          routingPolicy: "auto",
+          load: 20,
+        }),
+        seat({
+          id: "claude-seat",
+          name: "Claude Seat",
+          provider: "Claude",
+          routingPolicy: "auto",
+          load: 35,
+        }),
+        seat({
+          id: "windsurf-seat",
+          name: "Windsurf Seat",
+          provider: "Windsurf",
+          isVirtual: true,
+          routingPolicy: "auto",
+          load: 10,
+        }),
+        seat({
+          id: "blocked-seat",
+          name: "Blocked Seat",
+          provider: "Codex Desktop",
+          routingPolicy: "blocked",
+          load: 15,
+        }),
+      ],
+      [
+        profile({
+          agent_id: "codex-seat",
+          display_name: "Codex Seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-09T09:55:00.000Z",
+          current_status: "PASS: one safe slice is green.",
+        }),
+        profile({
+          agent_id: "claude-seat",
+          display_name: "Claude Seat",
+          user_agent_hint: "claude-code",
+          last_seen_at: "2026-05-09T07:30:00.000Z",
+          next_checkin_at: "2026-05-09T08:00:00.000Z",
+          current_status: "BLOCKER: waiting on decision",
+        }),
+        profile({
+          agent_id: "windsurf-seat",
+          display_name: "Windsurf Seat",
+          user_agent_hint: "windsurf/cascade",
+          last_seen_at: "2026-05-09T09:50:00.000Z",
+        }),
+        profile({
+          agent_id: "blocked-seat",
+          display_name: "Blocked Seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-09T09:58:00.000Z",
+          current_status: "PASS: still healthy",
+        }),
+        profile({
+          agent_id: "github-action-queuepush",
+          display_name: "QueuePush",
+          user_agent_hint: "github-action",
+          last_seen_at: "2026-05-09T09:59:00.000Z",
+        }),
+      ],
+      now,
+    );
+
+    const codex = notes.find((item) => item.id === "codex-seat");
+    expect(codex?.client).toBe("codex");
+    expect(codex?.routingHint).toBe("build");
+    expect(codex?.reliability).toBe("strong");
+
+    const claude = notes.find((item) => item.id === "claude-seat");
+    expect(claude?.client).toBe("claude");
+    expect(claude?.routingHint).toBe("avoid");
+    expect(claude?.reliability).toBe("risk");
+    expect(claude?.notes).toContain("status reports blocker");
+
+    const windsurf = notes.find((item) => item.id === "windsurf-seat");
+    expect(windsurf?.client).toBe("windsurf");
+    expect(windsurf?.routingHint).toBe("review");
+
+    const blocked = notes.find((item) => item.id === "blocked-seat");
+    expect(blocked?.routingHint).toBe("avoid");
+    expect(blocked?.notes).toContain("blocked for routing");
+
+    const queuepush = notes.find((item) => item.id === "github-action-queuepush");
+    expect(queuepush?.source).toBe("live-profile");
+    expect(queuepush?.client).toBe("github-action");
+    expect(queuepush?.routingHint).toBe("observe");
   });
 });

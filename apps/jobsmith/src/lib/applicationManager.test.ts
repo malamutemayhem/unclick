@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildDecisionCards, buildManagedApplicationRun, buildWelcomePacket } from "./applicationManager";
 
 const ruleSummary = {
-  totalRules: 229,
+  totalRules: 232,
   categories: ["ATS", "VOICE", "APPLICATION"],
   bySeverity: { ERROR: 24, WARN: 120, INFO: 85 },
   needsRefresh: 3,
@@ -43,7 +43,7 @@ describe("JobSmith application manager welcome packet", () => {
 
     expect(packet.status).toBe("needs_job_ad");
     expect(packet.availableInputs[0]).toBe("CV corpus: 4 cover letters and 7 prior applications");
-    expect(packet.availableInputs).toContain("Rule pack v1: 229 rules across 3 categories");
+    expect(packet.availableInputs).toContain("Rule pack v1: 232 rules across 3 categories");
     expect(packet.missingInputs).toEqual(["Full job ad or role brief", "Generated application packet artifact"]);
     expect(packet.safestNextMove).toContain("Paste the full job ad");
   });
@@ -258,7 +258,7 @@ describe("JobSmith managed application run", () => {
       sourceBackedClaim: "Led a wagering-safe product workflow with documented stakeholder proof.",
       proofNote: "Portfolio case study backs the claim.",
       ruleResult: {
-        totalRules: 229,
+        totalRules: 232,
         findings: [],
         reviewNeeded,
         blocked: false,
@@ -286,7 +286,7 @@ describe("JobSmith managed application run", () => {
     expect(report.runId).toBe("sportsbet-replay-2026-05-19");
     expect(report.status).toBe("review_needed");
     expect(report.submitReady).toBe(false);
-    expect(report.rulesPassed).toBe(228);
+    expect(report.rulesPassed).toBe(231);
     expect(report.reviewNeededCount).toBe(1);
     expect(report.artifacts).toHaveLength(1);
     expect(report.proof[0]).toMatchObject({ id: "sportsbet-replay-vitest", kind: "test" });
@@ -309,7 +309,7 @@ describe("JobSmith managed application run", () => {
       sourceBackedClaim: "Shipped a source-backed product redesign.",
       proofNote: "Portfolio case study and CV notes show the redesign proof.",
       ruleResult: {
-        totalRules: 229,
+        totalRules: 232,
         findings: [],
         reviewNeeded: [],
         blocked: false,
@@ -340,7 +340,7 @@ describe("JobSmith managed application run", () => {
     ).toMatchObject({
       status: "submit_ready",
       submitReady: true,
-      rulesPassed: 229,
+      rulesPassed: 232,
       blockers: [],
     });
   });

@@ -22,8 +22,8 @@ describe("orchestrator context", () => {
           current_status: "Building Orchestrator context",
         },
         {
-          agent_id: "human-chris",
-          display_name: "Chris",
+          agent_id: "human-operator",
+          display_name: "Operator",
           user_agent_hint: "admin-ui",
           last_seen_at: "2026-05-09T09:00:00.000Z",
         },
@@ -38,8 +38,8 @@ describe("orchestrator context", () => {
         },
         {
           id: "msg-user",
-          author_agent_id: "human-chris",
-          text: "Chris greenlit the Orchestrator context layer.",
+          author_agent_id: "human-operator",
+          text: "Operator greenlit the Orchestrator context layer.",
           tags: ["decision"],
           created_at: "2026-05-09T10:20:00.000Z",
         },
@@ -176,12 +176,12 @@ describe("orchestrator context", () => {
     });
     expect(context.current_state_card.zero_touch_scoreboard.summary).toContain("zero-touch refs");
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.role).toBe("human");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.role).toBe("human");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.freshness_label).toBe("Live");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.source_app_label).toBe("Codex");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.connection_label).toBe("Connected");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.source_app_label).toBe("Admin UI");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.freshness_label).toBe("Recent");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.source_app_label).toBe("Admin UI");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.freshness_label).toBe("Recent");
     expect(context.continuity_events.some((event) => event.kind === "proof" && event.source_id === "msg-proof")).toBe(true);
     expect(context.continuity_events.some((event) => event.source_kind === "conversation_turn" && event.role === "user")).toBe(true);
     expect(context.library_snapshots.map((snapshot) => snapshot.source_kind)).toEqual(
@@ -358,6 +358,59 @@ describe("orchestrator context", () => {
     expect(context.seat_handshake.next_prompt).toContain("Australia/Sydney");
   });
 
+  it("surfaces the operator ai_style directive into the seat handoff prompt", () => {
+    const directive =
+      "Operator AI style, always honor unless overridden in-session: keep answers short; explain simply; use bullet points; no emoji.";
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [
+        {
+          id: "bc-ai-style",
+          category: "preference",
+          key: "ai_style",
+          value: {
+            directive,
+            response_length: "short",
+            updated_at: "2026-05-10T00:50:00.000Z",
+          },
+          priority: 99,
+          updated_at: "2026-05-10T00:50:00.000Z",
+        },
+      ],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style?.directive).toBe(directive);
+    expect(context.seat_handshake.next_prompt).toContain(directive);
+  });
+
+  it("omits the ai_style line from the handoff prompt when no preference is set", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style).toBeNull();
+    expect(context.seat_handshake.next_prompt).toContain("Use this compact handoff. Orchestrator");
+  });
+
   it("labels profile-card check-in freshness for AI seats", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-09T12:00:00.000Z",
@@ -432,7 +485,7 @@ describe("orchestrator context", () => {
         {
           id: "msg-decision-secret",
           author_agent_id: "chatgpt-codex-seat",
-          text: "Chris greenlit rolling snapshots with Authorization: Bearer sk-test-not-real-token in copied debug text.",
+          text: "Operator greenlit rolling snapshots with Authorization: Bearer sk-test-not-real-token in copied debug text.",
           tags: ["decision"],
           created_at: "2026-05-09T12:58:00.000Z",
         },
@@ -1130,8 +1183,8 @@ describe("orchestrator context", () => {
       messages: [
         {
           id: "msg-decision",
-          author_agent_id: "human-chris",
-          text: "Chris greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
+          author_agent_id: "human-operator",
+          text: "Operator greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
           tags: ["decision"],
           created_at: "2026-05-10T00:11:00.000Z",
         },
@@ -1308,7 +1361,7 @@ describe("computeActiveJobsCount (v9 definition)", () => {
       [
         {
           agent_id: "builder-stale",
-          // 6 days ago. The exact case Chris hit earlier today (todo e9e308cd
+          // 6 days ago. The exact case the operator hit earlier today (todo e9e308cd
           // assigned to "master" who hadn't been seen in 6 days but was
           // still counted as an active job).
           last_seen_at: new Date(NOW_MS - 6 * 24 * HOUR_MS).toISOString(),

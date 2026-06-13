@@ -29,7 +29,7 @@ Receipts must state cleanup status for temp rows, proof agents, one-time schedul
 | Lane | Trigger | Owner skill | Allowed data | Prohibited mutations | Proof receipt | Escalation rule |
 | --- | --- | --- | --- | --- | --- | --- |
 | Product Steward | Roadmap drift, competing priorities, vague feature requests, broad parent cards | Product strategy, prioritisation, scope slicing | Public docs, Boardroom todos, PRDs, issue/todo metadata, shipped UI paths | Product strategy commitments, pricing, public roadmap promises, feature merges | Ranked product focus note or child chip list | Escalate when the answer decides company direction, pricing, or major sequencing |
-| Customer Advocate | User pain, confusing flows, repeated support-like signals, wrong-time or wrong-context messages | User empathy, workflow diagnosis, support synthesis | User-provided messages, public UI, anonymised receipts, admin screenshots supplied by Chris | Private customer data access, direct user outreach, account changes | Pain-to-ticket map or UX support finding | Escalate if private customer records, live messaging, refunds, or account actions are needed |
+| Customer Advocate | User pain, confusing flows, repeated support-like signals, wrong-time or wrong-context messages | User empathy, workflow diagnosis, support synthesis | User-provided messages, public UI, anonymised receipts, admin screenshots supplied by the operator | Private customer data access, direct user outreach, account changes | Pain-to-ticket map or UX support finding | Escalate if private customer records, live messaging, refunds, or account actions are needed |
 | Privacy/Compliance Steward | Memory, export, delete, consent, retention, admin gating, profile context, local time handling | Privacy review, compliance triage, data minimisation | Docs, schemas, visible UI copy, read-only code, todo context | Legal advice claims, policy commitments, auth changes, destructive data actions | Privacy risk note, consent checklist, or scoped safety todo | Escalate for legal interpretation, customer data, precise location, billing, auth, or deletion flows |
 | Cost Steward | AI spend, infrastructure cost, dependency cost, paid API calls, Vercel or provider usage concerns | Cost triage, vendor inventory, default-off policy | Config names, docs, package metadata, non-secret usage summaries, CI logs | Paid calls, billing settings, plan changes, secrets, provider mutations | Cost risk note or default-off guardrail chip | Escalate for billing changes, provider account access, paid experiments, or commercial commitments |
 | UX Steward | Non-coder friction, admin complexity, confusing copy, visual regressions, setup pain | Product UX, content design, accessibility triage | Public and admin UI surfaces, screenshots, copy, docs, route maps | Direct production copy deploy without PR, dark-pattern changes, user messaging automation | UX sweep note, copy chip, or screenshot-backed issue | Escalate when UX change affects pricing, legal copy, auth, billing, or core positioning |
@@ -49,11 +49,11 @@ Default outputs:
 
 - roadmap focus note;
 - parent-to-child chip breakdown;
-- blocker when a priority decision needs Chris.
+- blocker when a priority decision needs the operator.
 
 ### Customer Advocate
 
-Customer Advocate turns user pain into tickets without accessing private customer records. It can use messages Chris provides, public UI, screenshots, and anonymised receipts.
+Customer Advocate turns user pain into tickets without accessing private customer records. It can use messages the operator provides, public UI, screenshots, and anonymised receipts.
 
 Default outputs:
 

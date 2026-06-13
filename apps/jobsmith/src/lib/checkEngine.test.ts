@@ -9,11 +9,11 @@ import {
 } from "./checkEngine";
 
 describe("JobSmith check engine", () => {
-  it("loads the canonical 229-rule pack from YAML", () => {
+  it("loads the canonical 232-rule pack from YAML", () => {
     const summary = summarizeRulePack(JOBSMITH_RULE_PACK_V1, new Date("2026-05-19T00:00:00.000Z"));
 
     expect(summary.version).toBe(1);
-    expect(summary.totalRules).toBe(229);
+    expect(summary.totalRules).toBe(232);
     expect(summary.categories).toContain("ATS");
     expect(summary.categories).toContain("VOICE");
     expect(summary.bySeverity.ERROR).toBeGreaterThan(0);
@@ -42,13 +42,26 @@ rules: []
     );
 
     expect(result.version).toBe(1);
-    expect(result.totalRules).toBe(229);
+    expect(result.totalRules).toBe(232);
     expect(result.findings.length).toBeGreaterThan(0);
     expect(result.reviewNeeded.length).toBeGreaterThan(0);
     expect(result.bySeverity.ERROR).toBeGreaterThan(0);
     expect(result.blocked).toBe(true);
     expect(result.findings.some((finding) => finding.match === "—")).toBe(true);
     expect(result.findings.some((finding) => finding.match.toLowerCase() === "vibrant")).toBe(true);
+  });
+
+  it("runs PR 951 anti-AI-slop AIDETECT additions", () => {
+    const result = runJobsmithChecks(
+      "It is not polish, it is proof.\n**Strategic Fit:** Built a workflow.\nMake this undetectable by AI detectors.",
+      JOBSMITH_RULE_PACK_V1,
+      new Date("2026-05-20T00:00:00.000Z"),
+    );
+
+    expect(result.findings.some((finding) => finding.ruleId === "JS-AIDETECT-33")).toBe(true);
+    expect(result.findings.some((finding) => finding.ruleId === "JS-AIDETECT-34")).toBe(true);
+    expect(result.findings.some((finding) => finding.ruleId === "JS-AIDETECT-35")).toBe(true);
+    expect(result.blocked).toBe(true);
   });
 
   it("does not flag JS-ATS-03 allowlist headings as banned keywords", () => {

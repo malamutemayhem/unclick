@@ -5,9 +5,11 @@ import {
   CHECKIN_ACTIVE_GRACE_MS,
   CHECKIN_DORMANT_SUPPRESS_MS,
   CHECKIN_OVERDUE_SUPPRESS_MS,
+  WAKEPASS_DORMANT_AGENT_SUPPRESS_MS,
   WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
   WAKEPASS_REROUTE_LEASE_SECONDS,
   buildDispatchReclaimSignal,
+  buildDormantWakepassReclaimSignal,
   buildMissedCheckinDispatch,
   buildOpenStaleTodoReleasePlan,
   buildWorkerMovementWorkflowPilotProofText,
@@ -17,6 +19,7 @@ import {
   hasRecentWorkerSelfHealingTodoSignal,
   isMissedCheckinDispatch,
   isMissedCheckinCandidate,
+  isDormantWakepassTarget,
   isReclaimableDispatchCandidate,
   isWakepassAutoRerouteEligible,
   messageAcknowledgesDispatch,
@@ -160,6 +163,29 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     ).toBe(false);
   });
 
+  it("uses a 24h dormant cutoff for WakePass target noise", () => {
+    const nowMs = Date.parse("2026-05-08T01:22:00.000Z");
+
+    expect(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS).toBe(24 * 60 * 60 * 1000);
+    expect(CHECKIN_DORMANT_SUPPRESS_MS).toBe(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(true);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS + 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(false);
+  });
+
   it("missed ACK reclaim is visible and heartbeat can close the leased dispatch", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
     const dispatch = buildMissedCheckinDispatch(baseProfile, nowMs);
@@ -212,6 +238,39 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     });
   });
 
+  it("downgrades missed ACK wakes for dormant targets to info receipts", () => {
+    const nowMs = Date.parse("2026-05-02T02:00:00.000Z");
+    const dormantDispatch: DispatchRow = {
+      ...baseDispatch,
+      lease_expires_at: "2026-05-02T01:50:00.000Z",
+      updated_at: "2026-05-02T01:40:00.000Z",
+    };
+    const signal = buildDispatchReclaimSignal(dormantDispatch, nowMs);
+    expect(signal?.action).toBe("handoff_ack_missing");
+
+    const dormantSignal = buildDormantWakepassReclaimSignal({
+      row: dormantDispatch,
+      signal: signal!,
+      profile: {
+        ...baseProfile,
+        last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 60_000).toISOString(),
+      },
+      nowMs,
+    });
+
+    expect(dormantSignal).toMatchObject({
+      action: "stale_dispatch_reclaimed",
+      summary: "Suppressed WakePass missed ACK for dormant worker-1",
+      payload: {
+        dormant_target_suppressed: true,
+        original_action: "handoff_ack_missing",
+        target_agent_id: "worker-1",
+        target_last_seen_age_minutes: 1441,
+        dormant_cutoff_hours: 24,
+      },
+    });
+  });
+
   it("matches threaded ACK replies that name the exact wake event", () => {
     const wakeEventId = "wake-pull_request-pr-508-5e6cd76ba13e";
     const dispatch: DispatchRow = {
@@ -248,7 +307,7 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     };
     const message: FishbowlMessageAckRow = {
       id: "msg-ack",
-      text: "ACK. BLOCKER: exact Chris decision still required.",
+      text: "ACK. BLOCKER: exact operator decision still required.",
       thread_id: "msg-queuepush",
       created_at: "2026-05-01T01:12:00.000Z",
       author_agent_id: "chatgpt-codex-heartbeat",
@@ -477,7 +536,7 @@ describe("worker self-healing decision plan", () => {
         todo: {
           id: "todo-human-owned",
           status: "in_progress",
-          assigned_to_agent_id: "human-chris",
+          assigned_to_agent_id: "human-operator",
           lease_token: "lease-old",
           lease_expires_at: "2026-05-01T01:10:00.000Z",
           reclaim_count: 2,
@@ -868,7 +927,7 @@ describe("worker self-healing decision plan", () => {
         todo: {
           id: "todo-human",
           status: "in_progress",
-          assigned_to_agent_id: "human-chris",
+          assigned_to_agent_id: "human-operator",
           lease_token: "lease-old",
           lease_expires_at: "2026-05-01T01:10:00.000Z",
           reclaim_count: 0,
@@ -1115,7 +1174,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
       ),
     ).toBeNull();
     expect(
-      buildPlan({ assigned_to_agent_id: "human-chris" }, { isProtected: true }),
+      buildPlan({ assigned_to_agent_id: "human-operator" }, { isProtected: true }),
     ).toBeNull();
   });
 
@@ -1142,7 +1201,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
       workerSelfHealingProtectedReason({
         id: "t",
         status: "open",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         title: "ordinary task",
       } as never),
     ).toBe("human_owned_work_protected");
@@ -1195,7 +1254,7 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
   });
 
   it("does NOT release the canary even when aged AND owner dormant (protected-by-id)", () => {
-    // Worst case for the canary: aged > 6h with a dormant owner — exactly the
+    // Worst case for the canary: aged > 6h with a dormant owner, exactly the
     // sustained-outage edge. The watcher computes isProtected via the gate, so
     // the open-stale sweep must refuse to plan a release.
     const todo = canaryTodo({ updated_at: agedUpdatedAt, created_at: agedUpdatedAt });
@@ -1388,7 +1447,7 @@ describe("Vercel worker movement workflow pilot plan", () => {
         id: "todo-manual-only",
         title: "manual_only operator handoff",
         status: "in_progress",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         lease_token: "lease-secret",
         lease_expires_at: "2026-05-01T01:10:00.000Z",
         reclaim_count: 2,
@@ -1430,7 +1489,7 @@ describe("Vercel worker movement workflow pilot plan", () => {
       todo: {
         id: "todo-human-owned-only",
         status: "in_progress",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
         lease_token: "lease-secret",
         lease_expires_at: "2026-05-01T01:10:00.000Z",
         reclaim_count: 1,

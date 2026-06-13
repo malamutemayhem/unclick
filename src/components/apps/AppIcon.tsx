@@ -1,10 +1,15 @@
 // Small, consistent app icon. The frame is always identical so the grid never
-// shifts: a rounded, category-tinted chip. When we know the app's brand domain
-// we load its favicon inside that frame; if the favicon is unknown or fails to
-// load, we fall back to the app's tinted initial. Consistent look + real brand
-// recognition where possible, exactly as intended.
+// shifts: a rounded, category-tinted chip. Three fills, in order of preference:
+//   1. Brand favicon - when the app has a real brand domain.
+//   2. Meaningful glyph - built-in apps get a lucide icon picked by keyword
+//      (calculator for math, clock for time, lock for ciphers, ...) with a
+//      category glyph as fallback, tinted like the chip. No network requests.
+//   3. Tinted initial - only when the category is unknown.
+// One frame + per-category tint keeps the whole set looking uniform whether
+// the fill is a favicon or a glyph.
 
-import { useState } from "react";
+import { createElement, useState } from "react";
+import { glyphFor } from "./appIconGlyphs";
 
 const CATEGORY_TINT: Record<string, string> = {
   "AI": "#a78bfa",
@@ -33,17 +38,24 @@ export function AppIcon({
   name,
   category,
   domain,
+  slug,
   size = 22,
 }: {
   name: string;
   category: string;
   domain?: string | null;
+  slug?: string;
   size?: number;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
   const letter = (name.replace(/[^A-Za-z0-9]/g, "").charAt(0) || "?").toUpperCase();
   const tint = CATEGORY_TINT[category] ?? "#9ca3af";
-  const showImg = Boolean(domain) && !imgFailed;
+  // Only real, dotted hostnames get a favicon lookup. Anything else (null, the
+  // legacy "local" marker, bare words) falls straight back to a glyph, because
+  // the favicon service answers unknown hosts with a generic placeholder
+  // instead of an error - which used to leave built-in apps with a junk icon.
+  const showImg = Boolean(domain && domain.includes(".")) && !imgFailed;
+  const glyph = glyphFor(name, category, slug);
 
   return (
     <span
@@ -68,6 +80,8 @@ export function AppIcon({
           onError={() => setImgFailed(true)}
           style={{ display: "block" }}
         />
+      ) : glyph ? (
+        createElement(glyph, { size: Math.round(size * 0.58), strokeWidth: 2 })
       ) : (
         letter
       )}

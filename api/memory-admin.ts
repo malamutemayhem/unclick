@@ -14,7 +14,10 @@
  *   - code: Returns code dumps (session_id param optional)
  *   - search: Full-text search across conversation logs (query param)
  *   - delete_fact: Archive a fact by ID (fact_id, POST)
- *   - delete_session: DELETE a session summary by ID (session_id, POST)
+ *   - delete_session: Archive a session summary by ID (session_id, POST)
+ *   - admin_memory_recycle_bin: List archived facts/sessions hidden from recall
+ *   - restore_fact / restore_session: Move an archived memory back to active
+ *   - empty_memory_recycle_bin: Permanently delete archived facts/sessions
  *   - update_business_context: Upsert a business context entry (POST)
  *   - admin_get_setup_guide: Returns client-specific onboarding instructions
  *                            for maximising memory auto-load (client param)
@@ -82,6 +85,8 @@
  *                      memory row scoped to the user's api_key_hash.
  *   - orchestrator_context_read: GET/POST read-only compact cross-seat state
  *                                from Memory, Boardroom, dispatches, signals.
+ *   - orchestrator_log_read: GET/POST owner-scoped source log with redacted
+ *                            previews and optional raw JSON download.
  *   - autopilot_zero_touch_metrics: GET/POST grouped human-touch metrics from
  *                                  the AutoPilot control ledger.
  *
@@ -105,7 +110,10 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { encrypt as keychainEncrypt, hashKeyFull as keychainHashKeyFull } from "../packages/mcp-server/src/keychain-crypto.js";
+import { testCredential as keychainTestCredential } from "../packages/mcp-server/src/keychain-tool.js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
+import { parseDueAtInput } from "./lib/todo-due.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
@@ -146,6 +154,7 @@ import {
   findExpressRoomDraftsByMirror,
   type ExpressRoomDraftQuery,
 } from "./lib/expressroom-draft-search.js";
+import { shouldSuppressNoopHeartbeatPost } from "./lib/fishbowl-quiet-post.js";
 import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
@@ -204,7 +213,13 @@ import {
 import {
   isSensitiveMemorySnapshotText,
   writeMemoryTaxonomySnapshotsToLibrary,
+  SupabaseBackend,
 } from "../packages/mcp-server/src/memory/supabase.js";
+import {
+  autoCaptureFromTurn,
+  codeAutoCaptureEnabled,
+  libraryAutoCaptureEnabled,
+} from "../packages/mcp-server/src/memory/auto-capture.js";
 import type {
   LibraryDocInput,
   MemoryTaxonomySnapshotSource,
@@ -446,6 +461,55 @@ async function readAiStylePreferences(
     .maybeSingle();
   if (error) throw error;
   return data ? normalizeAiStyleValue(data.value, data.updated_at as string | null) : null;
+}
+
+// ---------------------------------------------------------------------------
+// About You
+//
+// A single free-text "about me / my business" block the operator writes on
+// /admin/you. It is stored as one high-priority business_context row
+// (identity/about_you), so load_memory surfaces it to every connected agent as
+// a standing rule the same way ai_style does. Stored as plain text so the
+// compact startup payload shows the words directly instead of wrapped JSON.
+// ---------------------------------------------------------------------------
+
+const ABOUT_YOU_CATEGORY = "identity";
+const ABOUT_YOU_KEY = "about_you";
+const ABOUT_YOU_PRIORITY = 100;
+const ABOUT_YOU_MAX_CHARS = 1500;
+
+interface AboutYouValue {
+  text: string;
+  updated_at: string;
+}
+
+function normalizeAboutYouText(value: unknown): string {
+  const raw = typeof value === "string"
+    ? value
+    : isRecord(value) && typeof value.text === "string"
+      ? value.text
+      : "";
+  // Keep single newlines so paragraphs read naturally for the agent, but
+  // collapse runs of blank lines and trim the edges.
+  return raw.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim().slice(0, ABOUT_YOU_MAX_CHARS);
+}
+
+async function readAboutYou(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+): Promise<AboutYouValue | null> {
+  const { data, error } = await supabase
+    .from("mc_business_context")
+    .select("value, updated_at")
+    .eq("api_key_hash", apiKeyHash)
+    .eq("category", ABOUT_YOU_CATEGORY)
+    .eq("key", ABOUT_YOU_KEY)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const text = normalizeAboutYouText(data.value);
+  if (!text) return null;
+  return { text, updated_at: (data.updated_at as string | null) ?? new Date().toISOString() };
 }
 
 const RELIABILITY_SOURCES = [
@@ -1177,6 +1241,20 @@ async function resolveSessionUser(
   } catch {
     return null;
   }
+}
+
+export type ChannelStatusAuthOutcome =
+  | { kind: "authorized" }
+  | { kind: "soft_unconfigured" }
+  | { kind: "unauthorized" };
+
+export function resolveChannelStatusAuthOutcome(input: {
+  apiKeyHash: string | null;
+  hasValidSession: boolean;
+}): ChannelStatusAuthOutcome {
+  if (input.apiKeyHash) return { kind: "authorized" };
+  if (input.hasValidSession) return { kind: "soft_unconfigured" };
+  return { kind: "unauthorized" };
 }
 
 // ─── AI chat helpers ───────────────────────────────────────────────────────
@@ -2538,6 +2616,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_session_summaries")
           .select("*")
           .eq("api_key_hash", apiKeyHash)
+          .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(limit);
 
@@ -2681,7 +2760,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data, error } = await q;
         if (error) throw error;
-        return res.status(200).json({ data: data ?? [] });
+        return res.status(200).json({
+          data: data ?? [],
+          auto_capture: {
+            code: codeAutoCaptureEnabled(),
+            library: libraryAutoCaptureEnabled(),
+          },
+        });
       }
 
       case "search": {
@@ -2707,9 +2792,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { error } = await supabase
           .from("mc_extracted_facts")
-          .update({ status: "archived" })
+          .update({
+            status: "archived",
+            archived_at: new Date().toISOString(),
+            decay_reason: "user-deleted",
+          })
           .eq("id", factId)
           .eq("api_key_hash", apiKeyHash);
+
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      case "restore_fact": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const factId = req.body?.fact_id || req.query.fact_id;
+        if (!factId) return res.status(400).json({ error: "fact_id required" });
+
+        const { error } = await supabase
+          .from("mc_extracted_facts")
+          .update({
+            status: "active",
+            archived_at: null,
+            decay_reason: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", factId)
+          .eq("api_key_hash", apiKeyHash)
+          .eq("status", "archived");
 
         if (error) throw error;
         return res.status(200).json({ success: true });
@@ -2724,12 +2836,106 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { error } = await supabase
           .from("mc_session_summaries")
-          .delete()
+          .update({
+            status: "archived",
+            archived_at: new Date().toISOString(),
+            archive_reason: "user-deleted",
+          })
           .eq("id", sessionId)
           .eq("api_key_hash", apiKeyHash);
 
         if (error) throw error;
         return res.status(200).json({ success: true });
+      }
+
+      case "restore_session": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const sessionId = req.body?.session_id || req.query.session_id;
+        if (!sessionId) return res.status(400).json({ error: "session_id required" });
+
+        const { error } = await supabase
+          .from("mc_session_summaries")
+          .update({
+            status: "active",
+            archived_at: null,
+            archive_reason: null,
+          })
+          .eq("id", sessionId)
+          .eq("api_key_hash", apiKeyHash)
+          .eq("status", "archived");
+
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      case "admin_memory_recycle_bin": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const limit = getClampedLimit(req.query.limit, 50, 200);
+
+        const [factsResult, sessionsResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, status, decay_tier, confidence, access_count, created_at, updated_at, archived_at, decay_reason")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .order("archived_at", { ascending: false, nullsFirst: false })
+            .order("created_at", { ascending: false })
+            .limit(limit),
+          supabase
+            .from("mc_session_summaries")
+            .select("id, session_id, platform, summary, decisions, open_loops, topics, created_at, status, archived_at, archive_reason")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .order("archived_at", { ascending: false, nullsFirst: false })
+            .order("created_at", { ascending: false })
+            .limit(limit),
+        ]);
+
+        if (factsResult.error) throw factsResult.error;
+        if (sessionsResult.error) throw sessionsResult.error;
+        return res.status(200).json({
+          data: {
+            facts: factsResult.data ?? [],
+            sessions: sessionsResult.data ?? [],
+          },
+        });
+      }
+
+      case "empty_memory_recycle_bin": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        if (req.body?.confirm !== "EMPTY") {
+          return res.status(400).json({ error: "confirm must be EMPTY" });
+        }
+
+        const [factsResult, sessionsResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .delete()
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .select("id"),
+          supabase
+            .from("mc_session_summaries")
+            .delete()
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "archived")
+            .select("id"),
+        ]);
+
+        if (factsResult.error) throw factsResult.error;
+        if (sessionsResult.error) throw sessionsResult.error;
+        return res.status(200).json({
+          success: true,
+          deleted: {
+            facts: factsResult.data?.length ?? 0,
+            sessions: sessionsResult.data?.length ?? 0,
+          },
+        });
       }
 
       case "update_business_context": {
@@ -4610,12 +4816,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const isAdmin = user.email
           ? adminEmails.includes(user.email.toLowerCase())
           : false;
-        const [operatorTime, aiStyle] = keyRow?.key_hash
+        const [operatorTime, aiStyle, aboutYou] = keyRow?.key_hash
           ? await Promise.all([
               readOperatorTimeContext(supabase, keyRow.key_hash),
               readAiStylePreferences(supabase, keyRow.key_hash),
+              readAboutYou(supabase, keyRow.key_hash),
             ])
-          : [null, null];
+          : [null, null, null];
 
         return res.status(200).json({
           user_id: user.id,
@@ -4628,6 +4835,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           memory_quota_exempt: isMemoryQuotaExemptEmail(user.email),
           operator_time: operatorTime,
           ai_style: aiStyle,
+          about_you: aboutYou,
         });
       }
 
@@ -4719,6 +4927,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         if (error) throw error;
         return res.status(200).json({ success: true, ai_style: value });
+      }
+
+      case "about_you_update": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+        const keyRow = (await supabase
+          .from("api_keys")
+          .select("key_hash")
+          .eq("user_id", user.id)
+          .maybeSingle()).data as { key_hash: string | null } | null;
+        if (!keyRow?.key_hash) {
+          return res.status(404).json({ error: "No active UnClick key found for this user" });
+        }
+
+        const nowIso = new Date().toISOString();
+        const text = normalizeAboutYouText(isRecord(req.body) ? req.body.text : "");
+
+        // Empty text clears the row, so an emptied About You does not keep
+        // loading a stale block into every session.
+        if (!text) {
+          const { error: delError } = await supabase
+            .from("mc_business_context")
+            .delete()
+            .eq("api_key_hash", keyRow.key_hash)
+            .eq("category", ABOUT_YOU_CATEGORY)
+            .eq("key", ABOUT_YOU_KEY);
+          if (delError) throw delError;
+          return res.status(200).json({ success: true, about_you: { text: "", updated_at: nowIso } });
+        }
+
+        const { error } = await supabase
+          .from("mc_business_context")
+          .upsert(
+            {
+              api_key_hash: keyRow.key_hash,
+              category: ABOUT_YOU_CATEGORY,
+              key: ABOUT_YOU_KEY,
+              value: text,
+              priority: ABOUT_YOU_PRIORITY,
+              decay_tier: "hot",
+              updated_at: nowIso,
+              last_accessed: nowIso,
+            },
+            { onConflict: "api_key_hash,category,key" },
+          );
+        if (error) throw error;
+        return res.status(200).json({ success: true, about_you: { text, updated_at: nowIso } });
       }
 
       case "generate_api_key": {
@@ -5041,6 +5298,80 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         if (upErr) throw upErr;
         return res.status(200).json({ success: true, disabled_apps: disabled });
+      }
+
+      // Connect an app from the admin Apps page: live-test the credential against
+      // the platform's test endpoint FIRST, store it (keychain-compatible
+      // encryption into platform_credentials) only when the test passes. A
+      // platform without a usable test endpoint is stored but reported as
+      // unproven (ok: null) so the UI never shows a green tick without proof.
+      case "admin_connect_app": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const platform = typeof body.platform === "string" ? body.platform.trim().toLowerCase() : "";
+        const credential = typeof body.credential === "string" ? body.credential.trim() : "";
+        const apiKey = typeof body.api_key === "string" ? body.api_key.trim() : "";
+        const label = typeof body.label === "string" && body.label.trim() ? body.label.trim() : "default";
+        if (!platform) return res.status(400).json({ error: "platform is required" });
+        if (!credential) return res.status(400).json({ error: "credential is required" });
+        if (!apiKey) return res.status(400).json({ error: "api_key is required for encryption" });
+        if (keychainHashKeyFull(apiKey) !== tenant.apiKeyHash) {
+          return res.status(403).json({ error: "api_key does not match your account." });
+        }
+
+        const { data: connRows } = await supabase
+          .from("platform_connectors")
+          .select("id, name, test_endpoint")
+          .eq("id", platform)
+          .limit(1);
+        const connectorRow = (connRows ?? [])[0] as { id: string; name: string; test_endpoint: string | null } | undefined;
+        if (!connectorRow) return res.status(404).json({ error: `Unknown platform "${platform}".` });
+
+        const test = await keychainTestCredential(platform, credential, connectorRow.test_endpoint ?? null);
+
+        if (!test.passed) {
+          // Live test failed: store nothing, surface the provider's verdict.
+          return res.status(200).json({
+            ok: false,
+            platform,
+            tested: !test.skipped,
+            status_code: test.status_code ?? null,
+            message: test.message,
+          });
+        }
+
+        const enc = keychainEncrypt(credential, apiKey);
+        const now = new Date().toISOString();
+        const { error: connErr } = await supabase
+          .from("platform_credentials")
+          .upsert(
+            {
+              key_hash: tenant.apiKeyHash,
+              platform,
+              label,
+              encrypted_value: enc.encrypted_value,
+              iv: enc.iv,
+              auth_tag: enc.auth_tag,
+              is_valid: true,
+              // Only a real probe earns a test stamp. A skipped test stays null
+              // so the UI shows "Key saved", not a false "Connected".
+              last_tested_at: test.skipped ? null : now,
+              created_at: now,
+            },
+            { onConflict: "key_hash,platform,label" },
+          );
+        if (connErr) throw connErr;
+
+        return res.status(200).json({
+          ok: test.skipped ? null : true,
+          platform,
+          tested: !test.skipped,
+          tested_at: test.skipped ? null : now,
+          message: test.message,
+        });
       }
 
       case "admin_update_fact": {
@@ -5527,19 +5858,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ok: boolean;
           error?: string;
           decayed?: unknown;
+          ephemera_archived?: number;
+          ephemera_error?: string;
         }> = [];
+
+        // Operational-ephemera sweep (flag-gated, default off). Archives
+        // (recoverable: status='archived') the heartbeat_last_state dumps and
+        // dated build/PR/Boardroom-Job log facts that the worker fleet writes,
+        // so active memory stays signal not noise. Durable facts are untouched.
+        const sweepRaw = (process.env.MEMORY_EPHEMERA_SWEEP_ENABLED ?? "").trim().toLowerCase();
+        const ephemeraSweepOn = sweepRaw === "1" || sweepRaw === "true";
 
         for (const row of keys ?? []) {
           const { data: decayed, error: decayErr } = await supabase.rpc(
             "mc_manage_decay",
             { p_api_key_hash: row.key_hash }
           );
+
+          let ephemeraArchived: number | undefined;
+          let ephemeraError: string | undefined;
+          if (ephemeraSweepOn) {
+            const { data: swept, error: sweepErr } = await supabase.rpc(
+              "mc_archive_ephemera",
+              { p_api_key_hash: row.key_hash }
+            );
+            if (sweepErr) ephemeraError = sweepErr.message;
+            else ephemeraArchived = typeof swept === "number" ? swept : Number(swept ?? 0) || 0;
+          }
+
           if (decayErr) {
             results.push({
               api_key_hash: row.key_hash,
               tier: row.tier,
               ok: false,
               error: decayErr.message,
+              ephemera_archived: ephemeraArchived,
+              ephemera_error: ephemeraError,
             });
           } else {
             results.push({
@@ -5547,6 +5901,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               tier: row.tier,
               ok: true,
               decayed,
+              ephemera_archived: ephemeraArchived,
+              ephemera_error: ephemeraError,
             });
           }
         }
@@ -5558,7 +5914,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           note:
             "Nightly extraction (LLM fact distillation from conversation_log) " +
             "is not yet implemented. See docs/sessions for the open question " +
-            "to Chris about model selection.",
+            "to the operator about model selection.",
         });
       }
 
@@ -6922,6 +7278,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
         if (error) throw error;
 
+        // Auto-capture (flag-gated, best-effort): mirror the MCP log_conversation
+        // path so hosted web-chat turns also fill the code-dump and library
+        // layers. Wrapped end-to-end so it can never break the turn ingest.
+        // Managed tenants only: BYOD users keep memory in their own Supabase, so
+        // writing to the central mc_* tables would be the wrong store.
+        if (role === "user" && (codeAutoCaptureEnabled() || libraryAutoCaptureEnabled())) {
+          try {
+            const { data: byodConfig } = await supabase
+              .from("memory_configs")
+              .select("api_key_hash")
+              .eq("api_key_hash", apiKeyHash)
+              .maybeSingle();
+            if (!byodConfig) {
+              const captureBackend = new SupabaseBackend({
+                url: supabaseUrl,
+                serviceRoleKey: supabaseKey,
+                tenancy: { mode: "managed", apiKeyHash },
+              });
+              await autoCaptureFromTurn(captureBackend, {
+                session_id: sessionId,
+                role,
+                content: safeContent,
+              });
+            }
+          } catch {
+            // best-effort; never block the turn ingest
+          }
+        }
+
         return res.status(200).json({
           turn_id: data.id,
           session_id: data.session_id,
@@ -6933,7 +7318,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "admin_channel_status": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
-        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const hasValidSession = apiKeyHash
+          ? true
+          : Boolean(await resolveSessionUser(req, supabaseUrl, supabaseKey));
+        const authOutcome = resolveChannelStatusAuthOutcome({ apiKeyHash, hasValidSession });
+        if (authOutcome.kind === "unauthorized") {
+          return res.status(401).json({ error: "Authorization header required" });
+        }
+        if (authOutcome.kind === "soft_unconfigured") {
+          return res.status(200).json({
+            channel_active: false,
+            configured: false,
+            last_seen: null,
+            client_info: null,
+          });
+        }
+
         const { data, error } = await supabase
           .from("channel_status")
           .select("last_seen, client_info")
@@ -6947,6 +7347,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           channel_active: active,
+          configured: true,
           last_seen: lastSeen,
           client_info: data?.client_info ?? null,
         });
@@ -9005,6 +9406,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user_agent_hint?: string | null;
           agent_id?: string | null;
           thread_id?: string | null;
+          suppress_noop_heartbeat?: boolean | null;
         };
 
         const agentId = (body.agent_id ?? "").toString().trim();
@@ -9061,6 +9463,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
           }
           tags = body.tags;
+        }
+
+        if (
+          shouldSuppressNoopHeartbeatPost({
+            text,
+            tags,
+            suppressNoopHeartbeat: body.suppress_noop_heartbeat === true,
+          })
+        ) {
+          return res.status(200).json({
+            quiet: true,
+            suppressed: true,
+            reason: "noop_heartbeat",
+            message: null,
+          });
         }
 
         let recipients: string[] = ["all"];
@@ -9157,6 +9574,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const statusFromPost = statusFromFishbowlPost(text);
         const profileUpdate: Record<string, unknown> = {
           last_seen_at: postedAtIso,
+          last_posted_at: postedAtIso,
           current_status_updated_at: postedAtIso,
           next_checkin_at: null,
         };
@@ -9617,6 +10035,472 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      case "orchestrator_log_read": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Sign in or pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+
+        const body = (req.body ?? {}) as {
+          include_raw?: boolean | string;
+          includeRaw?: boolean | string;
+          limit?: number | string;
+          q?: string;
+        };
+        const parseBooleanParam = (value: unknown, fallback: boolean): boolean => {
+          if (typeof value === "boolean") return value;
+          if (typeof value === "string") {
+            const clean = value.trim().toLowerCase();
+            if (clean === "1" || clean === "true" || clean === "yes") return true;
+            if (clean === "0" || clean === "false" || clean === "no") return false;
+          }
+          return fallback;
+        };
+        const rawSearch =
+          typeof body.q === "string"
+            ? body.q
+            : typeof req.query.q === "string"
+              ? req.query.q
+              : "";
+        const query = rawSearch.replace(/\s+/g, " ").trim().slice(0, 100);
+        const requestedLimit = Number(body.limit ?? req.query.limit ?? 120);
+        const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 120, 20), 200);
+        const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
+        const searchPattern = query ? `%${query.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchUuid = query.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
+        const turnSearchFilter = searchPattern
+          ? [
+              `content.ilike.${searchPattern}`,
+              `session_id.ilike.${searchPattern}`,
+              ...(searchUuid ? [`id.eq.${searchUuid}`] : []),
+            ].join(",")
+          : "";
+
+        let conversationTurnsQuery = supabase
+          .from("mc_conversation_log")
+          .select("id, session_id, role, content, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (turnSearchFilter) conversationTurnsQuery = conversationTurnsQuery.or(turnSearchFilter);
+
+        let chatMessagesQuery = supabase
+          .from("chat_messages")
+          .select("id, session_id, role, content, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
+
+        let boardroomMessagesQuery = supabase
+          .from("mc_fishbowl_messages")
+          .select("id, author_name, author_agent_id, recipients, text, tags, thread_id, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) boardroomMessagesQuery = boardroomMessagesQuery.ilike("text", searchPattern);
+
+        let todosQuery = supabase
+          .from("mc_fishbowl_todos")
+          .select("id, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, source_idea_id, created_at, updated_at, completed_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          todosQuery = todosQuery.or(`title.ilike.${searchPattern},description.ilike.${searchPattern},status.ilike.${searchPattern},priority.ilike.${searchPattern}`);
+        }
+
+        let commentsQuery = supabase
+          .from("mc_fishbowl_comments")
+          .select("id, target_kind, target_id, author_agent_id, text, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) commentsQuery = commentsQuery.ilike("text", searchPattern);
+
+        let sessionsQuery = supabase
+          .from("mc_session_summaries")
+          .select("id, session_id, platform, summary, decisions, open_loops, topics, duration_minutes, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          sessionsQuery = sessionsQuery.or(`summary.ilike.${searchPattern},session_id.ilike.${searchPattern},platform.ilike.${searchPattern}`);
+        }
+
+        let signalsQuery = supabase
+          .from("mc_signals")
+          .select("id, tool, action, severity, summary, deep_link, payload, created_at, read_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          signalsQuery = signalsQuery.or(`summary.ilike.${searchPattern},tool.ilike.${searchPattern},action.ilike.${searchPattern},severity.ilike.${searchPattern}`);
+        }
+
+        let dispatchesQuery = supabase
+          .from("mc_agent_dispatches")
+          .select("dispatch_id, source, target_agent_id, task_ref, status, lease_owner, lease_expires_at, last_real_action_at, payload, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) {
+          dispatchesQuery = dispatchesQuery.or(`dispatch_id.ilike.${searchPattern},source.ilike.${searchPattern},target_agent_id.ilike.${searchPattern},task_ref.ilike.${searchPattern},status.ilike.${searchPattern}`);
+        }
+
+        let businessContextQuery = supabase
+          .from("mc_business_context")
+          .select("id, category, key, value, priority, decay_tier, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) businessContextQuery = businessContextQuery.or(`category.ilike.${searchPattern},key.ilike.${searchPattern}`);
+
+        let libraryQuery = supabase
+          .from("mc_knowledge_library")
+          .select("slug, title, category, tags, content, version, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("updated_at", { ascending: false })
+          .limit(limit);
+        if (searchPattern) libraryQuery = libraryQuery.or(`slug.ilike.${searchPattern},title.ilike.${searchPattern},category.ilike.${searchPattern},content.ilike.${searchPattern}`);
+
+        const autopilotEventsQuery = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        const [
+          conversationTurnsResult,
+          chatMessagesResult,
+          boardroomMessagesResult,
+          todosResult,
+          commentsResult,
+          sessionsResult,
+          signalsResult,
+          dispatchesResult,
+          businessContextResult,
+          libraryResult,
+          autopilotEventsResult,
+        ] = await Promise.all([
+          conversationTurnsQuery,
+          chatMessagesQuery,
+          boardroomMessagesQuery,
+          todosQuery,
+          commentsQuery,
+          sessionsQuery,
+          signalsQuery,
+          dispatchesQuery,
+          businessContextQuery,
+          libraryQuery,
+          autopilotEventsQuery,
+        ]);
+
+        const errors = [
+          conversationTurnsResult.error,
+          chatMessagesResult.error,
+          boardroomMessagesResult.error,
+          todosResult.error,
+          commentsResult.error,
+          sessionsResult.error,
+          signalsResult.error,
+          dispatchesResult.error,
+          businessContextResult.error,
+          libraryResult.error,
+          autopilotEventsResult.error,
+        ].filter(Boolean);
+        if (errors.length > 0) throw errors[0];
+
+        type OrchestratorLogRecord = {
+          source_kind: string;
+          source_id: string;
+          created_at: string | null;
+          updated_at?: string | null;
+          label: string;
+          visibility: "private";
+          storage: "supabase_postgres";
+          preview: string;
+          data?: unknown;
+        };
+        const preview = (value: unknown, maxChars = 520): string => {
+          const clean = redactSensitive(value).replace(/\s+/g, " ").trim();
+          if (clean.length <= maxChars) return clean;
+          return `${clean.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
+        };
+        const makeRecord = (input: {
+          source_kind: string;
+          source_id: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+          label: string;
+          preview: unknown;
+          data: unknown;
+        }): OrchestratorLogRecord => ({
+          source_kind: input.source_kind,
+          source_id: input.source_id,
+          created_at: input.created_at ?? null,
+          updated_at: input.updated_at ?? null,
+          label: input.label,
+          visibility: "private",
+          storage: "supabase_postgres",
+          preview: preview(input.preview),
+          ...(includeRaw ? { data: input.data } : {}),
+        });
+
+        const conversationTurnRecords = ((conversationTurnsResult.data ?? []) as Array<{
+          id: string;
+          session_id: string;
+          role: string;
+          content: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "conversation_turn",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.role} conversation turn`,
+            preview: row.content,
+            data: row,
+          }),
+        );
+
+        const chatMessageRecords = ((chatMessagesResult.data ?? []) as Array<{
+          id: string;
+          session_id: string;
+          role: string;
+          content: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "chat_message",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.role} chat message`,
+            preview: row.content,
+            data: row,
+          }),
+        );
+
+        const boardroomMessageRecords = ((boardroomMessagesResult.data ?? []) as Array<{
+          id: string;
+          author_name?: string | null;
+          author_agent_id?: string | null;
+          text: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "boardroom_message",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.author_name ?? row.author_agent_id ?? "Unknown"} Boardroom message`,
+            preview: row.text,
+            data: row,
+          }),
+        );
+
+        const todoRecords = ((todosResult.data ?? []) as Array<{
+          id: string;
+          title: string;
+          description?: string | null;
+          status: string;
+          priority: string;
+          created_at: string;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "todo",
+            source_id: row.id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.priority} ${row.status} job`,
+            preview: `${row.title}${row.description ? ` - ${row.description}` : ""}`,
+            data: row,
+          }),
+        );
+
+        const commentRecords = ((commentsResult.data ?? []) as Array<{
+          id: string;
+          target_kind: string;
+          target_id: string;
+          author_agent_id?: string | null;
+          text: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "todo_comment",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.author_agent_id ?? "Unknown"} comment on ${row.target_kind}`,
+            preview: row.text,
+            data: row,
+          }),
+        );
+
+        const sessionRecords = ((sessionsResult.data ?? []) as Array<{
+          id?: string | null;
+          session_id: string;
+          platform?: string | null;
+          summary: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "session_summary",
+            source_id: row.id ?? row.session_id,
+            created_at: row.created_at,
+            label: `${row.platform ?? "session"} summary`,
+            preview: row.summary,
+            data: row,
+          }),
+        );
+
+        const signalRecords = ((signalsResult.data ?? []) as Array<{
+          id: string;
+          tool: string;
+          action: string;
+          severity: string;
+          summary: string;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "signal",
+            source_id: row.id,
+            created_at: row.created_at,
+            label: `${row.severity} signal: ${row.action}`,
+            preview: `${row.tool}: ${row.summary}`,
+            data: row,
+          }),
+        );
+
+        const dispatchRecords = ((dispatchesResult.data ?? []) as Array<{
+          dispatch_id: string;
+          source: string;
+          target_agent_id: string;
+          task_ref?: string | null;
+          status: string;
+          payload?: Record<string, unknown> | null;
+          created_at: string;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "dispatch",
+            source_id: row.dispatch_id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.status} dispatch to ${row.target_agent_id}`,
+            preview: {
+              source: row.source,
+              task_ref: row.task_ref,
+              payload: row.payload,
+            },
+            data: row,
+          }),
+        );
+
+        const businessContextRecords = ((businessContextResult.data ?? []) as Array<{
+          id: string;
+          category: string;
+          key: string;
+          value: unknown;
+          created_at?: string | null;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "business_context",
+            source_id: row.id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.category}: ${row.key}`,
+            preview: row.value,
+            data: row,
+          }),
+        );
+
+        const libraryRecords = ((libraryResult.data ?? []) as Array<{
+          slug: string;
+          title: string;
+          category: string;
+          content?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "library",
+            source_id: row.slug,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            label: `${row.category}: ${row.title}`,
+            preview: row.content ?? row.title,
+            data: row,
+          }),
+        );
+
+        const autopilotEventRecords = ((autopilotEventsResult.data ?? []) as Array<{
+          event_type: string;
+          actor_agent_id: string;
+          ref_kind: string;
+          ref_id: string;
+          payload?: Record<string, unknown> | null;
+          created_at: string;
+        }>).map((row) =>
+          makeRecord({
+            source_kind: "autopilot_event",
+            source_id: `${row.event_type}:${row.ref_kind}:${row.ref_id}:${row.created_at}`,
+            created_at: row.created_at,
+            label: `${row.event_type} by ${row.actor_agent_id}`,
+            preview: {
+              ref_kind: row.ref_kind,
+              ref_id: row.ref_id,
+              payload: row.payload,
+            },
+            data: row,
+          }),
+        );
+
+        const records = [
+          ...conversationTurnRecords,
+          ...chatMessageRecords,
+          ...boardroomMessageRecords,
+          ...todoRecords,
+          ...commentRecords,
+          ...sessionRecords,
+          ...signalRecords,
+          ...dispatchRecords,
+          ...businessContextRecords,
+          ...libraryRecords,
+          ...autopilotEventRecords,
+        ]
+          .sort((a, b) => Date.parse(b.updated_at ?? b.created_at ?? "") - Date.parse(a.updated_at ?? a.created_at ?? ""))
+          .slice(0, limit);
+
+        const sourceCounts = records.reduce<Record<string, number>>((acc, record) => {
+          acc[record.source_kind] = (acc[record.source_kind] ?? 0) + 1;
+          return acc;
+        }, {});
+
+        return res.status(200).json({
+          generated_at: new Date().toISOString(),
+          schema_version: 1,
+          query: query || null,
+          limit,
+          include_raw: includeRaw,
+          visibility: {
+            access: "Private to the signed-in owner or a holder of this tenant's UnClick API key.",
+            screen_preview: "On-screen previews redact secret-shaped values and billing-like numbers.",
+            download: includeRaw
+              ? "This response includes loaded raw source rows for the owner."
+              : "Call with include_raw=1 to download loaded source rows.",
+            storage:
+              "Current records live in tenant-scoped Supabase tables. The sealed raw archive can use Supabase Storage behind this same Log surface.",
+          },
+          source_counts: sourceCounts,
+          records,
+        });
+      }
+
       // ─── Fishbowl Todos + Ideas v1 ────────────────────────────────────────
       //
       // These handlers share the same shape:
@@ -9927,6 +10811,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             assignee = a;
           }
 
+          const dueRes = parseDueAtInput(body.due_at);
+          if (!dueRes.ok) return res.status(400).json({ error: dueRes.error });
+
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
             .insert({
@@ -9937,6 +10824,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               status: "open",
               created_by_agent_id: agentId,
               assigned_to_agent_id: assignee,
+              due_at: dueRes.value ?? null,
             })
             .select("*")
             .single();
@@ -10054,6 +10942,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const a = String(body.assigned_to_agent_id ?? "").trim();
             if (a.length > 128) return res.status(400).json({ error: "assigned_to_agent_id must be at most 128 characters" });
             update.assigned_to_agent_id = a.length === 0 ? null : a;
+          }
+          if (body.due_at !== undefined) {
+            const dueRes = parseDueAtInput(body.due_at);
+            if (!dueRes.ok) return res.status(400).json({ error: dueRes.error });
+            if (dueRes.value !== undefined) update.due_at = dueRes.value;
           }
 
           if (update.status === "done" && beforeTodo) {
@@ -10443,23 +11336,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (action === "fishbowl_list_todos") {
           const limit = Math.min(Math.max(Number(body.limit ?? 50) || 50, 1), 200);
+          const requestedOffset = Number(body.offset ?? 0);
+          const offset = Number.isFinite(requestedOffset) ? Math.max(Math.floor(requestedOffset), 0) : 0;
           const includeDescription = body.include_description === true || body.full_content === true;
           const includeArchivedDone =
             body.include_archived_done === true ||
             body.include_archived === true ||
             body.show_archived === true;
           const doneArchiveCutoff = new Date(Date.now() - DONE_TODO_ARCHIVE_WINDOW_MS).toISOString();
+          let statusFilter: "open" | "in_progress" | "done" | "dropped" | null = null;
           let q = supabase
             .from("mc_fishbowl_todos")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
             .order("created_at", { ascending: false })
-            .limit(limit);
+            .range(offset, offset + limit - 1);
           if (body.status != null) {
             const s = String(body.status);
             if (!["open", "in_progress", "done", "dropped"].includes(s)) {
               return res.status(400).json({ error: "status filter must be open|in_progress|done|dropped" });
             }
+            statusFilter = s as "open" | "in_progress" | "done" | "dropped";
             q = q.eq("status", s);
           }
           if (body.assigned_to_agent_id != null) {
@@ -10487,6 +11384,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             countTodosByStatus("done"),
             countTodosByStatus("dropped"),
           ]);
+          const matchingTotal =
+            statusFilter === "open" ? openBacklogCount :
+            statusFilter === "in_progress" ? activeCount :
+            statusFilter === "done" ? doneCount :
+            statusFilter === "dropped" ? droppedCount :
+            null;
 
           // Decorate with comment_count and stage evidence for the jobs board.
           const todos = data ?? [];
@@ -10570,6 +11473,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             response_bounds: {
               compact: !includeDescription,
               descriptions_included: includeDescription,
+              offset,
+              limit,
+              requested_status: statusFilter,
+              matching_total: matchingTotal,
+              has_more: matchingTotal == null ? decorated.length === limit : offset + decorated.length < matchingTotal,
               archived_done_hidden: !includeArchivedDone && body.status == null,
               done_archive_cutoff: !includeArchivedDone && body.status == null ? doneArchiveCutoff : null,
               todos_returned: decorated.length,

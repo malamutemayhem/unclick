@@ -19,8 +19,8 @@ All six Phase 2 deliverables from the preflight:
 
 - Magic link + Google + Microsoft only. No GitHub, no passwords anywhere.
 - Default Supabase email template for this phase.
-- Resend SMTP (Chris confirmed `RESEND_API_KEY` set in Vercel + Supabase).
-- Supabase Auth provider toggles already flipped by Chris.
+- Resend SMTP (the operator confirmed `RESEND_API_KEY` set in Vercel + Supabase).
+- Supabase Auth provider toggles already flipped by the operator.
 
 ## Collision notes found during kickoff scan
 
@@ -91,8 +91,8 @@ Namespaced as `auth_device_*` to avoid colliding with the existing Phase 1 memor
 
 **Not verified in this session (belongs in a follow-up verification session):**
 
-- Migration has not been applied against the live Supabase instance. Chris should run it in the SQL editor and confirm the `DO $$` blocks fire without error.
-- End-to-end magic link has not been clicked. Needs a real session once Chris runs the migration.
+- Migration has not been applied against the live Supabase instance. The operator should run it in the SQL editor and confirm the `DO $$` blocks fire without error.
+- End-to-end magic link has not been clicked. Needs a real session once the operator runs the migration.
 - Google + Microsoft OAuth buttons have not been clicked through. The Supabase dashboard toggles were confirmed in the preflight doc but the round-trip hasn't been tested.
 - `RequireAuth` gating on `/memory/admin` has not been tested with an unauthenticated session in the browser.
 - `ClaimKeyBanner` has not been tested against a real `unclick_api_key` in localStorage.

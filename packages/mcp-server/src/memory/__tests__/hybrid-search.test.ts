@@ -192,14 +192,14 @@ describe("local memory scoring", () => {
     const phrase = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris wants semantic memory search to work locally",
+      text: "User wants semantic memory search to work locally",
       confidence: 1,
       source: "fact",
     });
     const split = scoreLocalMemoryContent({
       query,
       tokens,
-      text: "Chris wants semantic retrieval so memory works locally",
+      text: "User wants semantic retrieval so memory works locally",
       confidence: 1,
       source: "fact",
     });
@@ -225,6 +225,90 @@ describe("local memory scoring", () => {
       source: "fact",
     });
     assert.ok(partial.finalScore > unrelated.finalScore);
+  });
+
+  test("length normalization keeps concise identity facts above verbose logs", async () => {
+    const { tokenizeLocalMemoryQuery, scoreLocalMemoryContent } = await import("../supabase.js");
+    const query = "User timezone";
+    const tokens = tokenizeLocalMemoryQuery(query);
+    const concise = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: "User timezone is Australia Sydney.",
+      confidence: 1,
+      source: "fact",
+    });
+    const verbose = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: `User timezone appears in this long operational log. ${"heartbeat memory status ".repeat(80)}`,
+      confidence: 1,
+      source: "fact",
+    });
+    assert.ok(concise.kwScore > verbose.kwScore);
+    assert.ok(concise.finalScore > verbose.finalScore);
+  });
+
+  test("local ranking rows publish the lane 6 score contract", async () => {
+    const {
+      rankLocalMemorySearchRows,
+      reciprocalRankScore,
+      scoreLocalMemoryContent,
+      tokenizeLocalMemoryQuery,
+    } = await import("../supabase.js");
+    const query = "User timezone";
+    const tokens = tokenizeLocalMemoryQuery(query);
+    const shortScore = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: "User timezone is Australia Sydney.",
+      confidence: 1,
+      source: "fact",
+    });
+    const longScore = scoreLocalMemoryContent({
+      query,
+      tokens,
+      text: `User timezone was mentioned during a noisy status update. ${"routing status ".repeat(60)}`,
+      confidence: 1,
+      source: "fact",
+    });
+
+    const ranked = rankLocalMemorySearchRows(
+      [
+        {
+          id: "long-log",
+          source: "fact",
+          content: "long log",
+          category: "status",
+          confidence: 1,
+          created_at: "2026-06-04T00:00:00Z",
+          score: longScore,
+        },
+        {
+          id: "short-identity",
+          source: "fact",
+          content: "short fact",
+          category: "identity",
+          confidence: 1,
+          created_at: "2026-06-04T00:00:00Z",
+          score: shortScore,
+        },
+      ],
+      2,
+      "2026-06-04T00:00:00Z"
+    );
+
+    const first = ranked[0];
+    const second = ranked[1];
+    assert.ok(first);
+    assert.ok(second);
+    assert.equal(first.id, "short-identity");
+    assert.equal(first.keyword_rank, 1);
+    assert.equal(first.vector_rank, null);
+    assert.equal(first.cosine_score, null);
+    assert.equal(first.rrf_score, reciprocalRankScore(1, null));
+    assert.equal(first.kw_score, shortScore.kwScore);
+    assert.ok(first.final_score > second.final_score);
   });
 });
 
@@ -415,7 +499,20 @@ describe("keyword fallback asOf cutoff", () => {
           startup_fact_kind: "durable",
         },
       ],
-      session_summaries: [],
+      session_summaries: [
+        {
+          id: "session-1",
+          summary: "Session results pass through.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "active",
+        },
+        {
+          id: "session-2",
+          summary: "Archived session should stay hidden.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "archived",
+        },
+      ],
     });
     const backend = Object.create(SupabaseBackend.prototype) as {
       client: FakeDataClient;
@@ -472,7 +569,20 @@ describe("keyword fallback asOf cutoff", () => {
           startup_fact_kind: "durable",
         },
       ],
-      session_summaries: [],
+      session_summaries: [
+        {
+          id: "session-1",
+          summary: "Session results pass through.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "active",
+        },
+        {
+          id: "session-2",
+          summary: "Archived session should stay hidden.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "archived",
+        },
+      ],
     });
     const backend = Object.create(SupabaseBackend.prototype) as {
       client: FakeDataClient;
@@ -493,6 +603,7 @@ describe("keyword fallback asOf cutoff", () => {
         { id: "operational-memory-fact", source: "fact", content: "heartbeat self-report Memory note should stay hidden." },
         { id: "future-memory-fact", source: "fact", content: "Future Memory fact should wait for its valid window." },
         { id: "session-1", source: "session", content: "Session results pass through." },
+        { id: "session-2", source: "session", content: "Archived session should stay hidden." },
       ],
       "2026-05-28T00:00:00Z"
     );
@@ -507,7 +618,7 @@ describe("searchMemory local-first behavior", () => {
       extracted_facts: [
         {
           id: "fact-local-default",
-          fact: "Chris wants open source semantic search as the memory default",
+          fact: "User wants open source semantic search as the memory default",
           category: "decision",
           confidence: 0.95,
           created_at: "2026-05-10T00:00:00Z",
@@ -561,7 +672,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const factText = "Test owner is Chris Byrne for P0 search-memory regression";
+    const factText = "Test owner is Jane Smith for P0 search-memory regression";
     const { data: inserted, error: insertErr } = await supabase
       .from("extracted_facts")
       .insert({
@@ -590,7 +701,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
           serviceRoleKey: key,
           tenancy: { mode: "byod" },
         });
-        const results = (await backend.searchMemory("Chris", 10)) as Array<{ id: string }>;
+        const results = (await backend.searchMemory("User", 10)) as Array<{ id: string }>;
         assert.ok(Array.isArray(results), "fallback should return an array");
         const ids = results.map((r) => r.id);
         assert.ok(

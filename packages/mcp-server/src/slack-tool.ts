@@ -328,11 +328,25 @@ async function actionUpload(
   const fileId    = String(urlRes.file_id    ?? "");
 
   // Step 2: POST the file content to the upload URL
-  const uploadRes = await fetch(uploadUrl, {
-    method:  "POST",
-    headers: { "Content-Type": "application/octet-stream" },
-    body:    content,
-  });
+  const SLACK_TIMEOUT_MS = Number(process.env.SLACK_TIMEOUT_MS) || 15000;
+  const uploadController = new AbortController();
+  const uploadTimer = setTimeout(() => uploadController.abort(), SLACK_TIMEOUT_MS);
+  let uploadRes: Response;
+  try {
+    uploadRes = await fetch(uploadUrl, {
+      method:  "POST",
+      headers: { "Content-Type": "application/octet-stream" },
+      body:    content,
+      signal:  uploadController.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Slack file upload timed out after ${SLACK_TIMEOUT_MS}ms.` };
+    }
+    return { error: `Slack file upload failed: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(uploadTimer);
+  }
   if (!uploadRes.ok) {
     return { error: `File upload to Slack storage failed: HTTP ${uploadRes.status}` };
   }

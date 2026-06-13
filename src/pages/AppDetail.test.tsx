@@ -29,4 +29,10 @@ describe("AppDetail", () => {
     expect(screen.getByRole("heading", { name: /App not found/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Browse all apps/i })).toHaveAttribute("href", "/apps");
   });
+
+  it("keeps JobSmith as an app workspace without an admin-management link", () => {
+    renderAt("/apps/jobsmith");
+    expect(screen.getByRole("link", { name: /Open JobSmith/i })).toHaveAttribute("href", "/jobsmith");
+    expect(screen.queryByRole("link", { name: /Manage in admin/i })).not.toBeInTheDocument();
+  });
 });

@@ -8,15 +8,19 @@ import FactsTab from "./memory/FactsTab";
 import SessionsTab from "./memory/SessionsTab";
 import LibraryTab from "./memory/LibraryTab";
 import MemoryActivityTab from "./memory/MemoryActivityTab";
+import CodeTab from "./memory/CodeTab";
+import RecycleBinTab from "./memory/RecycleBinTab";
 
 const TABS = [
   { id: "saved-facts",    label: "Saved Facts"    },
   { id: "library",        label: "Library"        },
   { id: "chats",          label: "Chats"          },
   { id: "files-notes",    label: "Files & Notes"  },
+  { id: "code",           label: "Code"           },
   { id: "project-briefs", label: "Project Briefs" },
   { id: "preferences",    label: "Preferences"    },
   { id: "recall-check",   label: "Recall Check"   },
+  { id: "recycle-bin",    label: "Recycle Bin"    },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -26,8 +30,20 @@ function resolveTab(param: string | null): TabId {
   if (param === "context" || param === "identity") return "preferences";
   if (param === "facts") return "saved-facts";
   if (param === "sessions") return "chats";
+  if (param === "codebase") return "code";
+  if (param === "trash" || param === "archived") return "recycle-bin";
   if (param === "activity" || param === "brain-map") return "recall-check";
-  const valid: TabId[] = ["saved-facts", "library", "chats", "files-notes", "project-briefs", "preferences", "recall-check"];
+  const valid: TabId[] = [
+    "saved-facts",
+    "library",
+    "chats",
+    "files-notes",
+    "code",
+    "project-briefs",
+    "preferences",
+    "recall-check",
+    "recycle-bin",
+  ];
   if (valid.includes(param as TabId)) return param as TabId;
   return "saved-facts";
 }
@@ -171,7 +187,7 @@ export default function AdminMemoryPage() {
         <StorageBar storage={storage} loading={storageLoading} />
 
         {/* Tab bar */}
-        <div className="mb-6 flex gap-0 border-b border-white/[0.06]">
+        <div className="mb-6 flex flex-wrap gap-0 border-b border-white/[0.06]">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -227,6 +243,15 @@ export default function AdminMemoryPage() {
             <LibraryTab apiKey={accessToken} />
           </div>
         )}
+        {activeTab === "code" && (
+          <div>
+            <p className="mb-4 text-sm text-white/60">
+              User-pasted code blocks captured from conversations, with short reference titles
+              so future AI seats can find exact code context.
+            </p>
+            <CodeTab apiKey={accessToken} />
+          </div>
+        )}
         {activeTab === "project-briefs" && (
           <div>
             <p className="mb-4 text-sm text-white/60">
@@ -253,6 +278,15 @@ export default function AdminMemoryPage() {
               is loading and using the right memory at the right time.
             </p>
             <MemoryActivityTab apiKey={accessToken} />
+          </div>
+        )}
+        {activeTab === "recycle-bin" && (
+          <div>
+            <p className="mb-4 text-sm text-white/60">
+              Deleted facts and chat summaries land here first. AI recall ignores archived memory
+              unless you restore it.
+            </p>
+            <RecycleBinTab apiKey={accessToken} />
           </div>
         )}
     </>

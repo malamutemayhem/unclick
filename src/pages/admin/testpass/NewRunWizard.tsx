@@ -96,7 +96,7 @@ export default function NewRunWizard() {
           {loadingPacks ? (
             <div className="flex items-center gap-2 text-[#888] py-8 justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Loading packs...</div>
           ) : packs.length === 0 ? (
-            <div className="rounded-xl border border-white/[0.06] bg-[#111] px-6 py-10 text-center">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-6 py-10 text-center">
               <p className="text-sm text-white">No packs yet.</p>
               <p className="mt-1 text-xs text-[#888]">
                 Use the testpass-core starter, or create your own from YAML.
@@ -116,7 +116,7 @@ export default function NewRunWizard() {
                   ?? "Use this when you need a custom set of MCP checks.";
                 return (
                   <button key={p.id} onClick={() => { setSelectedPackId(p.id); setStep(2); }}
-                    className={`rounded-xl border p-4 text-left transition-colors ${selectedPackId === p.id ? "border-[#61C1C4]/50 bg-[#61C1C4]/10" : "border-white/[0.06] bg-[#111] hover:border-white/[0.12]"}`}>
+                    className={`rounded-xl border p-4 text-left transition-colors ${selectedPackId === p.id ? "border-[#61C1C4]/50 bg-[#61C1C4]/10" : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12]"}`}>
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm font-semibold text-white">{p.name}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${CATEGORY_BADGE[p.category] ?? CATEGORY_BADGE.general}`}>{p.category}</span>
@@ -168,7 +168,7 @@ export default function NewRunWizard() {
           <div className="grid gap-3">
             {DEPTH_OPTIONS.map((opt) => (
               <button key={opt.value} onClick={() => setDepth(opt.value)}
-                className={`rounded-xl border p-4 text-left transition-colors ${depth === opt.value ? "border-[#61C1C4]/50 bg-[#61C1C4]/10" : "border-white/[0.06] bg-[#111] hover:border-white/[0.12]"}`}>
+                className={`rounded-xl border p-4 text-left transition-colors ${depth === opt.value ? "border-[#61C1C4]/50 bg-[#61C1C4]/10" : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12]"}`}>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-white">{opt.label}</span>
                   <span className="text-xs text-[#666]">{opt.detail}</span>

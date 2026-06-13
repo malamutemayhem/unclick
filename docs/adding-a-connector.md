@@ -1,4 +1,4 @@
-# Adding a connector (an "App") — playbook for a new AI seat
+# Adding a connector (an "App") - playbook for a new AI seat
 
 Read this end to end before adding an integration. It is the hard-coded memory
 of how the connector library is built so you can continue the trend exactly.
@@ -18,7 +18,7 @@ Pair it with `docs/connector-standard.md` (the quality-ladder definitions).
 
 ---
 
-## 1. The mental model — connectors are the "ant mound"
+## 1. The mental model: connectors are the "ant mound"
 
 Each connector is one small, hardened REST wrapper. Together they are the ant
 mound everyone builds on:
@@ -51,8 +51,21 @@ See `docs/connector-standard.md` for the full definitions. Summary:
 - **L2-capped by design** for write/send, generation, and single-tool
   action-multiplexers (nothing to stamp). The grader's `L2_CAPPED_BY_DESIGN` map
   records these so they are not counted as unfinished.
-- **L3 and L4 are opt-in by nature** — only add them when the connector has a
+- **L3 and L4 are opt-in by nature.** Only add them when the connector has a
   stable per-user default (L3) or reads a changeable, user-actionable quantity (L4).
+
+### Non-negotiable: a module must be wired, or it does not exist
+
+L1 means a *callable* endpoint, not a file on disk. Every new module under
+`packages/mcp-server/src` must be reachable from the server (registered in
+`tool-wiring.ts`, imported from `server.ts`). The `check:orphans` CI gate fails
+any module that nothing reachable imports.
+
+Do not bulk-generate standalone modules with colocated tests as a way to show
+progress. A passing unit test on an unwired module is dead code, not a shipped
+feature: in #1347 this pattern produced ~1,975 unreachable `*-calc.ts` modules
+(57% of the package) before anyone noticed (root cause in #1440). One wired,
+cataloged, TestPass-green connector beats a hundred orphan files.
 
 ---
 
@@ -120,24 +133,24 @@ bare `` `HTTP ${status}` `` (the grader counts those and blocks hardening).
 
 ---
 
-## 4. Wiring — the files you touch every time
+## 4. Wiring: the files you touch every time
 
-1. `packages/mcp-server/src/<slug>-tool.ts` — the connector (template above).
-2. `packages/mcp-server/src/<slug>-tool.test.ts` — colocated test (see §6). **Required for L2.**
-3. `packages/mcp-server/src/tool-wiring.ts` — three edits:
+1. `packages/mcp-server/src/<slug>-tool.ts` - the connector (template above).
+2. `packages/mcp-server/src/<slug>-tool.test.ts` - colocated test (see §6). **Required for L2.**
+3. `packages/mcp-server/src/tool-wiring.ts` - three edits:
    - the `import { ... } from "./<slug>-tool.js";` block,
    - the `ADDITIONAL_TOOLS` array: one `{ name, description, inputSchema }` per tool
      (`additionalProperties: false`, list `required`),
    - the `ADDITIONAL_HANDLERS` map: `<tool_name>: (args) => fn(args),`.
-4. `packages/mcp-server/src/connector-setup.ts` — one `CONNECTOR_SETUP` row:
+4. `packages/mcp-server/src/connector-setup.ts` - one `CONNECTOR_SETUP` row:
    `{ displayName, credential, arg, envVar, setupUrl, note? }`. This drives the
    `requireCredential` lookup and the not-connected card.
-5. `scripts/generate-app-catalog.mjs` — put the slug in a category `bucket(...)`
+5. `scripts/generate-app-catalog.mjs` - put the slug in a category `bucket(...)`
    (never leave it to "Other"; the integrity test fails). Optionally add
    `NAME_OF` (brand casing), `BLURB_OF` (a short, simple-English one-liner,
    <=120 chars, ends like a sentence), and `DOMAIN_OF` (brand domain for the favicon).
 
-No website tile edit is needed — the Apps pages render from the generated catalog.
+No website tile edit is needed. The Apps pages render from the generated catalog.
 
 ---
 
@@ -176,12 +189,12 @@ describe("acme connector (L2/L5)", () => {
 ```
 
 **Do not** write a full-page render integration test that mounts the whole
-admin Apps catalog (~200 rows) and clicks around — jsdom is so slow it stalls
+admin Apps catalog (~200 rows) and clicks around. jsdom is so slow it stalls
 the suite and hangs CI. Cover behaviour with focused unit tests.
 
 ---
 
-## 7. Regenerate — ORDER MATTERS (this has bitten us)
+## 7. Regenerate - ORDER MATTERS (this has bitten us)
 
 Only after the connector file **and its test** exist, regenerate in this order:
 
@@ -189,6 +202,7 @@ Only after the connector file **and its test** exist, regenerate in this order:
 cd packages/mcp-server && node scripts/generate-tool-index.mjs   # tool surface
 node scripts/connector-depth-ladder.mjs                          # quality grades (depends on the test existing)
 cd ../.. && node scripts/generate-app-catalog.mjs                # Apps catalog (depends on the ladder)
+node scripts/generate-connector-setup.mjs                        # connect-wizard setup data (when CONNECTOR_SETUP changed)
 node scripts/UnClick-brainmap.mjs                                # brainmap (hashes EVERY source file)
 ```
 
@@ -196,6 +210,13 @@ Why the order: the depth ladder marks a connector "hardened/L5" only if its
 colocated test exists; the app catalog reads the ladder's level; the brainmap
 records a content hash of every file (so it goes stale on **any** edit,
 including docs). If you skip a regen, a `--check` guard fails in CI.
+
+The app catalog also derives each app's `network` field (offline / online /
+hybrid) by scanning the connector source for `fetch(`: no fetch and no brand
+domain = offline; no fetch but a real domain (URL-builder apps) = hybrid;
+anything that fetches = online. In `DOMAIN_OF`, the special value `"local"`
+means "no brand site": it is emitted as `domain: null` so the icon falls back
+to the letter chip instead of asking the favicon service for a bogus host.
 
 ---
 
@@ -244,6 +265,6 @@ are doing the full OAuth flow. Confirm the slug is not already in
 - [ ] `connector-setup.ts`: `CONNECTOR_SETUP` row
 - [ ] `generate-app-catalog.mjs`: category bucket (+ name/blurb/domain)
 - [ ] (optional) L3 registry / L4 signal
-- [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> brainmap
+- [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> connector-setup -> brainmap
 - [ ] `tsc` + MCP `test` chain + `brainmap:check` + app-catalog `--check` + frontend catalog tests
 - [ ] Branch, push, draft PR, auto-merge

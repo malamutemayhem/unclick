@@ -117,6 +117,60 @@ describe("Fishbowl job pipeline inference", () => {
     });
   });
 
+  it("does not show runtime work as close eligible without release or live availability proof", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "WriterLane #5: heartbeat no-op reason codes",
+          description: "Adds an MCP-server heartbeat policy module. The module must be released or discoverable before close.",
+          status: "in_progress",
+        },
+        [
+          {
+            text:
+              "RELEASE PROOF + close. PR #1258 merged to main as commit e4531bb. File packages/mcp-server/src/heartbeat-noop-reasons.ts confirmed live on origin/main. All required CI green.",
+            created_at: "2026-06-03T12:54:44Z",
+          },
+        ],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_source: "receipt: ship",
+      pipeline_evidence: ["build", "ship"],
+      proof_state: "missing",
+      proof_state_reason: "Runtime, package, or tool jobs need release/live availability proof before close.",
+      effective_status: "in_progress",
+      release_blocked: false,
+    });
+  });
+
+  it("keeps shipped runtime work close eligible when live availability proof exists", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "FidelityCopy: deterministic non-AI copy engine for FidelityPass",
+          description: "Build and expose a live MCP tool.",
+          status: "done",
+        },
+        [
+          {
+            text:
+              "PASS: PR #997 merged, npm view confirms registry latest 0.3.107, and fidelitycopy_copy tool discovery is available.",
+            created_at: "2026-05-22T06:43:59Z",
+          },
+        ],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_source: "receipt: ship",
+      proof_state: "close_eligible",
+      effective_status: "done",
+      release_blocked: false,
+    });
+  });
+
   it("lets newer proof move a reopened job forward again", () => {
     expect(
       inferFishbowlJobPipeline(
@@ -254,5 +308,23 @@ describe("Fishbowl job pipeline inference", () => {
       proof_state: "parked",
       proof_state_reason: "The job is parked or waiting for scope.",
     });
+  });
+
+  it("resets pipeline when a revert or rollback invalidates ship proof", () => {
+    const revertResult = inferFishbowlJobPipeline(
+      { title: "Feature X deploy", status: "done" },
+      ["PR #200 merged and deployed to production.", "Reverted due to staging errors."],
+    );
+    expect(revertResult.proof_state).toBe("stale");
+    expect(revertResult.effective_status).toBe("needs_proof");
+    expect(revertResult.release_blocked).toBe(true);
+
+    const rollbackResult = inferFishbowlJobPipeline(
+      { title: "Feature Y ship", status: "done" },
+      ["Deployed and published to npm.", "Rolled back after customer reports."],
+    );
+    expect(rollbackResult.proof_state).toBe("stale");
+    expect(rollbackResult.effective_status).toBe("needs_proof");
+    expect(rollbackResult.release_blocked).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useSession } from "@/lib/auth";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -22,7 +23,7 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
-import { dogfoodReport, type DogfoodStatus } from "@/data/dogfoodReport";
+import { dogfoodReport, type DogfoodPassResult, type DogfoodStatus } from "@/data/dogfoodReport";
 import {
   countChecklistGroups,
   countFamilyChecklistRows,
@@ -40,16 +41,6 @@ type XPassProduct = {
   description: string;
   icon: LucideIcon;
   externalHref?: string;
-};
-
-type RecentReport = {
-  id: string;
-  date: string;
-  sortKey: string;
-  title: string;
-  summary: string;
-  status: XPassRowStatus;
-  mode: "latest" | "completed" | "attention";
 };
 
 const PRODUCTS: XPassProduct[] = [
@@ -199,7 +190,8 @@ const STATUS_LEGEND: XPassRowStatus[] = ["PASS", "FAIL", "ALERT", "WARNING", "N/
 
 function dogfoodToRowStatus(status?: DogfoodStatus): XPassRowStatus {
   if (status === "passing") return "PASS";
-  if (status === "failing" || status === "blocked") return "FAIL";
+  if (status === "failing") return "FAIL";
+  if (status === "blocked") return "ALERT";
   return "WAITING";
 }
 
@@ -207,158 +199,90 @@ function productById(id?: string): XPassProduct | undefined {
   return PRODUCTS.find((product) => product.id === id);
 }
 
-function resultFor(id: XPassProductId) {
+function resultFor(id: XPassProductId): DogfoodPassResult | undefined {
   return dogfoodReport.results.find((result) => result.id === id);
 }
 
-function reportsFor(product: XPassProduct): RecentReport[] {
-  const result = resultFor(product.id);
-  const status = dogfoodToRowStatus(result?.status);
-
-  const reports: RecentReport[] = [
-    {
-      id: "latest",
-      date: "31 May 2026",
-      sortKey: "2026-05-31",
-      title: result?.summary ?? `${product.name} report`,
-      summary: result?.summary ?? `Latest ${product.name} checklist view.`,
-      status,
-      mode: "latest",
-    },
-    {
-      id: "checklist-refresh",
-      date: "30 May 2026",
-      sortKey: "2026-05-30",
-      title: `${product.name} checklist refresh`,
-      summary: `The ${product.name} checklist was refreshed and scored as a completed product sweep.`,
-      status: "PASS",
-      mode: "completed",
-    },
-    {
-      id: "attention-sweep",
-      date: "29 May 2026",
-      sortKey: "2026-05-29",
-      title: result?.nextProof ?? `${product.name} attention sweep`,
-      summary: `Rows needing proof or owner action stay visible until the next ${product.name} run clears them.`,
-      status: status === "PASS" ? "PASS" : "WARNING",
-      mode: "attention",
-    },
-    {
-      id: "interface-review",
-      date: "28 May 2026",
-      sortKey: "2026-05-28",
-      title: `${product.name} interface review`,
-      summary: `${product.name} reviewed the visible surface and kept weak evidence out of green.`,
-      status: "PASS",
-      mode: "completed",
-    },
-    {
-      id: "owner-action",
-      date: "27 May 2026",
-      sortKey: "2026-05-27",
-      title: `${product.name} owner action review`,
-      summary: `Rows with owner action were kept visible until the next ${product.name} run.`,
-      status: "WARNING",
-      mode: "attention",
-    },
-    {
-      id: "evidence-replay",
-      date: "26 May 2026",
-      sortKey: "2026-05-26",
-      title: `${product.name} evidence replay`,
-      summary: `${product.name} checked that another worker could reopen the report and understand the proof.`,
-      status: "PASS",
-      mode: "completed",
-    },
-    {
-      id: "regression-sweep",
-      date: "25 May 2026",
-      sortKey: "2026-05-25",
-      title: `${product.name} regression sweep`,
-      summary: `${product.name} kept prior misses visible so the same issue does not quietly return.`,
-      status: "PASS",
-      mode: "completed",
-    },
-    {
-      id: "na-review",
-      date: "24 May 2026",
-      sortKey: "2026-05-24",
-      title: `${product.name} N/A review`,
-      summary: `${product.name} checked skipped rows had clear reasons instead of guessed green results.`,
-      status: "N/A",
-      mode: "completed",
-    },
-    {
-      id: "improvement-sweep",
-      date: "23 May 2026",
-      sortKey: "2026-05-23",
-      title: `${product.name} improvement sweep`,
-      summary: `Weak ${product.name} rows were fed back into the checklist for the next run.`,
-      status: "PASS",
-      mode: "completed",
-    },
-  ];
-
-  return reports.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+function formatEvidenceDate(iso?: string): string {
+  if (!iso) return "No date recorded";
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "No date recorded";
+  return parsed.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function rowStatusForReport(row: { status?: XPassRowStatus }, report: RecentReport, rowIndex: number, groupIndex: number): XPassRowStatus {
-  if (row.status === "N/A") return "N/A";
-  if (report.mode === "completed") return "PASS";
-  if (report.mode === "attention") return (rowIndex + groupIndex) % 7 === 0 ? "WARNING" : "PASS";
-  if (report.status === "PASS") return row.status ?? "PASS";
-  if (report.status === "FAIL") return (rowIndex + groupIndex) % 5 === 0 ? "FAIL" : "PASS";
-  if (report.status === "ALERT") return (rowIndex + groupIndex) % 5 === 0 ? "ALERT" : "PASS";
-  if (report.status === "WARNING") return (rowIndex + groupIndex) % 6 === 0 ? "WARNING" : "PASS";
-  return row.status ?? "WAITING";
+/**
+ * The only evidence this page shows is recorded evidence. Every value below
+ * comes from the dogfood report; nothing is simulated and no history is
+ * invented. Passes without a recorded run stay WAITING.
+ */
+type LatestEvidence = {
+  status: XPassRowStatus;
+  date: string;
+  summary: string;
+  evidence: string | null;
+  proofLabel: string | null;
+  nextProof: string | null;
+};
+
+function latestEvidenceFor(product: XPassProduct): LatestEvidence {
+  const result = resultFor(product.id);
+  if (!result) {
+    return {
+      status: "WAITING",
+      date: "No run recorded",
+      summary: `No recorded ${product.name} run yet. This panel fills in when a real run lands.`,
+      evidence: null,
+      proofLabel: null,
+      nextProof: null,
+    };
+  }
+
+  const proof = result.proof;
+  const proofLabel = proof
+    ? [proof.kind, proof.runId ? `run ${proof.runId.slice(0, 8)}` : null].filter(Boolean).join(" / ")
+    : null;
+
+  return {
+    status: dogfoodToRowStatus(result.status),
+    date: formatEvidenceDate(result.checkedAt ?? proof?.generatedAt ?? dogfoodReport.generatedAt),
+    summary: result.summary,
+    evidence: result.evidence || null,
+    proofLabel,
+    nextProof: result.nextProof ?? null,
+  };
 }
 
-function checklistFor(product: XPassProduct, report: RecentReport): XPassChecklistGroup[] {
-  const result = resultFor(product.id);
-  const currentStatus = dogfoodToRowStatus(result?.status);
-  const selectedStatus = report.status === "WAITING" ? currentStatus : report.status;
-
-  const groups: XPassChecklistGroup[] = [
+/**
+ * Checklist rows render with the status the catalog actually records.
+ * The default is WAITING: a check with no recorded run result must say so
+ * instead of pretending to be green.
+ */
+function checklistFor(product: XPassProduct, evidence: LatestEvidence): XPassChecklistGroup[] {
+  return [
     {
       title: "Current run gate",
       rows: [
         {
-          title: "Build request selected",
-          comment: `${report.date} / ${report.title}`,
-          status: report.mode === "latest" && selectedStatus === "WAITING" ? "WAITING" : "PASS",
+          title: "Latest recorded evidence",
+          comment: evidence.summary,
+          status: evidence.status,
         },
         {
-          title: "Receipt evidence",
-          comment: report.summary,
-          status: selectedStatus,
+          title: "Machine proof attached",
+          comment: evidence.proofLabel
+            ? `Recorded proof: ${evidence.proofLabel}.`
+            : "No machine proof attached yet. A run receipt fills this row.",
+          status: evidence.proofLabel ? "PASS" : "WAITING",
         },
         {
-          title: "Loop until green",
-          comment: "The report must keep working through failures until every relevant row is PASS or N/A.",
-          status: selectedStatus === "WAITING" ? "WAITING" : selectedStatus === "PASS" ? "PASS" : "WARNING",
-        },
-        {
-          title: "N/A is explained",
-          comment: "A skipped row is only N/A when the comment explains why the check does not apply.",
-          status: "PASS",
-        },
-        {
-          title: "Owner action is clear",
-          comment: "Any FAIL, ALERT, or Warning row must say who or what fixes it next.",
-          status: ["FAIL", "ALERT", "WARNING"].includes(selectedStatus) ? "WARNING" : "PASS",
+          title: "Next proof needed",
+          comment: evidence.nextProof ?? "No follow-up proof recorded for this Pass.",
+          status: evidence.nextProof ? "WARNING" : evidence.status === "WAITING" ? "WAITING" : "PASS",
         },
       ],
     },
     ...XPASS_PRODUCT_CHECKLISTS[product.id],
   ];
-
-  return groups.map((group, groupIndex) => ({
-    ...group,
-    rows: group.rows.map((row, rowIndex) => ({
-      ...row,
-      status: rowStatusForReport(row, report, rowIndex, groupIndex),
-    })),
-  }));
 }
 
 function StatusBadge({ status }: { status: XPassRowStatus }) {
@@ -375,13 +299,14 @@ function StatusBadge({ status }: { status: XPassRowStatus }) {
 
 function ProductCard({ product }: { product: XPassProduct }) {
   const Icon = product.icon;
-  const checkCount = countChecklistRows(product.id) + 5;
+  const checkCount = countChecklistRows(product.id) + 3;
   const groupCount = countChecklistGroups(product.id) + 1;
+  const evidence = latestEvidenceFor(product);
 
   return (
     <Link
       to={`/admin/checks/${product.id}`}
-      className="min-h-[132px] rounded-lg border border-white/[0.08] bg-[#111] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
+      className="min-h-[132px] rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30">
@@ -396,7 +321,7 @@ function ProductCard({ product }: { product: XPassProduct }) {
       <div className="mt-3 flex items-center justify-between gap-3 text-xs text-white/45">
         <span>{checkCount} checks</span>
         <span>{groupCount} groups</span>
-        <ExternalLink className="h-3.5 w-3.5 text-[#61C1C4]" />
+        <StatusBadge status={evidence.status} />
       </div>
     </Link>
   );
@@ -412,57 +337,30 @@ function StatusLegend() {
   );
 }
 
-function RecentReports({
-  reports,
-  selectedReport,
-  onSelectReport,
-}: {
-  reports: RecentReport[];
-  selectedReport: RecentReport;
-  onSelectReport: (reportId: string) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleReports = expanded ? reports : reports.slice(0, 6);
-  const hiddenCount = Math.max(0, reports.length - visibleReports.length);
-
+function LatestEvidencePanel({ product, evidence }: { product: XPassProduct; evidence: LatestEvidence }) {
   return (
-    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-3">
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
       <div className="flex min-w-0 items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-white">Recent reports</h2>
-        <p className="text-[11px] font-medium text-white/40">Newest first</p>
+        <h2 className="text-sm font-semibold text-white">Latest recorded evidence</h2>
+        <StatusBadge status={evidence.status} />
       </div>
-      <div className="mt-2 max-h-[236px] space-y-1 overflow-y-auto pr-1">
-        {visibleReports.map((report) => {
-          const selected = report.id === selectedReport.id;
-          return (
-            <button
-              key={report.id}
-              type="button"
-              aria-pressed={selected}
-              data-testid="xpass-report-option"
-              onClick={() => onSelectReport(report.id)}
-              className={`grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_68px] items-center gap-2 rounded border px-2 py-1 text-left transition-colors ${
-                selected ? "border-[#61C1C4]/70 bg-[#61C1C4]/10" : "border-white/[0.07] bg-black/20 hover:border-white/15"
-              }`}
-            >
-              <p className="truncate text-[10px] font-semibold text-white/55">{report.date}</p>
-              <p className="truncate text-[11px] leading-4 text-white/70">{report.title}</p>
-              <StatusBadge status={report.status} />
-            </button>
-          );
-        })}
-      </div>
-      {hiddenCount > 0 ? (
-        <button
-          type="button"
-          className="mt-2 min-h-7 w-full rounded border border-white/[0.08] bg-black/20 px-2 text-[11px] font-semibold text-[#61C1C4] hover:border-[#61C1C4]/40"
-          onClick={() => setExpanded(true)}
-        >
-          Load {hiddenCount} more
-        </button>
+      <p className="mt-1 text-[11px] font-medium text-white/40">{evidence.date}</p>
+      <p className="mt-2 text-xs leading-5 text-white/70" data-testid="xpass-evidence-summary">
+        {evidence.summary}
+      </p>
+      {evidence.evidence ? (
+        <p className="mt-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1.5 text-[11px] leading-4 text-white/55">
+          Evidence: {evidence.evidence}
+        </p>
       ) : null}
-      <p className="mt-2 text-[11px] leading-4 text-white/45">
-        Selected report: {selectedReport.date}. The checklist below shows that report's row results.
+      {evidence.proofLabel ? (
+        <p className="mt-2 text-[11px] leading-4 text-white/45">Proof: {evidence.proofLabel}</p>
+      ) : null}
+      {evidence.nextProof ? (
+        <p className="mt-2 text-[11px] leading-4 text-[#E2B93B]/90">Next proof needed: {evidence.nextProof}</p>
+      ) : null}
+      <p className="mt-3 rounded border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] px-2 py-1.5 text-[11px] leading-4 text-white/55">
+        Only recorded runs appear here. Nothing on this page is simulated; a Pass without a recorded run stays Waiting.
       </p>
       <Link
         to="/dogfood"
@@ -475,9 +373,170 @@ function RecentReports({
   );
 }
 
+type RecordedRunRow = {
+  key: string;
+  date: string;
+  label: string;
+  badgeText: string;
+  badgeClass: string;
+  href?: string;
+};
+
+type TestPassRunDto = {
+  id: string;
+  pack_name: string | null;
+  started_at: string;
+  status: string;
+  verdict_summary?: { check?: number; fail?: number; na?: number; pending?: number } | null;
+};
+
+type UxPassRunDto = {
+  id: string;
+  target_url: string;
+  status: string;
+  ux_score: number | null;
+  started_at: string;
+  breakdown?: { fail?: number } | null;
+};
+
+const BADGE_GREEN = "bg-[#46c76f] text-black";
+const BADGE_RED = "bg-red-500 text-white";
+const BADGE_QUIET = "bg-white/12 text-white/70";
+
+const RUN_HISTORY: Partial<
+  Record<XPassProductId, { endpoint: string; startNote: string; logHref?: string; mapRows: (body: unknown) => RecordedRunRow[] }>
+> = {
+  testpass: {
+    endpoint: "/api/memory-admin?action=list_testpass_runs&limit=6",
+    startNote: "Start one from the TestPass tool and it appears here.",
+    logHref: "/admin/testpass",
+    mapRows: (body) => {
+      const runs = (body as { runs?: TestPassRunDto[] }).runs;
+      if (!Array.isArray(runs)) return [];
+      return runs.map((run) => {
+        const fails = run.verdict_summary?.fail ?? 0;
+        const checks = run.verdict_summary?.check ?? 0;
+        return {
+          key: run.id,
+          date: formatEvidenceDate(run.started_at),
+          label: run.pack_name ?? "TestPass run",
+          badgeText: fails > 0 ? `${fails} FAIL` : run.status === "complete" ? `${checks} PASS` : run.status,
+          badgeClass: fails > 0 ? BADGE_RED : run.status === "complete" ? BADGE_GREEN : BADGE_QUIET,
+          href: `/admin/testpass/runs/${run.id}`,
+        };
+      });
+    },
+  },
+  uxpass: {
+    endpoint: "/api/uxpass?action=list_runs&limit=6",
+    startNote: "Run uxpass_run against a page and it appears here.",
+    mapRows: (body) => {
+      const runs = (body as { runs?: UxPassRunDto[] }).runs;
+      if (!Array.isArray(runs)) return [];
+      return runs.map((run) => {
+        const fails = run.breakdown?.fail ?? 0;
+        const complete = run.status === "complete";
+        return {
+          key: run.id,
+          date: formatEvidenceDate(run.started_at),
+          label: run.target_url,
+          badgeText: fails > 0 ? `${fails} FAIL` : complete && run.ux_score != null ? `${Math.round(run.ux_score)}/100` : run.status,
+          badgeClass: fails > 0 ? BADGE_RED : complete ? BADGE_GREEN : BADGE_QUIET,
+        };
+      });
+    },
+  },
+};
+
+/**
+ * Real recorded runs for Passes that keep run history today (TestPass and
+ * UXPass). Renders nothing while logged out or on fetch failure; shows an
+ * honest empty state when the account simply has no recorded runs yet.
+ */
+function RecordedRunsPanel({ productId }: { productId: XPassProductId }) {
+  const source = RUN_HISTORY[productId];
+  const { session } = useSession();
+  const token = session?.access_token;
+  const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : null), [token]);
+  const [rows, setRows] = useState<RecordedRunRow[] | null>(null);
+
+  useEffect(() => {
+    if (!authHeader || !source) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(source.endpoint, { headers: authHeader });
+        const body = (await res.json().catch(() => ({}))) as unknown;
+        if (!res.ok || cancelled) return;
+        setRows(source.mapRows(body));
+      } catch {
+        // Stay hidden: an unreadable history beats an invented one.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHeader, source]);
+
+  if (!source || !authHeader || rows === null) return null;
+
+  return (
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3" data-testid="recorded-runs-panel">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-white">Recorded runs</h2>
+        <p className="text-[11px] font-medium text-white/40">Newest first</p>
+      </div>
+      {rows.length === 0 ? (
+        <p className="mt-2 text-[11px] leading-4 text-white/45">
+          No recorded runs for this account yet. {source.startNote}
+        </p>
+      ) : (
+        <div className="mt-2 space-y-1">
+          {rows.map((row) => {
+            const rowClass =
+              "grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_72px] items-center gap-2 rounded border border-white/[0.07] bg-black/20 px-2 py-1 text-left";
+            const content = (
+              <>
+                <p className="truncate text-[10px] font-semibold text-white/55">{row.date}</p>
+                <p className="truncate text-[11px] leading-4 text-white/70">{row.label}</p>
+                <span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${row.badgeClass}`}>
+                  {row.badgeText}
+                </span>
+              </>
+            );
+            return row.href ? (
+              <Link
+                key={row.key}
+                to={row.href}
+                data-testid="recorded-run-row"
+                className={`${rowClass} transition-colors hover:border-[#61C1C4]/40`}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={row.key} data-testid="recorded-run-row" className={rowClass}>
+                {content}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {source.logHref ? (
+        <Link
+          to={source.logHref}
+          className="mt-3 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
+        >
+          Open the full run log
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Link>
+      ) : null}
+    </section>
+  );
+}
+
 function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
   return (
-    <section className="rounded-lg border border-white/[0.08] bg-[#111] p-3">
+    <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xs font-semibold text-white">{group.title}</h2>
         <span className="text-[11px] font-medium text-white/40">{group.rows.length} checks</span>
@@ -501,11 +560,11 @@ function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
 }
 
 function XPassHome() {
-  const familyCheckCount = countFamilyChecklistRows() + PRODUCTS.length * 5;
+  const familyCheckCount = countFamilyChecklistRows() + PRODUCTS.length * 3;
 
   return (
     <div className="space-y-8">
-      <section className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex items-start gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
             <LayoutGrid className="h-5 w-5 text-[#61C1C4]" />
@@ -526,7 +585,9 @@ function XPassHome() {
 
       <section>
         <h2 className="text-sm font-semibold text-white">XPass family</h2>
-        <p className="mt-1 text-xs text-white/45">Pick a Pass to see its product-specific checklist and recent reports.</p>
+        <p className="mt-1 text-xs text-white/45">
+          Pick a Pass to see its checklist and latest recorded evidence. Badges show real run status, not a target.
+        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {PRODUCTS.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -538,18 +599,10 @@ function XPassHome() {
 }
 
 function XPassProductReport({ product }: { product: XPassProduct }) {
-  const [searchParams, setSearchParams] = useSearchParams();
   const Icon = product.icon;
-  const checkCount = countChecklistRows(product.id) + 5;
+  const checkCount = countChecklistRows(product.id) + 3;
   const groupCount = countChecklistGroups(product.id) + 1;
-  const reports = reportsFor(product);
-  const selectedReport = reports.find((report) => report.id === searchParams.get("report")) ?? reports[0];
-
-  function handleSelectReport(reportId: string) {
-    const next = new URLSearchParams(searchParams);
-    next.set("report", reportId);
-    setSearchParams(next, { replace: true });
-  }
+  const evidence = latestEvidenceFor(product);
 
   return (
     <div className="space-y-6">
@@ -558,7 +611,7 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
       </Link>
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <section className="min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
             <Icon className="h-5 w-5 text-[#61C1C4]" />
@@ -592,20 +645,24 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
           </div>
         </div>
       </section>
-        <RecentReports reports={reports} selectedReport={selectedReport} onSelectReport={handleSelectReport} />
+        <div className="min-w-0 space-y-5">
+          <LatestEvidencePanel product={product} evidence={evidence} />
+          <RecordedRunsPanel productId={product.id} />
+        </div>
       </div>
 
       <section className="space-y-3" data-testid="xpass-checklist-results">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-white">Checklist results</h2>
+            <h2 className="text-sm font-semibold text-white">Checklist</h2>
             <p className="mt-1 text-xs text-white/45">
-              {selectedReport.date} / {selectedReport.title}
+              What {product.name} checks. Rows stay Waiting until a recorded run scores them; any FAIL, Alert, or
+              Warning row must name what fixes it next.
             </p>
           </div>
-          <StatusBadge status={selectedReport.status} />
+          <StatusBadge status={evidence.status} />
         </div>
-          {checklistFor(product, selectedReport).map((group) => (
+          {checklistFor(product, evidence).map((group) => (
             <ChecklistGroupView key={group.title} group={group} />
           ))}
       </section>
@@ -619,7 +676,7 @@ export default function AdminXPassHub() {
 
   if (productId && !product) {
     return (
-      <div className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
+      <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
         <h1 className="text-xl font-semibold text-white">Pass not found</h1>
         <p className="mt-2 text-sm text-white/55">That XPass product is not in the family list.</p>
         <Link to="/admin/checks" className="mt-4 inline-flex min-h-8 items-center text-sm font-medium text-[#61C1C4]">
