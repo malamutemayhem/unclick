@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import { parse as csvParse } from "csv-parse/sync";
 import { stringify as csvStringify } from "csv-stringify/sync";
 import { marked } from "marked";
+import { composeFlow, type FlowComposeInput } from "./flow-composer.js";
 
 export type LocalHandler = (args: Record<string, unknown>) => unknown | Promise<unknown>;
 
@@ -366,6 +367,10 @@ const HTML_ENTITIES: Record<string, string> = {
 
 // ─── Catalog endpoint handlers ───────────────────────────────────────────────
 export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
+
+  // ── FLOW (building layer) ──────────────────────────────────────────────────────
+
+  "flow.compose": (args) => composeFlow(args as FlowComposeInput),
 
   // ── TRANSFORM ────────────────────────────────────────────────────────────────
 

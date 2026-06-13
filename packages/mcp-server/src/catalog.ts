@@ -153,6 +153,61 @@ export const CATALOG: ToolDef[] = [
     ],
   },
   {
+    slug: "flow",
+    name: "Flow Composer",
+    description:
+      "Compose several real UnClick tool calls into one validated, runnable multi-step flow. Thread each step's output into the next with {{handle.path}} references, get back a checked plan plus the apps to connect first.",
+    category: "platform",
+    scope: "flow:use",
+    endpoints: [
+      {
+        id: "flow.compose",
+        name: "Compose Flow",
+        description:
+          "Validate an ordered sequence of UnClick tool calls into a runnable plan. Checks each tool exists, resolves {{ref}} data dependencies to earlier steps, lists apps to connect, and returns the unclick_call sequence to execute. Pure planning: it does not run the steps.",
+        method: "POST",
+        path: "/v1/flow/compose",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            goal: {
+              type: "string",
+              description: "Optional plain-language description of what the flow is for.",
+            },
+            steps: {
+              type: "array",
+              description: "Ordered steps to run.",
+              items: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    description: "Stable handle for this step (auto-assigned as step_N if omitted).",
+                  },
+                  tool: {
+                    type: "string",
+                    description: "Callable UnClick tool name, e.g. 'stripe_invoices'.",
+                  },
+                  params: {
+                    type: "object",
+                    description: "Parameters for the tool. String values may embed {{handle.path}} references to earlier steps.",
+                  },
+                  save_as: {
+                    type: "string",
+                    description: "Optional alias for this step's output, usable in later references.",
+                  },
+                },
+                required: ["tool"],
+              },
+            },
+          },
+          required: ["steps"],
+        },
+      },
+    ],
+  },
+  {
     slug: "encode",
     name: "Encode / Decode",
     description:

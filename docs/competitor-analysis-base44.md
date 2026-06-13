@@ -48,7 +48,7 @@ The framing is "different layer, complementary, more durable," not "cheaper app 
 
 ## Concrete Gap-Fills To Consider
 
-- An MCP-native "build/compose" surface so an agent can assemble a working integration flow (the part Base44 fakes) and hand back something runnable.
+- **[Shipped in this PR]** An MCP-native "build/compose" surface so an agent can assemble a working integration flow (the part Base44 fakes) and hand back something runnable. Delivered as the **Flow Composer** (`flow.compose`, `packages/mcp-server/src/flow-composer.ts`): an agent describes an ordered sequence of real UnClick tool calls, threads each step's output into the next with `{{handle.path}}` references, and gets back a validated, runnable plan (tools checked against the catalog, data dependencies resolved, apps-to-connect listed, plus the `unclick_call` sequence to execute). Pure planning, no network or auth, so it is safe and fully tested.
 - A flagship demo + landing path that makes the memory + real-integrations value visible in under a minute.
 - Public, evidence-backed security/proof page built on SecurityPass and XPass receipts, explicitly contrasting with mocked-integration and client-side-enforcement failure modes.
 - A "drop-in real integrations for your vibe-coded app" entry point targeting Base44/Lovable/Bolt users who hit the integration wall.
