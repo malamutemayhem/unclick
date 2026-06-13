@@ -673,6 +673,16 @@ export interface MemoryBackend {
   /** List recycle-bin contents (archived facts), newest archive first. */
   listArchivedFacts(limit?: number): Promise<RecycleBinEntry[]>;
   // --- end recycle bin ---
+  // --- recall access reinforcement ---
+  /**
+   * Bump access_count / last_accessed for facts genuinely SURFACED to an
+   * agent by the search_memory operation. Deliberately handler-driven and
+   * never called from internal candidate searches (write gate, eval,
+   * consolidation) or bulk startup loads, so the counter stays a real
+   * usefulness signal (see migration 20260607010000, the 5663x inflation).
+   */
+  recordRecallAccess(factIds: string[]): Promise<{ updated: number }>;
+  // --- end recall access reinforcement ---
   // --- lane-10: eval harness and memory passport ---
   exportMemoryPassport(input?: MemoryPassportExportInput): Promise<MemoryPassportExportResult>;
   importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult>;
