@@ -31,7 +31,7 @@ function buildOAuthUrl(
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  const clientIdKey = `VITE_${connector.slug.toUpperCase()}_CLIENT_ID`;
+  const clientIdKey = `VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
   const clientId    = VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
@@ -50,9 +50,25 @@ function buildOAuthUrl(
     redirect_uri:  redirectUri,
     scope:         (connector.scopes ?? []).join(" "),
     state,
+    ...(connector.extraAuthParams ?? {}),
   });
 
   return `${authUrl}?${params.toString()}`;
+}
+
+
+/** Parse a fetch Response that should be JSON, surviving plaintext error pages. */
+async function safeJson<T>(res: Response): Promise<T | { error: string }> {
+  const text = await res.text().catch(() => "");
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return {
+      error: res.ok
+        ? "The server sent an unexpected reply. Please try again."
+        : `Server error (${res.status}). Please try again - if this keeps happening, the ${"sign-in app"} may not be fully configured yet.`,
+    };
+  }
 }
 
 /** Returns the stored API key from localStorage, or empty string. */
@@ -173,7 +189,7 @@ export default function ConnectPage() {
         method:  "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const body = (await res.json()) as {
+      const body = (await safeJson(res)) as {
         api_key?:           string | null;
         already_provisioned?: boolean;
         error?:             string;
@@ -205,7 +221,7 @@ export default function ConnectPage() {
         method:  "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const body = (await res.json()) as { api_key?: string; error?: string };
+      const body = (await safeJson(res)) as { api_key?: string; error?: string };
       if (!res.ok || !body.api_key) {
         setMintError(body.error ?? "Could not reset your Passport key.");
         return;
@@ -259,7 +275,7 @@ export default function ConnectPage() {
       body:    JSON.stringify(body),
     })
       .then(async (res) => {
-        const data = (await res.json()) as { success?: boolean; error?: string };
+        const data = (await safeJson(res)) as { success?: boolean; error?: string };
         if (res.ok && data.success) {
           sessionStorage.removeItem("shopify_store");
           setPageState({ kind: "success" });
@@ -381,7 +397,7 @@ export default function ConnectPage() {
 
   const isOAuth2          = connector.authType === "oauth2";
   const origin            = window.location.origin;
-  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase()}_CLIENT_ID`] : "";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
   const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
@@ -407,7 +423,7 @@ export default function ConnectPage() {
           api_key:     currentApiKey,
         }),
       });
-      const data = (await res.json()) as { success?: boolean; error?: string };
+      const data = (await safeJson(res)) as { success?: boolean; error?: string };
       if (res.ok && data.success) {
         localStorage.setItem("unclick_api_key", currentApiKey);
         setPageState({ kind: "success" });
@@ -438,7 +454,7 @@ export default function ConnectPage() {
         }),
       });
 
-      const data = (await res.json()) as { state?: string; error?: string };
+      const data = (await safeJson(res)) as { state?: string; error?: string };
       if (!res.ok || !data.state) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;

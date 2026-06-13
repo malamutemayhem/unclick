@@ -1,5 +1,17 @@
 # Contributing
 
+## Licensing and the DCO
+
+UnClick uses a split license (AGPL-3.0 platform, MIT/Apache packages). See
+[LICENSING.md](./LICENSING.md) for the breakdown.
+
+By contributing, you certify the [Developer Certificate of Origin](https://developercertificate.org/)
+(DCO): you wrote the change or have the right to submit it under the license of
+the component you are touching. Sign off each commit with `git commit -s`, which
+adds a `Signed-off-by` line. Contributions are accepted under the license of the
+component they touch, and this sign-off keeps a dual-licensing option open for
+the project.
+
 ## Required CI Checks
 
 The main merge rail is GitHub ruleset `16788514`. It requires the `Website (root package)` and `MCP server package` checks from `.github/workflows/ci.yml`.
