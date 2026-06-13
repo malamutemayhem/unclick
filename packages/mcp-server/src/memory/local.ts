@@ -1355,6 +1355,24 @@ export class LocalBackend implements MemoryBackend {
   }
   // --- end memory time machine ---
 
+  // --- recall access reinforcement (surfaced rows only; see types.ts) ---
+  async recordRecallAccess(factIds: string[]): Promise<{ updated: number }> {
+    if (factIds.length === 0) return { updated: 0 };
+    const ids = new Set(factIds);
+    const rows = readTable<FactRow>("extracted_facts");
+    let updated = 0;
+    const stamp = now();
+    for (const row of rows) {
+      if (!ids.has(row.id)) continue;
+      row.access_count = (row.access_count ?? 0) + 1;
+      row.last_accessed = stamp;
+      updated += 1;
+    }
+    if (updated > 0) writeTable("extracted_facts", rows);
+    return { updated };
+  }
+  // --- end recall access reinforcement ---
+
   async invalidateFact(_input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const rows = readTable<FactRow>("extracted_facts");
     const fact = rows.find((row) => row.id === _input.fact_id);

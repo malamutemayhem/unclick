@@ -94,6 +94,25 @@ function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.map(String) : [];
 }
 
+/**
+ * Recall reinforcement: bump access_count for fact rows genuinely surfaced by
+ * the search_memory op. Fire-and-forget so recall latency is unaffected, and
+ * handler-level so internal candidate searches (write gate, eval harness,
+ * consolidation) never inflate the counter (the 5663x lesson, migration
+ * 20260607010000). Powers the Recall Check 1x/2x/3x counters.
+ */
+function reinforceSurfacedFacts(db: MemoryBackend, results: unknown): void {
+  if (!Array.isArray(results)) return;
+  const ids = results
+    .filter((row): row is { id: string; source?: string } =>
+      !!row && typeof row === "object" && typeof (row as { id?: unknown }).id === "string"
+    )
+    .filter((row) => (row.source ?? "fact") === "fact")
+    .map((row) => row.id);
+  if (ids.length === 0) return;
+  void db.recordRecallAccess(ids).catch(() => {});
+}
+
 /** Parse an expiry argument into a normalized ISO timestamp, or undefined. */
 function parseExpiry(v: unknown): string | undefined {
   if (typeof v !== "string" || !v.trim()) return undefined;
@@ -795,10 +814,12 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
         criteria,
         maxResults
       );
+      reinforceSurfacedFacts(db, reranked);
       return bool(args.full_content, false) ? reranked : compactSearchMemoryForStrictClients(reranked);
     }
 
     const results = await db.searchMemory(query, maxResults, asOf);
+    reinforceSurfacedFacts(db, results);
     const boundedResults = bool(args.full_content, false)
       ? results
       : compactSearchMemoryForStrictClients(results);
