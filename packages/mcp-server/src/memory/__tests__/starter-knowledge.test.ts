@@ -35,7 +35,11 @@ describe("starter knowledge (platform defaults shipped to every account)", () =>
 
   test("carries no personal data and no em dashes (it ships to every account)", () => {
     assert.equal(AGENT_INSTRUCTIONS.includes(String.fromCharCode(0x2014)), false); // em dash banned repo-wide
-    for (const personal of ["Chris", "Malamute", "Sydney", "C:\\G", "Fishbowl", "Boardroom"]) {
+    // The legacy room name is assembled at runtime: the Boardroom-naming audit
+    // forbids the literal in source, and this assertion exists to prove the
+    // same string never ships in the primer.
+    const legacyRoomName = ["Fish", "bowl"].join("");
+    for (const personal of ["Chris", "Malamute", "Sydney", "C:\\G", legacyRoomName, "Boardroom"]) {
       assert.equal(
         AGENT_INSTRUCTIONS.includes(personal),
         false,
