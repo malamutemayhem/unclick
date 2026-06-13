@@ -2567,6 +2567,8 @@ export const CONTEXT_TEMPLATES: Record<string, Array<{ category: string; key: st
     { category: "workflow", key: "scoped_slices", value: "Claim one small scoped slice with an ETA before starting, and prefer the smallest safe change over broad edits." },
     { category: "workflow", key: "specific_blockers", value: "When blocked, post a specific blocker naming what is missing, what you already checked, and the next step, not just a status." },
     { category: "standing_rule", key: "copy_from_source", value: "When exact text, code, or data is provided, copy it from the source instead of retyping from memory, to avoid drift." },
+    { category: "workflow", key: "autonomy_balance", value: "Do routine, reversible steps yourself instead of handing the user manual work; save escalation for secrets, billing, production data, DNS, and owner-only decisions." },
+    { category: "workflow", key: "continue_existing_work", value: "Before starting non-trivial work, check memory and open work (PRs, jobs, threads) for an existing effort to continue instead of opening a duplicate." },
   ],
 };
 
