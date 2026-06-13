@@ -31,7 +31,7 @@ function buildOAuthUrl(
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  const clientIdKey = `VITE_${connector.slug.toUpperCase()}_CLIENT_ID`;
+  const clientIdKey = `VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
   const clientId    = VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
@@ -50,6 +50,7 @@ function buildOAuthUrl(
     redirect_uri:  redirectUri,
     scope:         (connector.scopes ?? []).join(" "),
     state,
+    ...(connector.extraAuthParams ?? {}),
   });
 
   return `${authUrl}?${params.toString()}`;
@@ -381,7 +382,7 @@ export default function ConnectPage() {
 
   const isOAuth2          = connector.authType === "oauth2";
   const origin            = window.location.origin;
-  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase()}_CLIENT_ID`] : "";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
   const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
