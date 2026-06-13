@@ -151,12 +151,14 @@ html {
     radial-gradient(1200px 760px at 80% -12%, hsl(189 55% 24% / 0.62), transparent 60%),
     linear-gradient(160deg, #04141c 0%, #0a2b3b 54%, #06202c 100%);
 }
+/* No blur filter here: the radial gradients are already perfectly
+   soft, so the old blur(30px) was a free-standing GPU cost on two
+   viewport-scale layers, on every page, for an invisible effect. */
 .aurora-field::before,
 .aurora-field::after {
   content: "";
   position: absolute;
   border-radius: 50%;
-  filter: blur(30px);
   will-change: transform;
 }
 .aurora-field::before {
@@ -197,6 +199,20 @@ html {
   .aurora-field::after {
     animation: none;
   }
+}
+/* Performance lite mode: set on <html> by the homepage journey engine
+   when a device measurably drops frames. The 18-24s aurora drift is
+   imperceptible standing still; the navbar's scroll-frosting reads the
+   same against the dark canvas at higher opacity without re-filtering
+   its backdrop on every scrolled frame. */
+.hp-perf-lite .aurora-field::before,
+.hp-perf-lite .aurora-field::after {
+  animation: none;
+}
+.hp-perf-lite .site-navbar {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background-color: hsl(var(--background) / 0.95);
 }
 
 /* ============================================================

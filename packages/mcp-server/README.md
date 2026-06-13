@@ -171,4 +171,7 @@ This server is published as a GitHub Release tarball and can be added to MCP cli
 
 ## License
 
-MIT
+MIT (see [LICENSE](./LICENSE)). This client package is intentionally permissive
+so any agent or company can install it without friction. The wider UnClick
+platform it connects to is AGPL-3.0; see
+[LICENSING.md](https://github.com/malamutemayhem/unclick/blob/main/LICENSING.md).
