@@ -265,8 +265,7 @@ function JourneyField() {
   const ringRef = useRef<HTMLDivElement>(null);
   const peopleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const peoplePathRefs = useRef<(SVGPathElement | null)[]>([]);
-  const stageRopeRefs = useRef<(SVGPathElement | null)[]>([]);
+  const tetherCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -274,7 +273,23 @@ function JourneyField() {
     const bubble = bubbleRef.current;
     const inner = bubbleInnerRef.current;
     const ring = ringRef.current;
-    if (!field || !bubble || !inner || !ring) return;
+    const canvas = tetherCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!field || !bubble || !inner || !ring || !canvas || !ctx) return;
+
+    // The strings draw on one canvas: stroking two lines there is far
+    // cheaper than mutating stroked SVG paths (which invalidate and
+    // re-rasterize their layer every frame). DPR is capped; hairline
+    // strings do not need 3x pixels.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    const sizeCanvas = () => {
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = "round";
+    };
+    sizeCanvas();
+    window.addEventListener("resize", sizeCanvas);
 
     let raf = 0;
     const start = performance.now();
@@ -311,7 +326,11 @@ function JourneyField() {
     const enableLite = () => {
       lite = true;
       if (bubbleGlassRef.current) bubbleGlassRef.current.style.backdropFilter = "none";
-      field.classList.add("hp-lite");
+      // Root-level flag: the floor pan, the site aurora drift, and the
+      // navbar's backdrop blur all stand down with it (index.css and
+      // preview.css carry the rules). Sticky for the visit - a device
+      // that dropped frames once will drop them again.
+      document.documentElement.classList.add("hp-perf-lite");
     };
 
     const tick = (now: number) => {
@@ -384,25 +403,27 @@ function JourneyField() {
       ring.style.transform = `translate(${cx - 40}px, ${cy - 40}px) scale(${ringScale})`;
 
       // Hero bundle to the people.
+      ctx.clearRect(0, 0, vw, vh);
       const gatherY = cy + (base * cs) / 2 - 6;
       const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]);
-      peopleRefs.current.forEach((el, i) => {
-        const path = peoplePathRefs.current[i];
-        if (!el || !path) return;
-        if (peopleAlpha <= 0.01) {
-          path.setAttribute("d", "");
-          return;
-        }
-        const r = el.getBoundingClientRect();
-        const px = r.left + r.width / 2;
-        const py = r.top + 6;
-        const sx = cx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
-        const sway = Math.sin(t * 0.5 + i * 0.7) * 3;
-        const bx = cx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
-        const by = gatherY + (py - gatherY) * 0.62;
-        path.setAttribute("d", `M ${sx} ${gatherY} C ${sx + sway} ${gatherY + 50}, ${bx} ${by}, ${px} ${py}`);
-        path.setAttribute("stroke", `hsl(183 50% 62% / ${0.5 * peopleAlpha})`);
-      });
+      if (peopleAlpha > 0.01) {
+        ctx.strokeStyle = `hsl(183 50% 62% / ${0.5 * peopleAlpha})`;
+        ctx.lineWidth = 1.5;
+        peopleRefs.current.forEach((el, i) => {
+          if (!el) return;
+          const r = el.getBoundingClientRect();
+          const px = r.left + r.width / 2;
+          const py = r.top + 6;
+          const sx = cx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
+          const sway = Math.sin(t * 0.5 + i * 0.7) * 3;
+          const bx = cx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
+          const by = gatherY + (py - gatherY) * 0.62;
+          ctx.beginPath();
+          ctx.moveTo(sx, gatherY);
+          ctx.bezierCurveTo(sx + sway, gatherY + 50, bx, by, px, py);
+          ctx.stroke();
+        });
+      }
 
       // Two-handed web-slinging: as the bubble travels, a fresh rope
       // shoots out to the next stage while the old one releases and
@@ -414,9 +435,9 @@ function JourneyField() {
       // flip lite mode once (sticky). Resume spikes and idle half-rate
       // frames do not count toward jank.
       if (!lite && !restful) {
-        if (frameMs > 26 && frameMs < 250) janky = Math.min(90, janky + 1);
+        if (frameMs > 24 && frameMs < 250) janky = Math.min(90, janky + 1);
         else janky = Math.max(0, janky - 2);
-        if (janky >= 60) enableLite();
+        if (janky >= 45) enableLite();
       }
       const mouthX = cx;
       const mouthY = cy + (base * cs) / 2 - 8;
@@ -460,12 +481,7 @@ function JourneyField() {
       const easeInCubic = (v: number) => v * v * v;
 
       ropes.forEach((rope, ri) => {
-        const path = stageRopeRefs.current[ri];
-        if (!path) return;
-        if (rope.phase === "idle") {
-          path.setAttribute("d", "");
-          return;
-        }
+        if (rope.phase === "idle") return;
         const el = rope.idx >= 0 ? stageRefs.current[rope.idx] : null;
         const r = el?.getBoundingClientRect();
         const axp = r ? r.left + r.width / 2 : mouthX;
@@ -473,7 +489,7 @@ function JourneyField() {
         let alpha = 0.6 * windowAlpha;
 
         if (rope.phase === "out") {
-          rope.prog = Math.min(1, rope.prog + dt / 0.7);
+          rope.prog = Math.min(1, rope.prog + dt / 0.55);
           const k = easeOutCubic(rope.prog);
           rope.ex = rope.sx + (axp - rope.sx) * k;
           rope.ey = rope.sy + (ayp - rope.sy) * k;
@@ -483,7 +499,7 @@ function JourneyField() {
           rope.ex = axp;
           rope.ey = ayp;
         } else if (rope.phase === "reel") {
-          rope.prog = Math.min(1, rope.prog + dt / 0.6);
+          rope.prog = Math.min(1, rope.prog + dt / 0.45);
           const k = easeInCubic(rope.prog);
           rope.ex = rope.sx + (mouthX - rope.sx) * k;
           rope.ey = rope.sy + (mouthY - rope.sy) * k;
@@ -491,15 +507,18 @@ function JourneyField() {
           if (rope.prog >= 1) {
             rope.phase = "idle";
             rope.idx = -1;
-            path.setAttribute("d", "");
             return;
           }
         }
 
         const midX = (mouthX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
         const midY = (mouthY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - mouthX) * 0.25);
-        path.setAttribute("d", `M ${mouthX} ${mouthY} Q ${midX} ${midY} ${rope.ex} ${rope.ey}`);
-        path.setAttribute("stroke", `hsl(183 52% 64% / ${Math.max(0, alpha)})`);
+        ctx.strokeStyle = `hsl(183 52% 64% / ${Math.max(0, alpha)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, mouthY);
+        ctx.quadraticCurveTo(midX, midY, rope.ex, rope.ey);
+        ctx.stroke();
       });
 
       raf = requestAnimationFrame(tick);
@@ -536,6 +555,7 @@ function JourneyField() {
       stopLoop();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("resize", sizeCanvas);
     };
   }, [reduced]);
 
@@ -543,30 +563,11 @@ function JourneyField() {
     <div ref={fieldRef} className="relative overflow-x-clip">
       {!reduced && (
         <>
-          <svg className="pointer-events-none fixed inset-0 z-30 h-full w-full" aria-hidden="true">
-            {PEOPLE.map((_, i) => (
-              <path
-                key={i}
-                ref={(el) => {
-                  peoplePathRefs.current[i] = el;
-                }}
-                fill="none"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            ))}
-            {[0, 1].map((ri) => (
-              <path
-                key={`rope-${ri}`}
-                ref={(el) => {
-                  stageRopeRefs.current[ri] = el;
-                }}
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            ))}
-          </svg>
+          <canvas
+            ref={tetherCanvasRef}
+            className="pointer-events-none fixed inset-0 z-30 h-full w-full"
+            aria-hidden="true"
+          />
 
           <div
             ref={ringRef}
@@ -575,7 +576,7 @@ function JourneyField() {
           />
 
           <div ref={bubbleRef} className="pointer-events-none fixed left-0 top-0 z-40 will-change-transform" aria-hidden="true">
-            <div ref={bubbleInnerRef} className="origin-top-left">
+            <div ref={bubbleInnerRef} className="origin-top-left will-change-transform">
               <div
                 ref={bubbleGlassRef}
                 className="relative flex h-[290px] w-[290px] items-center justify-center rounded-full sm:h-[400px] sm:w-[400px]"
