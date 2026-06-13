@@ -113,6 +113,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { encrypt as keychainEncrypt, hashKeyFull as keychainHashKeyFull } from "../packages/mcp-server/src/keychain-crypto.js";
 import { testCredential as keychainTestCredential } from "../packages/mcp-server/src/keychain-tool.js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
+import { parseDueAtInput } from "./lib/todo-due.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
@@ -10810,6 +10811,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             assignee = a;
           }
 
+          const dueRes = parseDueAtInput(body.due_at);
+          if (!dueRes.ok) return res.status(400).json({ error: dueRes.error });
+
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
             .insert({
@@ -10820,6 +10824,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               status: "open",
               created_by_agent_id: agentId,
               assigned_to_agent_id: assignee,
+              due_at: dueRes.value ?? null,
             })
             .select("*")
             .single();
@@ -10937,6 +10942,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const a = String(body.assigned_to_agent_id ?? "").trim();
             if (a.length > 128) return res.status(400).json({ error: "assigned_to_agent_id must be at most 128 characters" });
             update.assigned_to_agent_id = a.length === 0 ? null : a;
+          }
+          if (body.due_at !== undefined) {
+            const dueRes = parseDueAtInput(body.due_at);
+            if (!dueRes.ok) return res.status(400).json({ error: dueRes.error });
+            if (dueRes.value !== undefined) update.due_at = dueRes.value;
           }
 
           if (update.status === "done" && beforeTodo) {

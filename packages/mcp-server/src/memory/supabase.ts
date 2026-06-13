@@ -1937,6 +1937,33 @@ export class SupabaseBackend implements MemoryBackend {
   }
   // --- end recycle bin ---
 
+  // --- recall access reinforcement (surfaced rows only; see types.ts) ---
+  async recordRecallAccess(factIds: string[]): Promise<{ updated: number }> {
+    const ids = [...new Set(factIds)].slice(0, 25);
+    if (ids.length === 0) return { updated: 0 };
+    let readQuery = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, access_count")
+      .in("id", ids);
+    if (this.tenancy.mode === "managed") {
+      readQuery = readQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await readQuery;
+    if (error) throw pgError("recall access read", error);
+    const stamp = now();
+    let updated = 0;
+    for (const row of (data ?? []) as Array<{ id: string; access_count: number | null }>) {
+      await this.updateFactForTenant(
+        row.id,
+        { access_count: (row.access_count ?? 0) + 1, last_accessed: stamp },
+        "recall access bump"
+      );
+      updated += 1;
+    }
+    return { updated };
+  }
+  // --- end recall access reinforcement ---
+
   // --- memory time machine (bi-temporal diff) ---
   // invalidation_reason is intentionally absent: no repo schema creates that
   // column (the invalidate RPCs keep the reason in the audit payload), so the
