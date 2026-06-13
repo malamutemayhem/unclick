@@ -150,11 +150,13 @@ function Stage({
         side === "right" ? "justify-end" : "justify-start",
       )}
     >
-      {/* Ambient glow behind the stage */}
+      {/* Ambient glow behind the stage: a radial gradient renders the
+          same soft pool of light as the old blur(110px) disc without
+          the giant filtered layer. */}
       <div
         className={cn(
-          "pointer-events-none absolute top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-primary/[0.05] blur-[110px]",
-          side === "right" ? "right-[-6%]" : "left-[-6%]",
+          "pointer-events-none absolute top-1/2 h-[540px] w-[540px] -translate-y-1/2 [background:radial-gradient(circle_closest-side,hsl(182_46%_57%/0.075),transparent_72%)]",
+          side === "right" ? "right-[-8%]" : "left-[-8%]",
         )}
         aria-hidden="true"
       />
@@ -193,8 +195,10 @@ function Stage({
           aria-hidden="true"
         />
 
-        {/* The card */}
-        <div className="relative rounded-3xl border border-[#86dadd]/20 bg-gradient-to-b from-[#0a2c3c]/95 to-[#071e29]/95 p-7 shadow-[0_50px_110px_-38px_rgba(0,0,0,0.9),0_0_60px_-30px_hsl(182_46%_57%/0.45)] backdrop-blur-md sm:p-8">
+        {/* The card. The gradient is 95% opaque, so a backdrop blur
+            behind it was invisible frosting at a real per-scroll-frame
+            cost; the gradient alone reads identically. */}
+        <div className="relative rounded-3xl border border-[#86dadd]/20 bg-gradient-to-b from-[#0a2c3c]/95 to-[#071e29]/95 p-7 shadow-[0_50px_110px_-38px_rgba(0,0,0,0.9),0_0_60px_-30px_hsl(182_46%_57%/0.45)] sm:p-8">
           <span className="hp-cross left-2.5 top-2.5" aria-hidden="true" />
           <span className="hp-cross bottom-2.5 right-2.5" aria-hidden="true" />
           <div
@@ -257,6 +261,7 @@ function JourneyField() {
   const heroSceneRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const bubbleInnerRef = useRef<HTMLDivElement>(null);
+  const bubbleGlassRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const peopleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -278,6 +283,16 @@ function JourneyField() {
     let cs = 1;
     let sp = 0;
     let lastNow = performance.now();
+    // Power management: the loop only runs while the journey is on (or
+    // near) screen and the tab is visible; at rest it drops to half
+    // rate (the idle drift and tether sway are slow sines, invisible
+    // at 30fps). A frame-time monitor flips a sticky "lite" mode on
+    // devices that cannot hold the full glass look at speed.
+    let running = false;
+    let inView = true;
+    let frame = 0;
+    let janky = 0;
+    let lite = false;
     type Rope = {
       idx: number;
       phase: "idle" | "out" | "hold" | "reel";
@@ -293,13 +308,30 @@ function JourneyField() {
     ];
     let activeStage = -1; // smoothed progress: the soul of the relaxed motion
 
+    const enableLite = () => {
+      lite = true;
+      if (bubbleGlassRef.current) bubbleGlassRef.current.style.backdropFilter = "none";
+      field.classList.add("hp-lite");
+    };
+
     const tick = (now: number) => {
+      if (!running) return;
+      frame += 1;
       const t = (now - start) / 1000;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const rect = field.getBoundingClientRect();
       const total = rect.height - vh * 0.55;
       const p = Math.min(1, Math.max(0, -rect.top / Math.max(total, 1)));
+
+      const restful =
+        Math.abs(p - sp) < 0.0005 &&
+        ropes.every((rope) => rope.phase === "idle") &&
+        Math.abs(sp - 0.955) * 26 > 1.2;
+      if (restful && frame % 2 === 1) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
 
       const sm = vw < 640;
       const base = sm ? 290 : 400;
@@ -375,8 +407,17 @@ function JourneyField() {
       // Two-handed web-slinging: as the bubble travels, a fresh rope
       // shoots out to the next stage while the old one releases and
       // reels home. Both ease and fade; nothing ever cuts.
-      const dt = Math.min(0.05, (now - lastNow) / 1000);
+      const frameMs = now - lastNow;
+      const dt = Math.min(0.05, frameMs / 1000);
       lastNow = now;
+      // Sustained slow frames while the scene is actually in motion
+      // flip lite mode once (sticky). Resume spikes and idle half-rate
+      // frames do not count toward jank.
+      if (!lite && !restful) {
+        if (frameMs > 26 && frameMs < 250) janky = Math.min(90, janky + 1);
+        else janky = Math.max(0, janky - 2);
+        if (janky >= 60) enableLite();
+      }
       const mouthX = cx;
       const mouthY = cy + (base * cs) / 2 - 8;
       const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]);
@@ -463,8 +504,39 @@ function JourneyField() {
 
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    const startLoop = () => {
+      if (running) return;
+      running = true;
+      lastNow = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+    const stopLoop = () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView && !document.hidden) startLoop();
+        else stopLoop();
+      },
+      { rootMargin: "35% 0px" },
+    );
+    io.observe(field);
+    const onVisibility = () => {
+      if (document.hidden) stopLoop();
+      else if (inView) startLoop();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    startLoop();
+    return () => {
+      stopLoop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [reduced]);
 
   return (
@@ -505,6 +577,7 @@ function JourneyField() {
           <div ref={bubbleRef} className="pointer-events-none fixed left-0 top-0 z-40 will-change-transform" aria-hidden="true">
             <div ref={bubbleInnerRef} className="origin-top-left">
               <div
+                ref={bubbleGlassRef}
                 className="relative flex h-[290px] w-[290px] items-center justify-center rounded-full sm:h-[400px] sm:w-[400px]"
                 style={{
                   background:
@@ -756,7 +829,7 @@ export default function BubbleHome() {
         {/* ── Hero ───────────────────────────────────────────────── */}
         <section className="relative overflow-hidden px-6 pb-2 pt-32 text-center sm:pt-36">
           <div
-            className="pointer-events-none absolute left-1/2 top-0 h-[300px] w-[700px] -translate-x-1/2 rounded-full bg-primary/[0.06] blur-[100px]"
+            className="pointer-events-none absolute left-1/2 top-0 h-[380px] w-[860px] -translate-x-1/2 [background:radial-gradient(ellipse_closest-side,hsl(182_46%_57%/0.085),transparent_72%)]"
             aria-hidden="true"
           />
           <div className="relative z-10 mx-auto max-w-3xl">
