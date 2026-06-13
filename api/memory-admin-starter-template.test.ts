@@ -12,7 +12,7 @@ describe("admin_context_apply_template starter templates", () => {
   it("adds an `unclick` operating-basics template so a new account is not blank", () => {
     const rows = CONTEXT_TEMPLATES.unclick;
     expect(Array.isArray(rows)).toBe(true);
-    expect(rows.length).toBeGreaterThanOrEqual(12);
+    expect(rows.length).toBeGreaterThanOrEqual(19);
 
     const keys = rows.map((r) => r.key);
     // core operating basics
@@ -30,6 +30,14 @@ describe("admin_context_apply_template starter templates", () => {
     // autonomy and dedup doctrine distilled from later memory passes
     expect(keys).toContain("autonomy_balance");
     expect(keys).toContain("continue_existing_work");
+    // full-coverage audit additions (complete memory + orchestrator reads)
+    expect(keys).toContain("compact_memory");
+    expect(keys).toContain("idle_not_done");
+    expect(keys).toContain("live_source_wins");
+    expect(keys).toContain("fetch_from_source");
+    expect(keys).toContain("patch_the_source");
+    expect(keys).toContain("public_surface_hygiene");
+    expect(keys).toContain("honest_pushback");
 
     // the tool-first rule must point agents at UnClick's own tools
     const toolFirst = rows.find((r) => r.key === "tool_first");

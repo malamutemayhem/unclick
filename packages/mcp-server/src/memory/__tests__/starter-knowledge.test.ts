@@ -27,10 +27,15 @@ describe("starter knowledge (platform defaults shipped to every account)", () =>
   test("includes the operating-discipline guardrails distilled from the orchestrator", () => {
     // proof-before-done: status text and green badges are not proof
     assert.ok(AGENT_INSTRUCTIONS.includes("green badges"));
-    // stop before irreversible / high-risk actions
+    // stop before irreversible / high-risk actions, including history rewrites
     assert.ok(AGENT_INSTRUCTIONS.includes("irreversible or high-risk"));
+    assert.ok(AGENT_INSTRUCTIONS.includes("force-push"));
     // secret hygiene applies even on a brand-new account
     assert.ok(AGENT_INSTRUCTIONS.includes("never print, log, or save secrets"));
+    // memory compaction: summaries and pointers, not dumps
+    assert.ok(AGENT_INSTRUCTIONS.includes("not raw transcripts"));
+    // honest pushback beats agreeable failure
+    assert.ok(AGENT_INSTRUCTIONS.includes("honestly useful, not agreeable"));
   });
 
   test("carries no personal data and no em dashes (it ships to every account)", () => {
