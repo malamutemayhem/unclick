@@ -139,7 +139,7 @@ Scoreboard field map for AI seats:
 - Say **CommonSensePass** when a worker needs to sanity-check a status claim before saying healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake.
 - Say **CompliancePass**, not EnterprisePass, for compliance and enterprise-readiness checks.
 - Say **SlopPass**, not QualityPass, for sloppy code, AI-output roughness, and maintainability checks.
-- Treat **QCPass** as process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
+- Treat **QCPass** as process wording for a final XPass/QC receipt, not an official XPass product unless the operator explicitly promotes it.
 
 ## Connector-Level Context Warning
 
@@ -174,9 +174,9 @@ Before product claims or routing:
 
 ## Drift Rules
 
-- If old docs say "Pass family", treat it as historical wording unless Chris says otherwise.
+- If old docs say "Pass family", treat it as historical wording unless the operator says otherwise.
 - If old docs list Pass products beside Autopilot, prefer the current hierarchy: Autopilot sits higher as the development assembly line.
-- If a parked product name appears in old notes, label it parked unless a live PR, Boardroom item, or Chris reactivates it.
+- If a parked product name appears in old notes, label it parked unless a live PR, Boardroom item, or the operator reactivates it.
 - If memory conflicts with live GitHub/Boardroom state, live state wins for current work.
 - If connector output conflicts with this packet, this packet wins for product taxonomy.
 

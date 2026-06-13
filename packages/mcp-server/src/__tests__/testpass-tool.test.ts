@@ -29,13 +29,15 @@ function okJson(body: unknown): Response {
 }
 
 describe("TestPass MCP tool", () => {
-  it("lists packs through the authenticated admin pack endpoint", async () => {
+  it("lists packs through the API-key-capable testpass endpoint", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ packs: [{ slug: "testpass-core" }] }));
     globalThis.fetch = fetchMock as typeof fetch;
 
     await expect(testpassListPacks()).resolves.toEqual({ packs: [{ slug: "testpass-core" }] });
-    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/memory-admin?action=list_testpass_packs");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/testpass?action=list_packs");
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer uc_test");
   });
 
   it("passes UUID pack identifiers as pack_id instead of pack_slug", async () => {

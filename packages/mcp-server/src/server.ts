@@ -27,7 +27,7 @@ import { createHash } from "node:crypto";
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
 // Fires a fire-and-forget event to the self-hosted Umami instance every time
-// an agent actually invokes a tool. Lets Chris see which tools get used.
+// an agent actually invokes a tool. Lets the operator see which tools get used.
 // No-ops silently if UMAMI_WEBSITE_ID is not set (e.g. dev / local runs).
 // Never awaited so it cannot slow or break a tool call even if Umami is down.
 function trackToolCall(toolName: string): void {
@@ -864,6 +864,11 @@ export const VISIBLE_TOOLS = [
         description: { type: "string", description: "Optional longer description (max 4000 chars)" },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
         assigned_to_agent_id: { type: "string", description: "Optional agent_id of the agent who should own this todo" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day.",
+        },
       },
       required: ["agent_id", "title"],
     },
@@ -938,7 +943,7 @@ export const VISIBLE_TOOLS = [
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
-      "Update a todo's title, description, priority, status, or assignee. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
+      "Update a todo's title, description, priority, status, assignee, or due date. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -950,6 +955,11 @@ export const VISIBLE_TOOLS = [
         status: { type: "string", enum: ["open", "in_progress", "done", "dropped"] },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
         assigned_to_agent_id: { type: "string", description: "Pass empty string to unassign" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day. Pass empty string to clear.",
+        },
       },
       required: ["agent_id", "todo_id"],
     },
@@ -1565,6 +1575,7 @@ const DIRECT_TOOLS = [
 
 type RuntimeToolSchema = {
   name: string;
+  description?: string;
   inputSchema?: unknown;
 };
 
@@ -1606,8 +1617,8 @@ function registerToolInputSchema(tool: RuntimeToolSchema): void {
   if (tool.inputSchema) TOOL_INPUT_SCHEMAS.set(tool.name, tool.inputSchema);
 }
 
-for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADDITIONAL_TOOLS]) {
-  registerToolInputSchema(tool);
+for (const tools of [INTERNAL_TOOLS, VISIBLE_TOOLS, DIRECT_TOOLS, ADDITIONAL_TOOLS] as unknown as RuntimeToolSchema[][]) {
+  for (const tool of tools) registerToolInputSchema(tool);
 }
 
 export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
@@ -1719,11 +1730,11 @@ const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
 );
 
-export const ADVERTISED_TOOLS = [
-  ...VISIBLE_TOOLS,
+export const ADVERTISED_TOOLS: readonly RuntimeToolSchema[] = [
+  ...(VISIBLE_TOOLS as unknown as RuntimeToolSchema[]),
   ...EXPRESSROOM_VISIBLE_TOOLS,
   ...AUTOPILOT_VISIBLE_TOOLS,
-  ...ADDITIONAL_TOOLS,
+  ...(ADDITIONAL_TOOLS as unknown as RuntimeToolSchema[]),
 ];
 
 /** Combinators the Anthropic API rejects at the TOP level of a tool schema. */

@@ -140,7 +140,7 @@ Boundaries we do **not** trust (any input crossing them is untrusted):
 
 ### UC-3. Compromised developer account
 
-**Scenario**: Chris's GitHub / Supabase / Vercel account is compromised.
+**Scenario**: The operator's GitHub / Supabase / Vercel account is compromised.
 
 **Mitigations in place**:
 - GitHub Secret Protection and push protection are enabled at the repo level as of 2026-05-28. Evidence receipt: `ss_7915ye3zi`.

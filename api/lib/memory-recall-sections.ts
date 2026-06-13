@@ -1,6 +1,6 @@
 const BACKGROUND_RECALL_CATEGORIES = new Set(["identity", "preference", "standing_rule"]);
 const BACKGROUND_RECALL_PATTERNS = [
-  /^chris('s)?\s/i,
+  /^owner('s)?\s/i,
   /^user\s/i,
   /should always/i,
   /never use/i,

@@ -16,7 +16,10 @@ import { useSession, signOut } from "@/lib/auth";
 import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
+import { LENSES, parseAppLens } from "@/components/apps/appLenses";
+import UserAvatar from "@/components/UserAvatar";
 import {
+  ArrowRightLeft,
   User,
   Brain,
   KeyRound,
@@ -32,6 +35,7 @@ import {
   BarChart3,
   Bell,
   Code2,
+  HardDrive,
   Terminal,
   ChevronRight,
   ChevronDown,
@@ -51,7 +55,7 @@ import {
   MessagesSquare,
   BellRing,
   LayoutDashboard,
-  AppWindow,
+  PlugZap,
   FolderKanban,
   Plane,
   ListTodo,
@@ -93,6 +97,121 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
           {badge > 99 ? "99+" : badge}
         </span>
       )}
+    </NavLink>
+  );
+}
+
+/**
+ * Connections group: everything the account reaches OUT to, per the operator's
+ * IA (docs/connections-ia.md + docs/prd/connections-apps-holistic.md).
+ * Apps is THE list; the lens sublinks are views of it (?lens=), sourced from
+ * the same LENSES array the page renders, so the sidebar can never drift from
+ * the page. Passport remains until the P3 dissolve; Websites ships with the
+ * extension surface and is shown as planned, not linked.
+ */
+function ConnectionsNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
+  const location = useLocation();
+  const onApps = location.pathname === "/admin/apps";
+  const open = onApps || location.pathname.startsWith("/admin/keychain");
+  const activeLens = parseAppLens(new URLSearchParams(location.search).get("lens"));
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/apps"
+        onClick={onLinkClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive || open
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <PlugZap className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Connections</span>
+        {open
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {open && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          <Link
+            to="/admin/apps"
+            onClick={onLinkClick}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-card/40 ${
+              onApps && activeLens === "all" ? "text-primary" : "text-muted-foreground hover:text-body"
+            }`}
+          >
+            Apps
+          </Link>
+          {LENSES.filter((l) => l.id !== "all").map(({ id, label }) => (
+            <Link
+              key={id}
+              to={`/admin/apps?lens=${id}`}
+              onClick={onLinkClick}
+              className={`rounded-md py-1.5 pl-6 pr-3 text-xs font-medium transition-colors hover:bg-card/40 ${
+                onApps && activeLens === id ? "text-primary" : "text-muted-foreground/80 hover:text-body"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          <Link
+            to="/admin/keychain"
+            onClick={onLinkClick}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-card/40 ${
+              location.pathname.startsWith("/admin/keychain") ? "text-primary" : "text-muted-foreground hover:text-body"
+            }`}
+          >
+            Passport
+          </Link>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground/40">
+            Websites
+            <span className="rounded border border-white/10 px-1 py-px text-[9px] uppercase tracking-wide">soon</span>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Titled master division in the sidebar: HUMAN (your stuff) vs AGENTS (the workforce). */
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30 first:mt-0">
+      {label}
+    </div>
+  );
+}
+
+/**
+ * Jobs links carry a lane query (?lane=human / ?lane=agent) over the same
+ * /admin/jobs route, so active state must consider the search string, which
+ * NavLink ignores. One todo substrate, two queues; see jobLanes.ts.
+ */
+function JobsLaneLink({ lane, label, icon: Icon, onClick }: {
+  lane: "human" | "agent";
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  onClick?: () => void;
+}) {
+  const location = useLocation();
+  const active =
+    location.pathname === "/admin/jobs" &&
+    new URLSearchParams(location.search).get("lane") === lane;
+  return (
+    <NavLink
+      to={`/admin/jobs?lane=${lane}`}
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+        active
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="flex-1">{label}</span>
     </NavLink>
   );
 }
@@ -264,16 +383,35 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
     AUTOPILOT_LINKS.some((item) => location.pathname.startsWith(item.path));
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-1">
-      <SurfaceLink path="/admin/autopilot" label="AutoPilot" icon={Plane} onClick={onLinkClick} />
+    <div>
+      <NavLink
+        to="/admin/autopilot"
+        onClick={onLinkClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <Plane className="h-4 w-4 shrink-0" />
+        <span className="flex-1">AutoPilot</span>
+        {open
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {open && (
-        <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
           {AUTOPILOT_LINKS.map((item) => {
             if (item.hasChildren && item.path === "/admin/checks") {
               return <XPassNavItem key={item.path} onClick={onLinkClick} />;
             }
             if (item.hasChildren && item.path === "/admin/xgate") {
               return <XGateNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            if (item.path === "/admin/jobs") {
+              return <JobsLaneLink key={item.path} lane="agent" label="Jobs (AI)" icon={item.icon} onClick={onLinkClick} />;
             }
             return (
               <SurfaceLink
@@ -408,28 +546,58 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+const SEATS_CHILDREN = [
+  { path: "/admin/agents/api",              label: "API",          icon: KeyRound   },
+  { path: "/admin/agents/api/routing",      label: "Routing",      icon: ArrowRightLeft },
+  { path: "/admin/agents/api/usage",        label: "Usage",        icon: BarChart3  },
+  { path: "/admin/agents/local",            label: "Local",        icon: HardDrive  },
+  { path: "/admin/agents/subscription",     label: "Subscription", icon: CreditCard },
+  { path: "/admin/agents/heartbeat",        label: "Heartbeat",    icon: HeartPulse },
+] as const;
+
 function SeatsNavItem({ onClick }: { onClick?: () => void }) {
   const location = useLocation();
   const isSeats = location.pathname === "/admin/agents" || location.pathname.startsWith("/admin/agents/");
-  const heartbeatActive = location.pathname === "/admin/agents/heartbeat";
 
   return (
     <div>
-      <SurfaceLink path="/admin/agents" label="Seats" icon={SeatsCascadeIcon} onClick={onClick} />
+      <NavLink
+        to="/admin/agents"
+        onClick={onClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <SeatsCascadeIcon className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Seats</span>
+        {isSeats
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {isSeats && (
         <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
-          <Link
-            to="/admin/agents/heartbeat"
-            onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              heartbeatActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-card/40 hover:text-body"
-            }`}
-          >
-            <HeartPulse className="h-3 w-3 shrink-0" />
-            Heartbeat
-          </Link>
+          {SEATS_CHILDREN.map(({ path, label, icon: Icon }) => {
+            const active = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClick}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                }`}
+              >
+                <Icon className="h-3 w-3 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -443,10 +611,27 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
   const storyActive = location.pathname === "/admin/orchestrator" ||
     location.pathname === "/admin/orchestrator/story";
   const timelineActive = location.pathname === "/admin/orchestrator/timeline";
+  const logActive = location.pathname === "/admin/orchestrator/log";
 
   return (
     <div>
-      <SurfaceLink path="/admin/orchestrator" label="Orchestrator" icon={Terminal} onClick={onClick} />
+      <NavLink
+        to="/admin/orchestrator"
+        onClick={onClick}
+        className={({ isActive }) =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <Terminal className="h-4 w-4 shrink-0" />
+        <span className="flex-1">Orchestrator</span>
+        {isOrchestrator
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
       {isOrchestrator && (
         <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
           <Link
@@ -473,6 +658,18 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
             <Clock className="h-3 w-3 shrink-0" />
             Timeline
           </Link>
+          <Link
+            to="/admin/orchestrator/log"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              logActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
+            }`}
+          >
+            <ScrollText className="h-3 w-3 shrink-0" />
+            Log
+          </Link>
         </div>
       )}
     </div>
@@ -491,17 +688,22 @@ function SidebarNav({
   return (
     <>
       <SurfaceLink path="/admin/dashboard" label="Dashboard"               icon={LayoutDashboard} onClick={onLinkClick} />
+
+      <SectionHeader label="Human" />
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
-      <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
-      <SeatsNavItem onClick={onLinkClick} />
-      <AutopilotNavGroup onLinkClick={onLinkClick} />
+      <ConnectionsNavGroup onLinkClick={onLinkClick} />
+      <JobsLaneLink lane="human" label="Jobs (Human)" icon={ListTodo} onClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
       <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings}  onClick={onLinkClick} />
       <SurfaceLink path="/admin/billing"  label="Billing"                  icon={CreditCard} onClick={onLinkClick} />
+
+      <SectionHeader label="Agents" />
+      <SeatsNavItem onClick={onLinkClick} />
+      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
+      <AutopilotNavGroup onLinkClick={onLinkClick} />
+
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}
     </>
   );
@@ -597,9 +799,7 @@ export default function AdminShell() {
 
         <div className="border-t border-border/40 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <User className="h-4 w-4" />
-            </div>
+            <UserAvatar user={user} className="h-8 w-8" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium text-foreground">
                 {user?.email ?? "Unknown"}
@@ -677,8 +877,9 @@ export default function AdminShell() {
           <div className="mt-3 border-t border-border/40 pt-3">
             <BugReportButton />
           </div>
-          <div className="mt-2 border-t border-border/40 pt-2">
-            <p className="truncate px-3 text-xs text-muted-foreground">
+          <div className="mt-2 flex items-center gap-2 border-t border-border/40 px-3 pt-2">
+            <UserAvatar user={user} className="h-6 w-6" />
+            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
               {user?.email ?? "Unknown"}
             </p>
           </div>

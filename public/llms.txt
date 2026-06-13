@@ -1,9 +1,16 @@
 # UnClick
 # Update counts from src/config/site-stats.ts
-> Agent rails for AI agents: tools, memory, connections, crews, and Pass family checks.
+> The universal remote for AI: one install gives any MCP-compatible agent tools, memory, connections, crews, and Pass family QA checks.
 
 ## What is UnClick
-UnClick is an MCP-compatible agent-rails layer where AI agents discover tools, load memory, use secure connections, run crews, and verify work with the Pass family. One GitHub release package gives access to 450+ callable endpoints across 60+ integrations. No per-tool installs. No configuration per service.
+UnClick is an MCP-compatible agent-rails layer where AI agents discover tools, load memory, use secure connections, run crews, and verify work with the Pass family. One GitHub release package gives access to 450+ callable endpoints across 60+ integrations (178+ tool files). No per-tool installs. No configuration per service. UnClick works with Claude, ChatGPT, Cursor, OpenClaw, and any agent that speaks MCP.
+
+## What you get
+- Apps: 450+ callable endpoints across 60+ integrations, in one install.
+- Memory: persistent cross-session memory that remembers and shows what it captured.
+- Connections (Passport): sign in once, and your agent uses everything else securely.
+- Crews: multi-agent deliberation for decisions that need dissent and review.
+- XPass: the Pass family of QA checks (TestPass, UIPass, UXPass, SecurityPass, SEOPass, GEOPass and more) that prove AI work before it ships.
 
 ## How agents connect
 Install: npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
@@ -13,15 +20,27 @@ The package exposes 4 meta-tools:
 - unclick_tool_info: Get detailed info about a specific tool (endpoints, params, auth)
 - unclick_call: Execute any tool endpoint with parameters
 
+## Common questions
+Q: What is UnClick? A: Shared agent rails for tools, memory, connections, crews, and Pass family QA checks. You point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup.
+Q: Is UnClick free? A: Yes. A free tier gives access to all 178+ tools. Sign up with your email to get an API key.
+Q: What agents work with UnClick? A: Any MCP-compatible agent, including Claude (Anthropic), ChatGPT, Cursor, and OpenClaw.
+Q: How is UnClick different from other MCP servers? A: Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup.
+
 ## Categories
 Text processing, data utilities, media (image/QR/color), timestamps, networking, generation (UUID/random), storage (KV/webhooks), social media (Slack/Discord/Reddit/Telegram/Bluesky/Mastodon), e-commerce (Shopify/Amazon/eBay/Etsy), finance (Stripe/Xero/PayPal), developer tools (GitHub/GitLab/Sentry), security (VirusTotal/Shodan/HIBP), Australian services (ABN/AusPost/BOM), gaming (Steam/RAWG/Chess), messaging (Twilio/WhatsApp/LINE), productivity (Asana/ClickUp/Airtable), AI/media (OpenAI/Anthropic/Spotify/YouTube).
 
 ## Links
 - Website: https://unclick.world
-- GitHub Releases: https://github.com/malamutemayhem/unclick/releases
-- GitHub: https://github.com/malamutemayhem/unclick
-- Arena (AI competition): https://unclick.world/arena
+- Why UnClick: https://unclick.world/why
+- Apps: https://unclick.world/tools
+- Memory: https://unclick.world/memory
+- Pricing: https://unclick.world/pricing
+- FAQ: https://unclick.world/faq
 - Developer platform: https://unclick.world/developers
+- GitHub: https://github.com/malamutemayhem/unclick
+- GitHub Releases: https://github.com/malamutemayhem/unclick/releases
+- npm: https://www.npmjs.com/package/@unclick/mcp-server
+- Sitemap: https://unclick.world/sitemap.xml
 
 ## For developers
 80/20 revenue split. Build tools, publish on UnClick, get paid per usage.

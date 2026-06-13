@@ -21,6 +21,7 @@ interface ImapArgs {
   imap_pass: string;
   imap_port?: number;
   imap_tls?: boolean;
+  imap_reject_unauthorized?: boolean;
 }
 
 interface EmailMessage {
@@ -72,8 +73,11 @@ function getImapArgs(args: Record<string, unknown>): ImapArgs | NotConnectedResu
   const imap_pass = String(args.imap_pass ?? process.env.IMAP_PASS ?? "").trim();
   const imap_port = Number(args.imap_port ?? process.env.IMAP_PORT ?? 993);
   const imap_tls  = args.imap_tls !== false; // default true
+  const imap_reject_unauthorized = args.imap_reject_unauthorized !== undefined
+    ? args.imap_reject_unauthorized !== false
+    : (process.env.IMAP_REJECT_UNAUTHORIZED ?? "true").toLowerCase() !== "false";
   if (!imap_host || !imap_user || !imap_pass) return emailNotConnected("IMAP");
-  return { imap_host, imap_user, imap_pass, imap_port, imap_tls };
+  return { imap_host, imap_user, imap_pass, imap_port, imap_tls, imap_reject_unauthorized };
 }
 
 function makeImap(cfg: ImapArgs): Imap {
@@ -83,7 +87,7 @@ function makeImap(cfg: ImapArgs): Imap {
     host:     cfg.imap_host,
     port:     cfg.imap_port ?? 993,
     tls:      cfg.imap_tls ?? true,
-    tlsOptions: { rejectUnauthorized: false },
+    tlsOptions: { rejectUnauthorized: cfg.imap_reject_unauthorized ?? true },
     authTimeout: 10000,
     connTimeout: 15000,
   });

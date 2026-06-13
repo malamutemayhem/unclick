@@ -1,7 +1,7 @@
 // Regression guard for the PR #1047 prod ESM crash class.
 //
-// In May 2026 a one-character omission — a relative import without the `.js`
-// extension in api/lib/fishbowl-todo-open-stale-release.ts — crashed the
+// In May 2026 a one-character omission (a relative import without the `.js`
+// extension in api/lib/fishbowl-todo-open-stale-release.ts) crashed the
 // Vercel function on every 15-minute cron tick with ERR_MODULE_NOT_FOUND.
 // vitest is lenient on extensionless relative imports, so local tests passed;
 // Vercel's nodenext ESM loader is strict, so prod broke. The api/ workspace
@@ -10,7 +10,7 @@
 // This guard fails CI if any TypeScript or JavaScript source file under
 // api/lib/ contains a relative import (static or dynamic, value or type-only,
 // import or re-export) whose specifier does not carry an explicit recognised
-// extension. Test files (`*.test.ts`) are excluded — they run under vitest,
+// extension. Test files (`*.test.ts`) are excluded because they run under vitest,
 // not Vercel.
 //
 // If a future fix legitimately needs a non-`.js` extension (e.g. `.json`,
@@ -35,7 +35,7 @@ const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".mjs",
 // target for `.ts` source under nodenext. Add new ones here with a note.
 const ALLOWED_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".json"]);
 
-// Test/spec files are not loaded by Vercel — they run under vitest in CI.
+// Test/spec files are not loaded by Vercel; they run under vitest in CI.
 function isTestFile(relativePath) {
   return /\.test\.[mc]?[jt]sx?$/i.test(relativePath);
 }

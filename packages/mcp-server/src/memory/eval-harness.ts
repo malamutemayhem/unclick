@@ -132,13 +132,20 @@ async function runLatestValue(backend: EvalBackend): Promise<MemoryEvalScenarioR
 }
 
 async function runScopeBleed(backend: EvalBackend): Promise<MemoryEvalScenarioResult> {
+  // Real lane-4 scope contract: the red marker is another agent's private
+  // fact (visibility + source_agent_id), not just a category label. With
+  // MEMORY_SCOPES_ENABLED on and no matching reader identity it must
+  // default-deny, while the user-global blue marker stays recallable.
   await addFact(backend, {
     fact: "Boardroom private scope marker lane-ten-red must stay isolated.",
     category: "private",
+    visibility: "private",
+    source_agent_id: "lane-ten-other-agent",
   });
   await addFact(backend, {
     fact: "Shared scope marker lane-ten-blue can be recalled.",
     category: "shared",
+    visibility: "user-global",
   });
   const rows = normalizeRows(await backend.searchMemory("scope marker lane-ten", 5));
   const leaked = rows.filter((row) => row.content.includes("lane-ten-red")).length;

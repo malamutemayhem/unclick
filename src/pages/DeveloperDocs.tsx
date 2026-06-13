@@ -7,7 +7,6 @@ type Section =
   | "quick-start"
   | "tool-template"
   | "submission-guide"
-  | "revenue"
   | "standards"
   | "rejection-reasons"
   | "faq";
@@ -16,7 +15,6 @@ const NAV_ITEMS: { id: Section; label: string }[] = [
   { id: "quick-start", label: "Quick Start" },
   { id: "tool-template", label: "Tool Template" },
   { id: "submission-guide", label: "Submission Guide" },
-  { id: "revenue", label: "Revenue & Payments" },
   { id: "standards", label: "Tool Standards" },
   { id: "rejection-reasons", label: "Rejection Reasons" },
   { id: "faq", label: "FAQ" },
@@ -324,61 +322,6 @@ function SubmissionGuideSection() {
   );
 }
 
-function RevenueSection() {
-  return (
-    <div className="space-y-4">
-      <SectionCard>
-        <H2>Revenue &amp; Payments</H2>
-        <P>
-          You earn 80% of every call your tool receives. UnClick keeps 20% to cover infrastructure,
-          support, and platform costs.
-        </P>
-      </SectionCard>
-
-      <SectionCard>
-        <h3 className="text-sm font-semibold text-heading">How the split works</h3>
-        <div className="space-y-3">
-          {[
-            { label: "Rate per call", value: "$0.001" },
-            { label: "Your share", value: "80%" },
-            { label: "Your earnings per call", value: "$0.0008" },
-            { label: "At 50,000 calls/month", value: "$40.00" },
-            { label: "At 100,000 calls/month", value: "$80.00" },
-            { label: "At 500,000 calls/month", value: "$400.00" },
-            { label: "At 1,000,000 calls/month", value: "$800.00" },
-          ].map((row) => (
-            <div
-              key={row.label}
-              className="flex items-center justify-between border-t border-border/30 pt-3 first:border-0 first:pt-0"
-            >
-              <span className="text-sm text-body">{row.label}</span>
-              <span className="font-mono text-sm font-medium text-heading">{row.value}</span>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard>
-        <h3 className="text-sm font-semibold text-heading">Payout schedule</h3>
-        <BulletList items={[
-          "Payouts run on the 1st of each month for the previous month's earnings.",
-          "No Stripe account required to start building or earning.",
-          "Connect Stripe when you want to withdraw. You can let earnings accumulate first.",
-          "Payouts are made via Stripe. You set up your payout method in your developer profile.",
-        ]} />
-      </SectionCard>
-
-      <SectionCard>
-        <h3 className="text-sm font-semibold text-heading">Earnings dashboard</h3>
-        <P>
-          Your developer dashboard shows real-time call counts, revenue by tool, and payout history.
-          Available after your first tool goes live.
-        </P>
-      </SectionCard>
-    </div>
-  );
-}
-
 function StandardsSection() {
   return (
     <div className="space-y-4">
@@ -511,7 +454,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I submit multiple tools?",
-    a: "Yes, as many as you like. Each tool earns independently.",
+    a: "Yes, as many as you like. Each tool is reviewed independently.",
   },
   {
     q: "Can I update a tool after it's live?",
@@ -569,7 +512,6 @@ const SECTION_CONTENT: Record<Section, React.ReactNode> = {
   "quick-start": <QuickStartSection />,
   "tool-template": <ToolTemplateSection />,
   "submission-guide": <SubmissionGuideSection />,
-  revenue: <RevenueSection />,
   standards: <StandardsSection />,
   "rejection-reasons": <RejectionReasonsSection />,
   faq: <FAQSection />,
@@ -590,7 +532,7 @@ export default function DeveloperDocsPage() {
             Build tools for UnClick
           </h1>
           <p className="mt-1 text-sm text-body">
-            Everything you need to write, submit, and earn from your tools.
+            Everything you need to write, submit, and ship your tools.
           </p>
         </div>
 

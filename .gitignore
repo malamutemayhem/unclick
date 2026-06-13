@@ -25,3 +25,7 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Operator session artifacts (private, never ship)
+.auto-memory/
+conversation-recap.txt

@@ -5,7 +5,7 @@
 // and descriptions, so "weather" finds Open-Meteo even by capability.
 
 import { useMemo, useState } from "react";
-import type { AppEntry } from "@/lib/appCatalog";
+import type { AppEntry, AppNetwork } from "@/lib/appCatalog";
 import { appMatchesSearch } from "@/lib/appSearch";
 
 export type AppSortKey = "name" | "category" | "toolCount" | "level";
@@ -14,6 +14,7 @@ export type SortDir = "asc" | "desc";
 export function useAppFilter(apps: AppEntry[]) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [network, setNetwork] = useState<AppNetwork | null>(null);
   const [sortKey, setSortKey] = useState<AppSortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -21,6 +22,7 @@ export function useAppFilter(apps: AppEntry[]) {
     let rows = apps;
 
     if (category) rows = rows.filter((a) => a.category === category);
+    if (network) rows = rows.filter((a) => a.network === network);
 
     rows = rows.filter((app) => appMatchesSearch(app, query));
 
@@ -33,7 +35,7 @@ export function useAppFilter(apps: AppEntry[]) {
       else if (sortKey === "level") cmp = (a.level ?? 0) - (b.level ?? 0);
       return cmp * dir;
     });
-  }, [apps, query, category, sortKey, sortDir]);
+  }, [apps, query, category, network, sortKey, sortDir]);
 
   function toggleSort(key: AppSortKey) {
     if (sortKey === key) {
@@ -50,6 +52,8 @@ export function useAppFilter(apps: AppEntry[]) {
     setQuery,
     category,
     setCategory,
+    network,
+    setNetwork,
     sortKey,
     sortDir,
     toggleSort,

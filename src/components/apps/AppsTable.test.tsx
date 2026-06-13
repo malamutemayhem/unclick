@@ -5,9 +5,9 @@ import { AppsTable } from "./AppsTable";
 import type { AppEntry } from "@/lib/appCatalog";
 
 const APPS: AppEntry[] = [
-  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
-  { slug: "jobsmith", name: "Jobsmith", category: "Productivity", blurb: "Create source-backed job applications.", domain: null, toolCount: 2, tools: [{ name: "jobsmith_check", description: "Check application quality." }], level: 5, hardened: true },
-  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
+  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, network: "online", toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
+  { slug: "jobsmith", name: "Jobsmith", category: "Productivity", blurb: "Create source-backed job applications.", domain: null, network: "offline", toolCount: 2, tools: [{ name: "jobsmith_check", description: "Check application quality." }], level: 5, hardened: true },
+  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, network: "online", toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
 ];
 
 function renderTable(ui: React.ReactElement) {
@@ -44,6 +44,59 @@ describe("AppsTable", () => {
     fireEvent.change(search, { target: { value: "jo smi" } });
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
     expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+  });
+
+  it("filters by internet need via the compact Internet dropdown", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+
+    const internet = screen.getByRole("combobox", { name: "Filter by internet use" });
+    fireEvent.change(internet, { target: { value: "offline" } });
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+
+    fireEvent.change(internet, { target: { value: "online" } });
+    expect(screen.queryByText("Jobsmith")).not.toBeInTheDocument();
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+  });
+
+  it("filters by category via the compact Category dropdown", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    const category = screen.getByRole("combobox", { name: "Filter by category" });
+    fireEvent.change(category, { target: { value: "Productivity" } });
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+
+    fireEvent.change(category, { target: { value: "" } });
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+  });
+
+  it("shows the full blurb and the internet badge when a row is expanded", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    const row = screen.getByText("Jobsmith").closest("[role='button']");
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+    // The blurb now appears twice: the truncated cell and the untruncated
+    // expansion (the fix for descriptions being cut off with no way to read them).
+    expect(screen.getAllByText(APPS[1].blurb).length).toBeGreaterThanOrEqual(2);
+    // "Works offline" shows as both the filter chip (button) and the badge (span).
+    expect(screen.getAllByText("Works offline").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Check application quality.")).toBeInTheDocument();
+  });
+
+  it("admin mode: the status pill becomes a button that fires onStatusClick", () => {
+    const onStatusClick = vi.fn();
+    renderTable(
+      <AppsTable
+        apps={[APPS[0]]}
+        mode="admin"
+        statusOf={() => ({ label: "Needs key", tone: "" })}
+        onStatusClick={onStatusClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Needs key" }));
+    expect(onStatusClick).toHaveBeenCalledWith(expect.objectContaining({ slug: "github" }));
   });
 
   it("admin mode shows checkboxes + bulk controls and fires toggle callbacks", () => {

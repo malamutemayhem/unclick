@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ArrowDown,
   ArrowDownUp,
@@ -18,15 +19,17 @@ import {
   X,
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import Comments from "./fishbowl/Comments";
+import { relativeTime } from "@/lib/relativeTime";
+import Comments from "./boardroom/Comments";
 import {
   buildJobGithubSyncSignal,
   type JobGithubSyncSignal,
   type JobProofState,
 } from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
+import { laneOfAssignee, humanAssigneeName, parseLaneFilter, matchesLane, type JobLaneFilter } from "./jobLanes";
 
-interface FishbowlProfile {
+interface BoardroomProfile {
   agent_id: string;
   emoji: string;
   display_name: string | null;
@@ -48,6 +51,7 @@ interface JobTodo {
   created_by_agent_id: string;
   assigned_to_agent_id: string | null;
   source_idea_id?: string | null;
+  due_at?: string | null;
   created_at: string;
   completed_at: string | null;
   updated_at: string;
@@ -85,7 +89,7 @@ type SortDirection = "asc" | "desc";
 type DisplayStatus = JobTodo["status"] | "needs_proof";
 
 const SECTION_LABELS: Record<JobSectionKey, string> = {
-  active: "Active + proof holds",
+  active: "Active and proof holds",
   next: "Next up",
   inline: "In line",
   done: "Completed",
@@ -146,7 +150,7 @@ const STATUS_STYLE: Record<DisplayStatus, string> = {
 };
 
 const ACTION_BUTTONS = {
-  stale: ["Push workers", "(talk to owning AI seat)", "Escalate"],
+  stale: ["Push workers", "Message the assigned worker", "Escalate"],
   unowned: ["Claim / assign", "Push workers", "Drop priority"],
 } as const;
 
@@ -188,7 +192,7 @@ function stripNoisyLead(value: string): string {
     .trim();
 }
 
-function simplifyJobTitle(title: string): string {
+export function simplifyJobTitle(title: string): string {
   const cleaned = stripNoisyLead(title)
     .replace(/\bgreen-but-idle\b/gi, "idle")
     .replace(/\bauto[- ]close\b/gi, "auto-close")
@@ -246,7 +250,7 @@ function simplifyJobContext(todo: JobTodo): string {
   return cleaned || simplifyJobTitle(todo.title);
 }
 
-function displayCopyFor(todo: JobTodo): JobDisplayCopy {
+export function displayCopyFor(todo: JobTodo): JobDisplayCopy {
   return {
     title: simplifyJobTitle(todo.title),
     summary: simplifyJobSummary(todo),
@@ -254,25 +258,11 @@ function displayCopyFor(todo: JobTodo): JobDisplayCopy {
   };
 }
 
-function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return "never";
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  if (!Number.isFinite(then)) return "unknown";
-  const diffSec = Math.max(1, Math.floor((now - then) / 1000));
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 14) return `${diffDay}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 function ownerLabel(todo: JobTodo): string {
   const raw = todo.assigned_to_agent_id?.trim();
   if (!raw) return "Unassigned";
+  if (laneOfAssignee(raw) === "human") return `${humanAssigneeName(raw)} (human)`;
   const known: Record<string, string> = {
     master: "Coordinator",
     "chatgpt-codex-worker2": "Codex Worker 2",
@@ -292,10 +282,56 @@ function ownerLabel(todo: JobTodo): string {
     .replace(/\bAi\b/g, "AI");
 }
 
-function statusLabel(status: DisplayStatus): string {
+export function statusLabel(status: DisplayStatus): string {
   if (status === "needs_proof") return "needs proof";
   if (status === "in_progress") return "active";
   return status.replace("_", " ");
+}
+
+/** Whole-day difference between the due date and today, in local time. */
+function dueDayDiff(dueAt: string, now = new Date()): number | null {
+  const due = new Date(dueAt);
+  if (Number.isNaN(due.getTime())) return null;
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((startOfDay(due) - startOfDay(now)) / 86_400_000);
+}
+
+/**
+ * Plain-English due chip for a job row. Red is reserved for overdue (genuine
+ * urgency), amber for due today, neutral for everything later. Finished and
+ * dropped jobs show no chip: their due date no longer needs attention.
+ */
+export function dueBadge(
+  todo: JobTodo,
+  now = new Date(),
+): { label: string; className: string } | null {
+  if (!todo.due_at) return null;
+  const displayStatus = displayStatusFor(todo);
+  if (displayStatus === "done" || displayStatus === "dropped") return null;
+  const diff = dueDayDiff(todo.due_at, now);
+  if (diff == null) return null;
+  if (diff < 0) return { label: "overdue", className: "border-red-300/30 bg-red-500/10 text-red-200" };
+  if (diff === 0) return { label: "due today", className: "border-[#E2B93B]/35 bg-[#E2B93B]/12 text-[#E8C766]" };
+  if (diff === 1) return { label: "due tomorrow", className: "border-white/12 bg-white/[0.04] text-white/55" };
+  const label = `due ${new Date(todo.due_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+  return { label, className: "border-white/[0.08] bg-white/[0.03] text-white/45" };
+}
+
+/** "2026-06-15T13:59:59.999Z" -> "2026-06-15" in local time, for date inputs. */
+function isoToDateInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** "2026-06-15" from a date input -> local end-of-day ISO, so the job stays due all day. */
+function dateInputToIso(value: string): string | null {
+  if (!value) return null;
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
 }
 
 function syncSignalFor(todo: JobTodo): JobGithubSyncSignal {
@@ -316,7 +352,9 @@ function backendDisplayStatusFor(todo: JobTodo): DisplayStatus | null {
 function needsProofAfterDone(todo: JobTodo): boolean {
   const backendStatus = backendDisplayStatusFor(todo);
   if (backendStatus) return backendStatus === "needs_proof";
-  return todo.status === "done" && syncSignalFor(todo).tone === "alert";
+  // Only proof-related alerts hold a done job; an unrelated alert such as a
+  // failed deploy must not silently move it back into the active section.
+  return todo.status === "done" && syncSignalFor(todo).proofHold === true;
 }
 
 function displayStatusFor(todo: JobTodo): DisplayStatus {
@@ -341,6 +379,11 @@ function progressFor(todo: JobTodo): number {
   return defaultProgressForStatus(todo);
 }
 
+/** True when the shown percentage is a status-based estimate, not recorded pipeline progress. */
+function progressIsEstimated(todo: JobTodo): boolean {
+  return hasReopenedCompletionState(todo) || !Number.isFinite(todo.pipeline_progress);
+}
+
 function activeStageCount(todo: JobTodo): number {
   if (hasReopenedCompletionState(todo)) {
     return displayStatusFor(todo) === "in_progress" ? 2 : 1;
@@ -358,12 +401,13 @@ function activeStageCount(todo: JobTodo): number {
 function StageStrip({ todo }: { todo: JobTodo }) {
   const active = activeStageCount(todo);
   const progress = progressFor(todo);
+  const estimated = progressIsEstimated(todo);
   const source = todo.pipeline_source ?? "estimated from todo status";
   const displayStatus = displayStatusFor(todo);
   return (
     <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress" title={source}>
-      <span className="w-7 shrink-0 text-right text-[10px] font-semibold text-white/55">
-        {progress}%
+      <span className="w-9 shrink-0 text-right text-[10px] font-semibold text-white/55">
+        {estimated ? `~${progress}%` : `${progress}%`}
       </span>
       <div className="grid flex-1 grid-cols-5 gap-px overflow-hidden rounded-[3px]">
         {STAGES.map((stage, index) => (
@@ -429,6 +473,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
 function ownerEmoji(todo: JobTodo): string | null {
   const raw = todo.assigned_to_agent_id?.trim();
   if (!raw) return null;
+  if (laneOfAssignee(raw) === "human") return "👤";
   const known: Record<string, string> = {
     master: "🧭",
     "chatgpt-codex-worker2": "🛠️",
@@ -490,7 +535,7 @@ function jobSearchText(todo: JobTodo): string {
     .join(" ");
 }
 
-function matchesJobSearch(todo: JobTodo, query: string): boolean {
+export function matchesJobSearch(todo: JobTodo, query: string): boolean {
   const normalizedQuery = normalizeSearch(query);
   if (!normalizedQuery) return true;
 
@@ -690,6 +735,7 @@ function JobRow({
   onDragEnd,
   onDrop,
   searchQuery,
+  onDueChange,
 }: {
   todo: JobTodo;
   queueRank: number;
@@ -702,11 +748,32 @@ function JobRow({
   onDragEnd: () => void;
   onDrop: (id: string) => void;
   searchQuery: string;
+  onDueChange: (id: string, dueAt: string | null) => void;
 }) {
   const attention = needsAttention(todo);
   const description = todo.description?.trim();
   const [showDetails, setShowDetails] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [dueSaving, setDueSaving] = useState(false);
+
+  // Setting a due date is a normal update on the todo substrate; the admin
+  // profile (human-*) carries attribution like any other write.
+  const saveDue = async (nextIso: string | null) => {
+    if (!humanAgentId || dueSaving) return;
+    setDueSaving(true);
+    try {
+      const res = await fetch("/api/memory-admin?action=fishbowl_update_todo", {
+        method: "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: humanAgentId, todo_id: todo.id, due_at: nextIso ?? "" }),
+      });
+      if (res.ok) onDueChange(todo.id, nextIso);
+    } catch {
+      // Leave the previous value in place; the next poll re-syncs the row.
+    } finally {
+      setDueSaving(false);
+    }
+  };
   const rawOwner = todo.assigned_to_agent_id?.trim() || "unassigned";
   const alert = attention ? attentionCopy(todo) : null;
   const emoji = ownerEmoji(todo);
@@ -783,8 +850,20 @@ function JobRow({
           >
             {highlightSearchText(displayCopy.title, searchQuery)}
           </p>
-          <p className="truncate text-[10px] leading-4 text-white/35">
-            {highlightSearchText(displayCopy.summary, searchQuery)}
+          <p className="flex items-center gap-1 text-[10px] leading-4 text-white/35">
+            {(() => {
+              const due = dueBadge(todo);
+              return due ? (
+                <span
+                  className={`shrink-0 rounded-[4px] border px-[3px] py-px text-[9px] font-semibold uppercase ${due.className}`}
+                  title={todo.due_at ? new Date(todo.due_at).toLocaleString() : undefined}
+                  data-testid="job-due-badge"
+                >
+                  {due.label}
+                </span>
+              ) : null;
+            })()}
+            <span className="min-w-0 truncate">{highlightSearchText(displayCopy.summary, searchQuery)}</span>
           </p>
         </div>
 
@@ -843,10 +922,40 @@ function JobRow({
 
       {expanded && (
         <div className="mx-3 mb-2 space-y-2 rounded-md border border-white/[0.06] bg-white/[0.03] p-2.5">
-          <div className="grid gap-3 text-xs text-white/50 sm:grid-cols-5">
+          <div className="grid gap-3 text-xs text-white/50 sm:grid-cols-6">
             <div>
               <span className="block text-[10px] uppercase tracking-wide text-white/30">Created</span>
               <span>{relativeTime(todo.created_at)}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] uppercase tracking-wide text-white/30">Due</span>
+              {humanAgentId ? (
+                <span className="mt-0.5 flex items-center gap-1">
+                  <input
+                    type="date"
+                    value={isoToDateInput(todo.due_at)}
+                    disabled={dueSaving}
+                    onChange={(event) => void saveDue(dateInputToIso(event.target.value))}
+                    className="rounded-[4px] border border-white/[0.08] bg-white/[0.03] px-1 py-0.5 text-[11px] text-white/60 outline-none [color-scheme:dark] focus:border-[#61C1C4]/35 disabled:opacity-50"
+                    aria-label="Due date"
+                    data-testid="job-due-input"
+                  />
+                  {todo.due_at && (
+                    <button
+                      type="button"
+                      disabled={dueSaving}
+                      onClick={() => void saveDue(null)}
+                      className="rounded-[4px] p-0.5 text-white/35 hover:bg-white/[0.06] hover:text-white/65 disabled:opacity-50"
+                      aria-label="Clear due date"
+                      title="Clear due date"
+                    >
+                      <X className="h-3 w-3" aria-hidden="true" />
+                    </button>
+                  )}
+                </span>
+              ) : (
+                <span>{todo.due_at ? new Date(todo.due_at).toLocaleDateString() : "None"}</span>
+              )}
             </div>
             <div>
               <span className="block text-[10px] uppercase tracking-wide text-white/30">Worker</span>
@@ -929,7 +1038,7 @@ function JobRow({
               </div>
             ) : (
               <p className="mt-2 text-xs text-white/35">
-                Worker receipts stay folded here so the page remains scannable.
+                Comments and receipts from workers are hidden until you open them.
               </p>
             )}
           </div>
@@ -958,6 +1067,7 @@ function JobSection({
   showMoreLoading,
   loading,
   searchQuery,
+  onDueChange,
 }: {
   sectionKey: JobSectionKey;
   jobs: JobTodo[];
@@ -967,6 +1077,7 @@ function JobSection({
   humanAgentId: string | null;
   pollSeq: number;
   onMoveJob: (sectionKey: JobSectionKey, sourceId: string, targetId: string) => void;
+  onDueChange: (id: string, dueAt: string | null) => void;
   sectionExpanded?: boolean;
   visibleCount?: number;
   totalCount?: number;
@@ -982,19 +1093,18 @@ function JobSection({
   const [sortKey, setSortKey] = useState<SortKey>("queue");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const open = sectionExpanded !== false;
-  const cappedJobs = jobs;
   const rankById = useMemo(
-    () => new Map(cappedJobs.map((job, index) => [job.id, index + 1])),
-    [cappedJobs],
+    () => new Map(jobs.map((job, index) => [job.id, index + 1])),
+    [jobs],
   );
   const sortedJobs = useMemo(
-    () => [...cappedJobs].sort((a, b) => compareSortedJobs(a, b, sortKey, sortDirection, rankById)),
-    [cappedJobs, rankById, sortDirection, sortKey],
+    () => [...jobs].sort((a, b) => compareSortedJobs(a, b, sortKey, sortDirection, rankById)),
+    [jobs, rankById, sortDirection, sortKey],
   );
-  const displayCount = Math.min(visibleCount ?? SECTION_PAGE_SIZE, cappedJobs.length);
+  const displayCount = Math.min(visibleCount ?? SECTION_PAGE_SIZE, jobs.length);
   const visibleJobs = sortedJobs.slice(0, displayCount);
-  const sectionTotal = Math.max(totalCount ?? cappedJobs.length, cappedJobs.length);
-  const canShowMore = displayCount < cappedJobs.length || hasMoreRemote === true;
+  const sectionTotal = Math.max(totalCount ?? jobs.length, jobs.length);
+  const canShowMore = displayCount < jobs.length || hasMoreRemote === true;
   const showLoading = loading === true && jobs.length === 0;
   const sectionAccent: Record<JobSectionKey, string> = {
     active: "bg-[#E2B93B]",
@@ -1084,6 +1194,7 @@ function JobSection({
                 setDraggedId(null);
               }}
               searchQuery={searchQuery}
+              onDueChange={onDueChange}
             />
           ))}
           {canShowMore && (
@@ -1224,7 +1335,34 @@ export default function AdminJobs() {
   const [manualOrder, setManualOrder] = useState<ManualOrder>(() => loadManualOrder());
   const [sectionPrefs, setSectionPrefs] = useState<SectionPreferences>(() => loadSectionPreferences());
   const [searchQuery, setSearchQuery] = useState("");
+  const [quickTitle, setQuickTitle] = useState("");
+  const [quickDue, setQuickDue] = useState("");
+  const [quickAddBusy, setQuickAddBusy] = useState(false);
+  const [quickAddError, setQuickAddError] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const laneFilter = parseLaneFilter(searchParams.get("lane"));
+  const setLaneFilter = useCallback(
+    (lane: JobLaneFilter) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (lane === "all") next.delete("lane");
+          else next.set("lane", lane);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
   const jobsReadAgentId = humanAgentId ?? (token ? ADMIN_JOBS_READ_AGENT_ID : null);
+
+  // Optimistic due-date sync so an edited row reflects the change immediately;
+  // the next poll confirms it from the server.
+  const handleDueChange = useCallback((id: string, dueAt: string | null) => {
+    setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, due_at: dueAt } : todo)));
+    setCompletedHistory((prev) => prev.map((todo) => (todo.id === id ? { ...todo, due_at: dueAt } : todo)));
+  }, []);
 
   useEffect(() => {
     if (!token) {
@@ -1244,7 +1382,7 @@ export default function AdminJobs() {
           body: JSON.stringify({}),
         });
         const body = (await res.json().catch(() => ({}))) as {
-          profile?: FishbowlProfile;
+          profile?: BoardroomProfile;
           error?: string;
         };
         if (!cancelled && res.ok && body.profile) {
@@ -1326,9 +1464,11 @@ export default function AdminJobs() {
       const byId = new Map<string, JobTodo>();
       for (const todo of todos) byId.set(todo.id, todo);
       for (const todo of completedHistory) byId.set(todo.id, todo);
-      return Array.from(byId.values()).filter((todo) => matchesJobSearch(todo, searchQuery));
+      return Array.from(byId.values()).filter(
+        (todo) => matchesLane(todo.assigned_to_agent_id, laneFilter) && matchesJobSearch(todo, searchQuery),
+      );
     },
-    [completedHistory, searchQuery, todos],
+    [completedHistory, laneFilter, searchQuery, todos],
   );
   const grouped = useMemo(() => groupJobs(filteredTodos), [filteredTodos]);
   const orderedGrouped = useMemo(
@@ -1556,7 +1696,96 @@ export default function AdminJobs() {
         </div>
       )}
 
+      {humanAgentId && (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const title = quickTitle.trim();
+            if (!title || quickAddBusy) return;
+            setQuickAddBusy(true);
+            setQuickAddError(null);
+            void (async () => {
+              try {
+                const res = await fetch("/api/memory-admin?action=fishbowl_create_todo", {
+                  method: "POST",
+                  headers: { ...authHeader, "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    agent_id: humanAgentId,
+                    title,
+                    // Adding from the Human lane files the job to yourself;
+                    // anywhere else it lands unassigned for the agent queue.
+                    ...(laneFilter === "human" ? { assigned_to_agent_id: humanAgentId } : {}),
+                    ...(quickDue ? { due_at: dateInputToIso(quickDue) } : {}),
+                  }),
+                });
+                const body = (await res.json().catch(() => ({}))) as { todo?: JobTodo; error?: string };
+                if (!res.ok) throw new Error(body.error ?? "Could not add the job");
+                if (body.todo) setTodos((prev) => [body.todo as JobTodo, ...prev]);
+                setQuickTitle("");
+                setQuickDue("");
+              } catch (e) {
+                setQuickAddError(e instanceof Error ? e.message : "Could not add the job");
+              } finally {
+                setQuickAddBusy(false);
+              }
+            })();
+          }}
+          className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={quickTitle}
+              onChange={(event) => setQuickTitle(event.target.value)}
+              placeholder={laneFilter === "human" ? "Add a job for you, press Enter" : "Add a job, press Enter"}
+              maxLength={200}
+              className="min-w-0 flex-1 rounded-md border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
+              aria-label="New job title"
+              data-testid="job-quick-add-input"
+            />
+            <input
+              type="date"
+              value={quickDue}
+              onChange={(event) => setQuickDue(event.target.value)}
+              className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-2 text-sm text-white/60 outline-none [color-scheme:dark] focus:border-[#61C1C4]/35"
+              aria-label="Due date (optional)"
+              title="Due date (optional)"
+            />
+            <button
+              type="submit"
+              disabled={!quickTitle.trim() || quickAddBusy}
+              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-4 py-2 text-sm font-medium text-[#8EE8EB] transition-colors hover:bg-[#61C1C4]/20 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {quickAddBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+            </button>
+          </div>
+          {quickAddError && <p className="mt-2 text-xs text-red-300">{quickAddError}</p>}
+        </form>
+      )}
+
       <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        <div className="mb-2 flex items-center gap-1.5" role="tablist" aria-label="Job lane">
+          {([
+            ["all", "All"],
+            ["agent", "Jobs (AI)"],
+            ["human", "Jobs (Human)"],
+          ] as const).map(([lane, label]) => (
+            <button
+              key={lane}
+              type="button"
+              role="tab"
+              aria-selected={laneFilter === lane}
+              onClick={() => setLaneFilter(lane)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                laneFilter === lane
+                  ? "bg-[#61C1C4]/15 text-[#9FE0E2]"
+                  : "text-white/40 hover:bg-white/[0.05] hover:text-white/70"
+              }`}
+            >
+              {lane === "human" ? `👤 ${label}` : label}
+            </button>
+          ))}
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-white/30" />
           <input
@@ -1583,7 +1812,7 @@ export default function AdminJobs() {
         <span className="inline-flex items-center gap-1.5">
           {initialLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#61C1C4]" />}
           {firstLoadDone
-            ? searchQuery.trim()
+            ? searchQuery.trim() || laneFilter !== "all"
               ? `${filteredTodos.length} of ${visibleJobCount} jobs match`
               : `${visibleJobCount} visible jobs`
             : "Loading jobs"}
@@ -1604,6 +1833,7 @@ export default function AdminJobs() {
           humanAgentId={humanAgentId}
           pollSeq={pollSeq}
           onMoveJob={moveJob}
+          onDueChange={handleDueChange}
           sectionExpanded={sectionPrefs.expanded.active}
           visibleCount={sectionPrefs.visible.active}
           onToggleSection={() => toggleSection("active")}
@@ -1620,6 +1850,7 @@ export default function AdminJobs() {
           humanAgentId={humanAgentId}
           pollSeq={pollSeq}
           onMoveJob={moveJob}
+          onDueChange={handleDueChange}
           sectionExpanded={sectionPrefs.expanded.next}
           visibleCount={sectionPrefs.visible.next}
           onToggleSection={() => toggleSection("next")}
@@ -1636,6 +1867,7 @@ export default function AdminJobs() {
           humanAgentId={humanAgentId}
           pollSeq={pollSeq}
           onMoveJob={moveJob}
+          onDueChange={handleDueChange}
           sectionExpanded={sectionPrefs.expanded.inline}
           visibleCount={sectionPrefs.visible.inline}
           onToggleSection={() => toggleSection("inline")}
@@ -1652,6 +1884,7 @@ export default function AdminJobs() {
           humanAgentId={humanAgentId}
           pollSeq={pollSeq}
           onMoveJob={moveJob}
+          onDueChange={handleDueChange}
           sectionExpanded={sectionPrefs.expanded.done}
           visibleCount={sectionPrefs.visible.done}
           totalCount={completedSectionTotal}

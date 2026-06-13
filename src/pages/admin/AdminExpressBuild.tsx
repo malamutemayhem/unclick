@@ -65,7 +65,7 @@ function makeMarkdownBrief(input: ExpressRoomDraftInput): string {
   return [
     `# ${input.job_name_mirror.trim() || "Manual DraftRoom draft"}`,
     "",
-    "## What Chris told the chat agent",
+    "## What you told the chat agent",
     input.brief_markdown.trim() || "- Not captured yet.",
     "",
     "## Short description",

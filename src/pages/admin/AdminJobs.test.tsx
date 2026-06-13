@@ -1,7 +1,18 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
+
+// AdminJobs reads the job lane from the URL (?lane=human|agent), so renders need a Router.
+const render = (ui: React.ReactElement) => rtlRender(React.createElement(MemoryRouter, null, ui));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminJobs, { JOBS_REFRESH_INTERVAL_MS } from "./AdminJobs";
+import AdminJobs, {
+  JOBS_REFRESH_INTERVAL_MS,
+  displayCopyFor,
+  dueBadge,
+  matchesJobSearch,
+  simplifyJobTitle,
+  statusLabel,
+} from "./AdminJobs";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({
@@ -211,7 +222,7 @@ describe("AdminJobs", () => {
     expect(await screen.findByText("Reopened truth job")).toBeInTheDocument();
     expect(screen.getByText("open")).toBeInTheDocument();
     expect(screen.getByText("live")).toBeInTheDocument();
-    expect(screen.getByText("10%")).toBeInTheDocument();
+    expect(screen.getByText("~10%")).toBeInTheDocument();
     expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
 
     const nextSection = screen.getByRole("button", { name: /Next up/i }).closest("section");
@@ -323,5 +334,70 @@ describe("AdminJobs", () => {
     expect(await screen.findByText("Completed second page job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).getByText("32/383")).toBeInTheDocument();
     expect(completedOffsets).toEqual([0, 100]);
+  });
+});
+
+describe("AdminJobs copy and search helpers (characterization)", () => {
+  const baseTodo = {
+    id: "todo-1",
+    title: "fix: unclick mcp wiring breaks ai seat routing",
+    description: "Scope: repair the seat router.\nProof: PR #1290 merged.",
+    status: "in_progress",
+    priority: "high",
+    created_by_agent_id: "claude-code-builder",
+    assigned_to_agent_id: "claude-code-builder",
+    created_at: "2026-06-10T00:00:00Z",
+    updated_at: "2026-06-10T01:00:00Z",
+  } as Parameters<typeof displayCopyFor>[0];
+
+  it("simplifyJobTitle uppercases product names and rewrites dependency bumps", () => {
+    expect(simplifyJobTitle("bump vitest from 4.1.7 to 4.1.8")).toBe("Update vitest to 4.1.8");
+    expect(simplifyJobTitle("unclick mcp wiring for ai seats")).toContain("UnClick MCP");
+    expect(simplifyJobTitle("unclick mcp wiring for ai seats")).toContain("AI");
+  });
+
+  it("displayCopyFor always produces non-empty plain-English title, summary, and context", () => {
+    const copy = displayCopyFor(baseTodo);
+    expect(copy.title.length).toBeGreaterThan(0);
+    expect(copy.summary.length).toBeGreaterThan(0);
+    expect(copy.context.length).toBeGreaterThan(0);
+    expect(copy.title).toContain("UnClick");
+  });
+
+  it("matchesJobSearch finds tokens, prefixes, compact forms, and stays permissive on empty queries", () => {
+    expect(matchesJobSearch(baseTodo, "")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "seat routing")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "rout")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "claudecode")).toBe(true);
+    expect(matchesJobSearch(baseTodo, "zebra quantum")).toBe(false);
+  });
+
+  it("statusLabel speaks plain English for display states", () => {
+    expect(statusLabel("needs_proof")).toBe("needs proof");
+    expect(statusLabel("in_progress")).toBe("active");
+    expect(statusLabel("open")).toBe("open");
+  });
+
+  it("dueBadge speaks plain English: overdue, due today, due tomorrow", () => {
+    const now = new Date(2026, 5, 12, 9, 0, 0);
+    const withDue = (dueAt: string) => ({ ...baseTodo, due_at: dueAt }) as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(withDue(new Date(2026, 5, 11, 23, 59).toISOString()), now)?.label).toBe("overdue");
+    expect(dueBadge(withDue(new Date(2026, 5, 12, 23, 59).toISOString()), now)?.label).toBe("due today");
+    expect(dueBadge(withDue(new Date(2026, 5, 13, 23, 59).toISOString()), now)?.label).toBe("due tomorrow");
+    expect(dueBadge(withDue(new Date(2026, 5, 20, 23, 59).toISOString()), now)?.label).toMatch(/^due /);
+  });
+
+  it("dueBadge stays quiet when there is nothing to chase", () => {
+    expect(dueBadge(baseTodo)).toBeNull();
+    const doneTodo = {
+      ...baseTodo,
+      status: "done",
+      effective_status: "done",
+      completed_at: "2026-06-10T02:00:00Z",
+      due_at: "2026-06-01T00:00:00Z",
+    } as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(doneTodo)).toBeNull();
+    const badDate = { ...baseTodo, due_at: "not-a-date" } as Parameters<typeof dueBadge>[0];
+    expect(dueBadge(badDate)).toBeNull();
   });
 });

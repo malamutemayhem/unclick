@@ -25,7 +25,7 @@ describe("DraftRoom model", () => {
       countReadyExpressRoomFields({
         job_name_mirror: "Proof Ledger v2",
         short_description: "Build the evidence model.",
-        brief_markdown: "Chris asked for structured proof.",
+        brief_markdown: "User asked for structured proof.",
         supplied_code: "",
         supplied_code_status: "not_supplied",
       }),

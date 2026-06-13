@@ -284,7 +284,7 @@ export interface OrchestratorSceneBuilderPacket {
   risk_level: "low" | "medium" | "high";
   next_safe_action: string;
   stop_conditions: string[];
-  chris_needed: boolean;
+  owner_needed: boolean;
   source_receipts: OrchestratorSourceLink[];
   memory_lease_expires_at: string;
   copyroom_required: boolean;
@@ -454,7 +454,7 @@ const SECRET_PATTERNS: Array<[RegExp, string]> = [
   [/\b(authorization\s*:\s*bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password|passwd|private[_-]?key)\s*[:=]\s*["']?[^"'\s,;]+/gi, "$1=[redacted secret]"],
-  [/\b(sk-[a-z0-9_-]{8,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,})\b/gi, "[redacted secret]"],
+  [/\b(sk-[a-z0-9_-]{8,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,}|AKIA[0-9A-Z]{12,})\b/gi, "[redacted secret]"],
   [/\b(uc|agt)_[a-z0-9_-]{8,}\b/gi, "[redacted secret]"],
   [/\b(?:\d[ -]*?){13,19}\b/g, "[redacted billing data]"],
 ];
@@ -758,7 +758,7 @@ function buildSceneBuilderPacket({
       ? "Claim one scoped Boardroom job or post the exact missing proof/blocker; never mark DONE from status text alone."
       : proofState === "proof_required"
         ? "Continue the fresh active job only with named proof, tests, PR, deploy, screenshot, or blocker evidence."
-        : "Stay quiet unless new Boardroom work, proof drift, or a Chris decision appears.";
+        : "Stay quiet unless new Boardroom work, proof drift, or an operator decision appears.";
   const memoryLeaseExpiresAt = new Date(Date.parse(generatedAt) + ACTIVE_WINDOW_MS).toISOString();
 
   return {
@@ -773,7 +773,7 @@ function buildSceneBuilderPacket({
     risk_level: riskLevel,
     next_safe_action: nextSafeAction,
     stop_conditions: sceneBuilderStopConditions,
-    chris_needed: blockers.some((blocker) => /human|chris|operator|decision/i.test(blocker)),
+    owner_needed: blockers.some((blocker) => /human|operator|decision/i.test(blocker)),
     source_receipts: sourceReceipts,
     memory_lease_expires_at: memoryLeaseExpiresAt,
     copyroom_required: focusTodo != null,

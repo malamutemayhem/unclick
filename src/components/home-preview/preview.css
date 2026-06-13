@@ -1,0 +1,197 @@
+/* ============================================================
+   Home preview (design demo) scoped styles.
+
+   Everything here is namespaced hp- so it cannot leak into the
+   live site. The demo keeps the navy + teal investor-deck canvas
+   and pushes the grid motif further: a perspective floor in the
+   hero, blueprint crosshairs, a slow app ticker, and the run rail
+   that carries one ask down the page. All motion stops under
+   prefers-reduced-motion.
+   ============================================================ */
+
+/* Perspective floor grid: the hero "rails". A wide plane tilted
+   away from the viewer, teal hairlines, faded with a mask so it
+   reads as depth rather than decoration. The grid pattern lives on
+   a ::after layer panned with a transform: animating
+   background-position repaints the whole plane every frame, while
+   a transform loop runs on the compositor for free. */
+.hp-floor {
+  position: absolute;
+  left: 50%;
+  bottom: -12%;
+  width: 220%;
+  height: 72%;
+  overflow: hidden;
+  transform: translateX(-50%) perspective(620px) rotateX(64deg);
+  transform-origin: center top;
+  -webkit-mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
+          mask-image: radial-gradient(ellipse 58% 86% at 50% 0%, #000 18%, transparent 78%);
+  pointer-events: none;
+}
+
+.hp-floor::after {
+  content: "";
+  position: absolute;
+  inset: -56px 0 0 0;
+  background-image:
+    linear-gradient(to right, hsl(187 70% 70% / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(187 70% 70% / 0.13) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-floor::after {
+    animation: hp-floor-pan 26s linear infinite;
+    will-change: transform;
+  }
+  /* Lite mode (set by the journey engine on devices that cannot hold
+     full quality at full speed): the grid stands still. */
+  .hp-lite .hp-floor::after {
+    animation: none;
+  }
+}
+
+@keyframes hp-floor-pan {
+  from { transform: translateY(0); }
+  to   { transform: translateY(56px); }
+}
+
+/* Blinking cursor for the typed ask. */
+.hp-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: hsl(182 46% 57% / 0.9);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-caret {
+    animation: hp-blink 1.05s steps(1) infinite;
+  }
+}
+
+@keyframes hp-blink {
+  50% { opacity: 0; }
+}
+
+/* Soft pulse for live dots and the scroll cue. */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-live-dot {
+    animation: hp-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes hp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(182 46% 57% / 0.55); }
+  60%      { box-shadow: 0 0 0 7px hsl(182 46% 57% / 0); }
+}
+
+/* Scroll cue nudge. */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-cue {
+    animation: hp-nudge 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes hp-nudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+
+/* App ticker rows. Each row holds its list twice for a seamless
+   loop. Slow by design; pauses on hover and under reduced motion. */
+.hp-ticker {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.hp-ticker-row {
+  display: flex;
+  width: max-content;
+  gap: 2.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-ticker-row-a { animation: hp-scroll 56s linear infinite; }
+  .hp-ticker-row-b { animation: hp-scroll 72s linear infinite reverse; }
+  .hp-ticker-row-c { animation: hp-scroll 64s linear infinite; }
+  .hp-ticker:hover .hp-ticker-row { animation-play-state: paused; }
+}
+
+@keyframes hp-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* System map signal dots stand still under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .hp-map-dot {
+    display: none;
+  }
+}
+
+/* Orbit rings (option J): rings spin, chip contents counter-spin so
+   labels stay upright. Still under reduced motion. */
+@keyframes hp-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hp-orbit-rev {
+  to { transform: rotate(-360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hp-orbit-a { animation: hp-orbit 52s linear infinite; }
+  .hp-orbit-a-item { animation: hp-orbit-rev 52s linear infinite; }
+  .hp-orbit-b { animation: hp-orbit-rev 76s linear infinite; }
+  .hp-orbit-b-item { animation: hp-orbit 76s linear infinite; }
+  .hp-orbit-c { animation: hp-orbit 104s linear infinite; }
+  .hp-orbit-c-item { animation: hp-orbit-rev 104s linear infinite; }
+}
+
+/* Blueprint crosshair corners on station cards. */
+.hp-cross {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: hsl(187 60% 75% / 0.4);
+  pointer-events: none;
+}
+
+.hp-cross::before,
+.hp-cross::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.hp-cross::before {
+  left: 4px;
+  top: 0;
+  width: 1px;
+  height: 9px;
+}
+
+.hp-cross::after {
+  left: 0;
+  top: 4px;
+  width: 9px;
+  height: 1px;
+}
+
+/* Gentle bob for stage decor (option R stages). */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-bob {
+    animation: hp-bob 6s ease-in-out infinite;
+  }
+  .hp-bob-late {
+    animation: hp-bob 7s ease-in-out 1.6s infinite;
+  }
+}
+
+@keyframes hp-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}

@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ReactNode } from "react";
 import {
   Bot,
   BookOpen,
@@ -20,7 +19,9 @@ import { useSession } from "@/lib/auth";
 import brainmapMarkdown from "../../../docs/UnClick-brainmap.generated.md?raw";
 import brainmapDataRaw from "../../../docs/UnClick-brainmap.generated.json?raw";
 
-const OWNER_EMAIL = "creativelead@malamutemayhem.com";
+function getOwnerEmail() {
+  return (import.meta.env.VITE_BRAINMAP_OWNER_EMAIL ?? "").trim().toLowerCase();
+}
 const MAX_VISUAL_ITEMS_PER_DIVISION = 24;
 const sectionCount = (brainmapMarkdown.match(/^## /gm) || []).length;
 const sourceCount = (brainmapMarkdown.match(/^\| .* \| [a-f0-9]{12} \| \d+ \|$/gm) || []).length;
@@ -103,7 +104,7 @@ function OwnerOnlyNotice({ denied = false }: { denied?: boolean }) {
             {denied ? "Creative lead access only" : "Checking private Brainmap access"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            This Brainmap view is reserved for the private Yellow Admin lane owned by {OWNER_EMAIL}.
+            This Brainmap view is reserved for authorized administrators only.
           </p>
         </div>
       </div>
@@ -232,7 +233,7 @@ const markdownComponents = {
 
 export default function AdminBrainmap() {
   const { session, user, loading } = useSession();
-  const directOwner = normalizeEmail(user?.email) === OWNER_EMAIL;
+  const directOwner = normalizeEmail(user?.email) === getOwnerEmail();
   const token = session?.access_token || "";
   const [profileAccess, setProfileAccess] = useState<{ token: string; status: "owner" | "denied" } | null>(null);
   const [query, setQuery] = useState("");
@@ -252,7 +253,7 @@ export default function AdminBrainmap() {
         if (cancelled) return;
         setProfileAccess({
           token,
-          status: normalizeEmail(body?.email) === OWNER_EMAIL ? "owner" : "denied",
+          status: normalizeEmail(body?.email) === getOwnerEmail() ? "owner" : "denied",
         });
       })
       .catch(() => {
@@ -327,7 +328,7 @@ export default function AdminBrainmap() {
             <h2 className="text-lg font-semibold text-white">Human orientation</h2>
             <p className="mt-2 text-sm leading-6 text-white/65">
               Start here when you want a plain-English overview. This page is generated from source files, so
-              it stays useful for both Chris and AI seats as UnClick changes.
+              it stays useful for both the operator and AI seats as UnClick changes.
             </p>
           </div>
           <div className="rounded-lg border border-[#E2B93B]/20 bg-[#E2B93B]/10 p-4">

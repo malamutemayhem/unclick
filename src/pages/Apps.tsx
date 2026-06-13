@@ -3,8 +3,16 @@ import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
 import { useMetaTags } from "../hooks/useMetaTags";
 import { presets } from "../lib/design-system";
-import { APP_CATALOG, APP_COUNT, TOOL_COUNT } from "@/lib/appCatalog";
+import { APP_CATALOG } from "@/lib/appCatalog";
+import { getAppTestResult } from "@/lib/appTestResults";
 import { AppsTable } from "@/components/apps/AppsTable";
+
+// Apps with a verified live failure (AppTesting status "fail") are kept out of
+// the public store until they pass a retest. Needs-key apps stay listed; every
+// excluded app remains visible with its failure note in admin AppTesting.
+const LIVE_APPS = APP_CATALOG.filter((a) => getAppTestResult(a.slug).status !== "fail");
+const LIVE_APP_COUNT = LIVE_APPS.length;
+const LIVE_TOOL_COUNT = LIVE_APPS.reduce((n, a) => n + a.toolCount, 0);
 
 // Super-simple-English induction so anyone gets what this page is in one read.
 function HowItWorks() {
@@ -33,7 +41,7 @@ const Apps = () => {
   useCanonical("/apps");
   useMetaTags({
     title: "Apps. Every action your AI can reach.",
-    description: `Browse ${APP_COUNT} apps and ${TOOL_COUNT} actions your AI can use. It picks the right one for you, or you can ask for one by name.`,
+    description: `Browse ${LIVE_APP_COUNT} apps and ${LIVE_TOOL_COUNT} actions your AI can use. It picks the right one for you, or you can ask for one by name.`,
     ogTitle: "Apps. Every action your AI can reach.",
     ogDescription: "An app store for AI agents. Built-in apps work straight away; connect the rest once.",
     ogUrl: "https://unclick.world/apps",
@@ -44,14 +52,14 @@ const Apps = () => {
       eyebrow="Apps"
       title="Every action your AI can reach."
       accent="One install."
-      lede={`${APP_COUNT} apps · ${TOOL_COUNT} actions. Your AI picks the right one, or you can ask for one by name.`}
+      lede={`${LIVE_APP_COUNT} apps · ${LIVE_TOOL_COUNT} actions. Your AI picks the right one, or you can ask for one by name.`}
       cta={{ label: "Get started", href: "/#install" }}
     >
       <section className={presets.section}>
         <FadeIn>
           <HowItWorks />
           <div className="mx-auto max-w-6xl">
-            <AppsTable apps={APP_CATALOG} mode="public" />
+            <AppsTable apps={LIVE_APPS} mode="public" />
           </div>
         </FadeIn>
       </section>

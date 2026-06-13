@@ -833,7 +833,7 @@
               "type": "file",
               "path": "docs/api-crypto-helpers.md",
               "label": "docs/api-crypto-helpers.md",
-              "summary": "- No key-rotation flow (live keys vs new keys) — separate spec; the helper itself doesn't carry rotation state.",
+              "summary": "- No key-rotation flow (live keys vs new keys). Separate spec; the helper itself doesn't carry rotation state.",
               "confidence": "high",
               "line": 84
             }

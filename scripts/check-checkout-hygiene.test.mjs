@@ -29,36 +29,36 @@ describe("detectSyncRoot", () => {
   });
   test("Google Drive My Drive (macOS)", () => {
     assert.equal(
-      detectSyncRoot("/Users/chris/Library/CloudStorage/GoogleDrive-x/My Drive/code/unclick"),
+      detectSyncRoot("/Users/dev/Library/CloudStorage/GoogleDrive-x/My Drive/code/unclick"),
       "Google Drive",
     );
   });
   test("Google Drive shared shortcut", () => {
     assert.equal(
-      detectSyncRoot("/Users/chris/Google Drive/.shortcut-targets-by-id/abc/unclick"),
+      detectSyncRoot("/Users/dev/Google Drive/.shortcut-targets-by-id/abc/unclick"),
       "Google Drive",
     );
   });
   test("OneDrive", () => {
-    assert.equal(detectSyncRoot("C:\\Users\\chris\\OneDrive\\repos\\unclick"), "OneDrive");
+    assert.equal(detectSyncRoot("C:\\Users\\dev\\OneDrive\\repos\\unclick"), "OneDrive");
   });
   test("OneDrive for Business", () => {
-    assert.equal(detectSyncRoot("C:/Users/chris/OneDrive - Acme/repos/unclick"), "OneDrive");
+    assert.equal(detectSyncRoot("C:/Users/dev/OneDrive - Acme/repos/unclick"), "OneDrive");
   });
   test("Dropbox", () => {
-    assert.equal(detectSyncRoot("/home/chris/Dropbox/unclick"), "Dropbox");
+    assert.equal(detectSyncRoot("/home/dev/Dropbox/unclick"), "Dropbox");
   });
   test("iCloud Drive", () => {
     assert.equal(
-      detectSyncRoot("/Users/chris/Library/Mobile Documents/com~apple~CloudDocs/unclick"),
+      detectSyncRoot("/Users/dev/Library/Mobile Documents/com~apple~CloudDocs/unclick"),
       "iCloud Drive",
     );
   });
   test("pCloud", () => {
-    assert.equal(detectSyncRoot("/home/chris/pCloudDrive/unclick"), "pCloud");
+    assert.equal(detectSyncRoot("/home/dev/pCloudDrive/unclick"), "pCloud");
   });
   test("safe non-synced path returns null", () => {
-    assert.equal(detectSyncRoot("/home/chris/src/unclick"), null);
+    assert.equal(detectSyncRoot("/home/dev/src/unclick"), null);
     assert.equal(detectSyncRoot("C:\\src\\unclick"), null);
   });
   test("matches when path begins with the marker (no leading slash)", () => {
@@ -122,8 +122,8 @@ describe("evaluateCheckoutHygiene", () => {
 
   test("safe checkout: non-synced path with origin", () => {
     const r = evaluateCheckoutHygiene({
-      checkoutPath: "/home/chris/src/unclick",
-      gitDir: "/home/chris/src/unclick/.git",
+      checkoutPath: "/home/dev/src/unclick",
+      gitDir: "/home/dev/src/unclick/.git",
       remotes: origin,
     });
     assert.equal(r.ok, true);
@@ -133,8 +133,8 @@ describe("evaluateCheckoutHygiene", () => {
 
   test("working tree under sync root flags DRIVE-SYNC-001", () => {
     const r = evaluateCheckoutHygiene({
-      checkoutPath: "C:/Users/chris/Dropbox/unclick",
-      gitDir: "C:/Users/chris/Dropbox/unclick/.git",
+      checkoutPath: "C:/Users/dev/Dropbox/unclick",
+      gitDir: "C:/Users/dev/Dropbox/unclick/.git",
       remotes: origin,
     });
     // .git is also under the sync root here, so the worse 002 fires.
@@ -144,8 +144,8 @@ describe("evaluateCheckoutHygiene", () => {
 
   test("only working tree (not .git) under sync root flags 001 not 002", () => {
     const r = evaluateCheckoutHygiene({
-      checkoutPath: "C:/Users/chris/Dropbox/unclick",
-      gitDir: "/home/chris/.gitdirs/unclick.git",
+      checkoutPath: "C:/Users/dev/Dropbox/unclick",
+      gitDir: "/home/dev/.gitdirs/unclick.git",
       remotes: origin,
     });
     const codes = r.findings.map((f) => f.code);
@@ -155,8 +155,8 @@ describe("evaluateCheckoutHygiene", () => {
 
   test("orphan clone with no remotes flags ORPHAN-CLONE-001 (high)", () => {
     const r = evaluateCheckoutHygiene({
-      checkoutPath: "/home/chris/src/unclick",
-      gitDir: "/home/chris/src/unclick/.git",
+      checkoutPath: "/home/dev/src/unclick",
+      gitDir: "/home/dev/src/unclick/.git",
       remotes: [],
     });
     const orphan = r.findings.find((f) => f.code === "ORPHAN-CLONE-001");
@@ -166,8 +166,8 @@ describe("evaluateCheckoutHygiene", () => {
 
   test("remotes present but no origin flags ORPHAN-CLONE-001 (medium)", () => {
     const r = evaluateCheckoutHygiene({
-      checkoutPath: "/home/chris/src/unclick",
-      gitDir: "/home/chris/src/unclick/.git",
+      checkoutPath: "/home/dev/src/unclick",
+      gitDir: "/home/dev/src/unclick/.git",
       remotes: [{ name: "upstream", url: "https://github.com/a/b" }],
     });
     const orphan = r.findings.find((f) => f.code === "ORPHAN-CLONE-001");

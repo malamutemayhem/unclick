@@ -1,16 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { KeyRound, PenSquare, Sparkles, Wrench } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import { APP_CATALOG, APP_COUNT, TOOL_COUNT } from "@/lib/appCatalog";
+import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCatalog";
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
+import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
+import { AppLensBar } from "@/components/apps/AppLensBar";
+import { applyLens, lensCounts, actionLabelFor, parseAppLens, type AppLens } from "@/components/apps/appLenses";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
-// only to derive each app's connection status (connected / needs key / built-in).
+// only to derive each app's connection status (connected / needs key / built-in)
+// and to feed the connect wizard.
 interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
+  setup_url?: string | null;
   credential: { is_valid: boolean; last_tested_at: string | null } | null;
 }
 
@@ -20,24 +25,45 @@ export default function AdminToolsPage() {
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
+  // One filter state, two controls: the rail and the chips both read/write
+  // this URL param, so views are linkable and survive refresh.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lens = parseAppLens(searchParams.get("lens"));
+  const selectLens = useCallback(
+    (next: AppLens) => {
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "all") params.delete("lens");
+          else params.set("lens", next);
+          return params;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const refreshStatus = useCallback(async () => {
+    if (!session) return;
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_tools", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const body = await res.json();
+        setConnectors(body.connectors ?? []);
+        setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
+      }
+    } catch {
+      // status is best-effort; the catalog still renders without it.
+    }
+  }, [session]);
 
   useEffect(() => {
-    if (!session) return;
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_tools", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (res.ok) {
-          const body = await res.json();
-          setConnectors(body.connectors ?? []);
-          setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
-        }
-      } catch {
-        // status is best-effort; the catalog still renders without it.
-      }
-    })();
-  }, [session]);
+    void refreshStatus();
+  }, [refreshStatus]);
 
   const connectorBySlug = useMemo(() => {
     const map = new Map<string, Connector>();
@@ -96,11 +122,37 @@ export default function AdminToolsPage() {
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
-    if (c.credential?.is_valid) return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    // "Connected" (green) is reserved for credentials that passed a real live
+    // test. A stored key that was never probed shows as "Key saved" so the
+    // green tick is proof, not an assumption.
+    if (c.credential?.is_valid && c.credential.last_tested_at) {
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    }
+    if (c.credential?.is_valid) {
+      return { label: "Key saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+    }
     if (c.auth_type === "oauth2") return { label: "Needs login", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.auth_type) return { label: "Needs key", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }
+
+  // Clicking the status pill opens the connect wizard for any connector-backed
+  // app (also lets you replace or re-prove an existing key). Built-in apps have
+  // nothing to connect.
+  function handleStatusClick(app: AppEntry) {
+    if (!connectorBySlug.has(app.slug)) return;
+    setConnectTarget(app);
+  }
+
+  // Buttons say the action (Connect / Add key / Manage); pills say the truth.
+  function actionOf(app: AppEntry) {
+    const label = actionLabelFor(connectorBySlug.get(app.slug));
+    if (!label) return null;
+    return { label, onClick: () => setConnectTarget(app) };
+  }
+
+  const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
+  const lensedApps = useMemo(() => applyLens(APP_CATALOG, lens, connectorBySlug), [lens, connectorBySlug]);
 
   if (!session) {
     return <p className="text-sm text-white/50">Sign in to manage Apps.</p>;
@@ -131,15 +183,30 @@ export default function AdminToolsPage() {
         </div>
       )}
 
+      <div className="mb-3">
+        <AppLensBar lens={lens} counts={counts} onSelect={selectLens} />
+      </div>
       <AppsTable
-        apps={APP_CATALOG}
+        apps={lensedApps}
         mode="admin"
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
         statusOf={statusOf}
+        onStatusClick={handleStatusClick}
+        actionOf={actionOf}
         busy={saving}
       />
+
+      {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (
+        <ConnectAppModal
+          app={connectTarget}
+          connector={connectorBySlug.get(connectTarget.slug)!}
+          accessToken={session.access_token}
+          onClose={() => setConnectTarget(null)}
+          onSaved={() => void refreshStatus()}
+        />
+      )}
 
       {/* Slim footer: where keys and related libraries live */}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">

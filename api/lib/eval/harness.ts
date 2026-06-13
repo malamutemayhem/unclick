@@ -183,6 +183,7 @@ export function renderReport(run: EvalRun, baseline?: EvalBaseline): string {
 }
 
 function round(n: number): number {
+  if (!Number.isFinite(n)) return 0;
   return Math.round(n * 1e6) / 1e6;
 }
 

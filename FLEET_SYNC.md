@@ -10,7 +10,7 @@ Read `docs/unclick-context-boot-packet.md` before making product-map claims. It 
 
 When instructions conflict, use this order:
 
-1. Direct instruction from Chris in the current chat or Fishbowl assignment.
+1. Direct instruction from the operator in the current chat or Fishbowl assignment.
 2. This file.
 3. `AUTOPILOT.md` for autonomy tiers and scheduled worker policy.
 4. `CLAUDE.md` for repo architecture and tool surface.
@@ -126,7 +126,7 @@ Current common worker lanes:
 
 | Lane | Common name | Main role |
 | --- | --- | --- |
-| Human | Chris | Final authority for secrets, billing, domains, legal, risky merges, and strategy |
+| Human | Operator | Final authority for secrets, billing, domains, legal, risky merges, and strategy |
 | Lenovo Claude | Bailey or Wolf | Original orchestrator, sentinel, queue hygiene, continuity checks |
 | Lenovo Codex | Codex worker | Backlog drain, PR review, code chips, board hygiene |
 | Plex ChatGPT | Plex builder | High-throughput implementation lane |
@@ -226,7 +226,7 @@ Post when:
 - A PR opens, blocks, lifts from draft, merges, or closes.
 - Ownership changes.
 - A direct handoff is created.
-- A blocker needs Chris or another worker.
+- A blocker needs the operator or another worker.
 - A stale todo is closed or materially changed.
 
 Stay quiet when:
@@ -255,8 +255,8 @@ classified.
 - Checks should be green before ready-review.
 - Use squash merge by default.
 - Low-risk green PRs may be merged by an approved reviewer under current standing rules.
-- Do not self-merge unless Chris has explicitly allowed that worker and lane.
-- Security, auth, env, migration, billing, DNS, domain, and provider-setting PRs need Chris approval.
+- Do not self-merge unless the operator has explicitly allowed that worker and lane.
+- Security, auth, env, migration, billing, DNS, domain, and provider-setting PRs need operator approval.
 - Dependency major bumps need explicit compatibility review.
 
 ## Connectors And RotatePass

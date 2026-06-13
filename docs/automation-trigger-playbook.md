@@ -14,7 +14,7 @@ Hard rule: DraftRoom is the first station for warm subscription chat work. When 
 
 | Rank | Method | Best use | Effectiveness | Worker rule |
 | --- | --- | --- | --- | --- |
-| 1 | Human typing or subscription chat trigger | Chris is present, a decision is needed, or a live chat wake is already happening | Very high | Save the turn first, read Orchestrator, then act. Do not ask Chris to run scripts. |
+| 1 | Human typing or subscription chat trigger | The operator is present, a decision is needed, or a live chat wake is already happening | Very high | Save the turn first, read Orchestrator, then act. Do not ask the operator to run scripts. |
 | 2 | Single heartbeat tether | Regular unattended progress, queue health, and one safe useful step per wake | Very high | Use the existing UnClick Heartbeat only. Do not create more local schedules. |
 | 3 | Exact ScopePack | Turning vague jobs into buildable work | Very high | Include owned files, protected surfaces, smallest next step, proof, tests, and stop conditions. |
 | 4 | Proof receipt | Closing loops after a PR, test, review, merge, or blocker check | Very high | Post the proof where the job lives. Include PR, SHA, run id, or exact blocker. |
@@ -45,7 +45,7 @@ Use this order when a job is not moving:
 
 ### Live Chat Trigger
 
-Use when Chris is actively steering, confused, or making a decision. This is the strongest signal because it has human context.
+Use when the operator is actively steering, confused, or making a decision. This is the strongest signal because it has human context.
 
 Required receipt:
 
@@ -76,7 +76,7 @@ Bad heartbeat steps:
 
 - repeating the same blocked status every cycle
 - creating new schedules
-- making Chris run local commands
+- making the operator run local commands
 - touching secrets, billing, DNS, auth, production data, or migrations without explicit approval
 
 ### ScopePack

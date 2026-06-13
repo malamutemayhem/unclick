@@ -147,7 +147,7 @@ export function toTodoSnapshots(
 function normalizeChecksState(value: string): PRSnapshot["checks_state"] {
   const normalized = value.trim().toLowerCase();
   if (["success", "passed", "green"].includes(normalized)) return "success";
-  if (["failure", "failed", "cancelled", "timed_out", "action_required"].includes(normalized)) {
+  if (["failure", "failed", "cancelled", "timed_out", "action_required", "startup_failure"].includes(normalized)) {
     return "failure";
   }
   if (["neutral", "skipped"].includes(normalized)) return "neutral";

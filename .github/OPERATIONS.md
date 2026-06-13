@@ -183,7 +183,7 @@ one ready, make the missing proof explicit:
 
 ## AFK autopilot queue rules
 
-The overnight heartbeat may keep throughput moving while Chris is away, but it
+The overnight heartbeat may keep throughput moving while the operator is away, but it
 should stay conservative. Use this queue policy before taking action:
 
 1. Refresh GitHub, Actions, and Fishbowl before acting. Do not rely on stale
@@ -193,7 +193,7 @@ should stay conservative. Use this queue policy before taking action:
 3. Merge only small, clean, non-draft PRs after verifying the touched files,
    visible checks, and the narrow local test or equivalent CI proof.
 4. Hold anything involving secrets, auth, billing, DNS, migrations, raw key
-   display, destructive cleanup, or broad analytics rewrites for Chris.
+   display, destructive cleanup, or broad analytics rewrites for the operator.
 5. If no PR is safely mergeable, prefer one tiny docs, test, proof, or wording
    chip with a non-overlapping file set.
 6. Post a Fishbowl update for material actions only: merged PR, opened PR,

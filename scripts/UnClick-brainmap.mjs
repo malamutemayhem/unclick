@@ -291,6 +291,15 @@ function parseRouteEntries(appSource) {
     if (resolved) imports.set(match[1], resolved);
   }
 
+  // Route-level code splitting: pages bind as
+  //   const X = lazy(() => import("./pages/X.tsx"))
+  // including the .then((m) => ({ default: m.Name })) named-export form.
+  const lazyImportPattern = /const\s+([A-Za-z_$][\w$]*)\s*=\s*lazy\(\s*\(\)\s*=>\s*import\("([^"]+)"\)/g;
+  for (const match of appSource.matchAll(lazyImportPattern)) {
+    const resolved = resolveImportPath(match[2]);
+    if (resolved) imports.set(match[1], resolved);
+  }
+
   const namedImportPattern = /import\s+\{([^}]+)\}\s+from\s+"([^"]+)"/g;
   for (const match of appSource.matchAll(namedImportPattern)) {
     const resolved = resolveImportPath(match[2]);
@@ -584,7 +593,7 @@ async function collectBrainmapModel(root) {
     owner_visibility: {
       route: "/admin/brainmap",
       audience: "private yellow admin",
-      owner_email: "creativelead@malamutemayhem.com",
+      owner_email: process.env.BRAINMAP_OWNER_EMAIL ?? "(configured via env)",
     },
     counts: {
       divisions: DIVISIONS.length,
@@ -700,7 +709,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "## Safety Rules",
     "",
     "- Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.",
-    "- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.",
+    "- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.",
     "- NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.",
     "- IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.",
     "- Heartbeats must never print keys or credentials.",

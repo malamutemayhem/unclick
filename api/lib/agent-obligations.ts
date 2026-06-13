@@ -117,6 +117,10 @@ export function validateAgentObligationReceipt(
     return rejectForState(stale, "fake_done_receipt_rejected", proofLinks, receiptType);
   }
 
+  if (looksLikeFailureReceipt(text)) {
+    return rejectForState(stale, "failure_receipt_rejected", proofLinks, receiptType);
+  }
+
   if (obligation.proof_required && !hasRequiredProof(obligation, text, proofLinks)) {
     return rejectForState(stale, "proof_required", proofLinks, receiptType);
   }
@@ -219,6 +223,10 @@ function mentionsPrNumber(text: string, prNumber: number): boolean {
 function looksLikeFakeDone(text: string): boolean {
   const value = String(text ?? "").trim();
   return /\bdone\b/i.test(value) && !/^(PASS|HOLD|BLOCKER|ACK)\s*:/i.test(value) && !/\bproof\s*:/i.test(value);
+}
+
+function looksLikeFailureReceipt(text: string): boolean {
+  return /\b(failed|failing|broken|reverted|rolled\s*back|errored|crashed)\b/i.test(text);
 }
 
 function extractProofLinks(text: string): string[] {

@@ -202,7 +202,7 @@ describe("Supabase searchMemory: keyword + vector fusion", () => {
     const snap = snapshot([FLAG, ...EMBED_KEYS]);
     try {
       for (const key of EMBED_KEYS) delete process.env[key];
-      delete process.env[FLAG];
+      process.env[FLAG] = "0"; // kill switch
       process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = "true";
       const backend = await makeBackend();
       const results = await backend.searchMemory(QUERY, 10);
@@ -286,5 +286,26 @@ describe("lane-01 orderByEffectiveScore", () => {
     );
     assert.equal(ordered.length, 2);
     assert.deepEqual(ordered.map((r) => r.id), ["a", "b"]);
+  });
+
+  test("NaN in final_score or effective_score does not break sort order", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const good = eff("good", "fact", 0.5, "");
+    const nanFinal = eff("nan-final", "fact", NaN as unknown as number, "");
+    const nanEff = eff("nan-eff", "fact", 0.3, "", { effective_score: NaN as unknown as number });
+    const infEff = eff("inf-eff", "fact", 0.1, "", { effective_score: Infinity as unknown as number });
+    const ordered = orderByEffectiveScore([nanFinal, good, infEff, nanEff], 10);
+    for (const row of ordered) {
+      assert.equal(Number.isFinite(row.effective_score), true, `${row.id} has finite effective_score`);
+    }
+    assert.equal(ordered[0].id, "good", "valid row ranks first over NaN/Infinity rows");
+  });
+
+  test("NaN in scope_weight falls back to source-based weight", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const nanWeight = eff("nw", "business_context", 0.8, "", { scope_weight: NaN as unknown as number });
+    const ordered = orderByEffectiveScore([nanWeight], 10);
+    assert.equal(Number.isFinite(ordered[0].effective_score), true);
+    assert.ok((ordered[0].effective_score ?? 0) > 0, "falls back to business_context scope weight 1.5");
   });
 });

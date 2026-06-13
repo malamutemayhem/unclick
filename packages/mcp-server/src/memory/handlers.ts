@@ -31,6 +31,14 @@ import {
 } from "./consolidation.js";
 import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
 import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
+import { isRecycleBinEnabled, MEMORY_RECYCLE_BIN_FLAG, EMPTY_BIN_MAX_BATCH } from "./recycle-bin.js";
+import { applyMemoryRetrievalCriteria, parseMemoryRetrievalCriteria } from "./criteria.js";
+import {
+  isPatternPromotionEnabled,
+  MEMORY_PATTERN_PROMOTION_FLAG,
+  clusterEpisodes,
+  buildPatternFactText,
+} from "./pattern-promotion.js";
 import {
   isCorrectionsEnabled,
   CORRECTIONS_CATEGORY,
@@ -44,6 +52,7 @@ import {
   emitCorrectionConsultMetric,
 } from "./corrections.js";
 import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
+import { savePlaybook, getPlaybook, listPlaybooks, recordPlaybookRun } from "./playbooks.js";
 import type {
   MemoryBackend,
   MemoryPassportBundle,
@@ -83,6 +92,33 @@ function num(v: unknown, fallback: number): number {
 
 function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.map(String) : [];
+}
+
+/**
+ * Recall reinforcement: bump access_count for fact rows genuinely surfaced by
+ * the search_memory op. Fire-and-forget so recall latency is unaffected, and
+ * handler-level so internal candidate searches (write gate, eval harness,
+ * consolidation) never inflate the counter (the 5663x lesson, migration
+ * 20260607010000). Powers the Recall Check 1x/2x/3x counters.
+ */
+function reinforceSurfacedFacts(db: MemoryBackend, results: unknown): void {
+  if (!Array.isArray(results)) return;
+  const ids = results
+    .filter((row): row is { id: string; source?: string } =>
+      !!row && typeof row === "object" && typeof (row as { id?: unknown }).id === "string"
+    )
+    .filter((row) => (row.source ?? "fact") === "fact")
+    .map((row) => row.id);
+  if (ids.length === 0) return;
+  void db.recordRecallAccess(ids).catch(() => {});
+}
+
+/** Parse an expiry argument into a normalized ISO timestamp, or undefined. */
+function parseExpiry(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.trim()) return undefined;
+  const parsed = Date.parse(v);
+  if (Number.isNaN(parsed)) throw new Error(`expires_at must be an ISO 8601 timestamp, got: ${v}`);
+  return new Date(parsed).toISOString();
 }
 
 function bool(v: unknown, fallback = false): boolean {
@@ -511,6 +547,15 @@ export function normalizeActiveFactsForLoadMemory(value: unknown): unknown {
   return { ...context, active_facts: activeFacts };
 }
 
+// Always-on operator preferences set on /admin/you. These are pinned into the
+// compact startup payload so they reach every session regardless of how many
+// higher-priority standing rules an account has accumulated.
+const ALWAYS_ON_BUSINESS_KEYS = new Set(["ai_style", "about_you"]);
+function isAlwaysOnPreference(row: unknown): boolean {
+  const r = asRecord(row);
+  return r !== null && typeof r.key === "string" && ALWAYS_ON_BUSINESS_KEYS.has(r.key);
+}
+
 export function compactStartupContextForStrictClients(
   value: unknown,
   includeSessionSummaries = false
@@ -525,9 +570,20 @@ export function compactStartupContextForStrictClients(
   const facts = Array.isArray(context.active_facts) ? context.active_facts : [];
   const startupFacts = facts.filter(isEligibleStartupFact);
 
-  out.business_context = business.slice(0, 6).map((row) => {
+  // The operator's always-on preferences (AI style + About You, set on
+  // /admin/you) must reach every session. They sit at a modest priority, so on
+  // an account with many higher-priority standing rules they would otherwise be
+  // pushed past the compact top-6 cut and never load. Pin them in past the cut
+  // and give them a roomier value cap so the directive/About-You text survives.
+  const topBusiness = business.slice(0, 6);
+  const pinnedBusiness = business.filter(
+    (row) => isAlwaysOnPreference(row) && !topBusiness.includes(row)
+  );
+  const compactBusiness = [...topBusiness, ...pinnedBusiness];
+  out.business_context = compactBusiness.map((row) => {
     const r = asRecord(row) ?? {};
-    return { category: r.category, key: r.key, value: compactJsonValue(r.value, 130), priority: r.priority };
+    const valueCap = isAlwaysOnPreference(r) ? 360 : 130;
+    return { category: r.category, key: r.key, value: compactJsonValue(r.value, valueCap), priority: r.priority };
   });
   out.profile_card = buildMemoryProfileCard({ business, facts: startupFacts, sessions, includeSessionSummaries });
   out.active_facts = startupFacts.slice(0, 12).map((row) => {
@@ -555,7 +611,7 @@ export function compactStartupContextForStrictClients(
   out.retrieval_plan = buildMemoryRetrievalPlan();
   out.response_bounds = {
     compact: true,
-    business_context_returned: Math.min(business.length, 6),
+    business_context_returned: compactBusiness.length,
     knowledge_library_returned: Math.min(library.length, 6),
     recent_sessions_returned: includeSessionSummaries ? Math.min(sessions.length, 3) : 0,
     recent_sessions_available_in_loaded_window: sessions.length,
@@ -652,11 +708,118 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return result;
   },
 
+  /**
+   * Prompt-ready context block (Zep Context Block parity on cheap-first
+   * layers): one call returns compact markdown with standing rules, profile,
+   * durable facts, and optional query-relevant memories, under a char budget.
+   */
+  async get_context_block(args) {
+    const db = await getBackend();
+    const maxChars = Math.max(500, Math.min(num(args.max_chars, 4000), 20000));
+    const query = typeof args.query === "string" ? args.query.trim() : "";
+
+    const raw = await db.getStartupContext(3);
+    const compact = compactStartupContextForStrictClients(normalizeActiveFactsForLoadMemory(raw)) as {
+      business_context?: Array<{ category?: string; key?: string; value?: unknown }>;
+      profile_card?: {
+        profile_summary?: string[];
+        working_now?: string[];
+        do_not_repeat?: string[];
+        timezone_context?: string;
+      };
+      active_facts?: Array<{ fact?: string; category?: string }>;
+    };
+
+    const lines: string[] = ["# Memory context"];
+    const rules = compact.business_context ?? [];
+    if (rules.length > 0) {
+      lines.push("", "## Standing rules");
+      for (const row of rules) {
+        lines.push(`- [${row.category ?? "rule"}] ${row.key ?? ""}: ${stringifyForProfile(row.value, 200)}`);
+      }
+    }
+    const card = compact.profile_card;
+    if (card) {
+      lines.push("", "## Profile");
+      if (card.timezone_context) lines.push(`- ${card.timezone_context}`);
+      for (const item of card.profile_summary ?? []) lines.push(`- ${item}`);
+      const avoid = card.do_not_repeat ?? [];
+      if (avoid.length > 0) {
+        lines.push("", "## Do not repeat");
+        for (const item of avoid) lines.push(`- ${item}`);
+      }
+      const workingNow = card.working_now ?? [];
+      if (workingNow.length > 0) {
+        lines.push("", "## Working now");
+        for (const item of workingNow) lines.push(`- ${item}`);
+      }
+    }
+    const facts = compact.active_facts ?? [];
+    if (facts.length > 0) {
+      lines.push("", "## Durable facts");
+      for (const row of facts) {
+        if (row.fact) lines.push(`- [${row.category ?? "general"}] ${row.fact}`);
+      }
+    }
+
+    let queryMatches = 0;
+    if (query) {
+      const results = await db.searchMemory(query, num(args.max_results, 5)) as Array<{
+        content?: string;
+        source?: string;
+      }>;
+      const rows = Array.isArray(results) ? results.filter((row) => row.content) : [];
+      queryMatches = rows.length;
+      if (rows.length > 0) {
+        lines.push("", `## Relevant to: ${query}`);
+        for (const row of rows) {
+          lines.push(`- [${row.source ?? "memory"}] ${String(row.content).slice(0, 300)}`);
+        }
+      }
+    }
+
+    // Enforce the char budget by dropping whole trailing lines, never
+    // mid-line, so the block stays valid markdown.
+    const block: string[] = [];
+    let used = 0;
+    for (const line of lines) {
+      if (used + line.length + 1 > maxChars) break;
+      block.push(line);
+      used += line.length + 1;
+    }
+
+    return {
+      context_block: block.join("\n"),
+      char_count: used,
+      max_chars: maxChars,
+      truncated: block.length < lines.length,
+      query_matches: queryMatches,
+    };
+  },
+
   async search_memory(args) {
     const db = await getBackend();
     const asOf = typeof args.as_of === "string" ? args.as_of : undefined;
     const query = str(args.query);
-    const results = await db.searchMemory(query, num(args.max_results, 10), asOf);
+    const maxResults = num(args.max_results, 10);
+
+    // Criteria retrieval: caller-supplied deterministic re-rank. Over-fetch a
+    // candidate pool so criteria bias relevance instead of replacing it. No
+    // criteria passed means byte-identical legacy behavior.
+    const criteria = parseMemoryRetrievalCriteria(args.criteria);
+    if (criteria) {
+      const pool = await db.searchMemory(query, Math.min(50, Math.max(30, maxResults * 3)), asOf);
+      const reranked = applyMemoryRetrievalCriteria(
+        Array.isArray(pool) ? pool as Parameters<typeof applyMemoryRetrievalCriteria>[0] : [],
+        criteria,
+        maxResults
+      );
+      reinforceSurfacedFacts(db, reranked);
+      return bool(args.full_content, false) ? reranked : compactSearchMemoryForStrictClients(reranked);
+    }
+
+    const results = await db.searchMemory(query, maxResults, asOf);
+    reinforceSurfacedFacts(db, results);
     const boundedResults = bool(args.full_content, false)
       ? results
       : compactSearchMemoryForStrictClients(results);
@@ -676,6 +839,19 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
   async search_typed_links(args) {
     const db = await getBackend();
     return db.searchTypedLinks(str(args.query), num(args.max_results, 10));
+  },
+
+  // Memory time machine: changelog between two instants (companion to the
+  // as_of recall path in search_memory). Read-only. Accepts ISO timestamps
+  // or relative durations like "7d" / "12h"; defaults to the last 7 days.
+  async memory_diff(args) {
+    const db = await getBackend();
+    return db.memoryDiff({
+      from: typeof args.from === "string" ? args.from : typeof args.since === "string" ? args.since : undefined,
+      to: typeof args.to === "string" ? args.to : undefined,
+      limit: typeof args.limit === "number" ? args.limit : undefined,
+      include_sessions: bool(args.include_sessions, true),
+    });
   },
 
   // --- lane-09: typed memory split ---
@@ -740,6 +916,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       confidence: num(args.confidence, 0.9),
       source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
       valid_from: typeof args.valid_from === "string" ? args.valid_from : undefined,
+      valid_to: parseExpiry(args.expires_at ?? args.valid_until ?? args.valid_to),
       extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
       prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
       model_id: typeof args.model_id === "string" ? args.model_id : undefined,
@@ -936,6 +1113,25 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return { message: msg };
   },
 
+  // Playbooks: agent-distilled reusable workflows stored as versioned
+  // library docs (category "playbook"). Trust promotion is receipt-gated;
+  // see playbooks.ts for the promotion and demotion rules.
+  async save_playbook(args) {
+    return savePlaybook(args);
+  },
+
+  async get_playbook(args) {
+    return getPlaybook(args);
+  },
+
+  async list_playbooks(args) {
+    return listPlaybooks(args);
+  },
+
+  async record_playbook_run(args) {
+    return recordPlaybookRun(args);
+  },
+
   async refresh_taxonomy_snapshots(args) {
     const db = await getBackend();
     return db.refreshTaxonomySnapshots({
@@ -1038,7 +1234,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
   // --- lane-02: contradiction reconciliation & supersession ---
   async reconcile_fact(args) {
     const db = await getBackend();
-    return db.reconcileFact(
+    const result = await db.reconcileFact(
       {
         fact: str(args.fact),
         category: str(args.category, "general"),
@@ -1055,6 +1251,26 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
         dry_run: bool(args.dry_run, false),
       }
     );
+
+    // Lane-2 closeout: surface a genuine contradiction as exactly one signal
+    // so agents and the user see the conflict instead of a silent resolution.
+    if (result.contradiction && result.classification === "contradiction") {
+      const hash = currentApiKeyHash();
+      if (hash) {
+        void emitSignal({
+          apiKeyHash: hash,
+          tool: "memory",
+          action: "memory_contradiction",
+          severity: "action_needed",
+          summary:
+            `Memory contradiction on "${result.contradiction.subject}": ` +
+            `incoming "${result.contradiction.incoming.fact}" vs existing ` +
+            `"${result.contradiction.existing.fact}" (resolution: ${result.contradiction.resolution})`,
+          deepLink: "/admin/memory?tab=facts",
+        });
+      }
+    }
+    return result;
   },
   // --- end lane-02 ---
   // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
@@ -1064,6 +1280,21 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     if (!factId) throw new Error("forget requires fact_id (or memory_id)");
     const reason = typeof args.reason === "string" ? args.reason : undefined;
     const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    // Recycle-bin model: forget moves the fact into the bin instead of
+    // deleting; empty_recycle_bin is the only permanent deletion path.
+    if (isRecycleBinEnabled()) {
+      const archived = await db.archiveFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "recycle_bin_archive",
+        flag: MEMORY_RECYCLE_BIN_FLAG,
+        flag_enabled: true,
+        ...archived,
+        note: archived.already_archived
+          ? "Fact was already in the recycle bin. Use empty_recycle_bin to delete it permanently."
+          : "Fact moved to the recycle bin and hidden from recall. Use restore_memory to bring it back or empty_recycle_bin to delete it permanently.",
+      };
+    }
 
     // Default OFF: fall back to the existing soft invalidate so production
     // behaviour is unchanged until the coordinator flips the flag.
@@ -1112,6 +1343,179 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
     return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
   },
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  async archive_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { archived: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("archive_memory requires fact_id (or memory_id)");
+    const result = await db.archiveFact({
+      fact_id: factId,
+      reason: typeof args.reason === "string" ? args.reason : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async restore_memory(args) {
+    if (!isRecycleBinEnabled()) {
+      return { restored: false, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("restore_memory requires fact_id (or memory_id)");
+    const result = await db.restoreFact({
+      fact_id: factId,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+    });
+    return { ...result, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async list_archived(args) {
+    if (!isRecycleBinEnabled()) {
+      return { entries: [], flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const entries = await db.listArchivedFacts(num(args.limit ?? args.max_results, 100));
+    return { entries, count: entries.length, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: true };
+  },
+
+  async empty_recycle_bin(args) {
+    if (!isRecycleBinEnabled()) {
+      return { deleted: 0, flag: MEMORY_RECYCLE_BIN_FLAG, flag_enabled: false };
+    }
+    const db = await getBackend();
+    const requestedIds = arr(args.fact_ids);
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    const archived = await db.listArchivedFacts(EMPTY_BIN_MAX_BATCH);
+    const targets = requestedIds.length > 0
+      ? archived.filter((entry) => requestedIds.includes(entry.id))
+      : archived;
+
+    const receipts = [];
+    for (const entry of targets) {
+      const receipt = await db.forgetMemory({
+        fact_id: entry.id,
+        reason: "recycle-bin:empty",
+        session_id: sessionId,
+      });
+      receipts.push({
+        fact_id: entry.id,
+        verified_clean: receipt.verified_clean,
+        forget_compliance: forgetComplianceScore(receipt),
+      });
+    }
+
+    const hash = currentApiKeyHash();
+    if (hash && receipts.length > 0) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "recycle_bin_emptied",
+        severity: "info",
+        summary: `Recycle bin emptied: ${receipts.length} memories permanently deleted`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return {
+      deleted: receipts.length,
+      receipts,
+      flag: MEMORY_RECYCLE_BIN_FLAG,
+      flag_enabled: true,
+      note: "Permanent deletion ran the lane-05 forget cascade per fact (embeddings, typed links, snapshots, episodes).",
+    };
+  },
+  // --- end recycle bin ---
+
+  // --- pattern promotion (MEMORY_PATTERN_PROMOTION_ENABLED) ---
+  async promote_patterns(args) {
+    if (!isPatternPromotionEnabled()) {
+      return { enabled: false, flag: MEMORY_PATTERN_PROMOTION_FLAG, promoted: 0 };
+    }
+    if (!isTypedMemorySplitEnabled()) {
+      return {
+        enabled: true,
+        flag: MEMORY_PATTERN_PROMOTION_FLAG,
+        promoted: 0,
+        note: "Typed memory split is disabled; there is no episode store to mine for patterns.",
+      };
+    }
+
+    const db = await getBackend();
+    const minOccurrences = Math.max(2, num(args.min_occurrences, 3));
+    const threshold = Math.min(0.95, Math.max(0.2, num(args.similarity_threshold, 0.5)));
+    const dryRun = bool(args.dry_run, false);
+
+    const rows = await db.listSessionEvents({ limit: num(args.limit, 200) }) as Array<{
+      id: string;
+      content?: string;
+      memory_class?: string;
+    }>;
+    const episodes = (Array.isArray(rows) ? rows : [])
+      .filter((row) => typeof row.content === "string" && row.content.trim())
+      .map((row) => ({ id: row.id, content: String(row.content) }));
+
+    const clusters = clusterEpisodes(episodes, threshold).filter(
+      (cluster) => cluster.occurrences >= minOccurrences
+    );
+
+    const proposals = [];
+    for (const cluster of clusters) {
+      const factText = buildPatternFactText(cluster);
+      if (dryRun) {
+        proposals.push({ fact: factText, occurrences: cluster.occurrences, event_ids: cluster.event_ids });
+        continue;
+      }
+      // Idempotency guard: an identical pattern fact from a previous run is
+      // reused, never duplicated (the local backend only hash-dedups when the
+      // write gate flag is on, so the guard cannot rely on addFact alone).
+      const existing = await db.searchFacts(factText) as Array<{ id: string; fact: string; status?: string }>;
+      const match = (Array.isArray(existing) ? existing : []).find(
+        (row) => row.fact === factText && (row.status === undefined || row.status === "active")
+      );
+      if (match) {
+        proposals.push({
+          fact_id: match.id,
+          fact: factText,
+          occurrences: cluster.occurrences,
+          event_ids: cluster.event_ids,
+        });
+        continue;
+      }
+      const written = await db.addFact({
+        fact: factText,
+        category: "preference",
+        confidence: 0.7,
+        startup_fact_kind: "durable",
+        memory_class: "semantic",
+        extractor_id: "pattern-promotion-v1",
+        source_agent_id: "memory-pattern-promotion",
+        source_ref: `pattern:${cluster.occurrences}-episodes`,
+      }) as { id?: string };
+      proposals.push({
+        fact_id: written.id,
+        fact: factText,
+        occurrences: cluster.occurrences,
+        event_ids: cluster.event_ids,
+      });
+    }
+
+    return {
+      enabled: true,
+      flag: MEMORY_PATTERN_PROMOTION_FLAG,
+      dry_run: dryRun,
+      scanned_events: episodes.length,
+      qualifying_clusters: clusters.length,
+      promoted: dryRun ? 0 : proposals.length,
+      proposals,
+    };
+  },
+  // --- end pattern promotion ---
 
   async save_correction(args) {
     if (!isCorrectionsEnabled()) {

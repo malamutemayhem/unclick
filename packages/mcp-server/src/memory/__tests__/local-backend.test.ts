@@ -27,7 +27,7 @@ describe("LocalBackend memory parity", () => {
     const backend = new LocalBackend();
 
     const fact = await backend.addFact({
-      fact: "Chris wants local Memory recall to find saved facts.",
+      fact: "User wants local Memory recall to find saved facts.",
       category: "technical",
       confidence: 0.95,
     });
@@ -53,7 +53,7 @@ describe("LocalBackend memory parity", () => {
     const backend = new LocalBackend();
 
     const durable = await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.9,
     });
@@ -77,7 +77,7 @@ describe("LocalBackend memory parity", () => {
 
     const context = await backend.getStartupContext(3) as { active_facts: Array<{ fact: string }> };
     const facts = context.active_facts.map((row) => row.fact);
-    assert.ok(facts.includes("Chris prefers compact memory first with source receipts."));
+    assert.ok(facts.includes("User prefers compact memory first with source receipts."));
     assert.equal(facts.some((fact) => fact.includes("heartbeat")), false);
     assert.equal(facts.some((fact) => fact.includes("stale fact")), false);
 
@@ -109,7 +109,7 @@ describe("LocalBackend memory parity", () => {
     });
 
     const saved = await backend.addFact({
-      fact: "Chris wants startup receipts surfaced for profile cards.",
+      fact: "User wants startup receipts surfaced for profile cards.",
       category: "preference",
       confidence: 0.91,
     });

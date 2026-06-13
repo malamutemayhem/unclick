@@ -16,13 +16,13 @@ describe("memory typed-link extraction", () => {
       source_kind: "fact",
       source_id: "fact-1",
       text:
-        "Chris decided job 6e125b76-3238-4425-940f-28a287d85f51 should use PR #887, commit 64c8668, and packages/mcp-server/src/memory/handlers.ts.",
+        "Operator decided job 6e125b76-3238-4425-940f-28a287d85f51 should use PR #887, commit 64c8668, and packages/mcp-server/src/memory/handlers.ts.",
     });
 
     assert.deepEqual(
       links.map((link) => [link.relation, link.target_kind, link.target_text]),
       [
-        ["decided", "person", "Chris"],
+        ["decided", "person", "Operator"],
         ["references", "todo", "6e125b76-3238-4425-940f-28a287d85f51"],
         ["references", "pr", "PR #887"],
         ["references", "commit", "64c8668"],
@@ -81,7 +81,7 @@ describe("memory typed-link extraction", () => {
     const input = {
       source_kind: "fact" as const,
       source_id: "fact-4",
-      text: "Chris authored TestPass notes. PR #900 shipped with docs/testpass-phase-9a-visual-brief.md.",
+      text: "Operator authored TestPass notes. PR #900 shipped with docs/testpass-phase-9a-visual-brief.md.",
     };
 
     assert.deepEqual(extractMemoryTypedLinkCandidates(input), extractMemoryTypedLinkCandidates(input));

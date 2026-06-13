@@ -1,0 +1,23 @@
+{
+  "note": "Modules unreachable from server.ts as of baseline. The orphan gate fails only on NEW entries. Shrink this list; do not grow it. See issue #1440.",
+  "allow": [
+    "src/connectors/discogs.ts",
+    "src/connectors/guardian.ts",
+    "src/connectors/lastfm.ts",
+    "src/connectors/newsapi.ts",
+    "src/connectors/ptv.ts",
+    "src/connectors/seatgeek.ts",
+    "src/connectors/ticketmaster.ts",
+    "src/connectors/twitch.ts",
+    "src/connectors/yelp.ts",
+    "src/converter-tools.ts",
+    "src/heartbeat-noop-reasons.ts",
+    "src/local-tools.ts",
+    "src/memory/conflicts.ts",
+    "src/memory/eval-harness.ts",
+    "src/memory/load-events.ts",
+    "src/memory/tenant-settings.ts",
+    "src/reliability.ts",
+    "src/web-tools.ts"
+  ]
+}

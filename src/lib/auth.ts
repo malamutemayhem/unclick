@@ -37,7 +37,7 @@ export async function signOut() {
 /**
  * React hook returning the current Supabase session.
  *
- * Return shape (stable across callers — do NOT regress to `Session | null`):
+ * Return shape (stable across callers - do NOT regress to `Session | null`):
  *   { session, user, loading }
  *
  *   - session: the current Session, or null if signed out

@@ -53,6 +53,11 @@ describe("AdminTools (Apps library)", () => {
     );
   });
 
+  // Each of these renders the FULL generated catalog (650+ rows) in jsdom,
+  // which can take well over the default 10s on a contended CI runner. The
+  // wider budget keeps slow runners from flaking; the assertions are unchanged.
+  const FULL_CATALOG_RENDER_TIMEOUT_MS = 30_000;
+
   it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
     expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
@@ -60,13 +65,18 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.
     expect(screen.getByText("GitHub")).toBeInTheDocument();
-  });
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
   it("links to Passport and the Skills Library instead of inlining everything", async () => {
     await renderAdminTools();
     expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");
     expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
-  });
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
+
+  // The network filter chips and the connect wizard are covered by the cheap
+  // fixture-based tests in src/components/apps/ (AppsTable.test.tsx and
+  // ConnectAppModal.test.tsx); rendering the full catalog again here for each
+  // assertion is what stalls jsdom.
 
   // Note: the toggle->admin_set_app_state persistence path is covered by the
   // enforcement unit tests (tool-gating.test.ts) and the API handler; a full
