@@ -21,6 +21,9 @@ export interface ConnectorConfig {
   scopes?:     string[];
   authUrl?:    string;
   tokenUrl?:   string;
+  /** Extra query params some providers require on the authorize URL
+   *  (e.g. Google's access_type=offline for a refresh token). */
+  extraAuthParams?: Record<string, string>;
   credentialFields: CredentialField[];
   docsUrl?:    string;
 }
@@ -302,6 +305,109 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
       },
     ],
     docsUrl: "https://docs.joinmastodon.org/",
+  },
+
+  spotify: {
+    name:        "Spotify",
+    slug:        "spotify",
+    authType:    "oauth2",
+    description: "Search, playlists, library, and listening data from your Spotify account.",
+    scopes: [
+      "user-read-private",
+      "playlist-read-private",
+      "user-library-read",
+      "user-top-read",
+    ],
+    authUrl:  "https://accounts.spotify.com/authorize",
+    tokenUrl: "https://accounts.spotify.com/api/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Spotify access token fallback",
+        description:  "Use only if Spotify login is unavailable. An OAuth access token from your own Spotify developer app.",
+        secret:       true,
+        placeholder:  "BQ...",
+        findGuideUrl: "https://developer.spotify.com/dashboard",
+      },
+    ],
+    docsUrl: "https://developer.spotify.com/documentation/web-api",
+  },
+
+  dropbox: {
+    name:        "Dropbox",
+    slug:        "dropbox",
+    authType:    "oauth2",
+    description: "Files, folders, and account access in your Dropbox.",
+    scopes: [],
+    authUrl:  "https://www.dropbox.com/oauth2/authorize",
+    tokenUrl: "https://api.dropboxapi.com/oauth2/token",
+    extraAuthParams: { token_access_type: "offline" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Dropbox access token fallback",
+        description:  "Use only if Dropbox login is unavailable. Generate one from your Dropbox app console.",
+        secret:       true,
+        placeholder:  "sl.B...",
+        findGuideUrl: "https://www.dropbox.com/developers/apps",
+      },
+    ],
+    docsUrl: "https://www.dropbox.com/developers/documentation/http/documentation",
+  },
+
+  "google-workspace": {
+    name:        "Google Workspace",
+    slug:        "google-workspace",
+    authType:    "oauth2",
+    description: "Gmail, Drive, and Calendar through one Google sign-in.",
+    scopes: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/calendar",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Google access token fallback",
+        description:  "Use only if Google login is unavailable.",
+        secret:       true,
+        placeholder:  "ya29...",
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/workspace",
+  },
+
+  "microsoft-graph": {
+    name:        "Microsoft 365",
+    slug:        "microsoft-graph",
+    authType:    "oauth2",
+    description: "Outlook mail, Calendar, OneDrive, and Teams through one Microsoft sign-in.",
+    scopes: [
+      "offline_access",
+      "User.Read",
+      "Mail.Read",
+      "Mail.Send",
+      "Calendars.ReadWrite",
+      "Files.ReadWrite",
+    ],
+    authUrl:  "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Microsoft access token fallback",
+        description:  "Use only if Microsoft login is unavailable.",
+        secret:       true,
+        placeholder:  "EwB...",
+        findGuideUrl: "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+      },
+    ],
+    docsUrl: "https://learn.microsoft.com/graph/overview",
   },
 
 };

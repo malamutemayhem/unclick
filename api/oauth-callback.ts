@@ -93,6 +93,62 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     },
   },
 
+  spotify: {
+    tokenUrl:        "https://accounts.spotify.com/api/token",
+    clientIdEnv:     "SPOTIFY_CLIENT_ID",
+    clientSecretEnv: "SPOTIFY_CLIENT_SECRET",
+    redirectUriEnv:  "SPOTIFY_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Spotify token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      return refreshToken ? { access_token: accessToken, refresh_token: refreshToken } : { access_token: accessToken };
+    },
+  },
+
+  dropbox: {
+    tokenUrl:        "https://api.dropboxapi.com/oauth2/token",
+    clientIdEnv:     "DROPBOX_CLIENT_ID",
+    clientSecretEnv: "DROPBOX_CLIENT_SECRET",
+    redirectUriEnv:  "DROPBOX_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Dropbox token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      return refreshToken ? { access_token: accessToken, refresh_token: refreshToken } : { access_token: accessToken };
+    },
+  },
+
+  // One Google OAuth app covers Gmail, Drive, Calendar, Docs, Sheets (scopes
+  // live on the connector config). Sensitive Gmail scopes may need Google's
+  // app verification before non-test accounts can consent.
+  "google-workspace": {
+    tokenUrl:        "https://oauth2.googleapis.com/token",
+    clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
+    clientSecretEnv: "GOOGLE_WORKSPACE_CLIENT_SECRET",
+    redirectUriEnv:  "GOOGLE_WORKSPACE_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Google token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      return refreshToken ? { access_token: accessToken, refresh_token: refreshToken } : { access_token: accessToken };
+    },
+  },
+
+  // One Azure AD app covers Outlook mail, Calendar, OneDrive, Teams via Graph.
+  "microsoft-graph": {
+    tokenUrl:        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    clientIdEnv:     "MICROSOFT_GRAPH_CLIENT_ID",
+    clientSecretEnv: "MICROSOFT_GRAPH_CLIENT_SECRET",
+    redirectUriEnv:  "MICROSOFT_GRAPH_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Microsoft token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      return refreshToken ? { access_token: accessToken, refresh_token: refreshToken } : { access_token: accessToken };
+    },
+  },
+
   // Shopify OAuth is per-store - the redirect URI and token URL include the store name.
   // Handled specially in the handler below.
 
