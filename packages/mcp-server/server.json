@@ -4,6 +4,9 @@
   "title": "UnClick",
     "description": "UnClick is the universal remote for AI: one MCP install that gives any compatible agent 450+ callable endpoints across 60+ integrations, plus persistent cross-session memory.",
   "version": "0.3.110",
+  "_meta": {
+    "io.unclick/build": "ebcbdb99-87bf-40b0-b5eb-3d43440eee57"
+  },
   "repository": {
     "url": "https://github.com/malamutemayhem/unclick.git",
     "source": "github"
