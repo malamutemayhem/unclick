@@ -13,6 +13,7 @@ import {
 } from "./boardroom/messageLanes";
 import {
   filterFeedByPrefs,
+  filterMessagesByMute,
   filterProfilesByPrefs,
   useBoardroomViewPrefs,
 } from "./boardroom/prefs";
@@ -166,8 +167,8 @@ function ExplainerPanel() {
               separate code-running workers, not chat agents. Do not confuse the two.
             </p>
             <p className="text-[#888]">
-              Your connected agents are listed under Now Playing and in the agents
-              panel on the right.
+              Your connected agents are listed under Now Playing and in the Agents
+              panel next to the message feed.
             </p>
           </div>
         </div>
@@ -421,6 +422,7 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
 
 function MessageBody({ m }: { m: BoardroomMessage }) {
   const human = isHumanAgentId(m.author_agent_id);
+  const recipients = m.recipients?.filter((r) => r.trim().length > 0) ?? [];
   return (
     <>
       <div className="flex flex-wrap items-baseline gap-2">
@@ -433,7 +435,20 @@ function MessageBody({ m }: { m: BoardroomMessage }) {
             you
           </span>
         )}
-        <span className="text-xs text-[#666]">[{formatUtcTime(m.created_at)}]</span>
+        {recipients.length > 0 && (
+          <span
+            className="truncate text-xs text-[#888]"
+            title={`Addressed to ${recipients.join(", ")}`}
+          >
+            {"→"} {recipients.join(", ")}
+          </span>
+        )}
+        <span
+          className="text-xs text-[#666]"
+          title={`${new Date(m.created_at).toLocaleString()} (${formatUtcTime(m.created_at)})`}
+        >
+          {relativeTime(m.created_at)}
+        </span>
       </div>
       <p className="mt-1 whitespace-pre-wrap text-[#ccc]">{m.text}</p>
       {m.tags && m.tags.length > 0 && (
@@ -555,15 +570,20 @@ export default function Boardroom() {
 
   const { prefs, update, toggleTag, toggleMute } = useBoardroomViewPrefs();
 
+  // Lanes are tag-defined, so only the mute pref applies to them; the
+  // viewer's tag filters would empty a lane by definition.
   const heartbeatMessages = useMemo(
-    () => getLaneMessages(messages, "heartbeat"),
-    [messages],
+    () => filterMessagesByMute(getLaneMessages(messages, "heartbeat"), prefs),
+    [messages, prefs],
   );
   const eventMessages = useMemo(
-    () => getLaneMessages(messages, "event"),
-    [messages],
+    () => filterMessagesByMute(getLaneMessages(messages, "event"), prefs),
+    [messages, prefs],
   );
-  const actionQueueMessages = useMemo(() => getActionQueueMessages(messages), [messages]);
+  const actionQueueMessages = useMemo(
+    () => filterMessagesByMute(getActionQueueMessages(messages), prefs),
+    [messages, prefs],
+  );
   const mainFeedMessages = useMemo(() => getMainFeedMessages(messages), [messages]);
 
   // The viewer's filters (muted agents, tag focus) narrow the feed before we
@@ -688,7 +708,7 @@ export default function Boardroom() {
     <div className="space-y-5">
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-semibold text-[#ccc]">
-          <span aria-hidden>🐠</span>
+          <span aria-hidden>🏛️</span>
           <span>Boardroom</span>
         </h1>
         <p className="mt-1 text-sm text-[#888]">

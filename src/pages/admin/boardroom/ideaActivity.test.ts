@@ -4,6 +4,7 @@ import {
   ageLabel,
   ideaBucket,
   partitionIdeas,
+  sortIdeasByActivity,
   type IdeaActivity,
   type IdeaStatus,
 } from "./ideaActivity";
@@ -57,6 +58,25 @@ describe("idea activity buckets", () => {
     expect(parts.active).toHaveLength(1);
     expect(parts.stale).toHaveLength(1);
     expect(parts.resolved).toHaveLength(2);
+  });
+
+  it("orders each bucket newest activity first", () => {
+    const oldIdea = idea("proposed", 10);
+    const newIdea = idea("voting", 1);
+    const parts = partitionIdeas([oldIdea, newIdea], NOW);
+    expect(parts.active).toEqual([newIdea, oldIdea]);
+
+    const oldDone = idea("locked", 90);
+    const newDone = idea("rejected", 5);
+    expect(partitionIdeas([oldDone, newDone], NOW).resolved).toEqual([newDone, oldDone]);
+  });
+
+  it("sortIdeasByActivity does not mutate its input and sinks invalid dates", () => {
+    const broken = { status: "voting" as IdeaStatus, created_at: "x", updated_at: "not-a-date" };
+    const fresh = idea("voting", 1);
+    const input = [broken, fresh];
+    expect(sortIdeasByActivity(input)).toEqual([fresh, broken]);
+    expect(input).toEqual([broken, fresh]);
   });
 });
 

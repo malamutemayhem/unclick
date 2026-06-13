@@ -98,6 +98,19 @@ export function filterFeedByPrefs<T extends FeedFilterMessage>(
   });
 }
 
+/**
+ * Drop muted authors only. Used for the tag-defined lanes (needs attention,
+ * heartbeats, events) where applying the viewer's tag filters would empty the
+ * lane by definition, but a muted agent should still stay hidden.
+ */
+export function filterMessagesByMute<T extends FeedFilterMessage>(
+  messages: T[],
+  prefs: BoardroomViewPrefs,
+): T[] {
+  if (prefs.mutedAgentIds.length === 0) return messages;
+  return messages.filter((m) => !isAgentMuted(prefs, m.author_agent_id));
+}
+
 export interface MutableProfile {
   agent_id: string;
 }
