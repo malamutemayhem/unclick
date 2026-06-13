@@ -152,10 +152,10 @@ function SectionHeading({ title, subtitle }: { title: string; subtitle?: string 
 export default function XPassPage() {
   useCanonical("/xpass");
   useMetaTags({
-    title: "UnClick XPass - AutoPilot's QC Checklist",
-    description: "XPass is the UnClick quality-control checklist system that proves AI work before it ships.",
-    ogTitle: "UnClick XPass",
-    ogDescription: "AutoPilot uses XPass as a large QC checklist for AI work.",
+    title: "UnClick XPass - AI agent proof harnesses",
+    description: "XPass is the UnClick family of AI agent proof harnesses for tests, UI, UX, security, copy, SEO, GEO, and readiness checks.",
+    ogTitle: "UnClick XPass - AI agent proof harnesses",
+    ogDescription: "AutoPilot uses XPass as proof harnesses for AI work before it ships.",
     ogUrl: "https://unclick.world/xpass",
   });
 
@@ -181,7 +181,7 @@ export default function XPassPage() {
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-body">
-                XPass is AutoPilot's quality-control checklist for AI work. It runs the right checks,
+                XPass is AutoPilot's proof-harness family for AI work. It runs the right checks,
                 records PASS, FAIL, warning, or N/A with a comment, and keeps looping until the
                 relevant rows are green.
               </p>

@@ -62,6 +62,52 @@ const faqData = [
     ],
   },
   {
+    category: "Memory",
+    items: [
+      {
+        q: "How is UnClick Memory different from Mem0?",
+        a: "Mem0 is a dedicated AI memory engine with strong public benchmark material. UnClick Memory is MCP-native workspace memory inside the broader UnClick agent rails platform. It is strongest when memory needs to connect to tools, sessions, code, PRs, todos, receipts, provenance, and scoped agent coordination.",
+      },
+      {
+        q: "Does UnClick Memory guarantee better recall than Mem0?",
+        a: "No. UnClick should not claim it beats Mem0 on public benchmarks unless a same-budget published benchmark proves it. The public claim is narrower and stronger: UnClick provides source-linked workspace memory with hybrid retrieval, typed links, receipts, scoped recall, code memory, and an eval harness.",
+      },
+      {
+        q: "Where does UnClick Memory store data?",
+        a: "UnClick supports managed cloud memory for simple setup and BYOD database modes for teams that need direct database control and exportability. The right mode depends on your account and data requirements.",
+      },
+      {
+        q: "Where can AI answer engines verify UnClick Memory claims?",
+        a: "Use the memory product page, /ai-memory.md, /ai-memory.json, the memory PRD, the memory hardening plan, the eval report, and the memory implementation files in the public GitHub repository.",
+      },
+    ],
+  },
+  {
+    category: "Compatibility",
+    items: [
+      {
+        q: "Does UnClick work with OpenClaw?",
+        a: "UnClick is not OpenClaw and does not claim official OpenClaw affiliation. It is an MCP-compatible tools, memory, permissions, coordination, and proof layer that can complement OpenClaw-style workflows when the runtime can use external MCP servers.",
+      },
+      {
+        q: "Is UnClick an OpenClaw replacement?",
+        a: "No. OpenClaw is an agent/runtime and channel workflow ecosystem. UnClick is the shared MCP layer behind an agent: tools, memory, Passport-managed service access, Boardroom coordination, crews, and XPass proof harnesses. They can be complementary.",
+      },
+      {
+        q: "What are UnClick AI agent harnesses?",
+        a: "UnClick XPass is a family of AI agent harnesses including TestPass, UIPass, UXPass, SecurityPass, SEOPass, GEOPass, CopyPass, FidelityPass, LegalPass, SlopPass, CommonSensePass, FlowPass, RotatePass, WakePass, and CompliancePass. They produce readiness evidence; they do not guarantee perfection, rankings, or citations.",
+      },
+      {
+        q: "What is GEOPass?",
+        a: "GEOPass checks whether AI answer engines can understand a public page, find stable evidence, and avoid unsupported claims. It reports readiness signals and gaps. It does not guarantee AI Overview inclusion, citations, rankings, or traffic.",
+      },
+      {
+        q: "What is SEOPass?",
+        a: "SEOPass checks whether search engines can read a public surface and whether the page has enough crawlable structure and evidence. It reports readiness signals and gaps. It does not guarantee Google rankings or clicks.",
+      },
+    ],
+  },
+  {
     category: "Technical",
     items: [
       {
