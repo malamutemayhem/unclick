@@ -10,9 +10,10 @@ import { motion } from "framer-motion";
 // let the user pick. No AI middleman, no "walk me through it", just paste
 // one field or click one button.
 //
-// Auth: api_key embedded as ?key= query param. /api/mcp accepts this because
-// Claude.ai's and ChatGPT's "Add custom connector" dialogs only expose a URL
-// field, so there is no place to set a header.
+// Auth: remote URL installs embed a persistent connection key as ?key=.
+// Claude.ai and ChatGPT custom connector dialogs only expose a URL field, so
+// there is no place to set a header. This is not the one-use install-ticket
+// flow used by local stdio installs.
 
 type Platform = "Claude" | "ChatGPT" | "Cursor" | "VS Code" | "Other";
 type ClaudeSurface = "Web" | "Desktop" | "Code";
@@ -214,6 +215,14 @@ function Steps({ items }: { items: string[] }) {
   );
 }
 
+function PersistentUrlNotice() {
+  return (
+    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
+      The URL below contains a persistent UnClick connection key. Keep it private and reset it if it leaks.
+    </div>
+  );
+}
+
 // ─── Per-platform panels ──────────────────────────────────────────────────
 
 function ClaudePanel({ apiKey, surface }: { apiKey: string; surface: ClaudeSurface }) {
@@ -251,7 +260,8 @@ function ClaudePanel({ apiKey, surface }: { apiKey: string; surface: ClaudeSurfa
       />
       <div className="space-y-3">
         <CopyField label="Name" value="UnClick" hasKey={hasKey} mono={false} />
-        <CopyField label="Remote MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <PersistentUrlNotice />
+        <CopyField label="Persistent MCP connection URL" value={mcpUrl(key)} hasKey={hasKey} />
       </div>
     </div>
   );
@@ -275,7 +285,8 @@ function ChatGPTPanel({ apiKey }: { apiKey: string }) {
       />
       <div className="space-y-3">
         <CopyField label="Name" value="UnClick" hasKey={hasKey} mono={false} />
-        <CopyField label="MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <PersistentUrlNotice />
+        <CopyField label="Persistent MCP connection URL" value={mcpUrl(key)} hasKey={hasKey} />
       </div>
     </div>
   );
@@ -298,6 +309,7 @@ function CursorPanel({ apiKey }: { apiKey: string }) {
           <p className="text-xs text-muted-foreground">
             Edit <code className="font-mono">~/.cursor/mcp.json</code> and paste:
           </p>
+          <PersistentUrlNotice />
           <CodeBlock
             code={`{
   "mcpServers": {
@@ -331,7 +343,8 @@ function VSCodePanel({ apiKey }: { apiKey: string }) {
           <p className="text-xs text-muted-foreground">
             Command Palette → "MCP: Add Server" → HTTP, then paste:
           </p>
-          <CopyField label="URL" value={mcpUrl(key)} hasKey={hasKey} />
+          <PersistentUrlNotice />
+          <CopyField label="Persistent MCP connection URL" value={mcpUrl(key)} hasKey={hasKey} />
         </div>
       </details>
     </div>
@@ -355,14 +368,14 @@ function OtherPanel({ apiKey }: { apiKey: string }) {
         <p className="text-xs text-muted-foreground">
           In your client's MCP settings, add a new server with this URL:
         </p>
-        <CopyField label="MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <PersistentUrlNotice />
+        <CopyField label="Persistent MCP connection URL" value={mcpUrl(key)} hasKey={hasKey} />
       </div>
 
       <div className="space-y-3">
         <p className="text-sm font-medium text-heading">Local / self-hosted (stdio)</p>
         <p className="text-xs text-muted-foreground">
-          Runs UnClick as a local process via npx. Use this if your client
-          doesn't support remote URLs or you want to self-host.
+          Runs UnClick as a local process via npx. The key is stored in your local MCP config instead of inside a URL.
         </p>
         <CodeBlock code={stdioJson(key)} hasKey={hasKey} />
       </div>

@@ -115,7 +115,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
               </svg>
             </div>
             <span className="text-sm font-medium text-primary">
-              {isReturning ? "Welcome back. Here's your key." : "You're in! Your API key is ready."}
+              {isReturning ? "Welcome back. Your connection key is ready." : "You're in! Your connection key is ready."}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -131,7 +131,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
             </motion.button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            This key is already inserted into your config below.{" "}
+            The setup below uses this key. Keep copied URLs private.{" "}
             <button onClick={handleReset} className="underline underline-offset-2 hover:text-body transition-colors">
               Use a different account
             </button>
@@ -150,7 +150,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
         transition={{ duration: 0.3 }}
         className="rounded-xl border border-border/60 bg-card/30 p-5"
       >
-        <p className="text-sm font-medium text-heading mb-1">Get your free API key</p>
+        <p className="text-sm font-medium text-heading mb-1">Create your UnClick connection key</p>
         <p className="text-xs text-muted-foreground mb-4">
           No credit card. No waitlist. Covers all {SITE_STATS.TOOLS_DISPLAY} tools immediately.
         </p>
