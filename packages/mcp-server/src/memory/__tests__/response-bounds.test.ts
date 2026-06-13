@@ -63,6 +63,9 @@ describe("strict-client memory response bounds", () => {
   });
 
   test("load_memory compact mode pins always-on operator preferences past the top-6 cut", () => {
+    // about_you can be the full editor limit (1500 chars); it must reach the
+    // agent whole, not clipped to the generic business_context preview cap.
+    const fullAboutYou = `I run a small creative studio and prefer plain-English answers. ${"x".repeat(1200)}`;
     const business = [
       ...Array.from({ length: 8 }, (_, i) => ({
         category: "standing_rule",
@@ -75,15 +78,22 @@ describe("strict-client memory response bounds", () => {
         key: "ai_style",
         value: {
           directive:
-            "Operator AI style, always honor unless overridden in-session: keep replies brief and to the point; use simple, plain English.",
+            "Operator AI style, always honor unless overridden in-session: keep replies brief and to the point; use simple, plain English; lead with visuals such as tables, steps, and examples; use expressive emoji.",
           response_length: "brief",
+          complexity: "simple",
+          analogies: "on",
+          format: "visual",
+          emoji_level: "expressive",
+          custom_instructions: "",
+          privacy: "style-only",
+          updated_at: "2026-06-13T00:00:00.000Z",
         },
         priority: 99,
       },
       {
         category: "identity",
         key: "about_you",
-        value: "I run a small creative studio and prefer plain-English answers.",
+        value: fullAboutYou,
         priority: 100,
       },
     ];
@@ -100,10 +110,16 @@ describe("strict-client memory response bounds", () => {
     assert.equal(compact.business_context.length, 8);
     assert.equal(compact.response_bounds.business_context_returned, 8);
 
-    // The directive keeps its roomier value cap (vs the default 130) so it
-    // survives compaction and actually reaches the agent.
+    // ai_style survives as a parseable object (full realistic value fits the
+    // 520 cap), so agents can read individual fields, not clipped JSON text.
     const aiStyleRow = compact.business_context.find((row) => row.key === "ai_style");
+    assert.equal(typeof aiStyleRow?.value, "object");
     assert.ok(JSON.stringify(aiStyleRow?.value ?? "").includes("keep replies brief"));
+
+    // about_you arrives whole: no truncation marker, exact text preserved.
+    const aboutYouRow = compact.business_context.find((row) => row.key === "about_you");
+    assert.equal(aboutYouRow?.value, fullAboutYou);
+    assert.equal(String(aboutYouRow?.value).includes("[truncated"), false);
   });
 
   test("load_memory non-lite mode returns truncated session summaries", () => {
