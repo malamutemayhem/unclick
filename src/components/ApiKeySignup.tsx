@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { SITE_STATS } from "@/config/site-stats";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "unclick_api_key";
 const EMAIL_KEY = "unclick_user_email";
@@ -14,9 +13,23 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function generateApiKey() {
-  const uuid = crypto.randomUUID().replace(/-/g, "");
-  return `uc_${uuid}`;
+interface SignupResponse {
+  api_key?: string;
+  prefix?: string;
+  error?: string;
+}
+
+async function requestApiKey(email: string): Promise<string> {
+  const response = await fetch("/api/install-ticket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "signup", email }),
+  });
+  const data = (await response.json().catch(() => ({}))) as SignupResponse;
+  if (!response.ok || !data.api_key) {
+    throw new Error(data.error ?? `Signup failed with HTTP ${response.status}`);
+  }
+  return data.api_key;
 }
 
 const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
@@ -48,49 +61,12 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
     setLoading(true);
     setError("");
 
-    // Guard against preview deploys that forgot to set Supabase env vars.
-    const hasSupabaseConfig =
-      !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!hasSupabaseConfig) {
-      setLoading(false);
-      setError(
-        "Signup is not configured on this deployment. Email hello@unclick.world for a key.",
-      );
-      return;
-    }
-
     try {
-      // Check if email already has a key
-      const { data: existing, error: selectError } = await supabase
-        .from("api_keys")
-        .select("api_key")
-        .eq("email", trimmed.toLowerCase())
-        .eq("status", "active")
-        .maybeSingle();
-
-      if (selectError) throw selectError;
-
-      if (existing?.api_key) {
-        const key = existing.api_key as string;
-        localStorage.setItem(STORAGE_KEY, key);
-        localStorage.setItem(EMAIL_KEY, trimmed.toLowerCase());
-        setIsReturning(true);
-        setApiKey(key);
-        onKeyReady(key);
-        return;
-      }
-
-      // Generate a new key and insert
-      const newKey = generateApiKey();
-
-      const { error: insertError } = await supabase
-        .from("api_keys")
-        .insert({ email: trimmed.toLowerCase(), api_key: newKey });
-
-      if (insertError) throw insertError;
+      const normalizedEmail = trimmed.toLowerCase();
+      const newKey = await requestApiKey(normalizedEmail);
 
       localStorage.setItem(STORAGE_KEY, newKey);
-      localStorage.setItem(EMAIL_KEY, trimmed.toLowerCase());
+      localStorage.setItem(EMAIL_KEY, normalizedEmail);
       setIsReturning(false);
       setApiKey(newKey);
       onKeyReady(newKey);
