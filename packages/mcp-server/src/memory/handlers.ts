@@ -582,7 +582,11 @@ export function compactStartupContextForStrictClients(
   const compactBusiness = [...topBusiness, ...pinnedBusiness];
   out.business_context = compactBusiness.map((row) => {
     const r = asRecord(row) ?? {};
-    const valueCap = isAlwaysOnPreference(r) ? 360 : 130;
+    // Per-key caps for the always-on rows: about_you matches the editor's
+    // 1500-char limit so the identity block is never truncated, and ai_style
+    // gets enough room for its full JSON value (directive plus fields) so
+    // agents receive a parseable object instead of clipped JSON text.
+    const valueCap = r.key === "about_you" ? 1500 : isAlwaysOnPreference(r) ? 520 : 130;
     return { category: r.category, key: r.key, value: compactJsonValue(r.value, valueCap), priority: r.priority };
   });
   out.profile_card = buildMemoryProfileCard({ business, facts: startupFacts, sessions, includeSessionSummaries });
