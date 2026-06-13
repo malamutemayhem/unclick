@@ -44,9 +44,9 @@
     animation: hp-floor-pan 26s linear infinite;
     will-change: transform;
   }
-  /* Lite mode (set by the journey engine on devices that cannot hold
-     full quality at full speed): the grid stands still. */
-  .hp-lite .hp-floor::after {
+  /* Lite mode (set on <html> by the journey engine on devices that
+     cannot hold full quality at full speed): the grid stands still. */
+  .hp-perf-lite .hp-floor::after {
     animation: none;
   }
 }
