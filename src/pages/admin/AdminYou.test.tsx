@@ -113,14 +113,15 @@ describe("AdminYou API key card", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows clear copy actions when the raw API key is available", async () => {
+  it("shows public and compatibility copy actions when the raw API key is available", async () => {
     stubFetch("uc_test_1234567890");
 
     renderPage();
 
-    expect(await screen.findByRole("button", { name: /Copy API key/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Copy MCP URL/i })).toBeInTheDocument();
-    expect(screen.getByText(/Copy it now or copy the ready-made MCP URL/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Copy public URL/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copy compatibility URL/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copy key/i })).toBeInTheDocument();
+    expect(screen.getByText(/Use the public MCP door first/i)).toBeInTheDocument();
     await waitForInitialAdminYouFetches();
   });
 
@@ -130,7 +131,8 @@ describe("AdminYou API key card", () => {
     renderPage();
 
     expect(await screen.findByText(/stores only a hash after setup/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Create new copyable key/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Rotate compatibility key/i })).toBeInTheDocument();
+    expect(screen.getByText(/public MCP door is unchanged/i)).toBeInTheDocument();
     await waitForInitialAdminYouFetches();
   });
 

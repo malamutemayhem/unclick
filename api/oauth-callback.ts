@@ -3,12 +3,16 @@
  * Vercel serverless function - exchanges OAuth authorization code for tokens
  * and stores them encrypted in Supabase via the credentials endpoint.
  *
+ * GET /api/oauth-callback
+ *   Handles provider redirects from registered OAuth apps, exchanges the code,
+ *   stores credentials, then redirects back to /connect/:platform.
+ *
  * POST /api/oauth-callback
  *   Body: {
  *     platform: string        // e.g. "xero"
  *     code:     string        // OAuth authorization code from platform redirect
  *     api_key:  string        // User's UnClick API key (used as encryption key)
- *     state?:   string        // CSRF state token (validated client-side before this call)
+ *     state?:   string        // CSRF state token verified server-side
  *   }
  *   Returns: { success: true, platform, message } or { error: string }
  *
@@ -23,9 +27,16 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { verifyOAuthStateToken } from "./oauth-state";
+import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js";
 
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
+
+const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+
+class OAuthRequestError extends Error {
+  status = 400;
+}
 
 interface OAuthConfig {
   tokenUrl:    string;
@@ -154,6 +165,23 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
 
 };
 
+function resolveRedirectUri(config: OAuthConfig, env: NodeJS.ProcessEnv): string {
+  const redirectUri = (env[config.redirectUriEnv] ?? "").trim();
+
+  if (config.redirectUriEnv === "GITHUB_REDIRECT_URI") {
+    try {
+      const url = new URL(redirectUri);
+      if (url.hostname === "unclick.world" && url.pathname === "/connect/github") {
+        return GITHUB_CANONICAL_REDIRECT_URI;
+      }
+    } catch {
+      // Let the normal missing/invalid redirect URI error handle this below.
+    }
+  }
+
+  return redirectUri;
+}
+
 // ─── Shopify special handling ─────────────────────────────────────────────────
 
 async function exchangeShopify(
@@ -192,7 +220,7 @@ async function exchangeCode(
 ): Promise<Record<string, string>> {
   const clientId     = env[config.clientIdEnv]     ?? "";
   const clientSecret = env[config.clientSecretEnv] ?? "";
-  const redirectUri  = env[config.redirectUriEnv]  ?? "";
+  const redirectUri  = resolveRedirectUri(config, env);
 
   if (!clientId || !clientSecret) {
     throw new Error(
@@ -245,15 +273,146 @@ async function storeCredentials(
   }
 }
 
+// ─── Browser callback helpers ────────────────────────────────────────────────
+
+function firstQueryValue(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+function readCookie(req: VercelRequest, name: string): string {
+  const cookieHeader = req.headers.cookie ?? "";
+  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+  const prefix = `${name}=`;
+  for (const cookie of cookies) {
+    if (!cookie.startsWith(prefix)) continue;
+    return decodeURIComponent(cookie.slice(prefix.length));
+  }
+  return "";
+}
+
+function clearOAuthApiKeyCookie(): string {
+  return [
+    `${OAUTH_API_KEY_COOKIE}=`,
+    "Path=/api/oauth-callback",
+    "Max-Age=0",
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ].join("; ");
+}
+
+function appendQuery(path: string, params: Record<string, string>): string {
+  const url = new URL(path, "https://unclick.world");
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function redirectBack(
+  res: VercelResponse,
+  statePayload: OAuthStatePayload | null,
+  params: Record<string, string>
+) {
+  const redirectPath = statePayload?.redirectPath?.startsWith("/connect/")
+    ? statePayload.redirectPath
+    : "/admin/apps";
+  res.setHeader("Set-Cookie", clearOAuthApiKeyCookie());
+  return res.redirect(302, appendQuery(redirectPath, params));
+}
+
+async function completeOAuthConnection(args: {
+  platform: string;
+  code: string;
+  apiKey: string;
+  state: string;
+  store?: string;
+  baseUrl: string;
+  env: NodeJS.ProcessEnv;
+}): Promise<{ platform: string; statePayload: OAuthStatePayload }> {
+  const { platform, code, apiKey, state, store, baseUrl, env } = args;
+
+  if (!platform) throw new OAuthRequestError("platform is required.");
+  if (!code) throw new OAuthRequestError("code is required.");
+  if (!apiKey) throw new OAuthRequestError("api_key is required.");
+  if (!state) throw new OAuthRequestError("state is required.");
+
+  if (!apiKey.startsWith("uc_") && !apiKey.startsWith("agt_")) {
+    throw new OAuthRequestError("Invalid api_key format.");
+  }
+
+  const statePayload = verifyOAuthStateToken(state, env);
+  if (statePayload.platform !== platform) {
+    throw new OAuthRequestError("OAuth state platform mismatch.");
+  }
+  if (statePayload.redirectPath !== `/connect/${platform}`) {
+    throw new OAuthRequestError("OAuth state redirect mismatch.");
+  }
+
+  let credentials: Record<string, string>;
+
+  if (platform === "shopify") {
+    const verifiedStore = statePayload.store ?? store;
+    if (!verifiedStore) throw new OAuthRequestError("store is required for Shopify.");
+    credentials = await exchangeShopify(code, verifiedStore, env);
+  } else {
+    const config = PLATFORM_CONFIGS[platform];
+    if (!config) {
+      throw new OAuthRequestError(`OAuth not configured for platform "${platform}". Use the manual credential form instead.`);
+    }
+    credentials = await exchangeCode(config, code, env);
+  }
+
+  await storeCredentials(platform, credentials, apiKey, baseUrl);
+  return { platform, statePayload };
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")    return res.status(405).json({ error: "Method not allowed." });
+  if (req.method !== "GET" && req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed." });
+  }
+
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://unclick.world";
+
+  if (req.method === "GET") {
+    const code = firstQueryValue(req.query.code);
+    const state = firstQueryValue(req.query.state);
+    const providerError = firstQueryValue(req.query.error_description)
+      || firstQueryValue(req.query.error)
+      || "";
+    let statePayload: OAuthStatePayload | null = null;
+
+    try {
+      if (state) statePayload = verifyOAuthStateToken(state, process.env);
+      if (providerError) {
+        return redirectBack(res, statePayload, { oauth_error: providerError });
+      }
+      if (!statePayload) throw new Error("Missing OAuth state. Please try again.");
+
+      await completeOAuthConnection({
+        platform: statePayload.platform,
+        code,
+        apiKey: readCookie(req, OAUTH_API_KEY_COOKIE),
+        state,
+        baseUrl,
+        env: process.env,
+      });
+
+      return redirectBack(res, statePayload, { connected: "1" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Connection failed. Please try again.";
+      return redirectBack(res, statePayload, { oauth_error: message });
+    }
+  }
 
   const { platform, code, api_key, state, store } = (req.body ?? {}) as {
     platform?: string;
@@ -263,53 +422,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     store?:    string; // Shopify only
   };
 
-  if (!platform) return res.status(400).json({ error: "platform is required." });
-  if (!code)     return res.status(400).json({ error: "code is required." });
-  if (!api_key)  return res.status(400).json({ error: "api_key is required." });
-  if (!state)    return res.status(400).json({ error: "state is required." });
-
-  if (!api_key.startsWith("uc_") && !api_key.startsWith("agt_")) {
-    return res.status(400).json({ error: "Invalid api_key format." });
-  }
-
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://unclick.world";
-
   try {
-    const statePayload = verifyOAuthStateToken(state, process.env);
-    if (statePayload.platform !== platform) {
-      return res.status(400).json({ error: "OAuth state platform mismatch." });
-    }
-    if (statePayload.redirectPath !== `/connect/${platform}`) {
-      return res.status(400).json({ error: "OAuth state redirect mismatch." });
-    }
-
-    let credentials: Record<string, string>;
-
-    if (platform === "shopify") {
-      const verifiedStore = statePayload.store ?? store;
-      if (!verifiedStore) return res.status(400).json({ error: "store is required for Shopify." });
-      credentials = await exchangeShopify(code, verifiedStore, process.env);
-    } else {
-      const config = PLATFORM_CONFIGS[platform];
-      if (!config) {
-        return res.status(400).json({
-          error: `OAuth not configured for platform "${platform}". Use the manual credential form instead.`,
-        });
-      }
-      credentials = await exchangeCode(config, code, process.env);
-    }
-
-    await storeCredentials(platform, credentials, api_key, baseUrl);
+    const result = await completeOAuthConnection({
+      platform: platform ?? "",
+      code: code ?? "",
+      apiKey: api_key ?? "",
+      state: state ?? "",
+      store,
+      baseUrl,
+      env: process.env,
+    });
 
     return res.status(200).json({
       success:  true,
-      platform,
-      message:  `Connected to ${platform} successfully.`,
+      platform: result.platform,
+      message:  `Connected to ${result.platform} successfully.`,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: message });
+    const status = err instanceof OAuthRequestError ? err.status : 500;
+    return res.status(status).json({ error: message });
   }
 }

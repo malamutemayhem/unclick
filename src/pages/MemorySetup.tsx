@@ -452,7 +452,7 @@ export default function MemorySetupPage() {
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-heading">Add UnClick to your AI app</h3>
                 <p className="mt-1 text-xs text-body">
-                  Copy this into your AI app's settings file (its MCP config). UnClick signs in to your
+                  Paste this into your AI app's settings file (its MCP config). UnClick signs in to your
                   database with your API key; nothing else can open it.
                 </p>
                 <div className="mt-3 rounded-md border border-border/40 bg-card/60">

@@ -75,6 +75,7 @@ const DogfoodReportPage = lazy(() => import("./pages/DogfoodReport.tsx"));
 const LoginPage = lazy(() => import("./pages/Login.tsx"));
 const SignupPage = lazy(() => import("./pages/Signup.tsx"));
 const AuthCallbackPage = lazy(() => import("./pages/AuthCallback.tsx"));
+const PairingCompletePage = lazy(() => import("./pages/PairingComplete.tsx"));
 const VerifyMfaPage = lazy(() => import("./pages/VerifyMfa.tsx"));
 const BrochurePage = lazy(() => import("./components/BrochurePage.tsx"));
 const AdminShell = lazy(() => import("./pages/admin/AdminShell.tsx"));
@@ -158,6 +159,24 @@ function AnalyticsPageviewTracker() {
   return null;
 }
 
+function HashScrollHandler() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const targetId = decodeURIComponent(location.hash.slice(1));
+    if (!targetId || targetId.includes("=")) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({ block: "start", behavior: "auto" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.hash, location.pathname, location.search]);
+
+  return null;
+}
+
 /** Quiet, theme-consistent placeholder while a lazy route chunk loads. */
 function RouteFallback() {
   return (
@@ -176,6 +195,7 @@ const App = () => (
       <BrowserRouter>
         <SiteAurora />
         <AnalyticsPageviewTracker />
+        <HashScrollHandler />
         <BetaBanner />
         <Suspense fallback={<RouteFallback />}>
         <Routes>
@@ -323,6 +343,7 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/pair/connected" element={<PairingCompletePage />} />
           <Route path="/auth/verify-mfa" element={<VerifyMfaPage />} />
           <Route path="/organiser" element={<OrganiserPage />} />
           <Route path="/dispatch" element={<DispatchPage />} />

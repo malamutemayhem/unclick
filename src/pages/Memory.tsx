@@ -72,14 +72,14 @@ const CAPTURE_FEED = [
 ];
 
 const COMPARISON = [
-  { feature: "Where data lives", tip: "Who controls your memory data", unclick: "Your database", mem0: "Their cloud", letta: "Their runtime", zep: "Their cloud" },
-  { feature: "Memory structure", tip: "How memory is structured and organised", unclick: "Eight pillars", mem0: "Flat store", letta: "Three tiers", zep: "Three subgraphs" },
-  { feature: "Code aware", tip: "Stores and searches code blocks separately", unclick: "Yes", mem0: "No", letta: "Partial", zep: "No" },
-  { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", mem0: "No", letta: "No", zep: "No" },
-  { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", mem0: "Yes", letta: "No", zep: "No" },
-  { feature: "Cross platform", tip: "Works across Claude Code, Cowork, Cursor, and other MCP-compatible clients", unclick: "Yes", mem0: "Yes", letta: "Limited", zep: "Yes" },
-  { feature: "Price", tip: "Starting cost for production use", unclick: "Free", mem0: "$249/mo", letta: "Free self-host", zep: "Pay per credit" },
-  { feature: "Lock in", tip: "How hard it is to leave and take your data with you", unclick: "Zero", mem0: "High", letta: "Medium", zep: "Medium" },
+  { feature: "Where data lives", tip: "Who controls your memory data", unclick: "Your database", managed: "Provider cloud", runtime: "Runtime store", graph: "Provider cloud" },
+  { feature: "Memory structure", tip: "How memory is structured and organised", unclick: "Eight pillars", managed: "Flat store", runtime: "Runtime tiers", graph: "Graph layers" },
+  { feature: "Code aware", tip: "Stores and searches code blocks separately", unclick: "Yes", managed: "Usually no", runtime: "Partial", graph: "Usually no" },
+  { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", managed: "Limited", runtime: "Limited", graph: "Limited" },
+  { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", managed: "Sometimes", runtime: "Limited", graph: "Limited" },
+  { feature: "Cross platform", tip: "Works across Claude Code, Cowork, Cursor, and other MCP-compatible clients", unclick: "Yes", managed: "Often", runtime: "Limited", graph: "Often" },
+  { feature: "Price", tip: "Starting cost for production use", unclick: "Free", managed: "Paid tiers", runtime: "Self-host option", graph: "Usage based" },
+  { feature: "Lock in", tip: "How hard it is to leave and take your data with you", unclick: "Zero", managed: "Higher", runtime: "Medium", graph: "Medium" },
 ];
 
 const Memory = () => {
@@ -394,13 +394,13 @@ const Memory = () => {
                       UnClick Memory
                     </th>
                     <th className="p-3 text-left font-medium text-muted-foreground">
-                      Mem0
+                      Managed memory
                     </th>
                     <th className="p-3 text-left font-medium text-muted-foreground">
-                      Letta
+                      Agent runtime
                     </th>
                     <th className="p-3 text-left font-medium text-muted-foreground">
-                      Zep
+                      Graph memory
                     </th>
                   </tr>
                 </thead>
@@ -421,9 +421,9 @@ const Memory = () => {
                       <td className="p-3 font-medium text-primary">
                         {row.unclick}
                       </td>
-                      <td className="p-3 text-body">{row.mem0}</td>
-                      <td className="p-3 text-body">{row.letta}</td>
-                      <td className="p-3 text-body">{row.zep}</td>
+                      <td className="p-3 text-body">{row.managed}</td>
+                      <td className="p-3 text-body">{row.runtime}</td>
+                      <td className="p-3 text-body">{row.graph}</td>
                     </tr>
                   ))}
                 </tbody>
