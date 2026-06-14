@@ -19,7 +19,7 @@ import {
  * Public Crews page (canon + truth rewrite, 2026-06-11).
  *
  * Leads with what is distinctive and true: a Captain, specialist hats, and
- * structured debate with receipts. No competitor names, no self-awarded
+ * structured debate with receipts. No third-party framework names, no self-awarded
  * readiness marks that contradict the private alpha badge, and the advisor
  * count derives from the roster instead of being hand-typed.
  */

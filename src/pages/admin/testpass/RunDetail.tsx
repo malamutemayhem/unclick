@@ -234,7 +234,7 @@ function CheckCard({
                         type="button"
                         onClick={() => onCopyStep(stepKey, step)}
                         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#777] hover:bg-white/[0.08] hover:text-white"
-                        title="Copy this step"
+                        title="Copy step"
                       >
                         {copiedStep === stepKey ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
                       </button>
@@ -529,7 +529,7 @@ export default function RunDetail() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mb-3 text-xs text-[#888]">Copy this prompt into your AI chat to get help with these checks.</p>
+            <p className="mb-3 text-xs text-[#888]">Paste the prompt into your AI chat to get help with these checks.</p>
             <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-[#ccc]">
               {agentPrompt}
             </pre>

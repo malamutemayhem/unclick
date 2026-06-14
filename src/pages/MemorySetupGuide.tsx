@@ -237,7 +237,7 @@ function GuideBody({ guide }: { guide: SetupGuide }) {
             <div className="min-w-0">
               <p className="text-xs font-medium text-heading">Config file: {guide.config_file.filename}</p>
               <p className="text-[11px] text-muted-foreground">
-                Copy this into your project or client config.
+                Paste this into your project or client config.
               </p>
             </div>
             <CopyButton text={guide.config_file.content} label={`Copy ${guide.config_file.filename}`} />
