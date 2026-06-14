@@ -23,7 +23,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { verifyOAuthStateToken } from "./oauth-state";
+import { verifyOAuthStateToken } from "./oauth-state.js";
 
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 

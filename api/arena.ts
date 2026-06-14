@@ -20,8 +20,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   decideAiProviderCall,
   type AiProviderCallDecision,
-} from "./lib/ai-provider-inventory";
-import { resolveModelForRole } from "./lib/model-routing/model-split";
+} from "./lib/ai-provider-inventory.js";
+import { resolveModelForRole } from "./lib/model-routing/model-split.js";
 
 // ---------------------------------------------------------------------------
 // Types

@@ -66,7 +66,7 @@ async function safeJson<T>(res: Response): Promise<T | { error: string }> {
     return {
       error: res.ok
         ? "The server sent an unexpected reply. Please try again."
-        : `Server error (${res.status}). Please try again - if this keeps happening, the ${"sign-in app"} may not be fully configured yet.`,
+        : `Server error (${res.status}). The app login setup is not starting cleanly yet. Use the token fallback for now, or try again after the OAuth settings are fixed.`,
     };
   }
 }
@@ -195,7 +195,7 @@ export default function ConnectPage() {
         error?:             string;
       };
       if (!res.ok) {
-      setMintError(body.error ?? "Could not get your UnClick connection key.");
+        setMintError(body.error ?? "Could not get your private UnClick account key.");
         return;
       }
       if (body.api_key) {
@@ -223,7 +223,7 @@ export default function ConnectPage() {
       });
       const body = (await safeJson(res)) as { api_key?: string; error?: string };
       if (!res.ok || !body.api_key) {
-        setMintError(body.error ?? "Could not reset your UnClick connection key.");
+        setMintError(body.error ?? "Could not reset your private UnClick account key.");
         return;
       }
       try { localStorage.setItem("unclick_api_key", body.api_key); } catch { /* ignore */ }
@@ -251,7 +251,7 @@ export default function ConnectPage() {
     if (!currentApiKey) {
       setPageState({
         kind:    "error",
-        message: "No UnClick connection key found. Add the key below and try again.",
+        message: "No private UnClick account key found. Add the key below and try again.",
       });
       return;
     }
@@ -408,7 +408,7 @@ export default function ConnectPage() {
     e.preventDefault();
     const currentApiKey = apiKey.trim();
     if (!currentApiKey) {
-      setPageState({ kind: "error", message: "UnClick connection key is required." });
+      setPageState({ kind: "error", message: "Private UnClick account key is required." });
       return;
     }
 
@@ -484,20 +484,20 @@ export default function ConnectPage() {
   return (
     <ConnectShell connector={connector}>
       <div className="space-y-6">
-        {/* Connection-key onboarding. */}
+        {/* Account-key onboarding. */}
         {session && !apiKey ? (
           <div className="space-y-3">
             <p className="text-xs text-body leading-relaxed">
-              This connects {connector.name} to UnClick, not directly to one AI app.
-              The private key is used here to encrypt this app login so only your
-              UnClick connection can read it back.
+              This connects {connector.name} to your UnClick account, not directly
+              to one AI app. This is your private UnClick account key, not a
+              disposable installer code.
             </p>
 
             {alreadyProvisioned ? (
               <>
                 <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-2">
                   <p className="text-sm text-heading">
-                    You already have an UnClick connection key on file.
+                    You already have a private UnClick account key on file.
                   </p>
                   <p className="text-xs text-body leading-relaxed">
                     Since the key lives only in your browser and you do not
@@ -520,7 +520,7 @@ export default function ConnectPage() {
                       {resettingKey ? "Making a new key..." : "Make a new key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Replaces the old key. Static MCP URLs using it will need the new one.
+                      Replaces the old account key. Static MCP URLs using it will need the new one.
                     </span>
                   </span>
                 </button>
@@ -538,7 +538,7 @@ export default function ConnectPage() {
                       Paste my existing key
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Keeps your existing key. Existing compatibility URLs keep working.
+                      Keeps your existing account key. Existing compatibility URLs keep working.
                     </span>
                   </span>
                 </button>
@@ -556,10 +556,10 @@ export default function ConnectPage() {
                   </span>
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-heading">
-                      {mintingKey ? "Getting your key..." : "Get my UnClick connection key"}
+                      {mintingKey ? "Getting your key..." : "Get my private UnClick account key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Fresh key, saved to this browser.
+                      Long-lived account key, saved to this browser.
                     </span>
                   </span>
                 </button>
@@ -577,7 +577,7 @@ export default function ConnectPage() {
                       I have one already
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Paste your existing uc_ or agt_live_ key.
+                      Paste your existing uc_ or agt_live_ account key.
                     </span>
                   </span>
                 </button>
@@ -587,7 +587,7 @@ export default function ConnectPage() {
             {showManualPaste && (
               <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
                 <Label htmlFor="api_key" className="text-sm text-heading">
-                  Your UnClick connection key
+                  Private UnClick account key
                 </Label>
                 <Input
                   id="api_key"
@@ -607,10 +607,11 @@ export default function ConnectPage() {
         ) : (
           <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
             <Label htmlFor="api_key" className="text-sm text-heading">
-              Your UnClick connection key
+              Private UnClick account key
             </Label>
             <p className="text-xs text-muted-foreground">
-              Needed once in this browser so UnClick can store this app login securely.{" "}
+              Needed once in this browser so UnClick can save this app login to your account.{" "}
+              This is not a disposable installer code.{" "}
               <Link to="/" className="text-primary hover:underline">Get one here.</Link>
             </p>
             <Input

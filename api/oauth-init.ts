@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createOAuthStateToken } from "./oauth-state";
+import { createOAuthStateToken } from "./oauth-state.js";
 
 const ALLOWED_PLATFORMS = new Set([
   "github", "xero", "reddit", "shopify",
