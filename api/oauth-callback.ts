@@ -32,6 +32,7 @@ import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js"
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 
 class OAuthRequestError extends Error {
@@ -275,6 +276,24 @@ async function storeCredentials(
 
 // ─── Browser callback helpers ────────────────────────────────────────────────
 
+function normalizeOrigin(value: string | undefined): string {
+  const trimmed = (value ?? "").trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+export function resolveCredentialStorageBaseUrl(env: NodeJS.ProcessEnv): string {
+  const configuredOrigin =
+    normalizeOrigin(env.UNCLICK_APP_ORIGIN) ||
+    normalizeOrigin(env.SITE_URL) ||
+    normalizeOrigin(env.PUBLIC_SITE_URL);
+
+  if (configuredOrigin) return configuredOrigin;
+  if (env.VERCEL_ENV === "production") return UNCLICK_APP_ORIGIN;
+
+  return normalizeOrigin(env.VERCEL_URL) || UNCLICK_APP_ORIGIN;
+}
+
 function firstQueryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
@@ -302,7 +321,7 @@ function clearOAuthApiKeyCookie(): string {
 }
 
 function appendQuery(path: string, params: Record<string, string>): string {
-  const url = new URL(path, "https://unclick.world");
+  const url = new URL(path, UNCLICK_APP_ORIGIN);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
@@ -379,9 +398,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://unclick.world";
+  const baseUrl = resolveCredentialStorageBaseUrl(process.env);
 
   if (req.method === "GET") {
     const code = firstQueryValue(req.query.code);
