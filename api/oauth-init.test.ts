@@ -64,4 +64,31 @@ describe("oauth init", () => {
       process.env.GITHUB_REDIRECT_URI = previousRedirect;
     }
   });
+
+  it("normalizes the stale production GitHub redirect URI to the server callback", () => {
+    const previousSecret = process.env.GITHUB_CLIENT_SECRET;
+    const previousRedirect = process.env.GITHUB_REDIRECT_URI;
+    process.env.GITHUB_CLIENT_SECRET = "github-secret";
+    process.env.GITHUB_REDIRECT_URI = "https://unclick.world/connect/github";
+
+    try {
+      const response = createResponse();
+      handler(
+        {
+          method: "POST",
+          body: { platform: "github", api_key: "uc_test_account_key" },
+        } as never,
+        response.res as never
+      );
+
+      expect(response.statusCode).toBe(200);
+      expect(response.payload).toMatchObject({
+        success: true,
+        redirect_uri: "https://unclick.world/api/oauth-callback",
+      });
+    } finally {
+      process.env.GITHUB_CLIENT_SECRET = previousSecret;
+      process.env.GITHUB_REDIRECT_URI = previousRedirect;
+    }
+  });
 });
