@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 8c7ce9adfe09 | 22637 |
+| src/App.tsx | 740ff54af7e4 | 23350 |
 | src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -89,7 +89,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTools.tsx | 93411db0999e | 9265 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
-| src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
+| src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
@@ -122,12 +122,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | 9d9c719dae1b | 69998 |
-| src/pages/AppDetail.tsx | f6638bfd7203 | 6608 |
-| src/pages/Apps.tsx | f2fab29b2942 | 3137 |
-| src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
+| src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
+| src/pages/AppDetail.tsx | 7d1bead9bac0 | 6646 |
+| src/pages/Apps.tsx | 65bd43917eab | 3135 |
+| src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 7edc911d0c09 | 30223 |
+| src/pages/Connect.tsx | 3597b15bc3d8 | 30272 |
 | src/pages/Crews.tsx | e6d7b1813cc9 | 12789 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -157,12 +157,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
-| src/pages/Login.tsx | c3b16f3ec268 | 8416 |
+| src/pages/Login.tsx | dce8bcccd23f | 8743 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
 | src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
+| src/pages/PairingComplete.tsx | 39b115053aa5 | 8270 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
@@ -265,7 +266,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 54 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 55 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -408,6 +409,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /memory | Memory | Public memory product page. | src/pages/Memory.tsx |
 | /new-to-ai | New To AI | Beginner-friendly AI orientation. | src/pages/NewToAI.tsx |
 | /organiser | Organiser | User-facing page for Organiser. | src/pages/Organiser.tsx |
+| /pair/connected | Pairing Complete | User-facing page for Pairing Complete. | src/pages/PairingComplete.tsx |
 | /pricing | Pricing | Plans, billing, and packaging. | src/pages/Pricing.tsx |
 | /privacy | Privacy | Privacy policy. | src/pages/Privacy.tsx |
 | /signup | Signup | Sign-up page. | src/pages/Signup.tsx |
@@ -1497,6 +1499,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Memory Setup Guide | User-facing page for Memory Setup Guide. | /memory/setup-guide | src/pages/MemorySetupGuide.tsx |
 | Public surfaces | public page | New To AI | Beginner-friendly AI orientation. | /new-to-ai | src/pages/NewToAI.tsx |
 | Public surfaces | public page | Organiser | User-facing page for Organiser. | /organiser | src/pages/Organiser.tsx |
+| Public surfaces | public page | Pairing Complete | User-facing page for Pairing Complete. | /pair/connected | src/pages/PairingComplete.tsx |
 | Public surfaces | public page | Pricing | Plans, billing, and packaging. | /pricing | src/pages/Pricing.tsx |
 | Public surfaces | public page | Privacy | Privacy policy. | /privacy | src/pages/Privacy.tsx |
 | Public surfaces | public page | Scheduling | Tool page for Scheduling. | /tools/scheduling | src/pages/tools/Scheduling.tsx |
