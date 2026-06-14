@@ -136,7 +136,7 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "brace-expansion": "^1.1.15",
-    "esbuild": "^0.27.7",
+    "esbuild": "^0.28.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
