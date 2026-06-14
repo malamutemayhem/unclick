@@ -26,7 +26,7 @@ const VITE_ENV = import.meta.env as Record<string, string>;
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
 function buildOAuthUrl(
   connector: ConnectorConfig,
-  redirectOrigin: string,
+  redirectUri: string,
   state: string
 ): string | null {
   if (connector.authType !== "oauth2") return null;
@@ -43,7 +43,6 @@ function buildOAuthUrl(
     authUrl = authUrl.replace("{store}", store);
   }
 
-  const redirectUri = `${redirectOrigin}/connect/${connector.slug}`;
   const params = new URLSearchParams({
     response_type: "code",
     client_id:     clientId,
@@ -177,6 +176,8 @@ export default function ConnectPage() {
   const [alreadyProvisioned, setAlreadyProvisioned] = useState(false);
   const [resettingKey, setResettingKey] = useState(false);
   const callbackFired                 = useRef(false);
+  const connectedParam                = searchParams.get("connected");
+  const oauthErrorParam               = searchParams.get("oauth_error");
 
   const { session } = useSession();
 
@@ -238,6 +239,16 @@ export default function ConnectPage() {
   }
 
   // -- Handle OAuth callback ------------------------------------------------
+  useEffect(() => {
+    if (connectedParam === "1") {
+      setPageState({ kind: "success" });
+      return;
+    }
+    if (oauthErrorParam) {
+      setPageState({ kind: "error", message: oauthErrorParam });
+    }
+  }, [connectedParam, oauthErrorParam]);
+
   useEffect(() => {
     if (!code || !connector || callbackFired.current) return;
     callbackFired.current = true;
@@ -396,7 +407,6 @@ export default function ConnectPage() {
   // -- Idle: show connect form ----------------------------------------------
 
   const isOAuth2          = connector.authType === "oauth2";
-  const origin            = window.location.origin;
   const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
   const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
 
@@ -450,12 +460,13 @@ export default function ConnectPage() {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           platform: connector.slug,
+          api_key:  apiKey.trim(),
           ...(normalizedStore ? { store: normalizedStore } : {}),
         }),
       });
 
-      const data = (await safeJson(res)) as { state?: string; error?: string };
-      if (!res.ok || !data.state) {
+      const data = (await safeJson(res)) as { state?: string; redirect_uri?: string; error?: string };
+      if (!res.ok || !data.state || !data.redirect_uri) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
       }
@@ -464,7 +475,7 @@ export default function ConnectPage() {
         sessionStorage.setItem("shopify_store", normalizedStore);
       }
 
-      const url = buildOAuthUrl(connector, origin, data.state);
+      const url = buildOAuthUrl(connector, data.redirect_uri, data.state);
       if (!url) {
         setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
         return;
