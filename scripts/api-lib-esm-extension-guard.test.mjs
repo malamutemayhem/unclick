@@ -7,8 +7,8 @@
 // Vercel's nodenext ESM loader is strict, so prod broke. The api/ workspace
 // has no typecheck/build gate in CI that mirrors Vercel's ESM resolution.
 //
-// This guard fails CI if any TypeScript or JavaScript source file under
-// api/lib/ contains a relative import (static or dynamic, value or type-only,
+// This guard fails CI if any TypeScript or JavaScript source file under the
+// production API surface contains a relative import (static or dynamic, value or type-only,
 // import or re-export) whose specifier does not carry an explicit recognised
 // extension. Test files (`*.test.ts`) are excluded because they run under vitest,
 // not Vercel.
@@ -26,7 +26,10 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const scanRoot = path.join(repoRoot, "api", "lib");
+const scanRoots = [
+  path.join(repoRoot, "api"),
+  path.join(repoRoot, "api", "lib"),
+];
 
 // Files of these extensions are scanned as source.
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs"]);
@@ -117,12 +120,16 @@ test("guard regex catches the historical .js-omission bug shape", () => {
   assert.equal(hasAllowedExtension(fixedHits[0].specifier), true);
 });
 
-test("api/lib relative imports all carry an explicit ESM extension", () => {
-  const files = walkSourceFiles(scanRoot);
-  assert.ok(files.length > 0, `expected source files under ${path.relative(repoRoot, scanRoot)}`);
+test("production API relative imports all carry an explicit ESM extension", () => {
+  const files = [];
+  for (const scanRoot of scanRoots) {
+    files.push(...walkSourceFiles(scanRoot));
+  }
+  const uniqueFiles = Array.from(new Map(files.map((file) => [file.fullPath, file])).values());
+  assert.ok(uniqueFiles.length > 0, "expected production API source files");
 
   const offenders = [];
-  for (const { fullPath, relativePath } of files) {
+  for (const { fullPath, relativePath } of uniqueFiles) {
     const content = fs.readFileSync(fullPath, "utf8");
     for (const { specifier, offset } of findRelativeImports(content)) {
       if (hasAllowedExtension(specifier)) continue;
@@ -135,7 +142,7 @@ test("api/lib relative imports all carry an explicit ESM extension", () => {
     offenders,
     [],
     [
-      "Found relative imports in api/lib/ without an explicit .js extension.",
+      "Found production API relative imports without an explicit .js extension.",
       "Vercel's nodenext ESM loader will reject these at runtime with ERR_MODULE_NOT_FOUND",
       "(see PR #1047). Add the .js extension to each specifier:",
       ...offenders,
