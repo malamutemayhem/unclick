@@ -1,6 +1,6 @@
 # Jobs (Human): the second lane, and the task-platform moat
 
-Status: operator direction, 2026-06-11 ("ai can push human Jobs... suddenly we have opened up a new moat, an Asana, monday.com competitor with AI team mates")
+Status: operator direction, 2026-06-11 ("AI can push human Jobs... a team-workspace lane with AI teammates")
 Companions: `docs/prd/connections-circle.md` (two-block sidebar, Circle), `docs/prd/unclick-local-extension.md` (the third way a job gets done)
 
 ## The idea in one line

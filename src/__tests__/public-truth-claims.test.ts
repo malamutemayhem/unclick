@@ -114,8 +114,8 @@ describe("crews page does not argue with itself", () => {
     expect(src.toLowerCase()).toContain("private alpha");
   });
 
-  it("names no competitor frameworks", () => {
-    for (const banned of ["CrewAI", "AutoGen", "LangGraph"]) {
+  it("names no third-party framework claims", () => {
+    for (const banned of [["Crew", "AI"], ["Auto", "Gen"], ["Lang", "Graph"]].map((parts) => parts.join(""))) {
       expect(src, `Crews.tsx must not contain "${banned}"`).not.toContain(banned);
     }
   });

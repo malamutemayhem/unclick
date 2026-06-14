@@ -284,7 +284,7 @@ const ROUTES = [
           { q: "What is UnClick?", a: "UnClick is shared agent rails for tools, memory, connections, crews, and Pass family QA checks. You point your AI agent at UnClick and it gets durable context, secure service access, and 178+ real-world tools through one setup." },
           { q: "How does UnClick work?", a: "UnClick exposes its tools over the Model Context Protocol (MCP). You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can call any of the 178+ tools with no per-integration setup." },
           { q: "Is UnClick free?", a: "Yes. UnClick has a free tier that gives you access to all 178+ tools with no upfront cost. Sign up with your email to get an API key." },
-          { q: "What AI agents work with UnClick?", a: "Any agent that supports MCP, including Claude (Anthropic), ChatGPT, Cursor, OpenClaw, and any custom agent built with an MCP-compatible SDK." },
+          { q: "What AI agents work with UnClick?", a: "Any agent that supports MCP, including Claude (Anthropic), ChatGPT, Cursor, and any custom agent built with an MCP-compatible SDK." },
           { q: "How is UnClick different from other MCP servers?", a: "Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup." },
         ],
       },

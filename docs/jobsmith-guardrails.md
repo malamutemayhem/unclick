@@ -181,7 +181,7 @@ Open-source projects can inform export or parsing plumbing only after a license 
 
 Rules:
 
-- No copied competitor UI.
+- No copied third-party UI.
 - No copied templates without license proof.
 - No dependencies with unclear data handling.
 - No license that conflicts with UnClick's distribution model.

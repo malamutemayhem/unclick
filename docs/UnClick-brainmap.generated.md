@@ -21,7 +21,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
-| docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
+| docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
 | src/App.tsx | 740ff54af7e4 | 23350 |
 | src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
@@ -99,7 +99,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
-| src/pages/admin/crews/CrewsCatalog.tsx | 53d4116c6739 | 5945 |
+| src/pages/admin/crews/CrewsCatalog.tsx | 2871e49013fa | 5931 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
@@ -109,15 +109,15 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
 | src/pages/admin/AdminOrchestrator.tsx | 3f9cf6999160 | 94729 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
-| src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
-| src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |
+| src/pages/admin/AdminSettings.tsx | 2dc2b8547f5e | 29995 |
+| src/pages/MemorySetupGuide.tsx | ce31ced6b406 | 10265 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
 | src/pages/admin/signals/SignalsCatalog.tsx | 5bbc2fe8c321 | 10370 |
 | src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
 | src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
-| src/pages/admin/testpass/RunDetail.tsx | 4412674f8382 | 22000 |
+| src/pages/admin/testpass/RunDetail.tsx | 595aeee7decc | 21995 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
@@ -128,7 +128,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | 3597b15bc3d8 | 30272 |
-| src/pages/Crews.tsx | e6d7b1813cc9 | 12789 |
+| src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | 295c737bad67 | 7706 |
@@ -158,9 +158,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | dce8bcccd23f | 8743 |
-| src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
-| src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
+| src/pages/MemoryConnect.tsx | 128a2dddc94f | 18504 |
+| src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
+| src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
 | src/pages/PairingComplete.tsx | 39b115053aa5 | 8270 |
@@ -174,7 +174,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 869de7f93568 | 14806 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/Why.tsx | a210c068f422 | 11101 |
+| src/pages/Why.tsx | 5e1b86927d88 | 11110 |
 | src/pages/XPass.tsx | f463df200347 | 11433 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -198,7 +198,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 8012a4cbab9e | 32880 |
+| scripts/pinballwake-xpass-gate-room.mjs | 7606150f25cd | 32875 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |

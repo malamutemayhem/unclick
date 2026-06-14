@@ -129,7 +129,7 @@ Phase 0 should record a build-vs-borrow check before implementation. Open-source
 
 Rules:
 
-- No copied competitor branding, UI, templates, or flows.
+- No copied third-party branding, UI, templates, or flows.
 - No dependency that forces user CV data through unknown external services.
 - Browser-local or permissively licensed parsing ideas may be useful, but Jobsmith remains UnClick-native unless a specific dependency passes review.
 - Any borrowed code needs license proof and a narrow integration note.

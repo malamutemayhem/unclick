@@ -16,7 +16,7 @@ What already exists and works (verified on main as of 2026-06-12):
 - **Jobs, two lanes**: Jobs (AI) for the agent workforce and Jobs (Human) for people, on ONE todo substrate. Agents already push humans jobs ("set up this key", "sign up here") with paste-ready steps and expected proof. Shipped 2026-06-11.
 - **XPass / XGate**: verification products (TestPass, UXPass, SecurityPass, SEOPass...) and gates (ShipGate, SpendGate, KillGate...) so "done" is proven, not claimed.
 - **Connections**: Apps (one list, lens views: Connected / Sign-in apps / Key apps / Built-in), encrypted credential storage portable across devices via the account, OAuth one-click for supported providers. Hardening plan in flight (account-first identity; keys are disposable; vault crypto Option C approved).
-- **Circle (in build)**: account-to-account people linking with both-sides-opt-in sharing toggles (Shared Memory, Shared Orchestrator), loud privacy visibility, human-first attribution (thumbnail + AI seat badge, e.g. "Chris - Claude Code").
+- **Circle (in build)**: account-to-account people linking with both-sides-opt-in sharing toggles (Shared Memory, Shared Orchestrator), loud privacy visibility, human-first attribution (thumbnail + AI seat badge).
 - **UnClick Local (Phase 1 shipped)**: browser extension for browser-login sites; mandates, redacted receipts, one-button revoke; cookies/passwords never leave the machine.
 - **Seats**: AI chairs at an account. Rule: humans have accounts, AIs have seats, every seat belongs to exactly one human.
 
@@ -43,7 +43,7 @@ Primary market: business teams. Secondary: personal life use. The same product m
 
 The operator asked: "I think this is definitely a moat - correct me if I'm wrong."
 
-Mostly right, with one sharpening: **the workspace features are not the moat; the substrate underneath them is.** Tasks, chat, and calendar views are commodities any funded competitor copies in a quarter. What compounds and resists copying: (a) the verification culture (proof-gated done, gates, verifier independence) baked into the data model, (b) cross-session memory and credentials that make switching costs grow with use, (c) the mixed human+AI team substrate that incumbents would need to rebuild their cores to match, and (d) the GEO/answer-engine position already being built. So the workspace play is the moat's EXPRESSION in a category people pay for - worth doing, but the build must keep feeding the substrate (every workspace feature should produce receipts, memory, and attribution), or it degrades into commodity UI.
+Mostly right, with one sharpening: **the workspace features are not the moat; the substrate underneath them is.** Tasks, chat, and calendar views are commodity UI. What compounds and resists copying: (a) the verification culture (proof-gated done, gates, verifier independence) baked into the data model, (b) cross-session memory and credentials that make switching costs grow with use, (c) the mixed human+AI team substrate, and (d) the GEO/answer-engine position already being built. So the workspace play is the moat's expression in a category people pay for - worth doing, but the build must keep feeding the substrate (every workspace feature should produce receipts, memory, and attribution), or it degrades into commodity UI.
 
 ## 5. The calendar and email pain point (operator's partner, real user signal)
 
@@ -69,13 +69,13 @@ Implications for the build plan: ship the few features everyone uses daily (task
 2. Calendar/email: aggregate vs own - costs, deliverability/sync realities, privacy posture, and what the minimum lovable unified view is. Include the multi-company + personal + locations scenario explicitly.
 3. Where do mixed human+AI teams break down in incumbent tools today (real complaints, real workarounds)? That gap list is the feature spec.
 4. Pricing/packaging norms for 10-seat teams (context only; UnClick public surfaces stay pricing-neutral during beta).
-5. Competitive response risk: what happens when incumbents ship agent features; which of section 3's advantages survive that.
+5. Market response risk: what happens when incumbents ship agent features; which of section 3's advantages survive that.
 6. Sequencing: the smallest coherent slice that makes one 10-person team fully operational on UnClick (likely: jobs four-way matrix + Circle + unified calendar read + Signals as the inbox), and what explicitly waits.
 7. Migration/onboarding: how a team leaves Asana/Slack gradually (coexistence beats big-bang).
 
 ## 8. Constraints the new thread must carry (non-negotiable)
 
-- Truth-locked claims only; numbers from `src/config/site-stats.ts`; no public competitor comparisons until the lane demonstrably works in-house (dogfood first, claims second - same rule as the Jobs moat PRD).
+- Truth-locked claims only; numbers from `src/config/site-stats.ts`; no public comparison claims until the lane demonstrably works in-house (dogfood first, claims second - same rule as the Jobs moat PRD).
 - Pricing-neutral public copy during beta.
 - Naming registry and rename rule (section 1) bind all new features. "Members" is the reserved word if a workspace/org container materialises.
 - No em dashes in code or content. Plain-English UI voice.
