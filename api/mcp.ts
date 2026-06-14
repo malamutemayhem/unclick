@@ -401,7 +401,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const method = singleRpcMethod(req.body);
   const toolName = singleToolName(req.body);
 
-  let ctx: ApiKeyContext | null = null;
+  let ctx: ApiKeyContext | null;
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
