@@ -87,9 +87,9 @@ const AppDetail = () => {
             <div className="mt-6 rounded-2xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] p-5">
               <p className="text-sm font-semibold text-white">How your AI uses {app.name}</p>
               <ul className="mt-2 space-y-1.5 text-xs leading-5 text-white/55">
-                <li>Ask in plain words and your AI picks {app.name} on its own when it fits.</li>
-                <li>Or name it: say "use {app.name}" and your AI reaches for it.</li>
-                <li>Turn it off in your admin Apps page any time to keep your AI away from it.</li>
+                <li>Your AI talks to UnClick. UnClick reaches {app.name} when the request fits.</li>
+                <li>Or name it: say "use {app.name}" and UnClick routes the request there.</li>
+                <li>Turn it off in your admin Apps page any time without reinstalling UnClick.</li>
               </ul>
             </div>
 
@@ -117,7 +117,7 @@ const AppDetail = () => {
               </div>
               <p className="mt-1.5 text-xs leading-5 text-white/55">
                 Most apps work straight away with nothing to set up. If {app.name} needs a login or
-                an API key, you add it once in Passport and your AI remembers it.
+                an API key, connect it once to UnClick and every paired AI app can use it through UnClick.
               </p>
               <Link
                 to="/admin/keychain"

@@ -19,6 +19,11 @@ interface SignupResponse {
   error?: string;
 }
 
+function maskPrivateKey(key: string) {
+  if (key.length <= 10) return "hidden";
+  return `${key.slice(0, 6)}...${key.slice(-4)}`;
+}
+
 async function requestApiKey(email: string): Promise<string> {
   const response = await fetch("/api/install-ticket", {
     method: "POST",
@@ -115,12 +120,12 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
               </svg>
             </div>
             <span className="text-sm font-medium text-primary">
-              {isReturning ? "Welcome back. Your connection key is ready." : "You're in! Your connection key is ready."}
+              {isReturning ? "Welcome back. Your compatibility URL is ready." : "Compatibility URL ready."}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <code className="flex-1 rounded-md bg-card/60 border border-border/40 px-3 py-2 font-mono text-xs text-heading truncate select-all">
-              {apiKey}
+              {maskPrivateKey(apiKey)}
             </code>
             <motion.button
               onClick={handleCopyKey}
@@ -131,7 +136,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
             </motion.button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            The setup below uses this key. Keep copied URLs private.{" "}
+            This fallback uses a private connection key. It stays hidden on screen, but Copy uses the full value.{" "}
             <button onClick={handleReset} className="underline underline-offset-2 hover:text-body transition-colors">
               Use a different account
             </button>
@@ -150,9 +155,9 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
         transition={{ duration: 0.3 }}
         className="rounded-xl border border-border/60 bg-card/30 p-5"
       >
-        <p className="text-sm font-medium text-heading mb-1">Create your UnClick connection key</p>
+        <p className="text-sm font-medium text-heading mb-1">Create a compatibility URL</p>
         <p className="text-xs text-muted-foreground mb-4">
-          No credit card. No waitlist. Covers all {SITE_STATS.TOOLS_DISPLAY} tools immediately.
+          For AI apps that only accept a static MCP URL today. No credit card. Covers all {SITE_STATS.TOOLS_DISPLAY} tools.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
           <input
@@ -171,7 +176,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
             whileTap={{ scale: 0.97 }}
             className="shrink-0 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Working..." : "Get your API key"}
+            {loading ? "Working..." : "Create URL"}
           </motion.button>
         </form>
         {error && (

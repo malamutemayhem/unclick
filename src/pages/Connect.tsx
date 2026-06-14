@@ -195,7 +195,7 @@ export default function ConnectPage() {
         error?:             string;
       };
       if (!res.ok) {
-        setMintError(body.error ?? "Could not get your Passport key.");
+      setMintError(body.error ?? "Could not get your UnClick connection key.");
         return;
       }
       if (body.api_key) {
@@ -223,7 +223,7 @@ export default function ConnectPage() {
       });
       const body = (await safeJson(res)) as { api_key?: string; error?: string };
       if (!res.ok || !body.api_key) {
-        setMintError(body.error ?? "Could not reset your Passport key.");
+        setMintError(body.error ?? "Could not reset your UnClick connection key.");
         return;
       }
       try { localStorage.setItem("unclick_api_key", body.api_key); } catch { /* ignore */ }
@@ -251,7 +251,7 @@ export default function ConnectPage() {
     if (!currentApiKey) {
       setPageState({
         kind:    "error",
-        message: "No UnClick API key found. Please add your API key below and try again.",
+        message: "No UnClick connection key found. Add the key below and try again.",
       });
       return;
     }
@@ -297,10 +297,10 @@ export default function ConnectPage() {
         <main className="flex min-h-[60vh] items-center justify-center px-6">
           <div className="text-center space-y-4 max-w-md">
             <p className="text-body text-lg">
-              {platform ? `This Passport service is not listed yet: ${platform}` : "No Passport service specified."}
+              {platform ? `This app is not listed yet: ${platform}` : "No app specified."}
             </p>
-            <Link to="/admin/keychain" className="text-primary hover:underline text-sm">
-              Back to Passport
+            <Link to="/admin/apps" className="text-primary hover:underline text-sm">
+              Back to apps
             </Link>
           </div>
         </main>
@@ -342,8 +342,8 @@ export default function ConnectPage() {
             ))}
           </div>
 
-          <Link to="/admin/keychain" className="inline-block text-sm text-body hover:text-heading">
-            Back to Passport
+          <Link to="/admin/apps" className="inline-block text-sm text-body hover:text-heading">
+            Back to apps
           </Link>
         </div>
       </ConnectShell>
@@ -408,7 +408,7 @@ export default function ConnectPage() {
     e.preventDefault();
     const currentApiKey = apiKey.trim();
     if (!currentApiKey) {
-      setPageState({ kind: "error", message: "UnClick API key is required." });
+      setPageState({ kind: "error", message: "UnClick connection key is required." });
       return;
     }
 
@@ -484,24 +484,24 @@ export default function ConnectPage() {
   return (
     <ConnectShell connector={connector}>
       <div className="space-y-6">
-        {/* Passport key onboarding. */}
+        {/* Connection-key onboarding. */}
         {session && !apiKey ? (
           <div className="space-y-3">
             <p className="text-xs text-body leading-relaxed">
-              Your Passport key lives in your browser, not on our servers.
-              We only store a one-way fingerprint, so even we cannot read
-              your saved credentials. Only you can.
+              This connects {connector.name} to UnClick, not directly to one AI app.
+              The private key is used here to encrypt this app login so only your
+              UnClick connection can read it back.
             </p>
 
             {alreadyProvisioned ? (
               <>
                 <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-2">
                   <p className="text-sm text-heading">
-                    You already have a Passport key on file.
+                    You already have an UnClick connection key on file.
                   </p>
                   <p className="text-xs text-body leading-relaxed">
                     Since the key lives only in your browser and you do not
-                    have it here, you can either mint a fresh one now or
+                    have it here, you can either make a fresh one now or
                     paste the existing one if you saved it elsewhere.
                   </p>
                 </div>
@@ -520,7 +520,7 @@ export default function ConnectPage() {
                       {resettingKey ? "Making a new key..." : "Make a new key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Replaces the old key. Any other devices using it will need the new one.
+                      Replaces the old key. Static MCP URLs using it will need the new one.
                     </span>
                   </span>
                 </button>
@@ -538,7 +538,7 @@ export default function ConnectPage() {
                       Paste my existing key
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Keeps your existing key. No other devices break.
+                      Keeps your existing key. Existing compatibility URLs keep working.
                     </span>
                   </span>
                 </button>
@@ -556,7 +556,7 @@ export default function ConnectPage() {
                   </span>
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-heading">
-                      {mintingKey ? "Getting your key..." : "Get my Passport key"}
+                      {mintingKey ? "Getting your key..." : "Get my UnClick connection key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       Fresh key, saved to this browser.
@@ -587,7 +587,7 @@ export default function ConnectPage() {
             {showManualPaste && (
               <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
                 <Label htmlFor="api_key" className="text-sm text-heading">
-                  Your UnClick Passport key
+                  Your UnClick connection key
                 </Label>
                 <Input
                   id="api_key"
@@ -607,10 +607,10 @@ export default function ConnectPage() {
         ) : (
           <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
             <Label htmlFor="api_key" className="text-sm text-heading">
-              Your UnClick Passport key
+              Your UnClick connection key
             </Label>
             <p className="text-xs text-muted-foreground">
-              Needed once in this browser so Passport can store access securely.{" "}
+              Needed once in this browser so UnClick can store this app login securely.{" "}
               <Link to="/" className="text-primary hover:underline">Get one here.</Link>
             </p>
             <Input
@@ -770,13 +770,13 @@ function ConnectShell({
           {/* Header */}
           <header className="text-center space-y-4">
             <Link
-              to="/admin/keychain"
+              to="/admin/apps"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-heading"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Passport
+              Apps
             </Link>
 
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto">
@@ -806,7 +806,7 @@ function ConnectShell({
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            Your login details are stored encrypted. Only your API key can read them back.
+            Stored for your UnClick account. Your AI apps use it through UnClick after you approve it.
           </p>
         </div>
       </main>
