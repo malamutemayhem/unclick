@@ -32,6 +32,7 @@ import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js"
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 
 class OAuthRequestError extends Error {
   status = 400;
@@ -164,6 +165,23 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
 
 };
 
+function resolveRedirectUri(config: OAuthConfig, env: NodeJS.ProcessEnv): string {
+  const redirectUri = (env[config.redirectUriEnv] ?? "").trim();
+
+  if (config.redirectUriEnv === "GITHUB_REDIRECT_URI") {
+    try {
+      const url = new URL(redirectUri);
+      if (url.hostname === "unclick.world" && url.pathname === "/connect/github") {
+        return GITHUB_CANONICAL_REDIRECT_URI;
+      }
+    } catch {
+      // Let the normal missing/invalid redirect URI error handle this below.
+    }
+  }
+
+  return redirectUri;
+}
+
 // ─── Shopify special handling ─────────────────────────────────────────────────
 
 async function exchangeShopify(
@@ -202,7 +220,7 @@ async function exchangeCode(
 ): Promise<Record<string, string>> {
   const clientId     = env[config.clientIdEnv]     ?? "";
   const clientSecret = env[config.clientSecretEnv] ?? "";
-  const redirectUri  = env[config.redirectUriEnv]  ?? "";
+  const redirectUri  = resolveRedirectUri(config, env);
 
   if (!clientId || !clientSecret) {
     throw new Error(

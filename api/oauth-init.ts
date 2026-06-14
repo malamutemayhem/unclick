@@ -19,6 +19,7 @@ const REDIRECT_URI_ENV: Record<string, string> = {
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
+const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 
 function isValidAccountKey(value: string): boolean {
   return value.startsWith("uc_") || value.startsWith("agt_");
@@ -33,6 +34,23 @@ function serializeOAuthApiKeyCookie(apiKey: string): string {
     "Secure",
     "SameSite=Lax",
   ].join("; ");
+}
+
+function resolveRedirectUri(platform: string, redirectUriEnv: string, env: NodeJS.ProcessEnv): string {
+  const redirectUri = (env[redirectUriEnv] ?? "").trim();
+
+  if (platform === "github") {
+    try {
+      const url = new URL(redirectUri);
+      if (url.hostname === "unclick.world" && url.pathname === "/connect/github") {
+        return GITHUB_CANONICAL_REDIRECT_URI;
+      }
+    } catch {
+      // Fall through and let the missing/invalid env value fail below.
+    }
+  }
+
+  return redirectUri;
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -67,7 +85,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const redirectUriEnv = REDIRECT_URI_ENV[platform];
-    const redirectUri = redirectUriEnv ? process.env[redirectUriEnv] : "";
+    const redirectUri = redirectUriEnv ? resolveRedirectUri(platform, redirectUriEnv, process.env) : "";
     if (!redirectUri) {
       return res.status(500).json({ error: `${redirectUriEnv} must be set.` });
     }
