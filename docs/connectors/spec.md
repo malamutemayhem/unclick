@@ -22,10 +22,10 @@ The BackstagePass-as-vault model was structurally unsound for a sole-trader oper
 
 - Holding raw credentials (especially LLM API keys) creates Privacy Act 1988 + Notifiable Data Breach exposure that disclaimers can never fully eliminate.
 - Cloud-side credential brokering became legally radioactive after Amazon v. Perplexity (March 2026). Judge Chesney's preliminary injunction held that user permission alone does not equal platform authorization under CFAA.
-- Chrome 146 Device Bound Session Credentials and JA4 fingerprinting killed the stealth-headless-Chrome economic model that competitors like Anon and Browserbase rely on.
+- Chrome 146 Device Bound Session Credentials and JA4 fingerprinting weakened the stealth-headless-browser model.
 - Standards have moved decisively to user-issued, cryptographically signed agent mandates (Cloudflare Web Bot Auth, Visa Trusted Agent Protocol, Mastercard Agent Pay, Google AP2). Holding credentials is the wrong shape; issuing mandates is the right shape.
 
-Connectors is the user-side identity broker for the agentic web. UnClick's customer is the user. That position is structurally unavailable to the agent labs (Anthropic, OpenAI, Google), the platform-side security vendors (Cloudflare, Akamai), the developer-side auth companies (Stytch, Auth0, WorkOS), the vertical-specific aggregators (Plaid for banking), or the cloud credential brokers (Anon, Browserbase). Each of those serves a different primary customer.
+Connectors is the user-side identity broker for the agentic web. UnClick's customer is the user. That position is structurally different from agent labs, platform-side security vendors, developer-side auth companies, vertical-specific aggregators, or cloud credential brokers. Each serves a different primary customer.
 
 ## 3. The three credential paths
 
@@ -41,11 +41,11 @@ This is what every modern SaaS does. It is not novel. It is correct.
 
 ### 3.2 Pass-through (zero storage)
 
-For services that issue raw API keys without OAuth (primarily LLM providers like Anthropic and OpenAI), UnClick never sees the key. The user's MCP client (Claude Desktop, Cursor, Codex, ChatGPT) holds the key in its own configuration and passes it through with each LLM call. UnClick acts as a relay; the key transits memory only for the duration of a single request.
+For services that issue raw API keys without OAuth, UnClick never sees the key. The user's MCP-compatible client holds the key in its own configuration and passes it through with each call. UnClick acts as a relay; the key transits memory only for the duration of a single request.
 
 This sidesteps the entire LLM-key liability surface. A breach of UnClick's database yields no LLM keys because they are never stored.
 
-The companion architecture for autonomous LLM workflows (background tasks where the user is not actively connected) is Subscription LLM Billing per `feedback-platform-philosophy.md`: UnClick pays Anthropic/OpenAI directly under its own account, charges users on subscription, and dispatches LLM calls without needing the user's personal key.
+The companion architecture for autonomous LLM workflows (background tasks where the user is not actively connected) is Subscription LLM Billing per `feedback-platform-philosophy.md`: UnClick pays model providers directly under its own account, charges users on subscription, and dispatches LLM calls without needing the user's personal key.
 
 ### 3.3 Browser-mediated (for consumer services without OAuth)
 
@@ -115,7 +115,7 @@ Explore-replay-self-heal pattern (Skyvern / Browser Use / Stagehand convergence)
 
 ### Phase 12: Bonded Cloud Sessions
 
-For tasks the user wants run while their machine is offline. Scoped, time-boxed, single-purpose session bundles encrypted with a key split between UnClick HSM and user's device passkey. Decryption only inside an enclave (Browserbase or Anon-style sandbox), bound to a passkey-signed mandate. Single-purpose, evicts after task complete. Strict opt-in only.
+For tasks the user wants run while their machine is offline. Scoped, time-boxed, single-purpose session bundles encrypted with a key split between UnClick HSM and user's device passkey. Decryption only inside an isolated sandbox, bound to a passkey-signed mandate. Single-purpose, evicts after task complete. Strict opt-in only.
 
 **End of UnClick Local.** Phases 7-12 ship the browser extension, alias email, mandate layer, skill marketplace, and Bonded Cloud. ~13 chip weeks senior eng.
 

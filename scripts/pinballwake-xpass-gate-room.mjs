@@ -149,7 +149,7 @@ function hasAny(text, terms) {
 }
 
 function exactCopyRequest(text) {
-  return /(\b1:1\b|\b1 for 1\b|\bone-to-one\b|\bone for one\b|\bexact copy\b|\bcopy exactly\b|\bcopy this without changing\b|\bexactly as source\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
+  return /(\b1:1\b|\b1 for 1\b|\bone-to-one\b|\bone for one\b|\bexact copy\b|\bcopy exactly\b|\bcopy without changing\b|\bexactly as source\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
 }
 
 function codeFile(path) {

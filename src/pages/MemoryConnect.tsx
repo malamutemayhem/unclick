@@ -358,7 +358,7 @@ export default function MemoryConnectPage() {
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
                 <span className="font-semibold">Heads up:</span> pick one memory tool and stick with it.
-                Running UnClick alongside other memory systems (Mem0, Zep, mem-based agents) tends to
+                Running UnClick alongside other memory systems tends to
                 duplicate facts, scramble context, and slow your AI down. UnClick works best as your
                 only memory.
               </span>

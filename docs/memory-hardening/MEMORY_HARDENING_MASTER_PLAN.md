@@ -7,7 +7,7 @@
 
 - **Author of this plan:** Coordinator session (Worker 11), Claude.
 - **Source research:** `MemoryUpdate_1_2.md` and `MemoryUpdate_2_2.md` (the write-manage-read
-  diagnosis, the 8 gaps, the competitor landscape, and the moat thesis). This plan
+  diagnosis, the 8 gaps, the market landscape, and the moat thesis). This plan
   reconciles that research against the **actual code**, which is further along than
   the research assumed.
 - **Repo:** `malamutemayhem/unclick`. Package: `@unclick/mcp-server`.
@@ -118,8 +118,8 @@ then finish and harden X."
 
 ## 0.5 The moat thesis (why we are not just chasing benchmarks)
 
-Mem0, Zep, Supermemory, Google Memory Bank, and Letta already lead on raw recall. UnClick
-does not win by out-recalling them. UnClick wins on the combination nobody else has:
+Current memory platforms already lead on raw recall. UnClick
+does not win by out-recalling the field. UnClick wins on the combination nobody else has:
 memory bound to **identity + live credentials + skills**, **MCP-native portability** across
 every client, **multi-agent Boardroom** coordination, and a **proof/receipts** culture
 (XPass / AnswerPass / XGate). The strategic lanes (provenance, credential-aware,
@@ -285,7 +285,7 @@ Why this split between the two model families:
   anti-sycophancy guardrail should refuse to repeat a corrected mistake. These reward
   careful multi-file reasoning, RLS/security care, and prose-grade contracts.
 - **ChatGPT (Codex) (6-10)** holds the lanes where the spec is crisp and the work is
-  algorithmic or mechanical: BM25 normalisation and RRF SQL, the Mem0-style
+  algorithmic or mechanical: BM25 normalisation and RRF SQL, the reconciliation-style
   ADD/UPDATE/DELETE/NOOP loop, heat/TTL sweeps, the schema-driven facts/events split, and
   the benchmark harness plus the serialise/deserialise passport. These reward tight,
   well-tested implementation against a fixed contract.
@@ -309,11 +309,11 @@ load order (Gaps 1, 2, 4 read-side, and 7 ordering).
   than return keyword and skip vector on non-empty. Keep a flagged fallback to today's
   behaviour.
 - Add `business_context` as a third retrieval source in both the fused path and the keyword
-  fallback. Identity must be both always-loaded **and** searchable (the Letta / Memory Bank
+  fallback. Identity must be both always-loaded **and** searchable (the pinned-memory
   pattern).
 - Define and apply the **load/startup ordering** as `effective_score = f(scope_weight,
   confidence, recency, reinforcement)`, pinning identity/standing rules to the top by scope
-  precedence (the Claude Code CLAUDE.md precedence model), not by term frequency.
+  precedence (the instruction-precedence model), not by term frequency.
 - Consume Worker 6's ranking contract (BM25 normalisation + hybrid RPC shape) and Worker 8's
   effective-score fields where available; degrade gracefully when a field is absent.
 
@@ -590,7 +590,7 @@ Keep the local backend's keyword scoring in parity so tests pass without a DB.
 
 ## Worker 7 (ChatGPT / Codex) - Write-Path Dedup, Merge & Admission Control
 
-**Owner why:** the Mem0-style ADD/UPDATE/DELETE/NOOP loop and an admission gate are
+**Owner why:** the ADD/UPDATE/DELETE/NOOP reconciliation loop and an admission gate are
 deterministic, well-specified algorithms with clear acceptance tests - ideal Codex work.
 
 **Objective:** stop duplicates at the source. On write, retrieve top-K similar existing
@@ -696,7 +696,7 @@ two-backend change Codex executes cleanly.
 **Objective:** stop long timestamped logs from poisoning fact search. Route raw episodes to a
 `session_events` / episode store and keep facts atomic; introduce the typed memory classes
 (episodic, semantic, procedural, task/ephemeral) the research calls for (Gap 8; Doc 1's typed
-memory) (Zep episode subgraph / OpenClaw dated-log pattern).
+memory) (episode subgraph / dated-log pattern).
 
 **In scope:**
 - An episode/`session_events` store (or formalise the existing operational/durable split):
@@ -744,7 +744,7 @@ lane's delta, so it benefits from a builder that produces clean, repeatable scaf
 **Objective:** stand up the internal LongMemEval-style harness and the five diagnostic tests
 so memory becomes an auditable subsystem with release-over-release numbers; and ship the
 MCP-native **memory passport** (signed export/import of memory + identity, not credentials)
-that exploits the walled-garden gap competitors cannot close (eval + Strategic bet 17).
+that exploits the closed-platform gap others cannot close (eval + Strategic bet 17).
 
 **In scope:**
 - An eval harness (build on `docs/path-a-eval-harness-spec.md`, `docs/eval-baseline.json`,

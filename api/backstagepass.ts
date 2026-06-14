@@ -62,7 +62,7 @@ import * as crypto from "crypto";
 import {
   decideBackstagePassConnectionProbeProviderCall,
   type BackstagePassConnectionProbeProvider,
-} from "./lib/ai-provider-inventory";
+} from "./lib/ai-provider-inventory.js";
 
 // ─── Crypto helpers (mirror api/credentials.ts exactly) ───────────────────
 

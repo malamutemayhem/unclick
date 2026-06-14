@@ -26,12 +26,12 @@ const VITE_ENV = import.meta.env as Record<string, string>;
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
 function buildOAuthUrl(
   connector: ConnectorConfig,
-  redirectOrigin: string,
+  redirectUri: string,
   state: string
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  const clientIdKey = `VITE_${connector.slug.toUpperCase()}_CLIENT_ID`;
+  const clientIdKey = `VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
   const clientId    = VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
@@ -43,16 +43,31 @@ function buildOAuthUrl(
     authUrl = authUrl.replace("{store}", store);
   }
 
-  const redirectUri = `${redirectOrigin}/connect/${connector.slug}`;
   const params = new URLSearchParams({
     response_type: "code",
     client_id:     clientId,
     redirect_uri:  redirectUri,
     scope:         (connector.scopes ?? []).join(" "),
     state,
+    ...(connector.extraAuthParams ?? {}),
   });
 
   return `${authUrl}?${params.toString()}`;
+}
+
+
+/** Parse a fetch Response that should be JSON, surviving plaintext error pages. */
+async function safeJson<T>(res: Response): Promise<T | { error: string }> {
+  const text = await res.text().catch(() => "");
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return {
+      error: res.ok
+        ? "The server sent an unexpected reply. Please try again."
+        : `Server error (${res.status}). The app login setup is not starting cleanly yet. Use the token fallback for now, or try again after the OAuth settings are fixed.`,
+    };
+  }
 }
 
 /** Returns the stored API key from localStorage, or empty string. */
@@ -161,6 +176,8 @@ export default function ConnectPage() {
   const [alreadyProvisioned, setAlreadyProvisioned] = useState(false);
   const [resettingKey, setResettingKey] = useState(false);
   const callbackFired                 = useRef(false);
+  const connectedParam                = searchParams.get("connected");
+  const oauthErrorParam               = searchParams.get("oauth_error");
 
   const { session } = useSession();
 
@@ -173,13 +190,13 @@ export default function ConnectPage() {
         method:  "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const body = (await res.json()) as {
+      const body = (await safeJson(res)) as {
         api_key?:           string | null;
         already_provisioned?: boolean;
         error?:             string;
       };
       if (!res.ok) {
-        setMintError(body.error ?? "Could not get your Passport key.");
+        setMintError(body.error ?? "Could not get your private UnClick account key.");
         return;
       }
       if (body.api_key) {
@@ -205,9 +222,9 @@ export default function ConnectPage() {
         method:  "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const body = (await res.json()) as { api_key?: string; error?: string };
+      const body = (await safeJson(res)) as { api_key?: string; error?: string };
       if (!res.ok || !body.api_key) {
-        setMintError(body.error ?? "Could not reset your Passport key.");
+        setMintError(body.error ?? "Could not reset your private UnClick account key.");
         return;
       }
       try { localStorage.setItem("unclick_api_key", body.api_key); } catch { /* ignore */ }
@@ -223,6 +240,16 @@ export default function ConnectPage() {
 
   // -- Handle OAuth callback ------------------------------------------------
   useEffect(() => {
+    if (connectedParam === "1") {
+      setPageState({ kind: "success" });
+      return;
+    }
+    if (oauthErrorParam) {
+      setPageState({ kind: "error", message: oauthErrorParam });
+    }
+  }, [connectedParam, oauthErrorParam]);
+
+  useEffect(() => {
     if (!code || !connector || callbackFired.current) return;
     callbackFired.current = true;
 
@@ -235,7 +262,7 @@ export default function ConnectPage() {
     if (!currentApiKey) {
       setPageState({
         kind:    "error",
-        message: "No UnClick API key found. Please add your API key below and try again.",
+        message: "No private UnClick account key found. Add the key below and try again.",
       });
       return;
     }
@@ -259,7 +286,7 @@ export default function ConnectPage() {
       body:    JSON.stringify(body),
     })
       .then(async (res) => {
-        const data = (await res.json()) as { success?: boolean; error?: string };
+        const data = (await safeJson(res)) as { success?: boolean; error?: string };
         if (res.ok && data.success) {
           sessionStorage.removeItem("shopify_store");
           setPageState({ kind: "success" });
@@ -281,10 +308,10 @@ export default function ConnectPage() {
         <main className="flex min-h-[60vh] items-center justify-center px-6">
           <div className="text-center space-y-4 max-w-md">
             <p className="text-body text-lg">
-              {platform ? `This Passport service is not listed yet: ${platform}` : "No Passport service specified."}
+              {platform ? `This app is not listed yet: ${platform}` : "No app specified."}
             </p>
-            <Link to="/admin/keychain" className="text-primary hover:underline text-sm">
-              Back to Passport
+            <Link to="/admin/apps" className="text-primary hover:underline text-sm">
+              Back to apps
             </Link>
           </div>
         </main>
@@ -326,8 +353,8 @@ export default function ConnectPage() {
             ))}
           </div>
 
-          <Link to="/admin/keychain" className="inline-block text-sm text-body hover:text-heading">
-            Back to Passport
+          <Link to="/admin/apps" className="inline-block text-sm text-body hover:text-heading">
+            Back to apps
           </Link>
         </div>
       </ConnectShell>
@@ -380,8 +407,7 @@ export default function ConnectPage() {
   // -- Idle: show connect form ----------------------------------------------
 
   const isOAuth2          = connector.authType === "oauth2";
-  const origin            = window.location.origin;
-  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase()}_CLIENT_ID`] : "";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
   const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
@@ -392,7 +418,7 @@ export default function ConnectPage() {
     e.preventDefault();
     const currentApiKey = apiKey.trim();
     if (!currentApiKey) {
-      setPageState({ kind: "error", message: "UnClick API key is required." });
+      setPageState({ kind: "error", message: "Private UnClick account key is required." });
       return;
     }
 
@@ -407,7 +433,7 @@ export default function ConnectPage() {
           api_key:     currentApiKey,
         }),
       });
-      const data = (await res.json()) as { success?: boolean; error?: string };
+      const data = (await safeJson(res)) as { success?: boolean; error?: string };
       if (res.ok && data.success) {
         localStorage.setItem("unclick_api_key", currentApiKey);
         setPageState({ kind: "success" });
@@ -434,12 +460,13 @@ export default function ConnectPage() {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           platform: connector.slug,
+          api_key:  apiKey.trim(),
           ...(normalizedStore ? { store: normalizedStore } : {}),
         }),
       });
 
-      const data = (await res.json()) as { state?: string; error?: string };
-      if (!res.ok || !data.state) {
+      const data = (await safeJson(res)) as { state?: string; redirect_uri?: string; error?: string };
+      if (!res.ok || !data.state || !data.redirect_uri) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
       }
@@ -448,7 +475,7 @@ export default function ConnectPage() {
         sessionStorage.setItem("shopify_store", normalizedStore);
       }
 
-      const url = buildOAuthUrl(connector, origin, data.state);
+      const url = buildOAuthUrl(connector, data.redirect_uri, data.state);
       if (!url) {
         setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
         return;
@@ -468,24 +495,24 @@ export default function ConnectPage() {
   return (
     <ConnectShell connector={connector}>
       <div className="space-y-6">
-        {/* Passport key onboarding. */}
+        {/* Account-key onboarding. */}
         {session && !apiKey ? (
           <div className="space-y-3">
             <p className="text-xs text-body leading-relaxed">
-              Your Passport key lives in your browser, not on our servers.
-              We only store a one-way fingerprint, so even we cannot read
-              your saved credentials. Only you can.
+              This connects {connector.name} to your UnClick account, not directly
+              to one AI app. This is your private UnClick account key, not a
+              disposable installer code.
             </p>
 
             {alreadyProvisioned ? (
               <>
                 <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-2">
                   <p className="text-sm text-heading">
-                    You already have a Passport key on file.
+                    You already have a private UnClick account key on file.
                   </p>
                   <p className="text-xs text-body leading-relaxed">
                     Since the key lives only in your browser and you do not
-                    have it here, you can either mint a fresh one now or
+                    have it here, you can either make a fresh one now or
                     paste the existing one if you saved it elsewhere.
                   </p>
                 </div>
@@ -504,7 +531,7 @@ export default function ConnectPage() {
                       {resettingKey ? "Making a new key..." : "Make a new key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Replaces the old key. Any other devices using it will need the new one.
+                      Replaces the old account key. Static MCP URLs using it will need the new one.
                     </span>
                   </span>
                 </button>
@@ -522,7 +549,7 @@ export default function ConnectPage() {
                       Paste my existing key
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Keeps your existing key. No other devices break.
+                      Keeps your existing account key. Existing compatibility URLs keep working.
                     </span>
                   </span>
                 </button>
@@ -540,10 +567,10 @@ export default function ConnectPage() {
                   </span>
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-heading">
-                      {mintingKey ? "Getting your key..." : "Get my Passport key"}
+                      {mintingKey ? "Getting your key..." : "Get my private UnClick account key"}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Fresh key, saved to this browser.
+                      Long-lived account key, saved to this browser.
                     </span>
                   </span>
                 </button>
@@ -561,7 +588,7 @@ export default function ConnectPage() {
                       I have one already
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Paste your existing uc_ or agt_live_ key.
+                      Paste your existing uc_ or agt_live_ account key.
                     </span>
                   </span>
                 </button>
@@ -571,7 +598,7 @@ export default function ConnectPage() {
             {showManualPaste && (
               <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
                 <Label htmlFor="api_key" className="text-sm text-heading">
-                  Your UnClick Passport key
+                  Private UnClick account key
                 </Label>
                 <Input
                   id="api_key"
@@ -591,10 +618,11 @@ export default function ConnectPage() {
         ) : (
           <div className="space-y-1.5 border border-border/60 rounded-lg p-4 bg-card/40">
             <Label htmlFor="api_key" className="text-sm text-heading">
-              Your UnClick Passport key
+              Private UnClick account key
             </Label>
             <p className="text-xs text-muted-foreground">
-              Needed once in this browser so Passport can store access securely.{" "}
+              Needed once in this browser so UnClick can save this app login to your account.{" "}
+              This is not a disposable installer code.{" "}
               <Link to="/" className="text-primary hover:underline">Get one here.</Link>
             </p>
             <Input
@@ -754,13 +782,13 @@ function ConnectShell({
           {/* Header */}
           <header className="text-center space-y-4">
             <Link
-              to="/admin/keychain"
+              to="/admin/apps"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-heading"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Passport
+              Apps
             </Link>
 
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto">
@@ -790,7 +818,7 @@ function ConnectShell({
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            Your login details are stored encrypted. Only your API key can read them back.
+            Stored for your UnClick account. Your AI apps use it through UnClick after you approve it.
           </p>
         </div>
       </main>

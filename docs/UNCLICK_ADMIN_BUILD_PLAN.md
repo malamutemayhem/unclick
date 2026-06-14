@@ -234,7 +234,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 ### PHASE 5: Surface - Memory (THE MARQUEE FEATURE)
 
-**Goal:** The memory UI no competitor has. The operator is visual. This is where UnClick becomes the leader.
+**Goal:** The memory UI should make complex operator context visible and usable. The operator is visual. This is where UnClick becomes the leader.
 
 **Work:**
 
@@ -405,7 +405,7 @@ Most of this already exists. Verify and fill gaps:
 - Do not add billing inside the admin's core UI until Phase 4's subscription card. Marketing-site pricing is fine.
 - Do not build an appearance or theming system. Dark + amber, ship it.
 - Do not build a separate mobile app. The responsive web shell is the mobile experience for now.
-- Do not try to own the harness layer. UnClick is not a Claude Code competitor.
+- Do not try to own the harness layer. UnClick complements code-agent tools.
 - Do not allow anything to happen in the admin that cannot also happen via the AI assistant. Every visual action has a conversational equivalent. Test this discipline.
 - Do not use em dashes. Anywhere.
 

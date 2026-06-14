@@ -17,14 +17,14 @@ const LIVE_TOOL_COUNT = LIVE_APPS.reduce((n, a) => n + a.toolCount, 0);
 // Super-simple-English induction so anyone gets what this page is in one read.
 function HowItWorks() {
   const points = [
-    { k: "It picks for you", v: "Ask your AI something like \"what's the weather\" or \"is my site up\". It finds the right app and uses it. You do not pick." },
-    { k: "Or name one", v: "Want a specific app? Just say it: \"use GitHub\". Your AI reaches for that one." },
-    { k: "Built-in apps just work", v: "Most apps need no setup. A few need you to connect once with a login or key." },
-    { k: "You stay in control", v: "All apps are on by default. Turn any of them off in your admin so your AI leaves it alone." },
+    { k: "One UnClick door", v: "Connect Claude, ChatGPT, Cursor, or Codex to UnClick once. They all reach the same app layer." },
+    { k: "Apps live inside UnClick", v: "GitHub, Gmail, Spotify, and the rest connect to UnClick, not separately to every AI app." },
+    { k: "Connect only when needed", v: "Built-in apps just work. Private apps ask for one login or key, then stay available." },
+    { k: "You stay in control", v: "Turn any app off, reconnect it, or remove it without reinstalling UnClick in your AI app." },
   ];
   return (
     <div className="mx-auto mb-8 max-w-6xl rounded-2xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] p-5">
-      <p className="text-sm font-semibold text-white">Your AI has these apps at arm's reach.</p>
+      <p className="text-sm font-semibold text-white">Your AI reaches apps through UnClick.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {points.map((p) => (
           <div key={p.k}>

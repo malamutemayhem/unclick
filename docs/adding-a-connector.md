@@ -69,7 +69,7 @@ cataloged, TestPass-green connector beats a hundred orphan files.
 
 ---
 
-## 3. The connector template (copy this)
+## 3. The connector template
 
 Single-credential connector (the common case):
 

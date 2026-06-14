@@ -103,7 +103,7 @@ export default function CrewsCatalog() {
                   type="button"
                   onClick={() => handleCopyPrompt(crew.id, crew.example_prompt)}
                   className="group w-full rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-left text-xs text-[#666] transition-colors hover:border-[#61C1C4]/30 hover:text-[#aaa]"
-                  title="Click to copy this example prompt"
+                  title="Copy example prompt"
                 >
                   <span className="text-[#555] group-hover:text-[#888]">Example: </span>
                   {copied === crew.id ? (

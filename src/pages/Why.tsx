@@ -26,7 +26,7 @@ import {
  *
  * Framing rule (per standing guidance): UnClick is the universal remote for
  * AI, the layer your assistant plugs into. Not an OS, not a runtime. No
- * competitor is named; we compare to the category ("self-hosted agents").
+ * third-party product is named; we compare to the category ("self-hosted agents").
  * Numbers stated conservatively. No unverified performance stats.
  */
 
