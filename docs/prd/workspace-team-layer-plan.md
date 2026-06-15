@@ -151,7 +151,7 @@ Status keys: SHIPPED (exists today), BUILD (in the staged plan), IDEA (approved 
 
 ## Constraints carried from the brief (non-negotiable)
 
-- Truth-locked claims only; public surfaces stay pricing-neutral in beta; no competitor comparisons until the lane works in-house.
+- Truth-locked claims only; public surfaces stay pricing-neutral in beta; no public comparison claims until the lane works in-house.
 - Naming registry and the rename rule bind every new feature.
 - No em dashes in code or content. Plain-English UI voice (see Simple Laws).
 - Security lanes (credentials, auth, billing, DNS, migrations) follow FLEET_SYNC approval rules.

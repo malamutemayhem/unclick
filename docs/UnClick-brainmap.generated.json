@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1129,
-    "source_manifest": 246,
-    "pages": 112,
+    "inventory": 1130,
+    "source_manifest": 247,
+    "pages": 113,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 54
+      "count": 55
     },
     {
       "id": "tools",
@@ -4039,6 +4039,16 @@
       "meaning": "User-facing page for Organiser.",
       "source": "src/pages/Organiser.tsx",
       "route": "/organiser",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-pairing-complete-src-pages-pairingcomplete-tsx-pair-connected",
+      "division": "Public surfaces",
+      "name": "Pairing Complete",
+      "kind": "public page",
+      "meaning": "User-facing page for Pairing Complete.",
+      "source": "src/pages/PairingComplete.tsx",
+      "route": "/pair/connected",
       "tags": []
     },
     {
@@ -11984,6 +11994,12 @@
       "src/pages/Organiser.tsx"
     ],
     [
+      "/pair/connected",
+      "Pairing Complete",
+      "User-facing page for Pairing Complete.",
+      "src/pages/PairingComplete.tsx"
+    ],
+    [
       "/pricing",
       "Pricing",
       "Plans, billing, and packaging.",
@@ -15807,13 +15823,13 @@
     },
     {
       "source": "docs/adr/0006-orchestrator-is-user-chat.md",
-      "hash": "bf91808d2d8d",
-      "bytes": 2169
+      "hash": "ba6451ea1765",
+      "bytes": 2034
     },
     {
       "source": "src/App.tsx",
-      "hash": "8c7ce9adfe09",
-      "bytes": 22637
+      "hash": "740ff54af7e4",
+      "bytes": 23350
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -16147,8 +16163,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "a43f559b89c3",
-      "bytes": 13821
+      "hash": "3d245def3231",
+      "bytes": 13772
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -16197,8 +16213,8 @@
     },
     {
       "source": "src/pages/admin/crews/CrewsCatalog.tsx",
-      "hash": "53d4116c6739",
-      "bytes": 5945
+      "hash": "2871e49013fa",
+      "bytes": 5931
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
@@ -16247,13 +16263,13 @@
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "607d306885ac",
-      "bytes": 30026
+      "hash": "2dc2b8547f5e",
+      "bytes": 29995
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
-      "hash": "2b6087890e54",
-      "bytes": 10264
+      "hash": "ce31ced6b406",
+      "bytes": 10265
     },
     {
       "source": "src/pages/admin/signals/SignalsSettings.tsx",
@@ -16287,8 +16303,8 @@
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "4412674f8382",
-      "bytes": 22000
+      "hash": "595aeee7decc",
+      "bytes": 21995
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
@@ -16312,23 +16328,23 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "9d9c719dae1b",
-      "bytes": 69998
+      "hash": "4b186ef89df8",
+      "bytes": 71460
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "f6638bfd7203",
-      "bytes": 6608
+      "hash": "7d1bead9bac0",
+      "bytes": 6646
     },
     {
       "source": "src/pages/Apps.tsx",
-      "hash": "f2fab29b2942",
-      "bytes": 3137
+      "hash": "65bd43917eab",
+      "bytes": 3135
     },
     {
       "source": "src/pages/AuthCallback.tsx",
-      "hash": "c7dba82923b5",
-      "bytes": 4875
+      "hash": "e9ee37622f98",
+      "bytes": 5086
     },
     {
       "source": "src/pages/VerifyMfa.tsx",
@@ -16337,13 +16353,13 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "7edc911d0c09",
-      "bytes": 30223
+      "hash": "818da19c618a",
+      "bytes": 31549
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "e6d7b1813cc9",
-      "bytes": 12789
+      "hash": "d160a7924721",
+      "bytes": 12800
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
@@ -16487,23 +16503,23 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "c3b16f3ec268",
-      "bytes": 8416
+      "hash": "dce8bcccd23f",
+      "bytes": 8743
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
-      "hash": "c760d37398d5",
-      "bytes": 18534
+      "hash": "128a2dddc94f",
+      "bytes": 18504
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "a64def7930d5",
-      "bytes": 20088
+      "hash": "8ecebdff32de",
+      "bytes": 20089
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "e1c923ee0c61",
-      "bytes": 19193
+      "hash": "6ad6ab79dad3",
+      "bytes": 19343
     },
     {
       "source": "src/pages/NewToAI.tsx",
@@ -16514,6 +16530,11 @@
       "source": "src/pages/Organiser.tsx",
       "hash": "ae35be237d83",
       "bytes": 16581
+    },
+    {
+      "source": "src/pages/PairingComplete.tsx",
+      "hash": "39b115053aa5",
+      "bytes": 8270
     },
     {
       "source": "src/pages/Pricing.tsx",
@@ -16567,8 +16588,8 @@
     },
     {
       "source": "src/pages/Why.tsx",
-      "hash": "a210c068f422",
-      "bytes": 11101
+      "hash": "5e1b86927d88",
+      "bytes": 11110
     },
     {
       "source": "src/pages/XPass.tsx",
@@ -16687,8 +16708,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "8012a4cbab9e",
-      "bytes": 32880
+      "hash": "7606150f25cd",
+      "bytes": 32875
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

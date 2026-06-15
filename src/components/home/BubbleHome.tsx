@@ -392,20 +392,22 @@ function JourneyField() {
       cy += (targetY - cy) * ease;
       cs += (scale - cs) * (ease + 0.007);
 
+      const installRect = document.getElementById("install")?.getBoundingClientRect();
+      const installFade = installRect ? interp(installRect.top, [vh * 0.62, vh * 0.95], [0, 1]) : 1;
       const visible = cs > 0.015 && sp < 0.985;
-      bubble.style.opacity = visible ? "1" : "0";
+      bubble.style.opacity = visible ? String(installFade) : "0";
       bubble.style.transform = `translate(${cx - (base * cs) / 2}px, ${cy - (base * cs) / 2}px)`;
       inner.style.transform = `scale(${cs})`;
 
       const ringOpacity = Math.max(0, 1 - Math.abs(sp - 0.955) * 26);
       const ringScale = 1 + Math.max(0, sp - 0.93) * 14;
-      ring.style.opacity = String(ringOpacity * 0.8);
+      ring.style.opacity = String(ringOpacity * 0.8 * installFade);
       ring.style.transform = `translate(${cx - 40}px, ${cy - 40}px) scale(${ringScale})`;
 
       // Hero bundle to the people.
       ctx.clearRect(0, 0, vw, vh);
       const gatherY = cy + (base * cs) / 2 - 6;
-      const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]);
+      const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]) * installFade;
       if (peopleAlpha > 0.01) {
         ctx.strokeStyle = `hsl(183 50% 62% / ${0.5 * peopleAlpha})`;
         ctx.lineWidth = 1.5;
@@ -441,7 +443,7 @@ function JourneyField() {
       }
       const mouthX = cx;
       const mouthY = cy + (base * cs) / 2 - 8;
-      const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]);
+      const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]) * installFade;
 
       let bestI = -1;
       let bestD = Infinity;

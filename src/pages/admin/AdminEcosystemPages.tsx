@@ -293,11 +293,11 @@ export function AdminAppsIntro() {
       <div className="flex items-start gap-3">
         <AppWindow className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
         <div>
-          <p className="text-sm font-semibold text-white">Apps are what UnClick can use. Actions are what each app can do.</p>
+          <p className="text-sm font-semibold text-white">Apps connect to UnClick once.</p>
           <p className="mt-1 text-sm leading-6 text-white/55">
-            Click any app row to expand its actions right here, or click its name to open its page.
-            Your AI picks the right app on its own, or you can ask for one by name. Every app is on by
-            default; untick one to stop your AI using it.
+            Your AI app talks to UnClick. UnClick reaches GitHub, Gmail, Spotify, and the rest from here.
+            Click any row to see its actions, connect private apps once, or untick one to keep every
+            paired AI app away from it.
           </p>
         </div>
       </div>

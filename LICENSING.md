@@ -1,5 +1,7 @@
 # Licensing
 
+Copyright (c) 2026 UnClick (Malamute Mayhem)
+
 UnClick uses a split license. The short version:
 
 - The **platform** is **AGPL-3.0** (the part a competitor would clone to run a rival service).
@@ -36,7 +38,9 @@ UnClick is two different things wearing one repo:
 
 If a component carries its own `LICENSE` file or a `license` field in its
 `package.json`, that declaration governs that component. The root `LICENSE`
-(AGPL-3.0) governs everything not otherwise marked.
+(AGPL-3.0) governs everything not otherwise marked. The root `LICENSE` file is
+the unmodified FSF text on purpose: license scanners detect it cleanly that
+way, and this file carries the project-specific context instead.
 
 ## Contributing
 

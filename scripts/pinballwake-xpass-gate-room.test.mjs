@@ -122,7 +122,7 @@ describe("PinballWake XPass Gate Room", () => {
 
   it("routes exact-copy work to FidelityPass instead of generic CopyPass", () => {
     const selected = checks({
-      title: "Copy this source packet exactly",
+      title: "Authorized source packet exact transfer",
       description: "Need a 1:1 verbatim copy receipt from CopyRoom.",
       changed_files: ["docs/source-packet.md"],
     });

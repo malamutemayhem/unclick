@@ -1,7 +1,7 @@
 # Memory Operations Review (2026-06-11)
 
 **Status:** completed review with fixes
-**Scope:** full operational check of UnClick Memory, gap analysis against the deep-research corpus (Drive: MemoryUpdate series, ContextPass_RAG series) and the competitor field (Mem0, Zep/Graphiti, Letta, LangMem, Supermemory, Cognee, Memobase), plus improvements shipped in the same PR.
+**Scope:** full operational check of UnClick Memory, gap analysis against the deep-research corpus (Drive: MemoryUpdate series, ContextPass_RAG series) and the wider memory-platform field, plus improvements shipped in the same PR.
 **Inputs:** `MEMORY_HARDENING_MASTER_PLAN.md`, `docs/research/memory-direction-next-gen.md`, `docs/memory/active_facts-contract-v1.md`, the Drive deep-research folder, live MCP smoke tests against the deployed server, and the full local test suite.
 
 ## 1. Verification results: the system is working
@@ -36,31 +36,31 @@
 4. **Lane 6 reranker deferred.** `MEMORY_RERANK_ENABLED` shortlist reranker (cohere_rerank) remains unbuilt. Only worth doing if eval ndcg@10 plateaus after fusion is enabled.
 5. **Admin UI for the recycle bin.** This PR ships the MCP/ops layer only. The admin Memory tab needs Bin view, Restore, and Empty Bin actions before user-facing rollout (`src/pages/admin/AdminMemory.tsx`).
 6. **Unowned research backlog** (recommended in the Drive corpus, in no build lane): byte-exact kv store (never embedded or paraphrased), recall rehearsal (periodic keep/update/scope/delete review), time-aware memory lanes (current/historical/expired views), mission memory capsules (task-scoped TTL bundles), memory + corpus fusion (ContextPass tie-in).
-7. **Public proof gap (the June 9 Mem0 comparison loss).** UnClick lost a disconnected-account comparison to Mem0 because public memory proof, docs, and evals were less visible, not because the system was weaker. Action: publish the lane-10 eval scorecard and a feature-comparison page; the eval harness already produces the numbers.
+7. **Public proof gap.** UnClick's public memory proof, docs, and evals were less visible than the system itself. Action: publish the lane-10 eval scorecard and a category-level capability page; the eval harness already produces the numbers.
 
-## 3. Competitive position (mid-2026 field)
+## 3. Market position (mid-2026 field)
 
-Table stakes across the field (Mem0, Zep, Letta, LangMem, Supermemory): extraction, dedup with ADD/UPDATE/DELETE/NOOP, scoped semantic search, contradiction handling, temporal validity, MCP delivery, published benchmarks. UnClick covers all of these except published benchmarks (gap 7 above).
+Table stakes across the field: extraction, dedup with ADD/UPDATE/DELETE/NOOP, scoped semantic search, contradiction handling, temporal validity, MCP delivery, and published benchmarks. UnClick covers all of these except published benchmarks (gap 7 above).
 
-Where UnClick is ahead of Mem0 specifically:
+Where UnClick is ahead:
 
-- **Memory quality controls.** Mem0's largest public failure is junk accumulation (a public audit of 10,134 entries found 97.8% junk, duplicate storms, and a recall re-extraction feedback loop, mem0 issue #4573). UnClick's write gate, provenance receipts, write-precision metrics, and consolidation directly target that failure class, and the gate is verified live.
-- **True forget with compliance scoring.** Forget cascades through embeddings, typed links, snapshots, and episodes, and scores `forget_compliance`. Mem0 has delete APIs without an equivalent verified-clean contract.
+- **Memory quality controls.** UnClick's write gate, provenance receipts, write-precision metrics, and consolidation directly target junk accumulation, duplicate storms, and recall re-extraction feedback loops. The gate is verified live.
+- **True forget with compliance scoring.** Forget cascades through embeddings, typed links, snapshots, and episodes, and scores `forget_compliance`.
 - **Provenance and receipts everywhere.** Source receipts surface in `load_memory` output. No incumbent leads with this.
-- **Identity + credential + Boardroom binding.** Credential quarantine on disconnect and Boardroom-scoped visibility have no Mem0/Zep equivalent.
+- **Identity + credential + Boardroom binding.** Credential quarantine on disconnect and Boardroom-scoped visibility remain distinctive.
 - **Memory passport.** Signed export/import with zero-credential-leak gating answers the walled-garden critique directly.
 
-Where competitors are ahead:
+Where the field is ahead:
 
-- **Zep**: bi-temporal edge invalidation at graph level and a templated context block. UnClick's bi-temporal facts plus typed links cover most of this without graph cost; revisit only if multi-hop temporal queries become core.
-- **Letta**: sleep-time compute is the polished version of UnClick's consolidation heartbeat; UnClick's consolidation job exists but the flag and cadence are conservative.
-- **Mem0**: criteria retrieval (custom weighted retrieval criteria) and memory webhooks as platform features; UnClick signals cover part of the webhook story.
-- **Everyone**: published benchmark numbers. UnClick's eval harness exists; its scorecard is not public.
+- **Graph-native systems**: bi-temporal edge invalidation at graph level and templated context blocks. UnClick's bi-temporal facts plus typed links cover most of this without graph cost; revisit only if multi-hop temporal queries become core.
+- **Stateful-agent systems**: sleep-time compute is a polished version of UnClick's consolidation heartbeat; UnClick's consolidation job exists but the flag and cadence are conservative.
+- **Managed memory APIs**: criteria retrieval and memory webhooks as platform features; UnClick signals cover part of the webhook story.
+- **Published benchmarks**: UnClick's eval harness exists; its scorecard is not public.
 
 ## 4. Recommended next chips (in order)
 
 1. Flip `MEMORY_FUSED_RETRIEVAL_ENABLED` after an eval-harness baseline run (lane 1 closeout).
 2. Boardroom contradiction event on reconcile (lane 2 closeout).
 3. Recycle-bin admin UI (this PR's feature, user-facing half) and then flip `MEMORY_RECYCLE_BIN_ENABLED`.
-4. Publish the eval scorecard and a memory comparison page (answers the Mem0 visibility loss).
+4. Publish the eval scorecard and a category-level memory capability page.
 5. Backend parity sweep for library history and conversation detail.

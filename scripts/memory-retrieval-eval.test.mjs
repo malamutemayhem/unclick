@@ -32,7 +32,7 @@ describe("memory retrieval eval", () => {
       },
       results: [
         { ref: "pr:888", relation: "ships", score: 0.99 },
-        { ref: "todo:gbrain", relation: "parent", score: 0.7 },
+        { ref: "todo:memory-retrieval", relation: "parent", score: 0.7 },
       ],
       k: 2,
       latencyMs: 12.3456,

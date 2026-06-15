@@ -21,7 +21,7 @@ import {
   summarizeSeatsApiUsage,
   type SeatsApiBudgetCap,
   type SeatsApiUsageInput,
-} from "../src/lib/seatsApiUsage";
+} from "../src/lib/seatsApiUsage.js";
 
 type Db = ReturnType<typeof createClient>;
 

@@ -1,18 +1,3 @@
-UnClick
-Copyright (c) 2026 UnClick (Malamute Mayhem)
-
-The UnClick platform (this repository as deployed: the website in src/, the
-API in api/, and the hosted backend and memory services) is licensed under
-the GNU Affero General Public License, version 3.0, the full text of which
-follows below.
-
-Some components distributed from this repository are released under more
-permissive terms (for example the npm package @unclick/mcp-server is MIT).
-Those components carry their own LICENSE file and license field. See
-LICENSING.md for the full per-component breakdown and the reasoning.
-
-----------------------------------------------------------------------------
-
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 

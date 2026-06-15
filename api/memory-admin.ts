@@ -76,7 +76,7 @@
  *   - admin_fact_add: POST, inserts a new manually-authored fact.
  *   - admin_context_apply_template: POST, seeds business_context from a
  *                                   built-in starter template (freelancer,
- *                                   developer, founder, creator).
+ *                                   developer, founder, creator, unclick).
  *   - admin_session_preview: GET, returns a dry-run of get_startup_context
  *                            for the admin UI to show what will load.
  *   - admin_export_all: GET, returns the user's entire memory snapshot as JSON
@@ -2515,6 +2515,69 @@ function slugify(input: string): string {
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
+
+/**
+ * Built-in business_context starter templates for admin_context_apply_template.
+ *
+ * The four persona templates seed a role plus a few preferences. The `unclick`
+ * template is different in kind: it seeds the operating basics (memory
+ * protocol, tool-first reflex, session close, save-fixes) so a fresh account
+ * can adopt them as its own editable standing rules instead of starting blank.
+ * The always-on version of this knowledge ships to every account via
+ * AGENT_INSTRUCTIONS (packages/mcp-server starter-knowledge); this template is
+ * the opt-in, user-editable counterpart. Exported so it can be unit-tested.
+ */
+export const CONTEXT_TEMPLATES: Record<string, Array<{ category: string; key: string; value: string }>> = {
+  freelancer: [
+    { category: "identity", key: "role", value: "Independent freelancer" },
+    { category: "preference", key: "working_hours", value: "Weekdays, deep work 9am-1pm" },
+    { category: "preference", key: "communication", value: "Short, direct, no filler" },
+    { category: "workflow", key: "delivery_cadence", value: "Weekly demo, daily short updates" },
+    { category: "standing_rule", key: "estimates", value: "Always quote a range, never a single number" },
+  ],
+  developer: [
+    { category: "identity", key: "role", value: "Software engineer" },
+    { category: "preference", key: "preferred_stack", value: "TypeScript, React, Node, Postgres" },
+    { category: "preference", key: "code_style", value: "Prefer small pure functions, avoid unnecessary abstractions" },
+    { category: "standing_rule", key: "testing", value: "Write a failing test first for any non-trivial change" },
+    { category: "workflow", key: "pr_review", value: "Explain the why in PR descriptions, not the what" },
+  ],
+  founder: [
+    { category: "identity", key: "role", value: "Founder / CEO" },
+    { category: "preference", key: "communication", value: "High signal, decisions over discussion" },
+    { category: "workflow", key: "weekly_rhythm", value: "Mondays plan, Fridays review, ship often" },
+    { category: "standing_rule", key: "focus", value: "Default no to anything that is not the top priority this week" },
+    { category: "technical", key: "reporting", value: "Numbers first, narrative second" },
+  ],
+  creator: [
+    { category: "identity", key: "role", value: "Content creator" },
+    { category: "preference", key: "platforms", value: "Primary: YouTube. Secondary: X, LinkedIn." },
+    { category: "preference", key: "voice", value: "Friendly, concrete, no hype" },
+    { category: "workflow", key: "publishing", value: "Two long-form per week, daily short-form" },
+    { category: "standing_rule", key: "hooks", value: "Always lead with the payoff, not the setup" },
+  ],
+  unclick: [
+    { category: "standing_rule", key: "memory_protocol", value: "Load memory at the start of every session, search it before answering anything ambiguous, and save new preferences, decisions, and solved problems as you go." },
+    { category: "standing_rule", key: "tool_first", value: "Before web search or guessing for live or external data, check UnClick for a tool with unclick_search and run it with unclick_call." },
+    { category: "workflow", key: "session_close", value: "Write a session summary before ending so the next session resumes without re-asking." },
+    { category: "standing_rule", key: "save_fixes", value: "Record solved problems as troubleshooting facts: 'Issue: <symptom>. Solution: <fix>'." },
+    { category: "standing_rule", key: "proof_before_done", value: "Close work only on observable proof (a link, id, test or CI result, or a screenshot for UI), never on status text or green badges alone. A manually triggered success does not prove an automation; require a real scheduled run before calling it live." },
+    { category: "standing_rule", key: "high_risk_stop", value: "Pause for explicit confirmation before irreversible or high-risk actions: merging, deploying, deleting, rewriting shared git history (force-push, hard reset), or touching secrets, billing, DNS, or production data." },
+    { category: "standing_rule", key: "secret_hygiene", value: "Never print, log, or save secrets, tokens, or API keys; keep them out of summaries and memory." },
+    { category: "workflow", key: "scoped_slices", value: "Claim one small scoped slice with an ETA before starting, and prefer the smallest safe change over broad edits." },
+    { category: "workflow", key: "specific_blockers", value: "When blocked, post a specific blocker naming what is missing, what you already checked, and the next step, not just a status." },
+    { category: "standing_rule", key: "copy_from_source", value: "When exact text, code, or data is provided, copy it from the source instead of retyping from memory, to avoid drift." },
+    { category: "workflow", key: "autonomy_balance", value: "Do routine, reversible steps yourself instead of handing the user manual work; save escalation for secrets, billing, production data, DNS, and owner-only decisions." },
+    { category: "workflow", key: "continue_existing_work", value: "Before starting non-trivial work, check memory and open work (PRs, jobs, threads) for an existing effort to continue instead of opening a duplicate." },
+    { category: "standing_rule", key: "compact_memory", value: "Save compact summaries with ids or links to the source; do not store raw transcripts, recurring status noise, or bulk pasted content in memory." },
+    { category: "standing_rule", key: "idle_not_done", value: "Never report all-done or healthy while the authoritative task list still has open items; reconcile against it and either continue or name the blocker." },
+    { category: "standing_rule", key: "live_source_wins", value: "When stored memory, a status chip, or a cached report disagrees with a fresh read of the live system of record, the live source wins; update memory and flag the drift." },
+    { category: "workflow", key: "fetch_from_source", value: "Given a pointer like a PR number, ticket, or link, fetch the real content from the source tool yourself instead of asking the user to paste it; treat pasted summaries as unverified until checked." },
+    { category: "standing_rule", key: "patch_the_source", value: "Saving a memory or note does not change live behavior; to change how something works, patch the owning source (file, config, page, schedule definition) and verify the output." },
+    { category: "standing_rule", key: "public_surface_hygiene", value: "Never let local filesystem paths, machine names, or developer-only details leak into public-facing output: docs, UI copy, commits, packages, or generated artifacts." },
+    { category: "standing_rule", key: "honest_pushback", value: "Push back with evidence when the user's direction looks wrong or contradicts what you can observe; honest disagreement beats agreeable failure." },
+  ],
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -5614,41 +5677,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
 
         const template = String(req.body?.template ?? "").trim().toLowerCase();
-        const templates: Record<string, Array<{ category: string; key: string; value: string }>> = {
-          freelancer: [
-            { category: "identity", key: "role", value: "Independent freelancer" },
-            { category: "preference", key: "working_hours", value: "Weekdays, deep work 9am-1pm" },
-            { category: "preference", key: "communication", value: "Short, direct, no filler" },
-            { category: "workflow", key: "delivery_cadence", value: "Weekly demo, daily short updates" },
-            { category: "standing_rule", key: "estimates", value: "Always quote a range, never a single number" },
-          ],
-          developer: [
-            { category: "identity", key: "role", value: "Software engineer" },
-            { category: "preference", key: "preferred_stack", value: "TypeScript, React, Node, Postgres" },
-            { category: "preference", key: "code_style", value: "Prefer small pure functions, avoid unnecessary abstractions" },
-            { category: "standing_rule", key: "testing", value: "Write a failing test first for any non-trivial change" },
-            { category: "workflow", key: "pr_review", value: "Explain the why in PR descriptions, not the what" },
-          ],
-          founder: [
-            { category: "identity", key: "role", value: "Founder / CEO" },
-            { category: "preference", key: "communication", value: "High signal, decisions over discussion" },
-            { category: "workflow", key: "weekly_rhythm", value: "Mondays plan, Fridays review, ship often" },
-            { category: "standing_rule", key: "focus", value: "Default no to anything that is not the top priority this week" },
-            { category: "technical", key: "reporting", value: "Numbers first, narrative second" },
-          ],
-          creator: [
-            { category: "identity", key: "role", value: "Content creator" },
-            { category: "preference", key: "platforms", value: "Primary: YouTube. Secondary: X, LinkedIn." },
-            { category: "preference", key: "voice", value: "Friendly, concrete, no hype" },
-            { category: "workflow", key: "publishing", value: "Two long-form per week, daily short-form" },
-            { category: "standing_rule", key: "hooks", value: "Always lead with the payoff, not the setup" },
-          ],
-        };
-
-        const entries = templates[template];
+        const entries = CONTEXT_TEMPLATES[template];
         if (!entries) {
           return res.status(400).json({
-            error: "Unknown template. Use one of: freelancer, developer, founder, creator.",
+            error: "Unknown template. Use one of: freelancer, developer, founder, creator, unclick.",
           });
         }
 
