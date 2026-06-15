@@ -194,7 +194,8 @@
       "credential": "API key",
       "arg": "api_key",
       "envVar": "HIGGSFIELD_API_KEY",
-      "setupUrl": "https://higgsfield.ai/"
+      "setupUrl": "https://higgsfield.ai/mcp",
+      "note": "Customers connect their own Higgsfield account. Use api_key or HIGGSFIELD_API_KEY for UnClick's connector, or Higgsfield account login at https://mcp.higgsfield.ai/mcp for the hosted MCP."
     },
     "kling": {
       "displayName": "Kling",

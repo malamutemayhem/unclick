@@ -1,5 +1,5 @@
-// Connect wizard for apps that show "Needs key" / "Needs login" on the admin
-// Apps page. Click the status pill -> this modal opens -> paste the key ->
+// Connection wizard for apps that need setup on the admin Apps page. Click the
+// status pill -> this modal opens -> paste the key ->
 // Submit. The server (admin_connect_app) live-tests the credential against the
 // platform's test endpoint BEFORE storing it:
 //   - test passes  -> stored, green "Connected, live-tested"
@@ -28,6 +28,7 @@ export interface ConnectableConnector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
+  credential?: { is_valid: boolean; last_tested_at: string | null } | null;
 }
 
 interface ConnectAppModalProps {
@@ -37,6 +38,9 @@ interface ConnectAppModalProps {
   onClose: () => void;
   /** Called after a credential was stored, so the caller can refresh statuses. */
   onSaved: () => void;
+  isConnected?: boolean;
+  statusLabel?: string | null;
+  onDisconnect?: () => Promise<void> | void;
 }
 
 type Outcome =
@@ -52,11 +56,22 @@ function readLocalApiKey(): string | null {
   }
 }
 
-export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved }: ConnectAppModalProps) {
+export function ConnectAppModal({
+  app,
+  connector,
+  accessToken,
+  onClose,
+  onSaved,
+  isConnected = false,
+  statusLabel = null,
+  onDisconnect,
+}: ConnectAppModalProps) {
   const setup = CONNECTOR_SETUP[app.slug];
   const [credential, setCredential] = useState("");
   const [busy, setBusy] = useState(false);
+  const [disconnectBusy, setDisconnectBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   const credentialLabel = setup?.credential ?? "API key";
@@ -98,7 +113,7 @@ export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved 
       } else if (body.ok === null) {
         setOutcome({
           kind: "saved_unproven",
-          message: "Key saved and encrypted. This app has no automatic live test yet, so it is marked as saved (not proven) until its first real use.",
+          message: "Connection added. This app has no automatic live test yet, so it is marked as added until its first real use.",
         });
         setCredential("");
         onSaved();
@@ -112,6 +127,30 @@ export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved 
     }
   }
 
+  async function disconnect() {
+    if (!onDisconnect) return;
+    setDisconnectBusy(true);
+    setDisconnectError(null);
+    try {
+      await onDisconnect();
+    } catch (e) {
+      setDisconnectError(e instanceof Error ? e.message : "Disconnect failed.");
+    } finally {
+      setDisconnectBusy(false);
+    }
+  }
+
+  const disconnectButton = isConnected && onDisconnect ? (
+    <button
+      type="button"
+      onClick={() => void disconnect()}
+      disabled={disconnectBusy}
+      className="rounded-lg border border-red-400/25 px-3 py-2 text-xs font-medium text-red-200 transition-colors hover:bg-red-400/10 disabled:opacity-50"
+    >
+      {disconnectBusy ? "Disconnecting..." : "Disconnect"}
+    </button>
+  ) : null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
@@ -121,28 +160,47 @@ export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved 
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
             <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-            Connect {app.name}
+            {isConnected ? "Manage" : "Connect"} {app.name}
           </h3>
           <button onClick={onClose} className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
 
+        {isConnected && (
+          <div role="status" className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-[11px] leading-4 text-emerald-100">
+            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              <strong>{statusLabel ?? "Connected"}.</strong> {app.name} is available while this app stays turned on.
+            </span>
+          </div>
+        )}
+
         {isOAuth ? (
           <div className="text-xs leading-5 text-white/60">
-            <p>{app.name} connects with a login instead of a pasted key.</p>
-            <a
-              href={`/connect/${app.slug}`}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90"
-            >
-              Continue to {app.name} login
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
+            <p>
+              {isConnected
+                ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
+                : `${app.name} connects with a provider sign-in instead of a pasted key.`}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <a
+                href={`/connect/${app.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90"
+              >
+                {isConnected ? `Reconnect ${app.name}` : `Continue to ${app.name} login`}
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+              {disconnectButton}
+            </div>
+            {disconnectError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+            )}
           </div>
         ) : (
           <>
             <p className="text-xs leading-5 text-white/60">
-              Paste your {app.name} {credentialLabel}. It is live-tested first and only stored (encrypted) when the platform accepts it.
+              Paste your {app.name} {credentialLabel}. It is tested first; if the platform accepts it, this app shows as connected.
             </p>
             {setup?.note && <p className="mt-2 text-[11px] leading-4 text-white/45">{setup.note}</p>}
             {setupUrl && (
@@ -195,18 +253,26 @@ export function ConnectAppModal({ app, connector, accessToken, onClose, onSaved 
             )}
 
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={onClose} className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white">
-                {outcome && outcome.kind !== "rejected" ? "Done" : "Cancel"}
-              </button>
-              <button
-                onClick={() => void submit()}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
-              >
-                {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                {busy ? "Testing key..." : "Test and connect"}
-              </button>
+              <div className="mr-auto">
+                {disconnectButton}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={onClose} className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white">
+                  {outcome && outcome.kind !== "rejected" ? "Done" : "Cancel"}
+                </button>
+                <button
+                  onClick={() => void submit()}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
+                >
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Testing..." : isConnected ? "Test and update" : "Test and connect"}
+                </button>
+              </div>
             </div>
+            {disconnectError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+            )}
           </>
         )}
       </div>

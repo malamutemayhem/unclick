@@ -1,7 +1,7 @@
 /**
- * AdminKeychain - Passport admin surface (/admin/keychain)
+ * AdminKeychain - Connections admin surface (/admin/keychain)
  *
- * Full CRUD on the user_credentials vault:
+ * Full CRUD on encrypted user_credentials connection records:
  *   - List every credential the signed-in user owns (metadata only)
  *   - Reveal one credential's plaintext values (requires the user's
  *     plaintext UnClick api_key, read from localStorage.unclick_api_key)
@@ -117,7 +117,7 @@ const PLATFORMS = [
   { slug: "zapier",     name: "Zapier",       category: "Productivity", desc: "Workflow automation" },
 ] as const;
 
-const CORE_PASSPORT_PLATFORMS = ["github", "vercel", "supabase"] as const;
+const CORE_CONNECTION_PLATFORMS = ["github", "vercel", "supabase"] as const;
 
 // Types
 
@@ -251,12 +251,12 @@ const INVENTORY_STATUS_BADGES: Record<SystemCredentialDisplayStatus, {
 }> = {
   untested: {
     label: "Untested",
-    description: "Name-only inventory; no safe health probe has confirmed this Passport entry yet.",
+    description: "Name-only inventory; no safe health probe has confirmed this connection yet.",
     className: "border-sky-500/20 bg-sky-500/10 text-sky-300",
   },
   manual_check_required: {
     label: "Manual check",
-    description: "Human review is needed before this Passport entry can claim health.",
+    description: "Human review is needed before this connection can claim health.",
     className: "border-amber-500/20 bg-amber-500/10 text-amber-300",
   },
 };
@@ -371,7 +371,7 @@ export default function AdminKeychain() {
       const body = await res.json();
       setCredentials(body.data ?? []);
     } catch (err) {
-      setError(scrubInternalNames(err instanceof Error ? err.message : "Failed to load Passport"));
+      setError(scrubInternalNames(err instanceof Error ? err.message : "Failed to load Connections"));
     } finally {
       setLoading(false);
     }
@@ -411,7 +411,7 @@ export default function AdminKeychain() {
         body: JSON.stringify({ platform: slug, label: manualLabel.trim() || null, api_key: apiKey, values }),
       });
       const body = await res.json() as { error?: string };
-      if (!res.ok) { setAddError(body.error ?? "Failed to add Passport access."); return; }
+      if (!res.ok) { setAddError(body.error ?? "Failed to add connection."); return; }
       setStarterOpen(false);
       resetAddModal();
       await fetchList();
@@ -541,9 +541,9 @@ export default function AdminKeychain() {
     }
   }
 
-  /** Server errors can echo internal route names; users should only see Passport. */
+  /** Server errors can echo internal route names; users should only see Connections. */
   function scrubInternalNames(message: string): string {
-    return message.replace(/backstagepass/gi, "Passport");
+    return message.replace(/backstagepass/gi, "Connections");
   }
 
   async function copyToClipboard(field: string, value: string) {
@@ -627,7 +627,7 @@ export default function AdminKeychain() {
   }, [credentials]);
 
   const sortedCredentials = useMemo(() => {
-    const coreOrder = new Map(CORE_PASSPORT_PLATFORMS.map((platform, index) => [platform, index]));
+    const coreOrder = new Map(CORE_CONNECTION_PLATFORMS.map((platform, index) => [platform, index]));
     return [...credentials].sort((a, b) => {
       const aCore = coreOrder.get(a.platform) ?? 99;
       const bCore = coreOrder.get(b.platform) ?? 99;
@@ -667,11 +667,11 @@ export default function AdminKeychain() {
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Passport</h1>
+          <h1 className="text-2xl font-semibold text-white">Connections</h1>
           <p className="mt-1 text-sm text-[#888]">
-            Your service keys and logins, saved once, used by every Seat.{" "}
+            App access you have connected for the AI seats you approve.{" "}
             {credentials.length === 0
-              ? "Nothing saved yet."
+              ? "Nothing connected yet."
               : `${credentials.length} saved · ${healthyCount} healthy · ${attentionCount} need review.`}
           </p>
         </div>
@@ -700,9 +700,9 @@ export default function AdminKeychain() {
                 }}
                 className="block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
               >
-                <span className="block text-xs font-semibold text-white">Export Passport</span>
+                <span className="block text-xs font-semibold text-white">Export connections</span>
                 <span className="mt-0.5 block text-[11px] leading-4 text-[#888]">
-                  Download an encrypted backup of your saved access.
+                  Download an encrypted backup of your saved connection data.
                 </span>
               </button>
               <button
@@ -738,7 +738,7 @@ export default function AdminKeychain() {
           </button>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
-          {CORE_PASSPORT_PLATFORMS.map((platform) => {
+          {CORE_CONNECTION_PLATFORMS.map((platform) => {
             const cred = credentialByPlatform.get(platform);
             const platformInfo = PLATFORMS.find((item) => item.slug === platform);
             const health = cred ? credentialHealth(cred) : null;
@@ -764,7 +764,7 @@ export default function AdminKeychain() {
                 <p className="mt-3 text-[11px] text-[#777]">
                   {cred
                     ? `${credentialLastCheckDisplay(cred).label}: ${credentialLastCheckDisplay(cred).value}`
-                    : "Add once so all UnClick Seats can request this service through Passport."}
+                    : "Connect once so approved UnClick Seats can request this service when needed."}
                 </p>
                 <div className="mt-4">
                   {cred ? (
@@ -832,12 +832,12 @@ export default function AdminKeychain() {
       {loading ? (
         <div className="flex items-center gap-2 py-12 text-[#666]">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Loading Passport...</span>
+          <span className="text-sm">Loading connections...</span>
         </div>
       ) : credentials.length === 0 ? (
         <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-8 text-center">
           <KeyRound className="mx-auto h-8 w-8 text-[#333]" />
-          <p className="mt-3 text-sm text-[#666]">No saved access yet</p>
+          <p className="mt-3 text-sm text-[#666]">No connections yet</p>
           <p className="mt-1 text-xs text-[#444]">
             Connect a platform or add a manual key or token.
           </p>
@@ -1061,7 +1061,7 @@ export default function AdminKeychain() {
           </span>
         </summary>
         <p className="mt-2 text-xs leading-5 text-[#888]">
-          Name-only map of the GitHub and Vercel runtime Passport entries that power workflows. This is for debugging and rotation planning, not day-to-day Passport setup.
+          Name-only map of the GitHub and Vercel runtime connections that power workflows. This is for debugging and rotation planning, not day-to-day setup.
           The statuses below are not live: they come from a name-only audit and no real connection test has run against them.
         </p>
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
@@ -1154,15 +1154,15 @@ export default function AdminKeychain() {
         />
       )}
 
-      {/* Export Passport modal */}
+      {/* Export Connections modal */}
       {exportOpen && (() => {
         const pw       = exportPassword;
         const strength = exportPasswordStrength(pw);
         const canDownload = pw.length >= 12 && pw === exportConfirm;
         return (
-          <ModalShell title="Export Passport" onClose={() => { setExportOpen(false); setExportPassword(""); setExportConfirm(""); setExportError(null); }}>
+          <ModalShell title="Export connections" onClose={() => { setExportOpen(false); setExportPassword(""); setExportConfirm(""); setExportError(null); }}>
             <p className="mb-4 text-xs text-[#888]">
-              Download an encrypted backup of your Passport secrets. Set a password to protect the file.
+              Download an encrypted backup of your saved connection data. Set a password to protect the file.
             </p>
             <div className="space-y-3">
               <div>
@@ -1224,7 +1224,7 @@ export default function AdminKeychain() {
         );
       })()}
 
-      {/* Add Passport access modal */}
+      {/* Add connection modal */}
       {starterOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
@@ -1237,7 +1237,7 @@ export default function AdminKeychain() {
           >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-5 py-4">
-              <h3 className="text-sm font-semibold text-white">Add Passport access</h3>
+              <h3 className="text-sm font-semibold text-white">Add connection</h3>
               <button
                 onClick={() => { setStarterOpen(false); resetAddModal(); }}
                 className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white"
@@ -1280,7 +1280,7 @@ export default function AdminKeychain() {
                 </div>
                 <div className="flex-1 overflow-y-auto px-4 pb-4">
                   <div className="space-y-3">
-                    {CORE_PASSPORT_PLATFORMS.some((platform) =>
+                    {CORE_CONNECTION_PLATFORMS.some((platform) =>
                       PLATFORMS.some((item) => item.slug === platform && (
                         !platformSearch ||
                         item.name.toLowerCase().includes(platformSearch.toLowerCase()) ||
@@ -1291,7 +1291,7 @@ export default function AdminKeychain() {
                       <div>
                         <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-[#666]">Core services</p>
                         <div className="space-y-1">
-                          {CORE_PASSPORT_PLATFORMS.map((slug) => PLATFORMS.find((item) => item.slug === slug))
+                          {CORE_CONNECTION_PLATFORMS.map((slug) => PLATFORMS.find((item) => item.slug === slug))
                             .filter((p): p is (typeof PLATFORMS)[number] => Boolean(p))
                             .filter(
                               (p) =>
@@ -1320,7 +1320,7 @@ export default function AdminKeychain() {
                     <div>
                       <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-[#666]">More services</p>
                       <div className="space-y-1">
-                    {PLATFORMS.filter((p) => !CORE_PASSPORT_PLATFORMS.includes(p.slug as typeof CORE_PASSPORT_PLATFORMS[number])).filter(
+                    {PLATFORMS.filter((p) => !CORE_CONNECTION_PLATFORMS.includes(p.slug as typeof CORE_CONNECTION_PLATFORMS[number])).filter(
                       (p) =>
                         !platformSearch ||
                         p.name.toLowerCase().includes(platformSearch.toLowerCase()) ||
@@ -1690,7 +1690,7 @@ function DeleteModal({
       <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
         <p className="text-xs text-red-400">
-          This permanently removes <span className="font-mono">{cred.platform}{cred.label ? ` [${cred.label}]` : ""}</span> from Passport. The audit log is preserved.
+          This permanently removes <span className="font-mono">{cred.platform}{cred.label ? ` [${cred.label}]` : ""}</span> from Connections. The audit log is preserved.
         </p>
       </div>
       {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
@@ -1731,7 +1731,7 @@ function AuditDrawer({
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-white">Audit log</h3>
-            <p className="text-[11px] text-[#666]">Every reveal, update, and delete on your Passport secrets.</p>
+            <p className="text-[11px] text-[#666]">Every reveal, update, and delete for your saved connections.</p>
           </div>
           <button
             onClick={onClose}

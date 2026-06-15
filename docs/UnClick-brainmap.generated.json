@@ -15793,8 +15793,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "d02028751751",
-      "bytes": 11234
+      "hash": "5af15b7b3c7e",
+      "bytes": 11552
     },
     {
       "source": "docs/agent-observability.md",
@@ -16148,8 +16148,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "93411db0999e",
-      "bytes": 9265
+      "hash": "c408e13f3c9e",
+      "bytes": 10180
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16233,8 +16233,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "c72e09c40746",
-      "bytes": 78137
+      "hash": "ae96146cbd10",
+      "bytes": 78184
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -16253,8 +16253,8 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "3f9cf6999160",
-      "bytes": 94729
+      "hash": "d04b65dd3548",
+      "bytes": 94909
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
@@ -16333,8 +16333,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "7d1bead9bac0",
-      "bytes": 6646
+      "hash": "6e542cff428b",
+      "bytes": 6635
     },
     {
       "source": "src/pages/Apps.tsx",
@@ -16353,8 +16353,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "b495dbfaccdb",
-      "bytes": 30784
+      "hash": "818da19c618a",
+      "bytes": 31549
     },
     {
       "source": "src/pages/Crews.tsx",

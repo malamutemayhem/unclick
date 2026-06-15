@@ -159,7 +159,7 @@ function FieldInput({
 
 export default function ConnectPage() {
   const { platform }      = useParams<{ platform: string }>();
-  const [searchParams]    = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const code              = searchParams.get("code");
   const stateParam        = searchParams.get("state");
 
@@ -240,14 +240,25 @@ export default function ConnectPage() {
 
   // -- Handle OAuth callback ------------------------------------------------
   useEffect(() => {
+    let handledQueryState = false;
+
     if (connectedParam === "1") {
       setPageState({ kind: "success" });
-      return;
+      handledQueryState = true;
     }
-    if (oauthErrorParam) {
+
+    if (oauthErrorParam && !handledQueryState) {
       setPageState({ kind: "error", message: oauthErrorParam });
+      handledQueryState = true;
     }
-  }, [connectedParam, oauthErrorParam]);
+
+    if (handledQueryState) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("connected");
+      nextParams.delete("oauth_error");
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [connectedParam, oauthErrorParam, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!code || !connector || callbackFired.current) return;
@@ -379,7 +390,16 @@ export default function ConnectPage() {
             variant="outline"
             size="sm"
             className="border-border/60 text-heading"
-            onClick={() => setPageState({ kind: "idle" })}
+            onClick={() => {
+              callbackFired.current = false;
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.delete("code");
+              nextParams.delete("state");
+              nextParams.delete("connected");
+              nextParams.delete("oauth_error");
+              setSearchParams(nextParams, { replace: true });
+              setPageState({ kind: "idle" });
+            }}
           >
             Try again
           </Button>

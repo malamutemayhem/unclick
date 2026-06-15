@@ -15,7 +15,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | AUTOPILOT.md | 969ddb05e2d3 | 18609 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
-| docs/unclick-context-boot-packet.md | d02028751751 | 11234 |
+| docs/unclick-context-boot-packet.md | 5af15b7b3c7e | 11552 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
@@ -86,7 +86,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | 93411db0999e | 9265 |
+| src/pages/admin/AdminTools.tsx | c408e13f3c9e | 10180 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
@@ -103,11 +103,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | c72e09c40746 | 78137 |
+| src/pages/admin/AdminKeychain.tsx | ae96146cbd10 | 78184 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
-| src/pages/admin/AdminOrchestrator.tsx | 3f9cf6999160 | 94729 |
+| src/pages/admin/AdminOrchestrator.tsx | d04b65dd3548 | 94909 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 2dc2b8547f5e | 29995 |
 | src/pages/MemorySetupGuide.tsx | ce31ced6b406 | 10265 |
@@ -123,11 +123,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 7d1bead9bac0 | 6646 |
+| src/pages/AppDetail.tsx | 6e542cff428b | 6635 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | b495dbfaccdb | 30784 |
+| src/pages/Connect.tsx | 818da19c618a | 31549 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
