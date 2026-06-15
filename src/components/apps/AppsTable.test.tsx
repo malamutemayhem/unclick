@@ -99,6 +99,30 @@ describe("AppsTable", () => {
     expect(onStatusClick).toHaveBeenCalledWith(expect.objectContaining({ slug: "github" }));
   });
 
+  it("admin mode exposes manage and disconnect controls on expanded connected rows", () => {
+    const onManage = vi.fn();
+    const onDisconnect = vi.fn();
+    renderTable(
+      <AppsTable
+        apps={[APPS[0]]}
+        mode="admin"
+        statusOf={() => ({ label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" })}
+        actionOf={() => ({ label: "Manage", onClick: onManage })}
+        disconnectOf={() => ({ label: "Disconnect", onClick: onDisconnect })}
+      />,
+    );
+
+    const row = screen.getByText("GitHub").closest("[role='button']");
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+
+    fireEvent.click(screen.getByRole("button", { name: "Manage" }));
+    fireEvent.click(screen.getByRole("button", { name: "Disconnect" }));
+
+    expect(onManage).toHaveBeenCalledTimes(1);
+    expect(onDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it("admin mode shows checkboxes + bulk controls and fires toggle callbacks", () => {
     const onToggle = vi.fn();
     const onToggleAll = vi.fn();

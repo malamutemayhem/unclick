@@ -43,6 +43,8 @@ interface AppsTableProps {
   statusOf?: (app: AppEntry) => AppStatus | null;
   /** Admin mode: the single status-column chip. It states the truth AND does the action: Connect / Add key when unconnected, the proven status label (Connected / Key saved) when connected, click always opens the wizard. null = built-in, falls back to the plain status pill. */
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
+  /** Admin mode: shown in expanded connected rows so unlinking an app is discoverable. */
+  disconnectOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** admin: makes the status pill a button (used to open the connect wizard). */
   onStatusClick?: (app: AppEntry) => void;
   busy?: boolean;
@@ -67,7 +69,7 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, busy }: AppsTableProps) {
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, disconnectOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showRaw, setShowRaw] = useState(false);
@@ -201,6 +203,9 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
         {filtered.map((app) => {
           const on = isOn(app.slug);
           const status = statusOf?.(app) ?? null;
+          const action = actionOf?.(app) ?? null;
+          const disconnect = disconnectOf?.(app) ?? null;
+          const connected = action?.label === "Manage" && Boolean(disconnect);
           const quality = levelLabel(app.level);
           const open = isExpanded(app);
           return (
@@ -248,24 +253,23 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                       (Was an action button next to a status pill; for unconnected
                       rows the pair said the same thing twice.) */}
                   {isAdmin ? (() => {
-                    const action = actionOf?.(app) ?? null;
                     if (action) {
-                      const connected = action.label !== "Connect" && action.label !== "Add key";
+                      const hasConnection = action.label !== "Connect" && action.label !== "Add key";
                       return (
                         <button
                           type="button"
-                          title={connected ? "Click to manage this connection" : undefined}
+                          title={hasConnection ? "Click to manage this connection" : undefined}
                           onClick={(e) => {
                             e.stopPropagation();
                             action.onClick();
                           }}
                           className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold transition-opacity hover:opacity-80 ${
-                            connected && status
+                            hasConnection && status
                               ? status.tone
                               : "border-[#61C1C4]/25 bg-[#61C1C4]/15 text-[#9FE0E2]"
                           }`}
                         >
-                          {connected && status ? status.label : action.label}
+                          {hasConnection && status ? status.label : action.label}
                         </button>
                       );
                     }
@@ -300,6 +304,37 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
                     {/* Full, untruncated description first, so nothing is lost to the
                         single-line row above. The internet badge rides along. */}
+                    {isAdmin && connected && (
+                      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-300/10 bg-emerald-300/[0.04] px-3 py-2">
+                        <span className="text-[11px] font-medium text-emerald-100">
+                          Connected
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              action?.onClick();
+                            }}
+                            className="rounded-md border border-emerald-300/20 px-2 py-1 text-[10px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/10 disabled:opacity-50"
+                          >
+                            Manage
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              disconnect?.onClick();
+                            }}
+                            className="rounded-md border border-red-300/25 px-2 py-1 text-[10px] font-semibold text-red-100 transition-colors hover:bg-red-300/10 disabled:opacity-50"
+                          >
+                            {disconnect?.label ?? "Disconnect"}
+                          </button>
+                        </span>
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center gap-2 py-1.5">
                       <span className="text-[11px] leading-snug text-white/70">{app.blurb}</span>
                       <span
