@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | ae96146cbd10 | 78184 |
+| src/pages/admin/AdminKeychain.tsx | d24135238f4d | 70823 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
