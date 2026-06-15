@@ -5310,17 +5310,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("platform_connectors")
           .select("*");
 
-        // SECURITY: tenant scope required, audit PR #128
-        const { data: creds } = await supabase
+        // SECURITY: tenant scope required, audit PR #128.
+        //
+        // Connections currently exist in two stores:
+        // - platform_credentials: the older admin Apps key path.
+        // - user_credentials: the /connect/:platform OAuth/manual path.
+        //
+        // The Apps page is the user-facing truth, so merge both here. This
+        // keeps GitHub OAuth, which is saved through /api/credentials, from
+        // looking disconnected on /admin/apps.
+        const { data: platformCreds } = await supabase
           .from("platform_credentials")
-          .select("platform, is_valid, last_tested_at")
+          .select("id, platform, label, is_valid, last_tested_at, created_at")
           .eq("key_hash", tenant.apiKeyHash);
 
-        const credMap = new Map<string, { is_valid: boolean; last_tested_at: string | null }>();
-        for (const c of creds ?? []) {
-          credMap.set(c.platform as string, {
-            is_valid: c.is_valid as boolean,
-            last_tested_at: c.last_tested_at as string | null,
+        const { data: userCreds } = await supabase
+          .from("user_credentials")
+          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+          .eq("api_key_hash", tenant.apiKeyHash);
+
+        type AdminCredentialSource = "platform_credentials" | "user_credentials" | "mixed";
+        type AdminCredentialSummary = {
+          id: string | null;
+          is_valid: boolean;
+          last_tested_at: string | null;
+          label: string | null;
+          source: AdminCredentialSource;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+
+        function timestampScore(value: unknown): number {
+          if (typeof value !== "string" || !value) return 0;
+          const parsed = Date.parse(value);
+          return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function credentialScore(cred: AdminCredentialSummary): number {
+          return (cred.is_valid ? 1_000_000_000_000_000 : 0)
+            + (cred.last_tested_at ? 1_000_000_000_000 : 0)
+            + Math.max(timestampScore(cred.updated_at), timestampScore(cred.created_at));
+        }
+
+        const credMap = new Map<string, AdminCredentialSummary>();
+        function mergeCredential(platform: string, next: AdminCredentialSummary) {
+          const current = credMap.get(platform);
+          if (!current) {
+            credMap.set(platform, next);
+            return;
+          }
+
+          const winner = credentialScore(next) > credentialScore(current) ? next : current;
+          credMap.set(platform, {
+            ...winner,
+            source: current.source === next.source ? winner.source : "mixed",
+          });
+        }
+
+        for (const c of platformCreds ?? []) {
+          mergeCredential(c.platform as string, {
+            id: c.id as string,
+            is_valid: c.is_valid !== false,
+            last_tested_at: (c.last_tested_at as string | null) ?? null,
+            label: (c.label as string | null) ?? null,
+            source: "platform_credentials",
+            created_at: (c.created_at as string | null) ?? null,
+            updated_at: null,
+          });
+        }
+
+        for (const c of userCreds ?? []) {
+          mergeCredential(c.platform_slug as string, {
+            id: c.id as string,
+            is_valid: c.is_valid !== false,
+            last_tested_at: (c.last_tested_at as string | null) ?? null,
+            label: (c.label as string | null) ?? null,
+            source: "user_credentials",
+            created_at: (c.created_at as string | null) ?? null,
+            updated_at: (c.updated_at as string | null) ?? null,
           });
         }
 
@@ -5434,6 +5501,71 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           tested: !test.skipped,
           tested_at: test.skipped ? null : now,
           message: test.message,
+        });
+      }
+
+      case "admin_disconnect_app": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const platform = typeof body.platform === "string" ? body.platform.trim().toLowerCase() : "";
+        if (!platform) return res.status(400).json({ error: "platform is required" });
+
+        const userDelete = await supabase
+          .from("user_credentials")
+          .delete()
+          .eq("api_key_hash", tenant.apiKeyHash)
+          .eq("platform_slug", platform)
+          .select("id, label");
+        if (userDelete.error) throw userDelete.error;
+
+        const platformDelete = await supabase
+          .from("platform_credentials")
+          .delete()
+          .eq("key_hash", tenant.apiKeyHash)
+          .eq("platform", platform)
+          .select("id, label");
+        if (platformDelete.error) throw platformDelete.error;
+
+        const userRows = (userDelete.data ?? []) as Array<{ id?: string; label?: string | null }>;
+        const platformRows = (platformDelete.data ?? []) as Array<{ id?: string; label?: string | null }>;
+
+        try {
+          const auditRows = userRows.length > 0
+            ? userRows.map((row) => ({
+              actor_user_id: tenant.userId,
+              api_key_hash: tenant.apiKeyHash,
+              action: "disconnect_app",
+              credential_id: row.id ?? null,
+              platform_slug: platform,
+              label: row.label ?? null,
+              success: true,
+              metadata: { surface: "admin_apps" },
+            }))
+            : [{
+              actor_user_id: tenant.userId,
+              api_key_hash: tenant.apiKeyHash,
+              action: "disconnect_app",
+              credential_id: null,
+              platform_slug: platform,
+              label: null,
+              success: true,
+              metadata: { surface: "admin_apps", legacy_rows_deleted: platformRows.length },
+            }];
+          await supabase.from("backstagepass_audit").insert(auditRows);
+        } catch {
+          // Audit is best-effort here; deleting the connection is the user action.
+        }
+
+        return res.status(200).json({
+          success: true,
+          platform,
+          deleted: {
+            connections: userRows.length,
+            app_records: platformRows.length,
+          },
         });
       }
 

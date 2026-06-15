@@ -109,21 +109,21 @@ const AppDetail = () => {
               </div>
             </div>
 
-            {/* Connect it */}
+            {/* Connection */}
             <div className="mt-6 rounded-xl border border-white/[0.07] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2">
                 <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-                <p className="text-sm font-semibold text-white">Connect it</p>
+                <p className="text-sm font-semibold text-white">Connection</p>
               </div>
               <p className="mt-1.5 text-xs leading-5 text-white/55">
-                Most apps work straight away with nothing to set up. If {app.name} needs a login or
-                an API key, connect it once to UnClick and every paired AI app can use it through UnClick.
+                Most apps work straight away with nothing to set up. If {app.name} needs your account,
+                connect it from Apps, see when it is connected, and disconnect it any time.
               </p>
               <Link
-                to="/admin/keychain"
+                to="/admin/apps"
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-1.5 text-xs font-semibold text-[#f0d577] transition-colors hover:bg-[#E2B93B]/15"
               >
-                <KeyRound className="h-3.5 w-3.5" /> Open Passport
+                <KeyRound className="h-3.5 w-3.5" /> Manage connections
               </Link>
             </div>
 

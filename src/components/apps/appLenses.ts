@@ -16,7 +16,12 @@ export type SetupKind = "signin" | "key" | "builtin";
 /** Minimal connector shape the lenses need; matches the admin_tools API rows. */
 export interface LensConnector {
   auth_type?: "oauth2" | "api_key" | "bot_token";
-  credential: { is_valid: boolean; last_tested_at: string | null } | null;
+  credential: {
+    id?: string | null;
+    is_valid: boolean;
+    last_tested_at: string | null;
+    source?: "platform_credentials" | "user_credentials" | "mixed";
+  } | null;
 }
 
 /** One source array drives the rail, the chips, and the URL contract. */

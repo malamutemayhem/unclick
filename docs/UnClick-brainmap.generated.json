@@ -16148,8 +16148,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "93411db0999e",
-      "bytes": 9265
+      "hash": "c408e13f3c9e",
+      "bytes": 10180
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16233,8 +16233,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "c72e09c40746",
-      "bytes": 78137
+      "hash": "ae96146cbd10",
+      "bytes": 78184
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -16333,8 +16333,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "7d1bead9bac0",
-      "bytes": 6646
+      "hash": "6e542cff428b",
+      "bytes": 6635
     },
     {
       "source": "src/pages/Apps.tsx",
