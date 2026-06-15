@@ -45,4 +45,8 @@ describe("app catalog integrity", () => {
     expect(getApp("github")?.name).toBe("GitHub");
     expect(getApp("not-a-real-app")).toBeUndefined();
   });
+
+  it("uses the real Higgsfield brand domain for its app icon", () => {
+    expect(getApp("higgsfield")?.domain).toBe("higgsfield.ai");
+  });
 });

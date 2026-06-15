@@ -48,4 +48,11 @@ describe("connector-setup registry + resolver", () => {
       expect(Boolean(row.arg || row.envVar), `${id} arg or envVar`).toBe(true);
     }
   });
+
+  it("points Higgsfield setup at the hosted MCP login path", () => {
+    const r = notConnectedFor("higgsfield");
+    expect(CONNECTOR_SETUP.higgsfield.setupUrl).toBe("https://higgsfield.ai/mcp");
+    expect(r.how_to_connect.join(" ")).toContain("https://mcp.higgsfield.ai/mcp");
+    expect(r.how_to_connect.join(" ")).toContain("HIGGSFIELD_API_KEY");
+  });
 });
