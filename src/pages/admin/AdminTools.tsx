@@ -155,6 +155,24 @@ export default function AdminToolsPage() {
     return { label, onClick: () => setConnectTarget(app) };
   }
 
+  function disconnectActionOf(app: AppEntry) {
+    const connector = connectorBySlug.get(app.slug);
+    if (!connector?.credential?.is_valid) return null;
+    return {
+      label: "Disconnect",
+      onClick: () => {
+        if (!window.confirm(`Disconnect ${app.name}?`)) return;
+        setSaving(true);
+        setSaveError(null);
+        void disconnectApp(app.slug)
+          .catch((err) => {
+            setSaveError(err instanceof Error ? err.message : "Disconnect failed.");
+          })
+          .finally(() => setSaving(false));
+      },
+    };
+  }
+
   async function disconnectApp(slug: string) {
     if (!session) throw new Error("Sign in again to disconnect apps.");
     const res = await fetch("/api/memory-admin?action=admin_disconnect_app", {
@@ -212,6 +230,7 @@ export default function AdminToolsPage() {
         statusOf={statusOf}
         onStatusClick={handleStatusClick}
         actionOf={actionOf}
+        disconnectOf={disconnectActionOf}
         busy={saving}
       />
 
