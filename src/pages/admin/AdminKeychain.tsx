@@ -59,15 +59,6 @@ import {
   Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  listSystemCredentialHealthRows,
-  type SystemCredentialDisplayStatus,
-  type SystemCredentialHealthRow,
-  type SystemCredentialOwnerConfidence,
-  type SystemCredentialProvider,
-  type SystemCredentialRisk,
-} from "./systemCredentialInventory";
-
 // Platform catalog
 
 const PLATFORMS = [
@@ -226,64 +217,6 @@ const HEALTH_BADGES: Record<CredentialHealthStatus, {
   },
 };
 
-const INVENTORY_RISK_BADGES: Record<SystemCredentialRisk, {
-  label: string;
-  className: string;
-}> = {
-  critical: {
-    label: "Critical",
-    className: "border-red-500/20 bg-red-500/10 text-red-300",
-  },
-  high: {
-    label: "High",
-    className: "border-amber-500/20 bg-amber-500/10 text-amber-300",
-  },
-  normal: {
-    label: "Normal",
-    className: "border-white/[0.06] bg-white/[0.03] text-[#aaa]",
-  },
-};
-
-const INVENTORY_STATUS_BADGES: Record<SystemCredentialDisplayStatus, {
-  label: string;
-  description: string;
-  className: string;
-}> = {
-  untested: {
-    label: "Untested",
-    description: "Name-only inventory; no safe health probe has confirmed this connection yet.",
-    className: "border-sky-500/20 bg-sky-500/10 text-sky-300",
-  },
-  manual_check_required: {
-    label: "Manual check",
-    description: "Human review is needed before this connection can claim health.",
-    className: "border-amber-500/20 bg-amber-500/10 text-amber-300",
-  },
-};
-
-const PROVIDER_LABELS: Record<SystemCredentialProvider, string> = {
-  github: "GitHub",
-  vercel: "Vercel",
-};
-
-const OWNER_CONFIDENCE_BADGES: Record<SystemCredentialOwnerConfidence, {
-  label: string;
-  className: string;
-}> = {
-  known: {
-    label: "Owner known",
-    className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
-  },
-  inferred: {
-    label: "Owner inferred",
-    className: "border-sky-500/20 bg-sky-500/10 text-sky-300",
-  },
-  unknown: {
-    label: "Owner unknown",
-    className: "border-white/[0.06] bg-white/[0.03] text-[#aaa]",
-  },
-};
-
 // Component
 
 export default function AdminKeychain() {
@@ -292,24 +225,6 @@ export default function AdminKeychain() {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState<string | null>(null);
-  // The system inventory below is an internal rotation-planning tool; average
-  // users found it noisy and alarming, so it renders for admins only.
-  const [isAdmin, setIsAdmin]         = useState(false);
-
-  useEffect(() => {
-    const token = session?.access_token;
-    if (!token) return;
-    let cancelled = false;
-    fetch("/api/memory-admin?action=admin_profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((body) => {
-        if (!cancelled && body) setIsAdmin(Boolean(body.is_admin));
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [session?.access_token]);
 
   // Reveal cache keyed by credential.id. When the user reveals a row
   // we keep plaintext here until they hide it or the auto-clear timer
@@ -603,7 +518,7 @@ export default function AdminKeychain() {
       const url      = URL.createObjectURL(blob);
       const anchor   = document.createElement("a");
       const filename = res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1]
-        ?? `unclick-passport-${new Date().toISOString().slice(0, 10)}.enc`;
+        ?? `unclick-connections-${new Date().toISOString().slice(0, 10)}.enc`;
       anchor.href     = url;
       anchor.download = filename;
       anchor.click();
@@ -649,20 +564,6 @@ export default function AdminKeychain() {
   const healthyCount = healthCounts.healthy;
   const attentionCount = credentials.length - healthyCount;
 
-  const systemCredentialInventory = useMemo(() => listSystemCredentialHealthRows(), []);
-  const inventorySummary = useMemo(() => ({
-    total:    systemCredentialInventory.length,
-    critical: systemCredentialInventory.filter((entry) => entry.risk === "critical").length,
-    high:     systemCredentialInventory.filter((entry) => entry.risk === "high").length,
-    expected: systemCredentialInventory.filter((entry) => entry.expected).length,
-  }), [systemCredentialInventory]);
-  const inventoryByProvider = useMemo(() => (
-    systemCredentialInventory.reduce<Record<SystemCredentialProvider, SystemCredentialHealthRow[]>>((acc, entry) => {
-      acc[entry.provider].push(entry);
-      return acc;
-    }, { github: [], vercel: [] })
-  ), [systemCredentialInventory]);
-
   return (
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
@@ -684,7 +585,7 @@ export default function AdminKeychain() {
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <details className="relative" data-testid="passport-more-menu">
+          <details className="relative" data-testid="connections-more-menu">
             <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B] [&::-webkit-details-marker]:hidden">
               More
               <ChevronDown className="h-3 w-3" />
@@ -1051,69 +952,6 @@ export default function AdminKeychain() {
               </div>
         </section>
       )}
-
-      {isAdmin && <details className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-white">
-          Internal: system credential inventory
-          <span className="ml-2 rounded border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#E2B93B]">admins</span>
-          <span className="ml-2 text-xs font-normal text-[#666]">
-            {inventorySummary.total} tracked names, {inventorySummary.critical + inventorySummary.high} elevated risk
-          </span>
-        </summary>
-        <p className="mt-2 text-xs leading-5 text-[#888]">
-          Name-only map of the GitHub and Vercel runtime connections that power workflows. This is for debugging and rotation planning, not day-to-day setup.
-          The statuses below are not live: they come from a name-only audit and no real connection test has run against them.
-        </p>
-        <div className="mt-4 grid gap-3 xl:grid-cols-2">
-          {(Object.keys(inventoryByProvider) as SystemCredentialProvider[]).map((provider) => (
-            <div key={provider} className="rounded-lg border border-white/[0.05] bg-black/20">
-              <div className="flex items-center justify-between border-b border-white/[0.05] px-3 py-2">
-                <p className="text-xs font-semibold text-white">{PROVIDER_LABELS[provider]}</p>
-                <p className="text-[10px] text-[#666]">{inventoryByProvider[provider].length} names</p>
-              </div>
-              <div className="divide-y divide-white/[0.04]">
-                {inventoryByProvider[provider].map((entry) => {
-                  const risk = INVENTORY_RISK_BADGES[entry.risk];
-                  const status = INVENTORY_STATUS_BADGES[entry.displayStatus];
-                  const ownerConfidence = OWNER_CONFIDENCE_BADGES[entry.ownerConfidence];
-                  return (
-                    <div key={`${entry.provider}-${entry.name}-${entry.workload}`} className="grid gap-2 px-3 py-3 text-[11px] md:grid-cols-[minmax(12rem,0.8fr)_minmax(16rem,1.2fr)_auto]">
-                      <div className="min-w-0">
-                        <p className="truncate font-mono text-[#ddd]">{entry.name}</p>
-                        <p className="mt-0.5 text-[#555]">{entry.sourceLabel}</p>
-                        <p className="mt-0.5 text-[#666]">{entry.scope}</p>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[#ccc]">Used by: {entry.workload}</p>
-                        <div className="mt-1 grid gap-1 text-[#666] sm:grid-cols-2">
-                          <p>Owner: {entry.ownerLabel} ({entry.ownerConfidence})</p>
-                          <p>Last checked: {entry.lastCheckedAt ? timeAgo(entry.lastCheckedAt) : "no safe check yet"}</p>
-                        </div>
-                        <p className="mt-1 text-[#666]">Health evidence: {entry.healthEvidenceLabel}</p>
-                        <p className="mt-1 text-[#888]">Impact: {entry.rotationImpactSummary}</p>
-                      </div>
-                      <div className="flex flex-wrap items-start gap-1 md:justify-end">
-                        <span
-                          className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${status.className}`}
-                          title={status.description}
-                        >
-                          {status.label}
-                        </span>
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${risk.className}`}>
-                          {risk.label}
-                        </span>
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${ownerConfidence.className}`}>
-                          {ownerConfidence.label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>}
 
       {/* Edit-label modal */}
       {editTarget && (
