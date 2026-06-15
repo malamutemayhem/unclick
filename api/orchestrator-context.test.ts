@@ -1810,3 +1810,170 @@ describe("orchestrator truth reconciliation (Boardroom drift)", () => {
     expect(reconciliation.reason_code).toBe("no_drift_quiet");
   });
 });
+
+describe("proof debt and continuous improvement scoreboards", () => {
+  const emptySources = {
+    profiles: [],
+    messages: [],
+    comments: [],
+    dispatches: [],
+    signals: [],
+    sessions: [],
+    library: [],
+    businessContext: [],
+    conversationTurns: [],
+  };
+
+  const todoBase = {
+    description: null,
+    created_by_agent_id: "builder-seat",
+    created_at: "2026-06-11T08:00:00.000Z",
+    updated_at: "2026-06-11T09:00:00.000Z",
+  };
+
+  it("separates done rows with proof from proof debt and completion claims", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "done-proved-1", title: "Ship widget", status: "done", priority: "high" },
+        { ...todoBase, id: "done-naked-1", title: "Polish docs", status: "done", priority: "normal" },
+        {
+          ...todoBase,
+          id: "claim-naked-1",
+          title: "Refactor parser",
+          status: "in_progress",
+          priority: "high",
+          assigned_to_agent_id: "builder-seat",
+        },
+        { ...todoBase, id: "open-quiet-1", title: "Spike idea", status: "open", priority: "low" },
+      ],
+      comments: [
+        {
+          id: "c-1",
+          target_kind: "todo",
+          target_id: "done-proved-1",
+          author_agent_id: "builder-seat",
+          text: "PASS: shipped; proof: PR #123 merged, tests green.",
+          created_at: "2026-06-11T10:00:00.000Z",
+        },
+        {
+          id: "c-2",
+          target_kind: "todo",
+          target_id: "claim-naked-1",
+          author_agent_id: "builder-seat",
+          text: "DONE, wrapping up now before the deadline.",
+          created_at: "2026-06-11T10:30:00.000Z",
+        },
+      ],
+    });
+
+    const board = context.current_state_card.proof_debt_scoreboard;
+    expect(board.done_todos_scanned).toBe(2);
+    expect(board.done_with_proof).toBe(1);
+    expect(board.done_missing_proof).toBe(1);
+    expect(board.pass_claims_without_proof).toBe(1);
+    expect(board.debt_examples.some((line) => line.includes("done-nak"))).toBe(true);
+    expect(board.debt_examples.some((line) => line.includes("claim-na"))).toBe(true);
+    expect(board.summary).toContain("2 job(s) look complete without observable proof");
+  });
+
+  it("does not treat ordinary hex-looking words as commit proof", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [{ ...todoBase, id: "done-word-1", title: "Wordy close", status: "done", priority: "normal" }],
+      comments: [
+        {
+          id: "c-3",
+          target_kind: "todo",
+          target_id: "done-word-1",
+          author_agent_id: "builder-seat",
+          text: "All effaced and decaffed, no receipts attached.",
+          created_at: "2026-06-11T10:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(context.current_state_card.proof_debt_scoreboard.done_missing_proof).toBe(1);
+  });
+
+  it("reports a quiet proof-debt board when nothing looks complete", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [{ ...todoBase, id: "open-1", title: "Open chip", status: "open", priority: "normal" }],
+    });
+
+    const board = context.current_state_card.proof_debt_scoreboard;
+    expect(board.done_todos_scanned).toBe(0);
+    expect(board.summary).toBe("No completed-looking jobs in the loaded window.");
+  });
+
+  it("counts friction classes and seeds a read-only packet past the threshold", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "q-1", title: "Unowned one", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-2", title: "Unowned two", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-3", title: "Unowned three", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-4", title: "Unowned four", status: "open", priority: "normal" },
+      ],
+      signals: [
+        {
+          id: "sig-1",
+          tool: "github_action",
+          action: "run_failed",
+          severity: "action_needed",
+          summary: "Scheduled run failed.",
+          created_at: "2026-06-11T11:00:00.000Z",
+        },
+      ],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.queue_friction).toBe(4);
+    expect(board.automation_friction).toBe(1);
+    expect(board.proof_friction).toBe(0);
+    expect(board.dominant_friction).toBe("queue");
+    expect(board.next_actions[0]).toContain("Route 4 unassigned open todo(s)");
+    expect(board.improvement_packet).not.toBeNull();
+    expect(board.improvement_packet?.read_only).toBe(true);
+    expect(board.improvement_packet?.owned_files).toEqual([]);
+    expect(board.improvement_packet?.create_todo_payload.priority).toBe("normal");
+    expect(board.improvement_packet?.evidence).toContain("queue=4");
+  });
+
+  it("holds the packet below the dominance threshold and prefers proof when counts tie", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "tie-done-1", title: "Closed quietly", status: "done", priority: "normal" },
+        { ...todoBase, id: "tie-q-1", title: "Unowned", status: "open", priority: "normal" },
+      ],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.proof_friction).toBe(1);
+    expect(board.queue_friction).toBe(1);
+    expect(board.dominant_friction).toBe("proof");
+    expect(board.improvement_packet).toBeNull();
+    expect(board.next_actions[0]).toContain("proof-debt");
+  });
+
+  it("reports an all-quiet improvement board with no actions", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.dominant_friction).toBeNull();
+    expect(board.next_actions).toEqual([]);
+    expect(board.improvement_packet).toBeNull();
+    expect(board.summary).toContain("Dominant: none");
+  });
+});

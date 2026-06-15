@@ -120,11 +120,11 @@ Use this as UnClick's internal SEO map when routing work:
 
 Scoreboard field map for AI seats:
 
-- `current_state_card.zero_touch_scoreboard`: autonomy health and human-touch leaks.
-- `current_state_card.proof_debt_scoreboard`: completed-looking jobs that still need observable proof.
-- `current_state_card.continuous_improvement_scoreboard`: queue, owner, proof, blocker, automation, and naming friction turned into next actions.
-- `current_state_card.continuous_improvement_scoreboard.improvement_packet`: read-only Boardroom ScopePack seed with owned files, proof, risk controls, and create-todo payload.
-- Admin Orchestrator can turn that packet into a Boardroom job only through the explicit create action, which returns a todo receipt.
+- `current_state_card.zero_touch_scoreboard` (shipped): autonomy health and human-touch leaks.
+- `current_state_card.proof_debt_scoreboard` (shipped 2026-06-11): completed-looking jobs that still need observable proof, with up to three debt examples.
+- `current_state_card.continuous_improvement_scoreboard` (shipped 2026-06-11): queue, owner, proof, blocker, and automation friction turned into ordered next actions.
+- `current_state_card.continuous_improvement_scoreboard.improvement_packet` (shipped 2026-06-11): read-only Boardroom ScopePack seed with owned files, proof, risk controls, and create-todo payload. It is seeded only when one friction class dominates (3 or more items) and never creates a job by itself.
+- Planned, not yet implemented: the explicit Admin Orchestrator create action that turns that packet into a Boardroom job and returns a todo receipt. Until it ships, a seat or the operator creates the job manually from `create_todo_payload`.
 
 ## Terms To Use
 

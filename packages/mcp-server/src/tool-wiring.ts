@@ -21858,7 +21858,7 @@ export const ADDITIONAL_TOOLS = [
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         task_id: {
           type: "string",
-          description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
+          description: "Client-generated idempotency key. The API requires UUID format; non-UUID values are deterministically converted to a stable UUIDv5-shaped id, so any string is safe and retries stay idempotent. Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
         },
       },
       required: ["target_url"],
