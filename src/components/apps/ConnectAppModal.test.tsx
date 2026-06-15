@@ -45,7 +45,7 @@ describe("ConnectAppModal", () => {
 
   it("explains the proof-first contract and uses the registry's credential label", () => {
     renderModal();
-    expect(screen.getByText(/live-tested first and only stored/i)).toBeInTheDocument();
+    expect(screen.getByText(/tested first; if the platform accepts it/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/paste api key here/i)).toBeInTheDocument();
     // Setup link comes from the generated CONNECTOR_SETUP registry.
     expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
@@ -89,7 +89,7 @@ describe("ConnectAppModal", () => {
     renderModal();
     fireEvent.change(screen.getByPlaceholderText(/paste api key here/i), { target: { value: "demo-key" } });
     fireEvent.click(screen.getByRole("button", { name: /test and connect/i }));
-    expect(await screen.findByText(/saved \(not proven\)/i)).toBeInTheDocument();
+    expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
   });
 
   it("surfaces a rejection and stores nothing when the platform refuses the key", async () => {
@@ -125,5 +125,22 @@ describe("ConnectAppModal", () => {
       "/connect/alphavantage",
     );
     expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
+  });
+
+  it("offers reconnect and disconnect for an existing OAuth connection", async () => {
+    const onDisconnect = vi.fn(() => Promise.resolve());
+    renderModal({
+      connector: { id: "github", auth_type: "oauth2", setup_url: null },
+      isConnected: true,
+      statusLabel: "Connected",
+      onDisconnect,
+    });
+    expect(screen.getByText(/Alpha Vantage is available/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /reconnect alpha vantage/i })).toHaveAttribute(
+      "href",
+      "/connect/alphavantage",
+    );
+    fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
+    expect(onDisconnect).toHaveBeenCalled();
   });
 });

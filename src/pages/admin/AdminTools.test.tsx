@@ -67,10 +67,10 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByText("GitHub")).toBeInTheDocument();
   }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
-  it("links to Passport and the Skills Library instead of inlining everything", async () => {
+  it("links to Connections and the Skills Library instead of inlining everything", async () => {
     await renderAdminTools();
     expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");
-    expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
+    expect(screen.getByRole("link", { name: /Connections/i })).toHaveAttribute("href", "/admin/keychain");
   }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
   // The network filter chips and the connect wizard are covered by the cheap

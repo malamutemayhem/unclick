@@ -11,6 +11,10 @@ const app = (slug: string): AppEntry => ({
 } as unknown as AppEntry);
 
 const oauthNoCred: LensConnector = { auth_type: "oauth2", credential: null };
+const oauthConnected: LensConnector = {
+  auth_type: "oauth2",
+  credential: { is_valid: true, last_tested_at: null, source: "user_credentials" },
+};
 const keySaved: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: null } };
 const keyTested: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: "2026-06-12" } };
 const botNoCred: LensConnector = { auth_type: "bot_token", credential: null };
@@ -26,12 +30,14 @@ describe("appLenses", () => {
   it("connected means a working credential, tested or not", () => {
     expect(isConnected(keySaved)).toBe(true);
     expect(isConnected(keyTested)).toBe(true);
+    expect(isConnected(oauthConnected)).toBe(true);
     expect(isConnected(oauthNoCred)).toBe(false);
     expect(isConnected(undefined)).toBe(false);
   });
 
   it("buttons say the action: Connect / Add key / Manage / nothing", () => {
     expect(actionLabelFor(oauthNoCred)).toBe("Connect");
+    expect(actionLabelFor(oauthConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
     expect(actionLabelFor(keyTested)).toBe("Manage");
     expect(actionLabelFor(undefined)).toBe(null);

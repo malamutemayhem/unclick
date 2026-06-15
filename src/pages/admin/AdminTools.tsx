@@ -16,7 +16,12 @@ interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
-  credential: { is_valid: boolean; last_tested_at: string | null } | null;
+  credential: {
+    id?: string | null;
+    is_valid: boolean;
+    last_tested_at: string | null;
+    source?: "platform_credentials" | "user_credentials" | "mixed";
+  } | null;
 }
 
 export default function AdminToolsPage() {
@@ -122,17 +127,16 @@ export default function AdminToolsPage() {
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
-    // "Connected" (green) is reserved for credentials that passed a real live
-    // test. A stored key that was never probed shows as "Key saved" so the
-    // green tick is proof, not an assumption.
-    if (c.credential?.is_valid && c.credential.last_tested_at) {
+    // OAuth connections are created by a successful provider sign-in, so they
+    // should read as connected even before a later tool-use timestamp exists.
+    if (c.credential?.is_valid && (c.auth_type === "oauth2" || c.credential.last_tested_at)) {
       return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
     }
     if (c.credential?.is_valid) {
-      return { label: "Key saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      return { label: "Added", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
     }
-    if (c.auth_type === "oauth2") return { label: "Needs login", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
-    if (c.auth_type) return { label: "Needs key", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.auth_type) return { label: "Add access", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }
 
@@ -149,6 +153,19 @@ export default function AdminToolsPage() {
     const label = actionLabelFor(connectorBySlug.get(app.slug));
     if (!label) return null;
     return { label, onClick: () => setConnectTarget(app) };
+  }
+
+  async function disconnectApp(slug: string) {
+    if (!session) throw new Error("Sign in again to disconnect apps.");
+    const res = await fetch("/api/memory-admin?action=admin_disconnect_app", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ platform: slug }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) throw new Error(body.error ?? `Disconnect failed with ${res.status}.`);
+    await refreshStatus();
+    setConnectTarget(null);
   }
 
   const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
@@ -205,12 +222,15 @@ export default function AdminToolsPage() {
           accessToken={session.access_token}
           onClose={() => setConnectTarget(null)}
           onSaved={() => void refreshStatus()}
+          isConnected={Boolean(connectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
+          statusLabel={statusOf(connectTarget)?.label ?? null}
+          onDisconnect={() => disconnectApp(connectTarget.slug)}
         />
       )}
 
       {/* Slim footer: where keys and related libraries live */}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
-        <FooterLink to="/admin/keychain" icon={<KeyRound className="h-4 w-4 text-[#E2B93B]" />} title="Passport" desc="Add API keys and logins for apps that need them." />
+        <FooterLink to="/admin/keychain" icon={<KeyRound className="h-4 w-4 text-[#E2B93B]" />} title="Connections" desc="Manage app connections your AI is allowed to use." />
         <FooterLink to="/admin/skills" icon={<Sparkles className="h-4 w-4 text-[#61C1C4]" />} title="Skills Library" desc="Reusable skill packs your agents can install." />
         <FooterLink to="/admin/copypass" icon={<PenSquare className="h-4 w-4 text-fuchsia-300" />} title="CopyPass" desc="Quality checks for writing and copy." />
       </div>
