@@ -75,12 +75,12 @@ export async function rootFind(args: Record<string, unknown>) {
     if (a >= b) throw new Error("a must be less than b.");
 
     let fa = evaluate(a);
-    let fb = evaluate(b);
+    const fb = evaluate(b);
     if (fa * fb > 0) throw new Error("f(a) and f(b) must have opposite signs.");
 
     let converged = false;
     let mid = (a + b) / 2;
-    let iter = 0;
+    let iter: number;
 
     for (iter = 0; iter < maxIter; iter++) {
       mid = (a + b) / 2;
@@ -91,7 +91,6 @@ export async function rootFind(args: Record<string, unknown>) {
       }
       if (fa * fmid < 0) {
         b = mid;
-        fb = fmid;
       } else {
         a = mid;
         fa = fmid;

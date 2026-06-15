@@ -28,7 +28,7 @@ const faqData = [
       },
       {
         q: "What AI agents work with UnClick?",
-        a: "Any agent or application that supports the MCP protocol works with UnClick, including Claude (Anthropic), ChatGPT (via MCP plugins), Cursor, OpenClaw, and any custom agent built with an MCP-compatible SDK. If it speaks MCP, it works with UnClick.",
+        a: "Any agent or application that supports the MCP protocol works with UnClick, including Claude (Anthropic), ChatGPT (via MCP plugins), Cursor, and any custom agent built with an MCP-compatible SDK. If it speaks MCP, it works with UnClick.",
       },
       {
         q: "What is the MCP protocol?",
@@ -57,7 +57,7 @@ const faqData = [
       },
       {
         q: "How do I use UnClick tools with my AI agent?",
-        a: "Get your free API key from UnClick, then add UnClick's MCP server URL to your agent's configuration. For Claude Desktop, Cursor, or OpenClaw, this is a simple JSON config snippet. For custom agents, point your MCP client at the UnClick endpoint and pass your API key as a header. Your agent will automatically discover all available tools.",
+        a: "Get your free API key from UnClick, then add UnClick's MCP server URL to your agent's configuration. For Claude Desktop, Cursor, or another MCP-compatible client, this is a simple JSON config snippet. For custom agents, point your MCP client at the UnClick endpoint and pass your API key as a header. Your agent will automatically discover all available tools.",
       },
     ],
   },

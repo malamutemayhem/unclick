@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 18863a2e935a | 18077 |
+| AUTOPILOT.md | 969ddb05e2d3 | 18609 |
 | FLEET_SYNC.md | 0768614dd1ed | 14732 |
 | docs/unclick-context-boot-packet.md | 5af15b7b3c7e | 11552 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
@@ -21,19 +21,19 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
-| docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | c48d9420334e | 17397 |
-| src/pages/admin/AdminShell.tsx | 583495279a0e | 28506 |
-| src/pages/admin/AdminControlTower.tsx | 2bc870ebf30f | 21782 |
+| docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
+| src/App.tsx | 740ff54af7e4 | 23350 |
+| src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
+| src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 5fe8ef28e93c | 1882 |
+| .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | 0946c1ef23c5 | 7326 |
+| package.json | dc7143f3f531 | 7507 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
@@ -75,21 +75,21 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/web-app-builder.skill.md | 5014115e321f | 1254 |
 | seed/skills/word-document-author.skill.md | f8bc79a33e6a | 1307 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 6ba14c5445bf | 1542 |
+| src/pages/Index.tsx | a509edc689ae | 1073 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | 9356d99ba1e3 | 37675 |
+| src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | e837ee6a6e33 | 7846 |
+| src/pages/admin/AdminTools.tsx | 93411db0999e | 9265 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
-| src/pages/admin/AdminEcosystemPages.tsx | a43f559b89c3 | 13821 |
+| src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
@@ -99,36 +99,36 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
-| src/pages/admin/crews/CrewsCatalog.tsx | 53d4116c6739 | 5945 |
+| src/pages/admin/crews/CrewsCatalog.tsx | 2871e49013fa | 5931 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
-| src/pages/admin/AdminJobs.tsx | de0b5baf0534 | 64097 |
+| src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | d743c17f4412 | 78086 |
+| src/pages/admin/AdminKeychain.tsx | c72e09c40746 | 78137 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
-| src/pages/admin/AdminOrchestrator.tsx | 5eea2b54d8d6 | 94742 |
+| src/pages/admin/AdminOrchestrator.tsx | d04b65dd3548 | 94909 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
-| src/pages/admin/AdminSettings.tsx | 607d306885ac | 30026 |
-| src/pages/MemorySetupGuide.tsx | 2b6087890e54 | 10264 |
+| src/pages/admin/AdminSettings.tsx | 2dc2b8547f5e | 29995 |
+| src/pages/MemorySetupGuide.tsx | ce31ced6b406 | 10265 |
 | src/pages/admin/signals/SignalsSettings.tsx | 7c1d807c5e8b | 9900 |
 | src/pages/admin/signals/SignalsCatalog.tsx | 5bbc2fe8c321 | 10370 |
 | src/pages/admin/AdminSystemHealth.tsx | 00a2e7a8cd3e | 1421 |
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
 | src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
-| src/pages/admin/testpass/RunDetail.tsx | 4412674f8382 | 22000 |
+| src/pages/admin/testpass/RunDetail.tsx | 595aeee7decc | 21995 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | a0e051f56e86 | 63243 |
-| src/pages/AppDetail.tsx | f6638bfd7203 | 6608 |
-| src/pages/Apps.tsx | f2fab29b2942 | 3137 |
-| src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
+| src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
+| src/pages/AppDetail.tsx | 7d1bead9bac0 | 6646 |
+| src/pages/Apps.tsx | 65bd43917eab | 3135 |
+| src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 4879515ad320 | 29609 |
-| src/pages/Crews.tsx | e6d7b1813cc9 | 12789 |
+| src/pages/Connect.tsx | 818da19c618a | 31549 |
+| src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | 295c737bad67 | 7706 |
@@ -137,14 +137,33 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
+| src/pages/HomePreviewB.tsx | 740b7c75ff4f | 13290 |
+| src/pages/HomePreviewC.tsx | 745b962b93bb | 7976 |
+| src/pages/HomePreviewD.tsx | bf9b808df797 | 13283 |
+| src/pages/HomePreviewE.tsx | 3e3475996100 | 10218 |
+| src/pages/HomePreviewF.tsx | 085701ab6ab6 | 9407 |
+| src/pages/HomePreviewG.tsx | 9cd9b1bd010d | 9388 |
+| src/pages/HomePreviewH.tsx | a3506c10e904 | 7657 |
+| src/pages/HomePreviewI.tsx | ce585ce705e2 | 9188 |
+| src/pages/HomePreviewJ.tsx | c3775593c542 | 7366 |
+| src/pages/HomePreviewK.tsx | 061b8829d918 | 8386 |
+| src/pages/HomePreviewL.tsx | bfdc7b2435c3 | 8572 |
+| src/pages/HomePreviewM.tsx | e233bb1fcb74 | 7140 |
+| src/pages/HomePreviewN.tsx | 2eb6467f0845 | 6730 |
+| src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
+| src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
+| src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
+| src/pages/HomePreviewR.tsx | a9c7e1529e7a | 1315 |
+| src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
-| src/pages/Login.tsx | c3b16f3ec268 | 8416 |
-| src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
-| src/pages/MemorySetup.tsx | a64def7930d5 | 20088 |
-| src/pages/Memory.tsx | e1c923ee0c61 | 19193 |
+| src/pages/Login.tsx | dce8bcccd23f | 8743 |
+| src/pages/MemoryConnect.tsx | 128a2dddc94f | 18504 |
+| src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
+| src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
+| src/pages/PairingComplete.tsx | 39b115053aa5 | 8270 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
@@ -155,7 +174,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 869de7f93568 | 14806 |
 | src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/Why.tsx | a210c068f422 | 11101 |
+| src/pages/Why.tsx | 5e1b86927d88 | 11110 |
 | src/pages/XPass.tsx | f463df200347 | 11433 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -179,7 +198,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 8012a4cbab9e | 32880 |
+| scripts/pinballwake-xpass-gate-room.mjs | 7606150f25cd | 32875 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |
@@ -235,8 +254,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
+| .github/workflows/secret-scan.yml | 437fe35aa550 | 1158 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
+| .github/workflows/testpass-pr-check.yml | ab425e8d32b7 | 20467 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
 | .github/workflows/tier2-rollback.yml | 1468c05586fb | 1495 |
@@ -246,13 +266,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 55 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 126 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 127 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
@@ -362,6 +382,24 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /docs | Docs | User-facing page for Docs. | src/pages/Docs.tsx |
 | /dogfood | Dogfood Report | Public dogfood proof report. | src/pages/DogfoodReport.tsx |
 | /faq | FAQ | User-facing page for FAQPage. | src/pages/FAQPage.tsx |
+| /home-preview-b | Home Preview B | User-facing page for Home Preview B. | src/pages/HomePreviewB.tsx |
+| /home-preview-c | Home Preview C | User-facing page for Home Preview C. | src/pages/HomePreviewC.tsx |
+| /home-preview-d | Home Preview D | User-facing page for Home Preview D. | src/pages/HomePreviewD.tsx |
+| /home-preview-e | Home Preview E | User-facing page for Home Preview E. | src/pages/HomePreviewE.tsx |
+| /home-preview-f | Home Preview F | User-facing page for Home Preview F. | src/pages/HomePreviewF.tsx |
+| /home-preview-g | Home Preview G | User-facing page for Home Preview G. | src/pages/HomePreviewG.tsx |
+| /home-preview-h | Home Preview H | User-facing page for Home Preview H. | src/pages/HomePreviewH.tsx |
+| /home-preview-i | Home Preview I | User-facing page for Home Preview I. | src/pages/HomePreviewI.tsx |
+| /home-preview-j | Home Preview J | User-facing page for Home Preview J. | src/pages/HomePreviewJ.tsx |
+| /home-preview-k | Home Preview K | User-facing page for Home Preview K. | src/pages/HomePreviewK.tsx |
+| /home-preview-l | Home Preview L | User-facing page for Home Preview L. | src/pages/HomePreviewL.tsx |
+| /home-preview-m | Home Preview M | User-facing page for Home Preview M. | src/pages/HomePreviewM.tsx |
+| /home-preview-n | Home Preview N | User-facing page for Home Preview N. | src/pages/HomePreviewN.tsx |
+| /home-preview-o | Home Preview O | User-facing page for Home Preview O. | src/pages/HomePreviewO.tsx |
+| /home-preview-p | Home Preview P | User-facing page for Home Preview P. | src/pages/HomePreviewP.tsx |
+| /home-preview-q | Home Preview Q | User-facing page for Home Preview Q. | src/pages/HomePreviewQ.tsx |
+| /home-preview-r | Home Preview R | User-facing page for Home Preview R. | src/pages/HomePreviewR.tsx |
+| /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
 | /login | Login | Sign-in page. | src/pages/Login.tsx |
@@ -371,6 +409,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /memory | Memory | Public memory product page. | src/pages/Memory.tsx |
 | /new-to-ai | New To AI | Beginner-friendly AI orientation. | src/pages/NewToAI.tsx |
 | /organiser | Organiser | User-facing page for Organiser. | src/pages/Organiser.tsx |
+| /pair/connected | Pairing Complete | User-facing page for Pairing Complete. | src/pages/PairingComplete.tsx |
 | /pricing | Pricing | Plans, billing, and packaging. | src/pages/Pricing.tsx |
 | /privacy | Privacy | Privacy policy. | src/pages/Privacy.tsx |
 | /signup | Signup | Sign-up page. | src/pages/Signup.tsx |
@@ -1244,6 +1283,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | publish standalone mcps.yml | publish standalone mcps GitHub automation workflow. | - | .github/workflows/publish-standalone-mcps.yml |
 | Automations | workflow | review enforcement warning.yml | review enforcement warning GitHub automation workflow. | - | .github/workflows/review-enforcement-warning.yml |
 | Automations | workflow | scheduled build self test.yml | scheduled build self test GitHub automation workflow. | - | .github/workflows/scheduled-build-self-test.yml |
+| Automations | workflow | secret scan.yml | secret scan GitHub automation workflow. | - | .github/workflows/secret-scan.yml |
 | Automations | workflow | seed vault.yml | seed vault GitHub automation workflow. | - | .github/workflows/seed-vault.yml |
 | Automations | workflow | testpass pr check.yml | testpass pr check GitHub automation workflow. | - | .github/workflows/testpass-pr-check.yml |
 | Automations | workflow | testpass scheduled smoke.yml | testpass scheduled smoke GitHub automation workflow. | - | .github/workflows/testpass-scheduled-smoke.yml |
@@ -1429,6 +1469,24 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Docs | User-facing page for Docs. | /docs | src/pages/Docs.tsx |
 | Public surfaces | public page | Dogfood Report | Public dogfood proof report. | /dogfood | src/pages/DogfoodReport.tsx |
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
+| Public surfaces | public page | Home Preview | User-facing page for Home Preview. | /home-preview | src/pages/HomePreview.tsx |
+| Public surfaces | public page | Home Preview B | User-facing page for Home Preview B. | /home-preview-b | src/pages/HomePreviewB.tsx |
+| Public surfaces | public page | Home Preview C | User-facing page for Home Preview C. | /home-preview-c | src/pages/HomePreviewC.tsx |
+| Public surfaces | public page | Home Preview D | User-facing page for Home Preview D. | /home-preview-d | src/pages/HomePreviewD.tsx |
+| Public surfaces | public page | Home Preview E | User-facing page for Home Preview E. | /home-preview-e | src/pages/HomePreviewE.tsx |
+| Public surfaces | public page | Home Preview F | User-facing page for Home Preview F. | /home-preview-f | src/pages/HomePreviewF.tsx |
+| Public surfaces | public page | Home Preview G | User-facing page for Home Preview G. | /home-preview-g | src/pages/HomePreviewG.tsx |
+| Public surfaces | public page | Home Preview H | User-facing page for Home Preview H. | /home-preview-h | src/pages/HomePreviewH.tsx |
+| Public surfaces | public page | Home Preview I | User-facing page for Home Preview I. | /home-preview-i | src/pages/HomePreviewI.tsx |
+| Public surfaces | public page | Home Preview J | User-facing page for Home Preview J. | /home-preview-j | src/pages/HomePreviewJ.tsx |
+| Public surfaces | public page | Home Preview K | User-facing page for Home Preview K. | /home-preview-k | src/pages/HomePreviewK.tsx |
+| Public surfaces | public page | Home Preview L | User-facing page for Home Preview L. | /home-preview-l | src/pages/HomePreviewL.tsx |
+| Public surfaces | public page | Home Preview M | User-facing page for Home Preview M. | /home-preview-m | src/pages/HomePreviewM.tsx |
+| Public surfaces | public page | Home Preview N | User-facing page for Home Preview N. | /home-preview-n | src/pages/HomePreviewN.tsx |
+| Public surfaces | public page | Home Preview O | User-facing page for Home Preview O. | /home-preview-o | src/pages/HomePreviewO.tsx |
+| Public surfaces | public page | Home Preview P | User-facing page for Home Preview P. | /home-preview-p | src/pages/HomePreviewP.tsx |
+| Public surfaces | public page | Home Preview Q | User-facing page for Home Preview Q. | /home-preview-q | src/pages/HomePreviewQ.tsx |
+| Public surfaces | public page | Home Preview R | User-facing page for Home Preview R. | /home-preview-r | src/pages/HomePreviewR.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
@@ -1441,6 +1499,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Memory Setup Guide | User-facing page for Memory Setup Guide. | /memory/setup-guide | src/pages/MemorySetupGuide.tsx |
 | Public surfaces | public page | New To AI | Beginner-friendly AI orientation. | /new-to-ai | src/pages/NewToAI.tsx |
 | Public surfaces | public page | Organiser | User-facing page for Organiser. | /organiser | src/pages/Organiser.tsx |
+| Public surfaces | public page | Pairing Complete | User-facing page for Pairing Complete. | /pair/connected | src/pages/PairingComplete.tsx |
 | Public surfaces | public page | Pricing | Plans, billing, and packaging. | /pricing | src/pages/Pricing.tsx |
 | Public surfaces | public page | Privacy | Privacy policy. | /privacy | src/pages/Privacy.tsx |
 | Public surfaces | public page | Scheduling | Tool page for Scheduling. | /tools/scheduling | src/pages/tools/Scheduling.tsx |
@@ -2275,6 +2334,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:memory-eval | node --test scripts/memory-retrieval-eval.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:tier2-rollback | node --test scripts/tier2-rollback.test.mjs |
+| test:visibility-snapshot | node --test scripts/visibility-snapshot.test.mjs |
 | test:watch | vitest |
 | test:writerlane-live-catalog | node --test scripts/pinballwake-writerlane-live-catalog.test.mjs |
 

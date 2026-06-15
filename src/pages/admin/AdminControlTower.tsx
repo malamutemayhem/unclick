@@ -336,7 +336,7 @@ export default function AdminControlTower() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
         <div className="space-y-4">
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
             <label htmlFor="controltower-prompt" className="text-sm font-semibold text-white">
               Big job prompt
             </label>
@@ -352,7 +352,7 @@ export default function AdminControlTower() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
             <label htmlFor="controltower-paste" className="text-sm font-semibold text-white">
               Paste intake
             </label>
@@ -387,7 +387,7 @@ export default function AdminControlTower() {
         </div>
 
         <div className="space-y-4">
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-white">Master Copy Box</h2>
@@ -410,7 +410,7 @@ export default function AdminControlTower() {
             />
           </section>
 
-          <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+          <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
             <div className="flex items-start gap-3">
               <Users className="mt-0.5 h-5 w-5 text-[#E2B93B]" />
               <div className="min-w-0 flex-1">
@@ -461,7 +461,7 @@ export default function AdminControlTower() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#10151f]">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-4">
           <div>
             <h2 className="text-sm font-semibold text-white">Worker lanes</h2>
@@ -476,7 +476,7 @@ export default function AdminControlTower() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#10151f] p-4">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
         <h2 className="text-sm font-semibold text-white">Closeout checks</h2>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           {plan.xpassChecklist.map((item) => (

@@ -7,15 +7,13 @@ import { motion } from "framer-motion";
 //
 // Every major MCP client in April 2026 accepts a remote MCP URL natively.
 // We show the 5 shortest paths (Claude, ChatGPT, Cursor, VS Code, Other) and
-// let the user pick. No AI middleman, no "walk me through it", just paste
-// one field or click one button.
-//
-// Auth: api_key embedded as ?key= query param. /api/mcp accepts this because
-// Claude.ai's and ChatGPT's "Add custom connector" dialogs only expose a URL
-// field, so there is no place to set a header.
+// let the user pick. The default story is the public UnClick door: one stable
+// URL, no personal key in the address. Compatibility mode remains available for
+// clients that only accept a static URL and cannot finish MCP pairing yet.
 
 type Platform = "Claude" | "ChatGPT" | "Cursor" | "VS Code" | "Other";
 type ClaudeSurface = "Web" | "Desktop" | "Code";
+type SetupMode = "Public" | "Compatibility";
 
 const MCP_ORIGIN = "https://unclick.world/api/mcp";
 const MCP_PACKAGE_URL = "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz";
@@ -28,12 +26,12 @@ function mcpUrl(key: string) {
   return `${MCP_ORIGIN}?key=${key}`;
 }
 
-function claudeCodeCommand(key: string) {
-  return `claude mcp add --transport http unclick ${mcpUrl(key)}`;
+function claudeCodeCommand(connectionUrl: string) {
+  return `claude mcp add --transport http unclick ${connectionUrl}`;
 }
 
-function geminiCommand(key: string) {
-  return `gemini mcp add unclick --transport http ${mcpUrl(key)}`;
+function geminiCommand(connectionUrl: string) {
+  return `gemini mcp add unclick --transport http ${connectionUrl}`;
 }
 
 function stdioJson(key: string) {
@@ -48,18 +46,35 @@ function stdioJson(key: string) {
 }`;
 }
 
-function cursorDeeplink(key: string) {
-  const config = btoa(JSON.stringify({ url: mcpUrl(key) }));
+function cursorDeeplink(connectionUrl: string) {
+  const config = btoa(JSON.stringify({ url: connectionUrl }));
   return `cursor://anysphere.cursor-deeplink/mcp/install?name=unclick&config=${config}`;
 }
 
-function vscodeDeeplink(key: string) {
+function vscodeDeeplink(connectionUrl: string) {
   const config = JSON.stringify({
     name: "unclick",
     type: "http",
-    url: mcpUrl(key),
+    url: connectionUrl,
   });
   return `vscode:mcp/install?${encodeURIComponent(config)}`;
+}
+
+function connectionUrlFor(setupMode: SetupMode, apiKey: string) {
+  if (setupMode === "Public") return MCP_ORIGIN;
+  return mcpUrl(apiKey || PLACEHOLDER_KEY);
+}
+
+function canUseMode(setupMode: SetupMode, apiKey: string) {
+  return setupMode === "Public" || Boolean(apiKey);
+}
+
+function maskPrivateValue(value: string) {
+  return value.replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`);
+}
+
+function hasPrivateValue(value: string) {
+  return /uc_[A-Za-z0-9_-]{8,}/.test(value);
 }
 
 // Tiny copyable row: a read-only input + Copy button. Same shape everywhere
@@ -83,6 +98,8 @@ function CopyField({
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const privateValue = hasPrivateValue(value);
+  const displayValue = privateValue ? maskPrivateValue(value) : value;
   return (
     <div>
       <div className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -94,7 +111,7 @@ function CopyField({
             mono ? "font-mono" : ""
           } ${hasKey ? "border-border/50 text-heading" : "border-border/30 text-body/40 select-none blur-[2px]"}`}
         >
-          {value}
+          {displayValue}
         </code>
         <motion.button
           onClick={copy}
@@ -109,6 +126,11 @@ function CopyField({
           {copied ? "Copied!" : "Copy"}
         </motion.button>
       </div>
+      {privateValue && hasKey && (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Private value hidden on screen. Copy still uses the full value.
+        </p>
+      )}
     </div>
   );
 }
@@ -122,6 +144,8 @@ function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const privateValue = hasPrivateValue(code);
+  const displayCode = privateValue ? maskPrivateValue(code) : code;
   return (
     <div className="relative rounded-md border border-border/40 bg-card/40 p-4">
       <pre
@@ -129,7 +153,7 @@ function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
           hasKey ? "text-body" : "text-body/40 select-none blur-[2px]"
         }`}
       >
-        <code>{code}</code>
+        <code>{displayCode}</code>
       </pre>
       <motion.button
         onClick={copy}
@@ -143,6 +167,11 @@ function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
       >
         {copied ? "Copied!" : "Copy"}
       </motion.button>
+      {privateValue && hasKey && (
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          Private value hidden on screen. Copy still uses the full value.
+        </p>
+      )}
     </div>
   );
 }
@@ -214,11 +243,116 @@ function Steps({ items }: { items: string[] }) {
   );
 }
 
+function ConnectionUrlNotice({ setupMode }: { setupMode: SetupMode }) {
+  if (setupMode === "Public") {
+    return (
+      <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary/90">
+        Public door: no personal key in the URL. If your AI app cannot finish pairing yet, switch to Compatibility URL.
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
+      Compatibility URL: contains a persistent UnClick connection key. Keep it private and rotate it if it leaks.
+    </div>
+  );
+}
+
+function SetupModeSwitch({
+  setupMode,
+  onChange,
+}: {
+  setupMode: SetupMode;
+  onChange: (mode: SetupMode) => void;
+}) {
+  const options: Array<{
+    mode: SetupMode;
+    title: string;
+    body: string;
+  }> = [
+    {
+      mode: "Public",
+      title: "Public door",
+      body: "One stable address. No personal key in the URL.",
+    },
+    {
+      mode: "Compatibility",
+      title: "Compatibility URL",
+      body: "Works in URL-only clients today. Uses a private key.",
+    },
+  ];
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {options.map((option) => {
+        const active = setupMode === option.mode;
+        return (
+          <button
+            key={option.mode}
+            type="button"
+            onClick={() => onChange(option.mode)}
+            className={`rounded-lg border p-3 text-left transition-colors ${
+              active
+                ? "border-primary/45 bg-primary/10"
+                : "border-border/50 bg-card/35 hover:border-border/80"
+            }`}
+          >
+            <span className={active ? "text-sm font-semibold text-heading" : "text-sm font-semibold text-body"}>
+              {option.title}
+            </span>
+            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+              {option.body}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function PublicDoorSummary() {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(MCP_ORIGIN);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
+      <p className="text-sm font-medium text-heading">Start with the public UnClick door</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+        Add this same address first. If your AI app cannot finish pairing yet, switch to the Compatibility URL.
+      </p>
+      <div className="mt-3 flex items-stretch gap-2">
+        <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-card/60 px-3 py-2 font-mono text-xs text-heading">
+          {MCP_ORIGIN}
+        </code>
+        <motion.button
+          type="button"
+          onClick={copy}
+          whileTap={{ scale: 0.95 }}
+          className="shrink-0 rounded-md border border-primary/30 bg-primary px-3 py-2 font-mono text-[11px] font-semibold text-black transition-opacity hover:opacity-90"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </motion.button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Per-platform panels ──────────────────────────────────────────────────
 
-function ClaudePanel({ apiKey, surface }: { apiKey: string; surface: ClaudeSurface }) {
-  const hasKey = Boolean(apiKey);
-  const key = apiKey || PLACEHOLDER_KEY;
+function ClaudePanel({
+  apiKey,
+  surface,
+  setupMode,
+}: {
+  apiKey: string;
+  surface: ClaudeSurface;
+  setupMode: SetupMode;
+}) {
+  const hasConnection = canUseMode(setupMode, apiKey);
+  const connectionUrl = connectionUrlFor(setupMode, apiKey);
 
   if (surface === "Code") {
     return (
@@ -230,7 +364,8 @@ function ClaudePanel({ apiKey, surface }: { apiKey: string; surface: ClaudeSurfa
             'Start a new session and ask: "What tools do you have from unclick?"',
           ]}
         />
-        <CopyField label="Terminal command" value={claudeCodeCommand(key)} hasKey={hasKey} />
+        <ConnectionUrlNotice setupMode={setupMode} />
+        <CopyField label="Terminal command" value={claudeCodeCommand(connectionUrl)} hasKey={hasConnection} />
       </div>
     );
   }
@@ -250,16 +385,21 @@ function ClaudePanel({ apiKey, surface }: { apiKey: string; surface: ClaudeSurfa
         ]}
       />
       <div className="space-y-3">
-        <CopyField label="Name" value="UnClick" hasKey={hasKey} mono={false} />
-        <CopyField label="Remote MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <CopyField label="Name" value="UnClick" hasKey={hasConnection} mono={false} />
+        <ConnectionUrlNotice setupMode={setupMode} />
+        <CopyField
+          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
+          value={connectionUrl}
+          hasKey={hasConnection}
+        />
       </div>
     </div>
   );
 }
 
-function ChatGPTPanel({ apiKey }: { apiKey: string }) {
-  const hasKey = Boolean(apiKey);
-  const key = apiKey || PLACEHOLDER_KEY;
+function ChatGPTPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
+  const hasConnection = canUseMode(setupMode, apiKey);
+  const connectionUrl = connectionUrlFor(setupMode, apiKey);
   return (
     <div className="space-y-4">
       <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-300/90">
@@ -274,22 +414,28 @@ function ChatGPTPanel({ apiKey }: { apiKey: string }) {
         ]}
       />
       <div className="space-y-3">
-        <CopyField label="Name" value="UnClick" hasKey={hasKey} mono={false} />
-        <CopyField label="MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <CopyField label="Name" value="UnClick" hasKey={hasConnection} mono={false} />
+        <ConnectionUrlNotice setupMode={setupMode} />
+        <CopyField
+          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
+          value={connectionUrl}
+          hasKey={hasConnection}
+        />
       </div>
     </div>
   );
 }
 
-function CursorPanel({ apiKey }: { apiKey: string }) {
-  const hasKey = Boolean(apiKey);
-  const key = apiKey || PLACEHOLDER_KEY;
+function CursorPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
+  const hasConnection = canUseMode(setupMode, apiKey);
+  const connectionUrl = connectionUrlFor(setupMode, apiKey);
   return (
     <div className="space-y-4">
       <p className="text-sm text-body">
         One click. Cursor opens with the install pre-filled.
       </p>
-      <DeeplinkButton href={cursorDeeplink(key)} label="Add to Cursor" hasKey={hasKey} />
+      <ConnectionUrlNotice setupMode={setupMode} />
+      <DeeplinkButton href={cursorDeeplink(connectionUrl)} label="Add to Cursor" hasKey={hasConnection} />
       <details className="group">
         <summary className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-body">
           Prefer a manual install?
@@ -298,15 +444,16 @@ function CursorPanel({ apiKey }: { apiKey: string }) {
           <p className="text-xs text-muted-foreground">
             Edit <code className="font-mono">~/.cursor/mcp.json</code> and paste:
           </p>
+          <ConnectionUrlNotice setupMode={setupMode} />
           <CodeBlock
             code={`{
   "mcpServers": {
     "unclick": {
-      "url": "${mcpUrl(key)}"
+      "url": "${connectionUrl}"
     }
   }
 }`}
-            hasKey={hasKey}
+            hasKey={hasConnection}
           />
         </div>
       </details>
@@ -314,15 +461,16 @@ function CursorPanel({ apiKey }: { apiKey: string }) {
   );
 }
 
-function VSCodePanel({ apiKey }: { apiKey: string }) {
-  const hasKey = Boolean(apiKey);
-  const key = apiKey || PLACEHOLDER_KEY;
+function VSCodePanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
+  const hasConnection = canUseMode(setupMode, apiKey);
+  const connectionUrl = connectionUrlFor(setupMode, apiKey);
   return (
     <div className="space-y-4">
       <p className="text-sm text-body">
         One click. VS Code (with GitHub Copilot) opens with the install pre-filled.
       </p>
-      <DeeplinkButton href={vscodeDeeplink(key)} label="Add to VS Code" hasKey={hasKey} />
+      <ConnectionUrlNotice setupMode={setupMode} />
+      <DeeplinkButton href={vscodeDeeplink(connectionUrl)} label="Add to VS Code" hasKey={hasConnection} />
       <details className="group">
         <summary className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-body">
           Prefer a manual install?
@@ -331,21 +479,27 @@ function VSCodePanel({ apiKey }: { apiKey: string }) {
           <p className="text-xs text-muted-foreground">
             Command Palette → "MCP: Add Server" → HTTP, then paste:
           </p>
-          <CopyField label="URL" value={mcpUrl(key)} hasKey={hasKey} />
+          <ConnectionUrlNotice setupMode={setupMode} />
+          <CopyField
+            label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
+            value={connectionUrl}
+            hasKey={hasConnection}
+          />
         </div>
       </details>
     </div>
   );
 }
 
-function OtherPanel({ apiKey }: { apiKey: string }) {
-  const hasKey = Boolean(apiKey);
-  const key = apiKey || PLACEHOLDER_KEY;
+function OtherPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
+  const hasConnection = canUseMode(setupMode, apiKey);
+  const connectionUrl = connectionUrlFor(setupMode, apiKey);
   return (
     <div className="space-y-6">
       <div className="space-y-3">
         <p className="text-sm font-medium text-heading">Gemini CLI</p>
-        <CopyField label="Terminal command" value={geminiCommand(key)} hasKey={hasKey} />
+        <ConnectionUrlNotice setupMode={setupMode} />
+        <CopyField label="Terminal command" value={geminiCommand(connectionUrl)} hasKey={hasConnection} />
       </div>
 
       <div className="space-y-3">
@@ -355,16 +509,28 @@ function OtherPanel({ apiKey }: { apiKey: string }) {
         <p className="text-xs text-muted-foreground">
           In your client's MCP settings, add a new server with this URL:
         </p>
-        <CopyField label="MCP server URL" value={mcpUrl(key)} hasKey={hasKey} />
+        <ConnectionUrlNotice setupMode={setupMode} />
+        <CopyField
+          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
+          value={connectionUrl}
+          hasKey={hasConnection}
+        />
       </div>
 
       <div className="space-y-3">
         <p className="text-sm font-medium text-heading">Local / self-hosted (stdio)</p>
-        <p className="text-xs text-muted-foreground">
-          Runs UnClick as a local process via npx. Use this if your client
-          doesn't support remote URLs or you want to self-host.
-        </p>
-        <CodeBlock code={stdioJson(key)} hasKey={hasKey} />
+        {setupMode === "Compatibility" ? (
+          <>
+            <p className="text-xs text-muted-foreground">
+              Runs UnClick as a local process via npx. The key is stored in your local MCP config instead of inside a URL.
+            </p>
+            <CodeBlock code={stdioJson(apiKey || PLACEHOLDER_KEY)} hasKey={hasConnection} />
+          </>
+        ) : (
+          <div className="rounded-md border border-border/50 bg-card/35 px-3 py-2 text-xs leading-5 text-muted-foreground">
+            Local stdio installs still need a private key in an environment variable. Switch to Compatibility URL to generate that config.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -375,12 +541,14 @@ function OtherPanel({ apiKey }: { apiKey: string }) {
 const InstallSection = () => {
   const [platform, setPlatform] = useState<Platform>("Claude");
   const [claudeSurface, setClaudeSurface] = useState<ClaudeSurface>("Web");
+  const [setupMode, setSetupMode] = useState<SetupMode>("Public");
   const [apiKey, setApiKey] = useState<string>("");
 
   const hasKey = Boolean(apiKey);
+  const hasConnection = canUseMode(setupMode, apiKey);
 
   return (
-    <section id="install" className="relative mx-auto max-w-4xl px-6 py-24">
+    <section id="install" className="relative mx-auto max-w-4xl scroll-mt-20 px-6 py-24">
       <FadeIn>
         <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
           Quick Install
@@ -388,19 +556,24 @@ const InstallSection = () => {
       </FadeIn>
       <FadeIn delay={0.05}>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Connect in under a minute.
+          Add UnClick without carrying a master key.
         </h2>
       </FadeIn>
       <FadeIn delay={0.1}>
         <p className="mt-3 max-w-xl text-body">
-          Pick your app. Paste one URL (or click one button). Done.
+          Start with one public MCP address. Use a compatibility URL only when your AI app still needs one.
         </p>
       </FadeIn>
 
-      {/* Signup */}
+      {/* Setup mode */}
       <FadeIn delay={0.15}>
-        <div className="mt-8">
-          <ApiKeySignup onKeyReady={setApiKey} />
+        <div className="mt-8 space-y-4">
+          <SetupModeSwitch setupMode={setupMode} onChange={setSetupMode} />
+          {setupMode === "Public" ? (
+            <PublicDoorSummary />
+          ) : (
+            <ApiKeySignup onKeyReady={setApiKey} />
+          )}
         </div>
       </FadeIn>
 
@@ -408,7 +581,7 @@ const InstallSection = () => {
       <FadeIn delay={0.2}>
         <div
           className={`mt-6 overflow-hidden rounded-xl border transition-all duration-300 ${
-            hasKey ? "border-border/60 bg-card/40" : "border-border/30 bg-card/20"
+            hasConnection ? "border-border/60 bg-card/40" : "border-border/30 bg-card/20"
           }`}
         >
           {/* Platform tabs */}
@@ -450,18 +623,18 @@ const InstallSection = () => {
           {/* Panel */}
           <div className="p-5">
             {platform === "Claude" && (
-              <ClaudePanel apiKey={apiKey} surface={claudeSurface} />
+              <ClaudePanel apiKey={apiKey} surface={claudeSurface} setupMode={setupMode} />
             )}
-            {platform === "ChatGPT" && <ChatGPTPanel apiKey={apiKey} />}
-            {platform === "Cursor" && <CursorPanel apiKey={apiKey} />}
-            {platform === "VS Code" && <VSCodePanel apiKey={apiKey} />}
-            {platform === "Other" && <OtherPanel apiKey={apiKey} />}
+            {platform === "ChatGPT" && <ChatGPTPanel apiKey={apiKey} setupMode={setupMode} />}
+            {platform === "Cursor" && <CursorPanel apiKey={apiKey} setupMode={setupMode} />}
+            {platform === "VS Code" && <VSCodePanel apiKey={apiKey} setupMode={setupMode} />}
+            {platform === "Other" && <OtherPanel apiKey={apiKey} setupMode={setupMode} />}
           </div>
 
-          {!hasKey && (
+          {!hasConnection && (
             <div className="border-t border-border/30 bg-card/40 px-5 py-3">
               <p className="text-center text-xs text-muted-foreground">
-                Enter your email above to unlock your install.
+                Enter your email above to unlock the compatibility URL.
               </p>
             </div>
           )}

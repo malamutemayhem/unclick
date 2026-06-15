@@ -21,7 +21,7 @@ their code:
 - **We own what we write.** Our own code we can test, harden, stamp, and
   maintain when the upstream API changes.
 
-So the rule is: steal the idea, ship it better, keep it in our style.
+So the rule is: study the useful pattern, ship a better implementation, and keep it in our style.
 
 ## Baseline conventions (every connector, no exceptions)
 

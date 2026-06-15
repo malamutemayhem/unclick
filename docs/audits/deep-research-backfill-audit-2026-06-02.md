@@ -35,7 +35,7 @@ or current card), MISSING (no live job), DROPPED (was a card, now in dropped set
 | Truth Ladder / ProofTruth Gate | THIN/DRIFT | d2bbcce8 git-sync proof audit (Worker 1) | Proof integrity is covered operationally but there is no dedicated "Truth Ladder" card. Fold into proof-cleanup lane rather than create a new epic. |
 | Decision / Outcome Ledger | CAPTURED | 9e131baf AutopilotIQ learning layer (Worker 6) | Outcome ledger is the decision ledger. Capture-only per that job's gate. |
 | CopyRoom | CAPTURED | 5d9e31c9 (CopyRoom hook slice); ExpressRoom draft tools live | Carried inside Agentic AI. No separate card needed yet. |
-| Fidelity Vault | MISSING (tools exist) | none | `fidelitycopy` / `fidelitypass` MCP tools exist but no tracker job. Add as a thin chip under 6e125b76 (gbrain absorb) or Agentic AI, do not create standalone epic. |
+| Fidelity Vault | MISSING (tools exist) | none | `fidelitycopy` / `fidelitypass` MCP tools exist but no tracker job. Add as a thin chip under the memory-retrieval parent or Agentic AI, do not create standalone epic. |
 | Proof Ledger v2 | THIN/DRIFT | none current | Was live (Cascade "Proof Ledger v2 / false-green cleanup", OpenHands job history). No live card on the 82-board. Recommend a thin chip if still wanted, else mark superseded by d2bbcce8 proof audit. |
 | Memory Graph | CAPTURED | b5bd4834 Memory Graph layer (Worker 9) | Already an architecture-note card. Good. |
 | Prevision / Predictive Routing | MISSING | none | Master order Phase 11. Defer: explicitly later-tier, no card needed now. Note as deferred so it is not "lost". |
@@ -43,7 +43,7 @@ or current card), MISSING (no live job), DROPPED (was a card, now in dropped set
 | Confidence Market | MISSING | none | Speculative research bet. Defer with reason, do not create card. |
 | Adversarial / Safety testing | CAPTURED | 59cb69a8 scope-confusion replay; 85580a12 strict-client pack; 80b5c54a/a8574878 security | Covered by TestPass (Worker 14) + Security (Worker 12). |
 | Dream / Reflection loop | CAPTURED | 824fa6a4 recall score + self-healing; 406280ab episodic->semantic distiller; 9e131baf | Reflection is carried by memory self-healing + AutopilotIQ. |
-| Unique-bets addendum (gbrain) | CAPTURED | 6e125b76 absorb gbrain patterns (typed-link graph, compiled-truth pages, nightly consolidation, durable queue, retrieval evals) | Single parent card already holds the unique bets. |
+| Unique-bets addendum | CAPTURED | 6e125b76 memory-retrieval patterns (typed-link graph, compiled-truth pages, nightly consolidation, durable queue, retrieval evals) | Single parent card already holds the unique bets. |
 | HarnessKit / Resolver | MISSING | none | Master order Phase 6. Defer with reason. |
 | Skills Library v0 | MISSING | none | Master order Phase 6. Defer with reason. |
 | Working Memory Leases | DROPPED | (dropped) d7391762 leases + stale status expiry | Already in dropped set. Leave dropped unless a live job points back. |
@@ -58,7 +58,7 @@ or current card), MISSING (no live job), DROPPED (was a card, now in dropped set
   the dropped set), or MISSING-but-deferred (later-tier research bets).
 - The only items worth a small backfill chip (not a new epic) are Fidelity Vault and,
   if still wanted, Proof Ledger v2. Per the ScopePack backfill rule, pad an existing
-  parent (6e125b76 gbrain absorb or 5d9e31c9 Agentic AI) rather than create duplicates.
+  parent (6e125b76 memory-retrieval or 5d9e31c9 Agentic AI) rather than create duplicates.
 - Deferred-by-design (record so they are not "missing by accident"): Prevision/Predictive
   Routing, Confidence Market, HarnessKit/Resolver, Skills Library v0. These are master
   order Phase 6/11 and correctly sit behind the proof and gate rails.

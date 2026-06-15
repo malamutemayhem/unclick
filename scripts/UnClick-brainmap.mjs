@@ -291,6 +291,15 @@ function parseRouteEntries(appSource) {
     if (resolved) imports.set(match[1], resolved);
   }
 
+  // Route-level code splitting: pages bind as
+  //   const X = lazy(() => import("./pages/X.tsx"))
+  // including the .then((m) => ({ default: m.Name })) named-export form.
+  const lazyImportPattern = /const\s+([A-Za-z_$][\w$]*)\s*=\s*lazy\(\s*\(\)\s*=>\s*import\("([^"]+)"\)/g;
+  for (const match of appSource.matchAll(lazyImportPattern)) {
+    const resolved = resolveImportPath(match[2]);
+    if (resolved) imports.set(match[1], resolved);
+  }
+
   const namedImportPattern = /import\s+\{([^}]+)\}\s+from\s+"([^"]+)"/g;
   for (const match of appSource.matchAll(namedImportPattern)) {
     const resolved = resolveImportPath(match[2]);

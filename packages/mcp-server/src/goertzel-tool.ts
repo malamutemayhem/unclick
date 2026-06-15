@@ -32,12 +32,11 @@ export async function goertzel(args: Record<string, unknown>) {
   const omega = (2 * Math.PI * bin) / N;
   const coeff = 2 * Math.cos(omega);
 
-  let s0 = 0;
   let s1 = 0;
   let s2 = 0;
 
   for (let i = 0; i < N; i++) {
-    s0 = samples[i] + coeff * s1 - s2;
+    const s0 = samples[i] + coeff * s1 - s2;
     s2 = s1;
     s1 = s0;
   }

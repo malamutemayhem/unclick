@@ -385,7 +385,7 @@ export default function AdminSettings() {
             UnClick works best as your only memory tool.
           </p>
           <p className="mt-2 text-xs text-white/60">
-            Running multiple memory tools (like Mem0, Zep, or Hindsight alongside UnClick) causes
+            Running multiple memory tools alongside UnClick causes
             duplicate facts and confused AI responses. Other tools like GitHub, Slack, or database
             connectors work fine.
           </p>

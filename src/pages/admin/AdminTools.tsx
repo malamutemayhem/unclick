@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { KeyRound, PenSquare, Sparkles, Wrench } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCatalog";
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
+import { AppLensBar } from "@/components/apps/AppLensBar";
+import { applyLens, lensCounts, actionLabelFor, parseAppLens, type AppLens } from "@/components/apps/appLenses";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
@@ -24,6 +26,24 @@ export default function AdminToolsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
+  // One filter state, two controls: the rail and the chips both read/write
+  // this URL param, so views are linkable and survive refresh.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lens = parseAppLens(searchParams.get("lens"));
+  const selectLens = useCallback(
+    (next: AppLens) => {
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "all") params.delete("lens");
+          else params.set("lens", next);
+          return params;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const refreshStatus = useCallback(async () => {
     if (!session) return;
@@ -124,6 +144,16 @@ export default function AdminToolsPage() {
     setConnectTarget(app);
   }
 
+  // Buttons say the action (Connect / Add key / Manage); pills say the truth.
+  function actionOf(app: AppEntry) {
+    const label = actionLabelFor(connectorBySlug.get(app.slug));
+    if (!label) return null;
+    return { label, onClick: () => setConnectTarget(app) };
+  }
+
+  const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
+  const lensedApps = useMemo(() => applyLens(APP_CATALOG, lens, connectorBySlug), [lens, connectorBySlug]);
+
   if (!session) {
     return <p className="text-sm text-white/50">Sign in to manage Apps.</p>;
   }
@@ -153,14 +183,18 @@ export default function AdminToolsPage() {
         </div>
       )}
 
+      <div className="mb-3">
+        <AppLensBar lens={lens} counts={counts} onSelect={selectLens} />
+      </div>
       <AppsTable
-        apps={APP_CATALOG}
+        apps={lensedApps}
         mode="admin"
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
         statusOf={statusOf}
         onStatusClick={handleStatusClick}
+        actionOf={actionOf}
         busy={saving}
       />
 

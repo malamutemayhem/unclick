@@ -15,6 +15,9 @@
  * more permissive than the SDK is safe.
  */
 
+// Build provenance stamp, set by the release tooling. Do not edit by hand.
+export const PROTOCOL_BUILD_ID = "18f44015-e70d-4355-a0a3-241bddf9e322";
+
 export interface AcceptCarrier {
   headers: { accept?: string | string[] | undefined } & Record<string, unknown>;
 }

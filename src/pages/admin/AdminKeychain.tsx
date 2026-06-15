@@ -292,6 +292,24 @@ export default function AdminKeychain() {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState<string | null>(null);
+  // The system inventory below is an internal rotation-planning tool; average
+  // users found it noisy and alarming, so it renders for admins only.
+  const [isAdmin, setIsAdmin]         = useState(false);
+
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token) return;
+    let cancelled = false;
+    fetch("/api/memory-admin?action=admin_profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        if (!cancelled && body) setIsAdmin(Boolean(body.is_admin));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [session?.access_token]);
 
   // Reveal cache keyed by credential.id. When the user reveals a row
   // we keep plaintext here until they hide it or the auto-clear timer
@@ -348,7 +366,7 @@ export default function AdminKeychain() {
       const res = await fetch("/api/backstagepass?action=list", { headers: authHeader });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `List failed with ${res.status}`);
+        throw new Error(body.error ?? `Temporary error loading your connections (HTTP ${res.status}). Please retry.`);
       }
       const body = await res.json();
       setCredentials(body.data ?? []);
@@ -651,8 +669,10 @@ export default function AdminKeychain() {
         <div>
           <h1 className="text-2xl font-semibold text-white">Passport</h1>
           <p className="mt-1 text-sm text-[#888]">
-            Passport keeps your service keys and logins in one safe place so your AI can use
-            them without you repeating them. {credentials.length} saved item{credentials.length === 1 ? "" : "s"}.
+            Your service keys and logins, saved once, used by every Seat.{" "}
+            {credentials.length === 0
+              ? "Nothing saved yet."
+              : `${credentials.length} saved · ${healthyCount} healthy · ${attentionCount} need review.`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -702,31 +722,6 @@ export default function AdminKeychain() {
         </div>
       </div>
 
-      <section className="mb-6 grid gap-4 lg:grid-cols-[1fr_18rem]">
-        <div className="rounded-xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-4">
-          <div className="flex items-start gap-3">
-            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
-            <div>
-              <p className="text-sm font-semibold text-white">Passport controls what UnClick can use.</p>
-              <p className="mt-1 text-xs leading-5 text-[#aaa]">
-                Save GitHub, Vercel, Supabase, and other service access here once. AI Seats should use Passport through UnClick instead of carrying separate keys.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
-          {[
-            ["Connected", credentials.length],
-            ["Healthy", healthyCount],
-            ["Needs review", attentionCount],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-[#666]">{label}</p>
-              <p className="mt-1 text-lg font-semibold text-white">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <section className="mb-6">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -821,8 +816,16 @@ export default function AdminKeychain() {
 
       {/* List */}
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
-          {error}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void fetchList()}
+            disabled={loading}
+            className="shrink-0 rounded-lg border border-red-500/30 px-3 py-1.5 font-medium text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -1049,9 +1052,10 @@ export default function AdminKeychain() {
         </section>
       )}
 
-      <details className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+      {isAdmin && <details className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
         <summary className="cursor-pointer text-sm font-semibold text-white">
-          Advanced system inventory
+          Internal: system credential inventory
+          <span className="ml-2 rounded border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#E2B93B]">admins</span>
           <span className="ml-2 text-xs font-normal text-[#666]">
             {inventorySummary.total} tracked names, {inventorySummary.critical + inventorySummary.high} elevated risk
           </span>
@@ -1109,7 +1113,7 @@ export default function AdminKeychain() {
             </div>
           ))}
         </div>
-      </details>
+      </details>}
 
       {/* Edit-label modal */}
       {editTarget && (

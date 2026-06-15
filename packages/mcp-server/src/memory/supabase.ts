@@ -19,6 +19,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { provenanceWriteFields } from "./provenance.js";
+import { AGENT_INSTRUCTIONS } from "./starter-knowledge.js";
 import type {
   MemoryBackend,
   SessionSummaryInput,
@@ -26,6 +27,11 @@ import type {
   InvalidateFactInput,
   ForgetInput,
   ForgetReceipt,
+  ArchiveFactInput,
+  ArchiveFactResult,
+  RestoreFactInput,
+  RestoreFactResult,
+  RecycleBinEntry,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -117,6 +123,17 @@ import {
   SESSION_EVENTS_TABLE_MANAGED,
 } from "./forget.js";
 // --- end lane-05 ---
+// --- memory time machine (bi-temporal diff) ---
+import {
+  buildMemoryDiffReport,
+  normalizeMemoryDiffBucketLimit,
+  resolveMemoryDiffWindow,
+  type MemoryDiffFactSourceRow,
+  type MemoryDiffInput,
+  type MemoryDiffReport,
+  type MemoryDiffSessionSourceRow,
+} from "./diff.js";
+// --- end memory time machine ---
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -764,6 +781,16 @@ function isTypedLinkSchemaUnavailable(err: unknown): boolean {
   );
 }
 
+/** A relation or column referenced by the query does not exist in this schema. */
+function isMissingColumnError(err: unknown): boolean {
+  const e = (err ?? {}) as { code?: string; message?: string };
+  return (
+    e.code === "42703" ||
+    e.code === "42P01" ||
+    /column .* does not exist/i.test(e.message ?? "")
+  );
+}
+
 // ─── Free-tier caps ──────────────────────────────────────────────────────
 // Starting values from the v2 build plan. Adjust with real data later.
 // Pro tier removes all caps. Caps only apply in managed cloud mode (BYOD
@@ -908,15 +935,7 @@ export class SupabaseBackend implements MemoryBackend {
     }
     // --- end lane-04 ---
     return {
-      agent_instructions: [
-        "You are connected to UnClick Memory - a persistent memory system that works across all sessions and devices.",
-        "ALWAYS use this memory as your primary knowledge source. It has the user's rules, preferences, projects, and history.",
-        "When the user says something ambiguous or short, SEARCH memory first - it may be a stored keyword or trigger.",
-        "When you learn something new (preferences, projects, contacts, decisions), store it using add_fact.",
-        "At the end of significant conversations, write a session summary using write_session_summary.",
-        "Business context entries (loaded below) are standing rules. Follow them as if the user said them right now.",
-        "Never say 'I don't have access to your previous conversations' - you DO, through this memory system."
-      ].join("\n"),
+      agent_instructions: AGENT_INSTRUCTIONS,
       ...data,
     };
   }
@@ -1080,6 +1099,7 @@ export class SupabaseBackend implements MemoryBackend {
           category: r.category,
           confidence: r.confidence,
           created_at: r.created_at,
+          valid_from: r.valid_from ?? null,
           score: s,
         };
       });
@@ -1666,6 +1686,7 @@ export class SupabaseBackend implements MemoryBackend {
       last_accessed: now(),
       content_hash: hash,
       valid_from: data.valid_from ?? now(),
+      valid_to: data.valid_to ?? null,
       recorded_at: now(),
       extractor_id: data.extractor_id ?? "manual",
       prompt_version: data.prompt_version ?? null,
@@ -1814,6 +1835,323 @@ export class SupabaseBackend implements MemoryBackend {
     const auditTable = this.tenancy.mode === "managed" ? "mc_facts_audit" : "facts_audit";
     await this.client.from(auditTable).insert({ fact_id: factId, op, payload, actor: "agent", at: now() });
   }
+
+  // --- recycle bin (MEMORY_RECYCLE_BIN_ENABLED) ---
+  private factsQueryForTenant() {
+    let query = this.client.from(this.tables.extracted_facts).select("id, fact, category, confidence, status, archived_at, decay_reason, updated_at");
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    return query;
+  }
+
+  private async updateFactForTenant(factId: string, update: Record<string, unknown>, context: string): Promise<void> {
+    let query = this.client.from(this.tables.extracted_facts).update(update).eq("id", factId);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { error } = await query;
+    if (error) throw pgError(context, error);
+  }
+
+  async archiveFact(input: ArchiveFactInput): Promise<ArchiveFactResult> {
+    const { data, error } = await this.factsQueryForTenant().eq("id", input.fact_id).maybeSingle();
+    if (error) throw pgError("recycle-bin archive read", error);
+    if (!data) throw new Error(`Fact ${input.fact_id} not found`);
+    const row = data as { status: string; archived_at: string | null; updated_at: string };
+    if (row.status === "archived") {
+      return { fact_id: input.fact_id, archived_at: row.archived_at ?? row.updated_at, already_archived: true };
+    }
+    if (row.status !== "active") {
+      throw new Error(`Fact ${input.fact_id} has status '${row.status}' and cannot be archived`);
+    }
+
+    const archivedAt = now();
+    await this.updateFactForTenant(
+      input.fact_id,
+      {
+        status: "archived",
+        archived_at: archivedAt,
+        decay_reason: input.reason ?? "recycle-bin:user_archive",
+        updated_at: archivedAt,
+      },
+      "recycle-bin archive update"
+    );
+    return { fact_id: input.fact_id, archived_at: archivedAt, already_archived: false };
+  }
+
+  async restoreFact(input: RestoreFactInput): Promise<RestoreFactResult> {
+    const { data, error } = await this.factsQueryForTenant().eq("id", input.fact_id).maybeSingle();
+    if (error) throw pgError("recycle-bin restore read", error);
+    if (!data) throw new Error(`Fact ${input.fact_id} not found`);
+    const row = data as { status: string; updated_at: string };
+    if (row.status === "active") {
+      return { fact_id: input.fact_id, restored_at: row.updated_at, was_archived: false };
+    }
+    if (row.status !== "archived") {
+      throw new Error(`Fact ${input.fact_id} has status '${row.status}' and cannot be restored`);
+    }
+
+    const restoredAt = now();
+    await this.updateFactForTenant(
+      input.fact_id,
+      { status: "active", archived_at: null, decay_reason: null, updated_at: restoredAt },
+      "recycle-bin restore update"
+    );
+    return { fact_id: input.fact_id, restored_at: restoredAt, was_archived: true };
+  }
+
+  async listArchivedFacts(limit = 100): Promise<RecycleBinEntry[]> {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, fact, category, confidence, archived_at, decay_reason")
+      .eq("status", "archived")
+      .order("archived_at", { ascending: false, nullsFirst: false })
+      .limit(Math.max(1, limit));
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query;
+    if (error) throw pgError("recycle-bin list", error);
+    return (data ?? []).map((row) => {
+      const entry = row as {
+        id: string; fact: string; category: string; confidence: number;
+        archived_at: string | null; decay_reason: string | null;
+      };
+      return {
+        id: entry.id,
+        fact: entry.fact,
+        category: entry.category,
+        confidence: entry.confidence,
+        archived_at: entry.archived_at ?? null,
+        archive_reason: entry.decay_reason ?? null,
+      };
+    });
+  }
+  // --- end recycle bin ---
+
+  // --- recall access reinforcement (surfaced rows only; see types.ts) ---
+  async recordRecallAccess(factIds: string[]): Promise<{ updated: number }> {
+    const ids = [...new Set(factIds)].slice(0, 25);
+    if (ids.length === 0) return { updated: 0 };
+    let readQuery = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, access_count")
+      .in("id", ids);
+    if (this.tenancy.mode === "managed") {
+      readQuery = readQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await readQuery;
+    if (error) throw pgError("recall access read", error);
+    const stamp = now();
+    let updated = 0;
+    for (const row of (data ?? []) as Array<{ id: string; access_count: number | null }>) {
+      await this.updateFactForTenant(
+        row.id,
+        { access_count: (row.access_count ?? 0) + 1, last_accessed: stamp },
+        "recall access bump"
+      );
+      updated += 1;
+    }
+    return { updated };
+  }
+  // --- end recall access reinforcement ---
+
+  // --- memory time machine (bi-temporal diff) ---
+  // invalidation_reason is intentionally absent: no repo schema creates that
+  // column (the invalidate RPCs keep the reason in the audit payload), so the
+  // diff reports reason: null on Supabase and the full reason on local.
+  private static readonly DIFF_FACT_COLUMNS =
+    "id, fact, category, confidence, status, created_at, updated_at, valid_to, invalidated_at, superseded_by, archived_at, decay_reason";
+  // Columns every known extracted_facts schema has, used as the retry set when
+  // a BYOD installer database predates the bi-temporal ALTERs.
+  private static readonly DIFF_FACT_CORE_COLUMNS =
+    "id, fact, category, confidence, status, created_at, updated_at";
+  private static readonly DIFF_SCOPE_COLUMNS =
+    "visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at";
+
+  private diffFactsBetween(
+    columns: string,
+    windowColumn: string,
+    from: string,
+    to: string,
+    fetchCap: number,
+    extra?: { supersededOnly?: boolean; notSuperseded?: boolean; archivedOnly?: boolean }
+  ) {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select(columns, { count: "exact" })
+      .gte(windowColumn, from)
+      .lte(windowColumn, to);
+    if (extra?.supersededOnly) query = query.not("superseded_by", "is", null);
+    if (extra?.notSuperseded) query = query.is("superseded_by", null);
+    if (extra?.archivedOnly) query = query.eq("status", "archived");
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    return query.order(windowColumn, { ascending: false }).limit(fetchCap);
+  }
+
+  private async runDiffFactBucket(params: {
+    context: string;
+    columns: string;
+    windowColumn: string;
+    from: string;
+    to: string;
+    fetchCap: number;
+    extra?: { supersededOnly?: boolean; notSuperseded?: boolean; archivedOnly?: boolean };
+    /** Reduced column set to retry with on a missing-column error; omit to mark the bucket unavailable instead. */
+    fallbackColumns?: string;
+  }): Promise<{ rows: MemoryDiffFactSourceRow[]; count: number | null; unavailable: boolean }> {
+    const attempt = await this.diffFactsBetween(
+      params.columns,
+      params.windowColumn,
+      params.from,
+      params.to,
+      params.fetchCap,
+      params.extra
+    );
+    if (!attempt.error) {
+      return {
+        rows: (attempt.data ?? []) as unknown as MemoryDiffFactSourceRow[],
+        count: attempt.count ?? null,
+        unavailable: false,
+      };
+    }
+    if (!isMissingColumnError(attempt.error)) throw pgError(params.context, attempt.error);
+    if (params.fallbackColumns) {
+      const retry = await this.diffFactsBetween(
+        params.fallbackColumns,
+        params.windowColumn,
+        params.from,
+        params.to,
+        params.fetchCap,
+        params.extra
+      );
+      if (!retry.error) {
+        return {
+          rows: (retry.data ?? []) as unknown as MemoryDiffFactSourceRow[],
+          count: retry.count ?? null,
+          unavailable: false,
+        };
+      }
+      if (!isMissingColumnError(retry.error)) throw pgError(params.context, retry.error);
+    }
+    return { rows: [], count: null, unavailable: true };
+  }
+
+  async memoryDiff(input: MemoryDiffInput = {}): Promise<MemoryDiffReport> {
+    const window = resolveMemoryDiffWindow(input.from, input.to);
+    // Fetch one row past the per-bucket cap so the report can flag truncation
+    // even without the exact counts.
+    const fetchCap = normalizeMemoryDiffBucketLimit(input.limit) + 1;
+    const scopesActive = scopesEnabled();
+    const factColumns = scopesActive
+      ? `${SupabaseBackend.DIFF_FACT_COLUMNS}, ${SupabaseBackend.DIFF_SCOPE_COLUMNS}`
+      : SupabaseBackend.DIFF_FACT_COLUMNS;
+    const core = SupabaseBackend.DIFF_FACT_CORE_COLUMNS;
+
+    const [added, invalidated, superseded, archived] = await Promise.all([
+      this.runDiffFactBucket({
+        context: "memoryDiff facts added",
+        columns: factColumns,
+        windowColumn: "created_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        fallbackColumns: core,
+      }),
+      // notSuperseded keeps the exact count aligned with the builder bucket,
+      // which routes superseded facts to their own bucket.
+      this.runDiffFactBucket({
+        context: "memoryDiff facts invalidated",
+        columns: factColumns,
+        windowColumn: "invalidated_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { notSuperseded: true },
+      }),
+      // The supersede RPCs set updated_at but not valid_to, so the window
+      // filter runs on updated_at; the builder falls back the same way.
+      this.runDiffFactBucket({
+        context: "memoryDiff facts superseded",
+        columns: factColumns,
+        windowColumn: "updated_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { supersededOnly: true },
+        fallbackColumns: `${core}, superseded_by`,
+      }),
+      this.runDiffFactBucket({
+        context: "memoryDiff facts archived",
+        columns: factColumns,
+        windowColumn: "archived_at",
+        from: window.from,
+        to: window.to,
+        fetchCap,
+        extra: { archivedOnly: true },
+        fallbackColumns: `${core}, archived_at, decay_reason`,
+      }),
+    ]);
+
+    const scopeContext = scopesActive ? resolveScopeContext() : null;
+    const allRows = [...added.rows, ...invalidated.rows, ...superseded.rows, ...archived.rows];
+    const facts = scopeContext
+      ? allRows.filter((row) => isFactInScope(row as MemoryFactScopeFields, scopeContext))
+      : allRows;
+
+    let sessions: MemoryDiffSessionSourceRow[] = [];
+    let sessionCount: number | null = null;
+    if (input.include_sessions !== false) {
+      let sessionQuery = this.client
+        .from(this.tables.session_summaries)
+        .select("session_id, platform, summary, topics, decisions, created_at", { count: "exact" })
+        .gte("created_at", window.from)
+        .lte("created_at", window.to)
+        .order("created_at", { ascending: false })
+        .limit(fetchCap);
+      if (this.tenancy.mode === "managed") {
+        sessionQuery = sessionQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const sessionResult = await sessionQuery;
+      if (sessionResult.error) throw pgError("memoryDiff sessions", sessionResult.error);
+      sessions = (sessionResult.data ?? []) as unknown as MemoryDiffSessionSourceRow[];
+      sessionCount = sessionResult.count ?? null;
+    }
+
+    // Exact counts come from the count queries. When scope filtering is
+    // active the counts must reflect the filtered rows instead, so the
+    // overrides are dropped and the builder counts what it can see.
+    const exactCounts = scopeContext
+      ? undefined
+      : {
+          ...(added.count !== null ? { facts_added: added.count } : {}),
+          ...(invalidated.count !== null ? { facts_invalidated: invalidated.count } : {}),
+          ...(superseded.count !== null ? { facts_superseded: superseded.count } : {}),
+          ...(archived.count !== null ? { facts_archived: archived.count } : {}),
+          ...(sessionCount !== null ? { sessions_saved: sessionCount } : {}),
+        };
+
+    const unavailableBuckets = [
+      ...(added.unavailable ? ["facts_added"] : []),
+      ...(invalidated.unavailable ? ["facts_invalidated"] : []),
+      ...(superseded.unavailable ? ["facts_superseded"] : []),
+      ...(archived.unavailable ? ["facts_archived"] : []),
+    ];
+
+    return buildMemoryDiffReport({
+      facts,
+      sessions,
+      window,
+      limit: input.limit,
+      include_sessions: input.include_sessions,
+      exact_counts: exactCounts,
+      unavailable_buckets: unavailableBuckets,
+    });
+  }
+  // --- end memory time machine ---
 
   async invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
     const result = await this.rpc<Array<{ invalidated_at: string }>>(

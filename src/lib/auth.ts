@@ -3,20 +3,30 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { posthog } from "./posthog";
 
-export async function signInWithMagicLink(email: string) {
+function authRedirectTo(nextPath?: string) {
+  const next =
+    nextPath && nextPath.startsWith("/") && !nextPath.startsWith("//")
+      ? nextPath
+      : "/admin";
+  const url = new URL(`${window.location.origin}/auth/callback`);
+  url.searchParams.set("next", next);
+  return url.toString();
+}
+
+export async function signInWithMagicLink(email: string, nextPath?: string) {
   return supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      emailRedirectTo: authRedirectTo(nextPath),
     },
   });
 }
 
-export async function signInWithOAuth(provider: "google" | "azure") {
+export async function signInWithOAuth(provider: "google" | "azure", nextPath?: string) {
   return supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: authRedirectTo(nextPath),
     },
   });
 }

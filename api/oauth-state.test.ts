@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOAuthStateToken, verifyOAuthStateToken } from "./oauth-state";
+import { createOAuthStateToken, verifyOAuthStateToken } from "./oauth-state.js";
 
 const env = {
   GITHUB_CLIENT_SECRET: "github-secret",

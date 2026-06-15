@@ -9,7 +9,9 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
+import UserAvatar, { FACE_LIBRARY, getAvatarChoice } from "@/components/UserAvatar";
 import {
   User,
   Mail,
@@ -472,6 +474,76 @@ export default function AdminYou() {
   const [devices, setDevices] = useState<DeviceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Avatar: a face from the hand-drawn library, or an uploaded photo.
+  // Both persist in Supabase auth user_metadata; useSession refreshes
+  // every consumer (this card, the admin shell) on USER_UPDATED.
+  const [facePickerOpen, setFacePickerOpen] = useState(false);
+  const [avatarSaving, setAvatarSaving] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarChoice = getAvatarChoice(user);
+  const currentFace =
+    typeof user?.user_metadata?.avatar_face === "string" ? user.user_metadata.avatar_face : null;
+
+  async function saveAvatar(data: { avatar_face: string | null; avatar_photo: string | null }) {
+    setAvatarSaving(true);
+    setAvatarError(null);
+    const { error } = await supabase.auth.updateUser({ data });
+    if (error) setAvatarError(error.message);
+    setAvatarSaving(false);
+  }
+
+  async function onAvatarPhotoChosen(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("That file is not an image.");
+      return;
+    }
+    setAvatarError(null);
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      await new Promise<void>((resolvePromise, rejectPromise) => {
+        img.onload = () => resolvePromise();
+        img.onerror = () => rejectPromise(new Error("decode failed"));
+        img.src = objectUrl;
+      });
+      // Cover-crop to a small square. The data URL lives in auth
+      // user_metadata (and therefore the JWT), so it must stay tiny.
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = 112;
+      canvas.height = 112;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("canvas unavailable");
+      ctx.drawImage(
+        img,
+        (img.naturalWidth - side) / 2,
+        (img.naturalHeight - side) / 2,
+        side,
+        side,
+        0,
+        0,
+        112,
+        112,
+      );
+      let dataUrl = canvas.toDataURL("image/webp", 0.78);
+      if (!dataUrl.startsWith("data:image/webp")) dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+      if (dataUrl.length > 8000) dataUrl = canvas.toDataURL("image/jpeg", 0.55);
+      if (dataUrl.length > 8000) {
+        setAvatarError("That image would not compress small enough. Try a simpler photo.");
+        return;
+      }
+      await saveAvatar({ avatar_face: null, avatar_photo: dataUrl });
+    } catch {
+      setAvatarError("Could not read that image.");
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
   // `generatedKey` holds the raw uc_* value that is ONLY available once:
   // either auto-provisioned on first /admin/you load, or returned by an
   // explicit generate/rotate call. After the reveal timer expires or the
@@ -480,6 +552,7 @@ export default function AdminYou() {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [keyRevealed, setKeyRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [publicMcpCopied, setPublicMcpCopied] = useState(false);
   const [mcpCopied, setMcpCopied] = useState(false);
   const revealTimerRef = useRef<number | null>(null);
   const [reissuing, setReissuing] = useState(false);
@@ -657,6 +730,16 @@ export default function AdminYou() {
       await navigator.clipboard.writeText(`https://unclick.world/api/mcp?key=${generatedKey}`);
       setMcpCopied(true);
       window.setTimeout(() => setMcpCopied(false), 2_000);
+    } catch {
+      // Browser can block clipboard writes in some contexts; fail silent.
+    }
+  }
+
+  async function handleCopyPublicMcpUrl() {
+    try {
+      await navigator.clipboard.writeText("https://unclick.world/api/mcp");
+      setPublicMcpCopied(true);
+      window.setTimeout(() => setPublicMcpCopied(false), 2_000);
     } catch {
       // Browser can block clipboard writes in some contexts; fail silent.
     }
@@ -879,7 +962,7 @@ export default function AdminYou() {
     { id: "you-profile", label: "Profile", icon: User, ready: Boolean(user?.email) },
     { id: "you-about", label: "About You", icon: Fingerprint, ready: Boolean(savedAboutYou?.text) },
     { id: "you-style", label: "AI Style", icon: Sparkles, ready: Boolean(savedAiStyle) },
-    { id: "you-api-key", label: "API Key", icon: KeyRound, ready: Boolean(generatedKey || profile?.api_key?.is_active) },
+    { id: "you-api-key", label: "Connection", icon: KeyRound, ready: Boolean(generatedKey || profile?.api_key?.is_active) },
     { id: "you-my-data", label: "My Data", icon: Database, ready: true },
   ];
 
@@ -945,6 +1028,77 @@ export default function AdminYou() {
                     Account
                   </span>
                 </h2>
+
+                {/* Avatar: pick a hand-drawn face or upload a photo */}
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+                  <UserAvatar user={user} className="h-14 w-14" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => setFacePickerOpen((v) => !v)}
+                      disabled={avatarSaving}
+                      className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:border-[#61C1C4]/40 hover:text-white disabled:opacity-50"
+                    >
+                      {facePickerOpen ? "Close faces" : "Pick a face"}
+                    </button>
+                    <button
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={avatarSaving}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:border-[#61C1C4]/40 hover:text-white disabled:opacity-50"
+                    >
+                      <Upload className="h-3 w-3" />
+                      Upload a photo
+                    </button>
+                    {avatarChoice.kind !== "none" && (
+                      <button
+                        onClick={() => saveAvatar({ avatar_face: null, avatar_photo: null })}
+                        disabled={avatarSaving}
+                        className="rounded-lg px-2 py-1.5 text-xs text-white/45 transition-colors hover:text-white disabled:opacity-50"
+                      >
+                        Remove
+                      </button>
+                    )}
+                    {avatarSaving && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#61C1C4]" />}
+                  </div>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={onAvatarPhotoChosen}
+                    className="hidden"
+                    aria-label="Upload an avatar photo"
+                  />
+                </div>
+                {avatarError && <p className="mt-2 text-xs text-red-400">{avatarError}</p>}
+                {facePickerOpen && (
+                  <div className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.02] p-3">
+                    <p className="text-[11px] uppercase tracking-wider text-[#777]">
+                      The homepage cast, at your service
+                    </p>
+                    <div className="mt-2.5 flex flex-wrap gap-2.5">
+                      {FACE_LIBRARY.map((face) => (
+                        <button
+                          key={face.id}
+                          onClick={() => saveAvatar({ avatar_face: face.id, avatar_photo: null })}
+                          disabled={avatarSaving}
+                          aria-pressed={currentFace === face.id}
+                          title="Use this face"
+                          className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border bg-[#07212d] transition-all disabled:opacity-50 ${
+                            currentFace === face.id
+                              ? "border-[#61C1C4] shadow-[0_0_14px_-2px_rgba(97,193,196,0.7)]"
+                              : "border-white/[0.12] hover:border-[#61C1C4]/50"
+                          }`}
+                        >
+                          <img
+                            src={face.src}
+                            alt=""
+                            className="h-full w-full [filter:drop-shadow(0_0_3px_rgba(134,218,221,0.5))]"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
                   <div className="min-w-0">
                     <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-[#777]">
@@ -1238,11 +1392,11 @@ export default function AdminYou() {
             </div>
           </section>
 
-          {/* API Key card */}
+          {/* Connection card */}
           <section id="you-api-key" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-              My API Key
+              UnClick connection
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
                 Connection
               </span>
@@ -1253,9 +1407,9 @@ export default function AdminYou() {
                 <div className="rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 p-4">
                   <div className="flex items-start gap-2 text-xs text-[#E2B93B]">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>Your UnClick API key. Copy it now or copy the ready-made MCP URL below. Revealing the key is optional and auto-hides after 60 seconds. Signing out clears this local copy.</span>
+                    <span>This is your private compatibility key. Use the public MCP door first; reveal this only when an AI app still needs a static URL.</span>
                   </div>
-                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
+                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Private compatibility key</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
                     <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white">
                       {keyRevealed ? generatedKey : maskValue(generatedKey)}
@@ -1275,18 +1429,31 @@ export default function AdminYou() {
                         title="Copy key to clipboard"
                       >
                         {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
-                        {copied ? "Copied" : "Copy API key"}
+                        {copied ? "Copied" : "Copy key"}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-                  <h3 className="text-sm font-medium text-white">Connect your agent</h3>
+                  <h3 className="text-sm font-medium text-white">Connect an AI app</h3>
                   <p className="mt-1 text-xs leading-5 text-white/50">
-                    Add this as a Remote MCP Server in your AI agent's MCP settings.
+                    Start with the public door. It has no personal key in the URL.
                   </p>
-                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Remote MCP Server URL</label>
+                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Public MCP door</label>
+                  <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/70">
+                      https://unclick.world/api/mcp
+                    </code>
+                    <button
+                      onClick={handleCopyPublicMcpUrl}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15"
+                    >
+                      {publicMcpCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                      {publicMcpCopied ? "Copied" : "Copy public URL"}
+                    </button>
+                  </div>
+                  <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-white/40">Compatibility URL</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
                     <code className="flex min-w-0 flex-1 items-center overflow-x-auto rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/70">
                       https://unclick.world/api/mcp?key={keyRevealed ? generatedKey : maskValue(generatedKey)}
@@ -1296,18 +1463,18 @@ export default function AdminYou() {
                       className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
                     >
                       {mcpCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
-                      {mcpCopied ? "Copied" : "Copy MCP URL"}
+                      {mcpCopied ? "Copied" : "Copy compatibility URL"}
                     </button>
                   </div>
                   <p className="mt-2 text-xs text-white/40">
-                    Once connected, your agent loads your memory at the start of every conversation.
+                    Rotating this key can break compatibility URLs. The public door is the long-term path that avoids that.
                   </p>
                 </div>
               </div>
             ) : profile?.api_key ? (
               <div className="mt-4 space-y-4">
                 <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">API key</label>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">Private compatibility key</label>
                   <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
                     <code className="flex min-w-0 flex-1 items-center rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white/60">
                       {profile.api_key.prefix}{"•".repeat(16)}
@@ -1317,13 +1484,12 @@ export default function AdminYou() {
                       disabled={reissuing}
                       className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15 disabled:opacity-50"
                     >
-                      {reissuing ? "Creating..." : "Create new copyable key"}
+                      {reissuing ? "Creating..." : "Rotate compatibility key"}
                     </button>
                   </div>
                   <p className="mt-2 text-[11px] leading-5 text-[#888]">
-                    For security, UnClick stores only a hash after setup, not the old raw key. If this browser lost the
-                    copyable value, create a new copyable key. The old key is invalidated, and saved Connections may need
-                    to be reconnected or re-saved.
+                    For security, UnClick stores only a hash after setup, not the old raw key. Rotating creates a fresh
+                    private key and invalidates static compatibility URLs that used the old one. The public MCP door is unchanged.
                   </p>
                   {reissueError && <p className="mt-1 text-[11px] text-red-400">{reissueError}</p>}
                 </div>
@@ -1357,7 +1523,7 @@ export default function AdminYou() {
             ) : (
               <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] p-4 text-center">
                 <p className="text-xs text-[#666]">
-                  Preparing your API key. Refresh this page if it does not appear within a few seconds.
+                  Preparing your connection. Refresh this page if it does not appear within a few seconds.
                 </p>
               </div>
             )}

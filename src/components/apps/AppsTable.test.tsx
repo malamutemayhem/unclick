@@ -46,17 +46,29 @@ describe("AppsTable", () => {
     expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
   });
 
-  it("filters by internet need via the offline / online / hybrid chips", () => {
+  it("filters by internet need via the compact Internet dropdown", () => {
     renderTable(<AppsTable apps={APPS} mode="public" />);
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
     expect(screen.getByText("GitHub")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Works offline" }));
+    const internet = screen.getByRole("combobox", { name: "Filter by internet use" });
+    fireEvent.change(internet, { target: { value: "offline" } });
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
     expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Uses internet" }));
+    fireEvent.change(internet, { target: { value: "online" } });
     expect(screen.queryByText("Jobsmith")).not.toBeInTheDocument();
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+  });
+
+  it("filters by category via the compact Category dropdown", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    const category = screen.getByRole("combobox", { name: "Filter by category" });
+    fireEvent.change(category, { target: { value: "Productivity" } });
+    expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+
+    fireEvent.change(category, { target: { value: "" } });
     expect(screen.getByText("GitHub")).toBeInTheDocument();
   });
 

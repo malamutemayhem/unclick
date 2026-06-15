@@ -6,7 +6,7 @@
 
 ## Context
 
-Many platforms in the agent space build their own chat interface. It is tempting because it is the most visible surface, because every competitor has one, and because users ask for it. But the user already has a chat: Claude Desktop, Cursor, ChatGPT, Gemini, or any MCP-compatible client they have chosen. Building an UnClick chat puts us in direct competition with those clients for the user's primary interface. It also forks the product surface: we would need a chat UI, a model abstraction, a session manager, and a long-form prompting story that other teams at Anthropic, OpenAI, and Cursor employ many people to build.
+Many platforms in the agent space build their own chat interface. It is tempting because it is the most visible surface and users ask for it. But the user already has a chat: whichever MCP-compatible client they have chosen. Building an UnClick chat would split attention away from the user's primary interface. It also forks the product surface: we would need a chat UI, a model abstraction, a session manager, and a long-form prompting story that dedicated client teams already maintain.
 
 ## Decision
 

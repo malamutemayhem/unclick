@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1110,
-    "source_manifest": 227,
-    "pages": 94,
+    "inventory": 1130,
+    "source_manifest": 247,
+    "pages": 113,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 36
+      "count": 55
     },
     {
       "id": "tools",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 126
+      "count": 127
     },
     {
       "id": "ledgers-and-proof",
@@ -1878,6 +1878,16 @@
       "kind": "workflow",
       "meaning": "scheduled build self test GitHub automation workflow.",
       "source": ".github/workflows/scheduled-build-self-test.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-secret-scan-yml-github-workflows-secret-scan-yml-no-route",
+      "division": "Automations",
+      "name": "secret scan.yml",
+      "kind": "workflow",
+      "meaning": "secret scan GitHub automation workflow.",
+      "source": ".github/workflows/secret-scan.yml",
       "route": "",
       "tags": []
     },
@@ -3732,6 +3742,186 @@
       "tags": []
     },
     {
+      "id": "public-surfaces-public-page-home-preview-src-pages-homepreview-tsx-home-preview",
+      "division": "Public surfaces",
+      "name": "Home Preview",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview.",
+      "source": "src/pages/HomePreview.tsx",
+      "route": "/home-preview",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-b-src-pages-homepreviewb-tsx-home-preview-b",
+      "division": "Public surfaces",
+      "name": "Home Preview B",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview B.",
+      "source": "src/pages/HomePreviewB.tsx",
+      "route": "/home-preview-b",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-c-src-pages-homepreviewc-tsx-home-preview-c",
+      "division": "Public surfaces",
+      "name": "Home Preview C",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview C.",
+      "source": "src/pages/HomePreviewC.tsx",
+      "route": "/home-preview-c",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-d-src-pages-homepreviewd-tsx-home-preview-d",
+      "division": "Public surfaces",
+      "name": "Home Preview D",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview D.",
+      "source": "src/pages/HomePreviewD.tsx",
+      "route": "/home-preview-d",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-e-src-pages-homepreviewe-tsx-home-preview-e",
+      "division": "Public surfaces",
+      "name": "Home Preview E",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview E.",
+      "source": "src/pages/HomePreviewE.tsx",
+      "route": "/home-preview-e",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-f-src-pages-homepreviewf-tsx-home-preview-f",
+      "division": "Public surfaces",
+      "name": "Home Preview F",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview F.",
+      "source": "src/pages/HomePreviewF.tsx",
+      "route": "/home-preview-f",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-g-src-pages-homepreviewg-tsx-home-preview-g",
+      "division": "Public surfaces",
+      "name": "Home Preview G",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview G.",
+      "source": "src/pages/HomePreviewG.tsx",
+      "route": "/home-preview-g",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-h-src-pages-homepreviewh-tsx-home-preview-h",
+      "division": "Public surfaces",
+      "name": "Home Preview H",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview H.",
+      "source": "src/pages/HomePreviewH.tsx",
+      "route": "/home-preview-h",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-i-src-pages-homepreviewi-tsx-home-preview-i",
+      "division": "Public surfaces",
+      "name": "Home Preview I",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview I.",
+      "source": "src/pages/HomePreviewI.tsx",
+      "route": "/home-preview-i",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-j-src-pages-homepreviewj-tsx-home-preview-j",
+      "division": "Public surfaces",
+      "name": "Home Preview J",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview J.",
+      "source": "src/pages/HomePreviewJ.tsx",
+      "route": "/home-preview-j",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-k-src-pages-homepreviewk-tsx-home-preview-k",
+      "division": "Public surfaces",
+      "name": "Home Preview K",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview K.",
+      "source": "src/pages/HomePreviewK.tsx",
+      "route": "/home-preview-k",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-l-src-pages-homepreviewl-tsx-home-preview-l",
+      "division": "Public surfaces",
+      "name": "Home Preview L",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview L.",
+      "source": "src/pages/HomePreviewL.tsx",
+      "route": "/home-preview-l",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-m-src-pages-homepreviewm-tsx-home-preview-m",
+      "division": "Public surfaces",
+      "name": "Home Preview M",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview M.",
+      "source": "src/pages/HomePreviewM.tsx",
+      "route": "/home-preview-m",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-n-src-pages-homepreviewn-tsx-home-preview-n",
+      "division": "Public surfaces",
+      "name": "Home Preview N",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview N.",
+      "source": "src/pages/HomePreviewN.tsx",
+      "route": "/home-preview-n",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-o-src-pages-homepreviewo-tsx-home-preview-o",
+      "division": "Public surfaces",
+      "name": "Home Preview O",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview O.",
+      "source": "src/pages/HomePreviewO.tsx",
+      "route": "/home-preview-o",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-p-src-pages-homepreviewp-tsx-home-preview-p",
+      "division": "Public surfaces",
+      "name": "Home Preview P",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview P.",
+      "source": "src/pages/HomePreviewP.tsx",
+      "route": "/home-preview-p",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-q-src-pages-homepreviewq-tsx-home-preview-q",
+      "division": "Public surfaces",
+      "name": "Home Preview Q",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview Q.",
+      "source": "src/pages/HomePreviewQ.tsx",
+      "route": "/home-preview-q",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-r-src-pages-homepreviewr-tsx-home-preview-r",
+      "division": "Public surfaces",
+      "name": "Home Preview R",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview R.",
+      "source": "src/pages/HomePreviewR.tsx",
+      "route": "/home-preview-r",
+      "tags": []
+    },
+    {
       "id": "public-surfaces-public-page-homepage-sample-src-pages-homepagesample-tsx-uipass-home-sample",
       "division": "Public surfaces",
       "name": "Homepage Sample",
@@ -3849,6 +4039,16 @@
       "meaning": "User-facing page for Organiser.",
       "source": "src/pages/Organiser.tsx",
       "route": "/organiser",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-pairing-complete-src-pages-pairingcomplete-tsx-pair-connected",
+      "division": "Public surfaces",
+      "name": "Pairing Complete",
+      "kind": "public page",
+      "meaning": "User-facing page for Pairing Complete.",
+      "source": "src/pages/PairingComplete.tsx",
+      "route": "/pair/connected",
       "tags": []
     },
     {
@@ -11632,6 +11832,114 @@
       "src/pages/FAQPage.tsx"
     ],
     [
+      "/home-preview-b",
+      "Home Preview B",
+      "User-facing page for Home Preview B.",
+      "src/pages/HomePreviewB.tsx"
+    ],
+    [
+      "/home-preview-c",
+      "Home Preview C",
+      "User-facing page for Home Preview C.",
+      "src/pages/HomePreviewC.tsx"
+    ],
+    [
+      "/home-preview-d",
+      "Home Preview D",
+      "User-facing page for Home Preview D.",
+      "src/pages/HomePreviewD.tsx"
+    ],
+    [
+      "/home-preview-e",
+      "Home Preview E",
+      "User-facing page for Home Preview E.",
+      "src/pages/HomePreviewE.tsx"
+    ],
+    [
+      "/home-preview-f",
+      "Home Preview F",
+      "User-facing page for Home Preview F.",
+      "src/pages/HomePreviewF.tsx"
+    ],
+    [
+      "/home-preview-g",
+      "Home Preview G",
+      "User-facing page for Home Preview G.",
+      "src/pages/HomePreviewG.tsx"
+    ],
+    [
+      "/home-preview-h",
+      "Home Preview H",
+      "User-facing page for Home Preview H.",
+      "src/pages/HomePreviewH.tsx"
+    ],
+    [
+      "/home-preview-i",
+      "Home Preview I",
+      "User-facing page for Home Preview I.",
+      "src/pages/HomePreviewI.tsx"
+    ],
+    [
+      "/home-preview-j",
+      "Home Preview J",
+      "User-facing page for Home Preview J.",
+      "src/pages/HomePreviewJ.tsx"
+    ],
+    [
+      "/home-preview-k",
+      "Home Preview K",
+      "User-facing page for Home Preview K.",
+      "src/pages/HomePreviewK.tsx"
+    ],
+    [
+      "/home-preview-l",
+      "Home Preview L",
+      "User-facing page for Home Preview L.",
+      "src/pages/HomePreviewL.tsx"
+    ],
+    [
+      "/home-preview-m",
+      "Home Preview M",
+      "User-facing page for Home Preview M.",
+      "src/pages/HomePreviewM.tsx"
+    ],
+    [
+      "/home-preview-n",
+      "Home Preview N",
+      "User-facing page for Home Preview N.",
+      "src/pages/HomePreviewN.tsx"
+    ],
+    [
+      "/home-preview-o",
+      "Home Preview O",
+      "User-facing page for Home Preview O.",
+      "src/pages/HomePreviewO.tsx"
+    ],
+    [
+      "/home-preview-p",
+      "Home Preview P",
+      "User-facing page for Home Preview P.",
+      "src/pages/HomePreviewP.tsx"
+    ],
+    [
+      "/home-preview-q",
+      "Home Preview Q",
+      "User-facing page for Home Preview Q.",
+      "src/pages/HomePreviewQ.tsx"
+    ],
+    [
+      "/home-preview-r",
+      "Home Preview R",
+      "User-facing page for Home Preview R.",
+      "src/pages/HomePreviewR.tsx"
+    ],
+    [
+      "/home-preview",
+      "Home Preview",
+      "User-facing page for Home Preview.",
+      "src/pages/HomePreview.tsx"
+    ],
+    [
       "/i",
       "Install Recover",
       "User-facing page for Install Recover.",
@@ -11684,6 +11992,12 @@
       "Organiser",
       "User-facing page for Organiser.",
       "src/pages/Organiser.tsx"
+    ],
+    [
+      "/pair/connected",
+      "Pairing Complete",
+      "User-facing page for Pairing Complete.",
+      "src/pages/PairingComplete.tsx"
     ],
     [
       "/pricing",
@@ -15454,6 +15768,10 @@
       "node --test scripts/tier2-rollback.test.mjs"
     ],
     [
+      "test:visibility-snapshot",
+      "node --test scripts/visibility-snapshot.test.mjs"
+    ],
+    [
       "test:watch",
       "vitest"
     ],
@@ -15465,8 +15783,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "18863a2e935a",
-      "bytes": 18077
+      "hash": "969ddb05e2d3",
+      "bytes": 18609
     },
     {
       "source": "FLEET_SYNC.md",
@@ -15505,23 +15823,23 @@
     },
     {
       "source": "docs/adr/0006-orchestrator-is-user-chat.md",
-      "hash": "bf91808d2d8d",
-      "bytes": 2169
+      "hash": "ba6451ea1765",
+      "bytes": 2034
     },
     {
       "source": "src/App.tsx",
-      "hash": "c48d9420334e",
-      "bytes": 17397
+      "hash": "740ff54af7e4",
+      "bytes": 23350
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "583495279a0e",
-      "bytes": 28506
+      "hash": "b983e01ec6c0",
+      "bytes": 33162
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
-      "hash": "2bc870ebf30f",
-      "bytes": 21782
+      "hash": "4c84cc958957",
+      "bytes": 21800
     },
     {
       "source": "src/lib/controltower.ts",
@@ -15550,8 +15868,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "5fe8ef28e93c",
-      "bytes": 1882
+      "hash": "ee6e7f0dd609",
+      "bytes": 2047
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -15565,8 +15883,8 @@
     },
     {
       "source": "package.json",
-      "hash": "0946c1ef23c5",
-      "bytes": 7326
+      "hash": "dc7143f3f531",
+      "bytes": 7507
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -15775,8 +16093,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "6ba14c5445bf",
-      "bytes": 1542
+      "hash": "a509edc689ae",
+      "bytes": 1073
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -15795,8 +16113,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "9356d99ba1e3",
-      "bytes": 37675
+      "hash": "0ba01613eeed",
+      "bytes": 37681
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
@@ -15830,8 +16148,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "e837ee6a6e33",
-      "bytes": 7846
+      "hash": "93411db0999e",
+      "bytes": 9265
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -15845,8 +16163,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "a43f559b89c3",
-      "bytes": 13821
+      "hash": "3d245def3231",
+      "bytes": 13772
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -15895,8 +16213,8 @@
     },
     {
       "source": "src/pages/admin/crews/CrewsCatalog.tsx",
-      "hash": "53d4116c6739",
-      "bytes": 5945
+      "hash": "2871e49013fa",
+      "bytes": 5931
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
@@ -15905,8 +16223,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "de0b5baf0534",
-      "bytes": 64097
+      "hash": "5d4ff9ca88ab",
+      "bytes": 75369
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -15915,8 +16233,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "d743c17f4412",
-      "bytes": 78086
+      "hash": "c72e09c40746",
+      "bytes": 78137
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -15935,8 +16253,8 @@
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
-      "hash": "5eea2b54d8d6",
-      "bytes": 94742
+      "hash": "d04b65dd3548",
+      "bytes": 94909
     },
     {
       "source": "src/pages/admin/AdminPinballWake.tsx",
@@ -15945,13 +16263,13 @@
     },
     {
       "source": "src/pages/admin/AdminSettings.tsx",
-      "hash": "607d306885ac",
-      "bytes": 30026
+      "hash": "2dc2b8547f5e",
+      "bytes": 29995
     },
     {
       "source": "src/pages/MemorySetupGuide.tsx",
-      "hash": "2b6087890e54",
-      "bytes": 10264
+      "hash": "ce31ced6b406",
+      "bytes": 10265
     },
     {
       "source": "src/pages/admin/signals/SignalsSettings.tsx",
@@ -15985,8 +16303,8 @@
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "4412674f8382",
-      "bytes": 22000
+      "hash": "595aeee7decc",
+      "bytes": 21995
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
@@ -16010,23 +16328,23 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "a0e051f56e86",
-      "bytes": 63243
+      "hash": "4b186ef89df8",
+      "bytes": 71460
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "f6638bfd7203",
-      "bytes": 6608
+      "hash": "7d1bead9bac0",
+      "bytes": 6646
     },
     {
       "source": "src/pages/Apps.tsx",
-      "hash": "f2fab29b2942",
-      "bytes": 3137
+      "hash": "65bd43917eab",
+      "bytes": 3135
     },
     {
       "source": "src/pages/AuthCallback.tsx",
-      "hash": "c7dba82923b5",
-      "bytes": 4875
+      "hash": "e9ee37622f98",
+      "bytes": 5086
     },
     {
       "source": "src/pages/VerifyMfa.tsx",
@@ -16035,13 +16353,13 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "4879515ad320",
-      "bytes": 29609
+      "hash": "818da19c618a",
+      "bytes": 31549
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "e6d7b1813cc9",
-      "bytes": 12789
+      "hash": "d160a7924721",
+      "bytes": 12800
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
@@ -16084,6 +16402,96 @@
       "bytes": 690
     },
     {
+      "source": "src/pages/HomePreviewB.tsx",
+      "hash": "740b7c75ff4f",
+      "bytes": 13290
+    },
+    {
+      "source": "src/pages/HomePreviewC.tsx",
+      "hash": "745b962b93bb",
+      "bytes": 7976
+    },
+    {
+      "source": "src/pages/HomePreviewD.tsx",
+      "hash": "bf9b808df797",
+      "bytes": 13283
+    },
+    {
+      "source": "src/pages/HomePreviewE.tsx",
+      "hash": "3e3475996100",
+      "bytes": 10218
+    },
+    {
+      "source": "src/pages/HomePreviewF.tsx",
+      "hash": "085701ab6ab6",
+      "bytes": 9407
+    },
+    {
+      "source": "src/pages/HomePreviewG.tsx",
+      "hash": "9cd9b1bd010d",
+      "bytes": 9388
+    },
+    {
+      "source": "src/pages/HomePreviewH.tsx",
+      "hash": "a3506c10e904",
+      "bytes": 7657
+    },
+    {
+      "source": "src/pages/HomePreviewI.tsx",
+      "hash": "ce585ce705e2",
+      "bytes": 9188
+    },
+    {
+      "source": "src/pages/HomePreviewJ.tsx",
+      "hash": "c3775593c542",
+      "bytes": 7366
+    },
+    {
+      "source": "src/pages/HomePreviewK.tsx",
+      "hash": "061b8829d918",
+      "bytes": 8386
+    },
+    {
+      "source": "src/pages/HomePreviewL.tsx",
+      "hash": "bfdc7b2435c3",
+      "bytes": 8572
+    },
+    {
+      "source": "src/pages/HomePreviewM.tsx",
+      "hash": "e233bb1fcb74",
+      "bytes": 7140
+    },
+    {
+      "source": "src/pages/HomePreviewN.tsx",
+      "hash": "2eb6467f0845",
+      "bytes": 6730
+    },
+    {
+      "source": "src/pages/HomePreviewO.tsx",
+      "hash": "0a7c61aba798",
+      "bytes": 7398
+    },
+    {
+      "source": "src/pages/HomePreviewP.tsx",
+      "hash": "0926126a670a",
+      "bytes": 6256
+    },
+    {
+      "source": "src/pages/HomePreviewQ.tsx",
+      "hash": "24989092c44b",
+      "bytes": 5097
+    },
+    {
+      "source": "src/pages/HomePreviewR.tsx",
+      "hash": "a9c7e1529e7a",
+      "bytes": 1315
+    },
+    {
+      "source": "src/pages/HomePreview.tsx",
+      "hash": "4768b94b20d1",
+      "bytes": 7592
+    },
+    {
       "source": "src/pages/InstallRecover.tsx",
       "hash": "56c822e69817",
       "bytes": 6971
@@ -16095,23 +16503,23 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "c3b16f3ec268",
-      "bytes": 8416
+      "hash": "dce8bcccd23f",
+      "bytes": 8743
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
-      "hash": "c760d37398d5",
-      "bytes": 18534
+      "hash": "128a2dddc94f",
+      "bytes": 18504
     },
     {
       "source": "src/pages/MemorySetup.tsx",
-      "hash": "a64def7930d5",
-      "bytes": 20088
+      "hash": "8ecebdff32de",
+      "bytes": 20089
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "e1c923ee0c61",
-      "bytes": 19193
+      "hash": "6ad6ab79dad3",
+      "bytes": 19343
     },
     {
       "source": "src/pages/NewToAI.tsx",
@@ -16122,6 +16530,11 @@
       "source": "src/pages/Organiser.tsx",
       "hash": "ae35be237d83",
       "bytes": 16581
+    },
+    {
+      "source": "src/pages/PairingComplete.tsx",
+      "hash": "39b115053aa5",
+      "bytes": 8270
     },
     {
       "source": "src/pages/Pricing.tsx",
@@ -16175,8 +16588,8 @@
     },
     {
       "source": "src/pages/Why.tsx",
-      "hash": "a210c068f422",
-      "bytes": 11101
+      "hash": "5e1b86927d88",
+      "bytes": 11110
     },
     {
       "source": "src/pages/XPass.tsx",
@@ -16295,8 +16708,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "8012a4cbab9e",
-      "bytes": 32880
+      "hash": "7606150f25cd",
+      "bytes": 32875
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -16574,14 +16987,19 @@
       "bytes": 1024
     },
     {
+      "source": ".github/workflows/secret-scan.yml",
+      "hash": "437fe35aa550",
+      "bytes": 1158
+    },
+    {
       "source": ".github/workflows/seed-vault.yml",
       "hash": "003a9bd13283",
       "bytes": 1246
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "bca601f0a1c2",
-      "bytes": 20251
+      "hash": "ab425e8d32b7",
+      "bytes": 20467
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",

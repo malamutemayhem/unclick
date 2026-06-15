@@ -51,7 +51,9 @@ async function fetchJson(path: string): Promise<{ ok: boolean; status: number; b
 }
 
 export async function testpassListPacks(): Promise<unknown> {
-  const result = await fetchJson("/api/memory-admin?action=list_testpass_packs");
+  // /api/testpass accepts uc_* API keys; the memory-admin pack list is
+  // session-JWT only and returns 401 for MCP seats.
+  const result = await fetchJson("/api/testpass?action=list_packs");
   if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass list_packs failed (HTTP ${result.status})`, body: result.body };
   return result.body;

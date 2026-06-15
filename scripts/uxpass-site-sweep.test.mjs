@@ -113,7 +113,7 @@ test("splits owned URLs from off-origin site sweep targets", () => {
   const targets = [
     "https://unclick.world/",
     "https://unclick.world/dashboard",
-    "https://example.com/steal-proof",
+    "https://example.com/out-of-scope-proof",
   ];
 
   const result = splitAllowedSweepTargets(targets, ["https://unclick.world"]);
@@ -123,7 +123,7 @@ test("splits owned URLs from off-origin site sweep targets", () => {
     "https://unclick.world/dashboard",
   ]);
   assert.equal(result.blocked.length, 1);
-  assert.equal(result.blocked[0].url, "https://example.com/steal-proof");
+  assert.equal(result.blocked[0].url, "https://example.com/out-of-scope-proof");
   assert.equal(result.blocked[0].status, "blocked");
   assert.match(result.blocked[0].summary, /owned-origin allowlist/i);
 });

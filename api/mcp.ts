@@ -45,6 +45,82 @@ const AUTH_REQUIRED_METHODS = new Set<string>(["tools/call"]);
 
 type JsonRpcId = string | number | null;
 
+export const PUBLIC_PAIRING_TOOL = {
+  name: "unclick_start_pairing",
+  title: "Connect UnClick",
+  description:
+    "Use when this UnClick MCP connection is not paired yet. It gives the user the shortest safe sign-in path and explains when to use a compatibility URL.",
+  inputSchema: {
+    type: "object" as const,
+    additionalProperties: false,
+    properties: {
+      email: {
+        type: "string",
+        description: "Optional email address to pre-fill on the UnClick sign-in page.",
+      },
+    },
+  },
+};
+
+function singleRpc(body: unknown): Record<string, unknown> | null {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  return body as Record<string, unknown>;
+}
+
+function singleRpcMethod(body: unknown): string | null {
+  const rpc = singleRpc(body);
+  return typeof rpc?.method === "string" ? rpc.method : null;
+}
+
+function singleToolName(body: unknown): string | null {
+  const rpc = singleRpc(body);
+  const params = rpc?.params;
+  if (!params || typeof params !== "object") return null;
+  const name = (params as Record<string, unknown>).name;
+  return typeof name === "string" ? name : null;
+}
+
+function singleToolArgs(body: unknown): Record<string, unknown> {
+  const rpc = singleRpc(body);
+  const params = rpc?.params;
+  if (!params || typeof params !== "object") return {};
+  const args = (params as Record<string, unknown>).arguments;
+  return args && typeof args === "object" && !Array.isArray(args)
+    ? (args as Record<string, unknown>)
+    : {};
+}
+
+export function pairingLoginUrl(email?: string): string {
+  const url = new URL("https://unclick.world/login");
+  url.searchParams.set("next", "/pair/connected");
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    url.searchParams.set("email", email.trim().toLowerCase());
+  }
+  return url.toString();
+}
+
+export function pairingToolResult(args: Record<string, unknown>) {
+  const email = typeof args.email === "string" ? args.email.trim() : "";
+  const loginUrl = pairingLoginUrl(email);
+  return {
+    content: [
+      {
+        type: "text",
+        text: [
+          "UnClick is installed, but this AI app is not paired to an UnClick account yet.",
+          "",
+          "Next step:",
+          `Open ${loginUrl}`,
+          "",
+          "Sign in with email, Google, or Microsoft. The page will show the safest working next step for this AI app.",
+          "",
+          "If this AI app asks to pair again or only accepts a static URL, use the Compatibility URL shown on that page. The public URL stays the long-term goal because it does not carry a personal key.",
+        ].join("\n"),
+      },
+    ],
+  };
+}
+
 // Peek the JSON-RPC body so we can (1) echo the request id back in error
 // responses (JSON-RPC 2.0 § 5.1 requires id equality) and (2) decide whether
 // the request is attempting protected tool execution. Batches are handled
@@ -322,8 +398,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? (keyRaw[0] ?? "").trim()
         : "";
   const apiKey = keyFromHeader || keyFromQuery;
+  const method = singleRpcMethod(req.body);
+  const toolName = singleToolName(req.body);
 
-  let ctx: ApiKeyContext | null = null;
+  let ctx: ApiKeyContext | null;
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
@@ -339,18 +417,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: peeked.id,
       });
     }
-  } else if (peeked.authRequired) {
+  } else {
     // No api_key supplied - try resolving via Supabase session cookie.
     // Unprotected protocol methods skip this so the MCP SDK can answer them.
     ctx = await validateSessionCookie(req);
-    if (!ctx) {
+    if (!ctx && method === "tools/list") {
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: { tools: [PUBLIC_PAIRING_TOOL] },
+        id: peeked.id,
+      });
+    }
+    if (!ctx && method === "tools/call" && toolName === PUBLIC_PAIRING_TOOL.name) {
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: pairingToolResult(singleToolArgs(req.body)),
+        id: peeked.id,
+      });
+    }
+    if (!ctx && peeked.authRequired) {
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
           code: -32001,
           message:
-            "Missing API key. Pass it as Authorization: Bearer <key> or as ?key=<key> in the URL. " +
-            "Get a key at https://unclick.world",
+            "UnClick is installed but this AI app is not paired yet. " +
+            "Call unclick_start_pairing, or open https://unclick.world/login?next=%2Fpair%2Fconnected. " +
+            "If your client only accepts a static URL, use the Compatibility URL from https://unclick.world/#install.",
         },
         id: peeked.id,
       });

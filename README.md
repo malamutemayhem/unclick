@@ -60,7 +60,11 @@ npm run build
 
 ## License
 
-This repository is licensed under the MIT License. See [LICENSE](./LICENSE).
+UnClick uses a split license. The platform (website, API, and hosted backend
+and memory services) is **AGPL-3.0** (see [LICENSE](./LICENSE)). The npm client
+package `@unclick/mcp-server` stays **MIT**, and the standalone connector
+packages stay **Apache-2.0**. Full breakdown and reasoning in
+[LICENSING.md](./LICENSING.md).
 
 ## What it does
 
