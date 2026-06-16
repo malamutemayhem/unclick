@@ -49,10 +49,10 @@ describe("connector-setup registry + resolver", () => {
     }
   });
 
-  it("points Higgsfield setup at the hosted MCP login path", () => {
+  it("points Higgsfield setup at Cloud API keys and names the hosted MCP as separate", () => {
     const r = notConnectedFor("higgsfield");
-    expect(CONNECTOR_SETUP.higgsfield.setupUrl).toBe("https://higgsfield.ai/mcp");
-    expect(r.how_to_connect.join(" ")).toContain("https://mcp.higgsfield.ai/mcp");
+    expect(CONNECTOR_SETUP.higgsfield.setupUrl).toBe("https://cloud.higgsfield.ai/api-keys");
+    expect(r.how_to_connect.join(" ")).toContain("separate direct sign-in path outside UnClick");
     expect(r.how_to_connect.join(" ")).toContain("HIGGSFIELD_API_KEY");
   });
 });

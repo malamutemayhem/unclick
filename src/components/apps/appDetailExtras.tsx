@@ -56,23 +56,36 @@ function HiggsfieldPanel(): ReactNode {
     <div className="rounded-xl border border-[#B8FF00]/25 bg-[#B8FF00]/[0.04] p-5">
       <div className="flex items-center gap-2">
         <Cable className="h-4 w-4 text-[#B8FF00]" />
-        <p className="text-sm font-semibold text-white">Higgsfield MCP and CLI setup</p>
+        <p className="text-sm font-semibold text-white">Higgsfield setup options</p>
       </div>
       <p className="mt-1.5 text-xs leading-5 text-white/55">
-        Customers connect their own Higgsfield account. The hosted MCP uses Higgsfield account
-        login, while Codex, Cursor, OpenClaw, and Hermes can use the CLI plus skills path.
+        There are two separate ways to use Higgsfield. Connect an API key in UnClick when
+        you want UnClick to route Higgsfield actions. Add Higgsfield's hosted MCP directly
+        when you want Claude or another client to talk to Higgsfield without going through
+        UnClick. Both paths use your Higgsfield account, with credits, subscription, and
+        billing managed by Higgsfield.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <CommandStack
-            label="Hosted MCP"
+            label="UnClick app connection"
+            commands={[
+              "Create a Higgsfield Cloud API key",
+              "https://cloud.higgsfield.ai/api-keys",
+              "Paste it in Apps to mark Higgsfield connected in UnClick",
+            ]}
+          />
+          <CommandStack
+            label="Higgsfield hosted MCP"
             commands={[
               "Name: Higgsfield",
               "URL: https://mcp.higgsfield.ai/mcp",
-              "Connect, then sign in with the customer's Higgsfield account",
+              "Connect, then sign in with your Higgsfield account",
             ]}
           />
+        </div>
+        <div className="space-y-3">
           <CommandStack
             label="CLI and skills"
             commands={[
@@ -82,8 +95,6 @@ function HiggsfieldPanel(): ReactNode {
               "/higgsfield:generate",
             ]}
           />
-        </div>
-        <div className="space-y-3">
           <CommandStack
             label="OpenClaw"
             commands={[
@@ -105,12 +116,20 @@ function HiggsfieldPanel(): ReactNode {
 
       <div className="mt-4 flex flex-wrap gap-2">
         <a
-          href="https://higgsfield.ai/mcp"
+          href="https://cloud.higgsfield.ai/api-keys"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-3 py-1.5 text-xs font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
         >
-          <ExternalLink className="h-3.5 w-3.5" /> Higgsfield MCP guide
+          <ExternalLink className="h-3.5 w-3.5" /> Get API key
+        </a>
+        <a
+          href="https://higgsfield.ai/mcp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/65 transition-colors hover:bg-white/[0.07]"
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Hosted MCP guide
         </a>
         <a
           href="https://higgsfield.ai/cli"
