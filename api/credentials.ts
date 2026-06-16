@@ -28,6 +28,10 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "crypto";
+import {
+  fetchManagedConnectionCredentials,
+  type ManagedConnectionRow,
+} from "./lib/managed-connections.js";
 
 // ─── Crypto helpers ───────────────────────────────────────────────────────────
 
@@ -142,6 +146,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const rows = data as Array<Record<string, unknown>>;
     if (!rows || rows.length === 0) {
+      const managedUrl = `${supabaseUrl}/rest/v1/managed_app_connections?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}&platform_slug=eq.${encodeURIComponent(platform)}&status=eq.connected&select=id,platform_slug,provider,provider_config_key,external_connection_id,auth_mode,status,account_label,scope_summary,last_checked_at,connected_at,created_at,updated_at,metadata&order=updated_at.desc.nullslast&limit=1`;
+      const managed = await supabaseFetch(managedUrl, "GET", supabaseHeaders(serviceRoleKey));
+      const managedRows = managed.ok ? (managed.data as ManagedConnectionRow[]) : [];
+      const managedConnection = managedRows[0];
+      if (managedConnection) {
+        const brokerResult = await fetchManagedConnectionCredentials({ connection: managedConnection });
+        if (brokerResult.ok && brokerResult.credentials) {
+          return res.status(200).json(brokerResult.credentials);
+        }
+        return res.status(brokerResult.status || 502).json({
+          error: brokerResult.error ?? "Managed connection could not provide credentials.",
+          setup_url: `https://unclick.world/admin/apps?lens=connected`,
+        });
+      }
+
       return res.status(404).json({
         error:     label
           ? `No credentials stored for platform "${platform}" with label "${label}".`

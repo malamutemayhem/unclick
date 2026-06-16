@@ -28,6 +28,7 @@ export interface ConnectableConnector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
+  supports_managed_connection?: boolean;
   credential?: { is_valid: boolean; last_tested_at: string | null } | null;
 }
 
@@ -41,6 +42,7 @@ interface ConnectAppModalProps {
   isConnected?: boolean;
   statusLabel?: string | null;
   onDisconnect?: () => Promise<void> | void;
+  onStartManagedConnection?: () => Promise<void> | void;
 }
 
 type Outcome =
@@ -65,18 +67,22 @@ export function ConnectAppModal({
   isConnected = false,
   statusLabel = null,
   onDisconnect,
+  onStartManagedConnection,
 }: ConnectAppModalProps) {
   const setup = CONNECTOR_SETUP[app.slug];
   const [credential, setCredential] = useState("");
   const [busy, setBusy] = useState(false);
   const [disconnectBusy, setDisconnectBusy] = useState(false);
+  const [managedBusy, setManagedBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [disconnectError, setDisconnectError] = useState<string | null>(null);
+  const [managedError, setManagedError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   const credentialLabel = setup?.credential ?? "API key";
   const setupUrl = setup?.setupUrl ?? connector.setup_url ?? null;
   const isOAuth = connector.auth_type === "oauth2";
+  const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -140,6 +146,19 @@ export function ConnectAppModal({
     }
   }
 
+  async function startManagedConnection() {
+    if (!onStartManagedConnection) return;
+    setManagedBusy(true);
+    setManagedError(null);
+    try {
+      await onStartManagedConnection();
+    } catch (e) {
+      setManagedError(e instanceof Error ? e.message : "Connect failed.");
+    } finally {
+      setManagedBusy(false);
+    }
+  }
+
   const disconnectButton = isConnected && onDisconnect ? (
     <button
       type="button"
@@ -176,7 +195,37 @@ export function ConnectAppModal({
           </div>
         )}
 
-        {isOAuth ? (
+        {usesManagedConnection ? (
+          <div className="text-xs leading-5 text-white/60">
+            <p>
+              {isConnected
+                ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
+                : `Connect ${app.name} once. It will work on every PC signed into UnClick.`}
+            </p>
+            <p className="mt-2 text-[11px] leading-4 text-white/45">
+              UnClick stores a connection record. The managed connection provider handles the sensitive access.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void startManagedConnection()}
+                disabled={managedBusy}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90 disabled:opacity-50"
+              >
+                {managedBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {managedBusy ? "Opening..." : isConnected ? `Reconnect ${app.name}` : `Connect ${app.name}`}
+                {!managedBusy && <ExternalLink className="h-3.5 w-3.5" />}
+              </button>
+              {disconnectButton}
+            </div>
+            {managedError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-400">{managedError}</p>
+            )}
+            {disconnectError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+            )}
+          </div>
+        ) : isOAuth ? (
           <div className="text-xs leading-5 text-white/60">
             <p>
               {isConnected
