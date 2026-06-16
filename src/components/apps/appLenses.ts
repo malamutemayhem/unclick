@@ -16,11 +16,12 @@ export type SetupKind = "signin" | "key" | "builtin";
 /** Minimal connector shape the lenses need; matches the admin_tools API rows. */
 export interface LensConnector {
   auth_type?: "oauth2" | "api_key" | "bot_token";
+  supports_managed_connection?: boolean;
   credential: {
     id?: string | null;
     is_valid: boolean;
     last_tested_at: string | null;
-    source?: "platform_credentials" | "user_credentials" | "mixed";
+    source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
   } | null;
 }
 
@@ -48,6 +49,7 @@ export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
 
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   if (!connector?.auth_type) return "builtin";
+  if (connector.supports_managed_connection) return "signin";
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 

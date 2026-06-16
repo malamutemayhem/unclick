@@ -16,11 +16,23 @@ interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
+  supports_managed_connection?: boolean;
+  managed_provider_config_key?: string | null;
   credential: {
     id?: string | null;
     is_valid: boolean;
     last_tested_at: string | null;
-    source?: "platform_credentials" | "user_credentials" | "mixed";
+    source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+    managed?: {
+      provider: string;
+      provider_config_key: string | null;
+      external_connection_id: string;
+      auth_mode: string;
+      status: string;
+      account_label: string | null;
+      scope_summary: string | null;
+      connected_at: string | null;
+    } | null;
   } | null;
 }
 
@@ -127,6 +139,9 @@ export default function AdminToolsPage() {
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
+    if (c.credential?.source === "managed_app_connections" && c.credential.is_valid) {
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    }
     // OAuth connections are created by a successful provider sign-in, so they
     // should read as connected even before a later tool-use timestamp exists.
     if (c.credential?.is_valid && (c.auth_type === "oauth2" || c.credential.last_tested_at)) {
@@ -136,6 +151,7 @@ export default function AdminToolsPage() {
       return { label: "Added", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.auth_type) return { label: "Add access", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }
@@ -184,6 +200,19 @@ export default function AdminToolsPage() {
     if (!res.ok) throw new Error(body.error ?? `Disconnect failed with ${res.status}.`);
     await refreshStatus();
     setConnectTarget(null);
+  }
+
+  async function beginManagedConnection(slug: string) {
+    if (!session) throw new Error("Sign in again to connect apps.");
+    const res = await fetch("/api/memory-admin?action=admin_begin_managed_connection", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ platform: slug }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { connect_url?: string; error?: string };
+    if (!res.ok) throw new Error(body.error ?? `Connect failed with ${res.status}.`);
+    if (!body.connect_url) throw new Error("The connection provider did not return a sign-in link.");
+    window.location.assign(body.connect_url);
   }
 
   const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
@@ -244,6 +273,7 @@ export default function AdminToolsPage() {
           isConnected={Boolean(connectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
           statusLabel={statusOf(connectTarget)?.label ?? null}
           onDisconnect={() => disconnectApp(connectTarget.slug)}
+          onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}
         />
       )}
 

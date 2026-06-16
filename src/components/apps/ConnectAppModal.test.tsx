@@ -149,6 +149,19 @@ describe("ConnectAppModal", () => {
     expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
   });
 
+  it("uses the managed connection path when the broker is available", async () => {
+    const onStartManagedConnection = vi.fn(() => Promise.resolve());
+    renderModal({
+      connector: { id: "alphavantage", auth_type: "api_key", setup_url: null, supports_managed_connection: true },
+      onStartManagedConnection,
+    });
+    expect(screen.getByText(/work on every pc signed into unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/managed connection provider handles the sensitive access/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /connect alpha vantage/i }));
+    expect(onStartManagedConnection).toHaveBeenCalled();
+  });
+
   it("offers reconnect and disconnect for an existing OAuth connection", async () => {
     const onDisconnect = vi.fn(() => Promise.resolve());
     renderModal({

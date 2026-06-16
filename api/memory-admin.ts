@@ -138,6 +138,14 @@ import {
   shouldIncludeThroughputMetrics,
 } from "./lib/throughput-observability.js";
 import {
+  beginManagedConnection,
+  disconnectManagedConnection,
+  managedConnectionAvailableForPlatform,
+  managedConnectionsConfigured,
+  providerConfigKeyForPlatform,
+  type ManagedConnectionRow,
+} from "./lib/managed-connections.js";
+import {
   attachBuildDeskIdempotencyKey,
   findBuildDeskRowByIdempotencyKey,
   parseBuildDeskIdempotencyKey,
@@ -5329,7 +5337,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
           .eq("api_key_hash", tenant.apiKeyHash);
 
-        type AdminCredentialSource = "platform_credentials" | "user_credentials" | "mixed";
+        const managedQ = await supabase
+          .from("managed_app_connections")
+          .select("id, platform_slug, provider, provider_config_key, external_connection_id, auth_mode, status, account_label, scope_summary, last_checked_at, connected_at, created_at, updated_at, metadata")
+          .eq("api_key_hash", tenant.apiKeyHash)
+          .in("status", ["connected", "pending"]);
+        // New deployments may briefly run before the migration is applied. In
+        // that window the managed path simply stays invisible instead of
+        // breaking the Apps page.
+        const managedRows = managedQ.error ? [] : (managedQ.data ?? []);
+
+        type AdminCredentialSource = "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
         type AdminCredentialSummary = {
           id: string | null;
           is_valid: boolean;
@@ -5338,6 +5356,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           source: AdminCredentialSource;
           created_at: string | null;
           updated_at: string | null;
+          managed?: {
+            provider: string;
+            provider_config_key: string | null;
+            external_connection_id: string;
+            auth_mode: string;
+            status: string;
+            account_label: string | null;
+            scope_summary: string | null;
+            connected_at: string | null;
+          } | null;
         };
 
         function timestampScore(value: unknown): number {
@@ -5347,7 +5375,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         function credentialScore(cred: AdminCredentialSummary): number {
+          const managedBoost = cred.source === "managed_app_connections" ? 100_000_000_000_000 : 0;
           return (cred.is_valid ? 1_000_000_000_000_000 : 0)
+            + managedBoost
             + (cred.last_tested_at ? 1_000_000_000_000 : 0)
             + Math.max(timestampScore(cred.updated_at), timestampScore(cred.created_at));
         }
@@ -5391,9 +5421,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
+        for (const row of managedRows as Array<ManagedConnectionRow>) {
+          mergeCredential(row.platform_slug, {
+            id: row.id ?? null,
+            is_valid: row.status === "connected",
+            last_tested_at: row.last_checked_at ?? row.connected_at ?? null,
+            label: row.account_label ?? null,
+            source: "managed_app_connections",
+            created_at: row.created_at ?? null,
+            updated_at: row.updated_at ?? null,
+            managed: {
+              provider: row.provider ?? "nango",
+              provider_config_key: row.provider_config_key ?? null,
+              external_connection_id: row.external_connection_id,
+              auth_mode: row.auth_mode ?? "managed_oauth",
+              status: row.status,
+              account_label: row.account_label ?? null,
+              scope_summary: row.scope_summary ?? null,
+              connected_at: row.connected_at ?? null,
+            },
+          });
+        }
+
         const enrichedConnectors = (connectors ?? []).map((pc) => ({
           ...pc,
           credential: credMap.get(pc.id as string) ?? null,
+          supports_managed_connection: pc.auth_type
+            ? managedConnectionAvailableForPlatform(pc.id as string)
+            : false,
+          managed_provider_config_key: pc.auth_type
+            ? providerConfigKeyForPlatform(pc.id as string)
+            : null,
         }));
 
         // Apps the user has turned off (enforced by the MCP server).
@@ -5407,6 +5465,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           metering: meteringMap,
           connectors: enrichedConnectors,
           disabled_apps: (appState?.disabled_apps as string[] | undefined) ?? [],
+          managed_connections: {
+            enabled: managedConnectionsConfigured(),
+            provider: "nango",
+          },
         });
       }
 
@@ -5428,6 +5490,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         if (upErr) throw upErr;
         return res.status(200).json({ success: true, disabled_apps: disabled });
+      }
+
+      case "admin_begin_managed_connection": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const platform = typeof body.platform === "string" ? body.platform.trim().toLowerCase() : "";
+        if (!platform) return res.status(400).json({ error: "platform is required" });
+
+        const { data: connRows } = await supabase
+          .from("platform_connectors")
+          .select("id, name, auth_type")
+          .eq("id", platform)
+          .limit(1);
+        const connectorRow = (connRows ?? [])[0] as { id: string; name: string; auth_type: string | null } | undefined;
+        if (!connectorRow) return res.status(404).json({ error: `Unknown platform "${platform}".` });
+        if (!connectorRow.auth_type) return res.status(400).json({ error: `${connectorRow.name} does not need a connection.` });
+        if (!managedConnectionAvailableForPlatform(platform)) {
+          return res.status(501).json({
+            error: `${connectorRow.name} is not configured for one-click connection yet.`,
+            code: "managed_platform_not_configured",
+          });
+        }
+
+        const origin = typeof req.headers.origin === "string" && req.headers.origin
+          ? req.headers.origin
+          : "https://unclick.world";
+        const result = await beginManagedConnection({
+          platform,
+          appName: connectorRow.name,
+          tenant,
+          returnUrl: `${origin}/admin/apps?lens=connected`,
+        });
+
+        if (!result.ok) {
+          return res.status(result.status).json({ error: result.message, code: result.code });
+        }
+
+        return res.status(200).json({
+          success: true,
+          platform,
+          provider: result.provider,
+          provider_config_key: result.provider_config_key,
+          connect_url: result.connect_url,
+          expires_at: result.expires_at ?? null,
+        });
       }
 
       // Connect an app from the admin Apps page: live-test the credential against
@@ -5513,6 +5623,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const platform = typeof body.platform === "string" ? body.platform.trim().toLowerCase() : "";
         if (!platform) return res.status(400).json({ error: "platform is required" });
 
+        const managedLookup = await supabase
+          .from("managed_app_connections")
+          .select("id, platform_slug, provider, provider_config_key, external_connection_id, auth_mode, status, account_label, scope_summary, last_checked_at, connected_at, created_at, updated_at, metadata")
+          .eq("api_key_hash", tenant.apiKeyHash)
+          .eq("platform_slug", platform);
+        const managedRows = managedLookup.error ? [] : ((managedLookup.data ?? []) as ManagedConnectionRow[]);
+        const brokerDisconnects = await Promise.all(
+          managedRows.map((connection) => disconnectManagedConnection({ connection })),
+        );
+        const brokerDisconnectFailed = brokerDisconnects.find((result) => !result.ok);
+        if (brokerDisconnectFailed) {
+          return res.status(502).json({
+            error: brokerDisconnectFailed.error ?? "Managed connection provider could not disconnect this app.",
+          });
+        }
+
+        const managedDelete = await supabase
+          .from("managed_app_connections")
+          .delete()
+          .eq("api_key_hash", tenant.apiKeyHash)
+          .eq("platform_slug", platform)
+          .select("id, account_label");
+        if (managedDelete.error && managedRows.length > 0) throw managedDelete.error;
+
         const userDelete = await supabase
           .from("user_credentials")
           .delete()
@@ -5531,10 +5665,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const userRows = (userDelete.data ?? []) as Array<{ id?: string; label?: string | null }>;
         const platformRows = (platformDelete.data ?? []) as Array<{ id?: string; label?: string | null }>;
+        const managedDeletedRows = (managedDelete.data ?? []) as Array<{ id?: string; account_label?: string | null }>;
 
         try {
-          const auditRows = userRows.length > 0
-            ? userRows.map((row) => ({
+          const credentialAuditRows = userRows.map((row) => ({
               actor_user_id: tenant.userId,
               api_key_hash: tenant.apiKeyHash,
               action: "disconnect_app",
@@ -5543,8 +5677,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               label: row.label ?? null,
               success: true,
               metadata: { surface: "admin_apps" },
-            }))
-            : [{
+            }));
+          const managedAuditRows = managedDeletedRows.map((row) => ({
+            actor_user_id: tenant.userId,
+            api_key_hash: tenant.apiKeyHash,
+            action: "disconnect_managed_app",
+            credential_id: row.id ?? null,
+            platform_slug: platform,
+            label: row.account_label ?? null,
+            success: true,
+            metadata: { surface: "admin_apps", provider: "nango" },
+          }));
+          const fallbackAuditRows = userRows.length === 0 && managedDeletedRows.length === 0
+            ? [{
               actor_user_id: tenant.userId,
               api_key_hash: tenant.apiKeyHash,
               action: "disconnect_app",
@@ -5553,7 +5698,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               label: null,
               success: true,
               metadata: { surface: "admin_apps", legacy_rows_deleted: platformRows.length },
-            }];
+            }]
+            : [];
+          const auditRows = [...credentialAuditRows, ...managedAuditRows, ...fallbackAuditRows];
           await supabase.from("backstagepass_audit").insert(auditRows);
         } catch {
           // Audit is best-effort here; deleting the connection is the user action.
@@ -5565,6 +5712,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           deleted: {
             connections: userRows.length,
             app_records: platformRows.length,
+            managed_connections: managedDeletedRows.length,
           },
         });
       }
