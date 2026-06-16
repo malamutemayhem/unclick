@@ -17,6 +17,16 @@ const APP: AppEntry = {
 };
 
 const CONNECTOR = { id: "alphavantage", auth_type: "api_key" as const, setup_url: null };
+const HIGGSFIELD_APP: AppEntry = {
+  ...APP,
+  slug: "higgsfield",
+  name: "Higgsfield",
+  category: "AI",
+  blurb: "Create images, video, characters, and campaign assets.",
+  domain: "higgsfield.ai",
+  tools: [{ name: "higgsfield_generate_image", description: "Generate an image." }],
+  toolCount: 1,
+};
 
 function renderModal(overrides: Partial<Parameters<typeof ConnectAppModal>[0]> = {}) {
   return render(
@@ -90,6 +100,18 @@ describe("ConnectAppModal", () => {
     fireEvent.change(screen.getByPlaceholderText(/paste api key here/i), { target: { value: "demo-key" } });
     fireEvent.click(screen.getByRole("button", { name: /test and connect/i }));
     expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
+  });
+
+  it("sends Higgsfield users to Cloud API keys and treats hosted MCP as separate", () => {
+    renderModal({
+      app: HIGGSFIELD_APP,
+      connector: { id: "higgsfield", auth_type: "api_key", setup_url: null },
+    });
+    expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
+      "href",
+      "https://cloud.higgsfield.ai/api-keys",
+    );
+    expect(screen.getByText(/hosted MCP .* separate direct sign-in path outside UnClick/i)).toBeInTheDocument();
   });
 
   it("surfaces a rejection and stores nothing when the platform refuses the key", async () => {

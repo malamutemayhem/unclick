@@ -3943,19 +3943,19 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "higgsfield_generate_video",
-        "description": "Generate a Higgsfield video from a prompt. Uses the customer's connected Higgsfield credentials; pass api_key or set HIGGSFIELD_API_KEY for UnClick, or use Higgsfield's hosted MCP login at https://mcp.higgsfield.ai/mcp."
+        "description": "Generate a Higgsfield video from a prompt using the Higgsfield API key connected in UnClick or supplied for this call. Higgsfield bills usage to the connected Higgsfield account."
       },
       {
         "name": "higgsfield_generate_image",
-        "description": "Generate a Higgsfield image from a prompt. Uses the customer's connected Higgsfield credentials; pass api_key or set HIGGSFIELD_API_KEY for UnClick, or use Higgsfield's hosted MCP login at https://mcp.higgsfield.ai/mcp."
+        "description": "Generate a Higgsfield image from a prompt using the Higgsfield API key connected in UnClick or supplied for this call. Higgsfield bills usage to the connected Higgsfield account."
       },
       {
         "name": "higgsfield_get_styles",
-        "description": "List available Higgsfield styles for the customer's connected account. Pass api_key or set HIGGSFIELD_API_KEY for UnClick, or use Higgsfield's hosted MCP login at https://mcp.higgsfield.ai/mcp."
+        "description": "List available Higgsfield styles using the Higgsfield API key connected in UnClick or supplied for this call."
       },
       {
         "name": "higgsfield_get_status",
-        "description": "Check the status of a Higgsfield generation by ID for the customer's connected account. Pass api_key or set HIGGSFIELD_API_KEY for UnClick, or use Higgsfield's hosted MCP login at https://mcp.higgsfield.ai/mcp."
+        "description": "Check the status of a Higgsfield generation by ID using the Higgsfield API key connected in UnClick or supplied for this call."
       }
     ]
   },
