@@ -19,11 +19,13 @@ describe("public MCP door copy", () => {
   it("keeps the magic-link landing page honest about fallback URLs", () => {
     const src = pairingPage();
 
-    expect(src).toContain("Use this paired URL for this AI app");
+    expect(src).toContain("This pairing token is saved");
+    expect(src).toContain("Use this paired URL in the AI app");
     expect(src).toContain("${PUBLIC_MCP_URL}/p/");
     expect(src).toContain("revokable pairing token");
-    expect(src).toContain("Compatibility URL for stubborn AI apps");
+    expect(src).toContain("Compatibility URL for older AI apps");
     expect(src).toContain("contains a private connection key");
+    expect(src).not.toContain("Claude still");
     expect(src).not.toContain("master key");
   });
 });

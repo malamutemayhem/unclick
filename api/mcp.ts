@@ -207,12 +207,12 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
           "Next step:",
           `Open ${loginUrl}`,
           "",
-          "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, return here and ask this AI app to list UnClick tools again.",
+          "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, try the tool again.",
           "",
-          "If this AI app still shows only unclick_start_pairing, reconnect it with this paired URL:",
+          "If this AI app asks for a fresh link, says it is still unpaired, or cannot call tools, it did not keep the paired MCP session. Do not keep opening new links. Reconnect the MCP server using this paired URL:",
           connectorUrl,
           "",
-          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is only a fallback for older clients.",
+          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is a fallback for clients that cannot use paired URLs.",
         ].join("\n"),
       },
     ],
@@ -596,8 +596,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           message:
             "UnClick is installed but this AI app is not paired yet. " +
             `Call unclick_start_pairing, or open ${loginUrl}. ` +
-            "After sign-in, keep using this MCP connection. If the client still " +
-            "cannot call tools, reconnect it with the paired URL or Compatibility URL shown on the ready page.",
+            "After sign-in, try this MCP connection again. If the app asks for a fresh link " +
+            "after the ready page, it did not keep the pairing session; reconnect it with " +
+            "the paired URL or Compatibility URL shown on the ready page.",
         },
         id: peeked.id,
       });
