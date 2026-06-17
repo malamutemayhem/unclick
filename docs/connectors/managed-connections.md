@@ -1,6 +1,6 @@
 # Managed Connections
 
-Managed Connections let customers connect apps once and use them from any PC signed into UnClick, without UnClick storing raw app keys or tokens. This is not the old Passport-as-vault model: UnClick stores a connection record and status, while the managed provider owns the sensitive app access.
+Managed Connections let customers connect apps once and use them from any PC signed into UnClick, without UnClick storing raw app keys or tokens. UnClick stores a connection record and status, while the managed provider owns the sensitive app access.
 
 ## Runtime Switches
 

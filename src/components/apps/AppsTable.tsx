@@ -41,7 +41,7 @@ interface AppsTableProps {
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
-  /** Admin mode: the single status-column chip. It states the truth AND does the action: Connect / Add key when unconnected, the proven status label (Connected / Key saved) when connected, click always opens the wizard. null = built-in, falls back to the plain status pill. */
+  /** Admin mode: the single status-column chip. It says the action until connected (Connect / Open setup / Add key), then the proven status label. null = built-in, falls back to the plain status pill. */
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** Admin mode: shown in expanded connected rows so unlinking an app is discoverable. */
   disconnectOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
@@ -249,12 +249,12 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   {app.toolCount}
                 </span>
                 <div className="flex items-center justify-end gap-1.5">
-                  {/* One chip per row: it states the truth AND does the action.
+                  {/* One chip per row: action until connected, verified status once connected.
                       (Was an action button next to a status pill; for unconnected
                       rows the pair said the same thing twice.) */}
                   {isAdmin ? (() => {
                     if (action) {
-                      const hasConnection = action.label !== "Connect" && action.label !== "Add key";
+                      const hasConnection = action.label === "Manage";
                       return (
                         <button
                           type="button"
