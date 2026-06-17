@@ -75,7 +75,8 @@ export const PUBLIC_PAIRING_TOOL = {
     properties: {
       email: {
         type: "string",
-        description: "Optional email address to pre-fill on the UnClick sign-in page.",
+        description:
+          "Optional email address to pre-fill on the UnClick sign-in page.",
       },
     },
   },
@@ -84,7 +85,9 @@ export const PUBLIC_PAIRING_TOOL = {
 export function publicToolsForUnpairedClient() {
   return [
     PUBLIC_PAIRING_TOOL,
-    ...ADVERTISED_TOOLS_SAFE.filter((tool) => tool.name !== PUBLIC_PAIRING_TOOL.name),
+    ...ADVERTISED_TOOLS_SAFE.filter(
+      (tool) => tool.name !== PUBLIC_PAIRING_TOOL.name,
+    ),
   ];
 }
 
@@ -116,7 +119,10 @@ function singleToolArgs(body: unknown): Record<string, unknown> {
     : {};
 }
 
-function readCookie(cookieHeader: string | undefined, name: string): string | null {
+function readCookie(
+  cookieHeader: string | undefined,
+  name: string,
+): string | null {
   if (!cookieHeader) return null;
   const parts = cookieHeader.split(/;\s*/);
   for (const part of parts) {
@@ -203,10 +209,12 @@ export function pairedMcpUrl(pairId?: string): string {
   return `https://unclick.world/api/mcp/p/${encodeURIComponent(pairId.trim())}`;
 }
 
-export function pairingToolResult(args: Record<string, unknown>, pairId?: string) {
+export function pairingToolResult(
+  args: Record<string, unknown>,
+  pairId?: string,
+) {
   const email = typeof args.email === "string" ? args.email.trim() : "";
   const loginUrl = pairingLoginUrl(email, pairId);
-  const connectorUrl = pairedMcpUrl(pairId);
   return {
     content: [
       {
@@ -222,10 +230,7 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
           "Preferred server URL for every AI app:",
           "https://unclick.world/api/mcp",
           "",
-          "If this AI app asks for a fresh link, says it is still unpaired, or cannot call tools, it did not keep the web sign-in session. Do not keep opening new links. Use this paired URL only as a fallback:",
-          connectorUrl,
-          "",
-          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is a last-resort fallback for clients that cannot use web sign-in or paired URLs.",
+          "If this AI app still shows only Connect UnClick after the ready page, do not keep opening new links. Keep https://unclick.world/api/mcp as the normal server URL. The ready page has private fallback options only for older apps that cannot keep web sign-in.",
         ].join("\n"),
       },
     ],
@@ -236,7 +241,10 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
 // responses (JSON-RPC 2.0 § 5.1 requires id equality) and (2) decide whether
 // the request is attempting protected tool execution. Batches are handled
 // conservatively: any protected or malformed entry forces auth.
-export function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
+export function peekRpc(body: unknown): {
+  id: JsonRpcId;
+  authRequired: boolean;
+} {
   const entries = Array.isArray(body) ? body : [body];
   let id: JsonRpcId = null;
   let firstHasId = false;
@@ -302,7 +310,9 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
   let accountEmail: string | null = null;
   if (data.user_id) {
     try {
-      const { data: userData } = await supabase.auth.admin.getUserById(data.user_id);
+      const { data: userData } = await supabase.auth.admin.getUserById(
+        data.user_id,
+      );
       accountEmail = userData.user?.email ?? null;
     } catch {
       accountEmail = null;
@@ -392,7 +402,8 @@ async function validateSessionCookie(
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: userData, error: userErr } = await supabase.auth.getUser(accessToken);
+  const { data: userData, error: userErr } =
+    await supabase.auth.getUser(accessToken);
   if (userErr || !userData?.user) return null;
   const userId = userData.user.id;
 
@@ -403,7 +414,9 @@ async function validateSessionCookie(
   return apiKeyContextForUser(supabase, userId, userData.user.email ?? null);
 }
 
-async function validatePublicMcpPair(pairId: string): Promise<ApiKeyContext | null> {
+async function validatePublicMcpPair(
+  pairId: string,
+): Promise<ApiKeyContext | null> {
   if (!isValidPublicMcpPairId(pairId)) return null;
   const env = getSupabaseEnv();
   if (!env) return null;
@@ -439,7 +452,9 @@ async function validatePublicMcpPair(pairId: string): Promise<ApiKeyContext | nu
   return ctx;
 }
 
-async function validateMcpOAuthAccessToken(token: string): Promise<ApiKeyContext | null> {
+async function validateMcpOAuthAccessToken(
+  token: string,
+): Promise<ApiKeyContext | null> {
   let payload;
   try {
     payload = verifyMcpOAuthToken(token, "access", process.env);
@@ -479,7 +494,11 @@ function extractSupabaseAccessToken(cookieHeader: string): string | null {
       if (Array.isArray(parsed) && typeof parsed[0] === "string") {
         return parsed[0];
       }
-      if (parsed && typeof parsed === "object" && typeof (parsed as { access_token?: unknown }).access_token === "string") {
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        typeof (parsed as { access_token?: unknown }).access_token === "string"
+      ) {
         return (parsed as { access_token: string }).access_token;
       }
     } catch {
@@ -491,7 +510,10 @@ function extractSupabaseAccessToken(cookieHeader: string): string | null {
   return null;
 }
 
-export function applyMcpRequestEnv(apiKey: string, ctx: ApiKeyContext | null): void {
+export function applyMcpRequestEnv(
+  apiKey: string,
+  ctx: ApiKeyContext | null,
+): void {
   if (apiKey && ctx) {
     process.env.UNCLICK_API_KEY = apiKey;
   } else {
@@ -506,7 +528,9 @@ export function applyMcpRequestEnv(apiKey: string, ctx: ApiKeyContext | null): v
     } else {
       delete process.env.UNCLICK_ACCOUNT_EMAIL;
     }
-    process.env.UNCLICK_MEMORY_QUOTA_EXEMPT = ctx.memory_quota_exempt ? "true" : "false";
+    process.env.UNCLICK_MEMORY_QUOTA_EXEMPT = ctx.memory_quota_exempt
+      ? "true"
+      : "false";
     if (ctx.user_id) {
       process.env.UNCLICK_USER_ID = ctx.user_id;
     } else {
@@ -527,9 +551,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, mcp-session-id"
+    "Content-Type, Authorization, mcp-session-id",
   );
-  res.setHeader("Access-Control-Expose-Headers", "mcp-session-id, WWW-Authenticate");
+  res.setHeader(
+    "Access-Control-Expose-Headers",
+    "mcp-session-id, WWW-Authenticate",
+  );
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -544,7 +571,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       jsonrpc: "2.0",
       error: {
         code: -32601,
-        message: "Method Not Allowed. POST to this endpoint with an MCP JSON-RPC message.",
+        message:
+          "Method Not Allowed. POST to this endpoint with an MCP JSON-RPC message.",
       },
       id: peeked.id,
     });
@@ -577,7 +605,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const bearerToken = keyFromHeader;
   const apiKey =
     keyFromQuery ||
-    (bearerToken.startsWith("uc_") || bearerToken.startsWith("agt_") ? bearerToken : "");
+    (bearerToken.startsWith("uc_") || bearerToken.startsWith("agt_")
+      ? bearerToken
+      : "");
   const method = singleRpcMethod(req.body);
   const toolName = singleToolName(req.body);
 
@@ -629,7 +659,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: peeked.id,
       });
     }
-    if (!ctx && method === "tools/call" && toolName === PUBLIC_PAIRING_TOOL.name) {
+    if (
+      !ctx &&
+      method === "tools/call" &&
+      toolName === PUBLIC_PAIRING_TOOL.name
+    ) {
       const pairId = ensurePublicPairId(req, res);
       return res.status(200).json({
         jsonrpc: "2.0",
