@@ -38,8 +38,8 @@ describe("MCP OAuth generic URL support", () => {
 
   it("marks initialize and tools/call as auth-considered by peekRpc", () => {
     // peekRpc flags initialize and tools/call as authRequired so the handler
-    // can enforce the OAuth challenge on the bearer-token path. For bare
-    // public clients (no bearer, no api key) the handler overrides this for
+    // can enforce the OAuth challenge on the bearer-token path. Both the
+    // bearer-token and bare-public-client branches override this for
     // initialize to allow discovery-mode handshake without exposing tenant
     // data. See the pairing test suite for handler-level coverage.
     expect(peekRpc({ jsonrpc: "2.0", id: 1, method: "initialize" }).authRequired).toBe(true);

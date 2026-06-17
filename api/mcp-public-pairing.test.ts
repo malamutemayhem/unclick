@@ -119,7 +119,8 @@ describe("public MCP pairing door", () => {
     expect(text).toContain("Preferred server URL for every AI app");
     expect(text).toContain("https://unclick.world/api/mcp");
     expect(text).toContain("ready page has private fallback options");
-    expect(text).not.toContain("https://unclick.world/api/mcp/p/");
+    expect(text).toContain("https://unclick.world/api/mcp/p/");
+    expect(text).toContain("session state");
     expect(text).not.toContain("Bearer");
   });
 
