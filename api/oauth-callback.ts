@@ -21,7 +21,7 @@
  *
  * Required env vars per platform:
  *   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
- *   VERCEL_CLIENT_ID, VERCEL_CLIENT_SECRET, VERCEL_REDIRECT_URI
+ *   VERCEL_CLIENT_ID, VERCEL_REDIRECT_URI
  *   SUPABASE_OAUTH_CLIENT_ID, SUPABASE_OAUTH_CLIENT_SECRET, SUPABASE_OAUTH_REDIRECT_URI
  *   XERO_CLIENT_ID, XERO_CLIENT_SECRET, XERO_REDIRECT_URI
  *   REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
@@ -48,6 +48,7 @@ interface OAuthConfig {
   clientSecretEnv: string;
   redirectUriEnv:  string;
   clientAuth?: "body" | "basic";
+  optionalClientSecret?: boolean;
   requiresPkce?: boolean;
   /** Extract the credential fields we want to store from the token response */
   extractCredentials: (
@@ -76,6 +77,7 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     clientIdEnv:     "VERCEL_CLIENT_ID",
     clientSecretEnv: "VERCEL_CLIENT_SECRET",
     redirectUriEnv:  "VERCEL_REDIRECT_URI",
+    optionalClientSecret: true,
     requiresPkce:    true,
     async extractCredentials(tokenResponse) {
       const accessToken = String(tokenResponse.access_token ?? "");
@@ -273,9 +275,11 @@ async function exchangeCode(
   const clientSecret = env[config.clientSecretEnv] ?? "";
   const redirectUri  = resolveRedirectUri(config, env);
 
-  if (!clientId || !clientSecret) {
+  if (!clientId || (!clientSecret && !config.optionalClientSecret)) {
     throw new Error(
-      `${config.clientIdEnv} and ${config.clientSecretEnv} env vars must be set.`
+      config.optionalClientSecret
+        ? `${config.clientIdEnv} env var must be set.`
+        : `${config.clientIdEnv} and ${config.clientSecretEnv} env vars must be set.`
     );
   }
   if (config.requiresPkce && !codeVerifier) {
@@ -291,7 +295,7 @@ async function exchangeCode(
     if (codeVerifier) body.set("code_verifier", codeVerifier);
   } else {
     body.set("client_id", clientId);
-    body.set("client_secret", clientSecret);
+    if (clientSecret) body.set("client_secret", clientSecret);
     if (codeVerifier) body.set("code_verifier", codeVerifier);
   }
 

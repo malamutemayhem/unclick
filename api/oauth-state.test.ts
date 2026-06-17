@@ -59,4 +59,23 @@ describe("oauth state token", () => {
       "OAuth state token expired."
     );
   });
+
+  it("can sign state with the shared state secret when a provider has no client secret", () => {
+    const noProviderSecretEnv = {
+      OAUTH_STATE_SECRET: "state-secret",
+    } as NodeJS.ProcessEnv;
+
+    const token = createOAuthStateToken({
+      platform: "vercel",
+      redirectPath: "/connect/vercel",
+      env: noProviderSecretEnv,
+      nowSeconds: 1_000,
+    });
+
+    expect(verifyOAuthStateToken(token, noProviderSecretEnv, 1_100)).toMatchObject({
+      platform: "vercel",
+      redirectPath: "/connect/vercel",
+      v: 1,
+    });
+  });
 });

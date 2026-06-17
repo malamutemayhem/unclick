@@ -135,6 +135,66 @@ describe("oauth callback credential storage origin", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("supports Vercel PKCE clients that do not issue a client secret", async () => {
+    process.env.VERCEL_CLIENT_ID = "vercel-client";
+    delete process.env.VERCEL_CLIENT_SECRET;
+    process.env.VERCEL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    process.env.OAUTH_STATE_SECRET = "state-secret";
+    process.env.UNCLICK_APP_ORIGIN = "https://unclick.world";
+    const state = createOAuthStateToken({
+      platform: "vercel",
+      redirectPath: "/connect/vercel",
+      env: process.env,
+    });
+
+    const fetchMock = vi.fn(async (url: string | URL, init?: RequestInit) => {
+      const href = String(url);
+      if (href === "https://api.vercel.com/login/oauth/token") {
+        expect(String(init?.body)).toContain("code_verifier=verifier");
+        expect(String(init?.body)).toContain("client_id=vercel-client");
+        expect(String(init?.body)).not.toContain("client_secret=");
+        return {
+          ok: true,
+          json: async () => ({ access_token: "vercel-access" }),
+        };
+      }
+      if (href === "https://unclick.world/api/credentials") {
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        expect(body).toMatchObject({
+          platform: "vercel",
+          api_key: "uc_test_account_key",
+        });
+        expect(body.credentials).toMatchObject({
+          api_key: "vercel-access",
+          access_token: "vercel-access",
+        });
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      throw new Error(`Unexpected fetch ${href}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = createResponse();
+    await handler(
+      {
+        method: "POST",
+        body: {
+          platform: "vercel",
+          code: "oauth-code",
+          api_key: "uc_test_account_key",
+          state,
+          code_verifier: "verifier",
+        },
+        headers: {},
+      } as never,
+      response.res as never
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(response.payload).toMatchObject({ success: true, platform: "vercel" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("exchanges a Supabase login code with Basic auth and stores the OAuth token", async () => {
     process.env.SUPABASE_OAUTH_CLIENT_ID = "supabase-client";
     process.env.SUPABASE_OAUTH_CLIENT_SECRET = "supabase-secret";

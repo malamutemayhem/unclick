@@ -19,7 +19,8 @@ function base64UrlDecode(value: string): string {
 }
 
 function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
-  switch (platform) {
+  const platformSecret = (() => {
+    switch (platform) {
     case "github":
       return env.GITHUB_CLIENT_SECRET ?? "";
     case "vercel":
@@ -34,7 +35,10 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
       return env.SHOPIFY_CLIENT_SECRET ?? "";
     default:
       return "";
-  }
+    }
+  })();
+
+  return platformSecret || env.OAUTH_STATE_SECRET || "";
 }
 
 function signPayload(encodedPayload: string, secret: string): string {
