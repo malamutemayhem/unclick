@@ -12,6 +12,9 @@ export const MCP_OAUTH_REGISTRATION_ENDPOINT = "https://unclick.world/api/mcp/oa
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
 const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 90;
 const AUTH_CODE_TTL_SECONDS = 10 * 60;
+const CLIENT_REGISTRATION_TTL_SECONDS = 60 * 60 * 24;
+const CLIENT_ID_PREFIX = "unclick-mcp-";
+export const MCP_OAUTH_MAX_REDIRECT_URI_LENGTH = 2048;
 
 type McpOAuthTokenKind = "code" | "access" | "refresh";
 
@@ -28,6 +31,17 @@ export interface McpOAuthTokenPayload {
   redirect_uri?: string;
   scope: string;
   sub: string;
+  v: 1;
+}
+
+export interface McpOAuthClientRegistrationPayload {
+  client_name: string;
+  exp: number;
+  iat: number;
+  iss: string;
+  jti: string;
+  kind: "client";
+  redirect_uris: string[];
   v: 1;
 }
 
@@ -81,6 +95,74 @@ function createSignedToken(
   };
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
   return `${encodedPayload}.${signPayload(encodedPayload, env)}`;
+}
+
+export function createMcpOAuthClientId(input: {
+  clientName?: string;
+  redirectUris?: string[];
+}, env: NodeJS.ProcessEnv): { client_id: string; client_id_issued_at: number } {
+  const iat = nowSeconds();
+  const payload: McpOAuthClientRegistrationPayload = {
+    client_name: (input.clientName?.trim() || "MCP client").slice(0, 120),
+    exp: iat + CLIENT_REGISTRATION_TTL_SECONDS,
+    iat,
+    iss: MCP_OAUTH_ISSUER,
+    jti: randomBytes(16).toString("base64url"),
+    kind: "client",
+    redirect_uris: input.redirectUris ?? [],
+    v: 1,
+  };
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  return {
+    client_id: `${CLIENT_ID_PREFIX}${encodedPayload}.${signPayload(encodedPayload, env)}`,
+    client_id_issued_at: iat,
+  };
+}
+
+export function verifyMcpOAuthClientId(
+  clientId: string,
+  env: NodeJS.ProcessEnv,
+  now = nowSeconds(),
+): McpOAuthClientRegistrationPayload | null {
+  if (!clientId.startsWith(CLIENT_ID_PREFIX)) return null;
+  const token = clientId.slice(CLIENT_ID_PREFIX.length);
+  const [encodedPayload, signature] = token.split(".");
+  if (!encodedPayload || !signature) throw new Error("Invalid MCP OAuth client registration.");
+
+  let payload: McpOAuthClientRegistrationPayload;
+  try {
+    payload = JSON.parse(base64UrlDecode(encodedPayload)) as McpOAuthClientRegistrationPayload;
+  } catch {
+    throw new Error("Invalid MCP OAuth client registration.");
+  }
+
+  if (
+    payload.v !== 1 ||
+    payload.kind !== "client" ||
+    payload.iss !== MCP_OAUTH_ISSUER ||
+    typeof payload.client_name !== "string" ||
+    typeof payload.exp !== "number" ||
+    !Array.isArray(payload.redirect_uris) ||
+    payload.redirect_uris.some((uri) => typeof uri !== "string")
+  ) {
+    throw new Error("Invalid MCP OAuth client registration.");
+  }
+
+  const expectedSignature = signPayload(encodedPayload, env);
+  const actual = Buffer.from(signature, "utf8");
+  const expected = Buffer.from(expectedSignature, "utf8");
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+    throw new Error("MCP OAuth client registration signature mismatch.");
+  }
+
+  if (payload.exp < now) throw new Error("MCP OAuth client registration expired.");
+  return payload;
+}
+
+export function validateRegisteredRedirectUri(clientId: string, redirectUri: string, env: NodeJS.ProcessEnv): boolean {
+  const registration = verifyMcpOAuthClientId(clientId, env);
+  if (!registration) return true;
+  return registration.redirect_uris.length === 0 || registration.redirect_uris.includes(redirectUri);
 }
 
 export function verifyMcpOAuthToken(
@@ -189,6 +271,7 @@ export function normalizeMcpOAuthScope(scope?: string): string {
 
 export function isSafeOAuthRedirectUri(value: unknown): value is string {
   if (typeof value !== "string" || !value) return false;
+  if (value.length > MCP_OAUTH_MAX_REDIRECT_URI_LENGTH) return false;
   try {
     const url = new URL(value);
     if (url.protocol === "https:") return true;
@@ -237,13 +320,13 @@ export function authorizationServerMetadata() {
     code_challenge_methods_supported: ["S256"],
     token_endpoint_auth_methods_supported: ["none"],
     scopes_supported: [MCP_OAUTH_SCOPE],
-    client_id_metadata_document_supported: true,
     authorization_response_iss_parameter_supported: true,
   };
 }
 
 export function mcpOAuthWwwAuthenticate(error?: string): string {
   const params = [
+    `realm="mcp"`,
     `resource_metadata="${MCP_OAUTH_PROTECTED_RESOURCE_METADATA_URL}"`,
     `scope="${MCP_OAUTH_SCOPE}"`,
   ];
