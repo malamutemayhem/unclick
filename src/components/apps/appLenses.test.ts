@@ -18,10 +18,19 @@ const oauthConnected: LensConnector = {
 const keySaved: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: null } };
 const keyTested: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: "2026-06-12" } };
 const botNoCred: LensConnector = { auth_type: "bot_token", credential: null };
+const managedNoCred: LensConnector = { auth_type: "api_key", supports_managed_connection: true, credential: null };
+const hostedMcpNoCred: LensConnector = { auth_type: "api_key", supports_hosted_mcp_connection: true, credential: null };
+const managedConnected: LensConnector = {
+  auth_type: "api_key",
+  supports_managed_connection: true,
+  credential: { is_valid: true, last_tested_at: "2026-06-16", source: "managed_app_connections" },
+};
 
 describe("appLenses", () => {
   it("classifies setup kinds from auth_type", () => {
     expect(setupKindOf(oauthNoCred)).toBe("signin");
+    expect(setupKindOf(managedNoCred)).toBe("signin");
+    expect(setupKindOf(hostedMcpNoCred)).toBe("signin");
     expect(setupKindOf(keySaved)).toBe("key");
     expect(setupKindOf(botNoCred)).toBe("key");
     expect(setupKindOf(undefined)).toBe("builtin");
@@ -31,13 +40,17 @@ describe("appLenses", () => {
     expect(isConnected(keySaved)).toBe(true);
     expect(isConnected(keyTested)).toBe(true);
     expect(isConnected(oauthConnected)).toBe(true);
+    expect(isConnected(managedConnected)).toBe(true);
     expect(isConnected(oauthNoCred)).toBe(false);
     expect(isConnected(undefined)).toBe(false);
   });
 
   it("buttons say the action: Connect / Add key / Manage / nothing", () => {
     expect(actionLabelFor(oauthNoCred)).toBe("Connect");
+    expect(actionLabelFor(managedNoCred)).toBe("Connect");
+    expect(actionLabelFor(hostedMcpNoCred)).toBe("Connect");
     expect(actionLabelFor(oauthConnected)).toBe("Manage");
+    expect(actionLabelFor(managedConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
     expect(actionLabelFor(keyTested)).toBe("Manage");
     expect(actionLabelFor(undefined)).toBe(null);
@@ -54,6 +67,8 @@ describe("appLenses", () => {
     // built-in apps are not "not connected": there is nothing to connect
     expect(matchesLens(a, "not-connected", undefined)).toBe(false);
     expect(matchesLens(a, "signin", oauthNoCred)).toBe(true);
+    expect(matchesLens(a, "signin", managedNoCred)).toBe(true);
+    expect(matchesLens(a, "signin", hostedMcpNoCred)).toBe(true);
     expect(matchesLens(a, "key", botNoCred)).toBe(true);
     expect(matchesLens(a, "builtin", undefined)).toBe(true);
   });

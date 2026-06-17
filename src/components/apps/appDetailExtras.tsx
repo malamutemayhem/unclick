@@ -59,29 +59,37 @@ function HiggsfieldPanel(): ReactNode {
         <p className="text-sm font-semibold text-white">Higgsfield setup options</p>
       </div>
       <p className="mt-1.5 text-xs leading-5 text-white/55">
-        There are two separate ways to use Higgsfield. Connect an API key in UnClick when
-        you want UnClick to route Higgsfield actions. Add Higgsfield's hosted MCP directly
-        when you want Claude or another client to talk to Higgsfield without going through
-        UnClick. Both paths use your Higgsfield account, with credits, subscription, and
-        billing managed by Higgsfield.
+        Higgsfield has two real connection paths. The hosted MCP path is the subscription-friendly
+        account login: add Higgsfield's MCP URL to Claude or another MCP client, then sign in with
+        Higgsfield. The UnClick-wide login bridge is the same idea inside UnClick, but it only appears
+        after the managed broker is switched on. The API key path is a fallback for UnClick-routed API
+        actions, not the hosted MCP login.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <CommandStack
-            label="UnClick app connection"
-            commands={[
-              "Create a Higgsfield Cloud API key",
-              "https://cloud.higgsfield.ai/api-keys",
-              "Paste it in Apps to mark Higgsfield connected in UnClick",
-            ]}
-          />
-          <CommandStack
-            label="Higgsfield hosted MCP"
+            label="Higgsfield hosted MCP login"
             commands={[
               "Name: Higgsfield",
               "URL: https://mcp.higgsfield.ai/mcp",
               "Connect, then sign in with your Higgsfield account",
+            ]}
+          />
+          <CommandStack
+            label="UnClick-wide login"
+            commands={[
+              "Uses the managed connection broker",
+              "Stores a connection record, not your Higgsfield login",
+              "Appears here when Higgsfield broker setup is switched on",
+            ]}
+          />
+          <CommandStack
+            label="API key fallback"
+            commands={[
+              "Create a Higgsfield Cloud API key",
+              "https://cloud.higgsfield.ai/api-keys",
+              "Paste it only for UnClick-routed API actions",
             ]}
           />
         </div>

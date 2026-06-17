@@ -112,16 +112,24 @@ describe("ConnectAppModal", () => {
     expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
   });
 
-  it("sends Higgsfield users to Cloud API keys and treats hosted MCP as separate", () => {
+  it("puts Higgsfield account login before the API key fallback", () => {
     renderModal({
       app: HIGGSFIELD_APP,
-      connector: { id: "higgsfield", auth_type: "api_key", setup_url: null },
+      connector: { id: "higgsfield", auth_type: "api_key", setup_url: null, supports_hosted_mcp_connection: true },
     });
+    expect(screen.getByText(/use your higgsfield account login/i)).toBeInTheDocument();
+    expect(screen.getByText(/not the old unclick vault path/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open higgsfield mcp login guide/i })).toHaveAttribute(
+      "href",
+      "https://higgsfield.ai/mcp",
+    );
+    expect(screen.getByRole("button", { name: /higgsfield login not switched on yet/i })).toBeDisabled();
+    expect(screen.getByText(/api key fallback/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
     );
-    expect(screen.getByText(/hosted MCP .* separate direct sign-in path outside UnClick/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /test api key/i })).toBeInTheDocument();
   });
 
   it("routes Supabase users to login instead of a key form", () => {
@@ -170,6 +178,19 @@ describe("ConnectAppModal", () => {
       "/connect/alphavantage",
     );
     expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
+  });
+
+  it("uses the managed connection path when the broker is available", async () => {
+    const onStartManagedConnection = vi.fn(() => Promise.resolve());
+    renderModal({
+      connector: { id: "alphavantage", auth_type: "api_key", setup_url: null, supports_managed_connection: true },
+      onStartManagedConnection,
+    });
+    expect(screen.getByText(/work on every pc signed into unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/managed connection provider handles the sensitive access/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /connect alpha vantage/i }));
+    expect(onStartManagedConnection).toHaveBeenCalled();
   });
 
   it("offers reconnect and disconnect for an existing OAuth connection", async () => {

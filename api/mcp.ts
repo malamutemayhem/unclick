@@ -9,6 +9,7 @@
  *   Content-Type: application/json
  *   Auth (any of):
  *     - Authorization: Bearer <unclick_api_key>         (agents, preferred)
+ *     - Authorization: Bearer <mcp_oauth_access_token>  (remote MCP OAuth)
  *     - ?key=<unclick_api_key> query param              (for clients whose
  *       "Add custom connector" dialog accepts a URL only, e.g. Claude.ai
  *       and ChatGPT's Connectors UI)
@@ -17,6 +18,9 @@
  *       The session user_id is resolved to an api_keys row via
  *       api_keys.user_id FK; that row's key_hash becomes the tenancy
  *       context, so memory routing is identical to the api_key path.
+ *     - Public MCP pairing id carried by /api/mcp/p/:pair, ?pair=,
+ *       mcp-session-id, or cookie after the user opens the generated sign-in
+ *       link and completes pairing.
  *   Body: MCP JSON-RPC message (initialize, tools/list, tools/call, etc.)
  *
  * The endpoint is stateless - each request spins up a fresh MCP server
@@ -25,10 +29,24 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "crypto";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createServer } from "../packages/mcp-server/src/server.js";
+import {
+  ADVERTISED_TOOLS_SAFE,
+  createServer,
+} from "../packages/mcp-server/src/server.js";
 import { normalizeAcceptHeader } from "./lib/mcp-protocol.js";
+import {
+  buildPublicMcpPairCookie,
+  createPublicMcpPairId,
+  isValidPublicMcpPairId,
+  PUBLIC_MCP_PAIR_COOKIE,
+  publicMcpPairDeviceId,
+} from "./lib/public-mcp-pairing.js";
+import {
+  mcpOAuthWwwAuthenticate,
+  verifyMcpOAuthToken,
+} from "./lib/mcp-oauth.js";
 import {
   effectiveMemoryTier,
   isMemoryQuotaExemptEmail,
@@ -49,7 +67,7 @@ export const PUBLIC_PAIRING_TOOL = {
   name: "unclick_start_pairing",
   title: "Connect UnClick",
   description:
-    "Use when this UnClick MCP connection is not paired yet. It gives the user the shortest safe sign-in path and explains when to use a compatibility URL.",
+    "Use when this UnClick MCP connection is not paired yet. It gives the user a safe sign-in link that completes the public URL pairing.",
   inputSchema: {
     type: "object" as const,
     additionalProperties: false,
@@ -61,6 +79,13 @@ export const PUBLIC_PAIRING_TOOL = {
     },
   },
 };
+
+export function publicToolsForUnpairedClient() {
+  return [
+    PUBLIC_PAIRING_TOOL,
+    ...ADVERTISED_TOOLS_SAFE.filter((tool) => tool.name !== PUBLIC_PAIRING_TOOL.name),
+  ];
+}
 
 function singleRpc(body: unknown): Record<string, unknown> | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
@@ -90,18 +115,97 @@ function singleToolArgs(body: unknown): Record<string, unknown> {
     : {};
 }
 
-export function pairingLoginUrl(email?: string): string {
+function readCookie(cookieHeader: string | undefined, name: string): string | null {
+  if (!cookieHeader) return null;
+  const parts = cookieHeader.split(/;\s*/);
+  for (const part of parts) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    if (part.slice(0, eq).trim() !== name) continue;
+    const raw = part.slice(eq + 1);
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+  return null;
+}
+
+function publicPairIdFromPath(req: VercelRequest): string | null {
+  if (!req.url) return null;
+  try {
+    const url = new URL(req.url, "https://unclick.world");
+    const match = /^\/api\/mcp\/p\/([^/?#]+)$/.exec(url.pathname);
+    if (!match) return null;
+    const decoded = decodeURIComponent(match[1] ?? "");
+    return isValidPublicMcpPairId(decoded) ? decoded.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function publicPairIdFromRequest(req: VercelRequest): string | null {
+  const pairRaw = req.query.pair;
+  const fromQuery =
+    typeof pairRaw === "string"
+      ? pairRaw
+      : Array.isArray(pairRaw)
+        ? pairRaw[0]
+        : undefined;
+  if (isValidPublicMcpPairId(fromQuery)) return fromQuery.trim();
+
+  const fromPath = publicPairIdFromPath(req);
+  if (fromPath) return fromPath;
+
+  const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
+  if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
+
+  const header = req.headers["mcp-session-id"];
+  const fromHeader = Array.isArray(header) ? header[0] : header;
+  if (isValidPublicMcpPairId(fromHeader)) return fromHeader.trim();
+
+  return null;
+}
+
+function attachPublicPairHeaders(res: VercelResponse, pairId: string): void {
+  res.setHeader("Set-Cookie", buildPublicMcpPairCookie(pairId));
+  res.setHeader("mcp-session-id", pairId);
+}
+
+function attachMcpOAuthChallenge(res: VercelResponse, error?: string): void {
+  res.setHeader("WWW-Authenticate", mcpOAuthWwwAuthenticate(error));
+}
+
+function ensurePublicPairId(req: VercelRequest, res: VercelResponse): string {
+  const existing = publicPairIdFromRequest(req);
+  const pairId = existing ?? createPublicMcpPairId();
+  attachPublicPairHeaders(res, pairId);
+  return pairId;
+}
+
+export function pairingLoginUrl(email?: string, pairId?: string): string {
   const url = new URL("https://unclick.world/login");
-  url.searchParams.set("next", "/pair/connected");
+  const next = new URL("/pair/connected", "https://unclick.world");
+  if (isValidPublicMcpPairId(pairId)) {
+    next.searchParams.set("pair", pairId.trim());
+  }
+  url.searchParams.set("next", `${next.pathname}${next.search}`);
   if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     url.searchParams.set("email", email.trim().toLowerCase());
   }
   return url.toString();
 }
 
-export function pairingToolResult(args: Record<string, unknown>) {
+export function pairedMcpUrl(pairId?: string): string {
+  if (!isValidPublicMcpPairId(pairId)) return "https://unclick.world/api/mcp";
+  return `https://unclick.world/api/mcp/p/${encodeURIComponent(pairId.trim())}`;
+}
+
+export function pairingToolResult(args: Record<string, unknown>, pairId?: string) {
   const email = typeof args.email === "string" ? args.email.trim() : "";
-  const loginUrl = pairingLoginUrl(email);
+  const loginUrl = pairingLoginUrl(email, pairId);
+  const connectorUrl = pairedMcpUrl(pairId);
   return {
     content: [
       {
@@ -112,9 +216,15 @@ export function pairingToolResult(args: Record<string, unknown>) {
           "Next step:",
           `Open ${loginUrl}`,
           "",
-          "Sign in with email, Google, or Microsoft. The page will show the safest working next step for this AI app.",
+          "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, try the tool again.",
           "",
-          "If this AI app asks to pair again or only accepts a static URL, use the Compatibility URL shown on that page. The public URL stays the long-term goal because it does not carry a personal key.",
+          "Preferred server URL for every AI app:",
+          "https://unclick.world/api/mcp",
+          "",
+          "If this AI app asks for a fresh link, says it is still unpaired, or cannot call tools, it did not keep the web sign-in session. Do not keep opening new links. Use this paired URL only as a fallback:",
+          connectorUrl,
+          "",
+          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is a last-resort fallback for clients that cannot use web sign-in or paired URLs.",
         ].join("\n"),
       },
     ],
@@ -215,6 +325,36 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
   };
 }
 
+async function apiKeyContextForUser(
+  supabase: SupabaseClient,
+  userId: string,
+  email: string | null,
+): Promise<ApiKeyContext | null> {
+  const { data: keyRow, error: keyErr } = await supabase
+    .from("api_keys")
+    .select("key_hash, tier, is_active, last_used_at")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("last_used_at", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  if (keyErr || !keyRow) return null;
+
+  supabase
+    .from("api_keys")
+    .update({ last_used_at: new Date().toISOString() })
+    .eq("key_hash", keyRow.key_hash)
+    .then(() => {});
+
+  return {
+    api_key_hash: keyRow.key_hash,
+    tier: effectiveMemoryTier(keyRow.tier ?? "free", email),
+    user_id: userId,
+    account_email: email,
+    memory_quota_exempt: isMemoryQuotaExemptEmail(email),
+  };
+}
+
 /**
  * Read the Supabase auth session cookie off the request, verify it
  * with supabase.auth.getUser(), then resolve to an api_keys tenancy
@@ -259,29 +399,62 @@ async function validateSessionCookie(
   // user_id where the old-shape api_keys.email matches an auth.users
   // row; the claim flow fills in the rest over time. Take the most
   // recently used key if the user has more than one.
-  const { data: keyRow, error: keyErr } = await supabase
-    .from("api_keys")
-    .select("key_hash, tier, is_active, last_used_at")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .order("last_used_at", { ascending: false, nullsFirst: false })
-    .limit(1)
-    .maybeSingle();
-  if (keyErr || !keyRow) return null;
+  return apiKeyContextForUser(supabase, userId, userData.user.email ?? null);
+}
+
+async function validatePublicMcpPair(pairId: string): Promise<ApiKeyContext | null> {
+  if (!isValidPublicMcpPairId(pairId)) return null;
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const supabase = createClient(env.url, env.key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const deviceId = publicMcpPairDeviceId(pairId);
+  const { data: devices, error: deviceErr } = await supabase
+    .from("auth_devices")
+    .select("user_id")
+    .eq("device_id", deviceId)
+    .is("revoked_at", null)
+    .limit(2);
+  if (deviceErr || !devices || devices.length !== 1) return null;
+
+  const userId = (devices[0] as { user_id?: unknown }).user_id;
+  if (typeof userId !== "string" || !userId) return null;
+
+  const { data: userData } = await supabase.auth.admin.getUserById(userId);
+  const email = userData?.user?.email ?? null;
+  const ctx = await apiKeyContextForUser(supabase, userId, email);
+  if (!ctx) return null;
 
   supabase
-    .from("api_keys")
-    .update({ last_used_at: new Date().toISOString() })
-    .eq("key_hash", keyRow.key_hash)
+    .from("auth_devices")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("device_id", deviceId)
+    .eq("user_id", userId)
     .then(() => {});
 
-  return {
-    api_key_hash: keyRow.key_hash,
-    tier: effectiveMemoryTier(keyRow.tier ?? "free", userData.user.email ?? null),
-    user_id: userId,
-    account_email: userData.user.email ?? null,
-    memory_quota_exempt: isMemoryQuotaExemptEmail(userData.user.email ?? null),
-  };
+  return ctx;
+}
+
+async function validateMcpOAuthAccessToken(token: string): Promise<ApiKeyContext | null> {
+  let payload;
+  try {
+    payload = verifyMcpOAuthToken(token, "access", process.env);
+  } catch {
+    return null;
+  }
+
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const supabase = createClient(env.url, env.key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData } = await supabase.auth.admin.getUserById(payload.sub);
+  const email = userData?.user?.email ?? null;
+  return apiKeyContextForUser(supabase, payload.sub, email);
 }
 
 /**
@@ -355,7 +528,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, mcp-session-id"
   );
-  res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+  res.setHeader("Access-Control-Expose-Headers", "mcp-session-id, WWW-Authenticate");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -377,12 +550,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // ── Auth ──────────────────────────────────────────────────────────────
-  // Three paths, tried in order:
+  // Auth paths, tried in order:
   //   1. Authorization: Bearer <unclick_api_key>   (agents)
-  //   2. ?key=<unclick_api_key> query param         (Claude.ai / ChatGPT
+  //   2. Authorization: Bearer <mcp_oauth_access_token>
+  //   3. ?key=<unclick_api_key> query param         (legacy clients
   //      connector UIs that can't set headers)
-  //   3. Supabase Auth session cookie               (browser on
+  //   4. Supabase Auth session cookie               (browser on
   //      unclick.world after Phase 2 sign in)
+  //   5. Public MCP pair id                         (paired URL/session after
+  //      the generated browser sign-in link binds this client to a user)
   //
   // The api_key paths produce an ApiKeyContext directly. The session
   // cookie path resolves to the same ApiKeyContext shape via the
@@ -397,7 +573,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : Array.isArray(keyRaw)
         ? (keyRaw[0] ?? "").trim()
         : "";
-  const apiKey = keyFromHeader || keyFromQuery;
+  const bearerToken = keyFromHeader;
+  const apiKey =
+    keyFromQuery ||
+    (bearerToken.startsWith("uc_") || bearerToken.startsWith("agt_") ? bearerToken : "");
   const method = singleRpcMethod(req.body);
   const toolName = singleToolName(req.body);
 
@@ -406,6 +585,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
     if (!ctx && peeked.authRequired) {
+      attachMcpOAuthChallenge(res, "invalid_token");
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
@@ -417,37 +597,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: peeked.id,
       });
     }
+  } else if (bearerToken) {
+    ctx = await validateMcpOAuthAccessToken(bearerToken);
+    if (!ctx && peeked.authRequired) {
+      attachMcpOAuthChallenge(res, "invalid_token");
+      return res.status(401).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32001,
+          message:
+            "Invalid or expired UnClick MCP OAuth token. Reconnect this MCP server using https://unclick.world/api/mcp.",
+        },
+        id: peeked.id,
+      });
+    }
   } else {
-    // No api_key supplied - try resolving via Supabase session cookie.
+    // No api_key supplied - try resolving via Supabase session cookie,
+    // then via the public MCP pairing id carried by mcp-session-id/cookie.
     // Unprotected protocol methods skip this so the MCP SDK can answer them.
     ctx = await validateSessionCookie(req);
+    const publicPairId = publicPairIdFromRequest(req);
+    if (!ctx && publicPairId) {
+      ctx = await validatePublicMcpPair(publicPairId);
+    }
     if (!ctx && method === "tools/list") {
+      ensurePublicPairId(req, res);
       return res.status(200).json({
         jsonrpc: "2.0",
-        result: { tools: [PUBLIC_PAIRING_TOOL] },
+        result: { tools: publicToolsForUnpairedClient() },
         id: peeked.id,
       });
     }
     if (!ctx && method === "tools/call" && toolName === PUBLIC_PAIRING_TOOL.name) {
+      const pairId = ensurePublicPairId(req, res);
       return res.status(200).json({
         jsonrpc: "2.0",
-        result: pairingToolResult(singleToolArgs(req.body)),
+        result: pairingToolResult(singleToolArgs(req.body), pairId),
         id: peeked.id,
       });
     }
     if (!ctx && peeked.authRequired) {
+      const pairId = ensurePublicPairId(req, res);
+      attachMcpOAuthChallenge(res);
+      const loginUrl = pairingLoginUrl(undefined, pairId);
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
           code: -32001,
           message:
             "UnClick is installed but this AI app is not paired yet. " +
-            "Call unclick_start_pairing, or open https://unclick.world/login?next=%2Fpair%2Fconnected. " +
-            "If your client only accepts a static URL, use the Compatibility URL from https://unclick.world/#install.",
+            `Call unclick_start_pairing, or open ${loginUrl}. ` +
+            "After sign-in, try this MCP connection again. If the app asks for a fresh link " +
+            "after the ready page, it did not keep the web sign-in session; keep " +
+            "https://unclick.world/api/mcp as the normal URL and use the paired URL or " +
+            "Compatibility URL only as fallback.",
         },
         id: peeked.id,
       });
     }
+  }
+
+  if (!apiKey && !ctx) {
+    ensurePublicPairId(req, res);
   }
 
   // Inject per-request context. Vercel invocations are isolated processes,
