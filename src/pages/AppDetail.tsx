@@ -98,15 +98,23 @@ const AppDetail = () => {
               <h3 className="mb-3 text-sm font-semibold text-white">
                 Actions <span className="text-white/40">- what {app.name} can do</span>
               </h3>
-              <div className="divide-y divide-white/[0.05] rounded-xl border border-white/[0.07]">
-                {app.tools.map((t) => (
-                  <div key={t.name} className="px-4 py-2.5">
-                    <p className="text-xs font-medium text-white/85">{actionLabel(t)}</p>
-                    <code className="mt-0.5 block font-mono text-[11px] text-white/30">{t.name}</code>
-                    <p className="mt-0.5 text-xs leading-5 text-white/50">{t.description}</p>
-                  </div>
-                ))}
-              </div>
+              {app.tools.length > 0 ? (
+                <div className="divide-y divide-white/[0.05] rounded-xl border border-white/[0.07]">
+                  {app.tools.map((t) => (
+                    <div key={t.name} className="px-4 py-2.5">
+                      <p className="text-xs font-medium text-white/85">{actionLabel(t)}</p>
+                      <code className="mt-0.5 block font-mono text-[11px] text-white/30">{t.name}</code>
+                      <p className="mt-0.5 text-xs leading-5 text-white/50">{t.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-white/[0.07] px-4 py-3">
+                  <p className="text-xs leading-5 text-white/50">
+                    This app is connection setup only right now. Add it from Apps so your AI can use that account when a matching workflow needs it.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Connection */}

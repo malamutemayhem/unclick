@@ -55,4 +55,13 @@ describe("connector-setup registry + resolver", () => {
     expect(r.how_to_connect.join(" ")).toContain("separate direct sign-in path outside UnClick");
     expect(r.how_to_connect.join(" ")).toContain("HIGGSFIELD_API_KEY");
   });
+
+  it("names Vercel and Supabase hosted MCP sign-ins as separate from UnClick credentials", () => {
+    const vercel = notConnectedFor("vercel");
+    const supabase = notConnectedFor("supabase");
+    expect(vercel.how_to_connect.join(" ")).toContain("https://mcp.vercel.com");
+    expect(vercel.how_to_connect.join(" ")).toContain("separate OAuth sign-in path outside UnClick");
+    expect(supabase.how_to_connect.join(" ")).toContain("https://mcp.supabase.com/mcp");
+    expect(supabase.how_to_connect.join(" ")).toContain("do not hand that developer MCP connection to app customers");
+  });
 });

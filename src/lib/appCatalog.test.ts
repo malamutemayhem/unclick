@@ -56,4 +56,12 @@ describe("app catalog integrity", () => {
     expect(actionCopy).toContain("connected in UnClick");
     expect(actionCopy).not.toContain("mcp.higgsfield.ai");
   });
+
+  it("lists Supabase as a connection-only app until first-party actions exist", () => {
+    const supabase = getApp("supabase");
+    expect(supabase?.name).toBe("Supabase");
+    expect(supabase?.category).toBe("Developer & infra");
+    expect(supabase?.toolCount).toBe(0);
+    expect(supabase?.domain).toBe("supabase.com");
+  });
 });

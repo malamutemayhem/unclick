@@ -1,6 +1,6 @@
 {
   "generatedAt": "static",
-  "appCount": 671,
+  "appCount": 672,
   "toolCount": 1593,
   "categories": [
     "AI",
@@ -12622,6 +12622,18 @@
       "hardened": true
     },
     {
+      "slug": "supabase",
+      "name": "Supabase",
+      "category": "Developer & infra",
+      "blurb": "Connect a Supabase project for UnClick and direct MCP workflows.",
+      "domain": "supabase.com",
+      "network": "online",
+      "toolCount": 0,
+      "tools": [],
+      "level": null,
+      "hardened": false
+    },
+    {
       "slug": "supercell",
       "name": "Supercell",
       "category": "Games & esports",
@@ -14276,7 +14288,7 @@
       "slug": "vercel",
       "name": "Vercel",
       "category": "Developer & infra",
-      "blurb": "List Vercel deployments for a project.",
+      "blurb": "Manage projects, deployments, domains, and environment variables.",
       "domain": "vercel.com",
       "network": "online",
       "toolCount": 8,

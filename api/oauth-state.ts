@@ -22,6 +22,10 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
   switch (platform) {
     case "github":
       return env.GITHUB_CLIENT_SECRET ?? "";
+    case "vercel":
+      return env.VERCEL_CLIENT_SECRET ?? "";
+    case "supabase":
+      return env.SUPABASE_OAUTH_CLIENT_SECRET ?? "";
     case "xero":
       return env.XERO_CLIENT_SECRET ?? "";
     case "reddit":

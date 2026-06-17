@@ -51,6 +51,8 @@ import { notionConnector }     from "./notion.js";
 import { raindropConnector }   from "./raindrop.js";
 import { readwiseConnector }   from "./readwise.js";
 import { instapaperConnector } from "./instapaper.js";
+import { vercelConnector }     from "./vercel.js";
+import { supabaseConnector }   from "./supabase.js";
 
 export {
   xeroConnector,
@@ -71,6 +73,8 @@ export {
   raindropConnector,
   readwiseConnector,
   instapaperConnector,
+  vercelConnector,
+  supabaseConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -92,4 +96,6 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   raindrop:   raindropConnector,
   readwise:   readwiseConnector,
   instapaper: instapaperConnector,
+  vercel:     vercelConnector,
+  supabase:   supabaseConnector,
 };

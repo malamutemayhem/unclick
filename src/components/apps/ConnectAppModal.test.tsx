@@ -27,6 +27,16 @@ const HIGGSFIELD_APP: AppEntry = {
   tools: [{ name: "higgsfield_generate_image", description: "Generate an image." }],
   toolCount: 1,
 };
+const SUPABASE_APP: AppEntry = {
+  ...APP,
+  slug: "supabase",
+  name: "Supabase",
+  category: "Developer & infra",
+  blurb: "Connect a Supabase project.",
+  domain: "supabase.com",
+  tools: [],
+  toolCount: 0,
+};
 
 function renderModal(overrides: Partial<Parameters<typeof ConnectAppModal>[0]> = {}) {
   return render(
@@ -112,6 +122,19 @@ describe("ConnectAppModal", () => {
       "https://cloud.higgsfield.ai/api-keys",
     );
     expect(screen.getByText(/hosted MCP .* separate direct sign-in path outside UnClick/i)).toBeInTheDocument();
+  });
+
+  it("routes Supabase users to login instead of a key form", () => {
+    renderModal({
+      app: SUPABASE_APP,
+      connector: { id: "supabase", auth_type: "oauth2", setup_url: null },
+    });
+    expect(screen.getByText(/connects with a provider sign-in instead of a pasted key/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /continue to supabase login/i })).toHaveAttribute(
+      "href",
+      "/connect/supabase",
+    );
+    expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
   });
 
   it("surfaces a rejection and stores nothing when the platform refuses the key", async () => {

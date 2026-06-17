@@ -20,6 +20,13 @@ const TOOL_INDEX = path.join(ROOT, "docs/tool-index.generated.json");
 const LADDER = path.join(ROOT, "docs/connector-depth-ladder.json");
 const OUT = path.join(ROOT, "src/data/app-catalog.generated.json");
 
+// Some apps are connection surfaces before they have first-party UnClick MCP
+// actions. Keep them visible in the same Apps list so users can connect,
+// manage, and disconnect them without inventing fake actions.
+const CONNECTION_ONLY_APPS = [
+  { app: "supabase", category: "Dev / Infra", tools: [] },
+];
+
 // ─── Clean, user-facing categories (the filter chips) ──────────────────────────
 // One bucket per app. Simple English, no internal jargon. Apps not listed fall
 // back to "Other" and are reported so the map can be extended.
@@ -27,7 +34,7 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite", "colormind"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "supabase", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
@@ -234,6 +241,8 @@ const NAME_OF = {
 // ─── Better one-line blurbs for popular apps (fallback is the app's first tool) ─
 const BLURB_OF = {
   github: "Manage repos, issues, pull requests, and Actions.",
+  vercel: "Manage projects, deployments, domains, and environment variables.",
+  supabase: "Connect a Supabase project for UnClick and direct MCP workflows.",
   hubspot: "Read and update CRM contacts, companies, and deals.",
   jira: "Search, read, and create issues across your projects.",
   stripe: "Look up customers, charges, invoices, and subscriptions.",
@@ -983,7 +992,12 @@ function classifyNetwork(slug) {
 }
 
 function build() {
-  const toolIndex = Object.values(JSON.parse(fs.readFileSync(TOOL_INDEX, "utf8")));
+  const baseToolIndex = Object.values(JSON.parse(fs.readFileSync(TOOL_INDEX, "utf8")));
+  const indexedApps = new Set(baseToolIndex.map((entry) => entry.app));
+  const toolIndex = [
+    ...baseToolIndex,
+    ...CONNECTION_ONLY_APPS.filter((entry) => !indexedApps.has(entry.app)),
+  ];
   const ladder = JSON.parse(fs.readFileSync(LADDER, "utf8"));
   const levelOf = new Map(ladder.map((r) => [r.connector, { level: r.level, hardened: r.hardened }]));
 

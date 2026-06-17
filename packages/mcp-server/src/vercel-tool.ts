@@ -6,9 +6,15 @@
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { resolveCredentials } from "./vault-bridge.js";
 const VERCEL_BASE = "https://api.vercel.com";
 
-function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+async function getApiKey(args: Record<string, unknown>): Promise<string | NotConnectedResult | Record<string, unknown>> {
+  const resolved = await resolveCredentials("vercel", args);
+  if (!("error" in resolved)) {
+    const token = String(resolved.api_key ?? resolved.access_token ?? "").trim();
+    if (token) return token;
+  }
   return requireCredential("vercel", args);
 }
 
@@ -71,7 +77,7 @@ async function vercelGet(
 // list_vercel_deployments
 export async function listVercelDeployments(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const params: Record<string, string> = {};
     if (args.app) params.app = String(args.app);
@@ -109,7 +115,7 @@ export async function listVercelDeployments(args: Record<string, unknown>): Prom
 // get_vercel_deployment
 export async function getVercelDeployment(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const id = String((args.deploymentId ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
@@ -142,7 +148,7 @@ export async function getVercelDeployment(args: Record<string, unknown>): Promis
 // list_vercel_projects
 export async function listVercelProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const params: Record<string, string> = {};
     if (args.limit) params.limit = String(args.limit);
@@ -176,7 +182,7 @@ export async function listVercelProjects(args: Record<string, unknown>): Promise
 // get_vercel_domain
 export async function getVercelDomain(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const domain = String(args.domain ?? "").trim();
     if (!domain) return { error: "domain is required." };
@@ -208,7 +214,7 @@ export function vercelProjectIdArg(args: Record<string, unknown>): string {
 // get_vercel_env
 export async function getVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const projectId = vercelProjectIdArg(args);
     if (!projectId) return { error: "project_id is required." };
@@ -243,7 +249,7 @@ export async function getVercelEnv(args: Record<string, unknown>): Promise<unkno
 // reveal-once values.
 export async function createVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const projectId = String(args.project_id ?? "").trim();
     const key = String(args.key ?? "").trim();
@@ -304,7 +310,7 @@ export async function createVercelEnv(args: Record<string, unknown>): Promise<un
 // DELETE /v9/projects/{projectId}/env/{envId}
 export async function deleteVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const projectId = String(args.project_id ?? "").trim();
     const envId = String(args.env_id ?? "").trim();
@@ -334,7 +340,7 @@ export async function deleteVercelEnv(args: Record<string, unknown>): Promise<un
 // Pass force_new: true to disable build cache.
 export async function createVercelDeployment(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getApiKey(args);
+    const token = await getApiKey(args);
     if (typeof token !== "string") return token;
     const teamParam: Record<string, string> = {};
     if (args.team_id) teamParam.teamId = String(args.team_id);

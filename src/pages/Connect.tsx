@@ -23,16 +23,26 @@ type PageState =
 
 const VITE_ENV = import.meta.env as Record<string, string>;
 
+function oauthClientIdEnvKey(slug: string): string {
+  if (slug === "supabase") return "VITE_SUPABASE_OAUTH_CLIENT_ID";
+  return `VITE_${slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
+}
+
+function serverProvidesOAuthClientId(slug: string): boolean {
+  return slug === "vercel" || slug === "supabase";
+}
+
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
 function buildOAuthUrl(
   connector: ConnectorConfig,
   redirectUri: string,
-  state: string
+  state: string,
+  pkce?: { clientId?: string; codeChallenge?: string; codeChallengeMethod?: string }
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  const clientIdKey = `VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
-  const clientId    = VITE_ENV[clientIdKey];
+  const clientIdKey = oauthClientIdEnvKey(connector.slug);
+  const clientId    = pkce?.clientId ?? VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
   let authUrl = connector.authUrl ?? "";
@@ -47,10 +57,15 @@ function buildOAuthUrl(
     response_type: "code",
     client_id:     clientId,
     redirect_uri:  redirectUri,
-    scope:         (connector.scopes ?? []).join(" "),
     state,
     ...(connector.extraAuthParams ?? {}),
   });
+  const scope = (connector.scopes ?? []).join(" ");
+  if (scope) params.set("scope", scope);
+  if (pkce?.codeChallenge) {
+    params.set("code_challenge", pkce.codeChallenge);
+    params.set("code_challenge_method", pkce.codeChallengeMethod ?? "S256");
+  }
 
   return `${authUrl}?${params.toString()}`;
 }
@@ -427,8 +442,9 @@ export default function ConnectPage() {
   // -- Idle: show connect form ----------------------------------------------
 
   const isOAuth2          = connector.authType === "oauth2";
-  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
-  const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[oauthClientIdEnvKey(connector.slug)] : "";
+  const oauthNotConfigured =
+    isOAuth2 && !oauthClientKey && !serverProvidesOAuthClientId(connector.slug) && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -485,7 +501,14 @@ export default function ConnectPage() {
         }),
       });
 
-      const data = (await safeJson(res)) as { state?: string; redirect_uri?: string; error?: string };
+      const data = (await safeJson(res)) as {
+        state?: string;
+        redirect_uri?: string;
+        client_id?: string;
+        code_challenge?: string;
+        code_challenge_method?: string;
+        error?: string;
+      };
       if (!res.ok || !data.state || !data.redirect_uri) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
@@ -495,7 +518,11 @@ export default function ConnectPage() {
         sessionStorage.setItem("shopify_store", normalizedStore);
       }
 
-      const url = buildOAuthUrl(connector, data.redirect_uri, data.state);
+      const url = buildOAuthUrl(connector, data.redirect_uri, data.state, {
+        clientId: data.client_id,
+        codeChallenge: data.code_challenge,
+        codeChallengeMethod: data.code_challenge_method,
+      });
       if (!url) {
         setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
         return;
