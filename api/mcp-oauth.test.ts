@@ -5,13 +5,17 @@ import {
   authorizationServerMetadata,
   createMcpOAuthAccessToken,
   createMcpOAuthAuthorizationCode,
+  createMcpOAuthClientId,
   createMcpOAuthRefreshToken,
   isSafeOAuthRedirectUri,
   MCP_OAUTH_RESOURCE,
   protectedResourceMetadata,
+  validateRegisteredRedirectUri,
+  verifyMcpOAuthClientId,
   verifyMcpOAuthToken,
   verifyPkceS256,
 } from "./lib/mcp-oauth";
+import { peekRpc } from "./mcp";
 
 function s256(verifier: string) {
   return createHash("sha256").update(verifier, "utf8").digest("base64url");
@@ -29,6 +33,13 @@ describe("MCP OAuth generic URL support", () => {
     expect(auth.token_endpoint).toBe("https://unclick.world/api/mcp/oauth/token");
     expect(auth.registration_endpoint).toBe("https://unclick.world/api/mcp/oauth/register");
     expect(auth.code_challenge_methods_supported).toEqual(["S256"]);
+    expect(auth).not.toHaveProperty("client_id_metadata_document_supported");
+  });
+
+  it("challenges the initial MCP handshake before protected connection setup", () => {
+    expect(peekRpc({ jsonrpc: "2.0", id: 1, method: "initialize" }).authRequired).toBe(true);
+    expect(peekRpc({ jsonrpc: "2.0", id: 2, method: "tools/call" }).authRequired).toBe(true);
+    expect(peekRpc({ jsonrpc: "2.0", id: 3, method: "tools/list" }).authRequired).toBe(false);
   });
 
   it("signs OAuth codes and bearer tokens against the MCP resource", () => {
@@ -63,6 +74,24 @@ describe("MCP OAuth generic URL support", () => {
     expect(isSafeOAuthRedirectUri("http://127.0.0.1:1234/callback")).toBe(true);
     expect(isSafeOAuthRedirectUri("http://evil.example/callback")).toBe(false);
     expect(isSafeOAuthRedirectUri("javascript:alert(1)")).toBe(false);
+    expect(isSafeOAuthRedirectUri(`https://example.com/${"a".repeat(2048)}`)).toBe(false);
+  });
+
+  it("binds dynamic client registrations to their redirect URIs", () => {
+    const env = { MCP_OAUTH_SIGNING_SECRET: "test-secret" } as NodeJS.ProcessEnv;
+    const registered = createMcpOAuthClientId(
+      {
+        clientName: "MCP Inspector",
+        redirectUris: ["https://client.example/callback"],
+      },
+      env,
+    );
+
+    const payload = verifyMcpOAuthClientId(registered.client_id, env);
+    expect(payload?.client_name).toBe("MCP Inspector");
+    expect(payload?.redirect_uris).toEqual(["https://client.example/callback"]);
+    expect(validateRegisteredRedirectUri(registered.client_id, "https://client.example/callback", env)).toBe(true);
+    expect(validateRegisteredRedirectUri(registered.client_id, "https://evil.example/callback", env)).toBe(false);
   });
 
   it("routes OAuth discovery and token endpoints before the app fallback", () => {

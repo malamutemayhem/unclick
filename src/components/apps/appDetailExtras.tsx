@@ -59,29 +59,28 @@ function HiggsfieldPanel(): ReactNode {
         <p className="text-sm font-semibold text-white">Higgsfield setup options</p>
       </div>
       <p className="mt-1.5 text-xs leading-5 text-white/55">
-        Higgsfield has two real connection paths. The hosted MCP path is the subscription-friendly
-        account login: add Higgsfield's MCP URL to Claude or another MCP client, then sign in with
-        Higgsfield. The UnClick-wide login bridge is the same idea inside UnClick, but it only appears
-        after the managed broker is switched on. The API key path is a fallback for UnClick-routed API
-        actions, not the hosted MCP login.
+        Higgsfield has two useful setup paths today. For subscription-based MCP, add Higgsfield's MCP URL
+        to your AI app and sign in with Higgsfield there. For UnClick-routed actions, add a Higgsfield
+        Cloud API key in UnClick. One-click account login will appear here when Higgsfield supports a
+        managed connection in UnClick.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <CommandStack
-            label="Higgsfield hosted MCP login"
+            label="Higgsfield MCP setup"
             commands={[
               "Name: Higgsfield",
               "URL: https://mcp.higgsfield.ai/mcp",
-              "Connect, then sign in with your Higgsfield account",
+              "Sign in with Higgsfield when your AI app asks",
             ]}
           />
           <CommandStack
             label="UnClick-wide login"
             commands={[
-              "Uses the managed connection broker",
-              "Stores a connection record, not your Higgsfield login",
-              "Appears here when Higgsfield broker setup is switched on",
+              "Coming soon for Higgsfield",
+              "Will show Connected after a real sign-in",
+              "No API key needed when this is available",
             ]}
           />
           <CommandStack

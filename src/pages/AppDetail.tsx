@@ -42,6 +42,7 @@ const AppDetail = () => {
   // Failing apps are hidden from the store list, but deep links still resolve.
   // Be upfront here instead of pretending the app works.
   const testResult = getAppTestResult(app.slug);
+  const usesHostedMcpSetup = app.slug === "higgsfield";
 
   return (
     <PageShell eyebrow={app.category} title={app.name} lede={app.blurb} halo={false}>
@@ -124,14 +125,15 @@ const AppDetail = () => {
                 <p className="text-sm font-semibold text-white">Connection</p>
               </div>
               <p className="mt-1.5 text-xs leading-5 text-white/55">
-                Most apps work straight away with nothing to set up. If {app.name} needs your account,
-                connect it from Apps, see when it is connected, and disconnect it any time.
+                {usesHostedMcpSetup
+                  ? `${app.name}'s hosted MCP setup happens with ${app.name}. Open Apps to see the setup guide, or add an API key for UnClick-routed actions. It only shows as connected when UnClick has a verified connection it can see.`
+                  : `Most apps work straight away with nothing to set up. If ${app.name} needs your account, manage it from Apps; UnClick shows the status it can verify.`}
               </p>
               <Link
                 to="/admin/apps"
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-1.5 text-xs font-semibold text-[#f0d577] transition-colors hover:bg-[#E2B93B]/15"
               >
-                <KeyRound className="h-3.5 w-3.5" /> Manage connections
+                <KeyRound className="h-3.5 w-3.5" /> {usesHostedMcpSetup ? "Open Apps setup" : "Manage connections"}
               </Link>
             </div>
 

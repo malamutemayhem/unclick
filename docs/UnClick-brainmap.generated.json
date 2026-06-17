@@ -16164,8 +16164,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "1b90e5775d00",
-      "bytes": 12508
+      "hash": "93fc8a56be0b",
+      "bytes": 12500
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16349,8 +16349,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "615008dd7579",
-      "bytes": 7073
+      "hash": "c65b3ede33fe",
+      "bytes": 7424
     },
     {
       "source": "src/pages/Apps.tsx",
