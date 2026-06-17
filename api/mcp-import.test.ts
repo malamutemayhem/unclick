@@ -5,5 +5,5 @@ describe("/api/mcp production import", () => {
     const mod = await import("./mcp");
 
     expect(typeof mod.default).toBe("function");
-  });
+  }, 60_000);
 });

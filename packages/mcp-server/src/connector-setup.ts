@@ -232,7 +232,7 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     arg:         "api_key",
     envVar:      "HIGGSFIELD_API_KEY",
     setupUrl:    "https://cloud.higgsfield.ai/api-keys",
-    note:        "Use a Higgsfield Cloud API key for the UnClick connector. Higgsfield bills generation usage to your Higgsfield account. The hosted MCP at https://mcp.higgsfield.ai/mcp is a separate direct sign-in path outside UnClick.",
+    note:        "Higgsfield's hosted MCP is an account sign-in path. Use an API key here only for UnClick-routed API actions; it is separate from the hosted MCP login.",
   },
   kling: {
     displayName: "Kling",

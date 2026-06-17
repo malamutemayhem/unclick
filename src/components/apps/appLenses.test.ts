@@ -19,6 +19,7 @@ const keySaved: LensConnector = { auth_type: "api_key", credential: { is_valid: 
 const keyTested: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: "2026-06-12" } };
 const botNoCred: LensConnector = { auth_type: "bot_token", credential: null };
 const managedNoCred: LensConnector = { auth_type: "api_key", supports_managed_connection: true, credential: null };
+const hostedMcpNoCred: LensConnector = { auth_type: "api_key", supports_hosted_mcp_connection: true, credential: null };
 const managedConnected: LensConnector = {
   auth_type: "api_key",
   supports_managed_connection: true,
@@ -29,6 +30,7 @@ describe("appLenses", () => {
   it("classifies setup kinds from auth_type", () => {
     expect(setupKindOf(oauthNoCred)).toBe("signin");
     expect(setupKindOf(managedNoCred)).toBe("signin");
+    expect(setupKindOf(hostedMcpNoCred)).toBe("signin");
     expect(setupKindOf(keySaved)).toBe("key");
     expect(setupKindOf(botNoCred)).toBe("key");
     expect(setupKindOf(undefined)).toBe("builtin");
@@ -46,6 +48,7 @@ describe("appLenses", () => {
   it("buttons say the action: Connect / Add key / Manage / nothing", () => {
     expect(actionLabelFor(oauthNoCred)).toBe("Connect");
     expect(actionLabelFor(managedNoCred)).toBe("Connect");
+    expect(actionLabelFor(hostedMcpNoCred)).toBe("Connect");
     expect(actionLabelFor(oauthConnected)).toBe("Manage");
     expect(actionLabelFor(managedConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
@@ -65,6 +68,7 @@ describe("appLenses", () => {
     expect(matchesLens(a, "not-connected", undefined)).toBe(false);
     expect(matchesLens(a, "signin", oauthNoCred)).toBe(true);
     expect(matchesLens(a, "signin", managedNoCred)).toBe(true);
+    expect(matchesLens(a, "signin", hostedMcpNoCred)).toBe(true);
     expect(matchesLens(a, "key", botNoCred)).toBe(true);
     expect(matchesLens(a, "builtin", undefined)).toBe(true);
   });

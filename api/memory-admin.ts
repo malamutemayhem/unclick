@@ -5509,6 +5509,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const enrichedConnectors = (connectors ?? []).map((pc) => ({
           ...pc,
           credential: credMap.get(pc.id as string) ?? null,
+          supports_hosted_mcp_connection: pc.id === "higgsfield",
           supports_managed_connection: pc.auth_type
             ? managedConnectionAvailableForPlatform(pc.id as string)
             : false,
