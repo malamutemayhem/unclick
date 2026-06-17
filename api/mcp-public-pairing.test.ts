@@ -7,6 +7,7 @@ import {
   pairingToolResult,
   PUBLIC_PAIRING_TOOL,
   publicPairIdFromRequest,
+  publicToolsForUnpairedClient,
 } from "./mcp";
 import {
   buildPublicMcpPairCookie,
@@ -16,10 +17,18 @@ import {
 } from "./lib/public-mcp-pairing";
 
 describe("public MCP pairing door", () => {
-  it("advertises a single safe setup tool for unpaired clients", () => {
+  it("advertises setup plus the normal catalog for unpaired clients", () => {
     expect(PUBLIC_PAIRING_TOOL.name).toBe("unclick_start_pairing");
     expect(PUBLIC_PAIRING_TOOL.description).toContain("not paired yet");
     expect(PUBLIC_PAIRING_TOOL.description).not.toContain("API key");
+
+    const tools = publicToolsForUnpairedClient();
+    const names = tools.map((tool) => tool.name);
+    expect(names[0]).toBe("unclick_start_pairing");
+    expect(names).toContain("load_memory");
+    expect(names).toContain("search_memory");
+    expect(new Set(names).size).toBe(names.length);
+    expect(tools.length).toBeGreaterThan(10);
   });
 
   it("builds a magic-link landing URL with a non-secret pair id", () => {
