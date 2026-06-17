@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1130,
-    "source_manifest": 247,
-    "pages": 113,
+    "inventory": 1131,
+    "source_manifest": 248,
+    "pages": 114,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 55
+      "count": 56
     },
     {
       "id": "tools",
@@ -3979,6 +3979,16 @@
       "meaning": "Sign-in page.",
       "source": "src/pages/Login.tsx",
       "route": "/login",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-mcp-authorize-src-pages-mcpauthorize-tsx-mcp-authorize",
+      "division": "Public surfaces",
+      "name": "Mcp Authorize",
+      "kind": "public page",
+      "meaning": "User-facing page for Mcp Authorize.",
+      "source": "src/pages/McpAuthorize.tsx",
+      "route": "/mcp/authorize",
       "tags": []
     },
     {
@@ -11958,6 +11968,12 @@
       "src/pages/Login.tsx"
     ],
     [
+      "/mcp/authorize",
+      "Mcp Authorize",
+      "User-facing page for Mcp Authorize.",
+      "src/pages/McpAuthorize.tsx"
+    ],
+    [
       "/memory/connect",
       "Memory Connect",
       "User-facing page for Memory Connect.",
@@ -15828,8 +15844,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "740ff54af7e4",
-      "bytes": 23350
+      "hash": "2863f617e2a0",
+      "bytes": 23496
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -16507,6 +16523,11 @@
       "bytes": 8743
     },
     {
+      "source": "src/pages/McpAuthorize.tsx",
+      "hash": "e72687e0881f",
+      "bytes": 3961
+    },
+    {
       "source": "src/pages/MemoryConnect.tsx",
       "hash": "128a2dddc94f",
       "bytes": 18504
@@ -16533,8 +16554,8 @@
     },
     {
       "source": "src/pages/PairingComplete.tsx",
-      "hash": "ec9b7e935895",
-      "bytes": 10833
+      "hash": "81739ed74b27",
+      "bytes": 10818
     },
     {
       "source": "src/pages/Pricing.tsx",

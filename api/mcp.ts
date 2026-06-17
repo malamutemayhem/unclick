@@ -9,6 +9,7 @@
  *   Content-Type: application/json
  *   Auth (any of):
  *     - Authorization: Bearer <unclick_api_key>         (agents, preferred)
+ *     - Authorization: Bearer <mcp_oauth_access_token>  (remote MCP OAuth)
  *     - ?key=<unclick_api_key> query param              (for clients whose
  *       "Add custom connector" dialog accepts a URL only, e.g. Claude.ai
  *       and ChatGPT's Connectors UI)
@@ -42,6 +43,10 @@ import {
   PUBLIC_MCP_PAIR_COOKIE,
   publicMcpPairDeviceId,
 } from "./lib/public-mcp-pairing.js";
+import {
+  mcpOAuthWwwAuthenticate,
+  verifyMcpOAuthToken,
+} from "./lib/mcp-oauth.js";
 import {
   effectiveMemoryTier,
   isMemoryQuotaExemptEmail,
@@ -168,6 +173,10 @@ function attachPublicPairHeaders(res: VercelResponse, pairId: string): void {
   res.setHeader("mcp-session-id", pairId);
 }
 
+function attachMcpOAuthChallenge(res: VercelResponse, error?: string): void {
+  res.setHeader("WWW-Authenticate", mcpOAuthWwwAuthenticate(error));
+}
+
 function ensurePublicPairId(req: VercelRequest, res: VercelResponse): string {
   const existing = publicPairIdFromRequest(req);
   const pairId = existing ?? createPublicMcpPairId();
@@ -209,10 +218,13 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
           "",
           "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, try the tool again.",
           "",
-          "If this AI app asks for a fresh link, says it is still unpaired, or cannot call tools, it did not keep the paired MCP session. Do not keep opening new links. Reconnect the MCP server using this paired URL:",
+          "Preferred server URL for every AI app:",
+          "https://unclick.world/api/mcp",
+          "",
+          "If this AI app asks for a fresh link, says it is still unpaired, or cannot call tools, it did not keep the web sign-in session. Do not keep opening new links. Use this paired URL only as a fallback:",
           connectorUrl,
           "",
-          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is a fallback for clients that cannot use paired URLs.",
+          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is a last-resort fallback for clients that cannot use web sign-in or paired URLs.",
         ].join("\n"),
       },
     ],
@@ -426,6 +438,25 @@ async function validatePublicMcpPair(pairId: string): Promise<ApiKeyContext | nu
   return ctx;
 }
 
+async function validateMcpOAuthAccessToken(token: string): Promise<ApiKeyContext | null> {
+  let payload;
+  try {
+    payload = verifyMcpOAuthToken(token, "access", process.env);
+  } catch {
+    return null;
+  }
+
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const supabase = createClient(env.url, env.key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData } = await supabase.auth.admin.getUserById(payload.sub);
+  const email = userData?.user?.email ?? null;
+  return apiKeyContextForUser(supabase, payload.sub, email);
+}
+
 /**
  * Best-effort extraction of a Supabase access token out of the raw
  * cookie header. Supabase Auth names its cookie sb-<project>-auth-token
@@ -497,7 +528,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, mcp-session-id"
   );
-  res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+  res.setHeader("Access-Control-Expose-Headers", "mcp-session-id, WWW-Authenticate");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -519,13 +550,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // ── Auth ──────────────────────────────────────────────────────────────
-  // Three paths, tried in order:
+  // Auth paths, tried in order:
   //   1. Authorization: Bearer <unclick_api_key>   (agents)
-  //   2. ?key=<unclick_api_key> query param         (Claude.ai / ChatGPT
+  //   2. Authorization: Bearer <mcp_oauth_access_token>
+  //   3. ?key=<unclick_api_key> query param         (legacy clients
   //      connector UIs that can't set headers)
-  //   3. Supabase Auth session cookie               (browser on
+  //   4. Supabase Auth session cookie               (browser on
   //      unclick.world after Phase 2 sign in)
-  //   4. Public MCP pair id                         (paired URL/session after
+  //   5. Public MCP pair id                         (paired URL/session after
   //      the generated browser sign-in link binds this client to a user)
   //
   // The api_key paths produce an ApiKeyContext directly. The session
@@ -541,7 +573,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : Array.isArray(keyRaw)
         ? (keyRaw[0] ?? "").trim()
         : "";
-  const apiKey = keyFromHeader || keyFromQuery;
+  const bearerToken = keyFromHeader;
+  const apiKey =
+    keyFromQuery ||
+    (bearerToken.startsWith("uc_") || bearerToken.startsWith("agt_") ? bearerToken : "");
   const method = singleRpcMethod(req.body);
   const toolName = singleToolName(req.body);
 
@@ -550,6 +585,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
     if (!ctx && peeked.authRequired) {
+      attachMcpOAuthChallenge(res, "invalid_token");
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
@@ -557,6 +593,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           message:
             "Invalid or revoked API key. Check that the key is correct and still active. " +
             "Manage keys at https://unclick.world",
+        },
+        id: peeked.id,
+      });
+    }
+  } else if (bearerToken) {
+    ctx = await validateMcpOAuthAccessToken(bearerToken);
+    if (!ctx && peeked.authRequired) {
+      attachMcpOAuthChallenge(res, "invalid_token");
+      return res.status(401).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32001,
+          message:
+            "Invalid or expired UnClick MCP OAuth token. Reconnect this MCP server using https://unclick.world/api/mcp.",
         },
         id: peeked.id,
       });
@@ -588,6 +638,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (!ctx && peeked.authRequired) {
       const pairId = ensurePublicPairId(req, res);
+      attachMcpOAuthChallenge(res);
       const loginUrl = pairingLoginUrl(undefined, pairId);
       return res.status(401).json({
         jsonrpc: "2.0",
@@ -597,8 +648,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "UnClick is installed but this AI app is not paired yet. " +
             `Call unclick_start_pairing, or open ${loginUrl}. ` +
             "After sign-in, try this MCP connection again. If the app asks for a fresh link " +
-            "after the ready page, it did not keep the pairing session; reconnect it with " +
-            "the paired URL or Compatibility URL shown on the ready page.",
+            "after the ready page, it did not keep the web sign-in session; keep " +
+            "https://unclick.world/api/mcp as the normal URL and use the paired URL or " +
+            "Compatibility URL only as fallback.",
         },
         id: peeked.id,
       });
