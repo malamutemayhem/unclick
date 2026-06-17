@@ -86,7 +86,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | 1b90e5775d00 | 12508 |
+| src/pages/admin/AdminTools.tsx | 93fc8a56be0b | 12500 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
@@ -123,7 +123,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 6e542cff428b | 6635 |
+| src/pages/AppDetail.tsx | 859e8c2a0639 | 6986 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |

@@ -85,6 +85,7 @@ export function ConnectAppModal({
   const isOAuth = connector.auth_type === "oauth2";
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
+  const modalVerb = usesHostedMcpConnection ? "Set up" : isConnected ? "Manage" : "Connect";
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -181,7 +182,7 @@ export function ConnectAppModal({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
             <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-            {isConnected ? "Manage" : "Connect"} {app.name}
+            {modalVerb} {app.name}
           </h3>
           <button onClick={onClose} className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white" aria-label="Close">
             <X className="h-4 w-4" />
@@ -230,10 +231,13 @@ export function ConnectAppModal({
         ) : usesHostedMcpConnection ? (
           <div className="space-y-3 text-xs leading-5 text-white/60">
             <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
-              <p className="font-semibold text-white">Use your {app.name} account login</p>
+              <p className="font-semibold text-white">Use {app.name}'s MCP setup</p>
               <p className="mt-1 text-white/55">
-                Higgsfield's MCP connection is an account sign-in. It uses the customer's own Higgsfield account, plan,
-                and credits. This is not the old UnClick vault path.
+                This opens Higgsfield's setup page so you can add its MCP URL to your AI app and sign in with
+                Higgsfield there. It uses your Higgsfield account, plan, and credits.
+              </p>
+              <p className="mt-1 text-white/45">
+                Because this sign-in happens with Higgsfield, UnClick cannot mark it connected here yet.
               </p>
               <a
                 href="https://higgsfield.ai/mcp"
@@ -241,7 +245,7 @@ export function ConnectAppModal({
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
               >
-                Open Higgsfield MCP login guide
+                Open Higgsfield MCP setup
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -249,9 +253,8 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">UnClick-wide login</p>
               <p className="mt-1 text-white/55">
-                The cross-PC login bridge is built as a managed connection, but it is not switched on for Higgsfield
-                in this workspace yet. When it is on, this dialog will show a real sign-in button and UnClick will
-                store only a connection record.
+                This is the future one-click path. When it is available for Higgsfield, this dialog will open a
+                real sign-in window and the app will show as connected across your UnClick devices.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <button
@@ -259,7 +262,7 @@ export function ConnectAppModal({
                   disabled
                   className="rounded-md border border-white/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-white/35"
                 >
-                  Higgsfield login not switched on yet
+                  One-click login coming soon
                 </button>
                 {disconnectButton}
               </div>

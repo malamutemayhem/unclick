@@ -30,7 +30,7 @@ describe("appLenses", () => {
   it("classifies setup kinds from auth_type", () => {
     expect(setupKindOf(oauthNoCred)).toBe("signin");
     expect(setupKindOf(managedNoCred)).toBe("signin");
-    expect(setupKindOf(hostedMcpNoCred)).toBe("signin");
+    expect(setupKindOf(hostedMcpNoCred)).toBe("setup");
     expect(setupKindOf(keySaved)).toBe("key");
     expect(setupKindOf(botNoCred)).toBe("key");
     expect(setupKindOf(undefined)).toBe("builtin");
@@ -45,10 +45,10 @@ describe("appLenses", () => {
     expect(isConnected(undefined)).toBe(false);
   });
 
-  it("buttons say the action: Connect / Add key / Manage / nothing", () => {
+  it("buttons say the action: Connect / Open setup / Add key / Manage / nothing", () => {
     expect(actionLabelFor(oauthNoCred)).toBe("Connect");
     expect(actionLabelFor(managedNoCred)).toBe("Connect");
-    expect(actionLabelFor(hostedMcpNoCred)).toBe("Connect");
+    expect(actionLabelFor(hostedMcpNoCred)).toBe("Open setup");
     expect(actionLabelFor(oauthConnected)).toBe("Manage");
     expect(actionLabelFor(managedConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
@@ -68,20 +68,23 @@ describe("appLenses", () => {
     expect(matchesLens(a, "not-connected", undefined)).toBe(false);
     expect(matchesLens(a, "signin", oauthNoCred)).toBe(true);
     expect(matchesLens(a, "signin", managedNoCred)).toBe(true);
-    expect(matchesLens(a, "signin", hostedMcpNoCred)).toBe(true);
+    expect(matchesLens(a, "signin", hostedMcpNoCred)).toBe(false);
+    expect(matchesLens(a, "setup", hostedMcpNoCred)).toBe(true);
     expect(matchesLens(a, "key", botNoCred)).toBe(true);
     expect(matchesLens(a, "builtin", undefined)).toBe(true);
   });
 
   it("applyLens filters one list and never forks it", () => {
-    const apps = [app("github"), app("builtin-calc"), app("xero")];
+    const apps = [app("github"), app("builtin-calc"), app("xero"), app("higgsfield")];
     const connectors = new Map<string, LensConnector>([
       ["github", oauthNoCred],
       ["xero", keyTested],
+      ["higgsfield", hostedMcpNoCred],
     ]);
-    expect(applyLens(apps, "all", connectors)).toHaveLength(3);
+    expect(applyLens(apps, "all", connectors)).toHaveLength(4);
     expect(applyLens(apps, "connected", connectors).map((a) => a.slug)).toEqual(["xero"]);
     expect(applyLens(apps, "signin", connectors).map((a) => a.slug)).toEqual(["github"]);
+    expect(applyLens(apps, "setup", connectors).map((a) => a.slug)).toEqual(["higgsfield"]);
     expect(applyLens(apps, "builtin", connectors).map((a) => a.slug)).toEqual(["builtin-calc"]);
   });
 
@@ -100,6 +103,7 @@ describe("appLenses", () => {
 
   it("parseAppLens is safe on junk", () => {
     expect(parseAppLens("connected")).toBe("connected");
+    expect(parseAppLens("setup")).toBe("setup");
     expect(parseAppLens("banana")).toBe("all");
     expect(parseAppLens(null)).toBe("all");
   });
