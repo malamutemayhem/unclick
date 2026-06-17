@@ -1,6 +1,6 @@
 # Managed Connections
 
-Managed Connections let customers connect apps once and use them from any PC signed into UnClick, without UnClick storing raw app keys or tokens.
+Managed Connections let customers connect apps once and use them from any PC signed into UnClick, without UnClick storing raw app keys or tokens. This is not the old Passport-as-vault model: UnClick stores a connection record and status, while the managed provider owns the sensitive app access.
 
 ## Runtime Switches
 
@@ -25,3 +25,4 @@ Start with one app, such as Higgsfield:
 4. Point broker webhooks at `/api/managed-connection-webhook`.
 5. Verify the admin Apps row shows `Connect`, then `Connected`, and offers `Disconnect`.
 
+Until those runtime switches are present, Higgsfield should remain in hosted-MCP/manual fallback mode: customers can use Higgsfield's own MCP sign-in directly, or paste an API key for UnClick-routed API actions, but UnClick must not imply account-wide Higgsfield login is connected.

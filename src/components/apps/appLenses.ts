@@ -17,6 +17,7 @@ export type SetupKind = "signin" | "key" | "builtin";
 export interface LensConnector {
   auth_type?: "oauth2" | "api_key" | "bot_token";
   supports_managed_connection?: boolean;
+  supports_hosted_mcp_connection?: boolean;
   credential: {
     id?: string | null;
     is_valid: boolean;
@@ -49,7 +50,7 @@ export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
 
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   if (!connector?.auth_type) return "builtin";
-  if (connector.supports_managed_connection) return "signin";
+  if (connector.supports_managed_connection || connector.supports_hosted_mcp_connection) return "signin";
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 
