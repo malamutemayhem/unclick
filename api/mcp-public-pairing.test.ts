@@ -70,7 +70,9 @@ describe("public MCP pairing door", () => {
     expect(url.origin).toBe("https://unclick.world");
     expect(url.pathname).toBe(`/api/mcp/p/${pairId}`);
     expect(url.toString()).not.toContain("key=");
-    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(pairId);
+    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(
+      pairId,
+    );
   });
 
   it("keeps query pair ids working for older paired links", () => {
@@ -84,7 +86,9 @@ describe("public MCP pairing door", () => {
       },
     };
 
-    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(pairId);
+    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(
+      pairId,
+    );
   });
 
   it("routes paired path URLs to the MCP handler on Vercel", () => {
@@ -92,15 +96,19 @@ describe("public MCP pairing door", () => {
       rewrites?: Array<{ source: string; destination: string }>;
     };
     const rewrites = config.rewrites ?? [];
-    const pathRewriteIndex = rewrites.findIndex((rewrite) => rewrite.source === "/api/mcp/p/:pair");
-    const plainRewriteIndex = rewrites.findIndex((rewrite) => rewrite.source === "/api/mcp");
+    const pathRewriteIndex = rewrites.findIndex(
+      (rewrite) => rewrite.source === "/api/mcp/p/:pair",
+    );
+    const plainRewriteIndex = rewrites.findIndex(
+      (rewrite) => rewrite.source === "/api/mcp",
+    );
 
     expect(pathRewriteIndex).toBeGreaterThanOrEqual(0);
     expect(plainRewriteIndex).toBeGreaterThan(pathRewriteIndex);
     expect(rewrites[pathRewriteIndex]?.destination).toBe("/api/mcp");
   });
 
-  it("explains paired URLs without pretending they are API keys", () => {
+  it("keeps the static MCP URL primary in pairing tool copy", () => {
     const pairId = createPublicMcpPairId();
     const result = pairingToolResult({ email: "person@example.com" }, pairId);
     const text = result.content[0]?.text ?? "";
@@ -109,12 +117,8 @@ describe("public MCP pairing door", () => {
     expect(text).toContain("https://unclick.world/login");
     expect(text).toContain("Preferred server URL for every AI app");
     expect(text).toContain("https://unclick.world/api/mcp");
-    expect(text).toContain("https://unclick.world/api/mcp/p/");
-    expect(text).toContain("asks for a fresh link");
-    expect(text).toContain("did not keep the web sign-in session");
-    expect(text).toContain("Compatibility URL");
-    expect(text).toContain("does not contain your API key");
-    expect(text).toContain(pairId);
+    expect(text).toContain("ready page has private fallback options");
+    expect(text).not.toContain("https://unclick.world/api/mcp/p/");
     expect(text).not.toContain("Bearer");
   });
 });

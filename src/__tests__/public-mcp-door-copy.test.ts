@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const installSection = () => readFileSync("src/components/InstallSection.tsx", "utf8");
+const installSection = () =>
+  readFileSync("src/components/InstallSection.tsx", "utf8");
 const pairingPage = () => readFileSync("src/pages/PairingComplete.tsx", "utf8");
 const authorizePage = () => readFileSync("src/pages/McpAuthorize.tsx", "utf8");
 
@@ -21,11 +22,19 @@ describe("public MCP door copy", () => {
   it("keeps the magic-link landing page honest about fallback URLs", () => {
     const src = pairingPage();
 
-    expect(src).toContain("This pairing token is saved");
-    expect(src).toContain("The normal MCP URL is still https://unclick.world/api/mcp");
-    expect(src).toContain("Fallback paired URL for this AI app");
+    expect(src).toContain(
+      "Pairing saved. Keep using https://unclick.world/api/mcp",
+    );
+    expect(src).toContain("Use this static MCP URL");
+    expect(src).toContain(
+      "Same address for Claude, Grok, ChatGPT, Cursor, and any",
+    );
+    expect(src).toContain("MCP client. No personal key in the URL");
+    expect(src).toContain("const primaryMcpUrl = PUBLIC_MCP_URL");
+    expect(src).toContain("Private fallback for stubborn AI apps");
     expect(src).toContain("${PUBLIC_MCP_URL}/p/");
-    expect(src).toContain("generic MCP URL cannot finish web sign-in");
+    expect(src).toContain("Keep the static URL as the normal");
+    expect(src).toContain("path. This private fallback is revokable");
     expect(src).toContain("Compatibility URL for older AI apps");
     expect(src).toContain("contains a private connection key");
     expect(src).not.toContain("Claude still");

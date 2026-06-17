@@ -80,7 +80,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
-| src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
+| src/pages/admin/AdminSeatHeartbeat.tsx | 232071cb463f | 11711 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
@@ -164,7 +164,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/PairingComplete.tsx | 81739ed74b27 | 10818 |
+| src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
