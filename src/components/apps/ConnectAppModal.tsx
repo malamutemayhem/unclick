@@ -237,7 +237,7 @@ export function ConnectAppModal({
                 Higgsfield there. It uses your Higgsfield account, plan, and credits.
               </p>
               <p className="mt-1 text-white/45">
-                Because this sign-in happens with Higgsfield, UnClick cannot mark it connected here yet.
+                No API key is needed for this MCP path. Higgsfield manages that sign-in in your AI app.
               </p>
               <a
                 href="https://higgsfield.ai/mcp"
@@ -251,28 +251,18 @@ export function ConnectAppModal({
             </div>
 
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
-              <p className="font-semibold text-white">UnClick-wide login</p>
+              <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                This is the future one-click path. When it is available for Higgsfield, this dialog will open a
-                real sign-in window and the app will show as connected across your UnClick devices.
+                Add the same Higgsfield MCP URL anywhere your AI app supports MCP connectors. For UnClick-run
+                actions on every device, add a Cloud API key below.
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled
-                  className="rounded-md border border-white/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-white/35"
-                >
-                  One-click login coming soon
-                </button>
-                {disconnectButton}
-              </div>
             </div>
 
             <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
-              <p className="font-semibold text-white">API key fallback</p>
+              <p className="font-semibold text-white">UnClick API actions</p>
               <p className="mt-1 text-white/55">
-                Use this only if you specifically want UnClick-routed Higgsfield API actions. It is separate from
-                the hosted MCP account login above.
+                Use this only if you want UnClick itself to run Higgsfield image and video actions. It is separate
+                from Higgsfield's MCP account login above.
               </p>
               {setupUrl && (
                 <a
