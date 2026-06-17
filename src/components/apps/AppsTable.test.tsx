@@ -8,6 +8,7 @@ const APPS: AppEntry[] = [
   { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, network: "online", toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
   { slug: "jobsmith", name: "Jobsmith", category: "Productivity", blurb: "Create source-backed job applications.", domain: null, network: "offline", toolCount: 2, tools: [{ name: "jobsmith_check", description: "Check application quality." }], level: 5, hardened: true },
   { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, network: "online", toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
+  { slug: "supabase", name: "Supabase", category: "Developer & infra", blurb: "Connect Supabase Management API access.", domain: "supabase.com", network: "online", toolCount: 0, tools: [], level: null, hardened: true },
 ];
 
 function renderTable(ui: React.ReactElement) {
@@ -31,6 +32,13 @@ describe("AppsTable", () => {
     fireEvent.change(screen.getByPlaceholderText(/search apps/i), { target: { value: "weather" } });
     expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
     expect(screen.queryByText("GitHub")).not.toBeInTheDocument();
+  });
+
+  it("keeps connection-only apps visible even when they have zero actions", () => {
+    renderTable(<AppsTable apps={APPS} mode="public" />);
+    expect(screen.getByText("Supabase")).toBeInTheDocument();
+    expect(screen.getByText("Connect Supabase Management API access.")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
   });
 
   it("search matches app names with spaces and broken fragments", () => {

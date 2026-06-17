@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { presets } from "@/lib/design-system";
+import { getApp } from "@/lib/appCatalog";
+import { AppIcon } from "@/components/apps/AppIcon";
 
 // --- Types ---------------------------------------------------------------------
 
@@ -538,6 +540,7 @@ export default function ConnectPage() {
   const allFieldsFilled = connector.credentialFields.every(
     (f) => (fieldValues[f.key] ?? "").trim() !== ""
   );
+  const oauthLoginReady = isOAuth2 && !oauthNotConfigured;
 
   return (
     <ConnectShell connector={connector}>
@@ -685,7 +688,17 @@ export default function ConnectPage() {
 
         {/* OAuth2 flow */}
         {isOAuth2 && (
-          <div className="space-y-4">
+          <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-4 space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-heading">
+                Sign in with {connector.name}
+              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                This opens {connector.name} login and saves the connected account
+                to your private UnClick key. Token entry is only a fallback.
+              </p>
+            </div>
+
             {connector.scopes && connector.scopes.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
@@ -712,7 +725,7 @@ export default function ConnectPage() {
             )}
 
             {oauthNotConfigured ? (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <div className="border border-primary/20 rounded-lg p-4">
                 <p className="text-sm text-primary/90">
                   Login setup is pending for {connector.name}. Use the manual fallback below,
                   or enter credentials directly in your MCP config.
@@ -724,7 +737,7 @@ export default function ConnectPage() {
                 onClick={() => void handleOAuthConnect()}
                 disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
-                Connect with {connector.name}
+                {oauthLoginReady ? `Continue to ${connector.name} login` : `Connect with ${connector.name}`}
               </Button>
             )}
 
@@ -734,7 +747,7 @@ export default function ConnectPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  manual fallback
+                  token fallback
                 </span>
               </div>
             </div>
@@ -816,10 +829,11 @@ function ConnectShell({
   children:  React.ReactNode;
 }) {
   const authLabel: Record<string, string> = {
-    oauth2:    "OAuth2",
+    oauth2:    "Account login",
     api_key:   "API key",
     bot_token: "Bot token",
   };
+  const app = getApp(connector.slug);
 
   return (
     <div className={presets.page}>
@@ -839,9 +853,13 @@ function ConnectShell({
             </Link>
 
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto">
-              <span className="text-2xl font-semibold text-primary">
-                {connector.name.charAt(0)}
-              </span>
+              <AppIcon
+                name={connector.name}
+                category={app?.category ?? "Developer & infra"}
+                domain={app?.domain}
+                slug={connector.slug}
+                size={40}
+              />
             </div>
 
             <div>

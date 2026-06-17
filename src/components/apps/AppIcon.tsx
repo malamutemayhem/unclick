@@ -11,6 +11,8 @@
 import { createElement, useState } from "react";
 import { glyphFor } from "./appIconGlyphs";
 
+const LOCAL_GLYPH_SLUGS = new Set(["supabase", "vercel"]);
+
 const CATEGORY_TINT: Record<string, string> = {
   "AI": "#a78bfa",
   "Developer & infra": "#61C1C4",
@@ -50,11 +52,12 @@ export function AppIcon({
   const [imgFailed, setImgFailed] = useState(false);
   const letter = (name.replace(/[^A-Za-z0-9]/g, "").charAt(0) || "?").toUpperCase();
   const tint = CATEGORY_TINT[category] ?? "#9ca3af";
+  const forceLocalGlyph = slug ? LOCAL_GLYPH_SLUGS.has(slug) : false;
   // Only real, dotted hostnames get a favicon lookup. Anything else (null, the
   // legacy "local" marker, bare words) falls straight back to a glyph, because
   // the favicon service answers unknown hosts with a generic placeholder
   // instead of an error - which used to leave built-in apps with a junk icon.
-  const showImg = Boolean(domain && domain.includes(".")) && !imgFailed;
+  const showImg = !forceLocalGlyph && Boolean(domain && domain.includes(".")) && !imgFailed;
   const glyph = glyphFor(name, category, slug);
 
   return (
