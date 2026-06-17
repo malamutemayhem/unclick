@@ -20,7 +20,7 @@ describe("public MCP door copy", () => {
     const src = pairingPage();
 
     expect(src).toContain("Use the public door first");
-    expect(src).toContain("If your AI app only accepts a static URL");
+    expect(src).toContain("Fallback for older AI apps");
     expect(src).toContain("contains a private connection key");
     expect(src).not.toContain("master key");
   });
