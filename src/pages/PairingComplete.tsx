@@ -159,7 +159,7 @@ export default function PairingCompletePage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
                   {publicPairStatus === "paired"
-                    ? "This AI app is paired. If it still shows one tool, reconnect it with the paired URL below."
+                    ? "This AI app is paired. If Claude still cannot call tools, reconnect it with the paired URL below, then use the compatibility URL if needed."
                     : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
@@ -205,10 +205,10 @@ export default function PairingCompletePage() {
 
               <details className="rounded-xl border border-border/60 bg-background/25 p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-heading">
-                  Fallback for older AI apps
+                  Compatibility URL for stubborn AI apps
                 </summary>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Use this compatibility URL for now. It contains a private connection key, so the full value stays hidden on screen.
+                  Use this if Claude still cannot call tools after pairing. It contains a private connection key, so the full value stays hidden on screen.
                 </p>
                 {compatibilityUrl ? (
                   <div className="mt-3 flex items-stretch gap-2">

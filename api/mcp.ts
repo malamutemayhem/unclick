@@ -30,7 +30,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createServer } from "../packages/mcp-server/src/server.js";
+import {
+  ADVERTISED_TOOLS_SAFE,
+  createServer,
+} from "../packages/mcp-server/src/server.js";
 import { normalizeAcceptHeader } from "./lib/mcp-protocol.js";
 import {
   buildPublicMcpPairCookie,
@@ -71,6 +74,13 @@ export const PUBLIC_PAIRING_TOOL = {
     },
   },
 };
+
+export function publicToolsForUnpairedClient() {
+  return [
+    PUBLIC_PAIRING_TOOL,
+    ...ADVERTISED_TOOLS_SAFE.filter((tool) => tool.name !== PUBLIC_PAIRING_TOOL.name),
+  ];
+}
 
 function singleRpc(body: unknown): Record<string, unknown> | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
@@ -564,7 +574,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ensurePublicPairId(req, res);
       return res.status(200).json({
         jsonrpc: "2.0",
-        result: { tools: [PUBLIC_PAIRING_TOOL] },
+        result: { tools: publicToolsForUnpairedClient() },
         id: peeked.id,
       });
     }
@@ -586,7 +596,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           message:
             "UnClick is installed but this AI app is not paired yet. " +
             `Call unclick_start_pairing, or open ${loginUrl}. ` +
-            "After sign-in, keep using https://unclick.world/api/mcp.",
+            "After sign-in, keep using this MCP connection. If the client still " +
+            "cannot call tools, reconnect it with the paired URL or Compatibility URL shown on the ready page.",
         },
         id: peeked.id,
       });
