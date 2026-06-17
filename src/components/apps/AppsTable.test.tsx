@@ -99,6 +99,24 @@ describe("AppsTable", () => {
     expect(onStatusClick).toHaveBeenCalledWith(expect.objectContaining({ slug: "github" }));
   });
 
+  it("admin mode shows hosted MCP setup rows as an action, not a connected/manage state", () => {
+    const onOpenSetup = vi.fn();
+    renderTable(
+      <AppsTable
+        apps={[APPS[0]]}
+        mode="admin"
+        statusOf={() => ({ label: "Setup", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" })}
+        actionOf={() => ({ label: "Open setup", onClick: onOpenSetup })}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: "Open setup" });
+    expect(screen.queryByRole("button", { name: "Setup" })).not.toBeInTheDocument();
+    expect(button).not.toHaveAttribute("title", "Click to manage this connection");
+    fireEvent.click(button);
+    expect(onOpenSetup).toHaveBeenCalledTimes(1);
+  });
+
   it("admin mode exposes manage and disconnect controls on expanded connected rows", () => {
     const onManage = vi.fn();
     const onDisconnect = vi.fn();

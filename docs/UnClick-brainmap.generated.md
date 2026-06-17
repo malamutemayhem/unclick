@@ -80,7 +80,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
 | src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
-| src/pages/admin/AdminSeatHeartbeat.tsx | 78d5057027a1 | 11750 |
+| src/pages/admin/AdminSeatHeartbeat.tsx | 232071cb463f | 11711 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
