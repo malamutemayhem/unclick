@@ -17,8 +17,9 @@
  *       The session user_id is resolved to an api_keys row via
  *       api_keys.user_id FK; that row's key_hash becomes the tenancy
  *       context, so memory routing is identical to the api_key path.
- *     - Public MCP pairing id carried by ?pair=, mcp-session-id, or cookie
- *       after the user opens the generated sign-in link and completes pairing.
+ *     - Public MCP pairing id carried by /api/mcp/p/:pair, ?pair=,
+ *       mcp-session-id, or cookie after the user opens the generated sign-in
+ *       link and completes pairing.
  *   Body: MCP JSON-RPC message (initialize, tools/list, tools/call, etc.)
  *
  * The endpoint is stateless - each request spins up a fresh MCP server
@@ -29,7 +30,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createServer } from "../packages/mcp-server/src/server.js";
+import {
+  ADVERTISED_TOOLS_SAFE,
+  createServer,
+} from "../packages/mcp-server/src/server.js";
 import { normalizeAcceptHeader } from "./lib/mcp-protocol.js";
 import {
   buildPublicMcpPairCookie,
@@ -70,6 +74,13 @@ export const PUBLIC_PAIRING_TOOL = {
     },
   },
 };
+
+export function publicToolsForUnpairedClient() {
+  return [
+    PUBLIC_PAIRING_TOOL,
+    ...ADVERTISED_TOOLS_SAFE.filter((tool) => tool.name !== PUBLIC_PAIRING_TOOL.name),
+  ];
+}
 
 function singleRpc(body: unknown): Record<string, unknown> | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
@@ -116,6 +127,19 @@ function readCookie(cookieHeader: string | undefined, name: string): string | nu
   return null;
 }
 
+function publicPairIdFromPath(req: VercelRequest): string | null {
+  if (!req.url) return null;
+  try {
+    const url = new URL(req.url, "https://unclick.world");
+    const match = /^\/api\/mcp\/p\/([^/?#]+)$/.exec(url.pathname);
+    if (!match) return null;
+    const decoded = decodeURIComponent(match[1] ?? "");
+    return isValidPublicMcpPairId(decoded) ? decoded.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function publicPairIdFromRequest(req: VercelRequest): string | null {
   const pairRaw = req.query.pair;
   const fromQuery =
@@ -125,6 +149,9 @@ export function publicPairIdFromRequest(req: VercelRequest): string | null {
         ? pairRaw[0]
         : undefined;
   if (isValidPublicMcpPairId(fromQuery)) return fromQuery.trim();
+
+  const fromPath = publicPairIdFromPath(req);
+  if (fromPath) return fromPath;
 
   const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
   if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
@@ -163,9 +190,7 @@ export function pairingLoginUrl(email?: string, pairId?: string): string {
 
 export function pairedMcpUrl(pairId?: string): string {
   if (!isValidPublicMcpPairId(pairId)) return "https://unclick.world/api/mcp";
-  const url = new URL("https://unclick.world/api/mcp");
-  url.searchParams.set("pair", pairId.trim());
-  return url.toString();
+  return `https://unclick.world/api/mcp/p/${encodeURIComponent(pairId.trim())}`;
 }
 
 export function pairingToolResult(args: Record<string, unknown>, pairId?: string) {
@@ -549,7 +574,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ensurePublicPairId(req, res);
       return res.status(200).json({
         jsonrpc: "2.0",
-        result: { tools: [PUBLIC_PAIRING_TOOL] },
+        result: { tools: publicToolsForUnpairedClient() },
         id: peeked.id,
       });
     }
@@ -571,7 +596,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           message:
             "UnClick is installed but this AI app is not paired yet. " +
             `Call unclick_start_pairing, or open ${loginUrl}. ` +
-            "After sign-in, keep using https://unclick.world/api/mcp.",
+            "After sign-in, keep using this MCP connection. If the client still " +
+            "cannot call tools, reconnect it with the paired URL or Compatibility URL shown on the ready page.",
         },
         id: peeked.id,
       });

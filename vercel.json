@@ -39,6 +39,7 @@
     { "source": "/api/oauth-init",         "destination": "/api/oauth-init" },
     { "source": "/api/oauth-callback",     "destination": "/api/oauth-callback" },
     { "source": "/api/credentials",        "destination": "/api/credentials" },
+    { "source": "/api/mcp/p/:pair",       "destination": "/api/mcp" },
     { "source": "/api/mcp",               "destination": "/api/mcp" },
     { "source": "/og-image.svg",  "destination": "/og-image.svg" },
     { "source": "/og-image.png",  "destination": "/og-image.png" },
