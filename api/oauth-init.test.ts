@@ -145,4 +145,36 @@ describe("oauth init", () => {
       process.env.SUPABASE_OAUTH_REDIRECT_URI = previous.SUPABASE_OAUTH_REDIRECT_URI;
     }
   });
+
+  it("returns a user-safe pending setup response when a provider client is missing", () => {
+    const previous = {
+      SUPABASE_OAUTH_CLIENT_ID: process.env.SUPABASE_OAUTH_CLIENT_ID,
+      SUPABASE_OAUTH_REDIRECT_URI: process.env.SUPABASE_OAUTH_REDIRECT_URI,
+    };
+    process.env.SUPABASE_OAUTH_CLIENT_ID = "";
+    process.env.SUPABASE_OAUTH_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+
+    try {
+      const response = createResponse();
+      handler(
+        {
+          method: "POST",
+          body: { platform: "supabase", api_key: "uc_test_account_key" },
+        } as never,
+        response.res as never
+      );
+
+      expect(response.statusCode).toBe(503);
+      expect(response.payload).toMatchObject({
+        setup_pending: true,
+        provider: "supabase",
+        missing: "client_id",
+      });
+      expect((response.payload as { error?: string }).error).toContain("Supabase login is not switched on yet");
+      expect((response.payload as { error?: string }).error).not.toContain("SUPABASE_OAUTH_CLIENT_ID");
+    } finally {
+      process.env.SUPABASE_OAUTH_CLIENT_ID = previous.SUPABASE_OAUTH_CLIENT_ID;
+      process.env.SUPABASE_OAUTH_REDIRECT_URI = previous.SUPABASE_OAUTH_REDIRECT_URI;
+    }
+  });
 });

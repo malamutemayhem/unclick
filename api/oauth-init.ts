@@ -38,6 +38,18 @@ const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 const PKCE_PLATFORMS = new Set(["vercel", "supabase"]);
+const PLATFORM_LABELS: Record<string, string> = {
+  github: "GitHub",
+  vercel: "Vercel",
+  supabase: "Supabase",
+  xero: "Xero",
+  reddit: "Reddit",
+  shopify: "Shopify",
+  spotify: "Spotify",
+  dropbox: "Dropbox",
+  "google-workspace": "Google Workspace",
+  "microsoft-graph": "Microsoft Graph",
+};
 
 function isValidAccountKey(value: string): boolean {
   return value.startsWith("uc_") || value.startsWith("agt_");
@@ -88,6 +100,16 @@ function resolveRedirectUri(platform: string, redirectUriEnv: string, env: NodeJ
   return redirectUri;
 }
 
+function providerSetupPending(res: VercelResponse, platform: string, missing: "client_id" | "redirect_uri") {
+  const label = PLATFORM_LABELS[platform] ?? platform;
+  return res.status(503).json({
+    error: `${label} login is not switched on yet. Use the token fallback for now, or try again after the login setup is finished.`,
+    setup_pending: true,
+    provider: platform,
+    missing,
+  });
+}
+
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -122,12 +144,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const redirectUriEnv = REDIRECT_URI_ENV[platform];
     const redirectUri = redirectUriEnv ? resolveRedirectUri(platform, redirectUriEnv, process.env) : "";
     if (!redirectUri) {
-      return res.status(500).json({ error: `${redirectUriEnv} must be set.` });
+      return providerSetupPending(res, platform, "redirect_uri");
     }
     const clientIdEnv = CLIENT_ID_ENV[platform];
     const clientId = clientIdEnv ? (process.env[clientIdEnv] ?? "").trim() : "";
     if (!clientId) {
-      return res.status(500).json({ error: `${clientIdEnv} must be set.` });
+      return providerSetupPending(res, platform, "client_id");
     }
 
     const state = createOAuthStateToken({

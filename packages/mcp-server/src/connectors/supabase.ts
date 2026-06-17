@@ -5,9 +5,7 @@ export const supabaseConnector: ConnectorConfig = {
   slug: "supabase",
   authType: "oauth2",
   description: "Supabase Management API access for UnClick-side project, database, auth, and service workflows.",
-  scopes: [
-    "all",
-  ],
+  scopes: [],
   authUrl: "https://api.supabase.com/v1/oauth/authorize",
   tokenUrl: "https://api.supabase.com/v1/oauth/token",
   credentialFields: [

@@ -89,9 +89,7 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
     slug:        "supabase",
     authType:    "oauth2",
     description: "Supabase Management API access for UnClick-side workflows. Connect with Supabase login; the hosted MCP is a separate developer sign-in.",
-    scopes: [
-      "all",
-    ],
+    scopes: [],
     authUrl:  "https://api.supabase.com/v1/oauth/authorize",
     tokenUrl: "https://api.supabase.com/v1/oauth/token",
     credentialFields: [
