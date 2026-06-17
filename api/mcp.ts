@@ -56,10 +56,11 @@ function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
-// Tool execution must require a valid api_key. Protocol/lifecycle calls and
-// unknown methods are allowed through so the MCP SDK can return the proper
-// JSON-RPC response codes (for example -32601 for method not found).
-const AUTH_REQUIRED_METHODS = new Set<string>(["tools/call"]);
+// Protected remote MCP clients need the OAuth challenge during the initial
+// handshake, not only after a user tries to invoke a tool. `tools/list` stays
+// public as a compatibility discovery path for clients that do not yet support
+// MCP OAuth, but `initialize` and `tools/call` require an authenticated context.
+const AUTH_REQUIRED_METHODS = new Set<string>(["initialize", "tools/call"]);
 
 type JsonRpcId = string | number | null;
 
@@ -235,7 +236,7 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
 // responses (JSON-RPC 2.0 § 5.1 requires id equality) and (2) decide whether
 // the request is attempting protected tool execution. Batches are handled
 // conservatively: any protected or malformed entry forces auth.
-function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
+export function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
   const entries = Array.isArray(body) ? body : [body];
   let id: JsonRpcId = null;
   let firstHasId = false;

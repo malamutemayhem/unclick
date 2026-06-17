@@ -9,6 +9,7 @@ import {
   MCP_OAUTH_ISSUER,
   MCP_OAUTH_RESOURCE,
   normalizeMcpOAuthScope,
+  validateRegisteredRedirectUri,
 } from "./lib/mcp-oauth.js";
 
 function sha256hex(input: string): string {
@@ -111,6 +112,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (responseType !== "code") return res.status(400).json({ error: "response_type must be code" });
   if (!clientId) return res.status(400).json({ error: "client_id required" });
   if (!isSafeOAuthRedirectUri(redirectUri)) return res.status(400).json({ error: "redirect_uri is not allowed" });
+  try {
+    if (!validateRegisteredRedirectUri(clientId, redirectUri, process.env)) {
+      return res.status(400).json({ error: "redirect_uri was not registered for this client" });
+    }
+  } catch {
+    return res.status(400).json({ error: "client_id is not a valid UnClick MCP registration" });
+  }
   if (resource && resource !== MCP_OAUTH_RESOURCE) return res.status(400).json({ error: "resource must be the UnClick MCP URL" });
   if (!codeChallenge || codeChallengeMethod !== "S256") {
     return res.status(400).json({ error: "PKCE S256 code challenge required" });
