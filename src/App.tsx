@@ -75,6 +75,7 @@ const DogfoodReportPage = lazy(() => import("./pages/DogfoodReport.tsx"));
 const LoginPage = lazy(() => import("./pages/Login.tsx"));
 const SignupPage = lazy(() => import("./pages/Signup.tsx"));
 const AuthCallbackPage = lazy(() => import("./pages/AuthCallback.tsx"));
+const McpAuthorizePage = lazy(() => import("./pages/McpAuthorize.tsx"));
 const PairingCompletePage = lazy(() => import("./pages/PairingComplete.tsx"));
 const VerifyMfaPage = lazy(() => import("./pages/VerifyMfa.tsx"));
 const BrochurePage = lazy(() => import("./components/BrochurePage.tsx"));
@@ -343,6 +344,7 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/mcp/authorize" element={<McpAuthorizePage />} />
           <Route path="/pair/connected" element={<PairingCompletePage />} />
           <Route path="/auth/verify-mfa" element={<VerifyMfaPage />} />
           <Route path="/organiser" element={<OrganiserPage />} />

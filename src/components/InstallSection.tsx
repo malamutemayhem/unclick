@@ -247,7 +247,7 @@ function ConnectionUrlNotice({ setupMode }: { setupMode: SetupMode }) {
   if (setupMode === "Public") {
     return (
       <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary/90">
-        Public door: no personal key in the URL. If your AI app cannot finish pairing yet, switch to Compatibility URL.
+        Public door: no personal key in the URL. Your AI app should open web sign-in and keep this same address.
       </div>
     );
   }
@@ -278,7 +278,7 @@ function SetupModeSwitch({
     {
       mode: "Compatibility",
       title: "Compatibility URL",
-      body: "Works in URL-only clients today. Uses a private key.",
+      body: "Fallback for clients that cannot complete web sign-in.",
     },
   ];
 
@@ -321,7 +321,7 @@ function PublicDoorSummary() {
     <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
       <p className="text-sm font-medium text-heading">Start with the public UnClick door</p>
       <p className="mt-1 text-xs leading-5 text-muted-foreground">
-        Add this same address first. If your AI app cannot finish pairing yet, switch to the Compatibility URL.
+        Add this same address first. If your AI app supports web sign-in, it should connect without any custom URL.
       </p>
       <div className="mt-3 flex items-stretch gap-2">
         <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-card/60 px-3 py-2 font-mono text-xs text-heading">

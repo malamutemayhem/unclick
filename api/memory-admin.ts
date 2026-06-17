@@ -21,6 +21,8 @@
  *   - update_business_context: Upsert a business context entry (POST)
  *   - admin_get_setup_guide: Returns client-specific onboarding instructions
  *                            for maximising memory auto-load (client param)
+ *   - public_mcp_pair: POST from signed-in browser with { pair_id } to bind
+ *                      the static public MCP URL to this account.
  *
  * BYOD / wizard actions (control plane, keyed by UnClick API key):
  *   - setup: POST with { api_key, service_role_key, supabase_url?, email? }
@@ -117,6 +119,10 @@ import { parseDueAtInput } from "./lib/todo-due.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
+import {
+  isValidPublicMcpPairId,
+  publicMcpPairDeviceId,
+} from "./lib/public-mcp-pairing.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -4910,6 +4916,63 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      case "public_mcp_pair": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+        const pairId = typeof req.body?.pair_id === "string" ? req.body.pair_id.trim() : "";
+        if (!isValidPublicMcpPairId(pairId)) {
+          return res.status(400).json({ error: "Invalid public pairing id" });
+        }
+
+        const keyRow = (await supabase
+          .from("api_keys")
+          .select("key_hash")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle()).data as { key_hash: string | null } | null;
+        if (!keyRow?.key_hash) {
+          return res.status(409).json({ error: "No active UnClick key found for this account" });
+        }
+
+        const deviceId = publicMcpPairDeviceId(pairId);
+        const existing = await supabase
+          .from("auth_devices")
+          .select("user_id, revoked_at")
+          .eq("device_id", deviceId)
+          .limit(2);
+        if (existing.error) throw existing.error;
+        const activeOther = (existing.data ?? []).find((row) => {
+          const existingUserId = (row as { user_id?: unknown }).user_id;
+          const revokedAt = (row as { revoked_at?: unknown }).revoked_at;
+          return existingUserId !== user.id && !revokedAt;
+        });
+        if (activeOther) {
+          return res.status(409).json({ error: "This public pairing link is already connected" });
+        }
+
+        const nowIso = new Date().toISOString();
+        const upsert = await supabase
+          .from("auth_devices")
+          .upsert(
+            {
+              user_id: user.id,
+              device_id: deviceId,
+              device_name: "Public MCP connection",
+              paired_at: nowIso,
+              last_seen_at: nowIso,
+              revoked_at: null,
+            },
+            { onConflict: "user_id,device_id" },
+          );
+        if (upsert.error) throw upsert.error;
+
+        return res.status(200).json({ paired: true });
+      }
+
       case "operator_timezone_update": {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
@@ -5446,6 +5509,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const enrichedConnectors = (connectors ?? []).map((pc) => ({
           ...pc,
           credential: credMap.get(pc.id as string) ?? null,
+          supports_hosted_mcp_connection: pc.id === "higgsfield",
           supports_managed_connection: pc.auth_type
             ? managedConnectionAvailableForPlatform(pc.id as string)
             : false,
