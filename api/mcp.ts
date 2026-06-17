@@ -646,6 +646,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } else if (bearerToken) {
     ctx = await validateMcpOAuthAccessToken(bearerToken);
+    if (!ctx) {
+      const publicPairId = publicPairIdFromRequest(req);
+      if (publicPairId) {
+        ctx = await validatePublicMcpPair(publicPairId);
+      }
+    }
     if (!ctx && method === "initialize") {
       ensurePublicPairId(req, res);
       return res.status(200).json({
