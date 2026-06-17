@@ -159,7 +159,7 @@ export default function PairingCompletePage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
                   {publicPairStatus === "paired"
-                    ? "This pairing token is saved. If your AI app asks for another link or still cannot call tools, reconnect it with the paired URL below, then use the compatibility URL if needed."
+                    ? "This pairing token is saved. The normal MCP URL is still https://unclick.world/api/mcp. Use the paired URL below only if your AI app keeps asking for fresh links."
                     : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
@@ -175,11 +175,11 @@ export default function PairingCompletePage() {
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-semibold text-heading">
-                      {pairedMcpUrl ? "Use this paired URL in the AI app" : "Use the public door first"}
+                      {pairedMcpUrl ? "Fallback paired URL for this AI app" : "Use the public door first"}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
                       {pairedMcpUrl
-                        ? "This address carries a revokable pairing token. It is not your API key, but keep it private."
+                        ? "Use this only if the generic MCP URL cannot finish web sign-in. It is not your API key, but keep it private."
                         : "This address carries no personal key. After pairing, it can stay forever."}
                     </p>
                     {publicPairStatus === "paired" ? (
@@ -208,7 +208,7 @@ export default function PairingCompletePage() {
                   Compatibility URL for older AI apps
                 </summary>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Use this if your AI app still cannot call tools after reconnecting with the paired URL. It contains a private connection key, so the full value stays hidden on screen.
+                  Use this only if your AI app cannot use web sign-in or paired URLs. It contains a private connection key, so the full value stays hidden on screen.
                 </p>
                 {compatibilityUrl ? (
                   <div className="mt-3 flex items-stretch gap-2">

@@ -32,6 +32,10 @@
     }
   ],
   "rewrites": [
+    { "source": "/.well-known/oauth-protected-resource/api/mcp", "destination": "/api/oauth-protected-resource" },
+    { "source": "/.well-known/oauth-protected-resource",         "destination": "/api/oauth-protected-resource" },
+    { "source": "/.well-known/oauth-authorization-server",       "destination": "/api/oauth-authorization-server" },
+    { "source": "/.well-known/openid-configuration",             "destination": "/api/oauth-authorization-server" },
     { "source": "/sitemap.xml",   "destination": "/api/sitemap" },
     { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
     { "source": "/v1/arena",      "destination": "/api/arena" },
@@ -39,6 +43,9 @@
     { "source": "/api/oauth-init",         "destination": "/api/oauth-init" },
     { "source": "/api/oauth-callback",     "destination": "/api/oauth-callback" },
     { "source": "/api/credentials",        "destination": "/api/credentials" },
+    { "source": "/api/mcp/oauth/authorize", "destination": "/api/mcp-oauth-authorize" },
+    { "source": "/api/mcp/oauth/register",  "destination": "/api/mcp-oauth-register" },
+    { "source": "/api/mcp/oauth/token",     "destination": "/api/mcp-oauth-token" },
     { "source": "/api/mcp/p/:pair",       "destination": "/api/mcp" },
     { "source": "/api/mcp",               "destination": "/api/mcp" },
     { "source": "/og-image.svg",  "destination": "/og-image.svg" },

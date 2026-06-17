@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 740ff54af7e4 | 23350 |
+| src/App.tsx | 2863f617e2a0 | 23496 |
 | src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -158,12 +158,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | dce8bcccd23f | 8743 |
+| src/pages/McpAuthorize.tsx | e72687e0881f | 3961 |
 | src/pages/MemoryConnect.tsx | 128a2dddc94f | 18504 |
 | src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
 | src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/PairingComplete.tsx | ec9b7e935895 | 10833 |
+| src/pages/PairingComplete.tsx | 81739ed74b27 | 10818 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
@@ -266,7 +267,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 58 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 55 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -403,6 +404,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
 | /login | Login | Sign-in page. | src/pages/Login.tsx |
+| /mcp/authorize | Mcp Authorize | User-facing page for Mcp Authorize. | src/pages/McpAuthorize.tsx |
 | /memory/connect | Memory Connect | User-facing page for Memory Connect. | src/pages/MemoryConnect.tsx |
 | /memory/setup-guide | Memory Setup Guide | User-facing page for Memory Setup Guide. | src/pages/MemorySetupGuide.tsx |
 | /memory/setup | Memory Setup | User-facing page for Memory Setup. | src/pages/MemorySetup.tsx |
@@ -1493,6 +1495,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Jobsmith | User-facing page for Jobsmith. | /jobsmith | src/pages/Jobsmith.tsx |
 | Public surfaces | public page | Link In Bio | Tool page for Link In Bio. | /tools/link-in-bio | src/pages/tools/LinkInBio.tsx |
 | Public surfaces | public page | Login | Sign-in page. | /login | src/pages/Login.tsx |
+| Public surfaces | public page | Mcp Authorize | User-facing page for Mcp Authorize. | /mcp/authorize | src/pages/McpAuthorize.tsx |
 | Public surfaces | public page | Memory | Public memory product page. | /memory | src/pages/Memory.tsx |
 | Public surfaces | public page | Memory Connect | User-facing page for Memory Connect. | /memory/connect | src/pages/MemoryConnect.tsx |
 | Public surfaces | public page | Memory Setup | User-facing page for Memory Setup. | /memory/setup | src/pages/MemorySetup.tsx |
