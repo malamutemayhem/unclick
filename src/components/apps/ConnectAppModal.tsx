@@ -29,6 +29,7 @@ export interface ConnectableConnector {
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
   supports_managed_connection?: boolean;
+  supports_hosted_mcp_connection?: boolean;
   credential?: { is_valid: boolean; last_tested_at: string | null } | null;
 }
 
@@ -83,6 +84,8 @@ export function ConnectAppModal({
   const setupUrl = setup?.setupUrl ?? connector.setup_url ?? null;
   const isOAuth = connector.auth_type === "oauth2";
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
+  const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
+  const modalVerb = usesHostedMcpConnection ? "Set up" : isConnected ? "Manage" : "Connect";
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -179,7 +182,7 @@ export function ConnectAppModal({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
             <KeyRound className="h-4 w-4 text-[#E2B93B]" />
-            {isConnected ? "Manage" : "Connect"} {app.name}
+            {modalVerb} {app.name}
           </h3>
           <button onClick={onClose} className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white" aria-label="Close">
             <X className="h-4 w-4" />
@@ -221,6 +224,114 @@ export function ConnectAppModal({
             {managedError && (
               <p role="alert" className="mt-2 text-[11px] text-red-400">{managedError}</p>
             )}
+            {disconnectError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+            )}
+          </div>
+        ) : usesHostedMcpConnection ? (
+          <div className="space-y-3 text-xs leading-5 text-white/60">
+            <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
+              <p className="font-semibold text-white">Use {app.name}'s MCP setup</p>
+              <p className="mt-1 text-white/55">
+                This opens Higgsfield's setup page so you can add its MCP URL to your AI app and sign in with
+                Higgsfield there. It uses your Higgsfield account, plan, and credits.
+              </p>
+              <p className="mt-1 text-white/45">
+                Because this sign-in happens with Higgsfield, UnClick cannot mark it connected here yet.
+              </p>
+              <a
+                href="https://higgsfield.ai/mcp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
+              >
+                Open Higgsfield MCP setup
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
+              <p className="font-semibold text-white">UnClick-wide login</p>
+              <p className="mt-1 text-white/55">
+                This is the future one-click path. When it is available for Higgsfield, this dialog will open a
+                real sign-in window and the app will show as connected across your UnClick devices.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-md border border-white/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-white/35"
+                >
+                  One-click login coming soon
+                </button>
+                {disconnectButton}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
+              <p className="font-semibold text-white">API key fallback</p>
+              <p className="mt-1 text-white/55">
+                Use this only if you specifically want UnClick-routed Higgsfield API actions. It is separate from
+                the hosted MCP account login above.
+              </p>
+              {setupUrl && (
+                <a
+                  href={setupUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
+                >
+                  Where do I get my {credentialLabel}?
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <input
+                type="password"
+                value={credential}
+                onChange={(e) => setCredential(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !busy) void submit();
+                }}
+                placeholder={`Paste ${credentialLabel} here`}
+                className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+              />
+              {error && (
+                <p role="alert" className="mt-2 text-[11px] text-red-400">{error}</p>
+              )}
+              {outcome && (
+                <div
+                  role="status"
+                  className={`mt-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-4 ${
+                    outcome.kind === "connected"
+                      ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+                      : outcome.kind === "saved_unproven"
+                        ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                        : "border-red-400/30 bg-red-400/10 text-red-200"
+                  }`}
+                >
+                  {outcome.kind === "connected" && <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                  {outcome.kind === "saved_unproven" && <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                  {outcome.kind === "rejected" && <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                  <span>
+                    {outcome.kind === "connected" && <strong>Connected, live-tested. </strong>}
+                    {outcome.message}
+                  </span>
+                </div>
+              )}
+              <div className="mt-3 flex justify-end gap-2">
+                <button onClick={onClose} className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white">
+                  {outcome && outcome.kind !== "rejected" ? "Done" : "Cancel"}
+                </button>
+                <button
+                  onClick={() => void submit()}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
+                >
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Testing..." : "Test API key"}
+                </button>
+              </div>
+            </div>
             {disconnectError && (
               <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
             )}

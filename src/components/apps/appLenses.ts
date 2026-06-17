@@ -9,14 +9,15 @@
 
 import type { AppEntry } from "@/lib/appCatalog";
 
-export type AppLens = "all" | "popular" | "connected" | "not-connected" | "signin" | "key" | "builtin";
+export type AppLens = "all" | "popular" | "connected" | "not-connected" | "signin" | "setup" | "key" | "builtin";
 
-export type SetupKind = "signin" | "key" | "builtin";
+export type SetupKind = "signin" | "setup" | "key" | "builtin";
 
 /** Minimal connector shape the lenses need; matches the admin_tools API rows. */
 export interface LensConnector {
   auth_type?: "oauth2" | "api_key" | "bot_token";
   supports_managed_connection?: boolean;
+  supports_hosted_mcp_connection?: boolean;
   credential: {
     id?: string | null;
     is_valid: boolean;
@@ -32,6 +33,7 @@ export const LENSES: ReadonlyArray<{ id: AppLens; label: string; group: "Library
   { id: "connected", label: "Connected", group: "Status" },
   { id: "not-connected", label: "Not connected", group: "Status" },
   { id: "signin", label: "Sign-in apps", group: "Setup" },
+  { id: "setup", label: "Setup guides", group: "Setup" },
   { id: "key", label: "Key apps", group: "Setup" },
   { id: "builtin", label: "Built-in", group: "Setup" },
 ];
@@ -50,6 +52,7 @@ export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   if (!connector?.auth_type) return "builtin";
   if (connector.supports_managed_connection) return "signin";
+  if (connector.supports_hosted_mcp_connection) return "setup";
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 
@@ -62,10 +65,11 @@ export function isConnected(connector: LensConnector | undefined): boolean {
  * The action button label: buttons say the action, pills say the truth.
  * null = nothing to do (built-in apps).
  */
-export function actionLabelFor(connector: LensConnector | undefined): "Connect" | "Add key" | "Manage" | null {
+export function actionLabelFor(connector: LensConnector | undefined): "Connect" | "Open setup" | "Add key" | "Manage" | null {
   const kind = setupKindOf(connector);
   if (kind === "builtin") return null;
   if (isConnected(connector)) return "Manage";
+  if (kind === "setup") return "Open setup";
   return kind === "signin" ? "Connect" : "Add key";
 }
 
@@ -76,6 +80,7 @@ export function matchesLens(app: AppEntry, lens: AppLens, connector: LensConnect
     case "connected": return isConnected(connector);
     case "not-connected": return Boolean(connector) && !isConnected(connector);
     case "signin": return setupKindOf(connector) === "signin";
+    case "setup": return setupKindOf(connector) === "setup";
     case "key": return setupKindOf(connector) === "key";
     case "builtin": return setupKindOf(connector) === "builtin";
   }

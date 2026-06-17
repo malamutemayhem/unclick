@@ -102,16 +102,26 @@ describe("ConnectAppModal", () => {
     expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
   });
 
-  it("sends Higgsfield users to Cloud API keys and treats hosted MCP as separate", () => {
+  it("presents Higgsfield hosted MCP as setup until UnClick can verify it", () => {
     renderModal({
       app: HIGGSFIELD_APP,
-      connector: { id: "higgsfield", auth_type: "api_key", setup_url: null },
+      connector: { id: "higgsfield", auth_type: "api_key", setup_url: null, supports_hosted_mcp_connection: true },
     });
+    expect(screen.getByRole("heading", { name: /set up higgsfield/i })).toBeInTheDocument();
+    expect(screen.getByText(/use higgsfield's mcp setup/i)).toBeInTheDocument();
+    expect(screen.getByText(/cannot mark it connected here yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/vault/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open higgsfield mcp setup/i })).toHaveAttribute(
+      "href",
+      "https://higgsfield.ai/mcp",
+    );
+    expect(screen.getByRole("button", { name: /one-click login coming soon/i })).toBeDisabled();
+    expect(screen.getByText(/api key fallback/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
     );
-    expect(screen.getByText(/hosted MCP .* separate direct sign-in path outside UnClick/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /test api key/i })).toBeInTheDocument();
   });
 
   it("surfaces a rejection and stores nothing when the platform refuses the key", async () => {

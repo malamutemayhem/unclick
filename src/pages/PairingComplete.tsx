@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Copy, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,24 +16,42 @@ type ProfileResponse = {
   error?: string;
 };
 
+type PublicPairResponse = {
+  paired?: boolean;
+  error?: string;
+};
+
 function maskPrivateValue(value: string) {
-  return value.replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`);
+  return value
+    .replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`)
+    .replace(
+      /(pair=)([A-Za-z0-9_-]{6})[A-Za-z0-9_-]{8,}([A-Za-z0-9_-]{4})/g,
+      "$1$2...$3",
+    )
+    .replace(
+      /(\/api\/mcp\/p\/)([A-Za-z0-9_-]{6})[A-Za-z0-9_-]{8,}([A-Za-z0-9_-]{4})/g,
+      "$1$2...$3",
+    );
 }
 
 export default function PairingCompletePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session, loading } = useSession();
   const [apiKey, setApiKey] = useState("");
   const [email, setEmail] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [error, setError] = useState("");
+  const [publicPairStatus, setPublicPairStatus] = useState<"idle" | "none" | "paired" | "error">("idle");
   const [copied, setCopied] = useState<"public" | "compat" | null>(null);
+  const pairId = searchParams.get("pair") ?? "";
 
   useEffect(() => {
     if (!loading && !session) {
-      navigate(`/login?next=${encodeURIComponent("/pair/connected")}`, { replace: true });
+      const next = pairId ? `/pair/connected?pair=${encodeURIComponent(pairId)}` : "/pair/connected";
+      navigate(`/login?next=${encodeURIComponent(next)}`, { replace: true });
     }
-  }, [loading, navigate, session]);
+  }, [loading, navigate, pairId, session]);
 
   useEffect(() => {
     if (!session) return;
@@ -42,6 +60,7 @@ export default function PairingCompletePage() {
     (async () => {
       setLoadingProfile(true);
       setError("");
+      setPublicPairStatus(pairId ? "idle" : "none");
       try {
         const res = await fetch("/api/memory-admin?action=admin_profile", {
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -68,8 +87,30 @@ export default function PairingCompletePage() {
             // Ignore.
           }
         }
+
+        if (pairId) {
+          const pairRes = await fetch("/api/memory-admin?action=public_mcp_pair", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ pair_id: pairId }),
+          });
+          const pairBody = (await pairRes.json().catch(() => ({}))) as PublicPairResponse;
+          if (cancelled) return;
+          if (!pairRes.ok || !pairBody.paired) {
+            setPublicPairStatus("error");
+            setError(pairBody.error ?? "Your sign-in worked, but the public pairing could not be saved yet.");
+            return;
+          }
+          setPublicPairStatus("paired");
+        } else {
+          setPublicPairStatus("none");
+        }
       } catch (err) {
         if (!cancelled) {
+          setPublicPairStatus(pairId ? "error" : "none");
           setError(err instanceof Error ? err.message : "Network error.");
         }
       } finally {
@@ -80,7 +121,7 @@ export default function PairingCompletePage() {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [pairId, session]);
 
   async function copy(value: string, key: "public" | "compat") {
     await navigator.clipboard.writeText(value);
@@ -90,6 +131,12 @@ export default function PairingCompletePage() {
 
   const compatibilityUrl = apiKey ? `${PUBLIC_MCP_URL}?key=${apiKey}` : "";
   const displayCompatibilityUrl = compatibilityUrl ? maskPrivateValue(compatibilityUrl) : "";
+  const pairedMcpUrl =
+    pairId && publicPairStatus === "paired"
+      ? `${PUBLIC_MCP_URL}/p/${encodeURIComponent(pairId)}`
+      : "";
+  const primaryMcpUrl = pairedMcpUrl || PUBLIC_MCP_URL;
+  const displayPrimaryMcpUrl = pairedMcpUrl ? maskPrivateValue(pairedMcpUrl) : PUBLIC_MCP_URL;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -111,7 +158,9 @@ export default function PairingCompletePage() {
                 <h1 className="mt-4 text-2xl font-semibold text-heading">UnClick is ready</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
-                  Return to your AI app. If it asks to pair again, use the compatibility URL below.
+                  {publicPairStatus === "paired"
+                    ? "This pairing token is saved. The normal MCP URL is still https://unclick.world/api/mcp. Use the paired URL below only if your AI app keeps asking for fresh links."
+                    : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
 
@@ -125,21 +174,28 @@ export default function PairingCompletePage() {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <div>
-                    <p className="text-sm font-semibold text-heading">Use the public door first</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      This address carries no personal key. If your AI app supports pairing, it can stay forever.
+                    <p className="text-sm font-semibold text-heading">
+                      {pairedMcpUrl ? "Fallback paired URL for this AI app" : "Use the public door first"}
                     </p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {pairedMcpUrl
+                        ? "Use this only if the generic MCP URL cannot finish web sign-in. It is not your API key, but keep it private."
+                        : "This address carries no personal key. After pairing, it can stay forever."}
+                    </p>
+                    {publicPairStatus === "paired" ? (
+                      <p className="mt-2 text-xs font-medium text-primary">Public pairing saved.</p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="mt-3 flex items-stretch gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs text-heading">
-                    {PUBLIC_MCP_URL}
+                    {displayPrimaryMcpUrl}
                   </code>
                   <Button
                     type="button"
                     size="sm"
                     className="shrink-0 bg-primary text-black hover:opacity-90"
-                    onClick={() => void copy(PUBLIC_MCP_URL, "public")}
+                    onClick={() => void copy(primaryMcpUrl, "public")}
                   >
                     <Copy className="mr-1.5 h-3.5 w-3.5" />
                     {copied === "public" ? "Copied" : "Copy"}
@@ -149,10 +205,10 @@ export default function PairingCompletePage() {
 
               <details className="rounded-xl border border-border/60 bg-background/25 p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-heading">
-                  If your AI app only accepts a static URL
+                  Compatibility URL for older AI apps
                 </summary>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Use this compatibility URL for now. It contains a private connection key, so the full value stays hidden on screen.
+                  Use this only if your AI app cannot use web sign-in or paired URLs. It contains a private connection key, so the full value stays hidden on screen.
                 </p>
                 {compatibilityUrl ? (
                   <div className="mt-3 flex items-stretch gap-2">
