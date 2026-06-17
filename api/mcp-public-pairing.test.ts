@@ -108,6 +108,8 @@ describe("public MCP pairing door", () => {
     expect(text).toContain("not paired");
     expect(text).toContain("https://unclick.world/login");
     expect(text).toContain("https://unclick.world/api/mcp/p/");
+    expect(text).toContain("asks for a fresh link");
+    expect(text).toContain("did not keep the paired MCP session");
     expect(text).toContain("Compatibility URL");
     expect(text).toContain("does not contain your API key");
     expect(text).toContain(pairId);

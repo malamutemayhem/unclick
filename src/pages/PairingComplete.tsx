@@ -159,7 +159,7 @@ export default function PairingCompletePage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
                   {publicPairStatus === "paired"
-                    ? "This AI app is paired. If Claude still cannot call tools, reconnect it with the paired URL below, then use the compatibility URL if needed."
+                    ? "This pairing token is saved. If your AI app asks for another link or still cannot call tools, reconnect it with the paired URL below, then use the compatibility URL if needed."
                     : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
@@ -175,7 +175,7 @@ export default function PairingCompletePage() {
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-semibold text-heading">
-                      {pairedMcpUrl ? "Use this paired URL for this AI app" : "Use the public door first"}
+                      {pairedMcpUrl ? "Use this paired URL in the AI app" : "Use the public door first"}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
                       {pairedMcpUrl
@@ -205,10 +205,10 @@ export default function PairingCompletePage() {
 
               <details className="rounded-xl border border-border/60 bg-background/25 p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-heading">
-                  Compatibility URL for stubborn AI apps
+                  Compatibility URL for older AI apps
                 </summary>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Use this if Claude still cannot call tools after pairing. It contains a private connection key, so the full value stays hidden on screen.
+                  Use this if your AI app still cannot call tools after reconnecting with the paired URL. It contains a private connection key, so the full value stays hidden on screen.
                 </p>
                 {compatibilityUrl ? (
                   <div className="mt-3 flex items-stretch gap-2">
