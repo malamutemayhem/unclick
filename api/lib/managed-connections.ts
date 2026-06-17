@@ -110,7 +110,7 @@ export async function beginManagedConnection(input: {
       ok: false,
       status: 501,
       code: "broker_not_configured",
-      message: "Managed Connections is not switched on for this workspace yet. Nothing was saved.",
+      message: "Managed Connections is not available for this app yet. Nothing was saved.",
     };
   }
 

@@ -153,7 +153,7 @@ export default function AdminToolsPage() {
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
-    if (c.supports_hosted_mcp_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.supports_hosted_mcp_connection) return { label: "Setup", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
     if (c.auth_type) return { label: "Add access", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }

@@ -1,7 +1,7 @@
 // Higgsfield AI API integration for the UnClick MCP server.
 // Uses the Higgsfield REST API via fetch - no external dependencies.
 // This REST connector accepts api_key or HIGGSFIELD_API_KEY. Higgsfield's hosted
-// MCP is a separate direct sign-in path at https://mcp.higgsfield.ai/mcp.
+// MCP uses Higgsfield's own account sign-in at https://mcp.higgsfield.ai/mcp.
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
