@@ -5,6 +5,7 @@ import {
   pairedMcpUrl,
   pairingLoginUrl,
   pairingToolResult,
+  peekRpc,
   PUBLIC_PAIRING_TOOL,
   publicPairIdFromRequest,
   publicToolsForUnpairedClient,
@@ -120,5 +121,82 @@ describe("public MCP pairing door", () => {
     expect(text).toContain("ready page has private fallback options");
     expect(text).not.toContain("https://unclick.world/api/mcp/p/");
     expect(text).not.toContain("Bearer");
+  });
+
+  // ── RC1: pair-id stability ──────────────────────────────────────────────
+  it("prefers mcp-session-id over a stale cookie for pair id resolution", () => {
+    const sessionId = createPublicMcpPairId();
+    const staleCookieId = createPublicMcpPairId();
+    const req = {
+      query: {},
+      url: "/api/mcp",
+      headers: {
+        cookie: `${PUBLIC_MCP_PAIR_COOKIE}=${staleCookieId}`,
+        "mcp-session-id": sessionId,
+      },
+    };
+
+    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(
+      sessionId,
+    );
+  });
+
+  it("produces a single stable device id when the client echoes its session id", () => {
+    const clientSessionId = createPublicMcpPairId();
+    const deviceId = publicMcpPairDeviceId(clientSessionId);
+
+    const req1 = {
+      query: {},
+      url: "/api/mcp",
+      headers: { "mcp-session-id": clientSessionId },
+    };
+    const req2 = {
+      query: {},
+      url: "/api/mcp",
+      headers: { "mcp-session-id": clientSessionId },
+    };
+
+    const resolved1 = publicPairIdFromRequest(req1 as unknown as VercelRequest);
+    const resolved2 = publicPairIdFromRequest(req2 as unknown as VercelRequest);
+    expect(resolved1).toBe(clientSessionId);
+    expect(resolved2).toBe(clientSessionId);
+    expect(publicMcpPairDeviceId(resolved1!)).toBe(deviceId);
+    expect(publicMcpPairDeviceId(resolved2!)).toBe(deviceId);
+  });
+
+  it("embeds the same pair id in the login URL that the client presented", () => {
+    const clientPairId = createPublicMcpPairId();
+    const loginUrl = pairingLoginUrl("user@example.com", clientPairId);
+    const url = new URL(loginUrl);
+    const next = url.searchParams.get("next") ?? "";
+    expect(next).toContain(`pair=${clientPairId}`);
+  });
+
+  // ── RC2: discovery-mode initialize ──────────────────────────────────────
+  it("peekRpc still flags initialize as auth-required for the bearer path", () => {
+    const result = peekRpc({ jsonrpc: "2.0", id: 1, method: "initialize" });
+    expect(result.authRequired).toBe(true);
+    expect(result.id).toBe(1);
+  });
+
+  it("peekRpc flags tools/call as auth-required regardless of path", () => {
+    const result = peekRpc({ jsonrpc: "2.0", id: 2, method: "tools/call" });
+    expect(result.authRequired).toBe(true);
+  });
+
+  it("peekRpc allows tools/list without auth for public discovery", () => {
+    const result = peekRpc({ jsonrpc: "2.0", id: 3, method: "tools/list" });
+    expect(result.authRequired).toBe(false);
+  });
+
+  it("unclick_start_pairing is the only tools/call allowed pre-auth", () => {
+    expect(PUBLIC_PAIRING_TOOL.name).toBe("unclick_start_pairing");
+    const protectedCall = peekRpc({
+      jsonrpc: "2.0",
+      id: 4,
+      method: "tools/call",
+      params: { name: "load_memory" },
+    });
+    expect(protectedCall.authRequired).toBe(true);
   });
 });

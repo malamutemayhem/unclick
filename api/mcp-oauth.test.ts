@@ -36,7 +36,12 @@ describe("MCP OAuth generic URL support", () => {
     expect(auth).not.toHaveProperty("client_id_metadata_document_supported");
   });
 
-  it("challenges the initial MCP handshake before protected connection setup", () => {
+  it("marks initialize and tools/call as auth-considered by peekRpc", () => {
+    // peekRpc flags initialize and tools/call as authRequired so the handler
+    // can enforce the OAuth challenge on the bearer-token path. For bare
+    // public clients (no bearer, no api key) the handler overrides this for
+    // initialize to allow discovery-mode handshake without exposing tenant
+    // data. See the pairing test suite for handler-level coverage.
     expect(peekRpc({ jsonrpc: "2.0", id: 1, method: "initialize" }).authRequired).toBe(true);
     expect(peekRpc({ jsonrpc: "2.0", id: 2, method: "tools/call" }).authRequired).toBe(true);
     expect(peekRpc({ jsonrpc: "2.0", id: 3, method: "tools/list" }).authRequired).toBe(false);
