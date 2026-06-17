@@ -635,6 +635,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } else if (bearerToken) {
     ctx = await validateMcpOAuthAccessToken(bearerToken);
+    if (!ctx && method === "initialize") {
+      ensurePublicPairId(req, res);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: {
+          protocolVersion: "2025-03-26",
+          capabilities: { tools: {} },
+          serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
+        },
+        id: peeked.id,
+      });
+    }
     if (!ctx && peeked.authRequired) {
       attachMcpOAuthChallenge(res, "invalid_token");
       return res.status(401).json({
