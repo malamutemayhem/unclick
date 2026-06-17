@@ -22,7 +22,12 @@ type PublicPairResponse = {
 };
 
 function maskPrivateValue(value: string) {
-  return value.replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`);
+  return value
+    .replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`)
+    .replace(
+      /(pair=)([A-Za-z0-9_-]{6})[A-Za-z0-9_-]{8,}([A-Za-z0-9_-]{4})/g,
+      "$1$2...$3",
+    );
 }
 
 export default function PairingCompletePage() {
@@ -122,6 +127,12 @@ export default function PairingCompletePage() {
 
   const compatibilityUrl = apiKey ? `${PUBLIC_MCP_URL}?key=${apiKey}` : "";
   const displayCompatibilityUrl = compatibilityUrl ? maskPrivateValue(compatibilityUrl) : "";
+  const pairedMcpUrl =
+    pairId && publicPairStatus === "paired"
+      ? `${PUBLIC_MCP_URL}?pair=${encodeURIComponent(pairId)}`
+      : "";
+  const primaryMcpUrl = pairedMcpUrl || PUBLIC_MCP_URL;
+  const displayPrimaryMcpUrl = pairedMcpUrl ? maskPrivateValue(pairedMcpUrl) : PUBLIC_MCP_URL;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -144,7 +155,7 @@ export default function PairingCompletePage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
                   {publicPairStatus === "paired"
-                    ? "This AI app is paired. Return to it and ask it to list UnClick tools again."
+                    ? "This AI app is paired. If it still shows one tool, reconnect it with the paired URL below."
                     : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
@@ -159,9 +170,13 @@ export default function PairingCompletePage() {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <div>
-                    <p className="text-sm font-semibold text-heading">Use the public door first</p>
+                    <p className="text-sm font-semibold text-heading">
+                      {pairedMcpUrl ? "Use this paired URL for this AI app" : "Use the public door first"}
+                    </p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      This address carries no personal key. After pairing, it can stay forever.
+                      {pairedMcpUrl
+                        ? "This address carries a revokable pairing token. It is not your API key, but keep it private."
+                        : "This address carries no personal key. After pairing, it can stay forever."}
                     </p>
                     {publicPairStatus === "paired" ? (
                       <p className="mt-2 text-xs font-medium text-primary">Public pairing saved.</p>
@@ -170,13 +185,13 @@ export default function PairingCompletePage() {
                 </div>
                 <div className="mt-3 flex items-stretch gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs text-heading">
-                    {PUBLIC_MCP_URL}
+                    {displayPrimaryMcpUrl}
                   </code>
                   <Button
                     type="button"
                     size="sm"
                     className="shrink-0 bg-primary text-black hover:opacity-90"
-                    onClick={() => void copy(PUBLIC_MCP_URL, "public")}
+                    onClick={() => void copy(primaryMcpUrl, "public")}
                   >
                     <Copy className="mr-1.5 h-3.5 w-3.5" />
                     {copied === "public" ? "Copied" : "Copy"}

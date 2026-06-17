@@ -17,8 +17,8 @@
  *       The session user_id is resolved to an api_keys row via
  *       api_keys.user_id FK; that row's key_hash becomes the tenancy
  *       context, so memory routing is identical to the api_key path.
- *     - Public MCP pairing id carried by mcp-session-id / cookie after
- *       the user opens the generated sign-in link and completes pairing.
+ *     - Public MCP pairing id carried by ?pair=, mcp-session-id, or cookie
+ *       after the user opens the generated sign-in link and completes pairing.
  *   Body: MCP JSON-RPC message (initialize, tools/list, tools/call, etc.)
  *
  * The endpoint is stateless - each request spins up a fresh MCP server
@@ -116,7 +116,16 @@ function readCookie(cookieHeader: string | undefined, name: string): string | nu
   return null;
 }
 
-function publicPairIdFromRequest(req: VercelRequest): string | null {
+export function publicPairIdFromRequest(req: VercelRequest): string | null {
+  const pairRaw = req.query.pair;
+  const fromQuery =
+    typeof pairRaw === "string"
+      ? pairRaw
+      : Array.isArray(pairRaw)
+        ? pairRaw[0]
+        : undefined;
+  if (isValidPublicMcpPairId(fromQuery)) return fromQuery.trim();
+
   const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
   if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
 
@@ -152,9 +161,17 @@ export function pairingLoginUrl(email?: string, pairId?: string): string {
   return url.toString();
 }
 
+export function pairedMcpUrl(pairId?: string): string {
+  if (!isValidPublicMcpPairId(pairId)) return "https://unclick.world/api/mcp";
+  const url = new URL("https://unclick.world/api/mcp");
+  url.searchParams.set("pair", pairId.trim());
+  return url.toString();
+}
+
 export function pairingToolResult(args: Record<string, unknown>, pairId?: string) {
   const email = typeof args.email === "string" ? args.email.trim() : "";
   const loginUrl = pairingLoginUrl(email, pairId);
+  const connectorUrl = pairedMcpUrl(pairId);
   return {
     content: [
       {
@@ -167,7 +184,10 @@ export function pairingToolResult(args: Record<string, unknown>, pairId?: string
           "",
           "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, return here and ask this AI app to list UnClick tools again.",
           "",
-          "Keep using the public URL: https://unclick.world/api/mcp. It does not carry a personal key. The Compatibility URL on the page is only a fallback for older clients.",
+          "If this AI app still shows only unclick_start_pairing, reconnect it with this paired URL:",
+          connectorUrl,
+          "",
+          "The paired URL is revokable and does not contain your API key, but keep it private. The Compatibility URL on the page is only a fallback for older clients.",
         ].join("\n"),
       },
     ],
@@ -480,7 +500,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   //      connector UIs that can't set headers)
   //   3. Supabase Auth session cookie               (browser on
   //      unclick.world after Phase 2 sign in)
-  //   4. Public MCP pair id                         (static public URL after
+  //   4. Public MCP pair id                         (paired URL/session after
   //      the generated browser sign-in link binds this client to a user)
   //
   // The api_key paths produce an ApiKeyContext directly. The session

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { VercelRequest } from "@vercel/node";
 import {
+  pairedMcpUrl,
   pairingLoginUrl,
   pairingToolResult,
   PUBLIC_PAIRING_TOOL,
+  publicPairIdFromRequest,
 } from "./mcp";
 import {
   buildPublicMcpPairCookie,
@@ -42,15 +45,34 @@ describe("public MCP pairing door", () => {
     expect(cookie).toContain("SameSite=None");
   });
 
-  it("explains compatibility URLs without pretending they are the public door", () => {
+  it("accepts a paired URL as a stable one-URL client handoff", () => {
+    const pairId = createPublicMcpPairId();
+    const url = new URL(pairedMcpUrl(pairId));
+    const req = {
+      query: { pair: pairId },
+      headers: {
+        cookie: `${PUBLIC_MCP_PAIR_COOKIE}=${createPublicMcpPairId()}`,
+        "mcp-session-id": createPublicMcpPairId(),
+      },
+    };
+
+    expect(url.origin).toBe("https://unclick.world");
+    expect(url.pathname).toBe("/api/mcp");
+    expect(url.searchParams.get("pair")).toBe(pairId);
+    expect(url.toString()).not.toContain("key=");
+    expect(publicPairIdFromRequest(req as unknown as VercelRequest)).toBe(pairId);
+  });
+
+  it("explains paired URLs without pretending they are API keys", () => {
     const pairId = createPublicMcpPairId();
     const result = pairingToolResult({ email: "person@example.com" }, pairId);
     const text = result.content[0]?.text ?? "";
 
     expect(text).toContain("not paired");
     expect(text).toContain("https://unclick.world/login");
+    expect(text).toContain("https://unclick.world/api/mcp?pair=");
     expect(text).toContain("Compatibility URL");
-    expect(text).toContain("public URL");
+    expect(text).toContain("does not contain your API key");
     expect(text).toContain(pairId);
     expect(text).not.toContain("Bearer");
   });

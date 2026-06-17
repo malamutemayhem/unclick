@@ -19,7 +19,8 @@ describe("public MCP door copy", () => {
   it("keeps the magic-link landing page honest about fallback URLs", () => {
     const src = pairingPage();
 
-    expect(src).toContain("Use the public door first");
+    expect(src).toContain("Use this paired URL for this AI app");
+    expect(src).toContain("revokable pairing token");
     expect(src).toContain("Fallback for older AI apps");
     expect(src).toContain("contains a private connection key");
     expect(src).not.toContain("master key");
