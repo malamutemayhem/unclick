@@ -123,11 +123,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 6e542cff428b | 6635 |
+| src/pages/AppDetail.tsx | 615008dd7579 | 7073 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 818da19c618a | 31549 |
+| src/pages/Connect.tsx | 7f058f7a966d | 32428 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |

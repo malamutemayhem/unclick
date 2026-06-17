@@ -16349,8 +16349,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "6e542cff428b",
-      "bytes": 6635
+      "hash": "615008dd7579",
+      "bytes": 7073
     },
     {
       "source": "src/pages/Apps.tsx",
@@ -16369,8 +16369,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "818da19c618a",
-      "bytes": 31549
+      "hash": "7f058f7a966d",
+      "bytes": 32428
     },
     {
       "source": "src/pages/Crews.tsx",
