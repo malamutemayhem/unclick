@@ -17,8 +17,9 @@
  *       The session user_id is resolved to an api_keys row via
  *       api_keys.user_id FK; that row's key_hash becomes the tenancy
  *       context, so memory routing is identical to the api_key path.
- *     - Public MCP pairing id carried by ?pair=, mcp-session-id, or cookie
- *       after the user opens the generated sign-in link and completes pairing.
+ *     - Public MCP pairing id carried by /api/mcp/p/:pair, ?pair=,
+ *       mcp-session-id, or cookie after the user opens the generated sign-in
+ *       link and completes pairing.
  *   Body: MCP JSON-RPC message (initialize, tools/list, tools/call, etc.)
  *
  * The endpoint is stateless - each request spins up a fresh MCP server
@@ -116,6 +117,19 @@ function readCookie(cookieHeader: string | undefined, name: string): string | nu
   return null;
 }
 
+function publicPairIdFromPath(req: VercelRequest): string | null {
+  if (!req.url) return null;
+  try {
+    const url = new URL(req.url, "https://unclick.world");
+    const match = /^\/api\/mcp\/p\/([^/?#]+)$/.exec(url.pathname);
+    if (!match) return null;
+    const decoded = decodeURIComponent(match[1] ?? "");
+    return isValidPublicMcpPairId(decoded) ? decoded.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function publicPairIdFromRequest(req: VercelRequest): string | null {
   const pairRaw = req.query.pair;
   const fromQuery =
@@ -125,6 +139,9 @@ export function publicPairIdFromRequest(req: VercelRequest): string | null {
         ? pairRaw[0]
         : undefined;
   if (isValidPublicMcpPairId(fromQuery)) return fromQuery.trim();
+
+  const fromPath = publicPairIdFromPath(req);
+  if (fromPath) return fromPath;
 
   const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
   if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
@@ -163,9 +180,7 @@ export function pairingLoginUrl(email?: string, pairId?: string): string {
 
 export function pairedMcpUrl(pairId?: string): string {
   if (!isValidPublicMcpPairId(pairId)) return "https://unclick.world/api/mcp";
-  const url = new URL("https://unclick.world/api/mcp");
-  url.searchParams.set("pair", pairId.trim());
-  return url.toString();
+  return `https://unclick.world/api/mcp/p/${encodeURIComponent(pairId.trim())}`;
 }
 
 export function pairingToolResult(args: Record<string, unknown>, pairId?: string) {

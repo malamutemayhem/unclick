@@ -27,6 +27,10 @@ function maskPrivateValue(value: string) {
     .replace(
       /(pair=)([A-Za-z0-9_-]{6})[A-Za-z0-9_-]{8,}([A-Za-z0-9_-]{4})/g,
       "$1$2...$3",
+    )
+    .replace(
+      /(\/api\/mcp\/p\/)([A-Za-z0-9_-]{6})[A-Za-z0-9_-]{8,}([A-Za-z0-9_-]{4})/g,
+      "$1$2...$3",
     );
 }
 
@@ -129,7 +133,7 @@ export default function PairingCompletePage() {
   const displayCompatibilityUrl = compatibilityUrl ? maskPrivateValue(compatibilityUrl) : "";
   const pairedMcpUrl =
     pairId && publicPairStatus === "paired"
-      ? `${PUBLIC_MCP_URL}?pair=${encodeURIComponent(pairId)}`
+      ? `${PUBLIC_MCP_URL}/p/${encodeURIComponent(pairId)}`
       : "";
   const primaryMcpUrl = pairedMcpUrl || PUBLIC_MCP_URL;
   const displayPrimaryMcpUrl = pairedMcpUrl ? maskPrivateValue(pairedMcpUrl) : PUBLIC_MCP_URL;

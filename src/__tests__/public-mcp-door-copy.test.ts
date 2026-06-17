@@ -20,6 +20,7 @@ describe("public MCP door copy", () => {
     const src = pairingPage();
 
     expect(src).toContain("Use this paired URL for this AI app");
+    expect(src).toContain("${PUBLIC_MCP_URL}/p/");
     expect(src).toContain("revokable pairing token");
     expect(src).toContain("Fallback for older AI apps");
     expect(src).toContain("contains a private connection key");
