@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Connect from "./Connect";
@@ -32,6 +32,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 describe("Connect page OAuth-first app setup", () => {
@@ -50,6 +51,24 @@ describe("Connect page OAuth-first app setup", () => {
     expect(screen.getByRole("heading", { name: "Connect Supabase" })).toBeInTheDocument();
     expect(screen.getByText("Account login")).toBeInTheDocument();
     expect(screen.getByText("Sign in with Supabase")).toBeInTheDocument();
+    expect(screen.getByText("Use a token instead")).toBeInTheDocument();
+  });
+
+  it("keeps the token fallback visible when Supabase login setup is pending", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+      error: "Supabase login is not switched on yet.",
+      setup_pending: true,
+      provider: "supabase",
+      missing: "client_id",
+    }), { status: 503, headers: { "Content-Type": "application/json" } })));
+
+    renderAt("/connect/supabase");
+    fireEvent.click(screen.getByRole("button", { name: "Continue to Supabase login" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/missing client ID/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("heading", { name: "Connection failed" })).not.toBeInTheDocument();
     expect(screen.getByText("Use a token instead")).toBeInTheDocument();
   });
 });

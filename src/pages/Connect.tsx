@@ -21,6 +21,17 @@ type PageState =
   | { kind: "success" }
   | { kind: "error"; message: string };
 
+interface OAuthInitResponse {
+  state?: string;
+  redirect_uri?: string;
+  client_id?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+  error?: string;
+  setup_pending?: boolean;
+  missing?: "client_id" | "redirect_uri";
+}
+
 // --- OAuth helpers -------------------------------------------------------------
 
 const VITE_ENV = import.meta.env as Record<string, string>;
@@ -192,6 +203,7 @@ export default function ConnectPage() {
   const [showManualPaste, setShowManualPaste] = useState(false);
   const [alreadyProvisioned, setAlreadyProvisioned] = useState(false);
   const [resettingKey, setResettingKey] = useState(false);
+  const [setupPending, setSetupPending] = useState<string | null>(null);
   const callbackFired                 = useRef(false);
   const connectedParam                = searchParams.get("connected");
   const oauthErrorParam               = searchParams.get("oauth_error");
@@ -503,14 +515,13 @@ export default function ConnectPage() {
         }),
       });
 
-      const data = (await safeJson(res)) as {
-        state?: string;
-        redirect_uri?: string;
-        client_id?: string;
-        code_challenge?: string;
-        code_challenge_method?: string;
-        error?: string;
-      };
+      const data = (await safeJson(res)) as OAuthInitResponse;
+      if (data.setup_pending) {
+        const missing = data.missing === "redirect_uri" ? "redirect URI" : "client ID";
+        setSetupPending(`${connector.name} login needs UnClick admin setup before it can open: missing ${missing}. Use the token fallback below for now.`);
+        setPageState({ kind: "idle" });
+        return;
+      }
       if (!res.ok || !data.state || !data.redirect_uri) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
@@ -526,7 +537,8 @@ export default function ConnectPage() {
         codeChallengeMethod: data.code_challenge_method,
       });
       if (!url) {
-        setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
+        setSetupPending(`${connector.name} login needs UnClick admin setup before it can open. Use the token fallback below for now.`);
+        setPageState({ kind: "idle" });
         return;
       }
 
@@ -734,11 +746,20 @@ export default function ConnectPage() {
             ) : (
               <Button
                 className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
-                onClick={() => void handleOAuthConnect()}
+                onClick={() => {
+                  setSetupPending(null);
+                  void handleOAuthConnect();
+                }}
                 disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
                 {oauthLoginReady ? `Continue to ${connector.name} login` : `Connect with ${connector.name}`}
               </Button>
+            )}
+
+            {setupPending && (
+              <div className="rounded-lg border border-amber-300/30 bg-amber-300/10 p-3">
+                <p className="text-sm text-amber-100">{setupPending}</p>
+              </div>
             )}
 
             <div className="relative">
