@@ -1,17 +1,37 @@
 // Higgsfield AI API integration for the UnClick MCP server.
 // Uses the Higgsfield REST API via fetch - no external dependencies.
-// This REST connector accepts api_key or HIGGSFIELD_API_KEY. Higgsfield's hosted
-// MCP uses Higgsfield's own account sign-in at https://mcp.higgsfield.ai/mcp.
+// Credentials are auto-resolved via vault-bridge:
+//   1. Inline args (api_key or access_token passed directly)
+//   2. Env vars  UNCLICK_HIGGSFIELD_ACCESS_TOKEN or HIGGSFIELD_API_KEY
+//   3. Local vault  key "higgsfield/access_token"
+//   4. Supabase  via UNCLICK_API_KEY + unclick.world/api/credentials
+//     (includes tokens stored by Higgsfield OAuth sign-in)
 
-import { requireCredential } from "./connector-setup.js";
-import { type NotConnectedResult } from "./connection-help.js";
+import { resolveCredentials } from "./vault-bridge.js";
 import { stampMeta } from "./connector-meta.js";
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 
-// ─── Auth validation ──────────────────────────────────────────────────────────
+// ─── Auth resolution ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
-  return requireCredential("higgsfield", args);
+async function resolveKey(
+  args: Record<string, unknown>
+): Promise<string | Record<string, unknown>> {
+  const directKey = String(args.api_key ?? "").trim();
+  if (directKey) return directKey;
+
+  const resolved = await resolveCredentials("higgsfield", args);
+  if ("error" in resolved) return resolved;
+
+  const token =
+    String(resolved.access_token ?? "").trim() ||
+    String(resolved.api_key ?? "").trim();
+  if (!token) {
+    return {
+      error: "Higgsfield credentials not configured. Connect Higgsfield at https://unclick.world/admin/apps or pass api_key.",
+      setup: { web: "https://unclick.world/connect/higgsfield" },
+    };
+  }
+  return token;
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -83,7 +103,7 @@ async function hfPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function higgsfield_generate_video(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = await resolveKey(args);
   if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -107,7 +127,7 @@ export async function higgsfield_generate_video(args: Record<string, unknown>): 
 }
 
 export async function higgsfield_generate_image(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = await resolveKey(args);
   if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -131,7 +151,7 @@ export async function higgsfield_generate_image(args: Record<string, unknown>): 
 }
 
 export async function higgsfield_get_styles(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = await resolveKey(args);
   if (typeof apiKey !== "string") return apiKey;
   const data = await hfGet<{ styles?: unknown[]; data?: unknown[] }>(apiKey, "/styles");
 
@@ -143,7 +163,7 @@ export async function higgsfield_get_styles(args: Record<string, unknown>): Prom
 }
 
 export async function higgsfield_get_status(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = await resolveKey(args);
   if (typeof apiKey !== "string") return apiKey;
   const generationId = String(args.generation_id ?? "").trim();
   if (!generationId) throw new Error("generation_id is required.");

@@ -17057,12 +17057,12 @@ export const ADDITIONAL_TOOLS = [
   // ── higgsfield-tool.ts ────────────────────────────────────────────────────────
   {
     name: "higgsfield_generate_video",
-    description: "Generate a Higgsfield video from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account.",
+    description: "Generate a Higgsfield video from a prompt. Uses your connected Higgsfield account or a Cloud API key.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Optional Higgsfield Cloud API key for this call. You can also save a Higgsfield API key in UnClick or set HIGGSFIELD_API_KEY on the MCP server." },
+        api_key: { type: "string", description: "Optional Higgsfield Cloud API key. Omit if Higgsfield is already connected in UnClick." },
         prompt: { type: "string", description: "Text description of the video to generate" },
         style: { type: "string", description: "Soul Style name (use higgsfield_get_styles to list available styles)" },
         duration: { type: "number", description: "Video duration in seconds" },
@@ -17075,12 +17075,12 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "higgsfield_generate_image",
-    description: "Generate a Higgsfield image from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account.",
+    description: "Generate a Higgsfield image from a prompt. Uses your connected Higgsfield account or a Cloud API key.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Optional Higgsfield Cloud API key for this call. You can also save a Higgsfield API key in UnClick or set HIGGSFIELD_API_KEY on the MCP server." },
+        api_key: { type: "string", description: "Optional Higgsfield Cloud API key. Omit if Higgsfield is already connected in UnClick." },
         prompt: { type: "string", description: "Text description of the image to generate" },
         style: { type: "string", description: "Style name (use higgsfield_get_styles to list available styles)" },
         width: { type: "number", description: "Image width in pixels" },
@@ -17093,24 +17093,24 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "higgsfield_get_styles",
-    description: "List available Higgsfield styles using a Higgsfield Cloud API key saved in UnClick or supplied for this call.",
+    description: "List available Higgsfield styles. Uses your connected Higgsfield account or a Cloud API key.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Optional Higgsfield Cloud API key for this call. You can also save a Higgsfield API key in UnClick or set HIGGSFIELD_API_KEY on the MCP server." },
+        api_key: { type: "string", description: "Optional Higgsfield Cloud API key. Omit if Higgsfield is already connected in UnClick." },
       },
       required: [],
     },
   },
   {
     name: "higgsfield_get_status",
-    description: "Check the status of a Higgsfield generation by ID using a Higgsfield Cloud API key saved in UnClick or supplied for this call.",
+    description: "Check the status of a Higgsfield generation by ID. Uses your connected Higgsfield account or a Cloud API key.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Optional Higgsfield Cloud API key for this call. You can also save a Higgsfield API key in UnClick or set HIGGSFIELD_API_KEY on the MCP server." },
+        api_key: { type: "string", description: "Optional Higgsfield Cloud API key. Omit if Higgsfield is already connected in UnClick." },
         generation_id: { type: "string", description: "Generation ID returned by higgsfield_generate_video or higgsfield_generate_image" },
       },
       required: ["generation_id"],

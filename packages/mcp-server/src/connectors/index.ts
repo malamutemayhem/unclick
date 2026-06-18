@@ -51,6 +51,7 @@ import { notionConnector }     from "./notion.js";
 import { raindropConnector }   from "./raindrop.js";
 import { readwiseConnector }   from "./readwise.js";
 import { instapaperConnector } from "./instapaper.js";
+import { higgsFieldConnector } from "./higgsfield.js";
 
 export {
   xeroConnector,
@@ -71,20 +72,21 @@ export {
   raindropConnector,
   readwiseConnector,
   instapaperConnector,
+  higgsFieldConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
-  xero:     xeroConnector,
-  shopify:  shopifyConnector,
-  telegram: telegramConnector,
-  discord:  discordConnector,
-  reddit:   redditConnector,
-  slack:    slackConnector,
-  bluesky:  blueskyConnector,
-  mastodon: mastodonConnector,
-  line:     lineConnector,
-  figma:    figmaConnector,
-  splitwise: splitwiseConnector,
+  xero:       xeroConnector,
+  shopify:    shopifyConnector,
+  telegram:   telegramConnector,
+  discord:    discordConnector,
+  reddit:     redditConnector,
+  slack:      slackConnector,
+  bluesky:    blueskyConnector,
+  mastodon:   mastodonConnector,
+  line:       lineConnector,
+  figma:      figmaConnector,
+  splitwise:  splitwiseConnector,
   clockify:   clockifyConnector,
   feedly:     feedlyConnector,
   monica:     monicaConnector,
@@ -92,4 +94,5 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   raindrop:   raindropConnector,
   readwise:   readwiseConnector,
   instapaper: instapaperConnector,
+  higgsfield: higgsFieldConnector,
 };
