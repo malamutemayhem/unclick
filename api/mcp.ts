@@ -664,14 +664,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: peeked.id,
       });
     }
+    if (!ctx && method === "tools/list") {
+      ensurePublicPairId(req, res);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: { tools: publicToolsForUnpairedClient() },
+        id: peeked.id,
+      });
+    }
+    if (
+      !ctx &&
+      method === "tools/call" &&
+      toolName === PUBLIC_PAIRING_TOOL.name
+    ) {
+      const pairId = ensurePublicPairId(req, res);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: pairingToolResult(singleToolArgs(req.body), pairId),
+        id: peeked.id,
+      });
+    }
     if (!ctx && peeked.authRequired) {
+      const pairId = ensurePublicPairId(req, res);
       attachMcpOAuthChallenge(res, "invalid_token");
+      const loginUrl = pairingLoginUrl(undefined, pairId);
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
           code: -32001,
           message:
-            "Invalid or expired UnClick MCP OAuth token. Reconnect this MCP server using https://unclick.world/api/mcp.",
+            "UnClick is not paired yet. " +
+            `Complete pairing: ${loginUrl} ` +
+            "After sign-in, try this tool again. " +
+            "If the app still cannot connect, reconfigure it with the paired URL shown on the ready page.",
         },
         id: peeked.id,
       });

@@ -200,4 +200,20 @@ describe("public MCP pairing door", () => {
     });
     expect(protectedCall.authRequired).toBe(true);
   });
+
+  // ── RC3: bearer-token discovery for stateless clients ──────────────────
+  it("peekRpc marks tools/list as not auth-required so both branches can serve it", () => {
+    const result = peekRpc({ jsonrpc: "2.0", id: 5, method: "tools/list" });
+    expect(result.authRequired).toBe(false);
+  });
+
+  it("peekRpc marks unclick_start_pairing tools/call as auth-required (handler overrides per-branch)", () => {
+    const result = peekRpc({
+      jsonrpc: "2.0",
+      id: 6,
+      method: "tools/call",
+      params: { name: "unclick_start_pairing" },
+    });
+    expect(result.authRequired).toBe(true);
+  });
 });
