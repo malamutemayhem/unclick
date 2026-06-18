@@ -29,7 +29,8 @@ interface OAuthInitResponse {
   code_challenge_method?: string;
   error?: string;
   setup_pending?: boolean;
-  missing?: "client_id" | "redirect_uri";
+  missing?: "client_id" | "client_secret" | "redirect_uri" | "state_secret";
+  missing_fields?: Array<"client_id" | "client_secret" | "redirect_uri" | "state_secret">;
 }
 
 // --- OAuth helpers -------------------------------------------------------------
@@ -517,7 +518,25 @@ export default function ConnectPage() {
 
       const data = (await safeJson(res)) as OAuthInitResponse;
       if (data.setup_pending) {
-        const missing = data.missing === "redirect_uri" ? "redirect URI" : "client ID";
+        const missingLabels: Record<NonNullable<OAuthInitResponse["missing"]>, string> = {
+          client_id:     "client ID",
+          client_secret: "client secret",
+          redirect_uri:  "redirect URI",
+          state_secret:  "OAuth state secret",
+        };
+        const missingFields = data.missing_fields?.length
+          ? data.missing_fields
+          : data.missing
+            ? [data.missing]
+            : [];
+        const labels = missingFields.map((field) => missingLabels[field]).filter(Boolean);
+        const missing = labels.length === 0
+          ? "provider setup"
+          : labels.length === 1
+            ? labels[0]
+            : labels.length === 2
+              ? `${labels[0]} and ${labels[1]}`
+              : `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
         setSetupPending(`${connector.name} login needs UnClick admin setup before it can open: missing ${missing}. Use the token fallback below for now.`);
         setPageState({ kind: "idle" });
         return;

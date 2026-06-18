@@ -33,11 +33,25 @@ const CLIENT_ID_ENV: Record<string, string> = {
   "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_ID",
 };
 
+const CLIENT_SECRET_ENV: Record<string, string> = {
+  github:            "GITHUB_CLIENT_SECRET",
+  vercel:            "VERCEL_CLIENT_SECRET",
+  supabase:          "SUPABASE_OAUTH_CLIENT_SECRET",
+  xero:              "XERO_CLIENT_SECRET",
+  reddit:            "REDDIT_CLIENT_SECRET",
+  shopify:           "SHOPIFY_CLIENT_SECRET",
+  spotify:           "SPOTIFY_CLIENT_SECRET",
+  dropbox:           "DROPBOX_CLIENT_SECRET",
+  "google-workspace": "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_SECRET",
+};
+
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 const PKCE_PLATFORMS = new Set(["vercel", "supabase"]);
+const OPTIONAL_CLIENT_SECRET_PLATFORMS = new Set(["vercel"]);
 const PLATFORM_LABELS: Record<string, string> = {
   github: "GitHub",
   vercel: "Vercel",
@@ -100,13 +114,31 @@ function resolveRedirectUri(platform: string, redirectUriEnv: string, env: NodeJ
   return redirectUri;
 }
 
-function providerSetupPending(res: VercelResponse, platform: string, missing: "client_id" | "redirect_uri") {
+type OAuthSetupMissing = "client_id" | "client_secret" | "redirect_uri" | "state_secret";
+
+const MISSING_LABELS: Record<OAuthSetupMissing, string> = {
+  client_id:     "client ID",
+  client_secret: "client secret",
+  redirect_uri:  "redirect URI",
+  state_secret:  "OAuth state secret",
+};
+
+function formatMissing(fields: OAuthSetupMissing[]): string {
+  const labels = fields.map((field) => MISSING_LABELS[field]);
+  if (labels.length <= 1) return labels[0] ?? "OAuth setup";
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+}
+
+function providerSetupPending(res: VercelResponse, platform: string, missing: OAuthSetupMissing[]) {
   const label = PLATFORM_LABELS[platform] ?? platform;
+  const missingText = formatMissing(missing);
   return res.status(503).json({
-    error: `${label} login is not switched on yet. Use the token fallback for now, or try again after the login setup is finished.`,
+    error: `${label} login is not switched on yet. Missing ${missingText}. Use the token fallback for now, or try again after the login setup is finished.`,
     setup_pending: true,
     provider: platform,
-    missing,
+    missing: missing[0],
+    missing_fields: missing,
   });
 }
 
@@ -143,13 +175,26 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const redirectUriEnv = REDIRECT_URI_ENV[platform];
     const redirectUri = redirectUriEnv ? resolveRedirectUri(platform, redirectUriEnv, process.env) : "";
-    if (!redirectUri) {
-      return providerSetupPending(res, platform, "redirect_uri");
-    }
     const clientIdEnv = CLIENT_ID_ENV[platform];
     const clientId = clientIdEnv ? (process.env[clientIdEnv] ?? "").trim() : "";
-    if (!clientId) {
-      return providerSetupPending(res, platform, "client_id");
+    const clientSecretEnv = CLIENT_SECRET_ENV[platform];
+    const clientSecret = clientSecretEnv ? (process.env[clientSecretEnv] ?? "").trim() : "";
+    const setupMissing: OAuthSetupMissing[] = [];
+    if (!redirectUri) setupMissing.push("redirect_uri");
+    if (!clientId) setupMissing.push("client_id");
+    if (clientSecretEnv && !clientSecret && !OPTIONAL_CLIENT_SECRET_PLATFORMS.has(platform)) {
+      setupMissing.push("client_secret");
+    }
+    if (
+      clientSecretEnv &&
+      !clientSecret &&
+      OPTIONAL_CLIENT_SECRET_PLATFORMS.has(platform) &&
+      !process.env.OAUTH_STATE_SECRET
+    ) {
+      setupMissing.push("state_secret");
+    }
+    if (setupMissing.length > 0) {
+      return providerSetupPending(res, platform, setupMissing);
     }
 
     const state = createOAuthStateToken({

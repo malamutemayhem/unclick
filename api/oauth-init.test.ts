@@ -146,12 +146,14 @@ describe("oauth init", () => {
     }
   });
 
-  it("returns a user-safe pending setup response when a provider client is missing", () => {
+  it("returns a user-safe pending setup response when provider OAuth setup is missing", () => {
     const previous = {
       SUPABASE_OAUTH_CLIENT_ID: process.env.SUPABASE_OAUTH_CLIENT_ID,
+      SUPABASE_OAUTH_CLIENT_SECRET: process.env.SUPABASE_OAUTH_CLIENT_SECRET,
       SUPABASE_OAUTH_REDIRECT_URI: process.env.SUPABASE_OAUTH_REDIRECT_URI,
     };
     process.env.SUPABASE_OAUTH_CLIENT_ID = "";
+    process.env.SUPABASE_OAUTH_CLIENT_SECRET = "";
     process.env.SUPABASE_OAUTH_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 
     try {
@@ -169,11 +171,14 @@ describe("oauth init", () => {
         setup_pending: true,
         provider: "supabase",
         missing: "client_id",
+        missing_fields: ["client_id", "client_secret"],
       });
       expect((response.payload as { error?: string }).error).toContain("Supabase login is not switched on yet");
+      expect((response.payload as { error?: string }).error).toContain("client ID and client secret");
       expect((response.payload as { error?: string }).error).not.toContain("SUPABASE_OAUTH_CLIENT_ID");
     } finally {
       process.env.SUPABASE_OAUTH_CLIENT_ID = previous.SUPABASE_OAUTH_CLIENT_ID;
+      process.env.SUPABASE_OAUTH_CLIENT_SECRET = previous.SUPABASE_OAUTH_CLIENT_SECRET;
       process.env.SUPABASE_OAUTH_REDIRECT_URI = previous.SUPABASE_OAUTH_REDIRECT_URI;
     }
   });

@@ -258,6 +258,10 @@ export function evaluateConnectionReadinessSources(
       const block = objectBlockForConst(sources.oauthInit, "CLIENT_ID_ENV");
       return envValueFromBlock(block, platform);
     })();
+    const initClientSecretEnv = (() => {
+      const block = objectBlockForConst(sources.oauthInit, "CLIENT_SECRET_ENV");
+      return envValueFromBlock(block, platform);
+    })();
     const callbackClientEnv = envValueFromBlock(callbackBlock, "clientIdEnv");
     const callbackRedirectEnv = envValueFromBlock(callbackBlock, "redirectUriEnv");
     const callbackSecretEnv = envValueFromBlock(callbackBlock, "clientSecretEnv");
@@ -303,6 +307,7 @@ export function evaluateConnectionReadinessSources(
       sources.oauthInit.includes(`"${platform}"`)
         && Boolean(initRedirectEnv)
         && Boolean(initClientEnv)
+        && Boolean(initClientSecretEnv)
         && sources.oauthInit.includes("providerSetupPending"),
       "OAuth start endpoint allow-lists the platform and returns setup-pending instead of a dead end."
     );
@@ -324,13 +329,18 @@ export function evaluateConnectionReadinessSources(
       Boolean(initClientEnv)
         && Boolean(callbackClientEnv)
         && initClientEnv === callbackClientEnv
+        && Boolean(initClientSecretEnv)
+        && Boolean(callbackSecretEnv)
+        && initClientSecretEnv === callbackSecretEnv
         && Boolean(initRedirectEnv)
         && Boolean(callbackRedirectEnv)
         && initRedirectEnv === callbackRedirectEnv,
-      "OAuth start and callback agree on client ID and redirect URI environment names.",
+      "OAuth start and callback agree on client ID, client secret, and redirect URI environment names.",
       {
         init_client_env: initClientEnv || null,
         callback_client_env: callbackClientEnv || null,
+        init_client_secret_env: initClientSecretEnv || null,
+        callback_client_secret_env: callbackSecretEnv || null,
         init_redirect_env: initRedirectEnv || null,
         callback_redirect_env: callbackRedirectEnv || null,
       }

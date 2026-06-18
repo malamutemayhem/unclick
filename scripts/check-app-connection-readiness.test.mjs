@@ -87,4 +87,21 @@ describe("app connection readiness", () => {
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /oauth_env_names_match_start_and_callback/);
   });
+
+  it("blocks when OAuth start does not check the provider client secret", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.oauthInit = sources.oauthInit.replace(
+      'supabase:          "SUPABASE_OAUTH_CLIENT_SECRET",',
+      ""
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /oauth_init_supported/);
+    assert.match(actionText(receipt), /oauth_env_names_match_start_and_callback/);
+  });
 });

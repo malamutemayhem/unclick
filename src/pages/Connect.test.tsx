@@ -60,13 +60,14 @@ describe("Connect page OAuth-first app setup", () => {
       setup_pending: true,
       provider: "supabase",
       missing: "client_id",
+      missing_fields: ["client_id", "client_secret"],
     }), { status: 503, headers: { "Content-Type": "application/json" } })));
 
     renderAt("/connect/supabase");
     fireEvent.click(screen.getByRole("button", { name: "Continue to Supabase login" }));
 
     await waitFor(() => {
-      expect(screen.getByText(/missing client ID/i)).toBeInTheDocument();
+      expect(screen.getByText(/missing client ID and client secret/i)).toBeInTheDocument();
     });
     expect(screen.queryByRole("heading", { name: "Connection failed" })).not.toBeInTheDocument();
     expect(screen.getByText("Use a token instead")).toBeInTheDocument();
