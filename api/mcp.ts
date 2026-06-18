@@ -64,6 +64,11 @@ const AUTH_REQUIRED_METHODS = new Set<string>(["initialize", "tools/call"]);
 
 type JsonRpcId = string | number | null;
 
+const DISCOVERY_INSTRUCTIONS =
+  "This server is not paired yet. Call load_memory FIRST in every session, " +
+  "then call unclick_start_pairing to connect this AI app to an UnClick account. " +
+  "After pairing, load_memory returns your saved context, preferences, and identity.";
+
 export const PUBLIC_PAIRING_TOOL = {
   name: "unclick_start_pairing",
   title: "Connect UnClick",
@@ -660,6 +665,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           protocolVersion: "2025-03-26",
           capabilities: { tools: {} },
           serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
+          instructions: DISCOVERY_INSTRUCTIONS,
         },
         id: peeked.id,
       });
@@ -743,6 +749,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           protocolVersion: "2025-03-26",
           capabilities: { tools: {} },
           serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
+          instructions: DISCOVERY_INSTRUCTIONS,
         },
         id: peeked.id,
       });
