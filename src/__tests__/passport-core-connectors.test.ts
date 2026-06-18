@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest";
 import { CONNECTORS } from "@/lib/connectors";
 
 describe("Passport core connectors", () => {
-  it("registers GitHub, Vercel, and Supabase for /connect routes", () => {
+  it("registers core apps for /connect routes", () => {
     expect(CONNECTORS.github?.name).toBe("GitHub");
     expect(CONNECTORS.vercel?.name).toBe("Vercel");
     expect(CONNECTORS.supabase?.name).toBe("Supabase");
+    expect(CONNECTORS.higgsfield?.name).toBe("Higgsfield");
   });
 
   it("keeps secret fields marked as secret", () => {
@@ -21,5 +22,13 @@ describe("Passport core connectors", () => {
     expect(CONNECTORS.github.tokenUrl).toBe("https://github.com/login/oauth/access_token");
     expect(CONNECTORS.github.scopes).toEqual(expect.arrayContaining(["repo", "workflow"]));
     expect(CONNECTORS.github.credentialFields.find((field) => field.key === "api_key")?.label).toContain("fallback");
+  });
+
+  it("uses OAuth login for Higgsfield MCP with token fallback", () => {
+    expect(CONNECTORS.higgsfield.authType).toBe("oauth2");
+    expect(CONNECTORS.higgsfield.authUrl).toBe("https://mcp.higgsfield.ai/oauth2/authorize");
+    expect(CONNECTORS.higgsfield.tokenUrl).toBe("https://mcp.higgsfield.ai/oauth2/token");
+    expect(CONNECTORS.higgsfield.scopes).toEqual(expect.arrayContaining(["openid", "email", "offline_access"]));
+    expect(CONNECTORS.higgsfield.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
   });
 });

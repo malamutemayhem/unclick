@@ -76,6 +76,39 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
     docsUrl: "https://vercel.com/docs/rest-api",
   },
 
+  higgsfield: {
+    name:        "Higgsfield",
+    slug:        "higgsfield",
+    authType:    "oauth2",
+    description: "Higgsfield MCP account login for image, video, character, and campaign generation.",
+    scopes: [
+      "openid",
+      "email",
+      "offline_access",
+    ],
+    authUrl:  "https://mcp.higgsfield.ai/oauth2/authorize",
+    tokenUrl: "https://mcp.higgsfield.ai/oauth2/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Higgsfield MCP token fallback",
+        description:  "Use only if the Higgsfield login flow is unavailable. The normal path is Connect with Higgsfield.",
+        secret:       true,
+        placeholder:  "Bearer token from Higgsfield MCP OAuth",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+      {
+        key:          "refresh_token",
+        label:        "Higgsfield refresh token",
+        description:  "Optional refresh token returned by Higgsfield MCP OAuth.",
+        secret:       true,
+        placeholder:  "refresh token",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+    ],
+    docsUrl: "https://higgsfield.ai/mcp",
+  },
+
   supabase: {
     name:        "Supabase",
     slug:        "supabase",
