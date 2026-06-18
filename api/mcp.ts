@@ -153,6 +153,7 @@ function publicPairIdFromPath(req: VercelRequest): string | null {
 }
 
 export function publicPairIdFromRequest(req: VercelRequest): string | null {
+  // Explicit URL sources are highest priority (user chose this URL).
   const pairRaw = req.query.pair;
   const fromQuery =
     typeof pairRaw === "string"
@@ -165,12 +166,16 @@ export function publicPairIdFromRequest(req: VercelRequest): string | null {
   const fromPath = publicPairIdFromPath(req);
   if (fromPath) return fromPath;
 
-  const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
-  if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
-
+  // mcp-session-id is the MCP-spec mechanism the client echoes back after
+  // the server sets it. Check it before the cookie so a stale cookie from
+  // a previous (possibly different) pairing attempt cannot override the
+  // client's current session identity.
   const header = req.headers["mcp-session-id"];
   const fromHeader = Array.isArray(header) ? header[0] : header;
   if (isValidPublicMcpPairId(fromHeader)) return fromHeader.trim();
+
+  const fromCookie = readCookie(req.headers.cookie, PUBLIC_MCP_PAIR_COOKIE);
+  if (isValidPublicMcpPairId(fromCookie)) return fromCookie.trim();
 
   return null;
 }
@@ -215,23 +220,34 @@ export function pairingToolResult(
 ) {
   const email = typeof args.email === "string" ? args.email.trim() : "";
   const loginUrl = pairingLoginUrl(email, pairId);
+  const lines = [
+    "UnClick is installed, but this AI app is not paired to an UnClick account yet.",
+    "",
+    "Next step:",
+    `Open ${loginUrl}`,
+    "",
+    "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, try the tool again.",
+    "",
+    "Preferred server URL for every AI app:",
+    "https://unclick.world/api/mcp",
+  ];
+  if (isValidPublicMcpPairId(pairId)) {
+    lines.push(
+      "",
+      "If tools still fail after sign-in, this AI app may not keep session state between requests.",
+      `Reconfigure this MCP server with the paired URL instead: ${pairedMcpUrl(pairId)}`,
+      "The paired URL embeds the connection identity in the path so no cookies or headers are needed.",
+    );
+  }
+  lines.push(
+    "",
+    "The ready page has private fallback options only for older apps that cannot keep web sign-in.",
+  );
   return {
     content: [
       {
         type: "text",
-        text: [
-          "UnClick is installed, but this AI app is not paired to an UnClick account yet.",
-          "",
-          "Next step:",
-          `Open ${loginUrl}`,
-          "",
-          "Sign in with email, Google, or Microsoft. When the page says UnClick is ready, try the tool again.",
-          "",
-          "Preferred server URL for every AI app:",
-          "https://unclick.world/api/mcp",
-          "",
-          "If this AI app still shows only Connect UnClick after the ready page, do not keep opening new links. Keep https://unclick.world/api/mcp as the normal server URL. The ready page has private fallback options only for older apps that cannot keep web sign-in.",
-        ].join("\n"),
+        text: lines.join("\n"),
       },
     ],
   };
@@ -630,6 +646,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } else if (bearerToken) {
     ctx = await validateMcpOAuthAccessToken(bearerToken);
+    if (!ctx) {
+      const publicPairId = publicPairIdFromRequest(req);
+      if (publicPairId) {
+        ctx = await validatePublicMcpPair(publicPairId);
+      }
+    }
+    if (!ctx && method === "initialize") {
+      ensurePublicPairId(req, res);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: {
+          protocolVersion: "2025-03-26",
+          capabilities: { tools: {} },
+          serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
+        },
+        id: peeked.id,
+      });
+    }
     if (!ctx && peeked.authRequired) {
       attachMcpOAuthChallenge(res, "invalid_token");
       return res.status(401).json({
@@ -668,6 +702,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({
         jsonrpc: "2.0",
         result: pairingToolResult(singleToolArgs(req.body), pairId),
+        id: peeked.id,
+      });
+    }
+    // Discovery-mode initialize: strict MCP clients (Grok) send initialize
+    // before tools/list. Without a bearer token this is a bare public client
+    // attempting discovery, not an OAuth handshake, so let it through with
+    // minimal capabilities. No tenant data is exposed. The client can then
+    // proceed to tools/list and see unclick_start_pairing.
+    if (!ctx && method === "initialize") {
+      const pairId = ensurePublicPairId(req, res);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        result: {
+          protocolVersion: "2025-03-26",
+          capabilities: { tools: {} },
+          serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
+        },
         id: peeked.id,
       });
     }

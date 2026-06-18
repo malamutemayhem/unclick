@@ -119,14 +119,14 @@ describe("ConnectAppModal", () => {
     });
     expect(screen.getByRole("heading", { name: /set up higgsfield/i })).toBeInTheDocument();
     expect(screen.getByText(/use higgsfield's mcp setup/i)).toBeInTheDocument();
-    expect(screen.getByText(/cannot mark it connected here yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no api key is needed for this mcp path/i)).toBeInTheDocument();
     expect(screen.queryByText(/vault/i)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open higgsfield mcp setup/i })).toHaveAttribute(
       "href",
       "https://higgsfield.ai/mcp",
     );
-    expect(screen.getByRole("button", { name: /one-click login coming soon/i })).toBeDisabled();
-    expect(screen.getByText(/api key fallback/i)).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/unclick api actions/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",

@@ -60,9 +60,8 @@ function HiggsfieldPanel(): ReactNode {
       </div>
       <p className="mt-1.5 text-xs leading-5 text-white/55">
         Higgsfield has two useful setup paths today. For subscription-based MCP, add Higgsfield's MCP URL
-        to your AI app and sign in with Higgsfield there. For UnClick-routed actions, add a Higgsfield
-        Cloud API key in UnClick. One-click account login will appear here when Higgsfield supports a
-        managed connection in UnClick.
+        to your AI app and sign in with Higgsfield there. That uses your Higgsfield account, plan, and
+        credits. For UnClick-routed actions, add a Higgsfield Cloud API key in UnClick.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -76,19 +75,19 @@ function HiggsfieldPanel(): ReactNode {
             ]}
           />
           <CommandStack
-            label="UnClick-wide login"
+            label="Subscription MCP"
             commands={[
-              "Coming soon for Higgsfield",
-              "Will show Connected after a real sign-in",
-              "No API key needed when this is available",
+              "No API key needed for the MCP path",
+              "Uses your Higgsfield subscription or credits",
+              "Managed by Higgsfield in your AI app",
             ]}
           />
           <CommandStack
-            label="API key fallback"
+            label="UnClick API actions"
             commands={[
               "Create a Higgsfield Cloud API key",
               "https://cloud.higgsfield.ai/api-keys",
-              "Paste it only for UnClick-routed API actions",
+              "Paste it only when you want UnClick to run Higgsfield actions",
             ]}
           />
         </div>
