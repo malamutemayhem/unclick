@@ -39,6 +39,125 @@ async function sbFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
+// ─── Connection status helpers ───────────────────────────────────────────────
+
+type CredentialStatusSource =
+  | "platform_credentials"
+  | "user_credentials"
+  | "managed_app_connections";
+
+interface CredentialStatusRow {
+  platform:       string;
+  label:          string | null;
+  is_valid:       boolean;
+  last_tested_at: string | null;
+  created_at:     string | null;
+  updated_at:     string | null;
+  source:         CredentialStatusSource;
+  status?:        string | null;
+}
+
+function timestampScore(value: unknown): number {
+  if (typeof value !== "string" || !value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function credentialScore(row: CredentialStatusRow): number {
+  const managedBoost = row.source === "managed_app_connections" ? 100_000_000_000_000 : 0;
+  return (row.is_valid ? 1_000_000_000_000_000 : 0)
+    + managedBoost
+    + (row.last_tested_at ? 1_000_000_000_000 : 0)
+    + Math.max(timestampScore(row.updated_at), timestampScore(row.created_at));
+}
+
+function mergeCredentialRows(rows: CredentialStatusRow[]): CredentialStatusRow[] {
+  const byPlatform = new Map<string, CredentialStatusRow>();
+  for (const row of rows) {
+    const current = byPlatform.get(row.platform);
+    if (!current || credentialScore(row) > credentialScore(current)) {
+      byPlatform.set(row.platform, row);
+    }
+  }
+  return [...byPlatform.values()].sort((a, b) => a.platform.localeCompare(b.platform));
+}
+
+async function readCredentialStatusRows(
+  supaUrl:    string,
+  serviceKey: string,
+  keyHash:    string,
+  platform:   string | null
+): Promise<{ ok: boolean; rows: CredentialStatusRow[] }> {
+  const headers = sbHeaders(serviceKey);
+  const rows: CredentialStatusRow[] = [];
+
+  let platformUrl =
+    `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&select=platform,label,is_valid,last_tested_at,created_at`;
+  if (platform) platformUrl += `&platform=eq.${encodeURIComponent(platform)}`;
+
+  const platformResult = await sbFetch(platformUrl, "GET", headers);
+  if (!platformResult.ok) return { ok: false, rows: [] };
+  for (const row of platformResult.data as Array<Record<string, unknown>>) {
+    rows.push({
+      platform:       String(row.platform ?? ""),
+      label:          row.label == null ? null : String(row.label),
+      is_valid:       row.is_valid !== false,
+      last_tested_at: row.last_tested_at == null ? null : String(row.last_tested_at),
+      created_at:     row.created_at == null ? null : String(row.created_at),
+      updated_at:     null,
+      source:         "platform_credentials",
+    });
+  }
+
+  let userUrl =
+    `${supaUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&select=platform_slug,label,is_valid,last_tested_at,created_at,updated_at`;
+  if (platform) userUrl += `&platform_slug=eq.${encodeURIComponent(platform)}`;
+
+  const userResult = await sbFetch(userUrl, "GET", headers);
+  if (userResult.ok) {
+    for (const row of userResult.data as Array<Record<string, unknown>>) {
+      rows.push({
+        platform:       String(row.platform_slug ?? ""),
+        label:          row.label == null ? null : String(row.label),
+        is_valid:       row.is_valid !== false,
+        last_tested_at: row.last_tested_at == null ? null : String(row.last_tested_at),
+        created_at:     row.created_at == null ? null : String(row.created_at),
+        updated_at:     row.updated_at == null ? null : String(row.updated_at),
+        source:         "user_credentials",
+      });
+    }
+  }
+
+  let managedUrl =
+    `${supaUrl}/rest/v1/managed_app_connections?api_key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&status=in.(connected,pending)` +
+    `&select=platform_slug,status,account_label,last_checked_at,connected_at,created_at,updated_at`;
+  if (platform) managedUrl += `&platform_slug=eq.${encodeURIComponent(platform)}`;
+
+  const managedResult = await sbFetch(managedUrl, "GET", headers);
+  if (managedResult.ok) {
+    for (const row of managedResult.data as Array<Record<string, unknown>>) {
+      const status = row.status == null ? null : String(row.status);
+      rows.push({
+        platform:       String(row.platform_slug ?? ""),
+        label:          row.account_label == null ? null : String(row.account_label),
+        is_valid:       status === "connected",
+        last_tested_at: row.last_checked_at == null
+          ? (row.connected_at == null ? null : String(row.connected_at))
+          : String(row.last_checked_at),
+        created_at:     row.created_at == null ? null : String(row.created_at),
+        updated_at:     row.updated_at == null ? null : String(row.updated_at),
+        source:         "managed_app_connections",
+        status,
+      });
+    }
+  }
+
+  return { ok: true, rows: mergeCredentialRows(rows.filter((row) => row.platform)) };
+}
+
 // ─── Metering ─────────────────────────────────────────────────────────────────
 
 async function logMeter(
@@ -464,19 +583,13 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
   const keyHash  = hashKeyFull(apiKey);
   const platform = args.platform ? String(args.platform).trim().toLowerCase() : null;
 
-  let queryUrl = `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}&select=platform,label,is_valid,last_tested_at,created_at`;
-  if (platform) {
-    queryUrl += `&platform=eq.${encodeURIComponent(platform)}`;
-  }
-
-  const { ok, data } = await sbFetch(queryUrl, "GET", sbHeaders(serviceKey));
+  const { ok, rows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, platform);
 
   const ms = Date.now() - start;
   await logMeter(supaUrl, serviceKey, keyHash, platform ?? "all", "status", ok, ms);
 
   if (!ok) return { error: "Failed to query credentials." };
 
-  const rows = data as Array<Record<string, unknown>>;
   if (!rows || rows.length === 0) {
     if (platform) {
       return { platform, connected: false, message: `No credential stored for "${platform}".` };
@@ -490,10 +603,21 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
     is_valid:       r.is_valid,
     last_tested_at: r.last_tested_at,
     created_at:     r.created_at,
+    updated_at:     r.updated_at,
+    source:         r.source,
+    status:         r.status ?? null,
+    connected:      r.is_valid,
   }));
 
   if (platform) {
-    return { ...result[0], connected: true };
+    const row = result[0];
+    return {
+      ...row,
+      connected: row.is_valid,
+      message:   row.is_valid
+        ? `${platform} credential found in ${row.source}.`
+        : `${platform} credential is saved but not connected.`,
+    };
   }
 
   return { connected_platforms: result, count: result.length };
@@ -578,20 +702,18 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
   // If the caller has an API key, enrich with connection status
   if (apiKey) {
     const keyHash  = hashKeyFull(apiKey);
-    const statusUrl = `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}&select=platform,label,is_valid`;
-    const { ok: sOk, data: sData } = await sbFetch(statusUrl, "GET", sbHeaders(serviceKey));
+    const { ok: sOk, rows: statusRows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, null);
 
     const ms = Date.now() - start;
     await logMeter(supaUrl, serviceKey, keyHash, "all", "list_platforms", sOk, ms);
 
     if (sOk) {
-      const connected = new Set(
-        (sData as Array<Record<string, unknown>>).map((r) => String(r.platform))
-      );
+      const statuses = new Map(statusRows.map((row) => [row.platform, row]));
       return {
         platforms: platforms.map((p) => ({
           ...p,
-          connected: connected.has(String(p.id)),
+          connected: Boolean(statuses.get(String(p.id))?.is_valid),
+          connected_source: statuses.get(String(p.id))?.source ?? null,
         })),
         count: platforms.length,
       };
