@@ -3929,19 +3929,19 @@
     "tools": [
       {
         "name": "higgsfield_generate_video",
-        "description": "Generate a Higgsfield video from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account."
+        "description": "Generate a Higgsfield video from a prompt. Uses your connected Higgsfield account or a Cloud API key."
       },
       {
         "name": "higgsfield_generate_image",
-        "description": "Generate a Higgsfield image from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account."
+        "description": "Generate a Higgsfield image from a prompt. Uses your connected Higgsfield account or a Cloud API key."
       },
       {
         "name": "higgsfield_get_styles",
-        "description": "List available Higgsfield styles using a Higgsfield Cloud API key saved in UnClick or supplied for this call."
+        "description": "List available Higgsfield styles. Uses your connected Higgsfield account or a Cloud API key."
       },
       {
         "name": "higgsfield_get_status",
-        "description": "Check the status of a Higgsfield generation by ID using a Higgsfield Cloud API key saved in UnClick or supplied for this call."
+        "description": "Check the status of a Higgsfield generation by ID. Uses your connected Higgsfield account or a Cloud API key."
       }
     ]
   },

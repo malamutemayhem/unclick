@@ -476,7 +476,29 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
 
   if (!ok) return { error: "Failed to query credentials." };
 
-  const rows = data as Array<Record<string, unknown>>;
+  let rows = data as Array<Record<string, unknown>>;
+
+  // Fallback: also check user_credentials (OAuth/Connect flow store).
+  // The admin UI already merges both tables; keep the MCP tool consistent.
+  if ((!rows || rows.length === 0)) {
+    const ucUrl = `${supaUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(keyHash)}&select=platform_slug,label,is_valid,last_tested_at,created_at,updated_at`
+      + (platform ? `&platform_slug=eq.${encodeURIComponent(platform)}` : "");
+    const ucResult = await sbFetch(ucUrl, "GET", sbHeaders(serviceKey));
+    if (ucResult.ok) {
+      const ucRows = ucResult.data as Array<Record<string, unknown>>;
+      if (ucRows && ucRows.length > 0) {
+        rows = ucRows.map((r) => ({
+          platform:       r.platform_slug,
+          label:          r.label,
+          is_valid:       r.is_valid !== false,
+          last_tested_at: r.last_tested_at,
+          created_at:     r.created_at,
+          source:         "user_credentials",
+        }));
+      }
+    }
+  }
+
   if (!rows || rows.length === 0) {
     if (platform) {
       return { platform, connected: false, message: `No credential stored for "${platform}".` };
