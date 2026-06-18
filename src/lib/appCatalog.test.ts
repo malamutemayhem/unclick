@@ -50,7 +50,7 @@ describe("app catalog integrity", () => {
     expect(getApp("higgsfield")?.domain).toBe("higgsfield.ai");
   });
 
-  it("keeps Higgsfield UnClick actions separate from the hosted MCP setup path", () => {
+  it("keeps Higgsfield UnClick actions separate from the hosted MCP login path", () => {
     const higgsfield = getApp("higgsfield");
     const actionCopy = higgsfield?.tools.map((tool) => tool.description).join(" ") ?? "";
     expect(actionCopy).toContain("Higgsfield Cloud API key saved in UnClick");

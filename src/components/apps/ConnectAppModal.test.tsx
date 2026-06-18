@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectAppModal } from "./ConnectAppModal";
 import type { AppEntry } from "@/lib/appCatalog";
@@ -112,16 +112,21 @@ describe("ConnectAppModal", () => {
     expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
   });
 
-  it("presents Higgsfield hosted MCP as setup until UnClick can verify it", () => {
+  it("presents Higgsfield hosted MCP as a connect login", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
     renderModal({
       app: HIGGSFIELD_APP,
       connector: { id: "higgsfield", auth_type: "api_key", setup_url: null, supports_hosted_mcp_connection: true },
+      onStartHostedMcpLogin,
     });
-    expect(screen.getByRole("heading", { name: /set up higgsfield/i })).toBeInTheDocument();
-    expect(screen.getByText(/use higgsfield's mcp setup/i)).toBeInTheDocument();
-    expect(screen.getByText(/no api key is needed for this mcp path/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /connect higgsfield/i })).toBeInTheDocument();
+    expect(screen.getByText(/connect with higgsfield/i)).toBeInTheDocument();
+    expect(screen.getByText(/opens a higgsfield sign-in window/i)).toBeInTheDocument();
+    expect(screen.getByText(/no cloud api key is needed for this mcp login path/i)).toBeInTheDocument();
     expect(screen.queryByText(/vault/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open higgsfield mcp setup/i })).toHaveAttribute(
+    fireEvent.click(screen.getByRole("button", { name: /connect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
+    expect(screen.getByRole("link", { name: /higgsfield mcp guide/i })).toHaveAttribute(
       "href",
       "https://higgsfield.ai/mcp",
     );
@@ -192,7 +197,7 @@ describe("ConnectAppModal", () => {
     expect(screen.getByText(/managed connection provider handles the sensitive access/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /connect alpha vantage/i }));
-    expect(onStartManagedConnection).toHaveBeenCalled();
+    await waitFor(() => expect(onStartManagedConnection).toHaveBeenCalled());
   });
 
   it("offers reconnect and disconnect for an existing OAuth connection", async () => {
@@ -209,6 +214,6 @@ describe("ConnectAppModal", () => {
       "/connect/alphavantage",
     );
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
-    expect(onDisconnect).toHaveBeenCalled();
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });
 });

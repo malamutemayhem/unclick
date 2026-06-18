@@ -35,8 +35,10 @@ import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js"
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
+const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+const HIGGSFIELD_MCP_TOKEN_URL = "https://mcp.higgsfield.ai/oauth2/token";
 
 class OAuthRequestError extends Error {
   status = 400;
@@ -56,6 +58,13 @@ interface OAuthConfig {
     platform:      string,
     env:           NodeJS.ProcessEnv
   ) => Promise<Record<string, string>>;
+}
+
+interface HiggsfieldMcpOAuthCookie {
+  state: string;
+  client_id: string;
+  redirect_uri: string;
+  code_verifier: string;
 }
 
 const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
@@ -376,9 +385,9 @@ function readCookie(req: VercelRequest, name: string): string {
   return "";
 }
 
-function clearOAuthApiKeyCookie(): string {
+function clearCookie(name: string): string {
   return [
-    `${OAUTH_API_KEY_COOKIE}=`,
+    `${name}=`,
     "Path=/api/oauth-callback",
     "Max-Age=0",
     "HttpOnly",
@@ -398,6 +407,29 @@ function clearPkceVerifierCookie(): string {
   ].join("; ");
 }
 
+function parseHiggsfieldMcpCookie(value: string): HiggsfieldMcpOAuthCookie | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as Partial<HiggsfieldMcpOAuthCookie>;
+    if (
+      typeof parsed.state === "string" &&
+      typeof parsed.client_id === "string" &&
+      typeof parsed.redirect_uri === "string" &&
+      typeof parsed.code_verifier === "string"
+    ) {
+      return {
+        state: parsed.state,
+        client_id: parsed.client_id,
+        redirect_uri: parsed.redirect_uri,
+        code_verifier: parsed.code_verifier,
+      };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 function appendQuery(path: string, params: Record<string, string>): string {
   const url = new URL(path, UNCLICK_APP_ORIGIN);
   for (const [key, value] of Object.entries(params)) {
@@ -414,8 +446,61 @@ function redirectBack(
   const redirectPath = statePayload?.redirectPath?.startsWith("/connect/")
     ? statePayload.redirectPath
     : "/admin/apps";
-  res.setHeader("Set-Cookie", [clearOAuthApiKeyCookie(), clearPkceVerifierCookie()]);
+  res.setHeader("Set-Cookie", [
+    clearCookie(OAUTH_API_KEY_COOKIE),
+    clearPkceVerifierCookie(),
+    clearCookie(HIGGSFIELD_MCP_OAUTH_COOKIE),
+  ]);
   return res.redirect(302, appendQuery(redirectPath, params));
+}
+
+async function exchangeHiggsfieldMcp(
+  code: string,
+  state: string,
+  flow: HiggsfieldMcpOAuthCookie | null
+): Promise<Record<string, string>> {
+  if (!flow || flow.state !== state) {
+    throw new OAuthRequestError("Higgsfield login expired. Please try again.");
+  }
+
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: flow.redirect_uri,
+    client_id: flow.client_id,
+    code_verifier: flow.code_verifier,
+  });
+
+  const res = await fetch(HIGGSFIELD_MCP_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: body.toString(),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Higgsfield login token exchange failed (${res.status}): ${text}`);
+  }
+
+  const tokenResponse = (await res.json()) as Record<string, unknown>;
+  const accessToken = String(tokenResponse.access_token ?? "");
+  if (!accessToken) throw new Error("No access_token in Higgsfield token response.");
+  const refreshToken = String(tokenResponse.refresh_token ?? "");
+  const expiresIn = Number(tokenResponse.expires_in ?? 0);
+  const expiresAt = Number.isFinite(expiresIn) && expiresIn > 0
+    ? new Date(Date.now() + expiresIn * 1000).toISOString()
+    : "";
+
+  return {
+    access_token: accessToken,
+    ...(refreshToken ? { refresh_token: refreshToken } : {}),
+    ...(expiresAt ? { expires_at: expiresAt } : {}),
+    token_type: String(tokenResponse.token_type ?? "Bearer"),
+    scope: String(tokenResponse.scope ?? "openid email offline_access"),
+    credential_kind: "higgsfield_mcp_oauth",
+  };
 }
 
 async function completeOAuthConnection(args: {
@@ -427,8 +512,9 @@ async function completeOAuthConnection(args: {
   codeVerifier?: string;
   baseUrl: string;
   env: NodeJS.ProcessEnv;
+  higgsfieldMcpFlow?: HiggsfieldMcpOAuthCookie | null;
 }): Promise<{ platform: string; statePayload: OAuthStatePayload }> {
-  const { platform, code, apiKey, state, store, codeVerifier = "", baseUrl, env } = args;
+  const { platform, code, apiKey, state, store, codeVerifier = "", baseUrl, env, higgsfieldMcpFlow } = args;
 
   if (!platform) throw new OAuthRequestError("platform is required.");
   if (!code) throw new OAuthRequestError("code is required.");
@@ -453,6 +539,8 @@ async function completeOAuthConnection(args: {
     const verifiedStore = statePayload.store ?? store;
     if (!verifiedStore) throw new OAuthRequestError("store is required for Shopify.");
     credentials = await exchangeShopify(code, verifiedStore, env);
+  } else if (platform === "higgsfield") {
+    credentials = await exchangeHiggsfieldMcp(code, state, higgsfieldMcpFlow ?? null);
   } else {
     const config = PLATFORM_CONFIGS[platform];
     if (!config) {
@@ -502,6 +590,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         codeVerifier: readCookie(req, OAUTH_PKCE_VERIFIER_COOKIE),
         baseUrl,
         env: process.env,
+        higgsfieldMcpFlow: parseHiggsfieldMcpCookie(readCookie(req, HIGGSFIELD_MCP_OAUTH_COOKIE)),
       });
 
       return redirectBack(res, statePayload, { connected: "1" });

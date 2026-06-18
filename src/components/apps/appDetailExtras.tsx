@@ -56,22 +56,22 @@ function HiggsfieldPanel(): ReactNode {
     <div className="rounded-xl border border-[#B8FF00]/25 bg-[#B8FF00]/[0.04] p-5">
       <div className="flex items-center gap-2">
         <Cable className="h-4 w-4 text-[#B8FF00]" />
-        <p className="text-sm font-semibold text-white">Higgsfield setup options</p>
+        <p className="text-sm font-semibold text-white">Higgsfield connection options</p>
       </div>
       <p className="mt-1.5 text-xs leading-5 text-white/55">
-        Higgsfield has two useful setup paths today. For subscription-based MCP, add Higgsfield's MCP URL
-        to your AI app and sign in with Higgsfield there. That uses your Higgsfield account, plan, and
-        credits. For UnClick-routed actions, add a Higgsfield Cloud API key in UnClick.
+        Use the account login for Higgsfield MCP. It opens a Higgsfield sign-in window and uses the
+        customer's own Higgsfield account, plan, and credits. A Cloud API key is separate and only needed
+        for UnClick-run API actions.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <CommandStack
-            label="Higgsfield MCP setup"
+            label="Higgsfield MCP login"
             commands={[
               "Name: Higgsfield",
               "URL: https://mcp.higgsfield.ai/mcp",
-              "Sign in with Higgsfield when your AI app asks",
+              "Connect with Higgsfield from Apps",
             ]}
           />
           <CommandStack
@@ -121,11 +121,17 @@ function HiggsfieldPanel(): ReactNode {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          to="/admin/apps?lens=signin"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-3 py-1.5 text-xs font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
+        >
+          <Cable className="h-3.5 w-3.5" /> Connect in Apps
+        </Link>
         <a
           href="https://cloud.higgsfield.ai/api-keys"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-3 py-1.5 text-xs font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/65 transition-colors hover:bg-white/[0.07]"
         >
           <ExternalLink className="h-3.5 w-3.5" /> Get API key
         </a>

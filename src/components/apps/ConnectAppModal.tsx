@@ -45,6 +45,7 @@ interface ConnectAppModalProps {
   statusLabel?: string | null;
   onDisconnect?: () => Promise<void> | void;
   onStartManagedConnection?: () => Promise<void> | void;
+  onStartHostedMcpLogin?: () => Promise<void> | void;
 }
 
 type Outcome =
@@ -70,15 +71,18 @@ export function ConnectAppModal({
   statusLabel = null,
   onDisconnect,
   onStartManagedConnection,
+  onStartHostedMcpLogin,
 }: ConnectAppModalProps) {
   const setup = CONNECTOR_SETUP[app.slug];
   const [credential, setCredential] = useState("");
   const [busy, setBusy] = useState(false);
   const [disconnectBusy, setDisconnectBusy] = useState(false);
   const [managedBusy, setManagedBusy] = useState(false);
+  const [hostedBusy, setHostedBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [disconnectError, setDisconnectError] = useState<string | null>(null);
   const [managedError, setManagedError] = useState<string | null>(null);
+  const [hostedError, setHostedError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   const credentialLabel = setup?.credential ?? "API key";
@@ -88,7 +92,7 @@ export function ConnectAppModal({
   const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
-  const modalVerb = usesHostedMcpConnection ? "Set up" : isConnected ? "Manage" : "Connect";
+  const modalVerb = isConnected ? "Manage" : "Connect";
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -165,6 +169,19 @@ export function ConnectAppModal({
     }
   }
 
+  async function startHostedMcpLogin() {
+    if (!onStartHostedMcpLogin) return;
+    setHostedBusy(true);
+    setHostedError(null);
+    try {
+      await onStartHostedMcpLogin();
+    } catch (e) {
+      setHostedError(e instanceof Error ? e.message : "Connect failed.");
+    } finally {
+      setHostedBusy(false);
+    }
+  }
+
   const disconnectButton = isConnected && onDisconnect ? (
     <button
       type="button"
@@ -234,21 +251,41 @@ export function ConnectAppModal({
         ) : usesHostedMcpConnection ? (
           <div className="space-y-3 text-xs leading-5 text-white/60">
             <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
-              <p className="font-semibold text-white">Use {app.name}'s MCP setup</p>
+              <p className="font-semibold text-white">
+                {isConnected ? `${app.name} MCP is connected` : `Connect with ${app.name}`}
+              </p>
               <p className="mt-1 text-white/55">
-                This opens Higgsfield's setup page so you can add its MCP URL to your AI app and sign in with
-                Higgsfield there. It uses your Higgsfield account, plan, and credits.
+                This opens a Higgsfield sign-in window. It uses your Higgsfield account, plan, and credits.
               </p>
               <p className="mt-1 text-white/45">
-                No API key is needed for this MCP path. Higgsfield manages that sign-in in your AI app.
+                No Cloud API key is needed for this MCP login path.
               </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void startHostedMcpLogin()}
+                  disabled={hostedBusy}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/15 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/20 disabled:opacity-50"
+                >
+                  {hostedBusy && <Loader2 className="h-3 w-3 animate-spin" />}
+                  {hostedBusy ? "Opening..." : isConnected ? `Reconnect ${app.name}` : `Connect ${app.name}`}
+                  {!hostedBusy && <ExternalLink className="h-3 w-3" />}
+                </button>
+                {disconnectButton}
+              </div>
+              {hostedError && (
+                <p role="alert" className="mt-2 text-[11px] text-red-400">{hostedError}</p>
+              )}
+              {disconnectError && (
+                <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+              )}
               <a
                 href="https://higgsfield.ai/mcp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
+                className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
               >
-                Open Higgsfield MCP setup
+                Higgsfield MCP guide
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -256,8 +293,8 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                Add the same Higgsfield MCP URL anywhere your AI app supports MCP connectors. For UnClick-run
-                actions on every device, add a Cloud API key below.
+                The login is saved to your UnClick account. For UnClick-run REST actions on every device, add a
+                Cloud API key below.
               </p>
             </div>
 
