@@ -16164,8 +16164,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "93fc8a56be0b",
-      "bytes": 12500
+      "hash": "1ba9964071b5",
+      "bytes": 14135
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16349,8 +16349,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "859e8c2a0639",
-      "bytes": 6986
+      "hash": "931f277da0f2",
+      "bytes": 7019
     },
     {
       "source": "src/pages/Apps.tsx",
@@ -16369,8 +16369,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "818da19c618a",
-      "bytes": 31549
+      "hash": "3a85e94de427",
+      "bytes": 31168
     },
     {
       "source": "src/pages/Crews.tsx",
