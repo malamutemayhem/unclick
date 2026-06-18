@@ -164,7 +164,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
+| src/pages/PairingComplete.tsx | ec7777c94aca | 12768 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
