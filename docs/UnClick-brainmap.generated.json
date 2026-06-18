@@ -15737,7 +15737,7 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension && npm run check:app-connections"
     ],
     [
       "test:api",
@@ -15746,6 +15746,10 @@
     [
       "test:api-lib-esm-extension",
       "node --test scripts/api-lib-esm-extension-guard.test.mjs"
+    ],
+    [
+      "test:app-connections",
+      "node --test scripts/check-app-connection-readiness.test.mjs"
     ],
     [
       "test:boardroom-naming",
@@ -15899,8 +15903,8 @@
     },
     {
       "source": "package.json",
-      "hash": "b34b0d5efd06",
-      "bytes": 7506
+      "hash": "c74377f4f488",
+      "bytes": 7710
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -16369,8 +16373,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "f5ccf1fede83",
-      "bytes": 33287
+      "hash": "820f97795b75",
+      "bytes": 34164
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -16729,8 +16733,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "7606150f25cd",
-      "bytes": 32875
+      "hash": "576e3adc43b6",
+      "bytes": 34902
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
