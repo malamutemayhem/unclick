@@ -52,7 +52,7 @@ export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   if (!connector?.auth_type) return "builtin";
   if (connector.supports_managed_connection) return "signin";
-  if (connector.supports_hosted_mcp_connection) return "setup";
+  if (connector.supports_hosted_mcp_connection) return "signin";
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 

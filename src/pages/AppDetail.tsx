@@ -118,14 +118,14 @@ const AppDetail = () => {
               </div>
               <p className="mt-1.5 text-xs leading-5 text-white/55">
                 {usesHostedMcpSetup
-                  ? `${app.name}'s hosted MCP setup happens with ${app.name}. Open Apps to see the setup guide, or add an API key for UnClick-routed actions. It only shows as connected when UnClick has a verified connection it can see.`
+                  ? `Connect ${app.name} from Apps to open a Higgsfield sign-in window. The MCP login uses your Higgsfield account, plan, and credits. Add a Cloud API key only if you also want UnClick-run API actions.`
                   : `Most apps work straight away with nothing to set up. If ${app.name} needs your account, manage it from Apps; UnClick shows the status it can verify.`}
               </p>
               <Link
-                to="/admin/apps"
+                to={usesHostedMcpSetup ? "/admin/apps?lens=signin" : "/admin/apps"}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-1.5 text-xs font-semibold text-[#f0d577] transition-colors hover:bg-[#E2B93B]/15"
               >
-                <KeyRound className="h-3.5 w-3.5" /> {usesHostedMcpSetup ? "Open Apps setup" : "Manage connections"}
+                <KeyRound className="h-3.5 w-3.5" /> {usesHostedMcpSetup ? "Connect in Apps" : "Manage connections"}
               </Link>
             </div>
 
