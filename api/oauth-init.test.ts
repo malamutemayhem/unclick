@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import handler from "./oauth-init.js";
 
 function createResponse() {
@@ -34,7 +34,7 @@ function createResponse() {
 }
 
 describe("oauth init", () => {
-  it("returns the registered callback URI and stores the account key in a short-lived cookie", () => {
+  it("returns the registered callback URI and stores the account key in a short-lived cookie", async () => {
     const previousClientId = process.env.GITHUB_CLIENT_ID;
     const previousSecret = process.env.GITHUB_CLIENT_SECRET;
     const previousRedirect = process.env.GITHUB_REDIRECT_URI;
@@ -44,7 +44,7 @@ describe("oauth init", () => {
 
     try {
       const response = createResponse();
-      handler(
+      await handler(
         {
           method: "POST",
           body: { platform: "github", api_key: "uc_test_account_key" },
@@ -69,7 +69,7 @@ describe("oauth init", () => {
     }
   });
 
-  it("normalizes the stale production GitHub redirect URI to the server callback", () => {
+  it("normalizes the stale production GitHub redirect URI to the server callback", async () => {
     const previousClientId = process.env.GITHUB_CLIENT_ID;
     const previousSecret = process.env.GITHUB_CLIENT_SECRET;
     const previousRedirect = process.env.GITHUB_REDIRECT_URI;
@@ -79,7 +79,7 @@ describe("oauth init", () => {
 
     try {
       const response = createResponse();
-      handler(
+      await handler(
         {
           method: "POST",
           body: { platform: "github", api_key: "uc_test_account_key" },
@@ -99,7 +99,7 @@ describe("oauth init", () => {
     }
   });
 
-  it("starts Vercel and Supabase sign-in with PKCE challenge data", () => {
+  it("starts Vercel and Supabase sign-in with PKCE challenge data", async () => {
     const previous = {
       VERCEL_CLIENT_ID: process.env.VERCEL_CLIENT_ID,
       VERCEL_CLIENT_SECRET: process.env.VERCEL_CLIENT_SECRET,
@@ -118,7 +118,7 @@ describe("oauth init", () => {
     try {
       for (const platform of ["vercel", "supabase"]) {
         const response = createResponse();
-        handler(
+        await handler(
           {
             method: "POST",
             body: { platform, api_key: "uc_test_account_key" },
@@ -146,7 +146,7 @@ describe("oauth init", () => {
     }
   });
 
-  it("returns a user-safe pending setup response when provider OAuth setup is missing", () => {
+  it("returns a user-safe pending setup response when provider OAuth setup is missing", async () => {
     const previous = {
       SUPABASE_OAUTH_CLIENT_ID: process.env.SUPABASE_OAUTH_CLIENT_ID,
       SUPABASE_OAUTH_CLIENT_SECRET: process.env.SUPABASE_OAUTH_CLIENT_SECRET,
@@ -158,7 +158,7 @@ describe("oauth init", () => {
 
     try {
       const response = createResponse();
-      handler(
+      await handler(
         {
           method: "POST",
           body: { platform: "supabase", api_key: "uc_test_account_key" },
@@ -180,6 +180,51 @@ describe("oauth init", () => {
       process.env.SUPABASE_OAUTH_CLIENT_ID = previous.SUPABASE_OAUTH_CLIENT_ID;
       process.env.SUPABASE_OAUTH_CLIENT_SECRET = previous.SUPABASE_OAUTH_CLIENT_SECRET;
       process.env.SUPABASE_OAUTH_REDIRECT_URI = previous.SUPABASE_OAUTH_REDIRECT_URI;
+    }
+  });
+
+  it("starts Higgsfield MCP OAuth with dynamic registration and PKCE", async () => {
+    const previousSigningSecret = process.env.MCP_OAUTH_SIGNING_SECRET;
+    process.env.MCP_OAUTH_SIGNING_SECRET = "oauth-state-secret";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 201,
+        json: () => Promise.resolve({ client_id: "hf-client-123" }),
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const response = createResponse();
+      await handler(
+        {
+          method: "POST",
+          headers: { origin: "https://unclick.world" },
+          body: { platform: "higgsfield", api_key: "uc_test_account_key" },
+        } as never,
+        response.res as never
+      );
+
+      expect(response.statusCode).toBe(200);
+      expect(response.payload).toMatchObject({
+        success: true,
+        redirect_uri: "https://unclick.world/api/oauth-callback",
+      });
+      const payload = response.payload as { authorization_url?: string };
+      expect(payload.authorization_url).toContain("https://mcp.higgsfield.ai/oauth2/authorize");
+      expect(payload.authorization_url).toContain("client_id=hf-client-123");
+      expect(payload.authorization_url).toContain("code_challenge=");
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://mcp.higgsfield.ai/oauth2/register",
+        expect.objectContaining({ method: "POST" }),
+      );
+      const cookieHeader = response.headers.get("Set-Cookie");
+      expect(Array.isArray(cookieHeader) ? cookieHeader.join(";") : String(cookieHeader)).toContain("unclick_higgsfield_mcp_oauth");
+      expect(Array.isArray(cookieHeader) ? cookieHeader.join(";") : String(cookieHeader)).toContain("HttpOnly");
+    } finally {
+      process.env.MCP_OAUTH_SIGNING_SECRET = previousSigningSecret;
+      vi.unstubAllGlobals();
     }
   });
 });

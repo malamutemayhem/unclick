@@ -34,7 +34,10 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
     case "shopify":
       return env.SHOPIFY_CLIENT_SECRET ?? "";
     default:
-      return "";
+      return env.MCP_OAUTH_SIGNING_SECRET ??
+        env.UNCLICK_OAUTH_SIGNING_SECRET ??
+        env.SUPABASE_SERVICE_ROLE_KEY ??
+        "";
     }
   })();
 

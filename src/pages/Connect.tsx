@@ -27,6 +27,7 @@ interface OAuthInitResponse {
   client_id?: string;
   code_challenge?: string;
   code_challenge_method?: string;
+  authorization_url?: string;
   error?: string;
   setup_pending?: boolean;
   missing?: "client_id" | "client_secret" | "redirect_uri" | "state_secret";
@@ -363,9 +364,6 @@ export default function ConnectPage() {
 
   // -- Success state --------------------------------------------------------
   if (pageState.kind === "success") {
-    const vaultCommands = connector.credentialFields.map(
-      (f) => `vault_store key="${connector.slug}/${f.key}" value="..."`
-    );
     return (
       <ConnectShell connector={connector}>
         <div className="space-y-6 text-center">
@@ -379,20 +377,13 @@ export default function ConnectPage() {
               {connector.name} connected
             </h2>
             <p className="text-sm text-body mt-1">
-              Saved. Your AI can use {connector.name} from now on, with no extra steps.
+              Saved to your UnClick account. Your admin Apps page will update automatically.
             </p>
           </div>
 
-          <div className="bg-card/40 border border-border/60 rounded-lg p-4 text-left space-y-2">
-            <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
-              Optional, advanced: keep a local copy for offline use
-            </p>
-            {vaultCommands.map((cmd) => (
-              <code key={cmd} className="block text-xs font-mono text-primary bg-background/60 px-3 py-1.5 rounded">
-                {cmd}
-              </code>
-            ))}
-          </div>
+          <p className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-100">
+            You can close this window.
+          </p>
 
           <Link to="/admin/apps" className="inline-block text-sm text-body hover:text-heading">
             Back to apps
@@ -459,7 +450,7 @@ export default function ConnectPage() {
   const isOAuth2          = connector.authType === "oauth2";
   const oauthClientKey     = isOAuth2 ? VITE_ENV[oauthClientIdEnvKey(connector.slug)] : "";
   const oauthNotConfigured =
-    isOAuth2 && !oauthClientKey && !serverProvidesOAuthClientId(connector.slug) && connector.slug !== "shopify";
+    isOAuth2 && !oauthClientKey && !serverProvidesOAuthClientId(connector.slug) && connector.slug !== "shopify" && connector.slug !== "higgsfield";
 
   function handleFieldChange(key: string, value: string) {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -550,7 +541,7 @@ export default function ConnectPage() {
         sessionStorage.setItem("shopify_store", normalizedStore);
       }
 
-      const url = buildOAuthUrl(connector, data.redirect_uri, data.state, {
+      const url = data.authorization_url ?? buildOAuthUrl(connector, data.redirect_uri, data.state, {
         clientId: data.client_id,
         codeChallenge: data.code_challenge,
         codeChallengeMethod: data.code_challenge_method,

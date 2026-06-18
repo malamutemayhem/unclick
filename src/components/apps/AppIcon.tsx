@@ -9,6 +9,7 @@
 // the fill is a favicon or a glyph.
 
 import { createElement, useState } from "react";
+import { brandIconSrcFor } from "./appBrandIcons";
 import { glyphFor } from "./appIconGlyphs";
 
 const LOCAL_GLYPH_SLUGS = new Set(["supabase", "vercel"]);
@@ -53,11 +54,13 @@ export function AppIcon({
   const letter = (name.replace(/[^A-Za-z0-9]/g, "").charAt(0) || "?").toUpperCase();
   const tint = CATEGORY_TINT[category] ?? "#9ca3af";
   const forceLocalGlyph = slug ? LOCAL_GLYPH_SLUGS.has(slug) : false;
+  const brandIcon = forceLocalGlyph ? null : brandIconSrcFor(slug);
   // Only real, dotted hostnames get a favicon lookup. Anything else (null, the
   // legacy "local" marker, bare words) falls straight back to a glyph, because
   // the favicon service answers unknown hosts with a generic placeholder
   // instead of an error - which used to leave built-in apps with a junk icon.
-  const showImg = !forceLocalGlyph && Boolean(domain && domain.includes(".")) && !imgFailed;
+  const imageSrc = brandIcon ?? `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+  const showImg = !forceLocalGlyph && Boolean(brandIcon || (domain && domain.includes("."))) && !imgFailed;
   const glyph = glyphFor(name, category, slug);
 
   return (
@@ -75,7 +78,7 @@ export function AppIcon({
     >
       {showImg ? (
         <img
-          src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+          src={imageSrc}
           alt=""
           width={Math.round(size * 0.64)}
           height={Math.round(size * 0.64)}
