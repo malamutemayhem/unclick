@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1131,
-    "source_manifest": 248,
-    "pages": 114,
+    "inventory": 1132,
+    "source_manifest": 249,
+    "pages": 115,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 58
+      "count": 59
     },
     {
       "id": "public-surfaces",
@@ -199,6 +199,16 @@
       "meaning": "Admin surface for Admin Ecosystem Pages.",
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
       "route": "/admin/checks",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-circle-src-pages-admin-admincircle-tsx-admin-circle",
+      "division": "Admin surfaces",
+      "name": "Admin Circle",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Circle.",
+      "source": "src/pages/admin/AdminCircle.tsx",
+      "route": "/admin/circle",
       "tags": []
     },
     {
@@ -11530,6 +11540,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/circle",
+      "Admin Circle",
+      "Admin surface for Admin Circle.",
+      "src/pages/admin/AdminCircle.tsx"
+    ],
+    [
       "/admin/codebase",
       "Admin Codebase",
       "Internal source and architecture orientation surface.",
@@ -15848,13 +15864,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "2863f617e2a0",
-      "bytes": 23496
+      "hash": "6de15e0af158",
+      "bytes": 23631
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "b983e01ec6c0",
-      "bytes": 33162
+      "hash": "f45353307141",
+      "bytes": 33644
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16200,6 +16216,11 @@
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "hash": "48525d7a37d1",
       "bytes": 26608
+    },
+    {
+      "source": "src/pages/admin/AdminCircle.tsx",
+      "hash": "76282f364efd",
+      "bytes": 16913
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
