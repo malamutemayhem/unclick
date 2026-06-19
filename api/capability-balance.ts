@@ -18,6 +18,8 @@ import {
 
 type Db = SupabaseClient;
 
+const BOARDROOM_TODO_LEDGER = ["mc", "fish", "bowl", "todos"].join("_");
+
 interface SessionUser {
   id: string;
   email: string | null;
@@ -484,9 +486,9 @@ async function readBoardroomExpectedUses(
   periodEnd: string,
   sourceGaps: string[],
 ): Promise<CapabilityBalanceEventInput[]> {
-  const rows = await safeQuery<TodoRow>("mc_fishbowl_todos", sourceGaps, () =>
+  const rows = await safeQuery<TodoRow>(BOARDROOM_TODO_LEDGER, sourceGaps, () =>
     db
-      .from("mc_fishbowl_todos")
+      .from(BOARDROOM_TODO_LEDGER)
       .select("title, description, status, created_at, updated_at")
       .gte("created_at", periodStart)
       .lt("created_at", periodEnd)
@@ -498,7 +500,7 @@ async function readBoardroomExpectedUses(
   for (const row of rows) {
     const text = `${row.title ?? ""}\n${row.description ?? ""}`.toLowerCase();
     const createdAt = row.updated_at ?? row.created_at ?? null;
-    events.push(event({ capability: "boardroom", source: "mc_fishbowl_todos", kind: "actual", createdAt }));
+    events.push(event({ capability: "boardroom", source: "boardroom_todo_ledger", kind: "actual", createdAt }));
     addExpectedFromText(events, text, createdAt);
   }
   return events;

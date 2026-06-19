@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 2863f617e2a0 | 23496 |
-| src/pages/admin/AdminShell.tsx | b983e01ec6c0 | 33162 |
+| src/App.tsx | 6c2b0acfb974 | 23705 |
+| src/pages/admin/AdminShell.tsx | 1b7fc2fcd61e | 33257 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -93,6 +93,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
+| src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | 2d65d1f907b8 | 13908 |
@@ -266,7 +267,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 58 |
+| Admin surfaces | Private operator views and internal control panels. | 59 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
@@ -329,6 +330,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/boardroom | Boardroom | Admin surface for Boardroom. | src/pages/admin/Boardroom.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
+| /admin/capability-balance | Admin Capability Balance | Admin surface for Admin Capability Balance. | src/pages/admin/AdminCapabilityBalance.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/codebase | Admin Codebase | Internal source and architecture orientation surface. | src/pages/admin/AdminCodebase.tsx |
@@ -1115,6 +1117,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
+| Admin surfaces | admin page | Admin Capability Balance | Admin surface for Admin Capability Balance. | /admin/capability-balance | src/pages/admin/AdminCapabilityBalance.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Codebase | Internal source and architecture orientation surface. | /admin/codebase | src/pages/admin/AdminCodebase.tsx |
