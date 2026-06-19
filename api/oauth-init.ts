@@ -3,13 +3,15 @@ import { createHash, randomBytes } from "node:crypto";
 import { createOAuthStateToken } from "./oauth-state.js";
 
 const ALLOWED_PLATFORMS = new Set([
-  "github", "xero", "reddit", "shopify",
+  "github", "vercel", "supabase", "xero", "reddit", "shopify",
   "spotify", "dropbox", "google-workspace", "microsoft-graph",
   "higgsfield",
 ]);
 
 const REDIRECT_URI_ENV: Record<string, string> = {
   github:            "GITHUB_REDIRECT_URI",
+  vercel:            "VERCEL_REDIRECT_URI",
+  supabase:          "SUPABASE_OAUTH_REDIRECT_URI",
   xero:              "XERO_REDIRECT_URI",
   reddit:            "REDDIT_REDIRECT_URI",
   shopify:           "SHOPIFY_REDIRECT_URI",
@@ -19,10 +21,51 @@ const REDIRECT_URI_ENV: Record<string, string> = {
   "microsoft-graph": "MICROSOFT_GRAPH_REDIRECT_URI",
 };
 
+const CLIENT_ID_ENV: Record<string, string> = {
+  github:            "GITHUB_CLIENT_ID",
+  vercel:            "VERCEL_CLIENT_ID",
+  supabase:          "SUPABASE_OAUTH_CLIENT_ID",
+  xero:              "XERO_CLIENT_ID",
+  reddit:            "REDDIT_CLIENT_ID",
+  shopify:           "SHOPIFY_CLIENT_ID",
+  spotify:           "SPOTIFY_CLIENT_ID",
+  dropbox:           "DROPBOX_CLIENT_ID",
+  "google-workspace": "GOOGLE_WORKSPACE_CLIENT_ID",
+  "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_ID",
+};
+
+const CLIENT_SECRET_ENV: Record<string, string> = {
+  github:            "GITHUB_CLIENT_SECRET",
+  vercel:            "VERCEL_CLIENT_SECRET",
+  supabase:          "SUPABASE_OAUTH_CLIENT_SECRET",
+  xero:              "XERO_CLIENT_SECRET",
+  reddit:            "REDDIT_CLIENT_SECRET",
+  shopify:           "SHOPIFY_CLIENT_SECRET",
+  spotify:           "SPOTIFY_CLIENT_SECRET",
+  dropbox:           "DROPBOX_CLIENT_SECRET",
+  "google-workspace": "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_SECRET",
+};
+
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+const PKCE_PLATFORMS = new Set(["vercel", "supabase"]);
+const OPTIONAL_CLIENT_SECRET_PLATFORMS = new Set(["vercel"]);
+const PLATFORM_LABELS: Record<string, string> = {
+  github: "GitHub",
+  vercel: "Vercel",
+  supabase: "Supabase",
+  xero: "Xero",
+  reddit: "Reddit",
+  shopify: "Shopify",
+  spotify: "Spotify",
+  dropbox: "Dropbox",
+  "google-workspace": "Google Workspace",
+  "microsoft-graph": "Microsoft Graph",
+};
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const HIGGSFIELD_MCP_REGISTER_URL = "https://mcp.higgsfield.ai/oauth2/register";
 const HIGGSFIELD_MCP_AUTHORIZE_URL = "https://mcp.higgsfield.ai/oauth2/authorize";
@@ -44,6 +87,17 @@ function serializeOAuthApiKeyCookie(apiKey: string): string {
   ].join("; ");
 }
 
+function serializePkceVerifierCookie(codeVerifier: string): string {
+  return [
+    `${OAUTH_PKCE_VERIFIER_COOKIE}=${encodeURIComponent(codeVerifier)}`,
+    "Path=/api/oauth-callback",
+    `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ].join("; ");
+}
+
 function serializeHiggsfieldMcpOAuthCookie(value: string): string {
   return [
     `${HIGGSFIELD_MCP_OAUTH_COOKIE}=${encodeURIComponent(value)}`,
@@ -53,6 +107,12 @@ function serializeHiggsfieldMcpOAuthCookie(value: string): string {
     "Secure",
     "SameSite=Lax",
   ].join("; ");
+}
+
+function createPkcePair(): { codeVerifier: string; codeChallenge: string } {
+  const codeVerifier = randomBytes(32).toString("base64url");
+  const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+  return { codeVerifier, codeChallenge };
 }
 
 function base64UrlJson(value: unknown): string {
@@ -85,6 +145,34 @@ function resolveRedirectUri(platform: string, redirectUriEnv: string, env: NodeJ
   }
 
   return redirectUri;
+}
+
+type OAuthSetupMissing = "client_id" | "client_secret" | "redirect_uri" | "state_secret";
+
+const MISSING_LABELS: Record<OAuthSetupMissing, string> = {
+  client_id:     "client ID",
+  client_secret: "client secret",
+  redirect_uri:  "redirect URI",
+  state_secret:  "OAuth state secret",
+};
+
+function formatMissing(fields: OAuthSetupMissing[]): string {
+  const labels = fields.map((field) => MISSING_LABELS[field]);
+  if (labels.length <= 1) return labels[0] ?? "OAuth setup";
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+}
+
+function providerSetupPending(res: VercelResponse, platform: string, missing: OAuthSetupMissing[]) {
+  const label = PLATFORM_LABELS[platform] ?? platform;
+  const missingText = formatMissing(missing);
+  return res.status(503).json({
+    error: `${label} login is not switched on yet. Missing ${missingText}. Use the token fallback for now, or try again after the login setup is finished.`,
+    setup_pending: true,
+    provider: platform,
+    missing: missing[0],
+    missing_fields: missing,
+  });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -177,8 +265,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const redirectUriEnv = REDIRECT_URI_ENV[platform];
     const redirectUri = redirectUriEnv ? resolveRedirectUri(platform, redirectUriEnv, process.env) : "";
-    if (!redirectUri) {
-      return res.status(500).json({ error: `${redirectUriEnv} must be set.` });
+    const clientIdEnv = CLIENT_ID_ENV[platform];
+    const clientId = clientIdEnv ? (process.env[clientIdEnv] ?? "").trim() : "";
+    const clientSecretEnv = CLIENT_SECRET_ENV[platform];
+    const clientSecret = clientSecretEnv ? (process.env[clientSecretEnv] ?? "").trim() : "";
+    const setupMissing: OAuthSetupMissing[] = [];
+    if (!redirectUri) setupMissing.push("redirect_uri");
+    if (!clientId) setupMissing.push("client_id");
+    if (clientSecretEnv && !clientSecret && !OPTIONAL_CLIENT_SECRET_PLATFORMS.has(platform)) {
+      setupMissing.push("client_secret");
+    }
+    if (
+      clientSecretEnv &&
+      !clientSecret &&
+      OPTIONAL_CLIENT_SECRET_PLATFORMS.has(platform) &&
+      !process.env.OAUTH_STATE_SECRET
+    ) {
+      setupMissing.push("state_secret");
+    }
+    if (setupMissing.length > 0) {
+      return providerSetupPending(res, platform, setupMissing);
     }
 
     const state = createOAuthStateToken({
@@ -188,8 +294,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(normalizedStore ? { store: normalizedStore } : {}),
     });
 
-    res.setHeader("Set-Cookie", serializeOAuthApiKeyCookie(api_key));
-    return res.status(200).json({ success: true, state, redirect_uri: redirectUri });
+    const cookies = [serializeOAuthApiKeyCookie(api_key)];
+    const pkce = PKCE_PLATFORMS.has(platform) ? createPkcePair() : null;
+    if (pkce) cookies.push(serializePkceVerifierCookie(pkce.codeVerifier));
+
+    res.setHeader("Set-Cookie", cookies);
+    return res.status(200).json({
+      success: true,
+      state,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      ...(pkce ? { code_challenge: pkce.codeChallenge, code_challenge_method: "S256" } : {}),
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to initialize OAuth.";
     return res.status(500).json({ error: message });

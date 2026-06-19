@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Cable, ExternalLink, Terminal, Wrench } from "lucide-react";
+import { Cable, Database, ExternalLink, Rocket, Terminal, Wrench } from "lucide-react";
 
 export type AppDetailExtra = () => ReactNode;
 
@@ -156,7 +156,156 @@ function HiggsfieldPanel(): ReactNode {
   );
 }
 
+function VercelPanel(): ReactNode {
+  return (
+    <div className="rounded-xl border border-[#61C1C4]/25 bg-[#61C1C4]/[0.04] p-5">
+      <div className="flex items-center gap-2">
+        <Rocket className="h-4 w-4 text-[#61C1C4]" />
+        <p className="text-sm font-semibold text-white">Vercel setup options</p>
+      </div>
+      <p className="mt-1.5 text-xs leading-5 text-white/55">
+        There are two separate ways to use Vercel. Connect with Vercel login in
+        UnClick when you want UnClick to run Vercel actions for that account.
+        Add Vercel's hosted MCP directly when you want Claude or another client
+        to talk to Vercel without going through UnClick. Both paths use your
+        Vercel account, with projects, team permissions, and billing managed by Vercel.
+      </p>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="space-y-3">
+          <CommandStack
+            label="UnClick app connection"
+            commands={[
+              "Open Apps > Vercel > Connect",
+              "Sign in with your Vercel account",
+              "Return to UnClick with Vercel marked Connected",
+            ]}
+          />
+          <CommandStack
+            label="Vercel hosted MCP"
+            commands={[
+              "Name: Vercel",
+              "URL: https://mcp.vercel.com",
+              "Authentication: OAuth",
+              "Sign in with your Vercel account",
+            ]}
+          />
+        </div>
+        <div className="space-y-3">
+          <CommandStack
+            label="CLI clients"
+            commands={[
+              "npx add-mcp https://mcp.vercel.com",
+              "codex mcp add vercel --url https://mcp.vercel.com",
+              "claude mcp add --transport http vercel https://mcp.vercel.com",
+            ]}
+          />
+          <CommandStack
+            label="Safety"
+            commands={[
+              "Keep human confirmation on for deploys, env changes, and deletes",
+              "Use Vercel app permissions to limit what UnClick can touch",
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <a
+          href="/connect/vercel"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9be4e6] transition-colors hover:bg-[#61C1C4]/15"
+        >
+          <Cable className="h-3.5 w-3.5" /> Connect in UnClick
+        </a>
+        <a
+          href="https://vercel.com/docs/agent-resources/vercel-mcp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/65 transition-colors hover:bg-white/[0.07]"
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Hosted MCP guide
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function SupabasePanel(): ReactNode {
+  return (
+    <div className="rounded-xl border border-emerald-300/25 bg-emerald-300/[0.04] p-5">
+      <div className="flex items-center gap-2">
+        <Database className="h-4 w-4 text-emerald-300" />
+        <p className="text-sm font-semibold text-white">Supabase setup options</p>
+      </div>
+      <p className="mt-1.5 text-xs leading-5 text-white/55">
+        There are two separate ways to use Supabase. Connect with Supabase login
+        in UnClick when you want UnClick-side workflows to use that account's
+        Management API access. Add Supabase's hosted MCP directly when you want a
+        developer MCP client to inspect or manage Supabase through Supabase sign-in.
+        Keep production scoped tightly, and use read-only hosted MCP settings wherever possible.
+      </p>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="space-y-3">
+          <CommandStack
+            label="UnClick app connection"
+            commands={[
+              "Open Apps > Supabase > Connect",
+              "Sign in with your Supabase account",
+              "Return to UnClick with Supabase marked Connected",
+            ]}
+          />
+          <CommandStack
+            label="Supabase hosted MCP"
+            commands={[
+              "Name: Supabase",
+              "URL: https://mcp.supabase.com/mcp",
+              "Recommended: ?project_ref=YOUR_REF&read_only=true",
+              "Sign in with your Supabase account",
+            ]}
+          />
+        </div>
+        <div className="space-y-3">
+          <CommandStack
+            label="Scoped hosted MCP URLs"
+            commands={[
+              "https://mcp.supabase.com/mcp?project_ref=YOUR_REF&read_only=true",
+              "https://mcp.supabase.com/mcp?features=database,docs",
+              "Do not hand a developer MCP connection to app customers",
+            ]}
+          />
+          <CommandStack
+            label="CLI clients"
+            commands={[
+              "claude mcp add --scope project --transport http supabase \"https://mcp.supabase.com/mcp\"",
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <a
+          href="/connect/supabase"
+          className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/15"
+        >
+          <Cable className="h-3.5 w-3.5" /> Connect in UnClick
+        </a>
+        <a
+          href="https://supabase.com/docs/guides/ai-tools/mcp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/65 transition-colors hover:bg-white/[0.07]"
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Hosted MCP guide
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export const APP_DETAIL_EXTRAS: Record<string, AppDetailExtra> = {
   higgsfield: HiggsfieldPanel,
   jobsmith: JobsmithPanel,
+  supabase: SupabasePanel,
+  vercel: VercelPanel,
 };

@@ -21,6 +21,8 @@
  *
  * Required env vars per platform:
  *   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
+ *   VERCEL_CLIENT_ID, VERCEL_REDIRECT_URI
+ *   SUPABASE_OAUTH_CLIENT_ID, SUPABASE_OAUTH_CLIENT_SECRET, SUPABASE_OAUTH_REDIRECT_URI
  *   XERO_CLIENT_ID, XERO_CLIENT_SECRET, XERO_REDIRECT_URI
  *   REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
  *   SHOPIFY_{STORE}_CLIENT_ID, etc. (Shopify is per-store, handled specially)
@@ -32,6 +34,7 @@ import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js"
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
@@ -46,6 +49,9 @@ interface OAuthConfig {
   clientIdEnv: string;
   clientSecretEnv: string;
   redirectUriEnv:  string;
+  clientAuth?: "body" | "basic";
+  optionalClientSecret?: boolean;
+  requiresPkce?: boolean;
   /** Extract the credential fields we want to store from the token response */
   extractCredentials: (
     tokenResponse: Record<string, unknown>,
@@ -72,6 +78,51 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
       const accessToken = String(tokenResponse.access_token ?? "");
       if (!accessToken) throw new Error("No access_token in GitHub token response.");
       return { api_key: accessToken };
+    },
+  },
+
+  vercel: {
+    tokenUrl:        "https://api.vercel.com/login/oauth/token",
+    clientIdEnv:     "VERCEL_CLIENT_ID",
+    clientSecretEnv: "VERCEL_CLIENT_SECRET",
+    redirectUriEnv:  "VERCEL_REDIRECT_URI",
+    optionalClientSecret: true,
+    requiresPkce:    true,
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Vercel token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        api_key: accessToken,
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  supabase: {
+    tokenUrl:        "https://api.supabase.com/v1/oauth/token",
+    clientIdEnv:     "SUPABASE_OAUTH_CLIENT_ID",
+    clientSecretEnv: "SUPABASE_OAUTH_CLIENT_SECRET",
+    redirectUriEnv:  "SUPABASE_OAUTH_REDIRECT_URI",
+    clientAuth:      "basic",
+    requiresPkce:    true,
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Supabase token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
     },
   },
 
@@ -226,32 +277,48 @@ async function exchangeShopify(
 async function exchangeCode(
   config:      OAuthConfig,
   code:        string,
-  env:         NodeJS.ProcessEnv
+  env:         NodeJS.ProcessEnv,
+  codeVerifier = ""
 ): Promise<Record<string, string>> {
   const clientId     = env[config.clientIdEnv]     ?? "";
   const clientSecret = env[config.clientSecretEnv] ?? "";
   const redirectUri  = resolveRedirectUri(config, env);
 
-  if (!clientId || !clientSecret) {
+  if (!clientId || (!clientSecret && !config.optionalClientSecret)) {
     throw new Error(
-      `${config.clientIdEnv} and ${config.clientSecretEnv} env vars must be set.`
+      config.optionalClientSecret
+        ? `${config.clientIdEnv} env var must be set.`
+        : `${config.clientIdEnv} and ${config.clientSecretEnv} env vars must be set.`
     );
+  }
+  if (config.requiresPkce && !codeVerifier) {
+    throw new Error("Missing OAuth PKCE verifier. Please restart the sign-in.");
   }
 
   const body = new URLSearchParams({
     grant_type:    "authorization_code",
     code,
     redirect_uri:  redirectUri,
-    client_id:     clientId,
-    client_secret: clientSecret,
   });
+  if (config.clientAuth === "basic") {
+    if (codeVerifier) body.set("code_verifier", codeVerifier);
+  } else {
+    body.set("client_id", clientId);
+    if (clientSecret) body.set("client_secret", clientSecret);
+    if (codeVerifier) body.set("code_verifier", codeVerifier);
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept:         "application/json",
+  };
+  if (config.clientAuth === "basic") {
+    headers.Authorization = `Basic ${Buffer.from(`${clientId}:${clientSecret}`, "utf8").toString("base64")}`;
+  }
 
   const res = await fetch(config.tokenUrl, {
     method:  "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept:         "application/json",
-    },
+    headers,
     body:    body.toString(),
   });
 
@@ -370,6 +437,7 @@ function redirectBack(
     : "/admin/apps";
   res.setHeader("Set-Cookie", [
     clearCookie(OAUTH_API_KEY_COOKIE),
+    clearCookie(OAUTH_PKCE_VERIFIER_COOKIE),
     clearCookie(HIGGSFIELD_MCP_OAUTH_COOKIE),
   ]);
   return res.redirect(302, appendQuery(redirectPath, params));
@@ -430,11 +498,12 @@ async function completeOAuthConnection(args: {
   apiKey: string;
   state: string;
   store?: string;
+  codeVerifier?: string;
   baseUrl: string;
   env: NodeJS.ProcessEnv;
   higgsfieldMcpFlow?: HiggsfieldMcpOAuthCookie | null;
 }): Promise<{ platform: string; statePayload: OAuthStatePayload }> {
-  const { platform, code, apiKey, state, store, baseUrl, env, higgsfieldMcpFlow } = args;
+  const { platform, code, apiKey, state, store, codeVerifier = "", baseUrl, env, higgsfieldMcpFlow } = args;
 
   if (!platform) throw new OAuthRequestError("platform is required.");
   if (!code) throw new OAuthRequestError("code is required.");
@@ -466,7 +535,7 @@ async function completeOAuthConnection(args: {
     if (!config) {
       throw new OAuthRequestError(`OAuth not configured for platform "${platform}". Use the manual credential form instead.`);
     }
-    credentials = await exchangeCode(config, code, env);
+    credentials = await exchangeCode(config, code, env, codeVerifier);
   }
 
   await storeCredentials(platform, credentials, apiKey, baseUrl);
@@ -507,6 +576,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         code,
         apiKey: readCookie(req, OAUTH_API_KEY_COOKIE),
         state,
+        codeVerifier: readCookie(req, OAUTH_PKCE_VERIFIER_COOKIE),
         baseUrl,
         env: process.env,
         higgsfieldMcpFlow: parseHiggsfieldMcpCookie(readCookie(req, HIGGSFIELD_MCP_OAUTH_COOKIE)),
@@ -519,12 +589,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const { platform, code, api_key, state, store } = (req.body ?? {}) as {
+  const { platform, code, api_key, state, store, code_verifier } = (req.body ?? {}) as {
     platform?: string;
     code?:     string;
     api_key?:  string;
     state?:    string;
     store?:    string; // Shopify only
+    code_verifier?: string;
   };
 
   try {
@@ -534,6 +605,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiKey: api_key ?? "",
       state: state ?? "",
       store,
+      codeVerifier: code_verifier ?? readCookie(req, OAUTH_PKCE_VERIFIER_COOKIE),
       baseUrl,
       env: process.env,
     });

@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { CheckCircle2, ExternalLink, KeyRound, Loader2, X, XCircle, AlertTriangle } from "lucide-react";
 import type { AppEntry } from "@/lib/appCatalog";
+import { CONNECTORS } from "@/lib/connectors";
 import connectorSetupData from "@/data/connector-setup.generated.json";
 
 interface ConnectorSetupRow {
@@ -87,6 +88,8 @@ export function ConnectAppModal({
   const credentialLabel = setup?.credential ?? "API key";
   const setupUrl = setup?.setupUrl ?? connector.setup_url ?? null;
   const isOAuth = connector.auth_type === "oauth2";
+  const fieldCount = CONNECTORS[app.slug]?.credentialFields.length ?? 1;
+  const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
   const modalVerb = isConnected ? "Manage" : "Connect";
@@ -363,19 +366,28 @@ export function ConnectAppModal({
               <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
             )}
           </div>
-        ) : isOAuth ? (
+        ) : isOAuth || needsFullConnectionPage ? (
           <div className="text-xs leading-5 text-white/60">
             <p>
-              {isConnected
-                ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
-                : `${app.name} connects with a provider sign-in instead of a pasted key.`}
+              {needsFullConnectionPage
+                ? `${app.name} needs a few fields, so it uses the full connection page instead of this quick key box.`
+                : isConnected
+                  ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
+                  : `${app.name} connects with a provider sign-in instead of a pasted key.`}
             </p>
+            {setup?.note && <p className="mt-2 text-[11px] leading-4 text-white/45">{setup.note}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <a
                 href={`/connect/${app.slug}`}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90"
               >
-                {isConnected ? `Reconnect ${app.name}` : `Continue to ${app.name} login`}
+                {needsFullConnectionPage
+                  ? isConnected
+                    ? `Update ${app.name} connection`
+                    : `Open ${app.name} connection page`
+                  : isConnected
+                    ? `Reconnect ${app.name}`
+                    : `Continue to ${app.name} login`}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
               {disconnectButton}

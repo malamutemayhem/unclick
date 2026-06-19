@@ -19,9 +19,14 @@ function base64UrlDecode(value: string): string {
 }
 
 function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
-  switch (platform) {
+  const platformSecret = (() => {
+    switch (platform) {
     case "github":
       return env.GITHUB_CLIENT_SECRET ?? "";
+    case "vercel":
+      return env.VERCEL_CLIENT_SECRET ?? "";
+    case "supabase":
+      return env.SUPABASE_OAUTH_CLIENT_SECRET ?? "";
     case "xero":
       return env.XERO_CLIENT_SECRET ?? "";
     case "reddit":
@@ -29,11 +34,16 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
     case "shopify":
       return env.SHOPIFY_CLIENT_SECRET ?? "";
     default:
-      return env.MCP_OAUTH_SIGNING_SECRET ??
-        env.UNCLICK_OAUTH_SIGNING_SECRET ??
-        env.SUPABASE_SERVICE_ROLE_KEY ??
-        "";
-  }
+      return "";
+    }
+  })();
+
+  return platformSecret ||
+    env.OAUTH_STATE_SECRET ||
+    env.MCP_OAUTH_SIGNING_SECRET ||
+    env.UNCLICK_OAUTH_SIGNING_SECRET ||
+    env.SUPABASE_SERVICE_ROLE_KEY ||
+    "";
 }
 
 function signPayload(encodedPayload: string, secret: string): string {

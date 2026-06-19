@@ -10,9 +10,11 @@ import {
   Calculator,
   CheckSquare,
   Clock,
+  Cloud,
   CloudSun,
   Code2,
   CreditCard,
+  Database,
   Dices,
   FileText,
   Gamepad2,
@@ -36,6 +38,11 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+
+const SLUG_GLYPHS: Record<string, LucideIcon> = {
+  supabase: Database,
+  vercel: Cloud,
+};
 
 // Keyword glyphs, first match wins. Matched against "<slug> <name>" lowercased,
 // so families of built-in tools share one recognisable symbol.
@@ -78,6 +85,8 @@ const CATEGORY_GLYPHS: Record<string, LucideIcon> = {
 
 /** Glyph an app resolves to when it has no favicon (null = letter chip). */
 export function glyphFor(name: string, category: string, slug?: string): LucideIcon | null {
+  if (slug && SLUG_GLYPHS[slug]) return SLUG_GLYPHS[slug];
+
   const haystack = `${slug ?? ""} ${name}`.toLowerCase();
   for (const [pattern, icon] of KEYWORD_GLYPHS) {
     if (pattern.test(haystack)) return icon;

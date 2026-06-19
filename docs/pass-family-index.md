@@ -16,10 +16,10 @@ Status note: PR #1219 merged the 2026-05-30 XPass receipt surfaces into `main`. 
 
 | Pass | Brief | Dogfood surface | XPass routes here when |
 | --- | --- | --- | --- |
-| TestPass | [`docs/prd/testpass.md`](./prd/testpass.md), [`docs/testpass-phase-9a-visual-brief.md`](./testpass-phase-9a-visual-brief.md) | `public/testpass/` recurring runs and `/admin/testpass` | the target is an MCP server, marketplace submission, or a PR that touches a tool wiring |
+| TestPass | [`docs/prd/testpass.md`](./prd/testpass.md), [`docs/testpass-phase-9a-visual-brief.md`](./testpass-phase-9a-visual-brief.md) | `public/testpass/` recurring runs and `/admin/testpass` | the target is an MCP server, marketplace submission, app connector/OAuth readiness change, or a PR that touches a tool wiring |
 | UIPass | [`docs/uipass-product-brief.md`](./uipass-product-brief.md) | Admin checklist surface first | the target changes layout, spacing, typography, mobile fit, hierarchy, screenshots, visual consistency, or polish |
-| UXPass | [`docs/uxpass-product-brief.md`](./uxpass-product-brief.md) | `public/uxpass/site-sweep.json` and `/admin/uxpass` | the target changes a journey, form, onboarding path, feedback, recovery, navigation, or task-completion experience |
-| CommonSensePass | [`docs/commonsensepass-rule-matrix.md`](./commonsensepass-rule-matrix.md) | embedded checks under the dogfood index | the target is automation, orchestration logic, or anywhere a "no green chip without evidence" rule applies |
+| UXPass | [`docs/uxpass-product-brief.md`](./uxpass-product-brief.md) | `public/uxpass/site-sweep.json` and `/admin/uxpass` | the target changes a journey, form, onboarding path, feedback, recovery, navigation, connect/login fallback path, or task-completion experience |
+| CommonSensePass | [`docs/commonsensepass-rule-matrix.md`](./commonsensepass-rule-matrix.md) | embedded checks under the dogfood index | the target is automation, orchestration logic, a connected badge/proof claim, or anywhere a "no green chip without evidence" rule applies |
 | WakePass | [`docs/prd/wakepass.md`](./prd/wakepass.md) | action-needed feed on the admin jobs page and public-safe boundary sweep | a Pass result needs an owner to act, a scheduled check missed its ACK, or a receipt has gone stale |
 
 ## Package-ready
@@ -34,7 +34,7 @@ These have shipped product packages and MCP tools. They get promoted to the dogf
 | CopyPass | [`docs/copypass-product-brief.md`](./copypass-product-brief.md), [`docs/prd/copypass-chunk2.md`](./prd/copypass-chunk2.md) | scheduled package sweep | the target is a copy block (hero, pricing, ad, email, legal, or product copy) supplied by the caller or by a CopyRoom packet |
 | FidelityPass | [`docs/prd/xpass-closure-board.md`](./prd/xpass-closure-board.md) | CopyRoom receipt wrapper | the target includes exact 1:1 copying, transcription, mirroring, or preservation that needs copy-fidelity proof |
 | LegalPass | [`docs/legalpass-product-brief.md`](./legalpass-product-brief.md) | scheduled package sweep | the target is a privacy policy, ToS, OSS licence text, or an issue-spotter request scoped to phase-one hats |
-| FlowPass | [`docs/flowpass-product-brief.md`](./flowpass-product-brief.md) | scheduled package sweep | the target is a user-flow fixture or a public journey with safe fixture evidence |
+| FlowPass | [`docs/flowpass-product-brief.md`](./flowpass-product-brief.md) | scheduled package sweep | the target is a user-flow fixture, OAuth/connect journey, or a public journey with safe fixture evidence |
 | GEOPass | [`docs/geopass-product-brief.md`](./geopass-product-brief.md) | scheduled package sweep | the target is a public URL and the question is "is this readable by AI answer engines" |
 
 ## Boundary or guidance
@@ -43,7 +43,7 @@ These cannot dogfood in public the same way. They use the boundary sweep, which 
 
 | Pass | Brief | Promotes through | XPass routes here when |
 | --- | --- | --- | --- |
-| RotatePass | [`docs/rotatepass-chunk-2-prd.md`](./rotatepass-chunk-2-prd.md), [`docs/rotatepass-local-phase0.md`](./rotatepass-local-phase0.md) | public-safe boundary sweep | the target is a credential rotation, connector hygiene check, or a redaction-guard request |
+| RotatePass | [`docs/rotatepass-chunk-2-prd.md`](./rotatepass-chunk-2-prd.md), [`docs/rotatepass-local-phase0.md`](./rotatepass-local-phase0.md) | public-safe boundary sweep | the target is a credential rotation, connector hygiene check, provider OAuth/token fallback change, or a redaction-guard request |
 | WakePass (boundary) | [`docs/prd/wakepass.md`](./prd/wakepass.md) | public-safe boundary sweep | the target is an action-needed dispatch or missed-ACK visibility check that should appear in the boundary receipt |
 | CompliancePass | [`docs/compliancepass-product-brief.md`](./compliancepass-product-brief.md), [`docs/compliancepass-control-index.md`](./compliancepass-control-index.md) | readiness-only output, no certification | the target needs a future-regret readiness snapshot that cross-references other Pass receipts |
 

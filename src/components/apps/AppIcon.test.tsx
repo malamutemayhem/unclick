@@ -19,6 +19,11 @@ describe("AppIcon glyph resolution", () => {
     expect(glyphName("Vigenere Cipher", "Utilities", "vigenere")).toBe("Lock");
   });
 
+  it("uses stable local glyphs for Vercel and Supabase instead of remote favicons", () => {
+    expect(glyphName("Vercel", "Developer & infra", "vercel")).toBe("Cloud");
+    expect(glyphName("Supabase", "Developer & infra", "supabase")).toBe("Database");
+  });
+
   it("falls back to the category glyph when no keyword matches", () => {
     expect(glyphName("Taco Fancy", "Utilities", "tacofancy")).toBe("Wrench");
   });

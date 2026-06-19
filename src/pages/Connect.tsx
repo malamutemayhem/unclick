@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { presets } from "@/lib/design-system";
+import { getApp } from "@/lib/appCatalog";
+import { AppIcon } from "@/components/apps/AppIcon";
 
 // --- Types ---------------------------------------------------------------------
 
@@ -19,20 +21,43 @@ type PageState =
   | { kind: "success" }
   | { kind: "error"; message: string };
 
+interface OAuthInitResponse {
+  state?: string;
+  redirect_uri?: string;
+  authorization_url?: string;
+  client_id?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+  error?: string;
+  setup_pending?: boolean;
+  missing?: "client_id" | "client_secret" | "redirect_uri" | "state_secret";
+  missing_fields?: Array<"client_id" | "client_secret" | "redirect_uri" | "state_secret">;
+}
+
 // --- OAuth helpers -------------------------------------------------------------
 
 const VITE_ENV = import.meta.env as Record<string, string>;
+
+function oauthClientIdEnvKey(slug: string): string {
+  if (slug === "supabase") return "VITE_SUPABASE_OAUTH_CLIENT_ID";
+  return `VITE_${slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
+}
+
+function serverProvidesOAuthClientId(slug: string): boolean {
+  return slug === "vercel" || slug === "supabase" || slug === "higgsfield";
+}
 
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
 function buildOAuthUrl(
   connector: ConnectorConfig,
   redirectUri: string,
-  state: string
+  state: string,
+  pkce?: { clientId?: string; codeChallenge?: string; codeChallengeMethod?: string }
 ): string | null {
   if (connector.authType !== "oauth2") return null;
 
-  const clientIdKey = `VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
-  const clientId    = VITE_ENV[clientIdKey];
+  const clientIdKey = oauthClientIdEnvKey(connector.slug);
+  const clientId    = pkce?.clientId ?? VITE_ENV[clientIdKey];
   if (!clientId) return null;
 
   let authUrl = connector.authUrl ?? "";
@@ -47,10 +72,15 @@ function buildOAuthUrl(
     response_type: "code",
     client_id:     clientId,
     redirect_uri:  redirectUri,
-    scope:         (connector.scopes ?? []).join(" "),
     state,
     ...(connector.extraAuthParams ?? {}),
   });
+  const scope = (connector.scopes ?? []).join(" ");
+  if (scope) params.set("scope", scope);
+  if (pkce?.codeChallenge) {
+    params.set("code_challenge", pkce.codeChallenge);
+    params.set("code_challenge_method", pkce.codeChallengeMethod ?? "S256");
+  }
 
   return `${authUrl}?${params.toString()}`;
 }
@@ -175,6 +205,7 @@ export default function ConnectPage() {
   const [showManualPaste, setShowManualPaste] = useState(false);
   const [alreadyProvisioned, setAlreadyProvisioned] = useState(false);
   const [resettingKey, setResettingKey] = useState(false);
+  const [setupPending, setSetupPending] = useState<string | null>(null);
   const callbackFired                 = useRef(false);
   const connectedParam                = searchParams.get("connected");
   const oauthErrorParam               = searchParams.get("oauth_error");
@@ -417,8 +448,9 @@ export default function ConnectPage() {
   // -- Idle: show connect form ----------------------------------------------
 
   const isOAuth2          = connector.authType === "oauth2";
-  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`] : "";
-  const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify" && connector.slug !== "higgsfield";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[oauthClientIdEnvKey(connector.slug)] : "";
+  const oauthNotConfigured =
+    isOAuth2 && !oauthClientKey && !serverProvidesOAuthClientId(connector.slug) && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -475,7 +507,31 @@ export default function ConnectPage() {
         }),
       });
 
-      const data = (await safeJson(res)) as { state?: string; redirect_uri?: string; authorization_url?: string; error?: string };
+      const data = (await safeJson(res)) as OAuthInitResponse;
+      if (data.setup_pending) {
+        const missingLabels: Record<NonNullable<OAuthInitResponse["missing"]>, string> = {
+          client_id:     "client ID",
+          client_secret: "client secret",
+          redirect_uri:  "redirect URI",
+          state_secret:  "OAuth state secret",
+        };
+        const missingFields = data.missing_fields?.length
+          ? data.missing_fields
+          : data.missing
+            ? [data.missing]
+            : [];
+        const labels = missingFields.map((field) => missingLabels[field]).filter(Boolean);
+        const missing = labels.length === 0
+          ? "provider setup"
+          : labels.length === 1
+            ? labels[0]
+            : labels.length === 2
+              ? `${labels[0]} and ${labels[1]}`
+              : `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+        setSetupPending(`${connector.name} login needs UnClick admin setup before it can open: missing ${missing}. Use the token fallback below for now.`);
+        setPageState({ kind: "idle" });
+        return;
+      }
       if (!res.ok || !data.state || !data.redirect_uri) {
         setPageState({ kind: "error", message: data.error ?? "Could not start the sign-in. Please try again." });
         return;
@@ -485,9 +541,14 @@ export default function ConnectPage() {
         sessionStorage.setItem("shopify_store", normalizedStore);
       }
 
-      const url = data.authorization_url ?? buildOAuthUrl(connector, data.redirect_uri, data.state);
+      const url = data.authorization_url ?? buildOAuthUrl(connector, data.redirect_uri, data.state, {
+        clientId: data.client_id,
+        codeChallenge: data.code_challenge,
+        codeChallengeMethod: data.code_challenge_method,
+      });
       if (!url) {
-        setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
+        setSetupPending(`${connector.name} login needs UnClick admin setup before it can open. Use the token fallback below for now.`);
+        setPageState({ kind: "idle" });
         return;
       }
 
@@ -501,6 +562,7 @@ export default function ConnectPage() {
   const allFieldsFilled = connector.credentialFields.every(
     (f) => (fieldValues[f.key] ?? "").trim() !== ""
   );
+  const oauthLoginReady = isOAuth2 && !oauthNotConfigured;
 
   return (
     <ConnectShell connector={connector}>
@@ -648,7 +710,17 @@ export default function ConnectPage() {
 
         {/* OAuth2 flow */}
         {isOAuth2 && (
-          <div className="space-y-4">
+          <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-4 space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-heading">
+                Sign in with {connector.name}
+              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                This opens {connector.name} login and saves the connected account
+                to your private UnClick key. Token entry is only a fallback.
+              </p>
+            </div>
+
             {connector.scopes && connector.scopes.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
@@ -675,7 +747,7 @@ export default function ConnectPage() {
             )}
 
             {oauthNotConfigured ? (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <div className="border border-primary/20 rounded-lg p-4">
                 <p className="text-sm text-primary/90">
                   Login setup is pending for {connector.name}. Use the manual fallback below,
                   or enter credentials directly in your MCP config.
@@ -684,11 +756,20 @@ export default function ConnectPage() {
             ) : (
               <Button
                 className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
-                onClick={() => void handleOAuthConnect()}
+                onClick={() => {
+                  setSetupPending(null);
+                  void handleOAuthConnect();
+                }}
                 disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
-                Connect with {connector.name}
+                {oauthLoginReady ? `Continue to ${connector.name} login` : `Connect with ${connector.name}`}
               </Button>
+            )}
+
+            {setupPending && (
+              <div className="rounded-lg border border-amber-300/30 bg-amber-300/10 p-3">
+                <p className="text-sm text-amber-100">{setupPending}</p>
+              </div>
             )}
 
             <div className="relative">
@@ -697,7 +778,7 @@ export default function ConnectPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  manual fallback
+                  token fallback
                 </span>
               </div>
             </div>
@@ -779,10 +860,11 @@ function ConnectShell({
   children:  React.ReactNode;
 }) {
   const authLabel: Record<string, string> = {
-    oauth2:    "OAuth2",
+    oauth2:    "Account login",
     api_key:   "API key",
     bot_token: "Bot token",
   };
+  const app = getApp(connector.slug);
 
   return (
     <div className={presets.page}>
@@ -802,9 +884,13 @@ function ConnectShell({
             </Link>
 
             <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto">
-              <span className="text-2xl font-semibold text-primary">
-                {connector.name.charAt(0)}
-              </span>
+              <AppIcon
+                name={connector.name}
+                category={app?.category ?? "Developer & infra"}
+                domain={app?.domain}
+                slug={connector.slug}
+                size={40}
+              />
             </div>
 
             <div>
