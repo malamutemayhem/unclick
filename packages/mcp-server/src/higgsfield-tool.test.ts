@@ -70,7 +70,7 @@ describe("higgsfield connector resilience (L2)", () => {
   it("prefers the connected Higgsfield MCP account login over Cloud API key setup", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     process.env.UNCLICK_API_URL = "https://unclick.test";
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
       const method = String(init?.method ?? "GET").toUpperCase();
       const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : {};
@@ -149,7 +149,7 @@ describe("higgsfield connector resilience (L2)", () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     process.env.UNCLICK_API_URL = "https://unclick.test";
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
       const method = String(init?.method ?? "GET").toUpperCase();
       const bodyText = String(init?.body ?? "");

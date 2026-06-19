@@ -196,11 +196,11 @@ async function resolveHiggsfieldConnection(args: Record<string, unknown>): Promi
   if (explicitApiKey) return { mode: "api", apiKey: explicitApiKey };
 
   const stored = await fetchStoredHiggsfieldCredentials();
+  const storedApiKey = typeof stored?.api_key === "string" ? stored.api_key.trim() : "";
   if (isHiggsfieldMcpCredential(stored)) {
     return { mode: "mcp", credentials: await ensureFreshMcpCredentials(toMcpCredentials(stored)) };
   }
 
-  const storedApiKey = stored?.api_key?.trim();
   if (storedApiKey) return { mode: "api", apiKey: storedApiKey };
 
   const envApiKey = process.env.HIGGSFIELD_API_KEY?.trim();
