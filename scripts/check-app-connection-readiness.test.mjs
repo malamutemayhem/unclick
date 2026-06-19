@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  addLiveConnectionReadinessChecks,
   evaluateConnectionReadinessSources,
   loadConnectionReadinessSources,
 } from "./check-app-connection-readiness.mjs";
@@ -103,5 +104,52 @@ describe("app connection readiness", () => {
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /oauth_init_supported/);
     assert.match(actionText(receipt), /oauth_env_names_match_start_and_callback/);
+  });
+
+  it("blocks when production OAuth init is still setup-pending", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async () => new Response(JSON.stringify({
+        setup_pending: true,
+        missing_fields: ["client_id", "client_secret"],
+      }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /supabase: live_oauth_init_ready/);
+    assert.match(actionText(receipt), /client_id,client_secret/);
+  });
+
+  it("passes the live OAuth init check when production returns a provider-ready payload", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async () => new Response(JSON.stringify({
+        success: true,
+        client_id: "client-id",
+        redirect_uri: "https://unclick.world/api/oauth-callback",
+        state: "state",
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
   });
 });

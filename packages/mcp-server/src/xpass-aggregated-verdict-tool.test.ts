@@ -77,6 +77,31 @@ describe("xpass_aggregated_verdict", () => {
     expect(result.receipt?.full_checklist?.some((item) => item.check === "fidelitypass" && item.status === "N/A")).toBe(true);
   });
 
+  it("routes connector OAuth work through ConnectorPass readiness proof", async () => {
+    const result = await xpassAggregatedVerdict({
+      target: { type: "pr", id: "1522", sha: "connector-head" },
+      title: "Supabase Vercel app connection rollout",
+      description: "Provider login, token fallback, connected badge, and keychain parity must agree.",
+      changed_files: [
+        "src/lib/connectors.ts",
+        "api/oauth-init.ts",
+        "src/pages/Connect.tsx",
+        "packages/mcp-server/src/keychain-tool.ts",
+        "scripts/check-app-connection-readiness.mjs",
+      ],
+    }) as XPassResult;
+
+    expect(result.verdict).toBe("pending");
+    expect(result.missing_checks).toContain("connectorpass");
+    expect(result.missing_checks).toContain("uxpass");
+    expect(result.missing_checks).toContain("flowpass");
+    expect(result.missing_checks).toContain("securitypass");
+    expect(result.missing_checks).toContain("rotatepass");
+    expect(result.missing_checks).toContain("commonsensepass");
+    expect(result.receipt?.full_checklist?.some((item) => item.check === "connectorpass" && item.status === "MISSING")).toBe(true);
+    expect(result.receipt?.action_needed?.join("\n")).toMatch(/Run ConnectorPass/);
+  });
+
   it("fails stale receipts generated for an older head", async () => {
     const result = await xpassAggregatedVerdict({
       target: { type: "pr", id: "547", sha: "new-head" },

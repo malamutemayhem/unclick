@@ -46,6 +46,10 @@ function getArgValue(name, fallback = "") {
   return found ? found.slice(prefix.length) : fallback;
 }
 
+function hasFlag(name) {
+  return process.argv.includes(`--${name}`);
+}
+
 function getPlatformArgs() {
   return process.argv
     .filter((arg) => arg.startsWith("--platform="))
@@ -162,6 +166,26 @@ function addCheck(checks, name, ok, message, details = {}) {
 
 function missingChecks(checks) {
   return checks.filter((check) => check.status !== "pass");
+}
+
+function receiptBlockers(receipt) {
+  return [
+    ...missingChecks(receipt.global_checks).map((check) => ({ scope: "global", ...check })),
+    ...receipt.platform_results.flatMap((result) => missingChecks(result.checks).map((check) => ({
+      scope: result.platform,
+      ...check,
+    }))),
+  ];
+}
+
+function refreshReceiptStatus(receipt) {
+  for (const result of receipt.platform_results) {
+    result.status = missingChecks(result.checks).length === 0 ? "pass" : "blocker";
+  }
+  const blockers = receiptBlockers(receipt);
+  receipt.status = blockers.length === 0 ? "pass" : "blocker";
+  receipt.action_needed = blockers.map((check) => `${check.scope}: ${check.name} - ${check.message}`);
+  return receipt;
 }
 
 async function readSourceFile(cwd, sourcePath) {
@@ -404,37 +428,114 @@ export function evaluateConnectionReadinessSources(
     });
   }
 
-  const blockers = [
-    ...missingChecks(globalChecks).map((check) => ({ scope: "global", ...check })),
-    ...results.flatMap((result) => missingChecks(result.checks).map((check) => ({
-      scope: result.platform,
-      ...check,
-    }))),
-  ];
-
-  return {
+  return refreshReceiptStatus({
     kind: "app_connection_readiness_receipt_v1",
     generated_at: now,
-    status: blockers.length === 0 ? "pass" : "blocker",
+    status: "pass",
     platforms,
     global_checks: globalChecks,
     platform_results: results,
-    action_needed: blockers.map((check) => `${check.scope}: ${check.name} - ${check.message}`),
-  };
+    action_needed: [],
+  });
+}
+
+function normalizeLiveUrl(liveUrl) {
+  const trimmed = String(liveUrl ?? "").trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/\/+$/, "");
+}
+
+function missingText(data) {
+  const missingFields = Array.isArray(data?.missing_fields)
+    ? data.missing_fields
+    : (data?.missing ? [data.missing] : []);
+  return missingFields.length ? missingFields.join(",") : "unknown";
+}
+
+export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
+  const liveUrl = normalizeLiveUrl(options.liveUrl ?? process.env.APP_CONNECTION_LIVE_URL);
+  if (!liveUrl) return receipt;
+
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") {
+    addCheck(
+      receipt.global_checks,
+      "live_fetch_available",
+      false,
+      "Live app-connection readiness needs a fetch implementation."
+    );
+    return refreshReceiptStatus(receipt);
+  }
+
+  const apiKey = String(options.apiKey ?? process.env.APP_CONNECTION_PROBE_API_KEY ?? "uc_app_connection_readiness_probe");
+  const endpoint = `${liveUrl}/api/oauth-init`;
+  const livePlatforms = unique(options.platforms?.length ? options.platforms : receipt.platforms);
+
+  for (const platform of livePlatforms) {
+    const platformResult = receipt.platform_results.find((result) => result.platform === platform);
+    if (!platformResult) continue;
+
+    try {
+      const response = await fetchImpl(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, api_key: apiKey }),
+      });
+      const data = await response.json().catch(() => ({}));
+      const ok = Boolean(
+        response.ok
+        && data?.success === true
+        && typeof data?.client_id === "string"
+        && data.client_id.length > 0
+        && typeof data?.redirect_uri === "string"
+        && data.redirect_uri.length > 0
+        && data?.setup_pending !== true
+      );
+      const setupPending = data?.setup_pending === true;
+      addCheck(
+        platformResult.checks,
+        "live_oauth_init_ready",
+        ok,
+        setupPending
+          ? `Production OAuth init is still setup-pending; missing ${missingText(data)}.`
+          : "Production OAuth init returns a provider-ready login payload, not setup-pending.",
+        {
+          live_url: liveUrl,
+          http_status: response.status,
+          setup_pending: setupPending,
+          missing_fields: Array.isArray(data?.missing_fields) ? data.missing_fields : [],
+        }
+      );
+    } catch (error) {
+      addCheck(
+        platformResult.checks,
+        "live_oauth_init_ready",
+        false,
+        `Production OAuth init could not be checked: ${error instanceof Error ? error.message : String(error)}.`,
+        { live_url: liveUrl }
+      );
+    }
+  }
+
+  return refreshReceiptStatus(receipt);
 }
 
 export async function evaluateConnectionReadiness(options = {}) {
   const cwd = options.cwd ?? process.cwd();
   const sources = await loadConnectionReadinessSources(cwd);
-  return evaluateConnectionReadinessSources(sources, options);
+  const receipt = evaluateConnectionReadinessSources(sources, options);
+  return addLiveConnectionReadinessChecks(receipt, options);
 }
 
 async function main() {
   const cwd = getArgValue("cwd", process.cwd());
   const platforms = getPlatformArgs();
+  const liveUrl = getArgValue("live-url", process.env.APP_CONNECTION_LIVE_URL ?? "");
+  const live = hasFlag("live") || Boolean(liveUrl);
   const receipt = await evaluateConnectionReadiness({
     cwd,
     platforms: platforms.length ? platforms : undefined,
+    liveUrl: live ? liveUrl : "",
   });
   console.log(JSON.stringify(receipt, null, 2));
   process.exitCode = receipt.status === "pass" ? 0 : 1;

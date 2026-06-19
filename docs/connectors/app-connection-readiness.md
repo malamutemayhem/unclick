@@ -28,6 +28,12 @@ For one app:
 node scripts/check-app-connection-readiness.mjs --platform=vercel
 ```
 
+For production env proof:
+
+```bash
+node scripts/check-app-connection-readiness.mjs --platform=supabase --live-url=https://unclick.world
+```
+
 The guard verifies:
 
 - The app exists in `src/data/app-catalog.generated.json` in a real category.
@@ -51,6 +57,9 @@ The guard verifies:
   `packages/mcp-server/src/keychain-tool.ts` all see the same connection
   sources: `platform_credentials`, `user_credentials`, and
   `managed_app_connections`.
+- When `--live-url` is passed, production `/api/oauth-init` returns a
+  provider-ready login payload and not `setup_pending`. This catches the exact
+  "code is live, Vercel env is missing client ID/client secret" failure.
 
 Regression tests live in:
 
@@ -67,6 +76,7 @@ Connector login work is now routed through the XPass gate room. Changes touching
 OAuth app connections, credential storage, connect pages, catalog/icon
 visibility, or keychain status select:
 
+- ConnectorPass for the combined app-bubble connection contract
 - TestPass for deterministic readiness proof
 - UXPass for login and fallback experience
 - FlowPass for the OAuth journey
@@ -80,12 +90,14 @@ visibility, or keychain status select:
 Before telling a user "live":
 
 1. Run `npm run check:app-connections`.
-2. Confirm the app appears in `/admin/apps` search.
-3. Open `/connect/:slug` and confirm provider login is the primary path.
-4. Confirm setup-pending errors keep the token fallback visible.
-5. After connecting, check the app status from the MCP/keychain side, not only
+2. Run the production check:
+   `node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world`.
+3. Confirm the app appears in `/admin/apps` search.
+4. Open `/connect/:slug` and confirm provider login is the primary path.
+5. Confirm setup-pending errors keep the token fallback visible.
+6. After connecting, check the app status from the MCP/keychain side, not only
    the dashboard badge.
-6. For production, confirm the deployed alias is live and the same checks pass
+7. For production, confirm the deployed alias is live and the same checks pass
    against the production account context.
 
 ## Provider notes
