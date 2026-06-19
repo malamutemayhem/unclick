@@ -429,7 +429,7 @@ async function callNativeHiggsfieldTool(
     const called = await mcpRequest({
       credentials: session.credentials,
       method: "tools/call",
-      params: { name: toolName, arguments: toolArgs },
+      params: { name: toolName, arguments: { params: toolArgs } },
       sessionId: session.sessionId,
     });
     return stampMeta({
@@ -450,7 +450,7 @@ async function callNativeHiggsfieldTool(
     const called = await mcpRequest({
       credentials: session.credentials,
       method: "tools/call",
-      params: { name: toolName, arguments: toolArgs },
+      params: { name: toolName, arguments: { params: toolArgs } },
       sessionId: session.sessionId,
     });
     return stampMeta({
