@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectAppModal } from "./ConnectAppModal";
 import type { AppEntry } from "@/lib/appCatalog";
@@ -26,6 +26,16 @@ const HIGGSFIELD_APP: AppEntry = {
   domain: "higgsfield.ai",
   tools: [{ name: "higgsfield_generate_image", description: "Generate an image." }],
   toolCount: 1,
+};
+const SUPABASE_APP: AppEntry = {
+  ...APP,
+  slug: "supabase",
+  name: "Supabase",
+  category: "Developer & infra",
+  blurb: "Connect a Supabase project.",
+  domain: "supabase.com",
+  tools: [],
+  toolCount: 0,
 };
 
 function renderModal(overrides: Partial<Parameters<typeof ConnectAppModal>[0]> = {}) {
@@ -102,26 +112,45 @@ describe("ConnectAppModal", () => {
     expect(await screen.findByText(/marked as added/i)).toBeInTheDocument();
   });
 
-  it("presents Higgsfield hosted MCP as setup until UnClick can verify it", () => {
+  it("presents Higgsfield hosted MCP as a connect login", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
     renderModal({
       app: HIGGSFIELD_APP,
       connector: { id: "higgsfield", auth_type: "api_key", setup_url: null, supports_hosted_mcp_connection: true },
+      onStartHostedMcpLogin,
     });
-    expect(screen.getByRole("heading", { name: /set up higgsfield/i })).toBeInTheDocument();
-    expect(screen.getByText(/use higgsfield's mcp setup/i)).toBeInTheDocument();
-    expect(screen.getByText(/no api key is needed for this mcp path/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /connect higgsfield/i })).toBeInTheDocument();
+    expect(screen.getByText(/connect with higgsfield/i)).toBeInTheDocument();
+    expect(screen.getByText(/opens a higgsfield sign-in window/i)).toBeInTheDocument();
+    expect(screen.getByText(/no cloud api key is needed for this mcp login path/i)).toBeInTheDocument();
     expect(screen.queryByText(/vault/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open higgsfield mcp setup/i })).toHaveAttribute(
+    fireEvent.click(screen.getByRole("button", { name: /connect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
+    expect(screen.getByRole("link", { name: /higgsfield mcp guide/i })).toHaveAttribute(
       "href",
       "https://higgsfield.ai/mcp",
     );
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/unclick api actions/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
+    expect(screen.getByText(/cloud api key fallback/i)).toBeInTheDocument();
+    expect(screen.getByText(/unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /where do i get my cloud api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
     );
     expect(screen.getByRole("button", { name: /test api key/i })).toBeInTheDocument();
+  });
+
+  it("routes Supabase users to login instead of a key form", () => {
+    renderModal({
+      app: SUPABASE_APP,
+      connector: { id: "supabase", auth_type: "oauth2", setup_url: null },
+    });
+    expect(screen.getByText(/connects with a provider sign-in instead of a pasted key/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /continue to supabase login/i })).toHaveAttribute(
+      "href",
+      "/connect/supabase",
+    );
+    expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
   });
 
   it("surfaces a rejection and stores nothing when the platform refuses the key", async () => {
@@ -169,7 +198,7 @@ describe("ConnectAppModal", () => {
     expect(screen.getByText(/managed connection provider handles the sensitive access/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/paste/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /connect alpha vantage/i }));
-    expect(onStartManagedConnection).toHaveBeenCalled();
+    await waitFor(() => expect(onStartManagedConnection).toHaveBeenCalled());
   });
 
   it("offers reconnect and disconnect for an existing OAuth connection", async () => {
@@ -186,6 +215,6 @@ describe("ConnectAppModal", () => {
       "/connect/alphavantage",
     );
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
-    expect(onDisconnect).toHaveBeenCalled();
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });
 });

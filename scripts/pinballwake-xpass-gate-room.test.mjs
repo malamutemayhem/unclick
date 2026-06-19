@@ -41,6 +41,29 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["testpass", "sloppass"]);
   });
 
+  it("routes app connector OAuth rollouts through readiness proof lanes", () => {
+    const selected = checks({
+      title: "Vercel Supabase app connection login rollout",
+      description: "Provider login, token fallback, connected badge, and keychain parity must agree.",
+      changed_files: [
+        "src/lib/connectors.ts",
+        "api/oauth-init.ts",
+        "src/pages/Connect.tsx",
+        "packages/mcp-server/src/keychain-tool.ts",
+      ],
+    });
+
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("uipass"));
+    assert.ok(selected.includes("uxpass"));
+    assert.ok(selected.includes("flowpass"));
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("connectorpass"));
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
   it("routes auth, key, and redaction changes to SecurityPass", () => {
     const selected = checks({
       title: "Harden keychain token redaction",

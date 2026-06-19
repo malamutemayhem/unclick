@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 760883150b3f | 4888 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 6c2b0acfb974 | 23705 |
-| src/pages/admin/AdminShell.tsx | 1b7fc2fcd61e | 33257 |
+| src/App.tsx | 8385c5fc8837 | 23840 |
+| src/pages/admin/AdminShell.tsx | 228b3abca85e | 33739 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -33,7 +33,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | b34b0d5efd06 | 7506 |
+| package.json | c74377f4f488 | 7710 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
@@ -86,7 +86,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | 93fc8a56be0b | 12500 |
+| src/pages/admin/AdminTools.tsx | 1ba9964071b5 | 14135 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
@@ -94,6 +94,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
+| src/pages/admin/AdminCircle.tsx | 76282f364efd | 16913 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | 2d65d1f907b8 | 13908 |
@@ -124,11 +125,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 859e8c2a0639 | 6986 |
+| src/pages/AppDetail.tsx | 41b547b88949 | 7479 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 818da19c618a | 31549 |
+| src/pages/Connect.tsx | d77a6a1cf116 | 34634 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -200,7 +201,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 7606150f25cd | 32875 |
+| scripts/pinballwake-xpass-gate-room.mjs | dd9f6112cdcd | 35072 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |
@@ -267,7 +268,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 59 |
+| Admin surfaces | Private operator views and internal control panels. | 60 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
 | Tools | MCP and gateway capabilities available to seats. | 672 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
@@ -333,6 +334,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/capability-balance | Admin Capability Balance | Admin surface for Admin Capability Balance. | src/pages/admin/AdminCapabilityBalance.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/circle | Admin Circle | Admin surface for Admin Circle. | src/pages/admin/AdminCircle.tsx |
 | /admin/codebase | Admin Codebase | Internal source and architecture orientation surface. | src/pages/admin/AdminCodebase.tsx |
 | /admin/controltower | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | src/pages/admin/AdminControlTower.tsx |
 | /admin/copypass | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | src/pages/admin/copypass/CopyPassCatalog.tsx |
@@ -1120,6 +1122,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Capability Balance | Admin surface for Admin Capability Balance. | /admin/capability-balance | src/pages/admin/AdminCapabilityBalance.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin Circle | Admin surface for Admin Circle. | /admin/circle | src/pages/admin/AdminCircle.tsx |
 | Admin surfaces | admin page | Admin Codebase | Internal source and architecture orientation surface. | /admin/codebase | src/pages/admin/AdminCodebase.tsx |
 | Admin surfaces | admin page | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | /admin/controltower | src/pages/admin/AdminControlTower.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
@@ -2328,9 +2331,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | build:dev | vite build --mode development |
 | compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
-| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension |
+| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension && npm run check:app-connections |
 | test:api | npm run test --workspace=apps/api |
 | test:api-lib-esm-extension | node --test scripts/api-lib-esm-extension-guard.test.mjs |
+| test:app-connections | node --test scripts/check-app-connection-readiness.test.mjs |
 | test:boardroom-naming | node --test scripts/audit-fishbowl-naming.test.mjs |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |

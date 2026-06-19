@@ -1,6 +1,6 @@
 {
   "generatedAt": "static",
-  "appCount": 671,
+  "appCount": 672,
   "toolCount": 1593,
   "categories": [
     "AI",
@@ -5558,19 +5558,19 @@
       "tools": [
         {
           "name": "higgsfield_generate_video",
-          "description": "Generate a Higgsfield video from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account."
+          "description": "Generate a Higgsfield video from a prompt. Prefers the customer's connected Higgsfield MCP account login and subscription credits; api_key is only the Cloud API fallback."
         },
         {
           "name": "higgsfield_generate_image",
-          "description": "Generate a Higgsfield image from a prompt using a Higgsfield Cloud API key saved in UnClick or supplied for this call. Higgsfield bills usage to that Higgsfield account."
+          "description": "Generate a Higgsfield image from a prompt. Prefers the customer's connected Higgsfield MCP account login and subscription credits; api_key is only the Cloud API fallback."
         },
         {
           "name": "higgsfield_get_styles",
-          "description": "List available Higgsfield styles using a Higgsfield Cloud API key saved in UnClick or supplied for this call."
+          "description": "List Higgsfield models/styles. Prefers the customer's connected Higgsfield MCP account login; api_key is only the Cloud API fallback."
         },
         {
           "name": "higgsfield_get_status",
-          "description": "Check the status of a Higgsfield generation by ID using a Higgsfield Cloud API key saved in UnClick or supplied for this call."
+          "description": "Check the status of a Higgsfield generation by ID. Prefers the customer's connected Higgsfield MCP account login; api_key is only the Cloud API fallback."
         }
       ],
       "level": 5,
@@ -12622,6 +12622,18 @@
       "hardened": true
     },
     {
+      "slug": "supabase",
+      "name": "Supabase",
+      "category": "Developer & infra",
+      "blurb": "Connect a Supabase project for UnClick and direct MCP workflows.",
+      "domain": "supabase.com",
+      "network": "online",
+      "toolCount": 0,
+      "tools": [],
+      "level": null,
+      "hardened": false
+    },
+    {
       "slug": "supercell",
       "name": "Supercell",
       "category": "Games & esports",
@@ -14276,7 +14288,7 @@
       "slug": "vercel",
       "name": "Vercel",
       "category": "Developer & infra",
-      "blurb": "List Vercel deployments for a project.",
+      "blurb": "Manage projects, deployments, domains, and environment variables.",
       "domain": "vercel.com",
       "network": "online",
       "toolCount": 8,

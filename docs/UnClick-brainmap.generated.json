@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1132,
-    "source_manifest": 249,
-    "pages": 115,
+    "inventory": 1133,
+    "source_manifest": 250,
+    "pages": 116,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 59
+      "count": 60
     },
     {
       "id": "public-surfaces",
@@ -209,6 +209,16 @@
       "meaning": "Admin surface for Admin Ecosystem Pages.",
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
       "route": "/admin/checks",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-circle-src-pages-admin-admincircle-tsx-admin-circle",
+      "division": "Admin surfaces",
+      "name": "Admin Circle",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Circle.",
+      "source": "src/pages/admin/AdminCircle.tsx",
+      "route": "/admin/circle",
       "tags": []
     },
     {
@@ -11546,6 +11556,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/circle",
+      "Admin Circle",
+      "Admin surface for Admin Circle.",
+      "src/pages/admin/AdminCircle.tsx"
+    ],
+    [
       "/admin/codebase",
       "Admin Codebase",
       "Internal source and architecture orientation surface.",
@@ -15753,7 +15769,7 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension && npm run check:app-connections"
     ],
     [
       "test:api",
@@ -15762,6 +15778,10 @@
     [
       "test:api-lib-esm-extension",
       "node --test scripts/api-lib-esm-extension-guard.test.mjs"
+    ],
+    [
+      "test:app-connections",
+      "node --test scripts/check-app-connection-readiness.test.mjs"
     ],
     [
       "test:boardroom-naming",
@@ -15860,13 +15880,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "6c2b0acfb974",
-      "bytes": 23705
+      "hash": "8385c5fc8837",
+      "bytes": 23840
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "1b7fc2fcd61e",
-      "bytes": 33257
+      "hash": "228b3abca85e",
+      "bytes": 33739
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15915,8 +15935,8 @@
     },
     {
       "source": "package.json",
-      "hash": "b34b0d5efd06",
-      "bytes": 7506
+      "hash": "c74377f4f488",
+      "bytes": 7710
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -16180,8 +16200,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "93fc8a56be0b",
-      "bytes": 12500
+      "hash": "1ba9964071b5",
+      "bytes": 14135
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16217,6 +16237,11 @@
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "hash": "f8080095c92c",
       "bytes": 13774
+    },
+    {
+      "source": "src/pages/admin/AdminCircle.tsx",
+      "hash": "76282f364efd",
+      "bytes": 16913
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -16370,8 +16395,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "859e8c2a0639",
-      "bytes": 6986
+      "hash": "41b547b88949",
+      "bytes": 7479
     },
     {
       "source": "src/pages/Apps.tsx",
@@ -16390,8 +16415,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "818da19c618a",
-      "bytes": 31549
+      "hash": "d77a6a1cf116",
+      "bytes": 34634
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -16750,8 +16775,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "7606150f25cd",
-      "bytes": 32875
+      "hash": "dd9f6112cdcd",
+      "bytes": 35072
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

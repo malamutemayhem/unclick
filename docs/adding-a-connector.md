@@ -11,7 +11,8 @@ Pair it with `docs/connector-standard.md` (the quality-ladder definitions).
 1. **Load memory.** Call `load_memory` before your first action (UnClick session
    protocol). It carries standing rules and current work.
 2. **Read this doc + `docs/connector-standard.md`.** This is the how-to; the
-   standard is the bar.
+   standard is the bar. For login-first/OAuth apps, also read
+   `docs/connectors/app-connection-readiness.md`.
 3. **Standing rule:** Cursor Bugbot is discontinued. Treat its checks as noise.
    The real CI gates are `Website (root package)`, `MCP server package`,
    `TestPass`, and `Vercel`.
@@ -131,6 +132,15 @@ bare `` `HTTP ${status}` `` (the grader counts those and blocks hardening).
 - Key in a custom header: set it directly (unsplash `Client-ID`, shortcut `Shortcut-Token`).
 - No key (public API): no credential; keep the timeout/429/stamp shape (wikipedia, ptv).
 
+**Login-first/OAuth apps:** do not stop at "the Connect button exists." The app
+must pass `npm run check:app-connections`, or
+`node scripts/check-app-connection-readiness.mjs --platform=<slug>` for a single
+slug. This checks catalog visibility, provider-login UX, setup-pending fallback,
+OAuth start/callback parity, credential storage, and MCP/keychain status parity.
+Before calling production live, also run
+`node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world`
+so missing provider client ID/secret env vars are caught before users find them.
+
 ---
 
 ## 4. Wiring: the files you touch every time
@@ -228,6 +238,8 @@ npm run test --workspace=@unclick/mcp-server                      # 1000+ tests 
 cd ../.. && npm run brainmap:check                                # brainmap in sync
 node scripts/generate-app-catalog.mjs --check                     # app catalog in sync
 npx vitest run src/lib/appCatalog.test.ts src/lib/appCatalog.copyqc.test.ts   # catalog integrity + simple-English copy
+npm run check:app-connections                                     # login-first app readiness and keychain parity
+node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world # production OAuth env proof
 ```
 
 The MCP `test` script chains the `--check` gates; if it exits non-zero after the
@@ -264,6 +276,9 @@ are doing the full OAuth flow. Confirm the slug is not already in
 - [ ] `tool-wiring.ts`: import + `ADDITIONAL_TOOLS` defs + `ADDITIONAL_HANDLERS`
 - [ ] `connector-setup.ts`: `CONNECTOR_SETUP` row
 - [ ] `generate-app-catalog.mjs`: category bucket (+ name/blurb/domain)
+- [ ] Login-first/OAuth app: `npm run check:app-connections` or single-platform readiness check
+- [ ] Public OAuth app: live readiness check with `--live-url=https://unclick.world`
+- [ ] XPass: ConnectorPass receipt is present for connector/OAuth/keychain changes
 - [ ] (optional) L3 registry / L4 signal
 - [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> connector-setup -> brainmap
 - [ ] `tsc` + MCP `test` chain + `brainmap:check` + app-catalog `--check` + frontend catalog tests

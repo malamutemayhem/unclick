@@ -228,11 +228,11 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
   },
   higgsfield: {
     displayName: "Higgsfield",
-    credential:  "API key",
+    credential:  "account login or API key",
     arg:         "api_key",
     envVar:      "HIGGSFIELD_API_KEY",
-    setupUrl:    "https://cloud.higgsfield.ai/api-keys",
-    note:        "Higgsfield's MCP uses Higgsfield account sign-in in your AI app. Add a Cloud API key here only when you want UnClick to run Higgsfield API actions.",
+    setupUrl:    "https://unclick.world/admin/apps?lens=signin",
+    note:        "Connect Higgsfield from UnClick Apps to use your Higgsfield account, plan, and credits. A Cloud API key is optional fallback only.",
   },
   kling: {
     displayName: "Kling",
@@ -553,10 +553,19 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
   },
   vercel: {
     displayName: "Vercel",
-    credential:  "access token",
+    credential:  "OAuth login",
     arg:         "api_key",
     envVar:      "VERCEL_TOKEN",
-    setupUrl:    "https://vercel.com/account/tokens",
+    setupUrl:    "https://vercel.com/oauth/authorize",
+    note:        "Connect Vercel with provider login for UnClick's built-in Vercel actions. Use the token fallback only if OAuth is unavailable. Vercel's hosted MCP at https://mcp.vercel.com is a separate OAuth sign-in path outside UnClick. Billing, projects, and team permissions stay in Vercel.",
+  },
+  supabase: {
+    displayName: "Supabase",
+    credential:  "OAuth login",
+    arg:         "access_token",
+    envVar:      "SUPABASE_ACCESS_TOKEN",
+    setupUrl:    "https://api.supabase.com/v1/oauth/authorize",
+    note:        "Connect Supabase with provider login for UnClick's Supabase Management API access. Use the token fallback only if OAuth is unavailable. Supabase's hosted MCP at https://mcp.supabase.com/mcp is a separate developer sign-in path; scope it with project_ref and read_only when possible, and do not hand that developer MCP connection to app customers.",
   },
   render: {
     displayName: "Render",

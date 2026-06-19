@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { CheckCircle2, ExternalLink, KeyRound, Loader2, X, XCircle, AlertTriangle } from "lucide-react";
 import type { AppEntry } from "@/lib/appCatalog";
+import { CONNECTORS } from "@/lib/connectors";
 import connectorSetupData from "@/data/connector-setup.generated.json";
 
 interface ConnectorSetupRow {
@@ -44,6 +45,7 @@ interface ConnectAppModalProps {
   statusLabel?: string | null;
   onDisconnect?: () => Promise<void> | void;
   onStartManagedConnection?: () => Promise<void> | void;
+  onStartHostedMcpLogin?: () => Promise<void> | void;
 }
 
 type Outcome =
@@ -69,23 +71,30 @@ export function ConnectAppModal({
   statusLabel = null,
   onDisconnect,
   onStartManagedConnection,
+  onStartHostedMcpLogin,
 }: ConnectAppModalProps) {
   const setup = CONNECTOR_SETUP[app.slug];
   const [credential, setCredential] = useState("");
   const [busy, setBusy] = useState(false);
   const [disconnectBusy, setDisconnectBusy] = useState(false);
   const [managedBusy, setManagedBusy] = useState(false);
+  const [hostedBusy, setHostedBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [disconnectError, setDisconnectError] = useState<string | null>(null);
   const [managedError, setManagedError] = useState<string | null>(null);
+  const [hostedError, setHostedError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   const credentialLabel = setup?.credential ?? "API key";
   const setupUrl = setup?.setupUrl ?? connector.setup_url ?? null;
   const isOAuth = connector.auth_type === "oauth2";
+  const fieldCount = CONNECTORS[app.slug]?.credentialFields.length ?? 1;
+  const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
-  const modalVerb = usesHostedMcpConnection ? "Set up" : isConnected ? "Manage" : "Connect";
+  const hostedFallbackCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
+  const hostedFallbackSetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
+  const modalVerb = isConnected ? "Manage" : "Connect";
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -162,6 +171,19 @@ export function ConnectAppModal({
     }
   }
 
+  async function startHostedMcpLogin() {
+    if (!onStartHostedMcpLogin) return;
+    setHostedBusy(true);
+    setHostedError(null);
+    try {
+      await onStartHostedMcpLogin();
+    } catch (e) {
+      setHostedError(e instanceof Error ? e.message : "Connect failed.");
+    } finally {
+      setHostedBusy(false);
+    }
+  }
+
   const disconnectButton = isConnected && onDisconnect ? (
     <button
       type="button"
@@ -231,21 +253,41 @@ export function ConnectAppModal({
         ) : usesHostedMcpConnection ? (
           <div className="space-y-3 text-xs leading-5 text-white/60">
             <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
-              <p className="font-semibold text-white">Use {app.name}'s MCP setup</p>
+              <p className="font-semibold text-white">
+                {isConnected ? `${app.name} MCP is connected` : `Connect with ${app.name}`}
+              </p>
               <p className="mt-1 text-white/55">
-                This opens Higgsfield's setup page so you can add its MCP URL to your AI app and sign in with
-                Higgsfield there. It uses your Higgsfield account, plan, and credits.
+                This opens a Higgsfield sign-in window. It uses your Higgsfield account, plan, and credits.
               </p>
               <p className="mt-1 text-white/45">
-                No API key is needed for this MCP path. Higgsfield manages that sign-in in your AI app.
+                No Cloud API key is needed for this MCP login path.
               </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void startHostedMcpLogin()}
+                  disabled={hostedBusy}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/15 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/20 disabled:opacity-50"
+                >
+                  {hostedBusy && <Loader2 className="h-3 w-3 animate-spin" />}
+                  {hostedBusy ? "Opening..." : isConnected ? `Reconnect ${app.name}` : `Connect ${app.name}`}
+                  {!hostedBusy && <ExternalLink className="h-3 w-3" />}
+                </button>
+                {disconnectButton}
+              </div>
+              {hostedError && (
+                <p role="alert" className="mt-2 text-[11px] text-red-400">{hostedError}</p>
+              )}
+              {disconnectError && (
+                <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
+              )}
               <a
                 href="https://higgsfield.ai/mcp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/15"
+                className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
               >
-                Open Higgsfield MCP setup
+                Higgsfield MCP guide
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -253,25 +295,25 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                Add the same Higgsfield MCP URL anywhere your AI app supports MCP connectors. For UnClick-run
-                actions on every device, add a Cloud API key below.
+                The login is saved to your UnClick account. UnClick can run Higgsfield image and video tools through
+                this MCP connection on every device.
               </p>
             </div>
 
             <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
-              <p className="font-semibold text-white">UnClick API actions</p>
+              <p className="font-semibold text-white">Cloud API key fallback</p>
               <p className="mt-1 text-white/55">
-                Use this only if you want UnClick itself to run Higgsfield image and video actions. It is separate
-                from Higgsfield's MCP account login above.
+                Use this only if you specifically prefer Higgsfield Cloud API billing, or if the account login path is
+                unavailable.
               </p>
-              {setupUrl && (
+              {hostedFallbackSetupUrl && (
                 <a
-                  href={setupUrl}
+                  href={hostedFallbackSetupUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
                 >
-                  Where do I get my {credentialLabel}?
+                  Where do I get my {hostedFallbackCredentialLabel}?
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -282,7 +324,7 @@ export function ConnectAppModal({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !busy) void submit();
                 }}
-                placeholder={`Paste ${credentialLabel} here`}
+                placeholder={`Paste ${hostedFallbackCredentialLabel} here`}
                 className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
               />
               {error && (
@@ -326,19 +368,28 @@ export function ConnectAppModal({
               <p role="alert" className="mt-2 text-[11px] text-red-400">{disconnectError}</p>
             )}
           </div>
-        ) : isOAuth ? (
+        ) : isOAuth || needsFullConnectionPage ? (
           <div className="text-xs leading-5 text-white/60">
             <p>
-              {isConnected
-                ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
-                : `${app.name} connects with a provider sign-in instead of a pasted key.`}
+              {needsFullConnectionPage
+                ? `${app.name} needs a few fields, so it uses the full connection page instead of this quick key box.`
+                : isConnected
+                  ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
+                  : `${app.name} connects with a provider sign-in instead of a pasted key.`}
             </p>
+            {setup?.note && <p className="mt-2 text-[11px] leading-4 text-white/45">{setup.note}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <a
                 href={`/connect/${app.slug}`}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90"
               >
-                {isConnected ? `Reconnect ${app.name}` : `Continue to ${app.name} login`}
+                {needsFullConnectionPage
+                  ? isConnected
+                    ? `Update ${app.name} connection`
+                    : `Open ${app.name} connection page`
+                  : isConnected
+                    ? `Reconnect ${app.name}`
+                    : `Continue to ${app.name} login`}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
               {disconnectButton}

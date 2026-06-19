@@ -17,6 +17,7 @@ import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
 import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import { LENSES, parseAppLens } from "@/components/apps/appLenses";
+import { productName } from "@/config/product-names";
 import UserAvatar from "@/components/UserAvatar";
 import {
   ArrowRightLeft,
@@ -112,7 +113,8 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
 function ConnectionsNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
   const location = useLocation();
   const onApps = location.pathname === "/admin/apps";
-  const open = onApps || location.pathname.startsWith("/admin/keychain");
+  const onCircle = location.pathname.startsWith("/admin/circle");
+  const open = onApps || onCircle || location.pathname.startsWith("/admin/keychain");
   const activeLens = parseAppLens(new URLSearchParams(location.search).get("lens"));
 
   return (
@@ -165,6 +167,15 @@ function ConnectionsNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
             }`}
           >
             Passport
+          </Link>
+          <Link
+            to="/admin/circle"
+            onClick={onLinkClick}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-card/40 ${
+              onCircle ? "text-primary" : "text-muted-foreground hover:text-body"
+            }`}
+          >
+            {productName("circle")}
           </Link>
           <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground/40">
             Websites

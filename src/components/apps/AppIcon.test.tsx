@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { brandIconSrcFor } from "./appBrandIcons";
 import { glyphFor } from "./appIconGlyphs";
 import { APP_CATALOG } from "@/lib/appCatalog";
 
@@ -18,6 +19,11 @@ describe("AppIcon glyph resolution", () => {
     expect(glyphName("Vigenere Cipher", "Utilities", "vigenere")).toBe("Lock");
   });
 
+  it("uses stable local glyphs for Vercel and Supabase instead of remote favicons", () => {
+    expect(glyphName("Vercel", "Developer & infra", "vercel")).toBe("Cloud");
+    expect(glyphName("Supabase", "Developer & infra", "supabase")).toBe("Database");
+  });
+
   it("falls back to the category glyph when no keyword matches", () => {
     expect(glyphName("Taco Fancy", "Utilities", "tacofancy")).toBe("Wrench");
   });
@@ -25,5 +31,9 @@ describe("AppIcon glyph resolution", () => {
   it("resolves a glyph for every app in the catalog (no letter chips left)", () => {
     const lettered = APP_CATALOG.filter((a) => glyphFor(a.name, a.category, a.slug) === null);
     expect(lettered.map((a) => a.slug)).toEqual([]);
+  });
+
+  it("uses the local Higgsfield brand icon instead of a generic favicon lookup", () => {
+    expect(brandIconSrcFor("higgsfield")).toBe("/app-icons/higgsfield.png");
   });
 });

@@ -86,4 +86,17 @@ describe("AdminShell navigation", () => {
 
     expect(screen.queryByRole("link", { name: "Jobsmith" })).not.toBeInTheDocument();
   });
+
+  it("shows Circle inside Connections", async () => {
+    const { default: AdminShell } = await import("./AdminShell");
+
+    render(
+      <MemoryRouter initialEntries={["/admin/circle"]}>
+        <AdminShell />
+      </MemoryRouter>,
+    );
+
+    const circleLinks = await screen.findAllByRole("link", { name: "Circle" });
+    expect(circleLinks[0]).toHaveAttribute("href", "/admin/circle");
+  });
 });

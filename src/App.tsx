@@ -84,6 +84,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.tsx"));
 const AdminYou = lazy(() => import("./pages/admin/AdminYou.tsx"));
 const AdminMemory = lazy(() => import("./pages/admin/AdminMemory.tsx"));
 const AdminKeychain = lazy(() => import("./pages/admin/AdminKeychain.tsx"));
+const AdminCircle = lazy(() => import("./pages/admin/AdminCircle.tsx"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools.tsx"));
 const AdminSkills = lazy(() => import("./pages/admin/AdminSkills.tsx"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity.tsx"));
@@ -281,6 +282,7 @@ const App = () => (
             <Route path="you" element={<AdminYou />} />
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
+            <Route path="circle" element={<AdminCircle />} />
             <Route path="apps" element={<AdminTools />} />
             <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />

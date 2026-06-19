@@ -5,7 +5,8 @@
 //   2. Env vars       - UNCLICK_{SLUG}_{FIELD} (e.g., UNCLICK_XERO_ACCESS_TOKEN)
 //   3. Local vault    - keys "{slug}/{field}" in ~/.unclick/vault.enc
 //                       requires UNCLICK_VAULT_PASSWORD env var to auto-unlock
-//   4. Supabase       - encrypted credentials stored via unclick.world/connect/{slug}
+//   4. Keychain       - single-value credentials saved from admin Apps
+//   5. Supabase       - encrypted credentials stored via unclick.world/connect/{slug}
 //                       requires UNCLICK_API_KEY env var (the user's UnClick API key)
 //                       fetches from https://unclick.world/api/credentials
 //
@@ -16,6 +17,7 @@
 
 import { vaultAction }                   from "./vault-tool.js";
 import { CONNECTORS, type ConnectorConfig } from "./connectors/index.js";
+import { keychainGetCredential }         from "./keychain-tool.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -101,7 +103,30 @@ export async function resolveCredentials(
     if (stillMissing.length === 0) return resolved;
   }
 
-  // ── 3. Supabase via UnClick API ────────────────────────────────────────────
+  // ── 3. UnClick Keychain via admin Apps ─────────────────────────────────────
+  //
+  // The admin Apps quick-connect path stores one encrypted credential in
+  // platform_credentials. That shape fits single-field key connectors such as
+  // Clockify and Notion. OAuth connectors and multi-field connectors use /connect.
+  if (connector.credentialFields.length === 1 && stillMissing.length > 0) {
+    const field = connector.credentialFields[0];
+    if (stillMissing.some((f) => f.key === field.key)) {
+      try {
+        const val = await keychainGetCredential(slug);
+        if (val && val.trim() !== "") {
+          resolved[field.key] = val.trim();
+        }
+      } catch {
+        // keychain miss - continue to the /connect credential API
+      }
+    }
+    stillMissing = stillMissing.filter(
+      (f) => !resolved[f.key] || String(resolved[f.key]).trim() === ""
+    );
+    if (stillMissing.length === 0) return resolved;
+  }
+
+  // ── 4. Supabase via UnClick API ────────────────────────────────────────────
   const apiKey  = process.env.UNCLICK_API_KEY?.trim();
   const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 
