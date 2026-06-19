@@ -442,6 +442,7 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
 
 const ADMIN_SUBMENU = [
   { path: "/admin/analytics",     label: "Analytics",             icon: BarChart3   },
+  { path: "/admin/capability-balance", label: "Capability Balance", icon: SlidersHorizontal },
   { path: "/admin/codebase",      label: "Codebase",              icon: Code2       },
   { path: "/admin/users",         label: "User Management",       icon: UsersIcon   },
   { path: "/admin/system-health", label: "System Health",         icon: HeartPulse  },

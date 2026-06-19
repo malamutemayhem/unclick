@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1132,
-    "source_manifest": 249,
-    "pages": 115,
+    "inventory": 1133,
+    "source_manifest": 250,
+    "pages": 116,
     "tools": 672,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 59
+      "count": 60
     },
     {
       "id": "public-surfaces",
@@ -179,6 +179,16 @@
       "meaning": "Generated ecosystem map that teaches seats what UnClick is.",
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-capability-balance-src-pages-admin-admincapabilitybalance-tsx-admin-capability-balance",
+      "division": "Admin surfaces",
+      "name": "Admin Capability Balance",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Capability Balance.",
+      "source": "src/pages/admin/AdminCapabilityBalance.tsx",
+      "route": "/admin/capability-balance",
       "tags": []
     },
     {
@@ -11528,6 +11538,12 @@
       "src/pages/admin/AdminBrainmap.tsx"
     ],
     [
+      "/admin/capability-balance",
+      "Admin Capability Balance",
+      "Admin surface for Admin Capability Balance.",
+      "src/pages/admin/AdminCapabilityBalance.tsx"
+    ],
+    [
       "/admin/checks/:productId",
       "Admin Checks",
       "Admin surface for Admin Ecosystem Pages.",
@@ -15864,13 +15880,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "6de15e0af158",
-      "bytes": 23631
+      "hash": "8385c5fc8837",
+      "bytes": 23840
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "f45353307141",
-      "bytes": 33644
+      "hash": "228b3abca85e",
+      "bytes": 33739
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16216,6 +16232,11 @@
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "hash": "48525d7a37d1",
       "bytes": 26608
+    },
+    {
+      "source": "src/pages/admin/AdminCapabilityBalance.tsx",
+      "hash": "f8080095c92c",
+      "bytes": 13774
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",

@@ -97,6 +97,7 @@ const AdminSeatsApiUsage = lazy(() => import("./pages/admin/AdminSeatsApiUsage.t
 const AdminSeatsLocal = lazy(() => import("./pages/admin/AdminSeatsLocal.tsx"));
 const AdminSeatsSubscription = lazy(() => import("./pages/admin/AdminSeatsSubscription.tsx"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics.tsx"));
+const AdminCapabilityBalance = lazy(() => import("./pages/admin/AdminCapabilityBalance.tsx"));
 const AdminCodebase = lazy(() => import("./pages/admin/AdminCodebase.tsx"));
 const AdminOrchestratorPage = lazy(() => import("./pages/admin/AdminOrchestrator.tsx"));
 const AdminOrchestratorLog = lazy(() => import("./pages/admin/AdminOrchestratorLog.tsx"));
@@ -326,6 +327,7 @@ const App = () => (
             <Route path="orchestrator/log" element={<AdminOrchestratorLog />} />
             {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
             <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
+            <Route path="capability-balance" element={<RequireAdmin><AdminCapabilityBalance /></RequireAdmin>} />
             <Route path="codebase"       element={<RequireAdmin><AdminCodebase /></RequireAdmin>} />
             <Route path="users"          element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
             <Route path="system-health"  element={<RequireAdmin><AdminSystemHealth /></RequireAdmin>} />
