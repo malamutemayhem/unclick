@@ -486,6 +486,8 @@ async function exchangeHiggsfieldMcp(
     access_token: accessToken,
     ...(refreshToken ? { refresh_token: refreshToken } : {}),
     ...(expiresAt ? { expires_at: expiresAt } : {}),
+    client_id: flow.client_id,
+    mcp_url: "https://mcp.higgsfield.ai/mcp",
     token_type: String(tokenResponse.token_type ?? "Bearer"),
     scope: String(tokenResponse.scope ?? "openid email offline_access"),
     credential_kind: "higgsfield_mcp_oauth",

@@ -126,7 +126,7 @@ const AppDetail = () => {
               </div>
               <p className="mt-1.5 text-xs leading-5 text-white/55">
                 {usesHostedMcpSetup
-                  ? `Connect ${app.name} from Apps to open a Higgsfield sign-in window. The MCP login uses your Higgsfield account, plan, and credits. Add a Cloud API key only if you also want UnClick-run API actions.`
+                  ? `Connect ${app.name} from Apps to open a Higgsfield sign-in window. The MCP login uses your Higgsfield account, plan, and credits, and UnClick can use that connection on every device. A Cloud API key is only a fallback.`
                   : `Most apps work straight away with nothing to set up. If ${app.name} needs your account, manage it from Apps; UnClick shows the status it can verify.`}
               </p>
               <Link

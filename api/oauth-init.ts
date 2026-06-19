@@ -65,6 +65,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   dropbox: "Dropbox",
   "google-workspace": "Google Workspace",
   "microsoft-graph": "Microsoft Graph",
+  higgsfield: "Higgsfield",
 };
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const HIGGSFIELD_MCP_REGISTER_URL = "https://mcp.higgsfield.ai/oauth2/register";
@@ -175,6 +176,15 @@ function providerSetupPending(res: VercelResponse, platform: string, missing: OA
   });
 }
 
+function hasStateSigningSecret(env: NodeJS.ProcessEnv): boolean {
+  return Boolean(
+    env.OAUTH_STATE_SECRET ||
+    env.MCP_OAUTH_SIGNING_SECRET ||
+    env.UNCLICK_OAUTH_SIGNING_SECRET ||
+    env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -207,6 +217,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (platform === "higgsfield") {
+      if (!hasStateSigningSecret(process.env)) {
+        return providerSetupPending(res, platform, ["state_secret"]);
+      }
+
       const redirectUri = `${requestOrigin(req)}/api/oauth-callback`;
       const state = createOAuthStateToken({
         platform,

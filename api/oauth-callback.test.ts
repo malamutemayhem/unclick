@@ -312,6 +312,8 @@ describe("oauth callback Higgsfield MCP login", () => {
           credentials: {
             access_token: "hf-access-token",
             refresh_token: "hf-refresh-token",
+            client_id: "hf-client",
+            mcp_url: "https://mcp.higgsfield.ai/mcp",
             credential_kind: "higgsfield_mcp_oauth",
           },
         });

@@ -124,7 +124,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
 | src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 619d87fa3d8d | 7457 |
+| src/pages/AppDetail.tsx | 41b547b88949 | 7479 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
