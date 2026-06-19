@@ -92,6 +92,8 @@ export function ConnectAppModal({
   const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
+  const hostedFallbackCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
+  const hostedFallbackSetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
   const modalVerb = isConnected ? "Manage" : "Connect";
 
   async function submit() {
@@ -293,25 +295,25 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                The login is saved to your UnClick account. For UnClick-run REST actions on every device, add a
-                Cloud API key below.
+                The login is saved to your UnClick account. UnClick can run Higgsfield image and video tools through
+                this MCP connection on every device.
               </p>
             </div>
 
             <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
-              <p className="font-semibold text-white">UnClick API actions</p>
+              <p className="font-semibold text-white">Cloud API key fallback</p>
               <p className="mt-1 text-white/55">
-                Use this only if you want UnClick itself to run Higgsfield image and video actions. It is separate
-                from Higgsfield's MCP account login above.
+                Use this only if you specifically prefer Higgsfield Cloud API billing, or if the account login path is
+                unavailable.
               </p>
-              {setupUrl && (
+              {hostedFallbackSetupUrl && (
                 <a
-                  href={setupUrl}
+                  href={hostedFallbackSetupUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
                 >
-                  Where do I get my {credentialLabel}?
+                  Where do I get my {hostedFallbackCredentialLabel}?
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -322,7 +324,7 @@ export function ConnectAppModal({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !busy) void submit();
                 }}
-                placeholder={`Paste ${credentialLabel} here`}
+                placeholder={`Paste ${hostedFallbackCredentialLabel} here`}
                 className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
               />
               {error && (

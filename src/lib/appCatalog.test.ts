@@ -50,11 +50,11 @@ describe("app catalog integrity", () => {
     expect(getApp("higgsfield")?.domain).toBe("higgsfield.ai");
   });
 
-  it("keeps Higgsfield UnClick actions separate from the hosted MCP login path", () => {
+  it("describes Higgsfield actions as using the connected MCP login with API fallback", () => {
     const higgsfield = getApp("higgsfield");
     const actionCopy = higgsfield?.tools.map((tool) => tool.description).join(" ") ?? "";
-    expect(actionCopy).toContain("Higgsfield Cloud API key saved in UnClick");
-    expect(actionCopy).not.toContain("connected in UnClick");
+    expect(actionCopy).toContain("connected Higgsfield MCP account login");
+    expect(actionCopy).toContain("Cloud API fallback");
     expect(actionCopy).not.toContain("mcp.higgsfield.ai");
   });
 

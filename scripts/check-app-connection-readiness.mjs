@@ -4,7 +4,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const DEFAULT_LOGIN_FIRST_PLATFORMS = ["github", "vercel", "supabase"];
+export const DEFAULT_LOGIN_FIRST_PLATFORMS = ["github", "vercel", "supabase", "higgsfield"];
+const DYNAMIC_OAUTH_PLATFORMS = new Set(["higgsfield"]);
 
 const SOURCE_PATHS = {
   connectors: "src/lib/connectors.ts",
@@ -245,8 +246,9 @@ export function evaluateConnectionReadinessSources(
 
   for (const platform of platforms) {
     const checks = [];
+    const usesDynamicOAuth = DYNAMIC_OAUTH_PLATFORMS.has(platform);
     const connectorBlock = objectBlockForKey(sources.connectors, platform);
-    const callbackBlock = objectBlockForKey(sources.oauthCallback, platform);
+    const callbackBlock = usesDynamicOAuth ? sources.oauthCallback : objectBlockForKey(sources.oauthCallback, platform);
     const setupBlock = objectBlockForKey(sources.connectorSetup, platform);
     const app = findApp(sources.appCatalogData, platform);
     const generatedSetup = findConnectorSetup(sources.connectorSetupData, platform);
@@ -262,11 +264,15 @@ export function evaluateConnectionReadinessSources(
       const block = objectBlockForConst(sources.oauthInit, "CLIENT_SECRET_ENV");
       return envValueFromBlock(block, platform);
     })();
-    const callbackClientEnv = envValueFromBlock(callbackBlock, "clientIdEnv");
-    const callbackRedirectEnv = envValueFromBlock(callbackBlock, "redirectUriEnv");
-    const callbackSecretEnv = envValueFromBlock(callbackBlock, "clientSecretEnv");
-    const initUsesPkce = includesSlugInSet(sources.oauthInit, "PKCE_PLATFORMS", platform);
-    const callbackUsesPkce = callbackBlock.includes("requiresPkce:") && callbackBlock.includes("true");
+    const callbackClientEnv = usesDynamicOAuth ? "" : envValueFromBlock(callbackBlock, "clientIdEnv");
+    const callbackRedirectEnv = usesDynamicOAuth ? "" : envValueFromBlock(callbackBlock, "redirectUriEnv");
+    const callbackSecretEnv = usesDynamicOAuth ? "" : envValueFromBlock(callbackBlock, "clientSecretEnv");
+    const initUsesPkce = usesDynamicOAuth
+      ? sources.oauthInit.includes("code_challenge_method")
+      : includesSlugInSet(sources.oauthInit, "PKCE_PLATFORMS", platform);
+    const callbackUsesPkce = usesDynamicOAuth
+      ? callbackBlock.includes("code_verifier")
+      : callbackBlock.includes("requiresPkce:") && callbackBlock.includes("true");
     const localGlyphForced = sources.appIcon.includes(`"${platform}"`) || sources.appIcon.includes(`'${platform}'`);
     const localGlyphExists = sources.appIconGlyphs.includes(`${platform}:`);
 
@@ -304,7 +310,12 @@ export function evaluateConnectionReadinessSources(
     addCheck(
       checks,
       "oauth_init_supported",
-      sources.oauthInit.includes(`"${platform}"`)
+      usesDynamicOAuth
+        ? sources.oauthInit.includes(`"${platform}"`)
+          && sources.oauthInit.includes("HIGGSFIELD_MCP_REGISTER_URL")
+          && sources.oauthInit.includes("token_endpoint_auth_method: \"none\"")
+          && sources.oauthInit.includes("HIGGSFIELD_MCP_OAUTH_COOKIE")
+        : sources.oauthInit.includes(`"${platform}"`)
         && Boolean(initRedirectEnv)
         && Boolean(initClientEnv)
         && Boolean(initClientSecretEnv)
@@ -315,7 +326,12 @@ export function evaluateConnectionReadinessSources(
     addCheck(
       checks,
       "oauth_callback_supported",
-      Boolean(callbackBlock)
+      usesDynamicOAuth
+        ? callbackBlock.includes("exchangeHiggsfieldMcp")
+          && callbackBlock.includes("HIGGSFIELD_MCP_TOKEN_URL")
+          && callbackBlock.includes("client_id: flow.client_id")
+          && callbackBlock.includes('credential_kind: "higgsfield_mcp_oauth"')
+        : Boolean(callbackBlock)
         && Boolean(callbackClientEnv)
         && Boolean(callbackRedirectEnv)
         && callbackBlock.includes("extractCredentials")
@@ -326,7 +342,10 @@ export function evaluateConnectionReadinessSources(
     addCheck(
       checks,
       "oauth_env_names_match_start_and_callback",
-      Boolean(initClientEnv)
+      usesDynamicOAuth
+        ? sources.oauthInit.includes("oauth2/register")
+          && sources.oauthCallback.includes("client_id: flow.client_id")
+        : Boolean(initClientEnv)
         && Boolean(callbackClientEnv)
         && initClientEnv === callbackClientEnv
         && Boolean(initClientSecretEnv)
@@ -337,6 +356,7 @@ export function evaluateConnectionReadinessSources(
         && initRedirectEnv === callbackRedirectEnv,
       "OAuth start and callback agree on client ID, client secret, and redirect URI environment names.",
       {
+        dynamic_oauth_registration: usesDynamicOAuth || null,
         init_client_env: initClientEnv || null,
         callback_client_env: callbackClientEnv || null,
         init_client_secret_env: initClientSecretEnv || null,
@@ -349,8 +369,12 @@ export function evaluateConnectionReadinessSources(
     addCheck(
       checks,
       "oauth_state_is_signed",
-      sources.oauthState.includes(`case "${platform}"`)
-        || (sources.oauthState.includes("OAUTH_STATE_SECRET") && Boolean(callbackSecretEnv)),
+      usesDynamicOAuth
+        ? sources.oauthState.includes("OAUTH_STATE_SECRET")
+          && sources.oauthState.includes("MCP_OAUTH_SIGNING_SECRET")
+          && sources.oauthInit.includes("state_secret")
+        : sources.oauthState.includes(`case "${platform}"`)
+          || (sources.oauthState.includes("OAUTH_STATE_SECRET") && Boolean(callbackSecretEnv)),
       "OAuth state has a signing secret path for this provider."
     );
 

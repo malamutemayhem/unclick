@@ -49,11 +49,11 @@ describe("connector-setup registry + resolver", () => {
     }
   });
 
-  it("points Higgsfield setup at Cloud API keys and explains hosted MCP honestly", () => {
+  it("points Higgsfield setup at the UnClick sign-in path and keeps API keys as fallback", () => {
     const r = notConnectedFor("higgsfield");
-    expect(CONNECTOR_SETUP.higgsfield.setupUrl).toBe("https://cloud.higgsfield.ai/api-keys");
-    expect(r.how_to_connect.join(" ")).toContain("MCP uses Higgsfield account sign-in");
-    expect(r.how_to_connect.join(" ")).toContain("UnClick to run Higgsfield API actions");
+    expect(CONNECTOR_SETUP.higgsfield.setupUrl).toBe("https://unclick.world/admin/apps?lens=signin");
+    expect(r.how_to_connect.join(" ")).toContain("Connect Higgsfield from UnClick Apps");
+    expect(r.how_to_connect.join(" ")).toContain("Cloud API key is optional fallback only");
     expect(r.how_to_connect.join(" ")).toContain("HIGGSFIELD_API_KEY");
   });
 
