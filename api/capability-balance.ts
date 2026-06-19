@@ -16,7 +16,7 @@ import {
   type CapabilitySignalKind,
 } from "../src/lib/capabilityBalance.js";
 
-type Db = SupabaseClient<any>;
+type Db = SupabaseClient;
 
 interface SessionUser {
   id: string;
