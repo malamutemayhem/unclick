@@ -9,6 +9,7 @@ const CHECK_ORDER = [
   "flowpass",
   "securitypass",
   "rotatepass",
+  "connectorpass",
   "copypass",
   "fidelitypass",
   "seopass",
@@ -27,6 +28,7 @@ const CHECK_LABELS = {
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   copypass: "CopyPass",
   fidelitypass: "FidelityPass",
   seopass: "SEOPass",
@@ -55,6 +57,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
+  ["connectorpass", "connectorpass"],
 ]);
 
 const ENTERPRISE_READINESS_TERMS = [
@@ -256,6 +259,7 @@ function addReason(map, check, reason) {
 }
 
 function addAppConnectionReasons(map, reason) {
+  addReason(map, "connectorpass", `app connector readiness proof: ${reason}`);
   addReason(map, "testpass", `app connection readiness needs deterministic proof: ${reason}`);
   addReason(map, "uxpass", `provider login and fallback UX surface: ${reason}`);
   addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);

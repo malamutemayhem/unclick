@@ -7,6 +7,7 @@ const CHECK_ORDER = [
   "flowpass",
   "securitypass",
   "rotatepass",
+  "connectorpass",
   "copypass",
   "fidelitypass",
   "seopass",
@@ -61,6 +62,7 @@ const CHECK_LABELS: Record<XPassCheck, string> = {
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   copypass: "CopyPass",
   fidelitypass: "FidelityPass",
   seopass: "SEOPass",
@@ -89,6 +91,7 @@ const PASS_PRODUCT_CHECKS = new Map<string, XPassCheck>([
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
+  ["connectorpass", "connectorpass"],
 ]);
 
 const ENTERPRISE_READINESS_TERMS = [
@@ -100,6 +103,41 @@ const ENTERPRISE_READINESS_TERMS = [
   "model inventory",
   "technical documentation",
   "training data",
+];
+
+const APP_CONNECTION_SURFACE_PATHS = [
+  "src/lib/connectors.ts",
+  "src/data/app-catalog.generated.json",
+  "src/data/connector-setup.generated.json",
+  "src/pages/connect",
+  "src/components/apps/connectappmodal",
+  "src/components/apps/appicon",
+  "packages/mcp-server/src/connector-setup.ts",
+  "packages/mcp-server/src/keychain-tool.ts",
+  "scripts/check-app-connection-readiness",
+  "api/oauth-init.ts",
+  "api/oauth-callback.ts",
+  "api/oauth-state.ts",
+  "api/credentials.ts",
+  "api/lib/managed-connections",
+  "api/memory-admin.ts",
+];
+
+const APP_CONNECTION_TERMS = [
+  "app connection",
+  "app connector",
+  "connector rollout",
+  "connect page",
+  "provider login",
+  "oauth login",
+  "oauth setup",
+  "keychain parity",
+  "token fallback",
+  "connected badge",
+  "setup pending",
+  "managed connection",
+  "compatibility connector",
+  "hosted mcp",
 ];
 
 const COUNCIL_TRIGGER_TERMS = [
@@ -464,6 +502,11 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
     const pathWords = path.replace(/[/_.-]+/g, " ");
     const passProduct = passProductForPath(path);
 
+    if (appConnectionSurface(path, allText)) {
+      addAppConnectionReasons(reasons, path);
+      if (codeFile(path) && !testFile(path)) addReason(reasons, "sloppass", `app connection implementation quality surface: ${path}`);
+    }
+
     if (passProduct) {
       addReason(reasons, "testpass", `XPass product implementation needs proof tests: ${path}`);
       addReason(reasons, passProduct, `XPass product should dogfood its own specialist check: ${path}`);
@@ -541,6 +584,7 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
   }
 
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
+  if (hasAny(allText, APP_CONNECTION_TERMS)) addAppConnectionReasons(reasons, "target text mentions app connection readiness");
   if (hasAny(allText, ["ui", "visual", "screen", "screenshots", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "layout", "spacing", "typography", "mobile", "responsive", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) addReason(reasons, "uipass", "target text mentions UI/visual changes");
   if (hasAny(allText, ["ux", "usability", "easy to use", "journey", "navigation", "onboarding", "form", "forms", "feedback", "recovery", "confusion", "task completion", "user path"])) addReason(reasons, "uxpass", "target text mentions UX/journey changes");
   if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) addReason(reasons, "flowpass", "target text mentions journey/flow completion");
@@ -729,6 +773,21 @@ function passProductForPath(path: string): XPassCheck | "" {
 
 function enterpriseReadinessSurface(path: string, allText: string): boolean {
   return path.includes("enterprise") || path.includes("compliance") || path.startsWith("public/enterprise/") || hasAny(allText, ENTERPRISE_READINESS_TERMS);
+}
+
+function appConnectionSurface(path: string, allText: string): boolean {
+  return APP_CONNECTION_SURFACE_PATHS.some((surfacePath) => path.includes(surfacePath))
+    || (path.startsWith("supabase/migrations/") && hasAny(allText, APP_CONNECTION_TERMS));
+}
+
+function addAppConnectionReasons(map: Map<XPassCheck, Set<string>>, reason: string): void {
+  addReason(map, "connectorpass", `app connector readiness proof: ${reason}`);
+  addReason(map, "testpass", `app connection readiness needs deterministic proof: ${reason}`);
+  addReason(map, "uxpass", `provider login and fallback UX surface: ${reason}`);
+  addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);
+  addReason(map, "securitypass", `credential/OAuth storage surface: ${reason}`);
+  addReason(map, "rotatepass", `credential lifecycle/redaction surface: ${reason}`);
+  addReason(map, "commonsensepass", `connected badge must match tool-facing keychain proof: ${reason}`);
 }
 
 function normalizeCheckName(value: unknown): string {

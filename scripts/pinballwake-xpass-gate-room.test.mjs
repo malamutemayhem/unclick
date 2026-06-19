@@ -59,6 +59,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("flowpass"));
     assert.ok(selected.includes("securitypass"));
     assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("connectorpass"));
     assert.ok(selected.includes("commonsensepass"));
     assert.ok(selected.includes("sloppass"));
   });
