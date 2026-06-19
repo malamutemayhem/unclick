@@ -369,6 +369,22 @@ async function mcpRequest(args: {
   };
 }
 
+function higgsfieldNativeAuthError(result: unknown): boolean {
+  if (!isRecord(result)) return false;
+  const fragments: string[] = [];
+  const structured = result.structuredContent;
+  if (isRecord(structured)) {
+    fragments.push(String(structured.error ?? ""));
+    fragments.push(String(structured.message ?? ""));
+  }
+  const content = Array.isArray(result.content) ? result.content : [];
+  for (const item of content) {
+    if (isRecord(item) && typeof item.text === "string") fragments.push(item.text);
+  }
+  const text = fragments.join(" ").toLowerCase();
+  return /invalid or expired token|expired token|invalid token|unauthori[sz]ed/.test(text);
+}
+
 async function createMcpSession(credentials: HiggsfieldMcpCredentials): Promise<{ credentials: HiggsfieldMcpCredentials; sessionId?: string }> {
   const initialized = await mcpRequest({
     credentials,
@@ -423,8 +439,9 @@ async function callNativeHiggsfieldTool(
   toolArgs: Record<string, unknown>,
 ): Promise<unknown> {
   let fresh = await ensureFreshMcpCredentials(credentials);
-  try {
-    const session = await createMcpSession(fresh);
+
+  const invoke = async (active: HiggsfieldMcpCredentials): Promise<unknown> => {
+    const session = await createMcpSession(active);
     const toolName = await chooseNativeTool(session, preferredNames);
     const called = await mcpRequest({
       credentials: session.credentials,
@@ -432,6 +449,9 @@ async function callNativeHiggsfieldTool(
       params: { name: toolName, arguments: { params: toolArgs } },
       sessionId: session.sessionId,
     });
+    if (higgsfieldNativeAuthError(called.result)) {
+      throw new HiggsfieldMcpAuthError("Higgsfield login expired. Reconnect Higgsfield from UnClick Apps.");
+    }
     return stampMeta({
       provider: "higgsfield_mcp",
       tool: toolName,
@@ -442,27 +462,14 @@ async function callNativeHiggsfieldTool(
       fetched_at: new Date().toISOString(),
       next_steps: ["This used the signed-in customer's Higgsfield account, plan, and credits."],
     });
+  };
+
+  try {
+    return await invoke(fresh);
   } catch (err) {
     if (!(err instanceof HiggsfieldMcpAuthError) || !fresh.refresh_token || !fresh.client_id) throw err;
     fresh = await refreshMcpCredentials(fresh);
-    const session = await createMcpSession(fresh);
-    const toolName = await chooseNativeTool(session, preferredNames);
-    const called = await mcpRequest({
-      credentials: session.credentials,
-      method: "tools/call",
-      params: { name: toolName, arguments: { params: toolArgs } },
-      sessionId: session.sessionId,
-    });
-    return stampMeta({
-      provider: "higgsfield_mcp",
-      tool: toolName,
-      arguments: toolArgs,
-      result: called.result,
-    }, {
-      source: "Higgsfield MCP",
-      fetched_at: new Date().toISOString(),
-      next_steps: ["This used the signed-in customer's Higgsfield account, plan, and credits."],
-    });
+    return invoke(fresh);
   }
 }
 
