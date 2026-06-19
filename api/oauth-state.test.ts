@@ -78,4 +78,21 @@ describe("oauth state token", () => {
       v: 1,
     });
   });
+
+  it("uses the generic OAuth signing secret for public-client providers", () => {
+    const publicClientEnv = {
+      MCP_OAUTH_SIGNING_SECRET: "generic-secret",
+    } as NodeJS.ProcessEnv;
+    const token = createOAuthStateToken({
+      platform: "higgsfield",
+      redirectPath: "/connect/higgsfield",
+      env: publicClientEnv,
+      nowSeconds: 1_000,
+    });
+
+    expect(verifyOAuthStateToken(token, publicClientEnv, 1_100)).toMatchObject({
+      platform: "higgsfield",
+      redirectPath: "/connect/higgsfield",
+    });
+  });
 });

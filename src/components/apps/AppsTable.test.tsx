@@ -107,7 +107,7 @@ describe("AppsTable", () => {
     expect(onStatusClick).toHaveBeenCalledWith(expect.objectContaining({ slug: "github" }));
   });
 
-  it("admin mode shows hosted MCP setup rows as an action, not a connected/manage state", () => {
+  it("admin mode shows hosted MCP login rows as a connect action, not a connected/manage state", () => {
     const onOpenSetup = vi.fn();
     renderTable(
       <AppsTable

@@ -8,6 +8,7 @@ import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
 import { applyLens, lensCounts, actionLabelFor, parseAppLens, type AppLens } from "@/components/apps/appLenses";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
+import { startHostedMcpLogin } from "./hostedMcpLogin";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
 // only to derive each app's connection status (connected / needs key / built-in)
@@ -63,20 +64,23 @@ export default function AdminToolsPage() {
     [setSearchParams],
   );
 
-  const refreshStatus = useCallback(async () => {
-    if (!session) return;
+  const refreshStatus = useCallback(async (): Promise<Connector[] | null> => {
+    if (!session) return null;
     try {
       const res = await fetch("/api/memory-admin?action=admin_tools", {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (res.ok) {
         const body = await res.json();
-        setConnectors(body.connectors ?? []);
+        const nextConnectors = (body.connectors ?? []) as Connector[];
+        setConnectors(nextConnectors);
         setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
+        return nextConnectors;
       }
     } catch {
       // status is best-effort; the catalog still renders without it.
     }
+    return null;
   }, [session]);
 
   useEffect(() => {
@@ -143,6 +147,9 @@ export default function AdminToolsPage() {
     if (c.credential?.source === "managed_app_connections" && c.credential.is_valid) {
       return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
     }
+    if (c.id === "higgsfield" && c.credential?.source === "user_credentials" && c.credential.is_valid) {
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    }
     // OAuth connections are created by a successful provider sign-in, so they
     // should read as connected even before a later tool-use timestamp exists.
     if (c.credential?.is_valid && (c.auth_type === "oauth2" || c.credential.last_tested_at)) {
@@ -153,7 +160,7 @@ export default function AdminToolsPage() {
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
-    if (c.supports_hosted_mcp_connection) return { label: "Setup", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+    if (c.supports_hosted_mcp_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.auth_type) return { label: "Add access", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }
@@ -204,6 +211,35 @@ export default function AdminToolsPage() {
     setConnectTarget(null);
   }
 
+  function watchConnectionPopup(popup: Window | null, slug: string) {
+    let tries = 0;
+    const maxTries = 45;
+    const timer = window.setInterval(() => {
+      tries += 1;
+      void refreshStatus().then((nextConnectors) => {
+        const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
+        if (connector?.credential?.is_valid || popup?.closed || tries >= maxTries) {
+          window.clearInterval(timer);
+          if (connector?.credential?.is_valid && popup && !popup.closed) popup.close();
+        }
+      });
+    }, 2000);
+  }
+
+  function openConnectionPopup(url: string, slug: string) {
+    const popup = window.open(
+      url,
+      `unclick_connect_${slug}`,
+      "popup=yes,width=560,height=760",
+    );
+    if (!popup) {
+      window.location.assign(url);
+      return;
+    }
+    popup.focus();
+    watchConnectionPopup(popup, slug);
+  }
+
   async function beginManagedConnection(slug: string) {
     if (!session) throw new Error("Sign in again to connect apps.");
     const res = await fetch("/api/memory-admin?action=admin_begin_managed_connection", {
@@ -214,7 +250,15 @@ export default function AdminToolsPage() {
     const body = (await res.json().catch(() => ({}))) as { connect_url?: string; error?: string };
     if (!res.ok) throw new Error(body.error ?? `Connect failed with ${res.status}.`);
     if (!body.connect_url) throw new Error("The connection provider did not return a sign-in link.");
-    window.location.assign(body.connect_url);
+    openConnectionPopup(body.connect_url, slug);
+  }
+
+  async function beginHostedMcpLogin(slug: string) {
+    const popup = await startHostedMcpLogin({
+      slug,
+      sessionAccessToken: session?.access_token,
+    });
+    if (popup) watchConnectionPopup(popup, slug);
   }
 
   const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
@@ -276,6 +320,7 @@ export default function AdminToolsPage() {
           statusLabel={statusOf(connectTarget)?.label ?? null}
           onDisconnect={() => disconnectApp(connectTarget.slug)}
           onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}
+          onStartHostedMcpLogin={() => beginHostedMcpLogin(connectTarget.slug)}
         />
       )}
 

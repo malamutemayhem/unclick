@@ -38,7 +38,12 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
     }
   })();
 
-  return platformSecret || env.OAUTH_STATE_SECRET || "";
+  return platformSecret ||
+    env.OAUTH_STATE_SECRET ||
+    env.MCP_OAUTH_SIGNING_SECRET ||
+    env.UNCLICK_OAUTH_SIGNING_SECRET ||
+    env.SUPABASE_SERVICE_ROLE_KEY ||
+    "";
 }
 
 function signPayload(encodedPayload: string, secret: string): string {
