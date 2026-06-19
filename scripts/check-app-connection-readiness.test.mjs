@@ -22,7 +22,7 @@ describe("app connection readiness", () => {
     });
 
     assert.equal(receipt.status, "pass");
-    assert.deepEqual(receipt.platforms, ["github", "vercel", "supabase"]);
+    assert.deepEqual(receipt.platforms, ["github", "vercel", "supabase", "higgsfield"]);
     assert.deepEqual(receipt.action_needed, []);
     assert.ok(receipt.global_checks.some((check) => check.name === "tool_keychain_status_merges_all_connection_sources" && check.status === "pass"));
   });

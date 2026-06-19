@@ -131,8 +131,9 @@ describe("ConnectAppModal", () => {
       "https://higgsfield.ai/mcp",
     );
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/unclick api actions/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /where do i get my api key/i })).toHaveAttribute(
+    expect(screen.getByText(/cloud api key fallback/i)).toBeInTheDocument();
+    expect(screen.getByText(/unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /where do i get my cloud api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
     );

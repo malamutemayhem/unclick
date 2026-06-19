@@ -232,4 +232,47 @@ describe("oauth init", () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it("returns setup pending when Higgsfield MCP login has no state signing secret", async () => {
+    const previous = {
+      OAUTH_STATE_SECRET: process.env.OAUTH_STATE_SECRET,
+      MCP_OAUTH_SIGNING_SECRET: process.env.MCP_OAUTH_SIGNING_SECRET,
+      UNCLICK_OAUTH_SIGNING_SECRET: process.env.UNCLICK_OAUTH_SIGNING_SECRET,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    };
+    delete process.env.OAUTH_STATE_SECRET;
+    delete process.env.MCP_OAUTH_SIGNING_SECRET;
+    delete process.env.UNCLICK_OAUTH_SIGNING_SECRET;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const response = createResponse();
+      await handler(
+        {
+          method: "POST",
+          headers: { origin: "https://unclick.world" },
+          body: { platform: "higgsfield", api_key: "uc_test_account_key" },
+        } as never,
+        response.res as never
+      );
+
+      expect(response.statusCode).toBe(503);
+      expect(response.payload).toMatchObject({
+        setup_pending: true,
+        provider: "higgsfield",
+        missing: "state_secret",
+        missing_fields: ["state_secret"],
+      });
+      expect((response.payload as { error?: string }).error).toContain("Higgsfield login is not switched on yet");
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      restoreEnv("OAUTH_STATE_SECRET", previous.OAUTH_STATE_SECRET);
+      restoreEnv("MCP_OAUTH_SIGNING_SECRET", previous.MCP_OAUTH_SIGNING_SECRET);
+      restoreEnv("UNCLICK_OAUTH_SIGNING_SECRET", previous.UNCLICK_OAUTH_SIGNING_SECRET);
+      restoreEnv("SUPABASE_SERVICE_ROLE_KEY", previous.SUPABASE_SERVICE_ROLE_KEY);
+      vi.unstubAllGlobals();
+    }
+  });
 });
