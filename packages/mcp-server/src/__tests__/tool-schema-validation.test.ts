@@ -273,17 +273,26 @@ describe("runtime tool schema validation", () => {
     }
   });
 
+  it("advertises catalog meta-tools to connected agents", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    expect(advertisedNames.has("unclick_search")).toBe(true);
+    expect(advertisedNames.has("unclick_tool_info")).toBe(true);
+    expect(advertisedNames.has("unclick_call")).toBe(true);
+  });
+
   it("advertises the guarded Boardroom release tool", () => {
     const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
 
     expect(advertisedNames.has("release_claim")).toBe(true);
   });
 
-  it("advertises SecurityPass as a scope-gated receipt surface", () => {
+  it("keeps generated connector tools behind the catalog meta-tools", () => {
     const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
 
-    expect(advertisedNames.has("securitypass_run")).toBe(true);
-    expect(advertisedNames.has("securitypass_status")).toBe(true);
-    expect(advertisedNames.has("securitypass_verify_scope")).toBe(true);
+    expect(advertisedNames.has("securitypass_run")).toBe(false);
+    expect(advertisedNames.has("reddit_vote")).toBe(false);
+    expect(advertisedNames.has("email_delete")).toBe(false);
+    expect(advertisedNames.has("wise_create_quote")).toBe(false);
   });
 });

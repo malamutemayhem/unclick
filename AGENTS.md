@@ -59,7 +59,7 @@ api/                            # Vercel serverless functions (REST API endpoint
 
 | File | Purpose |
 |------|---------|
-| `packages/mcp-server/src/server.ts` | MCP server entrypoint, registers the direct tool surface and hidden internal meta-tools |
+| `packages/mcp-server/src/server.ts` | MCP server entrypoint, registers the direct tool surface and catalog meta-tools |
 | `packages/mcp-server/src/tool-wiring.ts` | Maps tool names to API calls |
 | `packages/mcp-server/src/memory/handlers.ts` | Memory operation dispatcher (canonical memory operation surface) |
 | `packages/mcp-server/src/memory/db.ts` | Backend factory (local JSON or Supabase) |
@@ -88,7 +88,7 @@ npm run test --workspace=@unclick/mcp-server
 
 Current summary:
 
-- Hidden internal meta-tools: `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call`
+- Catalog meta-tools: `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call`
 - Direct memory tools: `load_memory`, `save_session`, `save_fact`, `search_memory`, `save_identity`
 - Old memory tool names still work as aliases: `get_startup_context`, `write_session_summary`, `add_fact`, `set_business_context`
 - Signals and Fishbowl coordination tools are visible first-party tools for worker operation
@@ -109,7 +109,7 @@ Read `docs/adding-a-connector.md` first for the full playbook.
 ## Style rules
 
 - No em dashes anywhere in code or content (use a regular dash or restructure the sentence)
-- Do not add one-off MCP registrations casually. Catalog and integration tools should normally flow through `tool-wiring.ts` and the hidden internal meta-tools. Add visible first-party tools only when agents need a direct workflow surface.
+- Do not add one-off MCP registrations casually. Catalog and integration tools should normally flow through `tool-wiring.ts` and the catalog meta-tools. Add visible first-party tools only when agents need a direct workflow surface.
 
 ## Operating rules for cloud-async coding agents
 

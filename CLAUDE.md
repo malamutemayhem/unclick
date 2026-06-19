@@ -35,7 +35,7 @@ api/                            # Vercel serverless functions (REST API endpoint
 
 | File | Purpose |
 |------|---------|
-| `packages/mcp-server/src/server.ts` | MCP server entrypoint, registers the direct tool surface and hidden internal meta-tools |
+| `packages/mcp-server/src/server.ts` | MCP server entrypoint, registers the direct tool surface and catalog meta-tools |
 | `packages/mcp-server/src/tool-wiring.ts` | Maps tool names to API calls |
 | `packages/mcp-server/src/memory/handlers.ts` | Memory operation dispatcher (canonical memory operation surface) |
 | `packages/mcp-server/src/memory/db.ts` | Backend factory (local JSON or Supabase) |
@@ -62,14 +62,14 @@ npm run test --workspace=@unclick/mcp-server
 
 This is the canonical tool-surface summary for this repo.
 
-**Hidden internal meta-tools** let agents discover and call catalog endpoints without crowding the default MCP tool list:
+**Catalog meta-tools** let agents discover and call catalog endpoints without crowding the default MCP tool list:
 
 - `unclick_search` - find tools by keyword
 - `unclick_browse` - list tools, optionally by category
 - `unclick_tool_info` - get endpoint and parameter details for a specific tool
 - `unclick_call` - execute any endpoint with parameters
 
-These tools remain callable by name, but they are hidden from `ListTools` to keep the default surface clean.
+These tools are advertised in `ListTools`; the generated connector catalog stays behind them so clients do not carry every endpoint schema on every request.
 
 **Visible first-party tools** expose the workflows agents should use directly. They include:
 
@@ -107,4 +107,4 @@ Short version (each connector is built to L5):
 ## Style rules
 
 - No em dashes anywhere in code or content (use a regular dash or restructure the sentence)
-- Do not add one-off MCP registrations casually. Catalog and integration tools should normally flow through `tool-wiring.ts` and the hidden internal meta-tools. Add visible first-party tools only when agents need a direct workflow surface.
+- Do not add one-off MCP registrations casually. Catalog and integration tools should normally flow through `tool-wiring.ts` and the catalog meta-tools. Add visible first-party tools only when agents need a direct workflow surface.

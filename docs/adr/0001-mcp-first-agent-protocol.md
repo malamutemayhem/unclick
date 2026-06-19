@@ -10,7 +10,7 @@ Agent-to-tool communication has no dominant standard. OpenAI function calling, L
 
 ## Decision
 
-UnClick exposes every capability through MCP. The agent-facing surface is one marketplace search tool (`unclick_search`) plus five direct memory tools (`load_memory`, `save_session`, `save_fact`, `search_memory`, `save_identity`). The raw meta-tools (`unclick_browse`, `unclick_tool_info`, `unclick_call`) remain callable but are hidden from the default tool list for readability. Every other capability, including all 17 memory operations and 450+ wired endpoints, is reachable through `unclick_call` with an `endpoint_id`. No parallel REST-only protocol is maintained as a first-class agent surface. The website and admin shell exist for humans; MCP is the canonical surface for agents.
+UnClick exposes every capability through MCP. The agent-facing surface is the compact catalog meta-tool set (`unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call`) plus direct memory and coordination tools. Every generated connector capability, including all memory operations and 450+ wired endpoints, is reachable through `unclick_call` with an `endpoint_id`, but generated connector tools are not advertised one by one in `tools/list`. No parallel REST-only protocol is maintained as a first-class agent surface. The website and admin shell exist for humans; MCP is the canonical surface for agents.
 
 ## Consequences
 

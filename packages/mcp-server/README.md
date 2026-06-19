@@ -85,7 +85,7 @@ Workers can call `commonsensepass_protocol` with no arguments to fetch the canon
 |---|---|
 | `unclick_search` | Search for tools by keyword. "I need to resize an image" returns the image tool with endpoints and schemas. |
 
-`unclick_browse`, `unclick_tool_info`, and `unclick_call` remain callable for backward compatibility but are hidden from the advertised tool list so end users are not shown internal machinery.
+`unclick_browse`, `unclick_tool_info`, and `unclick_call` are also advertised as compact catalog meta-tools. Generated connector tools stay behind this layer instead of being advertised one by one in `tools/list`.
 
 **Discovery flow for an agent:**
 1. `unclick_search` to find relevant tools

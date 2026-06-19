@@ -72,15 +72,15 @@ Gives your agent access to a growing catalog of tools across developer utilities
 
 ## Tool Surface
 
-UnClick exposes a small direct surface for daily agent workflows, plus hidden internal discovery tools for the full catalog.
+UnClick exposes a small direct surface for daily agent workflows, plus compact catalog meta-tools for the full generated endpoint catalog.
 
 | Tool group | Tools |
 |------------|-------|
 | Memory session protocol | `load_memory`, `save_fact`, `search_memory`, `save_identity`, `save_session` |
 | Signals and Boardroom coordination | `check_signals`, `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, `promote_idea_to_todo` |
-| Hidden internal catalog tools | `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call` |
+| Catalog meta-tools | `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call` |
 
-The agent starts with memory, uses direct Boardroom tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
+The agent starts with memory, uses direct Boardroom tools for coordination, and uses the catalog meta-tools when it needs dynamic endpoint discovery. Generated connector tools stay behind this layer instead of being advertised one by one in `tools/list`.
 
 ### Compatibility and advanced memory operations
 
