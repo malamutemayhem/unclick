@@ -223,4 +223,94 @@ describe("higgsfield connector resilience (L2)", () => {
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("models_explore");
   });
+
+  it("refreshes and retries when Higgsfield reports token expiry inside a tool result", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    let activeToken = "old-token";
+    let toolCallCount = 0;
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = String(init?.method ?? "GET").toUpperCase();
+      const headers = init?.headers as Record<string, string>;
+      const bodyText = String(init?.body ?? "");
+      const body = bodyText.startsWith("{") ? JSON.parse(bodyText) as Record<string, unknown> : {};
+
+      if (url === "https://unclick.test/api/credentials?platform=higgsfield") {
+        return jsonResponse({
+          credential_kind: "higgsfield_mcp_oauth",
+          access_token: "old-token",
+          refresh_token: "refresh-token",
+          client_id: "client-123",
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          token_type: "Bearer",
+          mcp_url: "https://mcp.higgsfield.ai/mcp",
+        });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/oauth2/token") {
+        activeToken = "fresh-token";
+        return jsonResponse({
+          access_token: "fresh-token",
+          refresh_token: "fresh-refresh-token",
+          expires_in: 3600,
+          token_type: "Bearer",
+        });
+      }
+
+      if (url === "https://unclick.test/api/credentials" && method === "POST") {
+        return jsonResponse({ success: true });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "initialize") {
+        expect(headers.Authorization).toBe(`Bearer ${activeToken}`);
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: {} }, { headers: { "mcp-session-id": `session-${activeToken}` } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "notifications/initialized") {
+        return acceptedResponse();
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/list") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: { tools: [{ name: "generate_image" }] } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/call") {
+        toolCallCount += 1;
+        if (toolCallCount === 1) {
+          return jsonResponse({
+            jsonrpc: "2.0",
+            id: body.id,
+            result: {
+              content: [{ type: "text", text: "Error starting generation: Invalid or expired token\nRequest ID: req-1" }],
+              structuredContent: { error: "Invalid or expired token", request_id: "req-1" },
+              isError: true,
+            },
+          });
+        }
+        expect(headers.Authorization).toBe("Bearer fresh-token");
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: { structuredContent: { job_id: "job-2", status: "submitted" } },
+        });
+      }
+
+      throw new Error(`Unexpected fetch ${method} ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await higgsfield_generate_image({
+      prompt: "a 2k cat portrait",
+      model: "nano_banana_pro",
+      resolution: "2k",
+      aspect_ratio: "1:1",
+    }) as Record<string, unknown>;
+
+    expect(result.provider).toBe("higgsfield_mcp");
+    expect(result.tool).toBe("generate_image");
+    expect(toolCallCount).toBe(2);
+  });
 });
