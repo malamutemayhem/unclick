@@ -113,10 +113,12 @@ describe("higgsfield connector resilience (L2)", () => {
         const params = body.params as Record<string, unknown>;
         expect(params.name).toBe("generate_image");
         expect(params.arguments).toMatchObject({
+          params: {
           prompt: "a studio photo of a dog",
           model: "nano_banana_pro",
           resolution: "2k",
           aspect_ratio: "4:3",
+          },
         });
         return jsonResponse({
           jsonrpc: "2.0",
