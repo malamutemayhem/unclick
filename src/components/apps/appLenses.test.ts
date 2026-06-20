@@ -111,4 +111,13 @@ describe("appLenses", () => {
   it("popular slugs are lowercase slug-shaped", () => {
     for (const slug of POPULAR_SLUGS) expect(slug).toMatch(/^[a-z0-9-]+$/);
   });
+
+  it("keeps everyday file and mail connectors in Popular", () => {
+    expect([...POPULAR_SLUGS]).toEqual(expect.arrayContaining([
+      "gmail",
+      "google-drive",
+      "dropbox",
+      "onedrive",
+    ]));
+  });
 });

@@ -112,7 +112,9 @@ const APP_CONNECTION_SURFACE_PATHS = [
   "src/pages/connect",
   "src/components/apps/connectappmodal",
   "src/components/apps/appicon",
+  "packages/mcp-server/src/connectors/",
   "packages/mcp-server/src/connector-setup.ts",
+  "packages/mcp-server/src/vault-bridge.ts",
   "packages/mcp-server/src/keychain-tool.ts",
   "scripts/check-app-connection-readiness",
   "api/oauth-init.ts",
@@ -129,12 +131,22 @@ const APP_CONNECTION_TERMS = [
   "connector rollout",
   "connect page",
   "provider login",
+  "web popup login",
+  "popup login",
   "oauth login",
   "oauth setup",
+  "oauth callback",
+  "callback storage",
+  "credential resolver",
   "keychain parity",
   "token fallback",
+  "fallback visible",
   "connected badge",
   "setup pending",
+  "live oauth init",
+  "reconnect",
+  "token refresh",
+  "token expiry",
   "managed connection",
   "compatibility connector",
   "hosted mcp",
@@ -777,6 +789,7 @@ function enterpriseReadinessSurface(path: string, allText: string): boolean {
 
 function appConnectionSurface(path: string, allText: string): boolean {
   return APP_CONNECTION_SURFACE_PATHS.some((surfacePath) => path.includes(surfacePath))
+    || (path.startsWith("packages/mcp-server/src/") && path.endsWith("-tool.ts") && hasAny(allText, APP_CONNECTION_TERMS))
     || (path.startsWith("supabase/migrations/") && hasAny(allText, APP_CONNECTION_TERMS));
 }
 
@@ -787,7 +800,9 @@ function addAppConnectionReasons(map: Map<XPassCheck, Set<string>>, reason: stri
   addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);
   addReason(map, "securitypass", `credential/OAuth storage surface: ${reason}`);
   addReason(map, "rotatepass", `credential lifecycle/redaction surface: ${reason}`);
+  addReason(map, "copypass", `public connection copy and fallback wording surface: ${reason}`);
   addReason(map, "commonsensepass", `connected badge must match tool-facing keychain proof: ${reason}`);
+  addReason(map, "sloppass", `connector implementation quality surface: ${reason}`);
 }
 
 function normalizeCheckName(value: unknown): string {

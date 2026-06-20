@@ -3678,12 +3678,44 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gmail",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "gmail_search",
+        "description": "Search Gmail messages in the connected mailbox."
+      },
+      {
+        "name": "gmail_read",
+        "description": "Read a Gmail message by id."
+      },
+      {
+        "name": "gmail_send",
+        "description": "Send a plain-text Gmail message."
+      }
+    ]
+  },
+  {
     "app": "goertzel",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "goertzel",
         "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+      }
+    ]
+  },
+  {
+    "app": "google-drive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "drive_search",
+        "description": "Search or list Google Drive files in the connected account."
+      },
+      {
+        "name": "drive_read",
+        "description": "Read Google Drive file metadata and a safe text preview when available."
       }
     ]
   },
@@ -6004,6 +6036,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "omdb_by_id",
         "description": "Get an OMDB movie/show by IMDb ID."
+      }
+    ]
+  },
+  {
+    "app": "onedrive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "onedrive_list",
+        "description": "List files and folders from OneDrive."
+      },
+      {
+        "name": "onedrive_search",
+        "description": "Search OneDrive files and folders by name."
+      },
+      {
+        "name": "onedrive_read",
+        "description": "Read OneDrive file metadata and a safe text preview when available."
       }
     ]
   },

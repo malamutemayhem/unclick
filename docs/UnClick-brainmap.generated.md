@@ -129,7 +129,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | d77a6a1cf116 | 34634 |
+| src/pages/Connect.tsx | b010830d8d67 | 34860 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -270,7 +270,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 60 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
-| Tools | MCP and gateway capabilities available to seats. | 672 |
+| Tools | MCP and gateway capabilities available to seats. | 675 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -675,7 +675,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-emoji-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
+| gmail | gmail MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gmail-tool.ts |
 | goertzel | goertzel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/goertzel-tool.ts |
+| google drive | google drive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/google-drive-tool.ts |
 | graph | graph MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graph-tool.ts |
 | graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graphcolor-tool.ts |
 | graycode | graycode MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graycode-tool.ts |
@@ -837,6 +839,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | oeis | oeis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/oeis-tool.ts |
 | officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/officialjoke-tool.ts |
 | omdb | omdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/omdb-tool.ts |
+| onedrive | onedrive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/onedrive-tool.ts |
 | open elevation | open elevation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/open-elevation-tool.ts |
 | openai | openai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openai-tool.ts |
 | openalex | openalex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openalex-tool.ts |
@@ -1799,7 +1802,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
 | Tools | MCP tool | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-emoji-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
+| Tools | MCP tool | gmail | gmail MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gmail-tool.ts |
 | Tools | MCP tool | goertzel | goertzel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/goertzel-tool.ts |
+| Tools | MCP tool | google drive | google drive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/google-drive-tool.ts |
 | Tools | MCP tool | graph | graph MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graph-tool.ts |
 | Tools | MCP tool | graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graphcolor-tool.ts |
 | Tools | MCP tool | graycode | graycode MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graycode-tool.ts |
@@ -1961,6 +1966,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | oeis | oeis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/oeis-tool.ts |
 | Tools | MCP tool | officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/officialjoke-tool.ts |
 | Tools | MCP tool | omdb | omdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/omdb-tool.ts |
+| Tools | MCP tool | onedrive | onedrive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/onedrive-tool.ts |
 | Tools | MCP tool | open elevation | open elevation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/open-elevation-tool.ts |
 | Tools | MCP tool | openai | openai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openai-tool.ts |
 | Tools | MCP tool | openalex | openalex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openalex-tool.ts |

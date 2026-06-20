@@ -97,7 +97,9 @@ describe("xpass_aggregated_verdict", () => {
     expect(result.missing_checks).toContain("flowpass");
     expect(result.missing_checks).toContain("securitypass");
     expect(result.missing_checks).toContain("rotatepass");
+    expect(result.missing_checks).toContain("copypass");
     expect(result.missing_checks).toContain("commonsensepass");
+    expect(result.missing_checks).toContain("sloppass");
     expect(result.receipt?.full_checklist?.some((item) => item.check === "connectorpass" && item.status === "MISSING")).toBe(true);
     expect(result.receipt?.action_needed?.join("\n")).toMatch(/Run ConnectorPass/);
   });

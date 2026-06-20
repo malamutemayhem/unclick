@@ -382,7 +382,11 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
     slug:        "dropbox",
     authType:    "oauth2",
     description: "Files, folders, and account access in your Dropbox.",
-    scopes: [],
+    scopes: [
+      "files.metadata.read",
+      "files.content.read",
+      "account_info.read",
+    ],
     authUrl:  "https://www.dropbox.com/oauth2/authorize",
     tokenUrl: "https://api.dropboxapi.com/oauth2/token",
     extraAuthParams: { token_access_type: "offline" },
@@ -392,11 +396,81 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
         label:        "Dropbox access token fallback",
         description:  "Use only if Dropbox login is unavailable. Generate one from your Dropbox app console.",
         secret:       true,
-        placeholder:  "sl.B...",
         findGuideUrl: "https://www.dropbox.com/developers/apps",
       },
     ],
     docsUrl: "https://www.dropbox.com/developers/documentation/http/documentation",
+  },
+
+  gmail: {
+    name:        "Gmail",
+    slug:        "gmail",
+    authType:    "oauth2",
+    description: "Search, read, and send mail through a connected Gmail account.",
+    scopes: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Gmail access token fallback",
+        description:  "Use only if Gmail login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/gmail/api",
+  },
+
+  "google-drive": {
+    name:        "Google Drive",
+    slug:        "google-drive",
+    authType:    "oauth2",
+    description: "Browse, search, and read files through a connected Google Drive account.",
+    scopes: [
+      "https://www.googleapis.com/auth/drive.readonly",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Google Drive access token fallback",
+        description:  "Use only if Google Drive login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/drive/api",
+  },
+
+  onedrive: {
+    name:        "OneDrive",
+    slug:        "onedrive",
+    authType:    "oauth2",
+    description: "Browse, search, and read files through a connected OneDrive account.",
+    scopes: [
+      "offline_access",
+      "User.Read",
+      "Files.Read",
+    ],
+    authUrl:  "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "OneDrive access token fallback",
+        description:  "Use only if OneDrive login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+      },
+    ],
+    docsUrl: "https://learn.microsoft.com/graph/onedrive-concept-overview",
   },
 
   "google-workspace": {

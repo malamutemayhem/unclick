@@ -1,7 +1,8 @@
 # App connection readiness
 
-This is the rollout contract for login-first app connections such as GitHub,
-Vercel, Supabase, and future OAuth apps in the UnClick app bubble.
+This is the rollout contract for login-first app connections in the UnClick app
+bubble. It captures the repeatable lessons from previous connector launches
+without making any one provider the pattern.
 
 ## The rule
 
@@ -25,18 +26,26 @@ npm run check:app-connections
 For one app:
 
 ```bash
-node scripts/check-app-connection-readiness.mjs --platform=vercel
+node scripts/check-app-connection-readiness.mjs --platform=<slug>
 ```
 
 For production env proof:
 
 ```bash
-node scripts/check-app-connection-readiness.mjs --platform=supabase --live-url=https://unclick.world
+npm run check:app-connections:live
+```
+
+For one production app:
+
+```bash
+node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world
 ```
 
 The guard verifies:
 
 - The app exists in `src/data/app-catalog.generated.json` in a real category.
+- Default login-first apps that users expect immediately also appear in the
+  Popular lens, not only in the full catalog.
 - `src/lib/connectors.ts` exposes provider login and labels token entry as a
   fallback.
 - `packages/mcp-server/src/connector-setup.ts` and
@@ -47,6 +56,16 @@ The guard verifies:
 - `api/oauth-callback.ts` agrees with OAuth start on env var names, PKCE, and
   credential extraction.
 - `api/oauth-state.ts` can sign and verify state for the provider.
+- The browser starts login through the server, receives a provider URL or
+  setup-pending fallback, and does not depend on public client IDs for
+  server-owned OAuth apps.
+- Server-owned OAuth apps are listed in the Connect page server-client allowlist
+  so the provider login button renders before any production env probe runs.
+- The stored credential slug matches the app slug that users connected, so
+  dashboard status, reconnect, disconnect, and MCP tool calls all describe the
+  same account.
+- Tool schemas keep the token field optional for login-first apps, so agents can
+  call normal business arguments while UnClick resolves the stored token.
 - `src/pages/Connect.tsx` keeps "Use a token instead" visible when provider
   login is not switched on.
 - `src/components/apps/ConnectAppModal.tsx` sends OAuth apps to
@@ -59,7 +78,10 @@ The guard verifies:
   `managed_app_connections`.
 - When `--live-url` is passed, production `/api/oauth-init` returns a
   provider-ready login payload and not `setup_pending`. This catches the exact
-  "code is live, Vercel env is missing client ID/client secret" failure.
+  "code is live, provider env is missing client ID/client secret" failure.
+- When production rejects a new platform entirely, the guard reports the API
+  error text so "not deployed yet" is visibly different from "deployed but env
+  missing."
 
 Regression tests live in:
 
@@ -67,8 +89,9 @@ Regression tests live in:
 npm run test:app-connections
 ```
 
-They intentionally break catalog visibility, setup-pending fallback, keychain
-parity, and OAuth env mapping to prove the guard catches the failures.
+They intentionally break catalog visibility, Popular lens visibility, Connect
+page button allowlisting, setup-pending fallback, keychain parity, and OAuth env
+mapping to prove the guard catches the failures.
 
 ## XPass routing
 
@@ -82,6 +105,7 @@ visibility, or keychain status select:
 - FlowPass for the OAuth journey
 - SecurityPass for OAuth and credential storage
 - RotatePass for credential lifecycle and redaction
+- CopyPass for public connection copy and fallback wording
 - CommonSensePass for "no connected badge without tool-facing proof"
 - SlopPass for implementation quality when source files change
 
@@ -91,7 +115,8 @@ Before telling a user "live":
 
 1. Run `npm run check:app-connections`.
 2. Run the production check:
-   `node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world`.
+   `npm run check:app-connections:live`, or the one-app variant while working
+   on a single connector.
 3. Confirm the app appears in `/admin/apps` search.
 4. Open `/connect/:slug` and confirm provider login is the primary path.
 5. Confirm setup-pending errors keep the token fallback visible.
@@ -100,22 +125,15 @@ Before telling a user "live":
 7. For production, confirm the deployed alias is live and the same checks pass
    against the production account context.
 
-## Provider notes
+## Provider split
 
-Vercel has two legitimate paths:
+Some providers expose both a UnClick app connection and a separate hosted MCP
+login. Treat those as different products:
 
-- UnClick app connection: `/connect/vercel`, stores the token for UnClick-side
-  Vercel actions.
-- Vercel hosted MCP: Vercel's own MCP sign-in, separate from the UnClick account
+- The UnClick app connection lives at `/connect/:slug`, stores a credential for
+  UnClick tools, and should appear in the Apps connected state.
+- A provider-hosted MCP login belongs to the provider. It can be documented as a
+  separate path, but it must not be described as the same stored UnClick app
   connection.
-
-Supabase has the same split:
-
-- UnClick app connection: `/connect/supabase`, stores Supabase Management API
-  access for UnClick workflows.
-- Supabase hosted MCP: Supabase's own developer MCP sign-in. It should be scoped
-  with `project_ref` and `read_only` where possible, and it is not the same as
-  the UnClick app-bubble connection.
-
-If Supabase shows setup pending, the expected missing live config is usually
-`SUPABASE_OAUTH_CLIENT_ID` and/or `SUPABASE_OAUTH_CLIENT_SECRET`.
+- Any fallback token path must say it is a fallback. The popup login remains the
+  primary path when provider setup is ready.

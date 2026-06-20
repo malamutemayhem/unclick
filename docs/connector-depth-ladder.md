@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (646 external connectors)
+## Distribution (649 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 607 | 94% |
+| L5 | Agentic | 610 | 94% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 6% |
 | L1 | Wrapper | 3 | 0% |
 
-**Hardened (reliability bar met): 241 of 646 (37%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 244 of 649 (38%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 607 of 610 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 610 of 613 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -669,7 +669,9 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ghost` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `giphy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `github-emoji` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `gmail` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `goertzel` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
+| L5 Agentic | `google-drive` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `graph` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `graphcolor` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `graycode` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
@@ -819,6 +821,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `oeis` | - | - | - | Yes | Yes | not-hardened, no-rate-limit, no-memory |
 | L5 Agentic | `officialjoke` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `onedrive` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `open-elevation` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |
 | L5 Agentic | `openai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openalex` | - | - | - | Yes | Yes | not-hardened, 1x-bare-error, no-memory |

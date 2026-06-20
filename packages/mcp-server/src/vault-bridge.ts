@@ -22,7 +22,7 @@ import { keychainGetCredential }         from "./keychain-tool.js";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function envKey(slug: string, fieldKey: string): string {
-  return `UNCLICK_${slug.toUpperCase()}_${fieldKey.toUpperCase().replace(/-/g, "_")}`;
+  return `UNCLICK_${slug.toUpperCase().replace(/-/g, "_")}_${fieldKey.toUpperCase().replace(/-/g, "_")}`;
 }
 
 function vaultKey(slug: string, fieldKey: string): string {

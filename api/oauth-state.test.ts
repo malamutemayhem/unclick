@@ -6,6 +6,9 @@ const env = {
   XERO_CLIENT_SECRET: "xero-secret",
   REDDIT_CLIENT_SECRET: "reddit-secret",
   SHOPIFY_CLIENT_SECRET: "shopify-secret",
+  DROPBOX_CLIENT_SECRET: "dropbox-secret",
+  GOOGLE_WORKSPACE_CLIENT_SECRET: "google-secret",
+  MICROSOFT_GRAPH_CLIENT_SECRET: "microsoft-secret",
 } as NodeJS.ProcessEnv;
 
 describe("oauth state token", () => {
@@ -94,5 +97,22 @@ describe("oauth state token", () => {
       platform: "higgsfield",
       redirectPath: "/connect/higgsfield",
     });
+  });
+
+  it("round-trips state for mail and file app aliases", () => {
+    for (const platform of ["gmail", "google-drive", "dropbox", "onedrive"]) {
+      const token = createOAuthStateToken({
+        platform,
+        redirectPath: `/connect/${platform}`,
+        env,
+        nowSeconds: 1_000,
+      });
+
+      expect(verifyOAuthStateToken(token, env, 1_100)).toMatchObject({
+        platform,
+        redirectPath: `/connect/${platform}`,
+        v: 1,
+      });
+    }
   });
 });

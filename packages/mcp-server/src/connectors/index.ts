@@ -53,6 +53,10 @@ import { readwiseConnector }   from "./readwise.js";
 import { instapaperConnector } from "./instapaper.js";
 import { vercelConnector }     from "./vercel.js";
 import { supabaseConnector }   from "./supabase.js";
+import { dropboxConnector }    from "./dropbox.js";
+import { gmailConnector }      from "./gmail.js";
+import { googleDriveConnector } from "./google-drive.js";
+import { onedriveConnector }   from "./onedrive.js";
 
 export {
   xeroConnector,
@@ -75,6 +79,10 @@ export {
   instapaperConnector,
   vercelConnector,
   supabaseConnector,
+  dropboxConnector,
+  gmailConnector,
+  googleDriveConnector,
+  onedriveConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -98,4 +106,8 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   instapaper: instapaperConnector,
   vercel:     vercelConnector,
   supabase:   supabaseConnector,
+  dropbox:    dropboxConnector,
+  gmail:      gmailConnector,
+  "google-drive": googleDriveConnector,
+  onedrive:   onedriveConnector,
 };

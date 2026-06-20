@@ -46,7 +46,7 @@ export const LENSES: ReadonlyArray<{ id: AppLens; label: string; group: "Library
 export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
   "github", "openai", "anthropic", "slack", "notion", "stripe", "discord",
   "spotify", "vercel", "supabase", "telegram", "reddit", "shopify", "linear",
-  "email", "weather",
+  "email", "gmail", "google-drive", "dropbox", "onedrive", "weather",
 ]);
 
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
