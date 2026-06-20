@@ -33,7 +33,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | c74377f4f488 | 7710 |
+| package.json | 989f2a2ed48d | 7828 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
