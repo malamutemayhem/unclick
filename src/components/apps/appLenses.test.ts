@@ -60,6 +60,7 @@ describe("appLenses", () => {
     const a = app("github");
     expect(matchesLens(a, "all", undefined)).toBe(true);
     expect(matchesLens(a, "popular", undefined)).toBe(true);
+    expect(matchesLens(app("higgsfield"), "popular", undefined)).toBe(true);
     expect(matchesLens(app("obscure-thing"), "popular", undefined)).toBe(false);
     expect(matchesLens(a, "connected", keyTested)).toBe(true);
     expect(matchesLens(a, "connected", undefined)).toBe(false);
