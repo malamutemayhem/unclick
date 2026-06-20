@@ -131,6 +131,13 @@ const PRODUCTS: XPassProduct[] = [
     icon: Workflow,
   },
   {
+    id: "connectorpass",
+    name: "ConnectorPass",
+    subtitle: "Can the app connect for real?",
+    description: "Checks app discovery, provider login, fallback setup, live OAuth proof, and tool credential parity.",
+    icon: KeyRound,
+  },
+  {
     id: "rotatepass",
     name: "RotatePass",
     subtitle: "Are credentials handled cleanly?",
