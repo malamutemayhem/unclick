@@ -54,6 +54,15 @@ describe("Connect page OAuth-first app setup", () => {
     expect(screen.getByText("Use a token instead")).toBeInTheDocument();
   });
 
+  it("shows Google Drive login as the primary action", () => {
+    renderAt("/connect/google-drive");
+
+    expect(screen.getByRole("heading", { name: "Connect Google Drive" })).toBeInTheDocument();
+    expect(screen.getByText("Account login")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continue to Google Drive login" })).toBeInTheDocument();
+    expect(screen.getByText("Use a token instead")).toBeInTheDocument();
+  });
+
   it("keeps the token fallback visible when Supabase login setup is pending", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
       error: "Supabase login is not switched on yet.",

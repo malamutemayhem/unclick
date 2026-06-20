@@ -36,4 +36,8 @@ describe("AppIcon glyph resolution", () => {
   it("uses the local Higgsfield brand icon instead of a generic favicon lookup", () => {
     expect(brandIconSrcFor("higgsfield")).toBe("/app-icons/higgsfield.png");
   });
+
+  it("uses a Drive-specific brand icon instead of the generic Google favicon", () => {
+    expect(brandIconSrcFor("google-drive")).toContain("drive_2020q4_48dp.png");
+  });
 });
