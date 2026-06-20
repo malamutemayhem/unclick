@@ -1,6 +1,6 @@
 import type { ConnectorConfig } from "./index.js";
 
-export const dropboxConnector: ConnectorConfig = {
+export const dbxConnector: ConnectorConfig = {
   name: "Dropbox",
   slug: "dropbox",
   authType: "oauth2",
