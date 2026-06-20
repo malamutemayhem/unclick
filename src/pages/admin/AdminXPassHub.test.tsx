@@ -32,11 +32,12 @@ describe("AdminXPassHub", () => {
 
     expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
     expect(screen.getByText(/quality-control checklist/i)).toBeInTheDocument();
-    expect(screen.getByText(/live checklist rows across 15 Passes/i)).toBeInTheDocument();
+    expect(screen.getByText(/live checklist rows across 16 Passes/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /TestPass/i })).toHaveAttribute("href", "/admin/checks/testpass");
     expect(screen.getByRole("link", { name: /UIPass/i })).toHaveAttribute("href", "/admin/checks/uipass");
     expect(screen.getByRole("link", { name: /SecurityPass/i })).toHaveAttribute("href", "/admin/checks/securitypass");
+    expect(screen.getByRole("link", { name: /ConnectorPass/i })).toHaveAttribute("href", "/admin/checks/connectorpass");
     expect(screen.getByText("Was it copied exactly?")).toBeInTheDocument();
     expect(screen.getAllByText(/checks$/i).length).toBeGreaterThan(10);
   });

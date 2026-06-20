@@ -12,6 +12,7 @@ export type XPassProductId =
   | "geopass"
   | "flowpass"
   | "rotatepass"
+  | "connectorpass"
   | "wakepass"
   | "compliancepass";
 
@@ -161,6 +162,42 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
       ],
     },
     improvementLoop("UXPass"),
+  ],
+  connectorpass: [
+    {
+      title: "Connector launch contract",
+      rows: [
+        waiting("Catalog row exists", "The app appears in the real Apps catalog with a clear category and useful action count."),
+        waiting("Expected lens includes it", "Common connectors appear in the discovery lens users naturally open first."),
+        waiting("Connect page owns setup", "Account setup routes to the full connect page instead of a cramped modal dead end."),
+        waiting("Primary login is visible", "Provider login is the first path when setup supports it."),
+        waiting("Fallback is honest", "Token or key entry is labeled as fallback, not the main happy path."),
+        waiting("Icon has a render path", "The app has either a real favicon domain or an explicit local glyph."),
+      ],
+    },
+    {
+      title: "Server login contract",
+      rows: [
+        waiting("Platform is allow-listed", "The OAuth start endpoint recognizes the platform and never returns unsupported for shipped apps."),
+        waiting("Env names match", "Start and callback code use the same client ID, client secret, and redirect URI names."),
+        waiting("State is signed", "Login state is signed and checked before credentials are stored."),
+        waiting("PKCE is consistent", "PKCE is enabled on both start and callback, or on neither."),
+        waiting("Setup-pending is recoverable", "Missing provider config returns a clear setup-pending state and keeps fallback available."),
+        waiting("Live smoke proves provider readiness", "Production OAuth start returns a provider-ready payload before the app is called done."),
+      ],
+    },
+    {
+      title: "Tool and account parity",
+      rows: [
+        waiting("Stored connection is usable", "Tools can use the account saved by the web login without asking for a pasted token again."),
+        waiting("Token field stays optional", "Login-first tools keep raw token fields optional so stored credentials can satisfy calls."),
+        waiting("Connected badge is truthful", "Admin status merges every stored connection source the tool runtime can use."),
+        waiting("Disconnect scope is clear", "Removing access affects the intended connection without surprising unrelated apps."),
+        waiting("Generated setup data is fresh", "Generated connector setup and map artifacts are refreshed with the source change."),
+        waiting("Public copy stays generic", "Reusable checklist wording explains the principle without turning provider names into internal process noise."),
+      ],
+    },
+    improvementLoop("ConnectorPass"),
   ],
   securitypass: [
     {
@@ -784,6 +821,21 @@ const PRODUCT_DEEP_CHECKS: Record<XPassProductId, XPassChecklistGroup[]> = {
       ],
     },
   ],
+  connectorpass: [
+    {
+      title: "Deep ConnectorPass checklist",
+      rows: [
+        waiting("Discovery path is proven", "A user can find the connector from the normal app discovery path without knowing the exact slug."),
+        waiting("Button path is proven", "The connect page renders the provider login action in a clean browser."),
+        waiting("Popup start is proven", "The login button reaches the server OAuth start path and gets either provider-ready proof or a setup-pending blocker."),
+        waiting("Callback storage is proven", "The callback stores credentials in the same account record that tools read."),
+        waiting("Live config is named", "Missing production config names the required env keys without exposing values."),
+        waiting("Fallback path is tested", "Manual token entry remains visible and works when provider login is unavailable."),
+        waiting("Regression check exists", "A source or live check fails if a future connector misses catalog, lens, button, env, or tool parity."),
+        waiting("Launch claim is bounded", "The release summary separates code-live, page-live, and provider-login-ready states."),
+      ],
+    },
+  ],
   rotatepass: [
     {
       title: "Deep RotatePass checklist",
@@ -845,6 +897,7 @@ const PRODUCT_NAMES: Record<XPassProductId, string> = {
   geopass: "GEOPass",
   flowpass: "FlowPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   wakepass: "WakePass",
   compliancepass: "CompliancePass",
 };
