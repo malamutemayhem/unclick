@@ -208,6 +208,40 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /Unsupported OAuth platform/);
   });
 
+  it("blocks when the provider rejects the live redirect URI", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/api/oauth-init")) {
+          return new Response(JSON.stringify({
+            success: true,
+            client_id: "google-client",
+            redirect_uri: "https://unclick.world/api/oauth-callback",
+            state: "state",
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://accounts.google.com/signin/oauth/error?authError=redirect_uri_mismatch" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /gmail: live_provider_authorization_accepts_redirect/);
+    assert.match(actionText(receipt), /redirect URI is not registered/);
+  });
+
   it("passes the live OAuth init check when production returns a provider-ready payload", async () => {
     const sources = await loadConnectionReadinessSources(process.cwd());
     const receipt = evaluateConnectionReadinessSources(sources, {
@@ -226,6 +260,39 @@ describe("app connection readiness", () => {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
+  });
+
+  it("passes the live provider check when Google moves to sign-in", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["google-drive"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/api/oauth-init")) {
+          return new Response(JSON.stringify({
+            success: true,
+            client_id: "google-client",
+            redirect_uri: "https://unclick.world/api/oauth-callback",
+            state: "state",
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://accounts.google.com/v3/signin/identifier" },
+        });
+      },
     });
 
     assert.equal(receipt.status, "pass");

@@ -24,6 +24,7 @@ const POPULAR_LOGIN_FIRST_PLATFORMS = [
   "dropbox",
   "onedrive",
 ];
+const LIVE_PROVIDER_PROBE_PLATFORMS = new Set(["gmail", "google-drive", "dropbox", "onedrive"]);
 
 const SOURCE_PATHS = {
   connectors: "src/lib/connectors.ts",
@@ -532,6 +533,94 @@ function missingText(data) {
   return missingFields.length ? missingFields.join(",") : "unknown";
 }
 
+function providerAuthorizationUrl(platform, data) {
+  const clientId = typeof data?.client_id === "string" ? data.client_id : "";
+  const redirectUri = typeof data?.redirect_uri === "string" ? data.redirect_uri : "";
+  if (!clientId || !redirectUri) return "";
+
+  if (platform === "gmail" || platform === "google-drive") {
+    const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set(
+      "scope",
+      platform === "gmail"
+        ? "https://www.googleapis.com/auth/gmail.readonly"
+        : "https://www.googleapis.com/auth/drive.metadata.readonly"
+    );
+    url.searchParams.set("state", "connectorpass_probe");
+    url.searchParams.set("access_type", "offline");
+    url.searchParams.set("prompt", "consent");
+    return url.toString();
+  }
+
+  if (platform === "dropbox") {
+    const url = new URL("https://www.dropbox.com/oauth2/authorize");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("state", "connectorpass_probe");
+    url.searchParams.set("token_access_type", "offline");
+    return url.toString();
+  }
+
+  if (platform === "onedrive") {
+    const url = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("scope", "offline_access User.Read Files.Read");
+    url.searchParams.set("state", "connectorpass_probe");
+    return url.toString();
+  }
+
+  return "";
+}
+
+function providerProbeVerdict(platform, response, location) {
+  const locationText = String(location ?? "");
+  const lowerLocation = locationText.toLowerCase();
+  if (platform === "gmail" || platform === "google-drive") {
+    if (lowerLocation.includes("/signin/oauth/error")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; the configured redirect URI is not registered on the OAuth app.",
+      };
+    }
+  }
+  if (platform === "onedrive") {
+    if (lowerLocation.includes("error=") || lowerLocation.includes("error_description=")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; check the app registration redirect URI and permissions.",
+      };
+    }
+  }
+  if (platform === "dropbox") {
+    if (lowerLocation.includes("error=") || lowerLocation.includes("error_description=")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; check the app redirect URI and permissions.",
+      };
+    }
+  }
+  return {
+    ok: response.status >= 200 && response.status < 400,
+    message: "Provider accepted the authorization start request or moved to its login screen.",
+  };
+}
+
+function safeLocationPath(location) {
+  if (!location) return "";
+  try {
+    const url = new URL(location);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return "";
+  }
+}
+
 export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const liveUrl = normalizeLiveUrl(options.liveUrl ?? process.env.APP_CONNECTION_LIVE_URL);
   if (!liveUrl) return receipt;
@@ -590,6 +679,32 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
           missing_fields: Array.isArray(data?.missing_fields) ? data.missing_fields : [],
         }
       );
+
+      if (ok && LIVE_PROVIDER_PROBE_PLATFORMS.has(platform)) {
+        const authorizationUrl = providerAuthorizationUrl(platform, data);
+        if (!authorizationUrl) {
+          addCheck(
+            platformResult.checks,
+            "live_provider_authorization_accepts_redirect",
+            false,
+            "ConnectorPass could not build the provider authorization probe URL from the live OAuth init payload."
+          );
+        } else {
+          const providerResponse = await fetchImpl(authorizationUrl, { redirect: "manual" });
+          const location = providerResponse.headers?.get?.("location") ?? "";
+          const verdict = providerProbeVerdict(platform, providerResponse, location);
+          addCheck(
+            platformResult.checks,
+            "live_provider_authorization_accepts_redirect",
+            verdict.ok,
+            verdict.message,
+            {
+              http_status: providerResponse.status,
+              location_path: safeLocationPath(location),
+            }
+          );
+        }
+      }
     } catch (error) {
       addCheck(
         platformResult.checks,
