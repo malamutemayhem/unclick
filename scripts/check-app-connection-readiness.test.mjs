@@ -67,6 +67,21 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /dropbox: connect_page_server_oauth_button/);
   });
 
+  it("blocks when the admin Apps table can lose connect buttons while the status API is stale", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools
+      .replaceAll("connectorFallbackFor", "missingConnectorFallbackFor")
+      .replaceAll("resolvedConnectorBySlug", "connectorBySlug");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_table_uses_connector_registry_fallback/);
+  });
+
   it("blocks when setup-pending OAuth errors hide the token fallback path", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.connectPage = sources.connectPage
@@ -205,6 +220,30 @@ describe("app connection readiness", () => {
       fetchImpl: async () => new Response(JSON.stringify({
         success: true,
         client_id: "client-id",
+        redirect_uri: "https://unclick.world/api/oauth-callback",
+        state: "state",
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
+  });
+
+  it("accepts dynamic OAuth starts that return an authorization URL instead of a static client id", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["higgsfield"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async () => new Response(JSON.stringify({
+        success: true,
+        authorization_url: "https://provider.example/oauth/authorize?client_id=dynamic",
         redirect_uri: "https://unclick.world/api/oauth-callback",
         state: "state",
       }), {

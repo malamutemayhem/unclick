@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -65,6 +65,17 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.
     expect(screen.getByText("GitHub")).toBeInTheDocument();
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
+
+  it("keeps login-first apps connectable when admin_tools has not returned connector rows yet", async () => {
+    await renderAdminTools();
+
+    for (const name of ["Gmail", "Google Drive", "OneDrive"]) {
+      const row = screen.getByText(name).closest("[role='button']");
+      expect(row).not.toBeNull();
+      expect(within(row as HTMLElement).getByRole("button", { name: "Connect" })).toBeInTheDocument();
+      expect(within(row as HTMLElement).queryByText("Built-in")).not.toBeInTheDocument();
+    }
   }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
   it("links to Connections and the Skills Library instead of inlining everything", async () => {

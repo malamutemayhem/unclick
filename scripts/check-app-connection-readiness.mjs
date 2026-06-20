@@ -37,6 +37,7 @@ const SOURCE_PATHS = {
   credentialsApi: "api/credentials.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
+  adminTools: "src/pages/admin/AdminTools.tsx",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
@@ -278,6 +279,16 @@ export function evaluateConnectionReadinessSources(
       && sources.connectAppModal.includes("href={`/connect/${app.slug}`}")
       && sources.connectAppModal.includes("Continue to"),
     "Admin Apps sends OAuth apps to the full /connect/:slug login journey."
+  );
+
+  addCheck(
+    globalChecks,
+    "admin_apps_table_uses_connector_registry_fallback",
+    sources.adminTools.includes("connectorFallbackFor")
+      && sources.adminTools.includes("CONNECTORS")
+      && sources.adminTools.includes("resolvedConnectorBySlug")
+      && sources.adminTools.includes("navigate(`/connect/${app.slug}`)"),
+    "The admin Apps table keeps login-first apps connectable even when the status API has not returned connector rows yet."
   );
 
   addCheck(
@@ -552,11 +563,12 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
       });
       const data = await response.json().catch(() => ({}));
       const errorText = typeof data?.error === "string" ? data.error : "";
+      const hasStaticClientId = typeof data?.client_id === "string" && data.client_id.length > 0;
+      const hasDynamicAuthorizationUrl = typeof data?.authorization_url === "string" && data.authorization_url.length > 0;
       const ok = Boolean(
         response.ok
         && data?.success === true
-        && typeof data?.client_id === "string"
-        && data.client_id.length > 0
+        && (hasStaticClientId || hasDynamicAuthorizationUrl)
         && typeof data?.redirect_uri === "string"
         && data.redirect_uri.length > 0
         && data?.setup_pending !== true

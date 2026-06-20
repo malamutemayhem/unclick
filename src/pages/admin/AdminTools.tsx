@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { KeyRound, PenSquare, Sparkles, Wrench } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCatalog";
+import { CONNECTORS } from "@/lib/connectors";
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
@@ -38,8 +39,33 @@ interface Connector {
   } | null;
 }
 
+const CONNECT_PAGE_APP_SLUGS = new Set([
+  "github",
+  "vercel",
+  "supabase",
+  "higgsfield",
+  "dropbox",
+  "gmail",
+  "google-drive",
+  "onedrive",
+  "google-workspace",
+  "microsoft-graph",
+]);
+
+function connectorFallbackFor(app: { slug: string }): Connector | null {
+  const connector = CONNECTORS[app.slug];
+  if (!connector || !CONNECT_PAGE_APP_SLUGS.has(app.slug)) return null;
+  return {
+    id: app.slug,
+    auth_type: connector.authType,
+    setup_url: `/connect/${app.slug}`,
+    credential: null,
+  };
+}
+
 export default function AdminToolsPage() {
   const { session } = useSession();
+  const navigate = useNavigate();
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -93,6 +119,17 @@ export default function AdminToolsPage() {
     return map;
   }, [connectors]);
 
+  const resolvedConnectorBySlug = useMemo(() => {
+    const map = new Map(connectorBySlug);
+    for (const app of APP_CATALOG) {
+      if (!map.has(app.slug)) {
+        const fallback = connectorFallbackFor(app);
+        if (fallback) map.set(app.slug, fallback);
+      }
+    }
+    return map;
+  }, [connectorBySlug]);
+
   const enabled = useMemo(() => {
     const rec: Record<string, boolean> = {};
     for (const slug of disabled) rec[slug] = false;
@@ -142,7 +179,7 @@ export default function AdminToolsPage() {
   }
 
   function statusOf(app: { slug: string }): AppStatus | null {
-    const c = connectorBySlug.get(app.slug);
+    const c = resolvedConnectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
     if (c.credential?.source === "managed_app_connections" && c.credential.is_valid) {
       return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
@@ -169,14 +206,18 @@ export default function AdminToolsPage() {
   // app (also lets you replace or re-prove an existing key). Built-in apps have
   // nothing to connect.
   function handleStatusClick(app: AppEntry) {
-    if (!connectorBySlug.has(app.slug)) return;
+    if (!resolvedConnectorBySlug.has(app.slug)) return;
     setConnectTarget(app);
   }
 
   // Buttons say the action (Connect / Add key / Manage); pills say the truth.
   function actionOf(app: AppEntry) {
-    const label = actionLabelFor(connectorBySlug.get(app.slug));
+    const connector = resolvedConnectorBySlug.get(app.slug);
+    const label = actionLabelFor(connector);
     if (!label) return null;
+    if (!connectorBySlug.has(app.slug) && connector?.auth_type === "oauth2") {
+      return { label, onClick: () => navigate(`/connect/${app.slug}`) };
+    }
     return { label, onClick: () => setConnectTarget(app) };
   }
 
@@ -261,8 +302,8 @@ export default function AdminToolsPage() {
     if (popup) watchConnectionPopup(popup, slug);
   }
 
-  const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
-  const lensedApps = useMemo(() => applyLens(APP_CATALOG, lens, connectorBySlug), [lens, connectorBySlug]);
+  const counts = useMemo(() => lensCounts(APP_CATALOG, resolvedConnectorBySlug), [resolvedConnectorBySlug]);
+  const lensedApps = useMemo(() => applyLens(APP_CATALOG, lens, resolvedConnectorBySlug), [lens, resolvedConnectorBySlug]);
 
   if (!session) {
     return <p className="text-sm text-white/50">Sign in to manage Apps.</p>;
@@ -309,14 +350,14 @@ export default function AdminToolsPage() {
         busy={saving}
       />
 
-      {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (
+      {connectTarget && session && resolvedConnectorBySlug.get(connectTarget.slug) && (
         <ConnectAppModal
           app={connectTarget}
-          connector={connectorBySlug.get(connectTarget.slug)!}
+          connector={resolvedConnectorBySlug.get(connectTarget.slug)!}
           accessToken={session.access_token}
           onClose={() => setConnectTarget(null)}
           onSaved={() => void refreshStatus()}
-          isConnected={Boolean(connectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
+          isConnected={Boolean(resolvedConnectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
           statusLabel={statusOf(connectTarget)?.label ?? null}
           onDisconnect={() => disconnectApp(connectTarget.slug)}
           onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}

@@ -170,6 +170,7 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
         waiting("Catalog row exists", "The app appears in the real Apps catalog with a clear category and useful action count."),
         waiting("Expected lens includes it", "Common connectors appear in the discovery lens users naturally open first."),
         waiting("Connect page owns setup", "Account setup routes to the full connect page instead of a cramped modal dead end."),
+        waiting("Admin row action matches setup", "The Apps table uses the same connectability source as the connect page, so sign-in apps never appear as built-in."),
         waiting("Primary login is visible", "Provider login is the first path when setup supports it."),
         waiting("Fallback is honest", "Token or key entry is labeled as fallback, not the main happy path."),
         waiting("Icon has a render path", "The app has either a real favicon domain or an explicit local glyph."),
@@ -827,6 +828,7 @@ const PRODUCT_DEEP_CHECKS: Record<XPassProductId, XPassChecklistGroup[]> = {
       rows: [
         waiting("Discovery path is proven", "A user can find the connector from the normal app discovery path without knowing the exact slug."),
         waiting("Button path is proven", "The connect page renders the provider login action in a clean browser."),
+        waiting("Admin table path is proven", "The normal Apps table shows the same connect action as the dedicated connect page."),
         waiting("Popup start is proven", "The login button reaches the server OAuth start path and gets either provider-ready proof or a setup-pending blocker."),
         waiting("Callback storage is proven", "The callback stores credentials in the same account record that tools read."),
         waiting("Live config is named", "Missing production config names the required env keys without exposing values."),
