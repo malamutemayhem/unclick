@@ -37,10 +37,10 @@ bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", 
 bucket("Developer & infra", ["github", "gitlab", "vercel", "supabase", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary", "jsonplaceholder", "httpbin", "reqres", "zippopotamus", "ipify", "dummyjson", "ipinfo", "randomuser", "publicapis", "fakestoreapi", "domainsdb", "qrserver", "ipaddrinfo", "crates", "npm-registry", "pypi", "stackexchange", "dohdns", "isup", "fakerapi", "jsoncrack", "regexr", "hashgen", "base64", "urlencode", "crontab", "jwt", "markdown", "cidr", "semver", "epoch", "difftext", "passwordgen", "slug", "csvparse", "jsonformat", "htmlstrip", "uuidgen", "charcount", "ipvalidate", "stringcase", "aspectratio", "percentage", "binaryconv", "levenshtein", "colorblend", "unitpressure", "bitwise", "gcdlcm", "statistics"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates", "frankfurter", "exchangerate2", "coinpaprika", "exchangerate3", "coinlore", "coincap", "vatcomply", "openfigi"]);
-bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
+bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "gmail", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews", "rickandmorty", "xkcd", "ghibli", "finalspace", "disneyapi", "harrypotter", "iceandfire", "digimon", "stapi", "breakingbad", "animechan", "lotr"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia", "spaceflight", "archiveorg", "metmuseum", "nobelprize", "universities", "artic", "wikidata", "wayback", "europeana"]);
-bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
+bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox", "google-drive", "onedrive"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce", "makeup", "upcitemdb"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb", "jikan", "tvmaze", "lyrics"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1", "pokeapi", "swapi", "dnd5e", "aoe2", "apifootball", "amiibo", "mcsrvstat", "freetogame", "cheapshark", "balldontlie", "mtg", "pokemontcg", "mhwdb", "opendota", "gameoflife", "acnhapi"]);
@@ -59,6 +59,7 @@ const NAME_OF = {
   jobsmith: "JobSmith", geopass: "GeoPass", securitypass: "SecurityPass",
   "xpass-aggregated-verdict": "XPass Verdict",
   github: "GitHub", gitlab: "GitLab", youtube: "YouTube", tiktok: "TikTok", paypal: "PayPal",
+  gmail: "Gmail", "google-drive": "Google Drive", onedrive: "OneDrive",
   lastfm: "Last.fm", espn: "ESPN", ebay: "eBay", ebird: "eBird", bluesky: "Bluesky",
   willyweather: "WillyWeather", riot: "Riot Games", wordpress: "WordPress", uptimerobot: "UptimeRobot",
   abn: "ABN", abuseipdb: "AbuseIPDB", alphavantage: "Alpha Vantage", australiapost: "Australia Post",
@@ -266,7 +267,10 @@ const BLURB_OF = {
   coda: "Read your Coda docs, tables, and rows.",
   brevo: "Read Brevo contacts, email campaigns, and account.",
   uptimerobot: "Check your monitors and get alerted when one is down.",
+  gmail: "Search, read, and send mail from your connected account.",
   dropbox: "Browse, search, and read your Dropbox files.",
+  "google-drive": "Browse, search, and read your connected Drive files.",
+  onedrive: "Browse, search, and read your connected OneDrive files.",
   bitbucket: "Browse Bitbucket repositories and pull requests.",
   cloudinary: "List your Cloudinary media and check usage.",
   wordpress: "Read posts and pages from your WordPress site.",
@@ -808,7 +812,8 @@ const DOMAIN_OF = {
   todoist: "todoist.com", pipedrive: "pipedrive.com", confluence: "atlassian.com",
   unsplash: "unsplash.com", giphy: "giphy.com", miro: "miro.com", shortcut: "shortcut.com",
   wikipedia: "wikipedia.org",
-  coda: "coda.io", brevo: "brevo.com", uptimerobot: "uptimerobot.com", dropbox: "dropbox.com",
+  coda: "coda.io", brevo: "brevo.com", uptimerobot: "uptimerobot.com", gmail: "gmail.com", dropbox: "dropbox.com",
+  "google-drive": "drive.google.com", onedrive: "onedrive.live.com",
   bitbucket: "bitbucket.org", cloudinary: "cloudinary.com", wordpress: "wordpress.org", ghost: "ghost.org",
   pokeapi: "pokeapi.co", cocktail: "thecocktaildb.com", dictionary: "dictionaryapi.dev",
   joke: "jokeapi.dev", holidays: "date.nager.at", dogceo: "dog.ceo",

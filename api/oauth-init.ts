@@ -5,6 +5,7 @@ import { createOAuthStateToken } from "./oauth-state.js";
 const ALLOWED_PLATFORMS = new Set([
   "github", "vercel", "supabase", "xero", "reddit", "shopify",
   "spotify", "dropbox", "google-workspace", "microsoft-graph",
+  "gmail", "google-drive", "onedrive",
   "higgsfield",
 ]);
 
@@ -17,7 +18,10 @@ const REDIRECT_URI_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_REDIRECT_URI",
   spotify:           "SPOTIFY_REDIRECT_URI",
   dropbox:           "DROPBOX_REDIRECT_URI",
+  gmail:             "GOOGLE_WORKSPACE_REDIRECT_URI",
+  "google-drive":    "GOOGLE_WORKSPACE_REDIRECT_URI",
   "google-workspace": "GOOGLE_WORKSPACE_REDIRECT_URI",
+  onedrive:          "MICROSOFT_GRAPH_REDIRECT_URI",
   "microsoft-graph": "MICROSOFT_GRAPH_REDIRECT_URI",
 };
 
@@ -30,7 +34,10 @@ const CLIENT_ID_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_CLIENT_ID",
   spotify:           "SPOTIFY_CLIENT_ID",
   dropbox:           "DROPBOX_CLIENT_ID",
+  gmail:             "GOOGLE_WORKSPACE_CLIENT_ID",
+  "google-drive":    "GOOGLE_WORKSPACE_CLIENT_ID",
   "google-workspace": "GOOGLE_WORKSPACE_CLIENT_ID",
+  onedrive:          "MICROSOFT_GRAPH_CLIENT_ID",
   "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_ID",
 };
 
@@ -43,7 +50,10 @@ const CLIENT_SECRET_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_CLIENT_SECRET",
   spotify:           "SPOTIFY_CLIENT_SECRET",
   dropbox:           "DROPBOX_CLIENT_SECRET",
+  gmail:             "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  "google-drive":    "GOOGLE_WORKSPACE_CLIENT_SECRET",
   "google-workspace": "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  onedrive:          "MICROSOFT_GRAPH_CLIENT_SECRET",
   "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_SECRET",
 };
 
@@ -63,7 +73,10 @@ const PLATFORM_LABELS: Record<string, string> = {
   shopify: "Shopify",
   spotify: "Spotify",
   dropbox: "Dropbox",
+  gmail: "Gmail",
+  "google-drive": "Google Drive",
   "google-workspace": "Google Workspace",
+  onedrive: "OneDrive",
   "microsoft-graph": "Microsoft Graph",
   higgsfield: "Higgsfield",
 };

@@ -1312,6 +1312,9 @@ import { codaListDocs, codaListTables, codaListRows } from "./coda-tool.js";
 import { brevoListContacts, brevoListCampaigns, brevoGetAccount } from "./brevo-tool.js";
 import { uptimerobotGetMonitors, uptimerobotGetAccount } from "./uptimerobot-tool.js";
 import { dropboxListFolder, dropboxSearch, dropboxGetAccount } from "./dropbox-tool.js";
+import { gmailSearch, gmailRead, gmailSend } from "./gmail-tool.js";
+import { driveSearch, driveRead } from "./google-drive-tool.js";
+import { onedriveList, onedriveSearch, onedriveRead } from "./onedrive-tool.js";
 import { bitbucketListRepos, bitbucketGetRepo, bitbucketListPullRequests } from "./bitbucket-tool.js";
 import { cloudinaryListResources, cloudinaryGetUsage } from "./cloudinary-tool.js";
 import { wordpressListPosts, wordpressGetPost, wordpressListPages } from "./wordpress-tool.js";
@@ -18627,15 +18630,64 @@ export const ADDITIONAL_TOOLS = [
     access_token: { type: "string", description: "Dropbox access token" },
     path: { type: "string", description: "Folder path (empty string for root)" },
     limit: { type: "number", description: "Entries to return (max 2000, default 100)" },
-  }, required: ["access_token"] } },
+  } } },
   { name: "dropbox_search", description: "Search Dropbox for files and folders by name.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
     access_token: { type: "string", description: "Dropbox access token" },
     query: { type: "string", description: "File or folder name to search for" },
     limit: { type: "number", description: "Results to return (max 1000, default 25)" },
-  }, required: ["access_token", "query"] } },
+  }, required: ["query"] } },
   { name: "dropbox_get_account", description: "Get the current Dropbox account profile.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
     access_token: { type: "string", description: "Dropbox access token" },
-  }, required: ["access_token"] } },
+  } } },
+
+  // ── gmail-tool.ts ─────────────────────────────────────────────────────────────
+  { name: "gmail_search", description: "Search Gmail messages in the connected mailbox.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Gmail access token" },
+    query: { type: "string", description: "Gmail search query, such as from:alice newer_than:7d" },
+    limit: { type: "number", description: "Messages to return (max 100, default 10)" },
+    page_token: { type: "string", description: "Gmail page token from a previous response" },
+  } } },
+  { name: "gmail_read", description: "Read a Gmail message by id.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Gmail access token" },
+    message_id: { type: "string", description: "Gmail message id" },
+    format: { type: "string", enum: ["minimal", "metadata", "full", "raw"], description: "Gmail response format (default metadata)" },
+  }, required: ["message_id"] } },
+  { name: "gmail_send", description: "Send a plain-text Gmail message.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Gmail access token" },
+    to: { type: "string", description: "Recipient email address" },
+    subject: { type: "string", description: "Email subject" },
+    body: { type: "string", description: "Plain-text email body" },
+    from: { type: "string", description: "Optional From header (defaults to me)" },
+  }, required: ["to", "subject", "body"] } },
+
+  // ── google-drive-tool.ts ──────────────────────────────────────────────────────
+  { name: "drive_search", description: "Search or list Google Drive files in the connected account.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Google Drive access token" },
+    query: { type: "string", description: "File-name search text" },
+    q: { type: "string", description: "Advanced Drive query string" },
+    limit: { type: "number", description: "Files to return (max 100, default 20)" },
+    page_token: { type: "string", description: "Drive page token from a previous response" },
+  } } },
+  { name: "drive_read", description: "Read Google Drive file metadata and a safe text preview when available.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Google Drive access token" },
+    file_id: { type: "string", description: "Google Drive file id" },
+  }, required: ["file_id"] } },
+
+  // ── onedrive-tool.ts ──────────────────────────────────────────────────────────
+  { name: "onedrive_list", description: "List files and folders from OneDrive.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "OneDrive access token" },
+    folder_id: { type: "string", description: "Folder item id (omit for root)" },
+    limit: { type: "number", description: "Items to return (max 200, default 50)" },
+  } } },
+  { name: "onedrive_search", description: "Search OneDrive files and folders by name.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "OneDrive access token" },
+    query: { type: "string", description: "File or folder name to search for" },
+    limit: { type: "number", description: "Items to return (max 100, default 25)" },
+  }, required: ["query"] } },
+  { name: "onedrive_read", description: "Read OneDrive file metadata and a safe text preview when available.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "OneDrive access token" },
+    item_id: { type: "string", description: "OneDrive item id" },
+  }, required: ["item_id"] } },
 
   // ── bitbucket-tool.ts ─────────────────────────────────────────────────────────
   { name: "bitbucket_list_repos", description: "List Bitbucket repositories in a workspace.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
@@ -25210,6 +25262,20 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   dropbox_list_folder:     (args) => dropboxListFolder(args),
   dropbox_search:          (args) => dropboxSearch(args),
   dropbox_get_account:     (args) => dropboxGetAccount(args),
+
+  // gmail-tool.ts
+  gmail_search:            (args) => gmailSearch(args),
+  gmail_read:              (args) => gmailRead(args),
+  gmail_send:              (args) => gmailSend(args),
+
+  // google-drive-tool.ts
+  drive_search:            (args) => driveSearch(args),
+  drive_read:              (args) => driveRead(args),
+
+  // onedrive-tool.ts
+  onedrive_list:           (args) => onedriveList(args),
+  onedrive_search:         (args) => onedriveSearch(args),
+  onedrive_read:           (args) => onedriveRead(args),
 
   // bitbucket-tool.ts
   bitbucket_list_repos:         (args) => bitbucketListRepos(args),

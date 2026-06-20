@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1133,
+    "inventory": 1136,
     "source_manifest": 250,
     "pages": 116,
-    "tools": 672,
+    "tools": 675,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 672
+      "count": 675
     },
     {
       "id": "rooms",
@@ -6982,12 +6982,32 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-gmail-packages-mcp-server-src-gmail-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gmail",
+      "kind": "MCP tool",
+      "meaning": "gmail MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gmail-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-goertzel-packages-mcp-server-src-goertzel-tool-ts-no-route",
       "division": "Tools",
       "name": "goertzel",
       "kind": "MCP tool",
       "meaning": "goertzel MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/goertzel-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-google-drive-packages-mcp-server-src-google-drive-tool-ts-no-route",
+      "division": "Tools",
+      "name": "google drive",
+      "kind": "MCP tool",
+      "meaning": "google drive MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/google-drive-tool.ts",
       "route": "",
       "tags": []
     },
@@ -8598,6 +8618,16 @@
       "kind": "MCP tool",
       "meaning": "omdb MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/omdb-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-onedrive-packages-mcp-server-src-onedrive-tool-ts-no-route",
+      "division": "Tools",
+      "name": "onedrive",
+      "kind": "MCP tool",
+      "meaning": "onedrive MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/onedrive-tool.ts",
       "route": "",
       "tags": []
     },
@@ -13404,9 +13434,19 @@
       "packages/mcp-server/src/gitlab-tool.ts"
     ],
     [
+      "gmail",
+      "gmail MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gmail-tool.ts"
+    ],
+    [
       "goertzel",
       "goertzel MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/goertzel-tool.ts"
+    ],
+    [
+      "google drive",
+      "google drive MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/google-drive-tool.ts"
     ],
     [
       "graph",
@@ -14212,6 +14252,11 @@
       "omdb",
       "omdb MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/omdb-tool.ts"
+    ],
+    [
+      "onedrive",
+      "onedrive MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/onedrive-tool.ts"
     ],
     [
       "open elevation",
@@ -15935,8 +15980,8 @@
     },
     {
       "source": "package.json",
-      "hash": "c74377f4f488",
-      "bytes": 7710
+      "hash": "989f2a2ed48d",
+      "bytes": 7828
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -16415,8 +16460,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "d77a6a1cf116",
-      "bytes": 34634
+      "hash": "b010830d8d67",
+      "bytes": 34860
     },
     {
       "source": "src/pages/Crews.tsx",

@@ -191,9 +191,47 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     },
   },
 
-  // One Google OAuth app covers Gmail, Drive, Calendar, Docs, Sheets (scopes
-  // live on the connector config). Sensitive Gmail scopes may need Google's
-  // app verification before non-test accounts can consent.
+  gmail: {
+    tokenUrl:        "https://oauth2.googleapis.com/token",
+    clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
+    clientSecretEnv: "GOOGLE_WORKSPACE_CLIENT_SECRET",
+    redirectUriEnv:  "GOOGLE_WORKSPACE_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Gmail token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  "google-drive": {
+    tokenUrl:        "https://oauth2.googleapis.com/token",
+    clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
+    clientSecretEnv: "GOOGLE_WORKSPACE_CLIENT_SECRET",
+    redirectUriEnv:  "GOOGLE_WORKSPACE_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Google Drive token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  // One Google OAuth app can still cover a broader workspace connection.
   "google-workspace": {
     tokenUrl:        "https://oauth2.googleapis.com/token",
     clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
@@ -207,7 +245,27 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     },
   },
 
-  // One Azure AD app covers Outlook mail, Calendar, OneDrive, Teams via Graph.
+  onedrive: {
+    tokenUrl:        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    clientIdEnv:     "MICROSOFT_GRAPH_CLIENT_ID",
+    clientSecretEnv: "MICROSOFT_GRAPH_CLIENT_SECRET",
+    redirectUriEnv:  "MICROSOFT_GRAPH_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in OneDrive token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  // One Azure AD app can still cover a broader Microsoft Graph connection.
   "microsoft-graph": {
     tokenUrl:        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     clientIdEnv:     "MICROSOFT_GRAPH_CLIENT_ID",

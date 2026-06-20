@@ -4,15 +4,17 @@
 // (https://www.dropbox.com/developers/apps). Dropbox RPC endpoints are POST with
 // a JSON body; no-argument endpoints take no body.
 
-import { requireCredential } from "./connector-setup.js";
-import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { resolveCredentials } from "./vault-bridge.js";
 
 const DROPBOX_BASE = "https://api.dropboxapi.com/2";
 const DROPBOX_SOURCE = "Dropbox API v2";
 
-function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
-  return requireCredential("dropbox", args);
+async function requireToken(args: Record<string, unknown>): Promise<string | Record<string, unknown>> {
+  const resolved = await resolveCredentials("dropbox", args);
+  if ("error" in resolved) return resolved;
+  const token = String(resolved.access_token ?? "").trim();
+  return token || { error: "Dropbox access_token could not be resolved." };
 }
 
 async function dbxPost<T>(token: string, path: string, body?: unknown): Promise<T> {
@@ -47,7 +49,7 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 }
 
 export async function dropboxListFolder(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args);
+  const token = await requireToken(args);
   if (typeof token !== "string") return token;
   // Root is the empty string in Dropbox, not "/".
   const path = String(args.path ?? "").trim() === "/" ? "" : String(args.path ?? "").trim();
@@ -56,7 +58,7 @@ export async function dropboxListFolder(args: Record<string, unknown>): Promise<
 }
 
 export async function dropboxSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args);
+  const token = await requireToken(args);
   if (typeof token !== "string") return token;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required (a file or folder name to search for)." };
@@ -65,7 +67,7 @@ export async function dropboxSearch(args: Record<string, unknown>): Promise<unkn
 }
 
 export async function dropboxGetAccount(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args);
+  const token = await requireToken(args);
   if (typeof token !== "string") return token;
   const data = await dbxPost(token, "/users/get_current_account");
   return stamp(data, ["Use dropbox_list_folder to browse this account's files."]);

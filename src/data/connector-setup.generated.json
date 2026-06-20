@@ -1,6 +1,6 @@
 {
   "generatedAt": "static",
-  "count": 167,
+  "count": 170,
   "connectors": {
     "stripe": {
       "displayName": "Stripe",
@@ -1170,6 +1170,30 @@
       "arg": "access_token",
       "envVar": "DROPBOX_ACCESS_TOKEN",
       "setupUrl": "https://www.dropbox.com/developers/apps"
+    },
+    "gmail": {
+      "displayName": "Gmail",
+      "credential": "access token",
+      "arg": "access_token",
+      "envVar": "GMAIL_ACCESS_TOKEN",
+      "setupUrl": "https://unclick.world/connect/gmail",
+      "note": "Prefer the Gmail login flow. Token entry is only a fallback."
+    },
+    "google-drive": {
+      "displayName": "Google Drive",
+      "credential": "access token",
+      "arg": "access_token",
+      "envVar": "GOOGLE_DRIVE_ACCESS_TOKEN",
+      "setupUrl": "https://unclick.world/connect/google-drive",
+      "note": "Prefer the Google Drive login flow. Token entry is only a fallback."
+    },
+    "onedrive": {
+      "displayName": "OneDrive",
+      "credential": "access token",
+      "arg": "access_token",
+      "envVar": "ONEDRIVE_ACCESS_TOKEN",
+      "setupUrl": "https://unclick.world/connect/onedrive",
+      "note": "Prefer the OneDrive login flow. Token entry is only a fallback."
     },
     "bitbucket": {
       "displayName": "Bitbucket",

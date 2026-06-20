@@ -4,12 +4,31 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const DEFAULT_LOGIN_FIRST_PLATFORMS = ["github", "vercel", "supabase", "higgsfield"];
+export const DEFAULT_LOGIN_FIRST_PLATFORMS = [
+  "github",
+  "vercel",
+  "supabase",
+  "higgsfield",
+  "gmail",
+  "google-drive",
+  "dropbox",
+  "onedrive",
+];
 const DYNAMIC_OAUTH_PLATFORMS = new Set(["higgsfield"]);
+const POPULAR_LOGIN_FIRST_PLATFORMS = [
+  "github",
+  "vercel",
+  "supabase",
+  "gmail",
+  "google-drive",
+  "dropbox",
+  "onedrive",
+];
 
 const SOURCE_PATHS = {
   connectors: "src/lib/connectors.ts",
   appCatalog: "src/data/app-catalog.generated.json",
+  appLenses: "src/components/apps/appLenses.ts",
   connectorSetup: "packages/mcp-server/src/connector-setup.ts",
   connectorSetupGenerated: "src/data/connector-setup.generated.json",
   oauthInit: "api/oauth-init.ts",
@@ -21,6 +40,7 @@ const SOURCE_PATHS = {
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
+  toolWiring: "packages/mcp-server/src/tool-wiring.ts",
   adminMemory: "api/memory-admin.ts",
 };
 
@@ -64,7 +84,7 @@ function hasWord(text, word) {
 }
 
 function includesSlugInSet(text, setName, slug) {
-  const setMatch = text.match(new RegExp(`const\\s+${setName}\\s*=\\s*new\\s+Set\\s*\\(\\s*\\[([\\s\\S]*?)\\]\\s*\\)`, "m"));
+  const setMatch = text.match(new RegExp(`const\\s+${setName}\\b[^=]*=\\s*new\\s+Set\\s*\\(\\s*\\[([\\s\\S]*?)\\]\\s*\\)`, "m"));
   return Boolean(setMatch?.[1]?.includes(`"${slug}"`) || setMatch?.[1]?.includes(`'${slug}'`));
 }
 
@@ -141,6 +161,19 @@ function objectBlockForConst(text, name) {
   return "";
 }
 
+function toolChunkForSlug(text, slug) {
+  const escaped = String(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const header = new RegExp(`//\\s*[─-]+\\s*${escaped}-tool\\.ts\\s*[─-]+`, "m").exec(text);
+  if (!header) return "";
+  const start = header.index + header[0].length;
+  const next = /\/\/\s*[─-]+\s*[a-z0-9-]+-tool\.ts\s*[─-]+/m.exec(text.slice(start));
+  return text.slice(start, next ? start + next.index : text.length);
+}
+
+function requiresTokenField(toolChunk) {
+  return /required\s*:\s*\[[^\]]*["'](?:access_token|api_key|bearer_token)["'][^\]]*\]/m.test(toolChunk);
+}
+
 function findApp(appCatalogData, slug) {
   const apps = Array.isArray(appCatalogData?.apps) ? appCatalogData.apps : [];
   return apps.find((app) => app?.slug === slug) ?? null;
@@ -150,8 +183,17 @@ function findConnectorSetup(connectorSetupData, slug) {
   return connectorSetupData?.connectors?.[slug] ?? null;
 }
 
+function requiresPopularLens(platform) {
+  return POPULAR_LOGIN_FIRST_PLATFORMS.includes(platform);
+}
+
+function requiresServerOAuthButton(platform) {
+  return DEFAULT_LOGIN_FIRST_PLATFORMS.includes(platform);
+}
+
 function envValueFromBlock(block, key) {
-  const match = block.match(new RegExp(`${key}\\s*:\\s*"([^"]+)"`));
+  const escaped = String(key).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`(?:"${escaped}"|${escaped})\\s*:\\s*"([^"]+)"`));
   return match?.[1] ?? "";
 }
 
@@ -274,6 +316,7 @@ export function evaluateConnectionReadinessSources(
     const connectorBlock = objectBlockForKey(sources.connectors, platform);
     const callbackBlock = usesDynamicOAuth ? sources.oauthCallback : objectBlockForKey(sources.oauthCallback, platform);
     const setupBlock = objectBlockForKey(sources.connectorSetup, platform);
+    const toolChunk = toolChunkForSlug(sources.toolWiring, platform);
     const app = findApp(sources.appCatalogData, platform);
     const generatedSetup = findConnectorSetup(sources.connectorSetupData, platform);
     const initRedirectEnv = (() => {
@@ -319,6 +362,24 @@ export function evaluateConnectionReadinessSources(
       "Apps catalog contains the connector in a real category so users can find it.",
       app ? { category: app.category, tool_count: app.toolCount ?? null } : {}
     );
+
+    if (requiresPopularLens(platform)) {
+      addCheck(
+        checks,
+        "popular_lens_visible",
+        includesSlugInSet(sources.appLenses, "POPULAR_SLUGS", platform),
+        "Default login-first connectors appear in the Popular Apps lens so users can find them without searching."
+      );
+    }
+
+    if (requiresServerOAuthButton(platform)) {
+      addCheck(
+        checks,
+        "connect_page_server_oauth_button",
+        includesSlugInSet(sources.connectPage, "SERVER_OAUTH_CLIENT_ID_SLUGS", platform),
+        "Server-owned OAuth connectors are allow-listed on the Connect page so the provider login button renders without a public client ID."
+      );
+    }
 
     addCheck(
       checks,
@@ -421,6 +482,14 @@ export function evaluateConnectionReadinessSources(
       "App icon has either a real favicon domain or an explicit local glyph."
     );
 
+    addCheck(
+      checks,
+      "tool_schema_allows_connected_credentials",
+      !toolChunk || !requiresTokenField(toolChunk),
+      "Login-first tools keep token fields optional so a stored web connection can satisfy tool calls.",
+      { tool_surface: Boolean(toolChunk) }
+    );
+
     results.push({
       platform,
       status: missingChecks(checks).length === 0 ? "pass" : "blocker",
@@ -482,6 +551,7 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
         body: JSON.stringify({ platform, api_key: apiKey }),
       });
       const data = await response.json().catch(() => ({}));
+      const errorText = typeof data?.error === "string" ? data.error : "";
       const ok = Boolean(
         response.ok
         && data?.success === true
@@ -498,6 +568,8 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
         ok,
         setupPending
           ? `Production OAuth init is still setup-pending; missing ${missingText(data)}.`
+          : errorText
+            ? `Production OAuth init failed: ${errorText}`
           : "Production OAuth init returns a provider-ready login payload, not setup-pending.",
         {
           live_url: liveUrl,

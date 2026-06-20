@@ -43,8 +43,25 @@ function oauthClientIdEnvKey(slug: string): string {
   return `VITE_${slug.toUpperCase().replace(/-/g, "_")}_CLIENT_ID`;
 }
 
+const SERVER_OAUTH_CLIENT_ID_SLUGS = new Set([
+  "github",
+  "vercel",
+  "supabase",
+  "xero",
+  "reddit",
+  "shopify",
+  "spotify",
+  "dropbox",
+  "gmail",
+  "google-drive",
+  "google-workspace",
+  "onedrive",
+  "microsoft-graph",
+  "higgsfield",
+]);
+
 function serverProvidesOAuthClientId(slug: string): boolean {
-  return slug === "vercel" || slug === "supabase" || slug === "higgsfield";
+  return SERVER_OAUTH_CLIENT_ID_SLUGS.has(slug);
 }
 
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */

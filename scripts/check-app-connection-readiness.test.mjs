@@ -23,7 +23,7 @@ describe("app connection readiness", () => {
     });
 
     assert.equal(receipt.status, "pass");
-    assert.deepEqual(receipt.platforms, ["github", "vercel", "supabase", "higgsfield"]);
+    assert.deepEqual(receipt.platforms, ["github", "vercel", "supabase", "higgsfield", "gmail", "google-drive", "dropbox", "onedrive"]);
     assert.deepEqual(receipt.action_needed, []);
     assert.ok(receipt.global_checks.some((check) => check.name === "tool_keychain_status_merges_all_connection_sources" && check.status === "pass"));
   });
@@ -39,6 +39,32 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /supabase: apps_catalog_visible/);
+  });
+
+  it("blocks when a default connector is missing from the Popular lens", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.appLenses = sources.appLenses.replace('"dropbox", ', "");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["dropbox"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /dropbox: popular_lens_visible/);
+  });
+
+  it("blocks when a server-owned OAuth app is missing from the Connect page allowlist", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.connectPage = sources.connectPage.replace('  "dropbox",\n', "");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["dropbox"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /dropbox: connect_page_server_oauth_button/);
   });
 
   it("blocks when setup-pending OAuth errors hide the token fallback path", async () => {
@@ -89,6 +115,22 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /oauth_env_names_match_start_and_callback/);
   });
 
+  it("blocks when login-first tool schemas require pasted tokens", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.toolWiring = sources.toolWiring.replace(
+      '}, required: ["query"] } },\n  { name: "dropbox_get_account"',
+      '}, required: ["access_token", "query"] } },\n  { name: "dropbox_get_account"'
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["dropbox"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /tool_schema_allows_connected_credentials/);
+  });
+
   it("blocks when OAuth start does not check the provider client secret", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.oauthInit = sources.oauthInit.replace(
@@ -127,6 +169,28 @@ describe("app connection readiness", () => {
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /supabase: live_oauth_init_ready/);
     assert.match(actionText(receipt), /client_id,client_secret/);
+  });
+
+  it("reports the production OAuth error when the deployed endpoint rejects a platform", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async () => new Response(JSON.stringify({
+        error: "Unsupported OAuth platform.",
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /gmail: live_oauth_init_ready/);
+    assert.match(actionText(receipt), /Unsupported OAuth platform/);
   });
 
   it("passes the live OAuth init check when production returns a provider-ready payload", async () => {

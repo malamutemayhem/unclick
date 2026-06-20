@@ -33,6 +33,17 @@ function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
       return env.REDDIT_CLIENT_SECRET ?? "";
     case "shopify":
       return env.SHOPIFY_CLIENT_SECRET ?? "";
+    case "dropbox":
+      return env.DROPBOX_CLIENT_SECRET ?? "";
+    case "gmail":
+    case "google-drive":
+    case "google-workspace":
+      return env.GOOGLE_WORKSPACE_CLIENT_SECRET ?? "";
+    case "onedrive":
+    case "microsoft-graph":
+      return env.MICROSOFT_GRAPH_CLIENT_SECRET ?? "";
+    case "spotify":
+      return env.SPOTIFY_CLIENT_SECRET ?? "";
     default:
       return "";
     }
