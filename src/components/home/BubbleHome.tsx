@@ -864,11 +864,7 @@ export default function BubbleHome() {
             </FadeIn>
           </div>
         </section>
-        <div className="relative">
-          <div
-            className="pointer-events-none absolute inset-x-4 inset-y-6 -z-10 rounded-[2rem] border border-primary/25 bg-primary/[0.04] shadow-[0_0_90px_-30px_hsl(182_46%_57%/0.55),inset_0_0_60px_-40px_hsl(182_46%_57%/0.4)] sm:inset-x-10"
-            aria-hidden="true"
-          />
+        <div>
           <InstallSection />
         </div>
         <FAQ />
