@@ -114,6 +114,36 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /tool_keychain_status_merges_all_connection_sources/);
   });
 
+  it("blocks when admin Apps can omit login-app rows that have saved web credentials", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminMemory = sources.adminMemory
+      .replaceAll("ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS", "ADMIN_REMOVED_CONNECT_PAGE_CONNECTOR_SLUGS")
+      .replaceAll("credential: credMap.get(pc.id as string) ?? null", "credential: null");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["google-drive"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_connected_badges_merge_all_connection_sources/);
+  });
+
+  it("blocks when signed-in popup login can save to a stale private key", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.connectPage = sources.connectPage
+      .replaceAll("verifyAccountKeyForSignedInUser", "skipAccountKeyCheck")
+      .replaceAll("verify_account_key", "skip_verify_account_key");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /signed_in_connect_flow_rejects_wrong_account_key/);
+  });
+
   it("blocks when OAuth start and callback disagree on env names", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.oauthInit = sources.oauthInit.replace(

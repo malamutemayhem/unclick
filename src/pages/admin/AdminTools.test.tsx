@@ -78,6 +78,52 @@ describe("AdminTools (Apps library)", () => {
     }
   }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
+  it("shows web-login credentials as connected in the Apps table", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        metering: {},
+        connectors: [
+          {
+            id: "gmail",
+            auth_type: "oauth2",
+            setup_url: "/connect/gmail",
+            credential: {
+              id: "cred-gmail",
+              is_valid: true,
+              last_tested_at: null,
+              source: "user_credentials",
+            },
+          },
+          {
+            id: "google-drive",
+            auth_type: "oauth2",
+            setup_url: "/connect/google-drive",
+            credential: {
+              id: "cred-drive",
+              is_valid: true,
+              last_tested_at: null,
+              source: "user_credentials",
+            },
+          },
+        ],
+      }),
+    } as Response);
+
+    await renderAdminTools();
+
+    for (const name of ["Gmail", "Google Drive"]) {
+      const row = screen.getByText(name).closest("[role='button']");
+      expect(row).not.toBeNull();
+      expect(within(row as HTMLElement).getByRole("button", { name: "Connected" })).toHaveAttribute(
+        "title",
+        "Click to manage this connection",
+      );
+      expect(within(row as HTMLElement).getByText("Connected")).toBeInTheDocument();
+      expect(within(row as HTMLElement).queryByRole("button", { name: "Connect" })).not.toBeInTheDocument();
+    }
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
+
   it("links to Connections and the Skills Library instead of inlining everything", async () => {
     await renderAdminTools();
     expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");

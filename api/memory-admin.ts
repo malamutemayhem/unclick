@@ -249,6 +249,19 @@ import { fileURLToPath } from "url";
 
 // ─── Crypto helpers (mirror /api/credentials) ──────────────────────────────
 
+const ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS = [
+  "github",
+  "vercel",
+  "supabase",
+  "higgsfield",
+  "dropbox",
+  "gmail",
+  "google-drive",
+  "onedrive",
+  "google-workspace",
+  "microsoft-graph",
+] as const;
+
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_BYTES = 32;
 const IV_BYTES = 12;
@@ -5156,6 +5169,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      case "verify_account_key": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Unauthorized" });
+
+        const body = req.body as { api_key?: string };
+        const apiKey = typeof body?.api_key === "string" ? body.api_key.trim() : "";
+        if (!apiKey) return res.status(400).json({ error: "api_key is required." });
+        if (!apiKey.startsWith("uc_") && !apiKey.startsWith("agt_")) {
+          return res.status(400).json({ error: "Invalid api_key format." });
+        }
+
+        return res.status(200).json({
+          matches: sha256hex(apiKey) === tenant.apiKeyHash,
+        });
+      }
+
       case "reset_api_key": {
         // Re-issue a new uc_* key for the signed-in user. Invalidates
         // the old key immediately (hash replaced). BackstagePass
@@ -5506,7 +5536,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const enrichedConnectors = (connectors ?? []).map((pc) => ({
+        const connectorRows = [...(connectors ?? [])];
+        const connectorIds = new Set(connectorRows.map((pc) => String(pc.id)));
+        for (const slug of ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS) {
+          if (connectorIds.has(slug)) continue;
+          connectorRows.push({
+            id: slug,
+            auth_type: "oauth2",
+            setup_url: `/connect/${slug}`,
+          });
+        }
+
+        const enrichedConnectors = connectorRows.map((pc) => ({
           ...pc,
           credential: credMap.get(pc.id as string) ?? null,
           supports_hosted_mcp_connection: pc.id === "higgsfield",

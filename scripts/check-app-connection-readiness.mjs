@@ -318,8 +318,21 @@ export function evaluateConnectionReadinessSources(
     sources.adminMemory.includes("platform_credentials")
       && sources.adminMemory.includes("user_credentials")
       && sources.adminMemory.includes("managed_app_connections")
-      && sources.adminMemory.includes('"mixed"'),
-    "The admin connected badge can see old keychain rows, /connect rows, and managed connection rows."
+      && sources.adminMemory.includes('"mixed"')
+      && sources.adminMemory.includes("ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS")
+      && sources.adminMemory.includes("credential: credMap.get(pc.id as string) ?? null"),
+    "The admin connected badge can see old keychain rows, /connect rows, managed connection rows, and login-app rows missing from the connector catalog."
+  );
+
+  addCheck(
+    globalChecks,
+    "signed_in_connect_flow_rejects_wrong_account_key",
+    sources.connectPage.includes("verifyAccountKeyForSignedInUser")
+      && sources.connectPage.includes("verify_account_key")
+      && sources.connectPage.includes("This private UnClick account key belongs to a different account")
+      && sources.adminMemory.includes('case "verify_account_key"')
+      && sources.adminMemory.includes("matches: sha256hex(apiKey) === tenant.apiKeyHash"),
+    "Signed-in web popup login refuses to save a provider token into a stale private key that belongs to a different UnClick account."
   );
 
   for (const platform of platforms) {
