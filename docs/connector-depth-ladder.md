@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (649 external connectors)
+## Distribution (650 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 610 | 94% |
+| L5 | Agentic | 611 | 94% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 37 | 6% |
 | L1 | Wrapper | 2 | 0% |
 
-**Hardened (reliability bar met): 245 of 649 (38%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 246 of 650 (38%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 610 of 613 (100%).** The remaining 1 L2 row is a genuine upgrade candidate: `xpass-aggregated-verdict`.
+**L5-reachable connectors at L5: 611 of 614 (100%).** The remaining 1 L2 row is a genuine upgrade candidate: `xpass-aggregated-verdict`.
 
 ### Climbed in depth but not yet hardened
 
@@ -968,6 +968,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `suffixauto` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `suffixtree` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `sunrisesunset` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `supabase` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `superhero` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `swapi` | Yes | - | - | Yes | Yes | no-memory |

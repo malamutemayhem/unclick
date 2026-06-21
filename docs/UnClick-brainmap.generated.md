@@ -270,7 +270,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 60 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
-| Tools | MCP and gateway capabilities available to seats. | 675 |
+| Tools | MCP and gateway capabilities available to seats. | 676 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -1008,6 +1008,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | suffixauto | suffixauto MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/suffixauto-tool.ts |
 | suffixtree | suffixtree MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/suffixtree-tool.ts |
 | sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sunrisesunset-tool.ts |
+| supabase | supabase MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/supabase-tool.ts |
 | supercell | supercell MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/supercell-tool.ts |
 | superhero | superhero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/superhero-tool.ts |
 | swapi | swapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/swapi-tool.ts |
@@ -2135,6 +2136,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | suffixauto | suffixauto MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/suffixauto-tool.ts |
 | Tools | MCP tool | suffixtree | suffixtree MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/suffixtree-tool.ts |
 | Tools | MCP tool | sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sunrisesunset-tool.ts |
+| Tools | MCP tool | supabase | supabase MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/supabase-tool.ts |
 | Tools | MCP tool | supercell | supercell MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/supercell-tool.ts |
 | Tools | MCP tool | superhero | superhero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/superhero-tool.ts |
 | Tools | MCP tool | swapi | swapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/swapi-tool.ts |

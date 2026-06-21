@@ -150,6 +150,7 @@ describe("higgsfield connector resilience (L2)", () => {
   it("refreshes an expired Higgsfield MCP login before calling the native tool", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     process.env.UNCLICK_API_URL = "https://unclick.test";
+    const toolCallArguments: Record<string, unknown>[] = [];
 
     const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
@@ -206,6 +207,8 @@ describe("higgsfield connector resilience (L2)", () => {
       }
 
       if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/call") {
+        const params = body.params as Record<string, unknown>;
+        toolCallArguments.push(params.arguments as Record<string, unknown>);
         return jsonResponse({
           jsonrpc: "2.0",
           id: body.id,
@@ -222,6 +225,82 @@ describe("higgsfield connector resilience (L2)", () => {
 
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("models_explore");
+    expect(toolCallArguments[0]).toMatchObject({
+      params: { action: "search", type: "image", query: "banana" },
+    });
+  });
+
+  it("retries Higgsfield model exploration when the native MCP rejects an action shape", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    let toolCallCount = 0;
+    const attemptedArgs: Record<string, unknown>[] = [];
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = String(init?.method ?? "GET").toUpperCase();
+      const bodyText = String(init?.body ?? "");
+      const body = bodyText.startsWith("{") ? JSON.parse(bodyText) as Record<string, unknown> : {};
+
+      if (url === "https://unclick.test/api/credentials?platform=higgsfield") {
+        return jsonResponse({
+          credential_kind: "higgsfield_mcp_oauth",
+          access_token: "mcp-token",
+          refresh_token: "refresh-token",
+          client_id: "client-123",
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          token_type: "Bearer",
+          mcp_url: "https://mcp.higgsfield.ai/mcp",
+        });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "initialize") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: {} }, { headers: { "mcp-session-id": `session-${toolCallCount + 1}` } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "notifications/initialized") {
+        return acceptedResponse();
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/list") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: { tools: [{ name: "models_explore" }] } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/call") {
+        toolCallCount += 1;
+        const params = body.params as Record<string, unknown>;
+        const argsPayload = params.arguments as Record<string, unknown>;
+        attemptedArgs.push(argsPayload.params as Record<string, unknown>);
+        if (toolCallCount === 1) {
+          return jsonResponse({
+            jsonrpc: "2.0",
+            id: body.id,
+            result: {
+              isError: true,
+              content: [{ type: "text", text: "Validation error: invalid action list" }],
+            },
+          });
+        }
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: { structuredContent: { models: [{ id: "nano_banana_pro" }] } },
+        });
+      }
+
+      throw new Error(`Unexpected fetch ${method} ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await higgsfield_get_styles({ action: "list", query: "banana" }) as Record<string, unknown>;
+
+    expect(result.provider).toBe("higgsfield_mcp");
+    expect(result.tool).toBe("models_explore");
+    expect(toolCallCount).toBe(2);
+    expect(attemptedArgs[0]).toMatchObject({ action: "list", type: "image", query: "banana" });
+    expect(attemptedArgs[1]).toMatchObject({ action: "search", type: "image", query: "banana" });
+    expect(result.mcp_argument_fallback).toMatchObject({ attempted: 2 });
   });
 
   it("refreshes and retries when Higgsfield reports token expiry inside a tool result", async () => {

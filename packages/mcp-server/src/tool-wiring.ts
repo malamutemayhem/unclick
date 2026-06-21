@@ -133,6 +133,10 @@ import {
 } from "./vercel-tool.js";
 
 import {
+  listSupabaseProjects, getSupabaseProject, listSupabaseOrganizations,
+} from "./supabase-tool.js";
+
+import {
   getTogglTimeEntries, createTimeEntryToggl,
   getTogglProjects, getTogglSummary,
 } from "./toggl-tool.js";
@@ -3015,6 +3019,48 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         limit: { type: "number" },
         api_key: { type: "string" },
+      },
+    },
+  },
+
+  // ── supabase-tool.ts ───────────────────────────────────────────────────────
+  {
+    name: "supabase_list_projects",
+    description: "List Supabase projects visible to the connected Supabase account. Read-only Management API call.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        organization_id: { type: "string", description: "Optional Supabase organization id filter." },
+        access_token: { type: "string", description: "Optional Supabase access token. Omit it to use the connected Supabase login when available." },
+        api_key: { type: "string", description: "Legacy token alias." },
+      },
+    },
+  },
+  {
+    name: "supabase_get_project",
+    description: "Get one Supabase project by project_ref. Read-only Management API call.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        project_ref: { type: "string", description: "Supabase project ref, for example abcdefghijklmnop." },
+        ref: { type: "string", description: "Legacy alias for project_ref." },
+        access_token: { type: "string", description: "Optional Supabase access token. Omit it to use the connected Supabase login when available." },
+        api_key: { type: "string", description: "Legacy token alias." },
+      },
+      required: ["project_ref"],
+    },
+  },
+  {
+    name: "supabase_list_organizations",
+    description: "List Supabase organizations visible to the connected Supabase account. Read-only Management API call.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Optional Supabase access token. Omit it to use the connected Supabase login when available." },
+        api_key: { type: "string", description: "Legacy token alias." },
       },
     },
   },
@@ -23078,6 +23124,11 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   vercel_create_env:    (args) => createVercelEnv(args),
   vercel_delete_env:    (args) => deleteVercelEnv(args),
   vercel_create_deployment:(args) => createVercelDeployment(args),
+
+  // supabase-tool.ts
+  supabase_list_projects:      (args) => listSupabaseProjects(args),
+  supabase_get_project:        (args) => getSupabaseProject(args),
+  supabase_list_organizations: (args) => listSupabaseOrganizations(args),
 
   // toggl-tool.ts
   toggl_time_entries:   (args) => getTogglTimeEntries(args),

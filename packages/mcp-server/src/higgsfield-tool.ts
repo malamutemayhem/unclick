@@ -473,6 +473,102 @@ async function callNativeHiggsfieldTool(
   }
 }
 
+function collectNativeErrorText(value: unknown, parts: string[] = [], depth = 0): string {
+  if (depth > 4 || value === null || value === undefined) return parts.join("\n");
+  if (typeof value === "string") {
+    parts.push(value);
+    return parts.join("\n");
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectNativeErrorText(item, parts, depth + 1);
+    return parts.join("\n");
+  }
+  if (!isRecord(value)) return parts.join("\n");
+
+  for (const key of ["error", "message", "text", "detail", "details", "reason"]) {
+    const next = value[key];
+    if (typeof next === "string") parts.push(next);
+  }
+  if ("result" in value) collectNativeErrorText(value.result, parts, depth + 1);
+  if ("structuredContent" in value) collectNativeErrorText(value.structuredContent, parts, depth + 1);
+  if ("content" in value) collectNativeErrorText(value.content, parts, depth + 1);
+  return parts.join("\n");
+}
+
+function nativeResultLooksLikeArgumentError(value: unknown): boolean {
+  const result = isRecord(value) && "result" in value ? value.result : value;
+  const text = collectNativeErrorText(result).toLowerCase();
+  const isToolError = isRecord(result) && result.isError === true;
+  if (!isToolError && !text) return false;
+  if (isToolError && !text) return true;
+  return [
+    "validation",
+    "invalid action",
+    "invalid argument",
+    "invalid arguments",
+    "invalid params",
+    "unexpected",
+    "unrecognized",
+    "schema",
+    "missing required",
+    "params",
+    "action",
+  ].some((needle) => text.includes(needle));
+}
+
+function uniqueNativeArgCandidates(candidates: Record<string, unknown>[]): Record<string, unknown>[] {
+  const seen = new Set<string>();
+  const out: Record<string, unknown>[] = [];
+  for (const candidate of candidates) {
+    const key = JSON.stringify(Object.keys(candidate).sort().map((field) => [field, candidate[field]]));
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(candidate);
+  }
+  return out;
+}
+
+function modelExploreCandidates(args: Record<string, unknown>): Record<string, unknown>[] {
+  const requestedAction = String(args.action ?? "").trim();
+  const type = String(args.type ?? "image").trim() || "image";
+  const query = String(args.query ?? "").trim();
+  const base: Record<string, unknown> = {
+    type,
+    ...(query ? { query } : {}),
+  };
+  const actions = requestedAction
+    ? [requestedAction, "search", "list"]
+    : [query ? "search" : "list", "search", "list"];
+
+  return uniqueNativeArgCandidates([
+    ...actions.filter(Boolean).map((action) => ({ action, ...base })),
+    base,
+  ]);
+}
+
+async function callNativeHiggsfieldToolWithArgumentFallbacks(
+  credentials: HiggsfieldMcpCredentials,
+  preferredNames: string[],
+  candidates: Record<string, unknown>[],
+): Promise<unknown> {
+  let lastResult: unknown;
+  for (let index = 0; index < candidates.length; index += 1) {
+    const result = await callNativeHiggsfieldTool(credentials, preferredNames, candidates[index]);
+    if (!nativeResultLooksLikeArgumentError(result)) {
+      if (index === 0 || !isRecord(result)) return result;
+      return {
+        ...result,
+        mcp_argument_fallback: {
+          attempted: index + 1,
+          used_arguments: candidates[index],
+        },
+      };
+    }
+    lastResult = result;
+  }
+  return lastResult;
+}
+
 function gcd(a: number, b: number): number {
   let x = Math.abs(Math.round(a));
   let y = Math.abs(Math.round(b));
@@ -572,11 +668,11 @@ export async function higgsfield_get_styles(args: Record<string, unknown>): Prom
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(connection.credentials, ["models_explore", "get_styles"], {
-      action: String(args.action ?? "search"),
-      type: String(args.type ?? "image"),
-      ...(args.query ? { query: String(args.query) } : {}),
-    });
+    return callNativeHiggsfieldToolWithArgumentFallbacks(
+      connection.credentials,
+      ["models_explore", "get_styles"],
+      modelExploreCandidates(args),
+    );
   }
 
   const data = await hfGet<{ styles?: unknown[]; data?: unknown[] }>(connection.apiKey, "/styles");

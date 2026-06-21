@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1136,
+    "inventory": 1137,
     "source_manifest": 250,
     "pages": 116,
-    "tools": 675,
+    "tools": 676,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 675
+      "count": 676
     },
     {
       "id": "rooms",
@@ -10312,6 +10312,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-supabase-packages-mcp-server-src-supabase-tool-ts-no-route",
+      "division": "Tools",
+      "name": "supabase",
+      "kind": "MCP tool",
+      "meaning": "supabase MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/supabase-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-supercell-packages-mcp-server-src-supercell-tool-ts-no-route",
       "division": "Tools",
       "name": "supercell",
@@ -15097,6 +15107,11 @@
       "sunrisesunset",
       "sunrisesunset MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/sunrisesunset-tool.ts"
+    ],
+    [
+      "supabase",
+      "supabase MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/supabase-tool.ts"
     ],
     [
       "supercell",
