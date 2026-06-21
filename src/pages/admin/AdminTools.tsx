@@ -6,7 +6,7 @@ import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCata
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
-import { applyLens, lensCounts, actionLabelFor, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { applyLens, lensCounts, actionLabelFor, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 import { startHostedMcpLogin } from "./hostedMcpLogin";
 
@@ -24,6 +24,7 @@ interface Connector {
     id?: string | null;
     is_valid: boolean;
     last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
     source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
     managed?: {
       provider: string;
@@ -144,19 +145,14 @@ export default function AdminToolsPage() {
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
-    if (c.credential?.source === "managed_app_connections" && c.credential.is_valid) {
+    if (isConnected(c)) {
       return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
     }
-    if (c.id === "higgsfield" && c.credential?.source === "user_credentials" && c.credential.is_valid) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
-    }
-    // OAuth connections are created by a successful provider sign-in, so they
-    // should read as connected even before a later tool-use timestamp exists.
-    if (c.credential?.is_valid && (c.auth_type === "oauth2" || c.credential.last_tested_at)) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    if (c.credential?.connection_state === "pending") {
+      return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.credential?.is_valid) {
-      return { label: "Added", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      return { label: "Needs check", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -218,9 +214,9 @@ export default function AdminToolsPage() {
       tries += 1;
       void refreshStatus().then((nextConnectors) => {
         const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
-        if (connector?.credential?.is_valid || popup?.closed || tries >= maxTries) {
+        if (isConnected(connector) || popup?.closed || tries >= maxTries) {
           window.clearInterval(timer);
-          if (connector?.credential?.is_valid && popup && !popup.closed) popup.close();
+          if (isConnected(connector) && popup && !popup.closed) popup.close();
         }
       });
     }, 2000);
@@ -316,7 +312,7 @@ export default function AdminToolsPage() {
           accessToken={session.access_token}
           onClose={() => setConnectTarget(null)}
           onSaved={() => void refreshStatus()}
-          isConnected={Boolean(connectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
+          isConnected={isConnected(connectorBySlug.get(connectTarget.slug))}
           statusLabel={statusOf(connectTarget)?.label ?? null}
           onDisconnect={() => disconnectApp(connectTarget.slug)}
           onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}

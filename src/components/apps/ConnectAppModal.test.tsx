@@ -131,8 +131,8 @@ describe("ConnectAppModal", () => {
       "https://higgsfield.ai/mcp",
     );
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/cloud api key fallback/i)).toBeInTheDocument();
-    expect(screen.getByText(/unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/cloud api key option/i)).toBeInTheDocument();
+    expect(screen.getByText(/prefer higgsfield cloud api billing instead of the account sign-in/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /where do i get my cloud api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
@@ -214,6 +214,26 @@ describe("ConnectAppModal", () => {
       "href",
       "/connect/alphavantage",
     );
+    fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
+  });
+
+  it("still offers disconnect when access is saved but not proven connected", async () => {
+    const onDisconnect = vi.fn(() => Promise.resolve());
+    renderModal({
+      connector: {
+        id: "alphavantage",
+        auth_type: "api_key",
+        setup_url: null,
+        credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
+      },
+      isConnected: false,
+      statusLabel: "Needs check",
+      onDisconnect,
+    });
+
+    expect(screen.getByRole("heading", { name: /manage alpha vantage/i })).toBeInTheDocument();
+    expect(screen.queryByText(/alpha vantage is available/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });

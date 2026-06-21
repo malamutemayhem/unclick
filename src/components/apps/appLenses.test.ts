@@ -13,7 +13,7 @@ const app = (slug: string): AppEntry => ({
 const oauthNoCred: LensConnector = { auth_type: "oauth2", credential: null };
 const oauthConnected: LensConnector = {
   auth_type: "oauth2",
-  credential: { is_valid: true, last_tested_at: null, source: "user_credentials" },
+  credential: { is_valid: true, last_tested_at: "2026-06-12", connection_state: "connected", source: "user_credentials" },
 };
 const keySaved: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: null } };
 const keyTested: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: "2026-06-12" } };
@@ -23,7 +23,7 @@ const hostedMcpNoCred: LensConnector = { auth_type: "api_key", supports_hosted_m
 const managedConnected: LensConnector = {
   auth_type: "api_key",
   supports_managed_connection: true,
-  credential: { is_valid: true, last_tested_at: "2026-06-16", source: "managed_app_connections" },
+  credential: { is_valid: true, last_tested_at: "2026-06-16", connection_state: "connected", source: "managed_app_connections" },
 };
 
 describe("appLenses", () => {
@@ -36,8 +36,8 @@ describe("appLenses", () => {
     expect(setupKindOf(undefined)).toBe("builtin");
   });
 
-  it("connected means a working credential, tested or not", () => {
-    expect(isConnected(keySaved)).toBe(true);
+  it("connected means a working credential has proof, not just a saved row", () => {
+    expect(isConnected(keySaved)).toBe(false);
     expect(isConnected(keyTested)).toBe(true);
     expect(isConnected(oauthConnected)).toBe(true);
     expect(isConnected(managedConnected)).toBe(true);
@@ -53,6 +53,7 @@ describe("appLenses", () => {
     expect(actionLabelFor(managedConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
     expect(actionLabelFor(keyTested)).toBe("Manage");
+    expect(actionLabelFor(keySaved)).toBe("Add key");
     expect(actionLabelFor(undefined)).toBe(null);
   });
 

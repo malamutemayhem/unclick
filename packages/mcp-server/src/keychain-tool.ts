@@ -46,6 +46,11 @@ type CredentialStatusSource =
   | "user_credentials"
   | "managed_app_connections";
 
+const STALE_CREDENTIAL_TEST_DAYS = 30;
+
+type CredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
+type CredentialHealth = "healthy" | "untested" | "pending" | "failing" | "stale";
+
 interface CredentialStatusRow {
   platform:       string;
   label:          string | null;
@@ -80,6 +85,48 @@ function mergeCredentialRows(rows: CredentialStatusRow[]): CredentialStatusRow[]
     }
   }
   return [...byPlatform.values()].sort((a, b) => a.platform.localeCompare(b.platform));
+}
+
+function hoursSinceIso(value: string | null, now = Date.now()): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.floor((now - parsed) / 3_600_000));
+}
+
+function credentialHealth(row: CredentialStatusRow): CredentialHealth {
+  if (row.status === "pending") return "pending";
+  if (!row.is_valid) return "failing";
+
+  const ageHours = hoursSinceIso(row.last_tested_at);
+  if (ageHours === null) return "untested";
+  return ageHours >= STALE_CREDENTIAL_TEST_DAYS * 24 ? "stale" : "healthy";
+}
+
+function credentialConnectionState(row: CredentialStatusRow): CredentialConnectionState {
+  const health = credentialHealth(row);
+  return health === "healthy" ? "connected" : health;
+}
+
+function credentialIsConnected(row: CredentialStatusRow): boolean {
+  return credentialConnectionState(row) === "connected";
+}
+
+function credentialStatusMessage(row: CredentialStatusRow): string {
+  const state = credentialConnectionState(row);
+  if (state === "connected") {
+    return `${row.platform} credential has recorded connection proof from ${row.source}.`;
+  }
+  if (state === "stale") {
+    return `${row.platform} credential has old connection proof from ${row.source}; reconnect or test it before trusting it.`;
+  }
+  if (state === "untested") {
+    return `${row.platform} credential is stored in ${row.source}, but has not been live-tested yet.`;
+  }
+  if (state === "pending") {
+    return `${row.platform} connection is pending.`;
+  }
+  return `${row.platform} credential is saved but not connected.`;
 }
 
 async function readCredentialStatusRows(
@@ -597,30 +644,44 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
     return { connected_platforms: [], count: 0 };
   }
 
-  const result = rows.map((r) => ({
-    platform:       r.platform,
-    label:          r.label,
-    is_valid:       r.is_valid,
-    last_tested_at: r.last_tested_at,
-    created_at:     r.created_at,
-    updated_at:     r.updated_at,
-    source:         r.source,
-    status:         r.status ?? null,
-    connected:      r.is_valid,
-  }));
+  const result = rows.map((r) => {
+    const health = credentialHealth(r);
+    const verified = health === "healthy";
+    return {
+      platform:       r.platform,
+      label:          r.label,
+      is_valid:       r.is_valid,
+      credential_saved: true,
+      last_tested_at: r.last_tested_at,
+      last_tested_age_hours: hoursSinceIso(r.last_tested_at),
+      created_at:     r.created_at,
+      updated_at:     r.updated_at,
+      source:         r.source,
+      status:         r.status ?? null,
+      health,
+      verified,
+      connection_state: credentialConnectionState(r),
+      connected:      credentialIsConnected(r),
+    };
+  });
 
   if (platform) {
     const row = result[0];
     return {
       ...row,
-      connected: row.is_valid,
-      message:   row.is_valid
-        ? `${platform} credential found in ${row.source}.`
-        : `${platform} credential is saved but not connected.`,
+      message:   credentialStatusMessage(rows[0]),
     };
   }
 
-  return { connected_platforms: result, count: result.length };
+  const unverified = result.filter((row) => row.credential_saved && !row.verified).map((row) => row.platform);
+  return {
+    connected_platforms: result,
+    count: result.length,
+    unverified_platforms: unverified,
+    warnings: unverified.length > 0
+      ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+      : [],
+  };
 }
 
 async function keychainDisconnect(args: Record<string, unknown>): Promise<unknown> {
@@ -709,13 +770,31 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
 
     if (sOk) {
       const statuses = new Map(statusRows.map((row) => [row.platform, row]));
-      return {
-        platforms: platforms.map((p) => ({
+      const platformResults = platforms.map((p) => {
+        const statusRow = statuses.get(String(p.id));
+        const health = statusRow ? credentialHealth(statusRow) : "untested";
+        return {
           ...p,
-          connected: Boolean(statuses.get(String(p.id))?.is_valid),
-          connected_source: statuses.get(String(p.id))?.source ?? null,
-        })),
+          id: String(p.id ?? ""),
+          connected: statusRow ? credentialIsConnected(statusRow) : false,
+          credential_saved: Boolean(statusRow),
+          health: statusRow ? health : "missing",
+          verified: statusRow ? health === "healthy" : false,
+          last_tested_age_hours: statusRow ? hoursSinceIso(statusRow.last_tested_at) : null,
+          connection_state: statusRow ? credentialConnectionState(statusRow) : "missing",
+          connected_source: statusRow?.source ?? null,
+        };
+      });
+      const unverified = platformResults
+        .filter((platform) => platform.credential_saved && !platform.verified)
+        .map((platform) => String(platform.id));
+      return {
+        platforms: platformResults,
         count: platforms.length,
+        unverified_platforms: unverified,
+        warnings: unverified.length > 0
+          ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+          : [],
       };
     }
   }
