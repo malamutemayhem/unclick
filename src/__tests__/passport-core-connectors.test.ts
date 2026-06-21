@@ -48,7 +48,7 @@ describe("Passport core connectors", () => {
     expect(CONNECTORS.supabase.authType).toBe("oauth2");
     expect(CONNECTORS.supabase.authUrl).toBe("https://api.supabase.com/v1/oauth/authorize");
     expect(CONNECTORS.supabase.tokenUrl).toBe("https://api.supabase.com/v1/oauth/token");
-    expect(CONNECTORS.supabase.scopes).toEqual([]);
+    expect(CONNECTORS.supabase.scopes).toEqual(expect.arrayContaining(["projects:read", "organizations:read"]));
   });
 
   it("uses OAuth login for Higgsfield MCP with token fallback", () => {
