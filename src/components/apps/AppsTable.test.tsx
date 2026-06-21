@@ -149,6 +149,34 @@ describe("AppsTable", () => {
     expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it("admin mode keeps saved unverified rows manageable without calling them connected", () => {
+    const onManage = vi.fn();
+    const onDisconnect = vi.fn();
+    renderTable(
+      <AppsTable
+        apps={[APPS[0]]}
+        mode="admin"
+        statusOf={() => ({ label: "Needs check", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" })}
+        actionOf={() => ({ label: "Manage", onClick: onManage })}
+        disconnectOf={() => ({ label: "Disconnect", onClick: onDisconnect })}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Needs check" })).toBeInTheDocument();
+
+    const row = screen.getByText("GitHub").closest("[role='button']");
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+
+    expect(screen.getAllByText("Needs check").length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/^Connected$/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Manage" }));
+    fireEvent.click(screen.getByRole("button", { name: "Disconnect" }));
+
+    expect(onManage).toHaveBeenCalledTimes(1);
+    expect(onDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it("admin mode shows checkboxes + bulk controls and fires toggle callbacks", () => {
     const onToggle = vi.fn();
     const onToggleAll = vi.fn();

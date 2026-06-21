@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  LENSES, POPULAR_SLUGS, setupKindOf, isConnected, actionLabelFor,
+  LENSES, POPULAR_SLUGS, setupKindOf, isConnected, hasSavedConnection, actionLabelFor,
   matchesLens, applyLens, lensCounts, parseAppLens, type LensConnector,
 } from "./appLenses";
 import type { AppEntry } from "@/lib/appCatalog";
@@ -15,15 +15,28 @@ const oauthConnected: LensConnector = {
   auth_type: "oauth2",
   credential: { is_valid: true, last_tested_at: "2026-06-12", connection_state: "connected", source: "user_credentials" },
 };
+const oauthSavedUntested: LensConnector = {
+  auth_type: "oauth2",
+  credential: { is_valid: true, last_tested_at: null, connection_state: "untested", source: "user_credentials" },
+};
 const keySaved: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: null } };
 const keyTested: LensConnector = { auth_type: "api_key", credential: { is_valid: true, last_tested_at: "2026-06-12" } };
 const botNoCred: LensConnector = { auth_type: "bot_token", credential: null };
 const managedNoCred: LensConnector = { auth_type: "api_key", supports_managed_connection: true, credential: null };
 const hostedMcpNoCred: LensConnector = { auth_type: "api_key", supports_hosted_mcp_connection: true, credential: null };
+const managedPending: LensConnector = {
+  auth_type: "api_key",
+  supports_managed_connection: true,
+  credential: { is_valid: false, last_tested_at: null, connection_state: "pending", source: "managed_app_connections" },
+};
 const managedConnected: LensConnector = {
   auth_type: "api_key",
   supports_managed_connection: true,
   credential: { is_valid: true, last_tested_at: "2026-06-16", connection_state: "connected", source: "managed_app_connections" },
+};
+const failingSaved: LensConnector = {
+  auth_type: "oauth2",
+  credential: { is_valid: false, last_tested_at: null, connection_state: "failing", source: "user_credentials" },
 };
 
 describe("appLenses", () => {
@@ -38,6 +51,7 @@ describe("appLenses", () => {
 
   it("connected means a working credential has proof, not just a saved row", () => {
     expect(isConnected(keySaved)).toBe(false);
+    expect(isConnected(oauthSavedUntested)).toBe(false);
     expect(isConnected(keyTested)).toBe(true);
     expect(isConnected(oauthConnected)).toBe(true);
     expect(isConnected(managedConnected)).toBe(true);
@@ -45,15 +59,26 @@ describe("appLenses", () => {
     expect(isConnected(undefined)).toBe(false);
   });
 
+  it("saved connections stay visible before live proof", () => {
+    expect(hasSavedConnection(oauthSavedUntested)).toBe(true);
+    expect(hasSavedConnection(keySaved)).toBe(true);
+    expect(hasSavedConnection(managedPending)).toBe(true);
+    expect(hasSavedConnection(failingSaved)).toBe(false);
+    expect(hasSavedConnection(oauthNoCred)).toBe(false);
+    expect(hasSavedConnection(undefined)).toBe(false);
+  });
+
   it("buttons say the action: Connect / Add key / Manage / nothing", () => {
     expect(actionLabelFor(oauthNoCred)).toBe("Connect");
     expect(actionLabelFor(managedNoCred)).toBe("Connect");
     expect(actionLabelFor(hostedMcpNoCred)).toBe("Connect");
+    expect(actionLabelFor(oauthSavedUntested)).toBe("Manage");
+    expect(actionLabelFor(managedPending)).toBe("Manage");
     expect(actionLabelFor(oauthConnected)).toBe("Manage");
     expect(actionLabelFor(managedConnected)).toBe("Manage");
     expect(actionLabelFor(botNoCred)).toBe("Add key");
     expect(actionLabelFor(keyTested)).toBe("Manage");
-    expect(actionLabelFor(keySaved)).toBe("Add key");
+    expect(actionLabelFor(keySaved)).toBe("Manage");
     expect(actionLabelFor(undefined)).toBe(null);
   });
 
@@ -64,8 +89,10 @@ describe("appLenses", () => {
     expect(matchesLens(app("higgsfield"), "popular", undefined)).toBe(true);
     expect(matchesLens(app("obscure-thing"), "popular", undefined)).toBe(false);
     expect(matchesLens(a, "connected", keyTested)).toBe(true);
+    expect(matchesLens(a, "connected", oauthSavedUntested)).toBe(true);
     expect(matchesLens(a, "connected", undefined)).toBe(false);
     expect(matchesLens(a, "not-connected", oauthNoCred)).toBe(true);
+    expect(matchesLens(a, "not-connected", oauthSavedUntested)).toBe(false);
     // built-in apps are not "not connected": there is nothing to connect
     expect(matchesLens(a, "not-connected", undefined)).toBe(false);
     expect(matchesLens(a, "signin", oauthNoCred)).toBe(true);
@@ -79,12 +106,12 @@ describe("appLenses", () => {
   it("applyLens filters one list and never forks it", () => {
     const apps = [app("github"), app("builtin-calc"), app("xero"), app("higgsfield")];
     const connectors = new Map<string, LensConnector>([
-      ["github", oauthNoCred],
+      ["github", oauthSavedUntested],
       ["xero", keyTested],
       ["higgsfield", hostedMcpNoCred],
     ]);
     expect(applyLens(apps, "all", connectors)).toHaveLength(4);
-    expect(applyLens(apps, "connected", connectors).map((a) => a.slug)).toEqual(["xero"]);
+    expect(applyLens(apps, "connected", connectors).map((a) => a.slug)).toEqual(["github", "xero"]);
     expect(applyLens(apps, "signin", connectors).map((a) => a.slug)).toEqual(["github", "higgsfield"]);
     expect(applyLens(apps, "setup", connectors).map((a) => a.slug)).toEqual([]);
     expect(applyLens(apps, "builtin", connectors).map((a) => a.slug)).toEqual(["builtin-calc"]);

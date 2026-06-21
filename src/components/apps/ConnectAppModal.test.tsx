@@ -140,6 +140,34 @@ describe("ConnectAppModal", () => {
     expect(screen.getByRole("button", { name: /test api key/i })).toBeInTheDocument();
   });
 
+  it("presents saved Higgsfield hosted MCP access as manageable before live proof", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
+    const onDisconnect = vi.fn(() => Promise.resolve());
+    renderModal({
+      app: HIGGSFIELD_APP,
+      connector: {
+        id: "higgsfield",
+        auth_type: "api_key",
+        setup_url: null,
+        supports_hosted_mcp_connection: true,
+        credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
+      },
+      isConnected: false,
+      statusLabel: "Needs check",
+      onStartHostedMcpLogin,
+      onDisconnect,
+    });
+
+    expect(screen.getByRole("heading", { name: /manage higgsfield/i })).toBeInTheDocument();
+    expect(screen.getByText(/higgsfield is saved in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/has not passed a live check yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/higgsfield login is saved/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
+  });
+
   it("routes Supabase users to login instead of a key form", () => {
     renderModal({
       app: SUPABASE_APP,
@@ -234,6 +262,8 @@ describe("ConnectAppModal", () => {
 
     expect(screen.getByRole("heading", { name: /manage alpha vantage/i })).toBeInTheDocument();
     expect(screen.queryByText(/alpha vantage is available/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/alpha vantage is saved in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/has not passed a live check yet/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });

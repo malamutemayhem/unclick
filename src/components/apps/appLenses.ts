@@ -57,12 +57,20 @@ export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 
-/** Connected = a saved credential has proof, not just a stored row. */
+/** Connected = a saved credential has live proof, not just a stored row. */
 export function isConnected(connector: LensConnector | undefined): boolean {
   const credential = connector?.credential;
   if (!credential?.is_valid) return false;
   if (credential.connection_state) return credential.connection_state === "connected";
   return Boolean(credential.last_tested_at);
+}
+
+/** Saved = the customer has added access, even if it still needs a live check. */
+export function hasSavedConnection(connector: LensConnector | undefined): boolean {
+  const credential = connector?.credential;
+  if (!credential) return false;
+  if (credential.connection_state === "pending") return true;
+  return credential.is_valid === true && credential.connection_state !== "failing";
 }
 
 /**
@@ -72,7 +80,7 @@ export function isConnected(connector: LensConnector | undefined): boolean {
 export function actionLabelFor(connector: LensConnector | undefined): "Connect" | "Open setup" | "Add key" | "Manage" | null {
   const kind = setupKindOf(connector);
   if (kind === "builtin") return null;
-  if (isConnected(connector)) return "Manage";
+  if (hasSavedConnection(connector)) return "Manage";
   if (kind === "setup") return "Open setup";
   return kind === "signin" ? "Connect" : "Add key";
 }
@@ -81,8 +89,8 @@ export function matchesLens(app: AppEntry, lens: AppLens, connector: LensConnect
   switch (lens) {
     case "all": return true;
     case "popular": return POPULAR_SLUGS.has(app.slug);
-    case "connected": return isConnected(connector);
-    case "not-connected": return Boolean(connector) && !isConnected(connector);
+    case "connected": return hasSavedConnection(connector);
+    case "not-connected": return Boolean(connector) && !hasSavedConnection(connector);
     case "signin": return setupKindOf(connector) === "signin";
     case "setup": return setupKindOf(connector) === "setup";
     case "key": return setupKindOf(connector) === "key";

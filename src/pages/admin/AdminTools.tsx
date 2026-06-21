@@ -6,7 +6,7 @@ import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCata
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
-import { applyLens, lensCounts, actionLabelFor, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { applyLens, lensCounts, actionLabelFor, hasSavedConnection, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 import { startHostedMcpLogin } from "./hostedMcpLogin";
 
@@ -214,9 +214,9 @@ export default function AdminToolsPage() {
       tries += 1;
       void refreshStatus().then((nextConnectors) => {
         const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
-        if (isConnected(connector) || popup?.closed || tries >= maxTries) {
+        if (hasSavedConnection(connector) || popup?.closed || tries >= maxTries) {
           window.clearInterval(timer);
-          if (isConnected(connector) && popup && !popup.closed) popup.close();
+          if (hasSavedConnection(connector) && popup && !popup.closed) popup.close();
         }
       });
     }, 2000);
