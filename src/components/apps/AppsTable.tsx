@@ -205,7 +205,8 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           const status = statusOf?.(app) ?? null;
           const action = actionOf?.(app) ?? null;
           const disconnect = disconnectOf?.(app) ?? null;
-          const connected = action?.label === "Manage" && Boolean(disconnect);
+          const hasConnectionControls = action?.label === "Manage" && Boolean(disconnect);
+          const statusIsConnected = status?.label === "Connected";
           const quality = levelLabel(app.level);
           const open = isExpanded(app);
           return (
@@ -304,10 +305,15 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
                     {/* Full, untruncated description first, so nothing is lost to the
                         single-line row above. The internet badge rides along. */}
-                    {isAdmin && connected && (
-                      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-300/10 bg-emerald-300/[0.04] px-3 py-2">
-                        <span className="text-[11px] font-medium text-emerald-100">
-                          Connected
+                    {isAdmin && hasConnectionControls && (
+                      <div className={`mb-1.5 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 ${
+                        statusIsConnected
+                          ? "border-emerald-300/10 bg-emerald-300/[0.04]"
+                          : "border-sky-300/10 bg-sky-300/[0.04]"
+                      }`}
+                      >
+                        <span className={`text-[11px] font-medium ${statusIsConnected ? "text-emerald-100" : "text-sky-100"}`}>
+                          {status?.label ?? "Saved"}
                         </span>
                         <span className="flex items-center gap-2">
                           <button
@@ -317,7 +323,11 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                               e.stopPropagation();
                               action?.onClick();
                             }}
-                            className="rounded-md border border-emerald-300/20 px-2 py-1 text-[10px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/10 disabled:opacity-50"
+                            className={`rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors disabled:opacity-50 ${
+                              statusIsConnected
+                                ? "border-emerald-300/20 text-emerald-100 hover:bg-emerald-300/10"
+                                : "border-sky-300/20 text-sky-100 hover:bg-sky-300/10"
+                            }`}
                           >
                             Manage
                           </button>
