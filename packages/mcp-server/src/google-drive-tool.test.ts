@@ -18,6 +18,17 @@ describe("google-drive connector (L2/L5)", () => {
     await expect(driveSearch({ access_token: "k" })).rejects.toThrow(/rate limit/i);
   });
 
+  it("explains how to fix missing Drive permission", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: false,
+      status: 403,
+      statusText: "Forbidden",
+      headers: new Headers({ "content-type": "application/json" }),
+      text: async () => "{}",
+    })));
+    await expect(driveSearch({ access_token: "k" })).rejects.toThrow(/Reconnect Google Drive and grant file read access/i);
+  });
+
   it("returns a clean timeout error", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => {
       const err = new Error("slow");

@@ -24,6 +24,7 @@ const POPULAR_LOGIN_FIRST_PLATFORMS = [
   "dropbox",
   "onedrive",
 ];
+const LIVE_PROVIDER_PROBE_PLATFORMS = new Set(["gmail", "google-drive", "dropbox", "onedrive"]);
 
 const SOURCE_PATHS = {
   connectors: "src/lib/connectors.ts",
@@ -37,11 +38,15 @@ const SOURCE_PATHS = {
   credentialsApi: "api/credentials.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
+  adminTools: "src/pages/admin/AdminTools.tsx",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
   toolWiring: "packages/mcp-server/src/tool-wiring.ts",
   adminMemory: "api/memory-admin.ts",
+  privacyPage: "src/pages/Privacy.tsx",
+  termsPage: "src/pages/Terms.tsx",
+  prerenderRoutes: "scripts/prerender-routes.mjs",
 };
 
 function normalize(value) {
@@ -282,6 +287,16 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
+    "admin_apps_table_uses_connector_registry_fallback",
+    sources.adminTools.includes("connectorFallbackFor")
+      && sources.adminTools.includes("CONNECTORS")
+      && sources.adminTools.includes("resolvedConnectorBySlug")
+      && sources.adminTools.includes("navigate(`/connect/${app.slug}`)"),
+    "The admin Apps table keeps login-first apps connectable even when the status API has not returned connector rows yet."
+  );
+
+  addCheck(
+    globalChecks,
     "credential_read_path_checks_user_and_managed_connections",
     sources.credentialsApi.includes("user_credentials")
       && sources.credentialsApi.includes("managed_app_connections")
@@ -306,8 +321,34 @@ export function evaluateConnectionReadinessSources(
     sources.adminMemory.includes("platform_credentials")
       && sources.adminMemory.includes("user_credentials")
       && sources.adminMemory.includes("managed_app_connections")
-      && sources.adminMemory.includes('"mixed"'),
-    "The admin connected badge can see old keychain rows, /connect rows, and managed connection rows."
+      && sources.adminMemory.includes('"mixed"')
+      && sources.adminMemory.includes("ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS")
+      && sources.adminMemory.includes("credential: credMap.get(pc.id as string) ?? null"),
+    "The admin connected badge can see old keychain rows, /connect rows, managed connection rows, and login-app rows missing from the connector catalog."
+  );
+
+  addCheck(
+    globalChecks,
+    "signed_in_connect_flow_rejects_wrong_account_key",
+    sources.connectPage.includes("verifyAccountKeyForSignedInUser")
+      && sources.connectPage.includes("verify_account_key")
+      && sources.connectPage.includes("This private UnClick account key belongs to a different account")
+      && sources.adminMemory.includes('case "verify_account_key"')
+      && sources.adminMemory.includes("matches: sha256hex(apiKey) === tenant.apiKeyHash"),
+    "Signed-in web popup login refuses to save a provider token into a stale private key that belongs to a different UnClick account."
+  );
+
+  addCheck(
+    globalChecks,
+    "google_oauth_verification_pages_are_crawlable",
+    sources.prerenderRoutes.includes('path: "/privacy"')
+      && sources.prerenderRoutes.includes('path: "/terms"')
+      && sources.privacyPage.includes("Google user data")
+      && sources.privacyPage.includes("Google API")
+      && sources.privacyPage.includes("Limited Use requirements")
+      && sources.privacyPage.includes("disconnecting the app inside UnClick")
+      && sources.termsPage.includes("Terms of Service"),
+    "OAuth verification-critical legal pages are explicit in source and prerendered for no-JS reviewers."
   );
 
   for (const platform of platforms) {
@@ -521,6 +562,134 @@ function missingText(data) {
   return missingFields.length ? missingFields.join(",") : "unknown";
 }
 
+function providerAuthorizationUrl(platform, data) {
+  const clientId = typeof data?.client_id === "string" ? data.client_id : "";
+  const redirectUri = typeof data?.redirect_uri === "string" ? data.redirect_uri : "";
+  if (!clientId || !redirectUri) return "";
+
+  if (platform === "gmail" || platform === "google-drive") {
+    const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set(
+      "scope",
+      platform === "gmail"
+        ? "https://www.googleapis.com/auth/gmail.readonly"
+        : "https://www.googleapis.com/auth/drive.metadata.readonly"
+    );
+    url.searchParams.set("state", "connectorpass_probe");
+    url.searchParams.set("access_type", "offline");
+    url.searchParams.set("prompt", "consent");
+    return url.toString();
+  }
+
+  if (platform === "dropbox") {
+    const url = new URL("https://www.dropbox.com/oauth2/authorize");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("state", "connectorpass_probe");
+    url.searchParams.set("token_access_type", "offline");
+    return url.toString();
+  }
+
+  if (platform === "onedrive") {
+    const url = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("scope", "offline_access User.Read Files.Read");
+    url.searchParams.set("state", "connectorpass_probe");
+    return url.toString();
+  }
+
+  return "";
+}
+
+function providerProbeVerdict(platform, response, location) {
+  const locationText = String(location ?? "");
+  const lowerLocation = locationText.toLowerCase();
+  if (platform === "gmail" || platform === "google-drive") {
+    if (lowerLocation.includes("/signin/oauth/error")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; the configured redirect URI is not registered on the OAuth app.",
+      };
+    }
+  }
+  if (platform === "onedrive") {
+    if (lowerLocation.includes("error=") || lowerLocation.includes("error_description=")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; check the app registration redirect URI and permissions.",
+      };
+    }
+  }
+  if (platform === "dropbox") {
+    if (lowerLocation.includes("error=") || lowerLocation.includes("error_description=")) {
+      return {
+        ok: false,
+        message: "Provider rejected the authorization request; check the app redirect URI and permissions.",
+      };
+    }
+  }
+  return {
+    ok: response.status >= 200 && response.status < 400,
+    message: "Provider accepted the authorization start request or moved to its login screen.",
+  };
+}
+
+function safeLocationPath(location) {
+  if (!location) return "";
+  try {
+    const url = new URL(location);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return "";
+  }
+}
+
+async function addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms }) {
+  const needsGoogleReviewPages = platforms.includes("gmail") || platforms.includes("google-drive");
+  if (!needsGoogleReviewPages) return;
+
+  try {
+    const [privacyResponse, termsResponse] = await Promise.all([
+      fetchImpl(`${liveUrl}/privacy`),
+      fetchImpl(`${liveUrl}/terms`),
+    ]);
+    const [privacyText, termsText] = await Promise.all([
+      privacyResponse.text().catch(() => ""),
+      termsResponse.text().catch(() => ""),
+    ]);
+
+    addCheck(
+      receipt.global_checks,
+      "live_google_oauth_review_pages_crawlable",
+      privacyResponse.ok
+        && termsResponse.ok
+        && privacyText.includes("Google user data")
+        && privacyText.includes("Limited Use requirements")
+        && termsText.includes("Terms of Service"),
+      "Live privacy and terms pages expose OAuth review wording in crawlable HTML.",
+      {
+        live_url: liveUrl,
+        privacy_status: privacyResponse.status,
+        terms_status: termsResponse.status,
+      }
+    );
+  } catch (error) {
+    addCheck(
+      receipt.global_checks,
+      "live_google_oauth_review_pages_crawlable",
+      false,
+      `Live OAuth review pages could not be checked: ${error instanceof Error ? error.message : String(error)}.`,
+      { live_url: liveUrl }
+    );
+  }
+}
+
 export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const liveUrl = normalizeLiveUrl(options.liveUrl ?? process.env.APP_CONNECTION_LIVE_URL);
   if (!liveUrl) return receipt;
@@ -540,6 +709,8 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const endpoint = `${liveUrl}/api/oauth-init`;
   const livePlatforms = unique(options.platforms?.length ? options.platforms : receipt.platforms);
 
+  await addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms: livePlatforms });
+
   for (const platform of livePlatforms) {
     const platformResult = receipt.platform_results.find((result) => result.platform === platform);
     if (!platformResult) continue;
@@ -552,11 +723,12 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
       });
       const data = await response.json().catch(() => ({}));
       const errorText = typeof data?.error === "string" ? data.error : "";
+      const hasStaticClientId = typeof data?.client_id === "string" && data.client_id.length > 0;
+      const hasDynamicAuthorizationUrl = typeof data?.authorization_url === "string" && data.authorization_url.length > 0;
       const ok = Boolean(
         response.ok
         && data?.success === true
-        && typeof data?.client_id === "string"
-        && data.client_id.length > 0
+        && (hasStaticClientId || hasDynamicAuthorizationUrl)
         && typeof data?.redirect_uri === "string"
         && data.redirect_uri.length > 0
         && data?.setup_pending !== true
@@ -578,6 +750,32 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
           missing_fields: Array.isArray(data?.missing_fields) ? data.missing_fields : [],
         }
       );
+
+      if (ok && LIVE_PROVIDER_PROBE_PLATFORMS.has(platform)) {
+        const authorizationUrl = providerAuthorizationUrl(platform, data);
+        if (!authorizationUrl) {
+          addCheck(
+            platformResult.checks,
+            "live_provider_authorization_accepts_redirect",
+            false,
+            "ConnectorPass could not build the provider authorization probe URL from the live OAuth init payload."
+          );
+        } else {
+          const providerResponse = await fetchImpl(authorizationUrl, { redirect: "manual" });
+          const location = providerResponse.headers?.get?.("location") ?? "";
+          const verdict = providerProbeVerdict(platform, providerResponse, location);
+          addCheck(
+            platformResult.checks,
+            "live_provider_authorization_accepts_redirect",
+            verdict.ok,
+            verdict.message,
+            {
+              http_status: providerResponse.status,
+              location_path: safeLocationPath(location),
+            }
+          );
+        }
+      }
     } catch (error) {
       addCheck(
         platformResult.checks,

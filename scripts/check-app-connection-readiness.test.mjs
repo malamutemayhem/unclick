@@ -15,6 +15,23 @@ function actionText(receipt) {
   return receipt.action_needed.join("\n");
 }
 
+function legalPageResponse(input) {
+  const url = String(input);
+  if (url.endsWith("/privacy")) {
+    return new Response("<h1>Privacy Policy</h1><h2>Google user data</h2><p>Limited Use requirements</p>", {
+      status: 200,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+  if (url.endsWith("/terms")) {
+    return new Response("<h1>Terms of Service</h1>", {
+      status: 200,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+  return null;
+}
+
 describe("app connection readiness", () => {
   it("passes the current login-first connector contract", async () => {
     const sources = await loadConnectionReadinessSources(process.cwd());
@@ -67,6 +84,21 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /dropbox: connect_page_server_oauth_button/);
   });
 
+  it("blocks when the admin Apps table can lose connect buttons while the status API is stale", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools
+      .replaceAll("connectorFallbackFor", "missingConnectorFallbackFor")
+      .replaceAll("resolvedConnectorBySlug", "connectorBySlug");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_table_uses_connector_registry_fallback/);
+  });
+
   it("blocks when setup-pending OAuth errors hide the token fallback path", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.connectPage = sources.connectPage
@@ -97,6 +129,49 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /tool_keychain_status_merges_all_connection_sources/);
+  });
+
+  it("blocks when admin Apps can omit login-app rows that have saved web credentials", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminMemory = sources.adminMemory
+      .replaceAll("ADMIN_CONNECT_PAGE_CONNECTOR_SLUGS", "ADMIN_REMOVED_CONNECT_PAGE_CONNECTOR_SLUGS")
+      .replaceAll("credential: credMap.get(pc.id as string) ?? null", "credential: null");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["google-drive"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_connected_badges_merge_all_connection_sources/);
+  });
+
+  it("blocks when signed-in popup login can save to a stale private key", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.connectPage = sources.connectPage
+      .replaceAll("verifyAccountKeyForSignedInUser", "skipAccountKeyCheck")
+      .replaceAll("verify_account_key", "skip_verify_account_key");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /signed_in_connect_flow_rejects_wrong_account_key/);
+  });
+
+  it("blocks when OAuth review legal pages are not prerendered", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.prerenderRoutes = sources.prerenderRoutes.replaceAll('path: "/privacy"', 'path: "/private"');
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /google_oauth_verification_pages_are_crawlable/);
   });
 
   it("blocks when OAuth start and callback disagree on env names", async () => {
@@ -180,17 +255,53 @@ describe("app connection readiness", () => {
 
     await addLiveConnectionReadinessChecks(receipt, {
       liveUrl: "https://unclick.world",
-      fetchImpl: async () => new Response(JSON.stringify({
-        error: "Unsupported OAuth platform.",
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }),
+      fetchImpl: async (input) => legalPageResponse(input) ?? new Response(JSON.stringify({
+          error: "Unsupported OAuth platform.",
+        }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }),
     });
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /gmail: live_oauth_init_ready/);
     assert.match(actionText(receipt), /Unsupported OAuth platform/);
+  });
+
+  it("blocks when the provider rejects the live redirect URI", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const legal = legalPageResponse(input);
+        if (legal) return legal;
+        const url = String(input);
+        if (url.endsWith("/api/oauth-init")) {
+          return new Response(JSON.stringify({
+            success: true,
+            client_id: "google-client",
+            redirect_uri: "https://unclick.world/api/oauth-callback",
+            state: "state",
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://accounts.google.com/signin/oauth/error?authError=redirect_uri_mismatch" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /gmail: live_provider_authorization_accepts_redirect/);
+    assert.match(actionText(receipt), /redirect URI is not registered/);
   });
 
   it("passes the live OAuth init check when production returns a provider-ready payload", async () => {
@@ -205,6 +316,98 @@ describe("app connection readiness", () => {
       fetchImpl: async () => new Response(JSON.stringify({
         success: true,
         client_id: "client-id",
+        redirect_uri: "https://unclick.world/api/oauth-callback",
+        state: "state",
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
+  });
+
+  it("blocks when live OAuth review pages are not crawlable", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/privacy") || url.endsWith("/terms")) {
+          return new Response("<div id=\"root\"></div>", {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          client_id: "google-client",
+          redirect_uri: "https://unclick.world/api/oauth-callback",
+          state: "state",
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /live_google_oauth_review_pages_crawlable/);
+  });
+
+  it("passes the live provider check when Google moves to sign-in", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["google-drive"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const legal = legalPageResponse(input);
+        if (legal) return legal;
+        const url = String(input);
+        if (url.endsWith("/api/oauth-init")) {
+          return new Response(JSON.stringify({
+            success: true,
+            client_id: "google-client",
+            redirect_uri: "https://unclick.world/api/oauth-callback",
+            state: "state",
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://accounts.google.com/v3/signin/identifier" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
+  });
+
+  it("accepts dynamic OAuth starts that return an authorization URL instead of a static client id", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["higgsfield"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async () => new Response(JSON.stringify({
+        success: true,
+        authorization_url: "https://provider.example/oauth/authorize?client_id=dynamic",
         redirect_uri: "https://unclick.world/api/oauth-callback",
         state: "state",
       }), {

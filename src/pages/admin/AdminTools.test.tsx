@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -65,6 +65,63 @@ describe("AdminTools (Apps library)", () => {
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.
     expect(screen.getByText("GitHub")).toBeInTheDocument();
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
+
+  it("keeps login-first apps connectable when admin_tools has not returned connector rows yet", async () => {
+    await renderAdminTools();
+
+    for (const name of ["Gmail", "Google Drive", "OneDrive"]) {
+      const row = screen.getByText(name).closest("[role='button']");
+      expect(row).not.toBeNull();
+      expect(within(row as HTMLElement).getByRole("button", { name: "Connect" })).toBeInTheDocument();
+      expect(within(row as HTMLElement).queryByText("Built-in")).not.toBeInTheDocument();
+    }
+  }, FULL_CATALOG_RENDER_TIMEOUT_MS);
+
+  it("shows web-login credentials as connected in the Apps table", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        metering: {},
+        connectors: [
+          {
+            id: "gmail",
+            auth_type: "oauth2",
+            setup_url: "/connect/gmail",
+            credential: {
+              id: "cred-gmail",
+              is_valid: true,
+              last_tested_at: null,
+              source: "user_credentials",
+            },
+          },
+          {
+            id: "google-drive",
+            auth_type: "oauth2",
+            setup_url: "/connect/google-drive",
+            credential: {
+              id: "cred-drive",
+              is_valid: true,
+              last_tested_at: null,
+              source: "user_credentials",
+            },
+          },
+        ],
+      }),
+    } as Response);
+
+    await renderAdminTools();
+
+    for (const name of ["Gmail", "Google Drive"]) {
+      const row = screen.getByText(name).closest("[role='button']");
+      expect(row).not.toBeNull();
+      expect(within(row as HTMLElement).getByRole("button", { name: "Connected" })).toHaveAttribute(
+        "title",
+        "Click to manage this connection",
+      );
+      expect(within(row as HTMLElement).getByText("Connected")).toBeInTheDocument();
+      expect(within(row as HTMLElement).queryByRole("button", { name: "Connect" })).not.toBeInTheDocument();
+    }
   }, FULL_CATALOG_RENDER_TIMEOUT_MS);
 
   it("links to Connections and the Skills Library instead of inlining everything", async () => {

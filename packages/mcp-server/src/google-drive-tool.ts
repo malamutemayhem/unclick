@@ -44,7 +44,11 @@ async function driveFetch(
 
   const text = await res.text();
   if (res.status === 401) throw new Error("Google Drive token is invalid or expired.");
-  if (res.status === 403) throw new Error("Google Drive access is forbidden. Check the connected account permissions.");
+  if (res.status === 403) {
+    throw new Error(
+      "Google Drive access is forbidden. Reconnect Google Drive and grant file read access; also confirm the Drive API is enabled for the OAuth app."
+    );
+  }
   if (res.status === 429) throw new Error("Google Drive rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     let message = text.slice(0, 200);

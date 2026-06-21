@@ -286,6 +286,34 @@ export default function ConnectPage() {
     }
   }
 
+  async function verifyAccountKeyForSignedInUser(currentApiKey: string): Promise<boolean> {
+    if (!session) return true;
+    const res = await fetch("/api/memory-admin?action=verify_account_key", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ api_key: currentApiKey }),
+    });
+    const body = (await safeJson(res)) as { matches?: boolean; error?: string };
+    if (!res.ok) {
+      setPageState({
+        kind: "error",
+        message: body.error ?? "Could not check whether this private key belongs to your signed-in UnClick account.",
+      });
+      return false;
+    }
+    if (!body.matches) {
+      setPageState({
+        kind: "error",
+        message: "This private UnClick account key belongs to a different account than the one signed in here. Use this account's key or make a new one, then connect again.",
+      });
+      return false;
+    }
+    return true;
+  }
+
   // -- Handle OAuth callback ------------------------------------------------
   useEffect(() => {
     let handledQueryState = false;
@@ -480,6 +508,7 @@ export default function ConnectPage() {
       setPageState({ kind: "error", message: "Private UnClick account key is required." });
       return;
     }
+    if (!(await verifyAccountKeyForSignedInUser(currentApiKey))) return;
 
     setPageState({ kind: "connecting" });
     try {
@@ -506,6 +535,13 @@ export default function ConnectPage() {
   }
 
   async function handleOAuthConnect() {
+    const currentApiKey = apiKey.trim();
+    if (!currentApiKey) {
+      setPageState({ kind: "error", message: "Private UnClick account key is required." });
+      return;
+    }
+    if (!(await verifyAccountKeyForSignedInUser(currentApiKey))) return;
+
     const normalizedStore =
       connector.slug === "shopify"
         ? shopifyStore.trim().replace(/\.myshopify\.com$/i, "")
@@ -519,7 +555,7 @@ export default function ConnectPage() {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           platform: connector.slug,
-          api_key:  apiKey.trim(),
+          api_key:  currentApiKey,
           ...(normalizedStore ? { store: normalizedStore } : {}),
         }),
       });
