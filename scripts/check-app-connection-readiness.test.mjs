@@ -15,6 +15,23 @@ function actionText(receipt) {
   return receipt.action_needed.join("\n");
 }
 
+function legalPageResponse(input) {
+  const url = String(input);
+  if (url.endsWith("/privacy")) {
+    return new Response("<h1>Privacy Policy</h1><h2>Google user data</h2><p>Limited Use requirements</p>", {
+      status: 200,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+  if (url.endsWith("/terms")) {
+    return new Response("<h1>Terms of Service</h1>", {
+      status: 200,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+  return null;
+}
+
 describe("app connection readiness", () => {
   it("passes the current login-first connector contract", async () => {
     const sources = await loadConnectionReadinessSources(process.cwd());
@@ -144,6 +161,19 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /signed_in_connect_flow_rejects_wrong_account_key/);
   });
 
+  it("blocks when OAuth review legal pages are not prerendered", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.prerenderRoutes = sources.prerenderRoutes.replaceAll('path: "/privacy"', 'path: "/private"');
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /google_oauth_verification_pages_are_crawlable/);
+  });
+
   it("blocks when OAuth start and callback disagree on env names", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.oauthInit = sources.oauthInit.replace(
@@ -225,12 +255,12 @@ describe("app connection readiness", () => {
 
     await addLiveConnectionReadinessChecks(receipt, {
       liveUrl: "https://unclick.world",
-      fetchImpl: async () => new Response(JSON.stringify({
-        error: "Unsupported OAuth platform.",
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }),
+      fetchImpl: async (input) => legalPageResponse(input) ?? new Response(JSON.stringify({
+          error: "Unsupported OAuth platform.",
+        }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }),
     });
 
     assert.equal(receipt.status, "blocker");
@@ -248,6 +278,8 @@ describe("app connection readiness", () => {
     await addLiveConnectionReadinessChecks(receipt, {
       liveUrl: "https://unclick.world",
       fetchImpl: async (input) => {
+        const legal = legalPageResponse(input);
+        if (legal) return legal;
         const url = String(input);
         if (url.endsWith("/api/oauth-init")) {
           return new Response(JSON.stringify({
@@ -296,6 +328,39 @@ describe("app connection readiness", () => {
     assert.equal(actionText(receipt), "");
   });
 
+  it("blocks when live OAuth review pages are not crawlable", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      fetchImpl: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/privacy") || url.endsWith("/terms")) {
+          return new Response("<div id=\"root\"></div>", {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          client_id: "google-client",
+          redirect_uri: "https://unclick.world/api/oauth-callback",
+          state: "state",
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /live_google_oauth_review_pages_crawlable/);
+  });
+
   it("passes the live provider check when Google moves to sign-in", async () => {
     const sources = await loadConnectionReadinessSources(process.cwd());
     const receipt = evaluateConnectionReadinessSources(sources, {
@@ -306,6 +371,8 @@ describe("app connection readiness", () => {
     await addLiveConnectionReadinessChecks(receipt, {
       liveUrl: "https://unclick.world",
       fetchImpl: async (input) => {
+        const legal = legalPageResponse(input);
+        if (legal) return legal;
         const url = String(input);
         if (url.endsWith("/api/oauth-init")) {
           return new Response(JSON.stringify({

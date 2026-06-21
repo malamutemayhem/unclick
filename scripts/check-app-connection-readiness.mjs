@@ -44,6 +44,9 @@ const SOURCE_PATHS = {
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
   toolWiring: "packages/mcp-server/src/tool-wiring.ts",
   adminMemory: "api/memory-admin.ts",
+  privacyPage: "src/pages/Privacy.tsx",
+  termsPage: "src/pages/Terms.tsx",
+  prerenderRoutes: "scripts/prerender-routes.mjs",
 };
 
 function normalize(value) {
@@ -333,6 +336,19 @@ export function evaluateConnectionReadinessSources(
       && sources.adminMemory.includes('case "verify_account_key"')
       && sources.adminMemory.includes("matches: sha256hex(apiKey) === tenant.apiKeyHash"),
     "Signed-in web popup login refuses to save a provider token into a stale private key that belongs to a different UnClick account."
+  );
+
+  addCheck(
+    globalChecks,
+    "google_oauth_verification_pages_are_crawlable",
+    sources.prerenderRoutes.includes('path: "/privacy"')
+      && sources.prerenderRoutes.includes('path: "/terms"')
+      && sources.privacyPage.includes("Google user data")
+      && sources.privacyPage.includes("Google API")
+      && sources.privacyPage.includes("Limited Use requirements")
+      && sources.privacyPage.includes("disconnecting the app inside UnClick")
+      && sources.termsPage.includes("Terms of Service"),
+    "OAuth verification-critical legal pages are explicit in source and prerendered for no-JS reviewers."
   );
 
   for (const platform of platforms) {
@@ -634,6 +650,46 @@ function safeLocationPath(location) {
   }
 }
 
+async function addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms }) {
+  const needsGoogleReviewPages = platforms.includes("gmail") || platforms.includes("google-drive");
+  if (!needsGoogleReviewPages) return;
+
+  try {
+    const [privacyResponse, termsResponse] = await Promise.all([
+      fetchImpl(`${liveUrl}/privacy`),
+      fetchImpl(`${liveUrl}/terms`),
+    ]);
+    const [privacyText, termsText] = await Promise.all([
+      privacyResponse.text().catch(() => ""),
+      termsResponse.text().catch(() => ""),
+    ]);
+
+    addCheck(
+      receipt.global_checks,
+      "live_google_oauth_review_pages_crawlable",
+      privacyResponse.ok
+        && termsResponse.ok
+        && privacyText.includes("Google user data")
+        && privacyText.includes("Limited Use requirements")
+        && termsText.includes("Terms of Service"),
+      "Live privacy and terms pages expose OAuth review wording in crawlable HTML.",
+      {
+        live_url: liveUrl,
+        privacy_status: privacyResponse.status,
+        terms_status: termsResponse.status,
+      }
+    );
+  } catch (error) {
+    addCheck(
+      receipt.global_checks,
+      "live_google_oauth_review_pages_crawlable",
+      false,
+      `Live OAuth review pages could not be checked: ${error instanceof Error ? error.message : String(error)}.`,
+      { live_url: liveUrl }
+    );
+  }
+}
+
 export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const liveUrl = normalizeLiveUrl(options.liveUrl ?? process.env.APP_CONNECTION_LIVE_URL);
   if (!liveUrl) return receipt;
@@ -652,6 +708,8 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const apiKey = String(options.apiKey ?? process.env.APP_CONNECTION_PROBE_API_KEY ?? "uc_app_connection_readiness_probe");
   const endpoint = `${liveUrl}/api/oauth-init`;
   const livePlatforms = unique(options.platforms?.length ? options.platforms : receipt.platforms);
+
+  await addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms: livePlatforms });
 
   for (const platform of livePlatforms) {
     const platformResult = receipt.platform_results.find((result) => result.platform === platform);
