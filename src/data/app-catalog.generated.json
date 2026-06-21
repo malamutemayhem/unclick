@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
   "appCount": 675,
-  "toolCount": 1601,
+  "toolCount": 1604,
   "categories": [
     "AI",
     "Books",
@@ -12699,10 +12699,43 @@
       "blurb": "Connect a Supabase project for UnClick and direct MCP workflows.",
       "domain": "supabase.com",
       "network": "online",
-      "toolCount": 0,
-      "tools": [],
-      "level": null,
-      "hardened": false
+      "toolCount": 8,
+      "tools": [
+        {
+          "name": "supabase_list_projects",
+          "description": "List Supabase projects visible to the connected Supabase account. Read-only Management API call."
+        },
+        {
+          "name": "supabase_get_project",
+          "description": "Get one Supabase project by project_ref. Read-only Management API call."
+        },
+        {
+          "name": "supabase_list_organizations",
+          "description": "List Supabase organizations visible to the connected Supabase account. Read-only Management API call."
+        },
+        {
+          "name": "vercel_get_domain",
+          "description": "Get information about a Vercel domain."
+        },
+        {
+          "name": "vercel_get_env",
+          "description": "Get environment variables for a Vercel project."
+        },
+        {
+          "name": "vercel_create_env",
+          "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
+        },
+        {
+          "name": "vercel_delete_env",
+          "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
+        },
+        {
+          "name": "vercel_create_deployment",
+          "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "supercell",
@@ -14362,7 +14395,7 @@
       "blurb": "Manage projects, deployments, domains, and environment variables.",
       "domain": "vercel.com",
       "network": "online",
-      "toolCount": 8,
+      "toolCount": 3,
       "tools": [
         {
           "name": "vercel_list_deployments",
@@ -14375,26 +14408,6 @@
         {
           "name": "vercel_list_projects",
           "description": "List all Vercel projects."
-        },
-        {
-          "name": "vercel_get_domain",
-          "description": "Get information about a Vercel domain."
-        },
-        {
-          "name": "vercel_get_env",
-          "description": "Get environment variables for a Vercel project."
-        },
-        {
-          "name": "vercel_create_env",
-          "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
-        },
-        {
-          "name": "vercel_delete_env",
-          "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
-        },
-        {
-          "name": "vercel_create_deployment",
-          "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
         }
       ],
       "level": 5,
@@ -14987,8 +15000,8 @@
           "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
         }
       ],
-      "level": 1,
-      "hardened": false
+      "level": 2,
+      "hardened": true
     },
     {
       "slug": "yelp",

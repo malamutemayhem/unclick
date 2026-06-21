@@ -58,11 +58,18 @@ describe("app catalog integrity", () => {
     expect(actionCopy).not.toContain("mcp.higgsfield.ai");
   });
 
-  it("lists Supabase as a connection-only app until first-party actions exist", () => {
+  it("lists Supabase with first-party read actions", () => {
     const supabase = getApp("supabase");
     expect(supabase?.name).toBe("Supabase");
     expect(supabase?.category).toBe("Developer & infra");
-    expect(supabase?.toolCount).toBe(0);
+    expect(supabase?.toolCount).toBeGreaterThanOrEqual(3);
     expect(supabase?.domain).toBe("supabase.com");
+    expect(supabase?.tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining([
+        "supabase_list_projects",
+        "supabase_get_project",
+        "supabase_list_organizations",
+      ]),
+    );
   });
 });
