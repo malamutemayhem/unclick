@@ -22,6 +22,7 @@ export interface LensConnector {
     id?: string | null;
     is_valid: boolean;
     last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
     source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
   } | null;
 }
@@ -46,7 +47,7 @@ export const LENSES: ReadonlyArray<{ id: AppLens; label: string; group: "Library
 export const POPULAR_SLUGS: ReadonlySet<string> = new Set([
   "github", "openai", "anthropic", "slack", "notion", "stripe", "discord",
   "spotify", "vercel", "supabase", "telegram", "reddit", "shopify", "linear",
-  "email", "gmail", "google-drive", "dropbox", "onedrive", "weather",
+  "email", "gmail", "google-drive", "dropbox", "onedrive", "weather", "higgsfield",
 ]);
 
 export function setupKindOf(connector: LensConnector | undefined): SetupKind {
@@ -56,9 +57,12 @@ export function setupKindOf(connector: LensConnector | undefined): SetupKind {
   return connector.auth_type === "oauth2" ? "signin" : "key";
 }
 
-/** Connected = a working credential is on file. The status pill still distinguishes proven (tested) from saved. */
+/** Connected = a saved credential has proof, not just a stored row. */
 export function isConnected(connector: LensConnector | undefined): boolean {
-  return Boolean(connector?.credential?.is_valid);
+  const credential = connector?.credential;
+  if (!credential?.is_valid) return false;
+  if (credential.connection_state) return credential.connection_state === "connected";
+  return Boolean(credential.last_tested_at);
 }
 
 /**

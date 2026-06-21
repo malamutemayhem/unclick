@@ -5411,10 +5411,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const managedRows = managedQ.error ? [] : (managedQ.data ?? []);
 
         type AdminCredentialSource = "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+        const STALE_CREDENTIAL_TEST_DAYS = 30;
+        type AdminCredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
         type AdminCredentialSummary = {
           id: string | null;
           is_valid: boolean;
           last_tested_at: string | null;
+          connection_state?: AdminCredentialConnectionState;
           label: string | null;
           source: AdminCredentialSource;
           created_at: string | null;
@@ -5445,6 +5448,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             + Math.max(timestampScore(cred.updated_at), timestampScore(cred.created_at));
         }
 
+        function connectionStateOf(cred: AdminCredentialSummary): AdminCredentialConnectionState {
+          if (cred.managed?.status === "pending") return "pending";
+          if (!cred.is_valid) return "failing";
+          if (!cred.last_tested_at) return "untested";
+          const testedAt = Date.parse(cred.last_tested_at);
+          if (!Number.isFinite(testedAt)) return "untested";
+          const ageDays = Math.floor((Date.now() - testedAt) / 86_400_000);
+          return ageDays >= STALE_CREDENTIAL_TEST_DAYS ? "stale" : "connected";
+        }
+
         const credMap = new Map<string, AdminCredentialSummary>();
         function mergeCredential(platform: string, next: AdminCredentialSummary) {
           const current = credMap.get(platform);
@@ -5454,9 +5467,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           const winner = credentialScore(next) > credentialScore(current) ? next : current;
+          const source = current.source === next.source ? winner.source : "mixed";
           credMap.set(platform, {
             ...winner,
-            source: current.source === next.source ? winner.source : "mixed",
+            source,
+            connection_state: connectionStateOf({ ...winner, source }),
           });
         }
 
@@ -5508,7 +5523,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const enrichedConnectors = (connectors ?? []).map((pc) => ({
           ...pc,
-          credential: credMap.get(pc.id as string) ?? null,
+          credential: credMap.has(pc.id as string)
+            ? {
+                ...credMap.get(pc.id as string)!,
+                connection_state: connectionStateOf(credMap.get(pc.id as string)!),
+              }
+            : null,
           supports_hosted_mcp_connection: pc.id === "higgsfield",
           supports_managed_connection: pc.auth_type
             ? managedConnectionAvailableForPlatform(pc.id as string)

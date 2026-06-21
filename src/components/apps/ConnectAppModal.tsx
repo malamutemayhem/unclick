@@ -31,7 +31,11 @@ export interface ConnectableConnector {
   setup_url?: string | null;
   supports_managed_connection?: boolean;
   supports_hosted_mcp_connection?: boolean;
-  credential?: { is_valid: boolean; last_tested_at: string | null } | null;
+  credential?: {
+    is_valid: boolean;
+    last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
+  } | null;
 }
 
 interface ConnectAppModalProps {
@@ -92,9 +96,10 @@ export function ConnectAppModal({
   const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
-  const hostedFallbackCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
-  const hostedFallbackSetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
-  const modalVerb = isConnected ? "Manage" : "Connect";
+  const hostedApiKeyCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
+  const hostedApiKeySetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
+  const hasSavedCredential = Boolean(connector.credential?.is_valid);
+  const modalVerb = isConnected || hasSavedCredential ? "Manage" : "Connect";
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -184,7 +189,7 @@ export function ConnectAppModal({
     }
   }
 
-  const disconnectButton = isConnected && onDisconnect ? (
+  const disconnectButton = (isConnected || hasSavedCredential) && onDisconnect ? (
     <button
       type="button"
       onClick={() => void disconnect()}
@@ -301,19 +306,18 @@ export function ConnectAppModal({
             </div>
 
             <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
-              <p className="font-semibold text-white">Cloud API key fallback</p>
+              <p className="font-semibold text-white">Cloud API key option</p>
               <p className="mt-1 text-white/55">
-                Use this only if you specifically prefer Higgsfield Cloud API billing, or if the account login path is
-                unavailable.
+                Use this only if you specifically prefer Higgsfield Cloud API billing instead of the account sign-in.
               </p>
-              {hostedFallbackSetupUrl && (
+              {hostedApiKeySetupUrl && (
                 <a
-                  href={hostedFallbackSetupUrl}
+                  href={hostedApiKeySetupUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
                 >
-                  Where do I get my {hostedFallbackCredentialLabel}?
+                  Where do I get my {hostedApiKeyCredentialLabel}?
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -324,7 +328,7 @@ export function ConnectAppModal({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !busy) void submit();
                 }}
-                placeholder={`Paste ${hostedFallbackCredentialLabel} here`}
+                placeholder={`Paste ${hostedApiKeyCredentialLabel} here`}
                 className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
               />
               {error && (
