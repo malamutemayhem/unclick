@@ -45,6 +45,7 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "tool_keychain_status_merges_all_connection_sources" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "admin_apps_separates_saved_visibility_from_live_proof" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "oauth_saved_web_login_wins_over_legacy_keychain" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "public_mcp_stale_auth_keeps_pairing_available" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -116,6 +117,19 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /tool_keychain_status_merges_all_connection_sources/);
+  });
+
+  it("blocks when stale public MCP auth can bypass the pairing discovery path", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.mcpApi = sources.mcpApi.replaceAll("sendPublicDiscoveryIfAllowed(req, res)", "skipPublicDiscovery(req, res)");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /public_mcp_stale_auth_keeps_pairing_available/);
   });
 
   it("blocks when Admin Apps treats saved connections as proof-only green connections", async () => {
@@ -319,6 +333,98 @@ describe("app connection readiness", () => {
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /supabase: live_oauth_init_ready/);
     assert.match(actionText(receipt), /client_id,client_secret/);
+  });
+
+  it("blocks when live public MCP stale bearer discovery falls into a transport error", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      publicMcpProbe: true,
+      fetchImpl: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/api/mcp")) {
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32000, message: "Not Acceptable: Client must accept both application/json and text/event-stream" },
+            id: null,
+          }), {
+            status: 406,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          client_id: "client-id",
+          redirect_uri: "https://unclick.world/api/oauth-callback",
+          state: "state",
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /live_public_mcp_stale_auth_keeps_pairing_available/);
+  });
+
+  it("passes when live public MCP stale bearer discovery still exposes pairing", async () => {
+    const sources = await loadConnectionReadinessSources(process.cwd());
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    await addLiveConnectionReadinessChecks(receipt, {
+      liveUrl: "https://unclick.world",
+      publicMcpProbe: true,
+      fetchImpl: async (input, init) => {
+        const url = String(input);
+        if (url.endsWith("/api/mcp")) {
+          const body = JSON.parse(String(init?.body ?? "{}"));
+          if (body.method === "tools/list") {
+            return new Response(JSON.stringify({
+              jsonrpc: "2.0",
+              result: { tools: [{ name: "unclick_start_pairing", inputSchema: { type: "object" } }] },
+              id: body.id,
+            }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            result: {
+              content: [{
+                type: "text",
+                text: "Open https://unclick.world/login?next=%2Fpair%2Fconnected%3Fpair%3Dabc. Reconfigure this MCP server with the paired URL instead: https://unclick.world/api/mcp/p/abc",
+              }],
+            },
+            id: body.id,
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          client_id: "client-id",
+          redirect_uri: "https://unclick.world/api/oauth-callback",
+          state: "state",
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    });
+
+    assert.equal(receipt.status, "pass");
+    assert.equal(actionText(receipt), "");
   });
 
   it("reports the production OAuth error when the deployed endpoint rejects a platform", async () => {

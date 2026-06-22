@@ -35,6 +35,7 @@ const SOURCE_PATHS = {
   oauthInit: "api/oauth-init.ts",
   oauthCallback: "api/oauth-callback.ts",
   oauthState: "api/oauth-state.ts",
+  mcpApi: "api/mcp.ts",
   credentialsApi: "api/credentials.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
@@ -404,6 +405,17 @@ export function evaluateConnectionReadinessSources(
       && sources.keychainTool.includes("connected_source")
       && sources.keychainTool.includes("source:         r.source"),
     "The MCP keychain status path reports the same stored connections that the web app can create."
+  );
+
+  addCheck(
+    globalChecks,
+    "public_mcp_stale_auth_keeps_pairing_available",
+    sources.mcpApi.includes("export function publicDiscoveryRpcResponse")
+      && sources.mcpApi.includes('method === "tools/list"')
+      && sources.mcpApi.includes("toolName === PUBLIC_PAIRING_TOOL.name")
+      && sources.mcpApi.includes("function sendPublicDiscoveryIfAllowed")
+      && (sources.mcpApi.match(/sendPublicDiscoveryIfAllowed\(req, res\)/g) ?? []).length >= 3,
+    "The public MCP door keeps discovery and pairing available even when a client presents a stale bearer/API token."
   );
 
   addCheck(
@@ -789,6 +801,66 @@ async function addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms }
   }
 }
 
+async function addLivePublicMcpChecks(receipt, { liveUrl, fetchImpl }) {
+  const endpoint = `${liveUrl}/api/mcp`;
+  const staleAuthHeaders = {
+    "Content-Type": "application/json",
+    Authorization: "Bearer unclick_stale_public_probe",
+  };
+
+  try {
+    const [listResponse, pairingResponse] = await Promise.all([
+      fetchImpl(endpoint, {
+        method: "POST",
+        headers: staleAuthHeaders,
+        body: JSON.stringify({ jsonrpc: "2.0", id: 501, method: "tools/list", params: {} }),
+      }),
+      fetchImpl(endpoint, {
+        method: "POST",
+        headers: staleAuthHeaders,
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 502,
+          method: "tools/call",
+          params: { name: "unclick_start_pairing", arguments: {} },
+        }),
+      }),
+    ]);
+    const listData = await listResponse.json().catch(() => ({}));
+    const pairingData = await pairingResponse.json().catch(() => ({}));
+    const tools = Array.isArray(listData?.result?.tools) ? listData.result.tools : [];
+    const pairingText = String(pairingData?.result?.content?.[0]?.text ?? "");
+    const ok = listResponse.ok
+      && pairingResponse.ok
+      && tools.some((tool) => tool?.name === "unclick_start_pairing")
+      && (pairingText.includes("/pair/connected") || pairingText.includes("%2Fpair%2Fconnected"))
+      && pairingText.includes("/api/mcp/p/")
+      && !pairingText.includes("uc_")
+      && listResponse.status !== 406
+      && pairingResponse.status !== 406;
+
+    addCheck(
+      receipt.global_checks,
+      "live_public_mcp_stale_auth_keeps_pairing_available",
+      ok,
+      "Live public MCP discovery and pairing survive stale bearer tokens instead of falling into auth or transport errors.",
+      {
+        live_url: liveUrl,
+        tools_list_status: listResponse.status,
+        pairing_status: pairingResponse.status,
+      }
+    );
+  } catch (error) {
+    addCheck(
+      receipt.global_checks,
+      "live_public_mcp_stale_auth_keeps_pairing_available",
+      false,
+      `Live public MCP stale-auth probe could not be checked: ${error instanceof Error ? error.message : String(error)}.`,
+      { live_url: liveUrl }
+    );
+  }
+}
+
 export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const liveUrl = normalizeLiveUrl(options.liveUrl ?? process.env.APP_CONNECTION_LIVE_URL);
   if (!liveUrl) return receipt;
@@ -807,6 +879,10 @@ export async function addLiveConnectionReadinessChecks(receipt, options = {}) {
   const apiKey = String(options.apiKey ?? process.env.APP_CONNECTION_PROBE_API_KEY ?? "uc_app_connection_readiness_probe");
   const endpoint = `${liveUrl}/api/oauth-init`;
   const livePlatforms = unique(options.platforms?.length ? options.platforms : receipt.platforms);
+
+  if (options.publicMcpProbe === true) {
+    await addLivePublicMcpChecks(receipt, { liveUrl, fetchImpl });
+  }
 
   await addLiveLegalPageChecks(receipt, { liveUrl, fetchImpl, platforms: livePlatforms });
 
@@ -905,6 +981,7 @@ async function main() {
     cwd,
     platforms: platforms.length ? platforms : undefined,
     liveUrl: live ? liveUrl : "",
+    publicMcpProbe: live,
   });
   console.log(JSON.stringify(receipt, null, 2));
   process.exitCode = receipt.status === "pass" ? 0 : 1;
