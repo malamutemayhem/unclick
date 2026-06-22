@@ -149,27 +149,26 @@ describe("AppsTable", () => {
     expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it("admin mode keeps saved login rows manageable without calling them connected", () => {
+  it("admin mode keeps saved login rows manageable as connected", () => {
     const onManage = vi.fn();
     const onDisconnect = vi.fn();
     renderTable(
       <AppsTable
         apps={[APPS[0]]}
         mode="admin"
-        statusOf={() => ({ label: "Login saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" })}
+        statusOf={() => ({ label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" })}
         actionOf={() => ({ label: "Manage", onClick: onManage })}
         disconnectOf={() => ({ label: "Disconnect", onClick: onDisconnect })}
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Login saved" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Connected" })).toBeInTheDocument();
 
     const row = screen.getByText("GitHub").closest("[role='button']");
     expect(row).not.toBeNull();
     fireEvent.click(row!);
 
-    expect(screen.getAllByText("Login saved").length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByText(/^Connected$/)).not.toBeInTheDocument();
+    expect(screen.getAllByText("Connected").length).toBeGreaterThanOrEqual(2);
     fireEvent.click(screen.getByRole("button", { name: "Manage" }));
     fireEvent.click(screen.getByRole("button", { name: "Disconnect" }));
 

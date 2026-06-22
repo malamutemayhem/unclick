@@ -160,11 +160,39 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /admin_apps_registry_fallback_keeps_login_apps_connectable/);
   });
 
-  it("blocks when saved credentials regress to scary check-needed wording", async () => {
+  it("blocks when provider sign-in popups lose centered coordinates", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.adminTools = sources.adminTools
-      .replace('label: "Login saved"', 'label: "Needs check"')
-      .replace('label: "Key saved"', 'label: "Needs check"');
+      .replace("const left = Math.max", "const left = Math.min")
+      .replace("left=${left},top=${top}", "left=0,top=0");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_center_connect_popups/);
+  });
+
+  it("blocks when hosted MCP popups lose centered coordinates", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.hostedMcpLogin = sources.hostedMcpLogin
+      .replace("const top = Math.max", "const top = Math.min")
+      .replace("left=${left},top=${top}", "left=0,top=0");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["higgsfield"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_center_connect_popups/);
+  });
+
+  it("blocks when saved credentials regress to scary check-needed wording", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools.replaceAll('label: "Connected"', 'label: "Needs check"');
 
     const receipt = evaluateConnectionReadinessSources(sources, {
       platforms: ["github"],

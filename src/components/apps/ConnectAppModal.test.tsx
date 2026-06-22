@@ -153,15 +153,15 @@ describe("ConnectAppModal", () => {
         credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
       },
       isConnected: false,
-      statusLabel: "Login saved",
+      statusLabel: "Connected",
       onStartHostedMcpLogin,
       onDisconnect,
     });
 
     expect(screen.getByRole("heading", { name: /manage higgsfield/i })).toBeInTheDocument();
-    expect(screen.getByText(/higgsfield login is saved in unclick/i)).toBeInTheDocument();
-    expect(screen.getByText(/will verify it when a higgsfield tool runs/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/higgsfield login is saved/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/connected/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/higgsfield is connected in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/can use this connection across your devices/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
     await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
@@ -246,7 +246,7 @@ describe("ConnectAppModal", () => {
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });
 
-  it("still offers disconnect when access is saved but not proven connected", async () => {
+  it("still offers disconnect when saved access is shown as connected", async () => {
     const onDisconnect = vi.fn(() => Promise.resolve());
     renderModal({
       connector: {
@@ -256,14 +256,14 @@ describe("ConnectAppModal", () => {
         credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
       },
       isConnected: false,
-      statusLabel: "Key saved",
+      statusLabel: "Connected",
       onDisconnect,
     });
 
     expect(screen.getByRole("heading", { name: /manage alpha vantage/i })).toBeInTheDocument();
     expect(screen.queryByText(/alpha vantage is available/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/alpha vantage is saved in unclick/i)).toBeInTheDocument();
-    expect(screen.getByText(/has not passed a live check yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/alpha vantage is connected in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/can use this connection across your devices/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });

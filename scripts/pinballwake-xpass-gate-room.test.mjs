@@ -67,7 +67,7 @@ describe("PinballWake XPass Gate Room", () => {
   it("routes saved-connection visibility bugs through connector proof lanes", () => {
     const selected = checks({
       title: "Connected apps saved connection bug",
-      description: "Saved credentials must appear in the Connected lens as Manage with a Login saved or Key saved status, without pretending they have live proof.",
+      description: "Saved credentials must appear in the Connected lens as Manage with a customer-facing Connected status, while internal proof still distinguishes live-tested access.",
     });
 
     assert.ok(selected.includes("testpass"));
