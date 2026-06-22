@@ -141,6 +141,13 @@ Before calling production live, also run
 `node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world`
 so missing provider client ID/secret env vars are caught before users find them.
 
+**Saved is not the same as verified.** Customer-facing Apps UI has two states:
+a saved/manageable connection (the row belongs in Connected apps and offers
+Manage/Disconnect) and a verified live connection (green Connected, earned only
+after a successful check). Do not drive the Connected lens, action label, or
+OAuth popup close behaviour from proof-only agent status. The readiness check
+`admin_apps_separates_saved_visibility_from_live_proof` blocks that regression.
+
 ---
 
 ## 4. Wiring: the files you touch every time
@@ -278,7 +285,7 @@ are doing the full OAuth flow. Confirm the slug is not already in
 - [ ] `generate-app-catalog.mjs`: category bucket (+ name/blurb/domain)
 - [ ] Login-first/OAuth app: `npm run check:app-connections` or single-platform readiness check
 - [ ] Public OAuth app: live readiness check with `--live-url=https://unclick.world`
-- [ ] XPass: ConnectorPass receipt is present for connector/OAuth/keychain changes
+- [ ] XPass: ConnectorPass receipt is present for connector/OAuth/keychain changes, including saved-vs-verified UI state
 - [ ] (optional) L3 registry / L4 signal
 - [ ] Regenerate in order: tool-index -> ladder -> app-catalog -> connector-setup -> brainmap
 - [ ] `tsc` + MCP `test` chain + `brainmap:check` + app-catalog `--check` + frontend catalog tests

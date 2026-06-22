@@ -19,7 +19,7 @@ Status note: PR #1219 merged the 2026-05-30 XPass receipt surfaces into `main`. 
 | TestPass | [`docs/prd/testpass.md`](./prd/testpass.md), [`docs/testpass-phase-9a-visual-brief.md`](./testpass-phase-9a-visual-brief.md) | `public/testpass/` recurring runs and `/admin/testpass` | the target is an MCP server, marketplace submission, app connector/OAuth readiness change, or a PR that touches a tool wiring |
 | UIPass | [`docs/uipass-product-brief.md`](./uipass-product-brief.md) | Admin checklist surface first | the target changes layout, spacing, typography, mobile fit, hierarchy, screenshots, visual consistency, or polish |
 | UXPass | [`docs/uxpass-product-brief.md`](./uxpass-product-brief.md) | `public/uxpass/site-sweep.json` and `/admin/uxpass` | the target changes a journey, form, onboarding path, feedback, recovery, navigation, connect/login fallback path, or task-completion experience |
-| CommonSensePass | [`docs/commonsensepass-rule-matrix.md`](./commonsensepass-rule-matrix.md) | embedded checks under the dogfood index | the target is automation, orchestration logic, a connected badge/proof claim, or anywhere a "no green chip without evidence" rule applies |
+| CommonSensePass | [`docs/commonsensepass-rule-matrix.md`](./commonsensepass-rule-matrix.md) | embedded checks under the dogfood index | the target is automation, orchestration logic, a connected badge/proof claim, saved-vs-verified connection visibility, or anywhere a "no green chip without evidence" rule applies |
 | WakePass | [`docs/prd/wakepass.md`](./prd/wakepass.md) | action-needed feed on the admin jobs page and public-safe boundary sweep | a Pass result needs an owner to act, a scheduled check missed its ACK, or a receipt has gone stale |
 
 ## Package-ready

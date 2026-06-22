@@ -37,6 +37,7 @@ const SOURCE_PATHS = {
   credentialsApi: "api/credentials.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
+  adminTools: "src/pages/admin/AdminTools.tsx",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
@@ -308,6 +309,27 @@ export function evaluateConnectionReadinessSources(
       && sources.adminMemory.includes("managed_app_connections")
       && sources.adminMemory.includes('"mixed"'),
     "The admin connected badge can see old keychain rows, /connect rows, and managed connection rows."
+  );
+
+  const adminAppsSeparatesSavedAndProof = sources.appLenses.includes("export function hasSavedConnection")
+    && sources.appLenses.includes("export function isConnected")
+    && sources.appLenses.includes('credential.connection_state === "connected"')
+    && sources.appLenses.includes("credential.last_tested_at")
+    && sources.appLenses.includes('credential.connection_state === "pending"')
+    && sources.appLenses.includes('credential.connection_state !== "failing"')
+    && /case\s+"connected"\s*:\s*return\s+hasSavedConnection\(connector\)/.test(sources.appLenses)
+    && /case\s+"not-connected"\s*:\s*return\s+Boolean\(connector\)\s*&&\s*!hasSavedConnection\(connector\)/.test(sources.appLenses)
+    && /if\s*\(\s*hasSavedConnection\(connector\)\s*\)\s*return\s+"Manage"/.test(sources.appLenses);
+  const adminModalShowsSavedUnproven = sources.connectAppModal.includes("hasSavedConnection")
+    && sources.connectAppModal.includes("saved in UnClick")
+    && sources.connectAppModal.includes("has not passed a live check yet");
+  const adminPopupAcceptsSavedConnection = sources.adminTools.includes("watchConnectionPopup")
+    && sources.adminTools.includes("hasSavedConnection(connector)");
+  addCheck(
+    globalChecks,
+    "admin_apps_separates_saved_visibility_from_live_proof",
+    adminAppsSeparatesSavedAndProof && adminModalShowsSavedUnproven && adminPopupAcceptsSavedConnection,
+    "Admin Apps keeps saved-connection visibility separate from live proof so saved OAuth/key rows cannot disappear from the Connected lens."
   );
 
   for (const platform of platforms) {
