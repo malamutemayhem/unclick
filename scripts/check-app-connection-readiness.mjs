@@ -37,6 +37,7 @@ const SOURCE_PATHS = {
   credentialsApi: "api/credentials.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
+  adminTools: "src/pages/admin/AdminTools.tsx",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
@@ -273,11 +274,32 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
-    "admin_modal_routes_login_apps_to_connect_page",
-    sources.connectAppModal.includes("connector.auth_type === \"oauth2\"")
-      && sources.connectAppModal.includes("href={`/connect/${app.slug}`}")
-      && sources.connectAppModal.includes("Continue to"),
-    "Admin Apps sends OAuth apps to the full /connect/:slug login journey."
+    "admin_apps_open_login_apps_directly",
+    sources.adminTools.includes("function shouldUseConnectPage")
+      && sources.adminTools.includes("connector.auth_type === \"oauth2\"")
+      && sources.adminTools.includes("openConnectionPopup(`/connect/${app.slug}`")
+      && sources.adminTools.includes("connector.supports_managed_connection || connector.supports_hosted_mcp_connection")
+      && sources.adminTools.includes("setConnectTarget(app)"),
+    "Admin Apps opens sign-in apps directly into /connect/:slug and reserves the modal for managed, hosted MCP, and key-entry flows."
+  );
+
+  addCheck(
+    globalChecks,
+    "admin_apps_registry_fallback_keeps_login_apps_connectable",
+    sources.adminTools.includes("function buildAdminConnectorMap")
+      && sources.adminTools.includes("CONNECTORS[app.slug]")
+      && sources.adminTools.includes("auth_type: config.authType")
+      && sources.adminTools.includes('supports_hosted_mcp_connection: app.slug === "higgsfield"'),
+    "Admin Apps falls back to the code connector registry so missing database connector rows cannot make sign-in apps look built-in."
+  );
+
+  addCheck(
+    globalChecks,
+    "admin_apps_saved_status_uses_customer_language",
+    sources.adminTools.includes('label: "Login saved"')
+      && sources.adminTools.includes('label: "Key saved"')
+      && sources.connectAppModal.includes("will verify it when"),
+    "Saved but unproven credentials use customer-facing saved-state labels instead of sounding broken."
   );
 
   addCheck(
@@ -308,6 +330,27 @@ export function evaluateConnectionReadinessSources(
       && sources.adminMemory.includes("managed_app_connections")
       && sources.adminMemory.includes('"mixed"'),
     "The admin connected badge can see old keychain rows, /connect rows, and managed connection rows."
+  );
+
+  const adminAppsSeparatesSavedAndProof = sources.appLenses.includes("export function hasSavedConnection")
+    && sources.appLenses.includes("export function isConnected")
+    && sources.appLenses.includes('credential.connection_state === "connected"')
+    && sources.appLenses.includes("credential.last_tested_at")
+    && sources.appLenses.includes('credential.connection_state === "pending"')
+    && sources.appLenses.includes('credential.connection_state !== "failing"')
+    && /case\s+"connected"\s*:\s*return\s+hasSavedConnection\(connector\)/.test(sources.appLenses)
+    && /case\s+"not-connected"\s*:\s*return\s+Boolean\(connector\)\s*&&\s*!hasSavedConnection\(connector\)/.test(sources.appLenses)
+    && /if\s*\(\s*hasSavedConnection\(connector\)\s*\)\s*return\s+"Manage"/.test(sources.appLenses);
+  const adminModalShowsSavedUnproven = sources.connectAppModal.includes("hasSavedConnection")
+    && sources.connectAppModal.includes("saved in UnClick")
+    && sources.connectAppModal.includes("has not passed a live check yet");
+  const adminPopupAcceptsSavedConnection = sources.adminTools.includes("watchConnectionPopup")
+    && sources.adminTools.includes("hasSavedConnection(connector)");
+  addCheck(
+    globalChecks,
+    "admin_apps_separates_saved_visibility_from_live_proof",
+    adminAppsSeparatesSavedAndProof && adminModalShowsSavedUnproven && adminPopupAcceptsSavedConnection,
+    "Admin Apps keeps saved-connection visibility separate from live proof so saved OAuth/key rows cannot disappear from the Connected lens."
   );
 
   for (const platform of platforms) {

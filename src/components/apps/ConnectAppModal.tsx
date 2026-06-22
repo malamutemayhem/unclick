@@ -101,6 +101,12 @@ export function ConnectAppModal({
   const hasSavedCredential = Boolean(connector.credential?.is_valid);
   const hasSavedConnection = isConnected || hasSavedCredential;
   const modalVerb = hasSavedConnection ? "Manage" : "Connect";
+  const savedStatusTitle = usesHostedMcpConnection
+    ? "Login saved"
+    : statusLabel ?? (connector.auth_type === "oauth2" ? "Login saved" : "Key saved");
+  const savedStatusBody = usesHostedMcpConnection
+    ? `${app.name} login is saved in UnClick. UnClick will verify it when a ${app.name} tool runs.`
+    : `${app.name} is saved in UnClick, but has not passed a live check yet.`;
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -230,7 +236,7 @@ export function ConnectAppModal({
           <div role="status" className="mb-3 flex items-start gap-2 rounded-lg border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-[11px] leading-4 text-sky-100">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
-              <strong>{statusLabel ?? "Needs check"}.</strong> {app.name} is saved in UnClick, but has not passed a live check yet.
+              <strong>{savedStatusTitle}.</strong> {savedStatusBody}
             </span>
           </div>
         )}

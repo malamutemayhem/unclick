@@ -15,6 +15,16 @@ means the same account is visible in three places:
 
 If those disagree, the app is not ready for users yet.
 
+Also keep two customer states separate:
+
+- **Saved/manageable:** the customer has added access. It belongs in Connected
+  apps and should offer Manage/Disconnect, even while it needs a live check.
+- **Verified/live:** the app has passed a real check. Only this earns the green
+  Connected badge and tool-facing proof.
+
+Never make the Connected apps lens depend only on verified/live proof, or saved
+OAuth/key rows disappear and customers think the connection failed.
+
 ## What the guard checks
 
 Run:
@@ -76,6 +86,11 @@ The guard verifies:
   `packages/mcp-server/src/keychain-tool.ts` all see the same connection
   sources: `platform_credentials`, `user_credentials`, and
   `managed_app_connections`.
+- `src/components/apps/appLenses.ts`,
+  `src/components/apps/ConnectAppModal.tsx`, and
+  `src/pages/admin/AdminTools.tsx` keep saved/manageable connection visibility
+  separate from verified/live proof. The Connected apps lens uses saved state;
+  the green Connected badge uses proof state.
 - When `--live-url` is passed, production `/api/oauth-init` returns a
   provider-ready login payload and not `setup_pending`. This catches the exact
   "code is live, provider env is missing client ID/client secret" failure.
@@ -91,7 +106,8 @@ npm run test:app-connections
 
 They intentionally break catalog visibility, Popular lens visibility, Connect
 page button allowlisting, setup-pending fallback, keychain parity, and OAuth env
-mapping to prove the guard catches the failures.
+mapping, plus the saved-vs-verified Admin Apps split, to prove the guard catches
+the failures.
 
 ## XPass routing
 
@@ -101,12 +117,13 @@ visibility, or keychain status select:
 
 - ConnectorPass for the combined app-bubble connection contract
 - TestPass for deterministic readiness proof
-- UXPass for login and fallback experience
+- UXPass for login, saved-state, and fallback experience
 - FlowPass for the OAuth journey
 - SecurityPass for OAuth and credential storage
 - RotatePass for credential lifecycle and redaction
 - CopyPass for public connection copy and fallback wording
-- CommonSensePass for "no connected badge without tool-facing proof"
+- CommonSensePass for "no connected badge without tool-facing proof" and "saved
+  connections must stay visible while waiting for proof"
 - SlopPass for implementation quality when source files change
 
 ## Live proof checklist

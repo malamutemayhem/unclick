@@ -7,13 +7,14 @@ import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
 import { applyLens, lensCounts, actionLabelFor, hasSavedConnection, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { CONNECTORS } from "@/lib/connectors";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 import { startHostedMcpLogin } from "./hostedMcpLogin";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
 // only to derive each app's connection status (connected / needs key / built-in)
 // and to feed the connect wizard.
-interface Connector {
+export interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
@@ -37,6 +38,28 @@ interface Connector {
       connected_at: string | null;
     } | null;
   } | null;
+}
+
+export function buildAdminConnectorMap(connectors: Connector[]) {
+  const map = new Map<string, Connector>();
+  for (const c of connectors) map.set(c.id, c);
+
+  for (const app of APP_CATALOG) {
+    if (map.has(app.slug)) continue;
+    const config = CONNECTORS[app.slug];
+    if (!config?.authType) continue;
+    map.set(app.slug, {
+      id: app.slug,
+      auth_type: config.authType,
+      setup_url: config.docsUrl ?? null,
+      credential: null,
+      supports_hosted_mcp_connection: app.slug === "higgsfield",
+      supports_managed_connection: false,
+      managed_provider_config_key: null,
+    });
+  }
+
+  return map;
 }
 
 export default function AdminToolsPage() {
@@ -89,9 +112,7 @@ export default function AdminToolsPage() {
   }, [refreshStatus]);
 
   const connectorBySlug = useMemo(() => {
-    const map = new Map<string, Connector>();
-    for (const c of connectors) map.set(c.id, c);
-    return map;
+    return buildAdminConnectorMap(connectors);
   }, [connectors]);
 
   const enabled = useMemo(() => {
@@ -152,7 +173,10 @@ export default function AdminToolsPage() {
       return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.credential?.is_valid) {
-      return { label: "Needs check", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      if (c.auth_type === "oauth2" || c.supports_hosted_mcp_connection || c.credential.source === "user_credentials") {
+        return { label: "Login saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      }
+      return { label: "Key saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -166,14 +190,14 @@ export default function AdminToolsPage() {
   // nothing to connect.
   function handleStatusClick(app: AppEntry) {
     if (!connectorBySlug.has(app.slug)) return;
-    setConnectTarget(app);
+    openAppConnection(app);
   }
 
   // Buttons say the action (Connect / Add key / Manage); pills say the truth.
   function actionOf(app: AppEntry) {
     const label = actionLabelFor(connectorBySlug.get(app.slug));
     if (!label) return null;
-    return { label, onClick: () => setConnectTarget(app) };
+    return { label, onClick: () => openAppConnection(app) };
   }
 
   function disconnectActionOf(app: AppEntry) {
@@ -207,16 +231,33 @@ export default function AdminToolsPage() {
     setConnectTarget(null);
   }
 
+  function connectionSignature(connector: Connector | undefined) {
+    const credential = connector?.credential;
+    return [
+      credential?.id ?? "",
+      credential?.is_valid ? "valid" : "invalid",
+      credential?.last_tested_at ?? "",
+      credential?.connection_state ?? "",
+      credential?.source ?? "",
+    ].join("|");
+  }
+
   function watchConnectionPopup(popup: Window | null, slug: string) {
     let tries = 0;
     const maxTries = 45;
+    const initialConnector = connectorBySlug.get(slug);
+    const initiallySaved = hasSavedConnection(initialConnector);
+    const initialSignature = connectionSignature(initialConnector);
     const timer = window.setInterval(() => {
       tries += 1;
       void refreshStatus().then((nextConnectors) => {
         const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
-        if (hasSavedConnection(connector) || popup?.closed || tries >= maxTries) {
+        const savedNow = hasSavedConnection(connector);
+        const changedSavedConnection = savedNow && connectionSignature(connector) !== initialSignature;
+        const shouldCloseForSavedConnection = savedNow && (!initiallySaved || changedSavedConnection);
+        if (shouldCloseForSavedConnection || popup?.closed || tries >= maxTries) {
           window.clearInterval(timer);
-          if (hasSavedConnection(connector) && popup && !popup.closed) popup.close();
+          if (shouldCloseForSavedConnection && popup && !popup.closed) popup.close();
         }
       });
     }, 2000);
@@ -234,6 +275,22 @@ export default function AdminToolsPage() {
     }
     popup.focus();
     watchConnectionPopup(popup, slug);
+  }
+
+  function shouldUseConnectPage(app: AppEntry) {
+    const connector = connectorBySlug.get(app.slug);
+    if (!connector) return false;
+    if (connector.supports_managed_connection || connector.supports_hosted_mcp_connection) return false;
+    const fieldCount = CONNECTORS[app.slug]?.credentialFields.length ?? 1;
+    return connector.auth_type === "oauth2" || fieldCount > 1;
+  }
+
+  function openAppConnection(app: AppEntry) {
+    if (shouldUseConnectPage(app)) {
+      openConnectionPopup(`/connect/${app.slug}`, app.slug);
+      return;
+    }
+    setConnectTarget(app);
   }
 
   async function beginManagedConnection(slug: string) {
