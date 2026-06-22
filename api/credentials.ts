@@ -118,45 +118,46 @@ async function refreshStoredCredential(params: {
 }): Promise<Record<string, string>> {
   const { platform, credentials, rowId, apiKey, supabaseUrl, serviceRoleKey, force } = params;
 
-  if (!needsRefresh(platform, credentials, force)) return credentials;
-
-  let refreshed: Record<string, string> | null = null;
   try {
-    refreshed = await refreshOAuthCredential(platform, credentials, process.env);
-  } catch {
-    refreshed = null;
-  }
-  if (!refreshed) return credentials;
+    if (!needsRefresh(platform, credentials, force)) return credentials;
 
-  // Persist the rotated token so the next read is already fresh, and stamp the
-  // proof fields (a successful refresh proves the credential is live). Storage is
-  // best-effort: if it fails we still hand back the freshly minted token.
-  if (rowId) {
-    try {
-      const salt = crypto.randomBytes(SALT_BYTES);
-      const key  = deriveKey(apiKey, salt);
-      const { iv, authTag, ciphertext } = encrypt(JSON.stringify(refreshed), key);
-      const now = new Date().toISOString();
-      await supabaseFetch(
-        `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(rowId)}`,
-        "PATCH",
-        { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
-        {
-          encrypted_data:  ciphertext,
-          encryption_iv:   iv,
-          encryption_tag:  authTag,
-          encryption_salt: salt.toString("hex"),
-          is_valid:        true,
-          last_tested_at:  now,
-          updated_at:      now,
-        }
-      );
-    } catch {
-      // persistence failure must not discard the fresh token
+    const refreshed = await refreshOAuthCredential(platform, credentials, process.env);
+    if (!refreshed) return credentials;
+
+    // Persist the rotated token so the next read is already fresh, and stamp the
+    // proof fields (a successful refresh proves the credential is live).
+    if (rowId) {
+      try {
+        const salt = crypto.randomBytes(SALT_BYTES);
+        const key  = deriveKey(apiKey, salt);
+        const { iv, authTag, ciphertext } = encrypt(JSON.stringify(refreshed), key);
+        const now = new Date().toISOString();
+        await supabaseFetch(
+          `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(rowId)}`,
+          "PATCH",
+          { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
+          {
+            encrypted_data:  ciphertext,
+            encryption_iv:   iv,
+            encryption_tag:  authTag,
+            encryption_salt: salt.toString("hex"),
+            is_valid:        true,
+            last_tested_at:  now,
+            updated_at:      now,
+          }
+        );
+      } catch {
+        // persistence is best-effort; still hand back the freshly minted token
+        return refreshed;
+      }
     }
-  }
 
-  return refreshed;
+    return refreshed;
+  } catch {
+    // Any unexpected failure falls back to the stored credential, so refresh can
+    // never be worse than not refreshing.
+    return credentials;
+  }
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
