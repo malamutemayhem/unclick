@@ -1,15 +1,24 @@
 import { stampMeta } from "./connector-meta.js";
-import { resolveCredentials } from "./vault-bridge.js";
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const ONEDRIVE_SOURCE = "Microsoft Graph OneDrive API";
 const TEXT_PREVIEW_LIMIT = 64_000;
 
-async function requireToken(args: Record<string, unknown>): Promise<string | Record<string, unknown>> {
+type ResolvedToken = { token: string; shouldMarkProof: boolean };
+type TokenResolutionError = Record<string, unknown> & { error: string };
+
+function isResolvedToken(auth: ResolvedToken | TokenResolutionError): auth is ResolvedToken {
+  return typeof (auth as { token?: unknown }).token === "string";
+}
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | TokenResolutionError> {
   const resolved = await resolveCredentials("onedrive", args);
-  if ("error" in resolved) return resolved;
+  if ("error" in resolved) return resolved as TokenResolutionError;
   const token = String(resolved.access_token ?? "").trim();
-  return token || { error: "OneDrive access_token could not be resolved." };
+  return token
+    ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
+    : { error: "OneDrive access_token could not be resolved." };
 }
 
 function isTextLike(metadata: Record<string, unknown>): boolean {
@@ -91,39 +100,41 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 }
 
 export async function onedriveList(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!isResolvedToken(auth)) return auth;
   const folderId = String(args.folder_id ?? "").trim();
   const path = folderId
     ? `/me/drive/items/${encodeURIComponent(folderId)}/children`
     : "/me/drive/root/children";
-  const { text } = await graphFetch(token, path, {
+  const { text } = await graphFetch(auth.token, path, {
     "$top": Math.min(200, Number(args.limit) || 50),
     "$select": "id,name,folder,file,size,webUrl,lastModifiedDateTime,@microsoft.graph.downloadUrl",
   });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("onedrive");
   return stamp(parseJson(text), ["Use onedrive_read with a returned file id to inspect metadata or a text preview."]);
 }
 
 export async function onedriveSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!isResolvedToken(auth)) return auth;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required." };
   const safeQuery = query.replace(/'/g, "''");
-  const { text } = await graphFetch(token, `/me/drive/root/search(q='${safeQuery}')`, {
+  const { text } = await graphFetch(auth.token, `/me/drive/root/search(q='${safeQuery}')`, {
     "$top": Math.min(100, Number(args.limit) || 25),
     "$select": "id,name,folder,file,size,webUrl,lastModifiedDateTime,@microsoft.graph.downloadUrl",
   });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("onedrive");
   return stamp(parseJson(text), ["Use onedrive_read with a returned file id to inspect a file."]);
 }
 
 export async function onedriveRead(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!isResolvedToken(auth)) return auth;
   const itemId = String(args.item_id ?? args.file_id ?? args.id ?? "").trim();
   if (!itemId) return { error: "item_id is required." };
 
-  const { text } = await graphFetch(token, `/me/drive/items/${encodeURIComponent(itemId)}`, {
+  const { text } = await graphFetch(auth.token, `/me/drive/items/${encodeURIComponent(itemId)}`, {
     "$select": "id,name,folder,file,size,webUrl,lastModifiedDateTime,@microsoft.graph.downloadUrl",
   });
   const metadata = parseJson<Record<string, unknown>>(text);
@@ -131,6 +142,7 @@ export async function onedriveRead(args: Record<string, unknown>): Promise<unkno
 
   if (downloadUrl && isTextLike(metadata)) {
     const content = await downloadText(downloadUrl);
+    if (auth.shouldMarkProof) await markCredentialLiveTested("onedrive");
     return stamp({
       file: metadata,
       text: content.slice(0, TEXT_PREVIEW_LIMIT),
@@ -138,6 +150,7 @@ export async function onedriveRead(args: Record<string, unknown>): Promise<unkno
     }, ["Use onedrive_search to find related files or narrow the query."]);
   }
 
+  if (auth.shouldMarkProof) await markCredentialLiveTested("onedrive");
   return stamp({
     file: metadata,
     text: null,

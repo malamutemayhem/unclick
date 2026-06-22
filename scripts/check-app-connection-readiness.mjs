@@ -42,6 +42,13 @@ const SOURCE_PATHS = {
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   hostedMcpBridge: "packages/mcp-server/src/higgsfield-tool.ts",
+  vaultBridge: "packages/mcp-server/src/vault-bridge.ts",
+  vercelTool: "packages/mcp-server/src/vercel-tool.ts",
+  supabaseTool: "packages/mcp-server/src/supabase-tool.ts",
+  dropboxTool: "packages/mcp-server/src/dropbox-tool.ts",
+  gmailTool: "packages/mcp-server/src/gmail-tool.ts",
+  googleDriveTool: "packages/mcp-server/src/google-drive-tool.ts",
+  onedriveTool: "packages/mcp-server/src/onedrive-tool.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
   toolWiring: "packages/mcp-server/src/tool-wiring.ts",
   adminMemory: "api/memory-admin.ts",
@@ -349,6 +356,26 @@ export function evaluateConnectionReadinessSources(
       && sources.credentialsApi.includes("managed_app_connections")
       && sources.credentialsApi.includes("fetchManagedConnectionCredentials"),
     "The credentials API can read stored OAuth/token rows and managed connection rows."
+  );
+
+  const proofStampTools = [
+    sources.vercelTool,
+    sources.supabaseTool,
+    sources.dropboxTool,
+    sources.gmailTool,
+    sources.googleDriveTool,
+    sources.onedriveTool,
+    sources.hostedMcpBridge,
+  ];
+  addCheck(
+    globalChecks,
+    "successful_tool_calls_stamp_live_connection_proof",
+    sources.credentialsApi.includes('req.method === "PATCH"')
+      && sources.credentialsApi.includes("last_tested_at: testedAt")
+      && sources.vaultBridge.includes("function credentialResolvedFromUnClick")
+      && sources.vaultBridge.includes("function markCredentialLiveTested")
+      && proofStampTools.every((source) => source.includes("markCredentialLiveTested")),
+    "A successful provider tool call can stamp live connection proof so saved apps move from Needs check to Connected."
   );
 
   addCheck(

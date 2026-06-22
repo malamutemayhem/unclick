@@ -193,6 +193,7 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
         waiting("Stored connection is usable", "Tools can use the account saved by the web login without asking for a pasted token again."),
         waiting("Token field stays optional", "Login-first tools keep raw token fields optional so stored credentials can satisfy calls."),
         waiting("Native tool shape is preserved", "Bridge code forwards the provider's expected argument shape instead of wrapping or dropping fields."),
+        waiting("Live proof writes back", "A successful provider call updates the saved connection so status reflects real tool access."),
         waiting("Connected badge is truthful", "Admin status merges every stored connection source the tool runtime can use."),
         waiting("Disconnect scope is clear", "Removing access affects the intended connection without surprising unrelated apps."),
         waiting("Generated setup data is fresh", "Generated connector setup and map artifacts are refreshed with the source change."),

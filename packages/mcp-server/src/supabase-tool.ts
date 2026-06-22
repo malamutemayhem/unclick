@@ -5,23 +5,31 @@
 import { requireCredential } from "./connector-setup.js";
 import { stampMeta } from "./connector-meta.js";
 import { type NotConnectedResult } from "./connection-help.js";
-import { resolveCredentials } from "./vault-bridge.js";
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
 
 const SUPABASE_MANAGEMENT_BASE = "https://api.supabase.com";
 
-type CredentialResult = string | NotConnectedResult | Record<string, unknown>;
+type ResolvedCredential = { token: string; shouldMarkProof: boolean };
+type CredentialResult = ResolvedCredential | NotConnectedResult | Record<string, unknown>;
+
+function isResolvedCredential(value: CredentialResult): value is ResolvedCredential {
+  return typeof (value as { token?: unknown }).token === "string";
+}
 
 async function getSupabaseToken(args: Record<string, unknown>): Promise<CredentialResult> {
   const inline = String(args.access_token ?? args.api_key ?? "").trim();
-  if (inline) return inline;
+  if (inline) return { token: inline, shouldMarkProof: false };
 
   const resolved = await resolveCredentials("supabase", args);
   if (!("error" in resolved)) {
     const token = String(resolved.access_token ?? resolved.api_key ?? "").trim();
-    if (token) return token;
+    if (token) return { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) };
   }
 
-  return requireCredential("supabase", args);
+  const fallback = requireCredential("supabase", args);
+  return typeof fallback === "string"
+    ? { token: fallback, shouldMarkProof: false }
+    : fallback;
 }
 
 async function supabaseRequest(
@@ -83,13 +91,14 @@ function arrayFromApi(data: unknown, fallbackKey: string): Record<string, unknow
 export async function listSupabaseProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (typeof token !== "string") return token;
+    if (!isResolvedCredential(token)) return token;
 
     const params: Record<string, string> = {};
     if (args.organization_id) params.organization_id = String(args.organization_id);
 
-    const data = await supabaseRequest(token, "/v1/projects", params);
+    const data = await supabaseRequest(token.token, "/v1/projects", params);
     const projects = arrayFromApi(data, "projects");
+    if (token.shouldMarkProof) await markCredentialLiveTested("supabase");
     return stampMeta({
       count: projects.length,
       projects: projects.map((project) => ({
@@ -116,11 +125,12 @@ export async function listSupabaseProjects(args: Record<string, unknown>): Promi
 export async function getSupabaseProject(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (typeof token !== "string") return token;
+    if (!isResolvedCredential(token)) return token;
     const projectRef = String(args.project_ref ?? args.ref ?? "").trim();
     if (!projectRef) return { error: "project_ref is required." };
 
-    const data = await supabaseRequest(token, `/v1/projects/${encodeURIComponent(projectRef)}`);
+    const data = await supabaseRequest(token.token, `/v1/projects/${encodeURIComponent(projectRef)}`);
+    if (token.shouldMarkProof) await markCredentialLiveTested("supabase");
     return stampMeta({
       project_ref: projectRef,
       project: data,
@@ -137,10 +147,11 @@ export async function getSupabaseProject(args: Record<string, unknown>): Promise
 export async function listSupabaseOrganizations(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (typeof token !== "string") return token;
+    if (!isResolvedCredential(token)) return token;
 
-    const data = await supabaseRequest(token, "/v1/organizations");
+    const data = await supabaseRequest(token.token, "/v1/organizations");
     const organizations = arrayFromApi(data, "organizations");
+    if (token.shouldMarkProof) await markCredentialLiveTested("supabase");
     return stampMeta({
       count: organizations.length,
       organizations: organizations.map((organization) => ({
