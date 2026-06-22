@@ -38,6 +38,7 @@ const SOURCE_PATHS = {
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
   adminTools: "src/pages/admin/AdminTools.tsx",
+  hostedMcpLogin: "src/pages/admin/hostedMcpLogin.ts",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
@@ -285,6 +286,22 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
+    "admin_apps_center_connect_popups",
+    sources.adminTools.includes("const width = 560")
+      && sources.adminTools.includes("const height = 760")
+      && sources.adminTools.includes("const left = Math.max")
+      && sources.adminTools.includes("const top = Math.max")
+      && sources.adminTools.includes("left=${left},top=${top}")
+      && sources.hostedMcpLogin.includes("const width = 560")
+      && sources.hostedMcpLogin.includes("const height = 760")
+      && sources.hostedMcpLogin.includes("const left = Math.max")
+      && sources.hostedMcpLogin.includes("const top = Math.max")
+      && sources.hostedMcpLogin.includes("left=${left},top=${top}"),
+    "Admin Apps opens provider and hosted MCP sign-in popups centered on the user's current browser window."
+  );
+
+  addCheck(
+    globalChecks,
     "admin_apps_registry_fallback_keeps_login_apps_connectable",
     sources.adminTools.includes("function buildAdminConnectorMap")
       && sources.adminTools.includes("CONNECTORS[app.slug]")
@@ -296,10 +313,12 @@ export function evaluateConnectionReadinessSources(
   addCheck(
     globalChecks,
     "admin_apps_saved_status_uses_customer_language",
-    sources.adminTools.includes('label: "Login saved"')
-      && sources.adminTools.includes('label: "Key saved"')
-      && sources.connectAppModal.includes("will verify it when"),
-    "Saved but unproven credentials use customer-facing saved-state labels instead of sounding broken."
+    sources.adminTools.includes("if (c.credential?.is_valid)")
+      && sources.adminTools.includes('label: "Connected"')
+      && sources.connectAppModal.includes('statusLabel ?? "Connected"')
+      && sources.connectAppModal.includes("is connected in UnClick")
+      && sources.connectAppModal.includes("can use this connection across your devices"),
+    "Saved credentials use customer-facing Connected language instead of sounding broken."
   );
 
   addCheck(
@@ -342,8 +361,8 @@ export function evaluateConnectionReadinessSources(
     && /case\s+"not-connected"\s*:\s*return\s+Boolean\(connector\)\s*&&\s*!hasSavedConnection\(connector\)/.test(sources.appLenses)
     && /if\s*\(\s*hasSavedConnection\(connector\)\s*\)\s*return\s+"Manage"/.test(sources.appLenses);
   const adminModalShowsSavedUnproven = sources.connectAppModal.includes("hasSavedConnection")
-    && sources.connectAppModal.includes("saved in UnClick")
-    && sources.connectAppModal.includes("has not passed a live check yet");
+    && sources.connectAppModal.includes("is connected in UnClick")
+    && sources.connectAppModal.includes("can use this connection across your devices");
   const adminPopupAcceptsSavedConnection = sources.adminTools.includes("watchConnectionPopup")
     && sources.adminTools.includes("hasSavedConnection(connector)");
   addCheck(

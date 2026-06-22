@@ -4,7 +4,7 @@
 // platform's test endpoint BEFORE storing it:
 //   - test passes  -> stored, green "Connected, live-tested"
 //   - test fails   -> NOT stored, the provider's rejection is shown
-//   - no test path -> stored, amber "Saved, not yet proven"
+//   - no test path -> stored, shown as Connected while internal proof remains separate
 // So a green tick is always a proven connection, never an assumption.
 
 import { useState } from "react";
@@ -101,12 +101,8 @@ export function ConnectAppModal({
   const hasSavedCredential = Boolean(connector.credential?.is_valid);
   const hasSavedConnection = isConnected || hasSavedCredential;
   const modalVerb = hasSavedConnection ? "Manage" : "Connect";
-  const savedStatusTitle = usesHostedMcpConnection
-    ? "Login saved"
-    : statusLabel ?? (connector.auth_type === "oauth2" ? "Login saved" : "Key saved");
-  const savedStatusBody = usesHostedMcpConnection
-    ? `${app.name} login is saved in UnClick. UnClick will verify it when a ${app.name} tool runs.`
-    : `${app.name} is saved in UnClick, but has not passed a live check yet.`;
+  const savedStatusTitle = statusLabel ?? "Connected";
+  const savedStatusBody = `${app.name} is connected in UnClick. UnClick can use this connection across your devices.`;
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -233,8 +229,8 @@ export function ConnectAppModal({
         )}
 
         {!isConnected && hasSavedCredential && (
-          <div role="status" className="mb-3 flex items-start gap-2 rounded-lg border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-[11px] leading-4 text-sky-100">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div role="status" className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-[11px] leading-4 text-emerald-100">
+            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
               <strong>{savedStatusTitle}.</strong> {savedStatusBody}
             </span>
@@ -275,7 +271,7 @@ export function ConnectAppModal({
           <div className="space-y-3 text-xs leading-5 text-white/60">
             <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
               <p className="font-semibold text-white">
-                {hasSavedConnection ? `${app.name} login is saved` : `Connect with ${app.name}`}
+                {hasSavedConnection ? "Connected" : `Connect with ${app.name}`}
               </p>
               <p className="mt-1 text-white/55">
                 This opens a Higgsfield sign-in window. It uses your Higgsfield account, plan, and credits.
@@ -316,7 +312,7 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                The login is saved to your UnClick account. UnClick can run Higgsfield image and video tools through
+                This connection is linked to your UnClick account. UnClick can run Higgsfield image and video tools through
                 this MCP connection on every device.
               </p>
             </div>

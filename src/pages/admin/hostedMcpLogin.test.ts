@@ -32,6 +32,10 @@ function fakeWindow() {
     focus,
     windowRef: {
       open,
+      screenLeft: 100,
+      screenTop: 50,
+      outerWidth: 1200,
+      outerHeight: 900,
       location: { assign: windowAssign },
     } as unknown as Window,
     open,
@@ -67,6 +71,7 @@ describe("hostedMcpLogin", () => {
 
     expect(popup).toBe(fake.popup);
     expect(fake.open).toHaveBeenCalledWith("", "unclick_connect_higgsfield", expect.stringContaining("popup=yes"));
+    expect(fake.open).toHaveBeenCalledWith("", "unclick_connect_higgsfield", expect.stringContaining("left=420,top=120"));
     expect(fake.popupAssign).toHaveBeenCalledWith("https://mcp.higgsfield.ai/oauth2/authorize?client_id=test");
     expect(fake.close).not.toHaveBeenCalled();
   });

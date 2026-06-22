@@ -23,10 +23,26 @@ interface HostedMcpLoginOptions {
 }
 
 export function openHostedConnectionPopup(windowRef: Window, slug: string): Window | null {
+  const width = 560;
+  const height = 760;
+  const dualScreenLeft = windowRef.screenLeft ?? windowRef.screenX ?? 0;
+  const dualScreenTop = windowRef.screenTop ?? windowRef.screenY ?? 0;
+  const viewportWidth =
+    windowRef.outerWidth
+    || windowRef.document?.documentElement?.clientWidth
+    || windowRef.screen?.width
+    || width;
+  const viewportHeight =
+    windowRef.outerHeight
+    || windowRef.document?.documentElement?.clientHeight
+    || windowRef.screen?.height
+    || height;
+  const left = Math.max(0, Math.round(dualScreenLeft + (viewportWidth - width) / 2));
+  const top = Math.max(0, Math.round(dualScreenTop + (viewportHeight - height) / 2));
   const popup = windowRef.open(
     "",
     `unclick_connect_${slug}`,
-    "popup=yes,width=560,height=760",
+    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
   );
   if (!popup) return null;
   popup.focus();

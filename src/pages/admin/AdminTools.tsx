@@ -173,10 +173,7 @@ export default function AdminToolsPage() {
       return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.credential?.is_valid) {
-      if (c.auth_type === "oauth2" || c.supports_hosted_mcp_connection || c.credential.source === "user_credentials") {
-        return { label: "Login saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
-      }
-      return { label: "Key saved", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -264,10 +261,18 @@ export default function AdminToolsPage() {
   }
 
   function openConnectionPopup(url: string, slug: string) {
+    const width = 560;
+    const height = 760;
+    const dualScreenLeft = window.screenLeft ?? window.screenX ?? 0;
+    const dualScreenTop = window.screenTop ?? window.screenY ?? 0;
+    const viewportWidth = window.outerWidth || document.documentElement.clientWidth || screen.width;
+    const viewportHeight = window.outerHeight || document.documentElement.clientHeight || screen.height;
+    const left = Math.max(0, Math.round(dualScreenLeft + (viewportWidth - width) / 2));
+    const top = Math.max(0, Math.round(dualScreenTop + (viewportHeight - height) / 2));
     const popup = window.open(
       url,
       `unclick_connect_${slug}`,
-      "popup=yes,width=560,height=760",
+      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
     );
     if (!popup) {
       window.location.assign(url);
