@@ -463,6 +463,29 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
+    "builder_runtime_preflight_separates_profiles_from_session_credentials",
+    sources.builderAccessProfiles.includes("BUILDER_SESSION_PROVISIONING_CONTRACTS")
+      && sources.builderAccessProfiles.includes("inferBuilderRuntimeCapabilities")
+      && sources.builderAccessProfiles.includes("ConnectorAccessPlane")
+      && sources.builderAccessProfiles.includes("direct_session_connector")
+      && sources.builderAccessProfiles.includes("unclick_internal_connector")
+      && sources.builderAccessProfiles.includes("unclick_github_connection_available")
+      && sources.builderAccessProfiles.includes("unclick_github_branch_write_verified")
+      && sources.builderAccessProfiles.includes("unclick_github_contents_write_verified")
+      && sources.builderAccessProfiles.includes("github_connected_catalog_visible")
+      && sources.builderAccessProfiles.includes("direct_session_git_credential_available")
+      && sources.builderAccessProfiles.includes("git_credential_helper_configured")
+      && sources.builderAccessProfiles.includes("git_proxy_auth_configured")
+      && sources.builderAccessProfiles.includes("git_push_probe_succeeded")
+      && sources.builderAccessProfiles.includes("writable_github_mcp_connected")
+      && sources.builderAccessProfiles.includes("github_contents_write_verified")
+      && sources.builderAccessProfiles.includes("A connected GitHub app inside UnClick is not the same thing as a direct session git credential")
+      && sources.builderAccessProfiles.includes("vercel_team_scope_verified"),
+    "Builder runtime preflight separates direct session connectors from UnClick-internal connectors and requires proven startup credentials or writable APIs."
+  );
+
+  addCheck(
+    globalChecks,
     "builder_provider_matrix_covers_github_vercel_supabase",
     sources.builderAccessProfiles.includes("BUILDER_PROVIDER_REQUIREMENTS")
       && sources.builderAccessProfiles.includes("github:")

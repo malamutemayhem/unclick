@@ -191,6 +191,8 @@ export const BUILDER_ACCESS_PROFILES: Record<BuilderAccessProfile, BuilderProfil
 
 export type BuilderProvider = "github" | "vercel" | "supabase";
 
+export type ConnectorAccessPlane = "direct_session_connector" | "unclick_internal_connector";
+
 export interface BuilderProviderRequirements {
   minimumProfile: BuilderAccessProfile;
   secretWorkProfile: BuilderAccessProfile;
@@ -266,6 +268,118 @@ export const BUILDER_PROVIDER_REQUIREMENTS: Record<BuilderProvider, BuilderProvi
   },
 } as const;
 
+export type BuilderRuntimeEvidence =
+  | "github_connected_catalog_visible"
+  | "unclick_github_connection_available"
+  | "direct_session_git_credential_available"
+  | "git_credential_helper_configured"
+  | "git_proxy_auth_configured"
+  | "git_push_probe_succeeded"
+  | "direct_session_writable_github_mcp_connected"
+  | "writable_github_mcp_connected"
+  | "github_contents_write_verified"
+  | "unclick_github_branch_write_verified"
+  | "unclick_github_contents_write_verified"
+  | "unclick_github_pull_request_write_verified"
+  | "unclick_github_checks_read_verified"
+  | "github_pull_request_write_verified"
+  | "github_checks_read_verified"
+  | "vercel_connected_catalog_visible"
+  | "unclick_vercel_connection_available"
+  | "vercel_team_scope_verified"
+  | "vercel_project_write_verified"
+  | "vercel_deployment_inspect_verified"
+  | "vercel_env_write_verified"
+  | "vercel_domain_write_verified"
+  | "supabase_connected_catalog_visible"
+  | "unclick_supabase_connection_available"
+  | "supabase_organizations_read_verified"
+  | "supabase_projects_read_verified"
+  | "supabase_database_write_verified"
+  | "supabase_secret_write_verified";
+
+export interface BuilderSessionProvisioningContract {
+  provider: BuilderProvider;
+  connectorPlanes: readonly ConnectorAccessPlane[];
+  requiredAtStartup: readonly string[];
+  acceptedEvidence: readonly BuilderRuntimeEvidence[];
+  nonProofSignals: readonly BuilderRuntimeEvidence[];
+  failureMode: string;
+}
+
+export const BUILDER_SESSION_PROVISIONING_CONTRACTS: Record<
+  BuilderProvider,
+  BuilderSessionProvisioningContract
+> = {
+  github: {
+    provider: "github",
+    connectorPlanes: ["direct_session_connector", "unclick_internal_connector"],
+    requiredAtStartup: [
+      "a direct-session git credential and successful push probe, or a writable GitHub API path exposed through the active connector plane",
+      "branch create/push proof",
+      "pull request write proof",
+      "checks read proof",
+    ],
+    acceptedEvidence: [
+      "direct_session_git_credential_available",
+      "git_credential_helper_configured",
+      "git_proxy_auth_configured",
+      "git_push_probe_succeeded",
+      "direct_session_writable_github_mcp_connected",
+      "writable_github_mcp_connected",
+      "github_contents_write_verified",
+      "unclick_github_branch_write_verified",
+      "unclick_github_contents_write_verified",
+      "unclick_github_pull_request_write_verified",
+      "unclick_github_checks_read_verified",
+      "github_pull_request_write_verified",
+      "github_checks_read_verified",
+    ],
+    nonProofSignals: ["github_connected_catalog_visible", "unclick_github_connection_available"],
+    failureMode:
+      "A connected GitHub app inside UnClick is not the same thing as a direct session git credential. It is builder-ready only when the UnClick bridge exposes and proves branch/contents, PR, and checks write/read actions.",
+  },
+  vercel: {
+    provider: "vercel",
+    connectorPlanes: ["direct_session_connector", "unclick_internal_connector"],
+    requiredAtStartup: [
+      "team/project scope proof",
+      "deployment create or inspect proof",
+      "environment variable write proof for secret work",
+      "domain/alias write proof when assigned",
+    ],
+    acceptedEvidence: [
+      "vercel_team_scope_verified",
+      "vercel_project_write_verified",
+      "vercel_deployment_inspect_verified",
+      "vercel_env_write_verified",
+      "vercel_domain_write_verified",
+    ],
+    nonProofSignals: ["vercel_connected_catalog_visible", "unclick_vercel_connection_available"],
+    failureMode:
+      "A connected Vercel app inside UnClick is not the same thing as a direct Vercel session connector. It is builder-ready only when the active plane proves target team/project deployment and env scope.",
+  },
+  supabase: {
+    provider: "supabase",
+    connectorPlanes: ["direct_session_connector", "unclick_internal_connector"],
+    requiredAtStartup: [
+      "organization read proof",
+      "project read proof",
+      "database or function write proof when assigned",
+      "secret write/rotation proof when assigned",
+    ],
+    acceptedEvidence: [
+      "supabase_organizations_read_verified",
+      "supabase_projects_read_verified",
+      "supabase_database_write_verified",
+      "supabase_secret_write_verified",
+    ],
+    nonProofSignals: ["supabase_connected_catalog_visible", "unclick_supabase_connection_available"],
+    failureMode:
+      "A connected Supabase app inside UnClick is not the same thing as a direct Supabase session connector. It is builder-ready only when the active plane proves Management API organization/project access and assigned mutation scope.",
+  },
+} as const;
+
 export interface BuilderAccessPlan {
   profile: BuilderAccessProfile;
   provider: BuilderProvider;
@@ -287,6 +401,70 @@ export function requiredProfileForProvider(
 ): BuilderAccessProfile {
   const requirements = BUILDER_PROVIDER_REQUIREMENTS[provider];
   return needsSecretWork ? requirements.secretWorkProfile : requirements.minimumProfile;
+}
+
+export function inferBuilderRuntimeCapabilities(
+  provider: BuilderProvider,
+  evidence: readonly BuilderRuntimeEvidence[]
+): string[] {
+  const seen = new Set(evidence);
+  const capabilities = new Set<string>();
+
+  if (provider === "github") {
+    const hasGitPushPath =
+      (seen.has("direct_session_git_credential_available") || seen.has("git_credential_helper_configured"))
+      && seen.has("git_proxy_auth_configured")
+      && seen.has("git_push_probe_succeeded");
+    const hasWritableGithubApiPath =
+      (seen.has("writable_github_mcp_connected") || seen.has("direct_session_writable_github_mcp_connected"))
+      && seen.has("github_contents_write_verified");
+    const hasUnClickGithubWritePath =
+      seen.has("unclick_github_branch_write_verified")
+      && seen.has("unclick_github_contents_write_verified");
+
+    if (hasGitPushPath || hasWritableGithubApiPath || hasUnClickGithubWritePath) {
+      capabilities.add("github_contents_write_or_git_push_credential");
+      capabilities.add("branch_create_and_push");
+    }
+    if (seen.has("github_pull_request_write_verified") || seen.has("unclick_github_pull_request_write_verified")) {
+      capabilities.add("pull_request_create_or_update");
+    }
+    if (seen.has("github_checks_read_verified") || seen.has("unclick_github_checks_read_verified")) {
+      capabilities.add("checks_read");
+    }
+  }
+
+  if (provider === "vercel") {
+    if (seen.has("vercel_team_scope_verified") && seen.has("vercel_project_write_verified")) {
+      capabilities.add("vercel_project_read_write");
+    }
+    if (seen.has("vercel_deployment_inspect_verified")) {
+      capabilities.add("deployment_create_and_inspect");
+    }
+    if (seen.has("vercel_env_write_verified")) {
+      capabilities.add("environment_variable_write");
+    }
+    if (seen.has("vercel_domain_write_verified")) {
+      capabilities.add("domain_alias_write_when_assigned");
+    }
+  }
+
+  if (provider === "supabase") {
+    if (seen.has("supabase_organizations_read_verified")) {
+      capabilities.add("organizations_read");
+    }
+    if (seen.has("supabase_projects_read_verified")) {
+      capabilities.add("projects_read");
+    }
+    if (seen.has("supabase_database_write_verified")) {
+      capabilities.add("database_or_edge_function_write_when_assigned");
+    }
+    if (seen.has("supabase_secret_write_verified")) {
+      capabilities.add("secret_write_or_rotation_when_assigned");
+    }
+  }
+
+  return [...capabilities];
 }
 
 export function validateBuilderAccessPlan(plan: BuilderAccessPlan): string[] {
