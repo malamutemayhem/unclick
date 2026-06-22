@@ -168,10 +168,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
 | src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
-| src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
+| src/pages/Privacy.tsx | c377de0c911d | 13282 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | a4a3a90a94bc | 17797 |
-| src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
+| src/pages/Terms.tsx | fec94321205b | 9326 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |

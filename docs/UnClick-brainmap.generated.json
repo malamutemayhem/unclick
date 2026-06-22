@@ -16670,8 +16670,8 @@
     },
     {
       "source": "src/pages/Privacy.tsx",
-      "hash": "a8d0decbfea8",
-      "bytes": 11446
+      "hash": "c377de0c911d",
+      "bytes": 13282
     },
     {
       "source": "src/pages/Signup.tsx",
@@ -16685,8 +16685,8 @@
     },
     {
       "source": "src/pages/Terms.tsx",
-      "hash": "4613736d1aa8",
-      "bytes": 9327
+      "hash": "fec94321205b",
+      "bytes": 9326
     },
     {
       "source": "src/pages/tools/LinkInBio.tsx",
