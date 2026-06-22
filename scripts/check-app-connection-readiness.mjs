@@ -41,6 +41,7 @@ const SOURCE_PATHS = {
   hostedMcpLogin: "src/pages/admin/hostedMcpLogin.ts",
   appIcon: "src/components/apps/AppIcon.tsx",
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
+  hostedMcpBridge: "packages/mcp-server/src/higgsfield-tool.ts",
   keychainTool: "packages/mcp-server/src/keychain-tool.ts",
   toolWiring: "packages/mcp-server/src/tool-wiring.ts",
   adminMemory: "api/memory-admin.ts",
@@ -319,6 +320,26 @@ export function evaluateConnectionReadinessSources(
       && sources.connectAppModal.includes("is connected in UnClick")
       && sources.connectAppModal.includes("can use this connection across your devices"),
     "Saved credentials use customer-facing Connected language instead of sounding broken."
+  );
+
+  addCheck(
+    globalChecks,
+    "oauth_start_owns_provider_authorization_url",
+    sources.oauthInit.includes("AUTHORIZE_SCOPES")
+      && sources.oauthInit.includes("function buildAuthorizationUrl")
+      && sources.oauthInit.includes("authorization_url: authorizationUrl")
+      && sources.connectPage.includes("data.authorization_url ?? buildOAuthUrl"),
+    "The OAuth start endpoint returns the provider sign-in URL with the same scopes the backend expects, while the page keeps a browser fallback."
+  );
+
+  addCheck(
+    globalChecks,
+    "hosted_mcp_tool_arguments_keep_native_shape",
+    sources.hostedMcpBridge.includes("params: { name: toolName, arguments: toolArgs }")
+      && !sources.hostedMcpBridge.includes("arguments: { params: toolArgs }")
+      && sources.hostedMcpBridge.includes("modelExploreCandidates")
+      && !/return\s+uniqueNativeArgCandidates\(\s*\[\s*\.\.\.actions[\s\S]*?,\s*base\s*,?\s*\]/.test(sources.hostedMcpBridge),
+    "Hosted MCP bridge calls pass native tool arguments directly and avoid actionless model-exploration retries."
   );
 
   addCheck(

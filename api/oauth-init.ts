@@ -80,6 +80,63 @@ const PLATFORM_LABELS: Record<string, string> = {
   "microsoft-graph": "Microsoft Graph",
   higgsfield: "Higgsfield",
 };
+const AUTHORIZE_URLS: Record<string, string> = {
+  github: "https://github.com/login/oauth/authorize",
+  vercel: "https://vercel.com/oauth/authorize",
+  supabase: "https://api.supabase.com/v1/oauth/authorize",
+  xero: "https://login.xero.com/identity/connect/authorize",
+  reddit: "https://www.reddit.com/api/v1/authorize",
+  shopify: "https://{store}.myshopify.com/admin/oauth/authorize",
+  spotify: "https://accounts.spotify.com/authorize",
+  dropbox: "https://www.dropbox.com/oauth2/authorize",
+  gmail: "https://accounts.google.com/o/oauth2/v2/auth",
+  "google-drive": "https://accounts.google.com/o/oauth2/v2/auth",
+  "google-workspace": "https://accounts.google.com/o/oauth2/v2/auth",
+  onedrive: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+  "microsoft-graph": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+};
+const AUTHORIZE_SCOPES: Record<string, string[]> = {
+  github: ["repo", "workflow", "read:user", "user:email"],
+  vercel: ["openid", "email", "profile", "offline_access"],
+  supabase: ["projects:read", "organizations:read"],
+  xero: [
+    "accounting.transactions.read",
+    "accounting.transactions",
+    "accounting.contacts.read",
+    "accounting.contacts",
+    "accounting.reports.read",
+    "accounting.settings.read",
+  ],
+  reddit: ["read", "submit", "vote", "subscribe", "identity", "history"],
+  shopify: [
+    "read_products",
+    "write_products",
+    "read_orders",
+    "write_orders",
+    "read_customers",
+    "write_customers",
+    "read_inventory",
+    "write_inventory",
+  ],
+  spotify: ["user-read-private", "playlist-read-private", "user-library-read", "user-top-read"],
+  dropbox: ["files.metadata.read", "files.content.read", "account_info.read"],
+  gmail: ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.send"],
+  "google-drive": ["https://www.googleapis.com/auth/drive.readonly"],
+  "google-workspace": [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/calendar",
+  ],
+  onedrive: ["offline_access", "User.Read", "Files.Read"],
+  "microsoft-graph": ["offline_access", "User.Read", "Mail.Read", "Mail.Send", "Calendars.ReadWrite", "Files.ReadWrite"],
+};
+const AUTHORIZE_EXTRA_PARAMS: Record<string, Record<string, string>> = {
+  dropbox: { token_access_type: "offline" },
+  gmail: { access_type: "offline", prompt: "consent" },
+  "google-drive": { access_type: "offline", prompt: "consent" },
+  "google-workspace": { access_type: "offline", prompt: "consent" },
+};
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const HIGGSFIELD_MCP_REGISTER_URL = "https://mcp.higgsfield.ai/oauth2/register";
 const HIGGSFIELD_MCP_AUTHORIZE_URL = "https://mcp.higgsfield.ai/oauth2/authorize";
@@ -187,6 +244,40 @@ function providerSetupPending(res: VercelResponse, platform: string, missing: OA
     missing: missing[0],
     missing_fields: missing,
   });
+}
+
+function buildAuthorizationUrl(args: {
+  platform: string;
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  normalizedStore?: string;
+  codeChallenge?: string;
+  codeChallengeMethod?: string;
+}): string | null {
+  const { platform, clientId, redirectUri, state, normalizedStore, codeChallenge, codeChallengeMethod } = args;
+  let authUrl = AUTHORIZE_URLS[platform];
+  if (!authUrl) return null;
+  if (platform === "shopify") {
+    if (!normalizedStore) return null;
+    authUrl = authUrl.replace("{store}", normalizedStore);
+  }
+
+  const url = new URL(authUrl);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("client_id", clientId);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("state", state);
+  for (const [key, value] of Object.entries(AUTHORIZE_EXTRA_PARAMS[platform] ?? {})) {
+    url.searchParams.set(key, value);
+  }
+  const scope = AUTHORIZE_SCOPES[platform]?.join(" ") ?? "";
+  if (scope) url.searchParams.set("scope", scope);
+  if (codeChallenge) {
+    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("code_challenge_method", codeChallengeMethod ?? "S256");
+  }
+  return url.toString();
 }
 
 function hasStateSigningSecret(env: NodeJS.ProcessEnv): boolean {
@@ -324,6 +415,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cookies = [serializeOAuthApiKeyCookie(api_key)];
     const pkce = PKCE_PLATFORMS.has(platform) ? createPkcePair() : null;
     if (pkce) cookies.push(serializePkceVerifierCookie(pkce.codeVerifier));
+    const authorizationUrl = buildAuthorizationUrl({
+      platform,
+      clientId,
+      redirectUri,
+      state,
+      normalizedStore,
+      codeChallenge: pkce?.codeChallenge,
+      codeChallengeMethod: pkce ? "S256" : undefined,
+    });
+    const scope = AUTHORIZE_SCOPES[platform]?.join(" ") ?? "";
 
     res.setHeader("Set-Cookie", cookies);
     return res.status(200).json({
@@ -331,6 +432,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       state,
       redirect_uri: redirectUri,
       client_id: clientId,
+      ...(scope ? { scope } : {}),
+      ...(authorizationUrl ? { authorization_url: authorizationUrl } : {}),
       ...(pkce ? { code_challenge: pkce.codeChallenge, code_challenge_method: "S256" } : {}),
     });
   } catch (err) {
