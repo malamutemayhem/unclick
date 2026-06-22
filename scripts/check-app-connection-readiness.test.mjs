@@ -46,6 +46,7 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "admin_apps_separates_saved_visibility_from_live_proof" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "oauth_saved_web_login_wins_over_legacy_keychain" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "public_mcp_stale_auth_keeps_pairing_available" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "supabase_oauth_proves_management_api_before_connected" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -248,6 +249,21 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /oauth_saved_web_login_wins_over_legacy_keychain/);
+  });
+
+  it("blocks when Supabase OAuth can save a token without Management API proof", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.oauthCallback = sources.oauthCallback
+      .replace("await verifySupabaseManagementAccess(credentials);", "// proof skipped")
+      .replace("/v1/organizations", "/v1/no-proof");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /supabase_oauth_proves_management_api_before_connected/);
   });
 
   it("blocks when OAuth review legal pages are not prerendered", async () => {

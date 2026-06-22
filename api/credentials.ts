@@ -11,7 +11,7 @@
  *
  * POST /api/credentials
  *   Body: { platform: string, credentials: Record<string, string>,
- *           api_key: string, label?: string }
+ *           api_key: string, label?: string, mark_tested?: boolean }
  *   Encrypts and stores credentials in Supabase user_credentials table.
  *   Upserts on (api_key_hash, platform_slug, label). Pass different
  *   labels to store multiple credentials for the same platform.
@@ -305,9 +305,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       credentials: Record<string, string>;
       api_key:     string;
       label?:      string;
+      mark_tested?: boolean;
     };
 
-    const { platform, credentials, api_key, label } = body ?? {};
+    const { platform, credentials, api_key, label, mark_tested } = body ?? {};
     if (!platform)    return res.status(400).json({ error: "platform is required." });
     if (!credentials) return res.status(400).json({ error: "credentials is required." });
     if (!api_key)     return res.status(400).json({ error: "api_key is required." });
@@ -325,6 +326,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Label normalization: empty string → null (treat "no label" uniformly).
     const normalizedLabel = label && label.trim() ? label.trim() : null;
 
+    const updatedAt = new Date().toISOString();
     const row = {
       api_key_hash:    sha256hex(api_key),
       platform_slug:   platform,
@@ -333,7 +335,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       encryption_iv:   iv,
       encryption_tag:  authTag,
       encryption_salt: salt.toString("hex"),
-      updated_at:      new Date().toISOString(),
+      ...(mark_tested ? { is_valid: true, last_tested_at: updatedAt } : {}),
+      updated_at:      updatedAt,
     };
 
     // Upsert on the (api_key_hash, platform_slug, label) unique index.

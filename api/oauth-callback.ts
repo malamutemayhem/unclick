@@ -389,18 +389,58 @@ async function exchangeCode(
   return config.extractCredentials(tokenResponse, "", env);
 }
 
+// ─── Provider credential proof ───────────────────────────────────────────────
+
+async function verifySupabaseManagementAccess(credentials: Record<string, string>): Promise<void> {
+  const accessToken = credentials.access_token ?? "";
+  if (!accessToken) {
+    throw new OAuthRequestError("Supabase login did not return an access token. Please reconnect Supabase.");
+  }
+
+  const checks = [
+    { path: "/v1/organizations", permission: "organization read" },
+    { path: "/v1/projects", permission: "project read" },
+  ];
+
+  for (const check of checks) {
+    const res = await fetch(`https://api.supabase.com${check.path}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (res.ok) continue;
+
+    if (res.status === 401) {
+      throw new OAuthRequestError("Supabase login returned an invalid or expired token. Please reconnect Supabase.");
+    }
+
+    if (res.status === 403) {
+      throw new OAuthRequestError(
+        "Supabase sign-in worked, but UnClick could not finish because the Supabase OAuth app did not grant Management API organization/project read access. Enable those read permissions on the Supabase OAuth app, then reconnect."
+      );
+    }
+
+    throw new OAuthRequestError(
+      `Supabase Management API ${check.permission} proof failed (${res.status}). Please reconnect Supabase.`
+    );
+  }
+}
+
 // ─── Store credentials via internal credentials endpoint ──────────────────────
 
 async function storeCredentials(
   platform:    string,
   credentials: Record<string, string>,
   apiKey:      string,
-  baseUrl:     string
+  baseUrl:     string,
+  markTested = false
 ): Promise<void> {
   const res = await fetch(`${baseUrl}/api/credentials`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ platform, credentials, api_key: apiKey }),
+    body:    JSON.stringify({ platform, credentials, api_key: apiKey, mark_tested: markTested }),
   });
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -598,7 +638,10 @@ async function completeOAuthConnection(args: {
     credentials = await exchangeCode(config, code, env, codeVerifier);
   }
 
-  await storeCredentials(platform, credentials, apiKey, baseUrl);
+  const markTested = platform === "supabase";
+  if (markTested) await verifySupabaseManagementAccess(credentials);
+
+  await storeCredentials(platform, credentials, apiKey, baseUrl, markTested);
   return { platform, statePayload };
 }
 

@@ -345,6 +345,22 @@ export function evaluateConnectionReadinessSources(
     "The OAuth start endpoint returns the provider sign-in URL with the same scopes the backend expects, while the page keeps a browser fallback."
   );
 
+  const supabaseProofIndex = sources.oauthCallback.indexOf("await verifySupabaseManagementAccess(credentials)");
+  const supabaseStoreIndex = sources.oauthCallback.indexOf("await storeCredentials(platform, credentials, apiKey, baseUrl, markTested)");
+  addCheck(
+    globalChecks,
+    "supabase_oauth_proves_management_api_before_connected",
+    sources.oauthCallback.includes("function verifySupabaseManagementAccess")
+      && sources.oauthCallback.includes("/v1/organizations")
+      && sources.oauthCallback.includes("/v1/projects")
+      && sources.oauthCallback.includes('platform === "supabase"')
+      && supabaseProofIndex >= 0
+      && supabaseStoreIndex > supabaseProofIndex
+      && sources.credentialsApi.includes("mark_tested")
+      && sources.credentialsApi.includes("last_tested_at: updatedAt"),
+    "Supabase OAuth proves Management API organization/project read access before saving and stamping the connector as connected."
+  );
+
   addCheck(
     globalChecks,
     "hosted_mcp_tool_arguments_keep_native_shape",

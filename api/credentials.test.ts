@@ -74,4 +74,36 @@ describe("credentials API cache headers", () => {
     expect(String(init.body)).toContain("last_tested_at");
     expect(String(init.body)).not.toMatch(/access_token|api_key|secret|password/i);
   });
+
+  it("can stamp live proof while storing a server-verified OAuth credential", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      json: async () => [{ id: "cred_1" }],
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = createResponse();
+    const body = await handler({
+      method: "POST",
+      headers: {},
+      body: {
+        platform: "supabase",
+        api_key: "uc_live_probe",
+        credentials: { access_token: "stored-secret" },
+        mark_tested: true,
+      },
+    } as never, res as never);
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toMatchObject({ success: true, platform: "supabase" });
+    const [_url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const storedRow = JSON.parse(String(init.body)) as Record<string, unknown>;
+    expect(storedRow).toMatchObject({
+      platform_slug: "supabase",
+      is_valid: true,
+    });
+    expect(storedRow.last_tested_at).toEqual(storedRow.updated_at);
+    expect(String(init.body)).not.toContain("stored-secret");
+  });
 });
