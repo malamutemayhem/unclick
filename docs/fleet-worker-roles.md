@@ -22,7 +22,7 @@ canonical copy-paste message for waking or aligning multiple workers at once.
 - One builder owns each PR.
 - Helpers can scout or review, but must not edit the same files as the builder.
 - Do not force-push another worker's branch.
-- Do not touch secrets, auth, billing, DNS/domains, migrations, or destructive cleanup without explicit approval.
+- Do not touch secrets, auth, billing, DNS/domains, migrations, or destructive cleanup without an explicit privileged profile assignment. Secret work uses Secret Steward or Break Glass Admin; release promotion uses Release Captain.
 - Hold risky merges even when CI is green.
 
 ## Active workers
@@ -68,6 +68,7 @@ Before calling up a bench worker, check:
 - XPass access: Pass-family workers know which XPass tool or report to use, or the packet stays context-only.
 - Proof format: the worker can reply with PASS/BLOCKER, owned files, tests, PR or receipt, and next action.
 - Stop conditions: the packet names secrets, billing, DNS, data deletion, deploy, migration, force-push, and ownership limits.
+- Privilege profile: secret, deploy, domain, migration, or push work names the required builder profile and proves the runtime has the matching connector capability.
 - Next ACK wording: the worker can ACK one bounded action, not a broad project promise.
 
 Bench call-up routing is deterministic:

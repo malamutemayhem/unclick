@@ -19,7 +19,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | 760883150b3f | 4888 |
+| docs/fleet-worker-roles.md | 95586e0ae4a1 | 5172 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
 | src/App.tsx | 8385c5fc8837 | 23840 |

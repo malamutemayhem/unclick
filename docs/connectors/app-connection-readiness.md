@@ -86,6 +86,9 @@ The guard verifies:
   `packages/mcp-server/src/keychain-tool.ts` all see the same connection
   sources: `platform_credentials`, `user_credentials`, and
   `managed_app_connections`.
+- `packages/mcp-server/src/builder-access-profiles.ts` defines privileged
+  builder profiles for agents that need to push code, deploy, or do provider
+  secret work. A connected app alone is not enough for builder status.
 - `src/components/apps/appLenses.ts`,
   `src/components/apps/ConnectAppModal.tsx`, and
   `src/pages/admin/AdminTools.tsx` keep saved/manageable connection visibility
@@ -125,6 +128,33 @@ visibility, or keychain status select:
 - CommonSensePass for "no connected badge without tool-facing proof" and "saved
   connections must stay visible while waiting for proof"
 - SlopPass for implementation quality when source files change
+
+## Builder access hierarchy
+
+Connector builders use a named privilege ladder instead of one flat "max
+access" switch:
+
+- **Observer:** read status and code.
+- **Scoped Builder:** create scoped patches and pull requests.
+- **Trusted Builder:** push branches and use stored provider credentials
+  indirectly, without revealing secrets.
+- **Secret Steward:** create or rotate provider secrets, environment variables,
+  and assigned database or deployment settings with a short lease and audit
+  receipt.
+- **Release Captain:** promote deployments or merge after proof gates pass.
+- **Break Glass Admin:** temporary emergency lane for raw secret reveal or
+  provider-admin repair. Shortest lease, explicit approval, full audit.
+
+For the core build connectors:
+
+- GitHub builder work must prove a real branch push path or contents-write path,
+  plus pull request and checks access. A catalog-connected GitHub app is not
+  enough.
+- Vercel builder work needs project/deployment access. Environment variables,
+  domains, aliases, and production promotion require Secret Steward or Release
+  Captain.
+- Supabase status proof needs organization and project read. Database, Edge
+  Function, Auth, Storage, or secret mutation work requires Secret Steward.
 
 ## Live proof checklist
 

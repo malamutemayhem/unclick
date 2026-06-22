@@ -48,6 +48,9 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "public_mcp_stale_auth_keeps_pairing_available" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "supabase_oauth_proves_management_api_before_connected" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "keychain_status_supports_hash_only_metadata" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "builder_agents_have_privileged_secret_work_hierarchy" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "builder_github_requires_real_push_path" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "builder_provider_matrix_covers_github_vercel_supabase" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -134,6 +137,55 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /keychain_status_supports_hash_only_metadata/);
+  });
+
+  it("blocks when builder secret work loses its privilege hierarchy", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.builderAccessProfiles = sources.builderAccessProfiles
+      .replaceAll("secret_steward", "trusted_builder")
+      .replaceAll("break_glass_admin", "trusted_builder")
+      .replaceAll('secretMode: "reveal"', 'secretMode: "indirect"')
+      .replaceAll("lease.short_required", "lease.optional");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /builder_agents_have_privileged_secret_work_hierarchy/);
+  });
+
+  it("blocks when GitHub builder access does not require a push-capable path", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.builderAccessProfiles = sources.builderAccessProfiles
+      .replaceAll("github_contents_write_or_git_push_credential", "github_catalog_connected")
+      .replaceAll("branch_create_and_push", "branch_read_only")
+      .replaceAll("repo.git_push", "repo.read");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /builder_github_requires_real_push_path/);
+  });
+
+  it("blocks when the core builder provider matrix drops provider secret requirements", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.builderAccessProfiles = sources.builderAccessProfiles
+      .replaceAll("environment_variable_write", "environment_variable_read")
+      .replaceAll("database_or_edge_function_write_when_assigned", "database_or_edge_function_read")
+      .replaceAll("secret_write_or_rotation_when_assigned", "secret_read_only");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["vercel"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /builder_provider_matrix_covers_github_vercel_supabase/);
   });
 
   it("blocks when stale public MCP auth can bypass the pairing discovery path", async () => {

@@ -45,6 +45,7 @@ const SOURCE_PATHS = {
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   hostedMcpBridge: "packages/mcp-server/src/higgsfield-tool.ts",
   vaultBridge: "packages/mcp-server/src/vault-bridge.ts",
+  builderAccessProfiles: "packages/mcp-server/src/builder-access-profiles.ts",
   githubTool: "packages/mcp-server/src/github-tool.ts",
   vercelTool: "packages/mcp-server/src/vercel-tool.ts",
   supabaseTool: "packages/mcp-server/src/supabase-tool.ts",
@@ -432,6 +433,45 @@ export function evaluateConnectionReadinessSources(
       && sources.keychainTool.includes("currentApiKeyHash()")
       && sources.keychainTool.includes("if (!apiKey || !supaUrl || !serviceKey) return null;"),
     "Read-only keychain status can use a precomputed key hash while credential decrypt/use still requires the plaintext key."
+  );
+
+  addCheck(
+    globalChecks,
+    "builder_agents_have_privileged_secret_work_hierarchy",
+    sources.builderAccessProfiles.includes("trusted_builder")
+      && sources.builderAccessProfiles.includes("secret_steward")
+      && sources.builderAccessProfiles.includes("release_captain")
+      && sources.builderAccessProfiles.includes("break_glass_admin")
+      && sources.builderAccessProfiles.includes('secretMode: "indirect"')
+      && sources.builderAccessProfiles.includes('secretMode: "write_or_rotate"')
+      && sources.builderAccessProfiles.includes('secretMode: "reveal"')
+      && sources.builderAccessProfiles.includes("lease.short_required")
+      && sources.builderAccessProfiles.includes("audit.write"),
+    "Builder agents have a named privilege ladder for indirect secret use, secret write/rotation, release promotion, and short-leased break-glass reveal."
+  );
+
+  addCheck(
+    globalChecks,
+    "builder_github_requires_real_push_path",
+    sources.builderAccessProfiles.includes("github_contents_write_or_git_push_credential")
+      && sources.builderAccessProfiles.includes("branch_create_and_push")
+      && sources.builderAccessProfiles.includes("pull_request_create_or_update")
+      && sources.builderAccessProfiles.includes("repo.git_push")
+      && sources.builderAccessProfiles.includes("validateBuilderAccessPlan"),
+    "GitHub builder status requires an actual branch push or contents-write path, not only a connected catalog app."
+  );
+
+  addCheck(
+    globalChecks,
+    "builder_provider_matrix_covers_github_vercel_supabase",
+    sources.builderAccessProfiles.includes("BUILDER_PROVIDER_REQUIREMENTS")
+      && sources.builderAccessProfiles.includes("github:")
+      && sources.builderAccessProfiles.includes("vercel:")
+      && sources.builderAccessProfiles.includes("supabase:")
+      && sources.builderAccessProfiles.includes("environment_variable_write")
+      && sources.builderAccessProfiles.includes("database_or_edge_function_write_when_assigned")
+      && sources.builderAccessProfiles.includes("secret_write_or_rotation_when_assigned"),
+    "Builder-provider requirements cover code push, deployment/env work, and database/secret work for the core build connectors."
   );
 
   addCheck(
