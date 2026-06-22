@@ -98,7 +98,9 @@ const AUTHORIZE_URLS: Record<string, string> = {
 const AUTHORIZE_SCOPES: Record<string, string[]> = {
   github: ["repo", "workflow", "read:user", "user:email"],
   vercel: ["openid", "email", "profile", "offline_access"],
-  supabase: ["projects:read", "organizations:read"],
+  // Supabase OAuth scopes are configured on the Supabase OAuth app. Request the
+  // configured grant bundle rather than a brittle partial query scope.
+  supabase: ["all"],
   xero: [
     "accounting.transactions.read",
     "accounting.transactions",

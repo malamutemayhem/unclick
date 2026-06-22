@@ -67,7 +67,7 @@ async function supabaseRequest(
     throw new Error("Invalid or expired Supabase token. Reconnect Supabase in UnClick Apps.");
   }
   if (res.status === 403) {
-    throw new Error("Supabase access forbidden. Reconnect Supabase and grant read access to projects and organizations.");
+    throw new Error("Supabase access forbidden. Reconnect Supabase and allow Management API project and organization read access.");
   }
   if (res.status === 404) throw new Error(`Supabase resource not found at ${path}.`);
   if (res.status === 429) throw new Error("Supabase rate limit exceeded.");

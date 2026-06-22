@@ -27,6 +27,7 @@ describe("app connection readiness", () => {
     assert.deepEqual(receipt.action_needed, []);
     assert.ok(receipt.global_checks.some((check) => check.name === "tool_keychain_status_merges_all_connection_sources" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "admin_apps_separates_saved_visibility_from_live_proof" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "oauth_saved_web_login_wins_over_legacy_keychain" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -201,6 +202,21 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /admin_apps_saved_status_uses_customer_language/);
+  });
+
+  it("blocks when OAuth saved web logins can be shadowed by legacy single-key credentials", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.vaultBridge = sources.vaultBridge
+      .replace('connector.authType === "oauth2"', 'connector.authType === "not-oauth"')
+      .replace("old quick-connect token cannot", "legacy token may still");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /oauth_saved_web_login_wins_over_legacy_keychain/);
   });
 
   it("blocks when OAuth start and callback disagree on env names", async () => {

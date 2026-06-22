@@ -43,6 +43,7 @@ const SOURCE_PATHS = {
   appIconGlyphs: "src/components/apps/appIconGlyphs.ts",
   hostedMcpBridge: "packages/mcp-server/src/higgsfield-tool.ts",
   vaultBridge: "packages/mcp-server/src/vault-bridge.ts",
+  githubTool: "packages/mcp-server/src/github-tool.ts",
   vercelTool: "packages/mcp-server/src/vercel-tool.ts",
   supabaseTool: "packages/mcp-server/src/supabase-tool.ts",
   dropboxTool: "packages/mcp-server/src/dropbox-tool.ts",
@@ -359,6 +360,7 @@ export function evaluateConnectionReadinessSources(
   );
 
   const proofStampTools = [
+    sources.githubTool,
     sources.vercelTool,
     sources.supabaseTool,
     sources.dropboxTool,
@@ -376,6 +378,17 @@ export function evaluateConnectionReadinessSources(
       && sources.vaultBridge.includes("function markCredentialLiveTested")
       && proofStampTools.every((source) => source.includes("markCredentialLiveTested")),
     "A successful provider tool call can stamp live connection proof so saved apps move from Needs check to Connected."
+  );
+
+  addCheck(
+    globalChecks,
+    "oauth_saved_web_login_wins_over_legacy_keychain",
+    sources.vaultBridge.includes('connector.authType === "oauth2"')
+      && sources.vaultBridge.includes("tryResolveFromUnClickApi")
+      && sources.vaultBridge.includes("tryResolveFromKeychain")
+      && sources.vaultBridge.includes("old quick-connect token cannot")
+      && sources.vaultBridge.indexOf('connector.authType === "oauth2"') < sources.vaultBridge.indexOf("stillMissing = await tryResolveFromKeychain(slug, connector, resolved, stillMissing);"),
+    "OAuth connectors prefer the latest saved web login before legacy single-key fallbacks, so reconnects cannot be shadowed by stale rows."
   );
 
   addCheck(

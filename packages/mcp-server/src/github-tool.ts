@@ -1,9 +1,52 @@
 // ── GitHub REST API tool ────────────────────────────────────────────────────
 // Wraps the GitHub REST API (https://api.github.com) via fetch.
-// Auth: personal access token (PAT) passed as access_token.
+// Auth: saved UnClick GitHub login, or a personal access token (PAT) passed as
+// access_token/api_key.
 // No external dependencies.
 
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
+
 const GITHUB_API = "https://api.github.com";
+
+type GitHubAuth = {
+  token: string;
+  shouldMarkProof: boolean;
+  setupError?: Record<string, unknown>;
+};
+
+function tokenFromArgs(args: Record<string, unknown>): string {
+  return String(args.access_token ?? args.api_key ?? "").trim();
+}
+
+function isAuthenticatedAction(action: string, args: Record<string, unknown>): boolean {
+  if (action === "create_issue") return true;
+  if (action === "get_user") return !String(args.username ?? "").trim();
+  if (action === "list_gists") return !String(args.username ?? "").trim();
+  return false;
+}
+
+function providerCallFailed(result: unknown): boolean {
+  return Boolean(
+    result &&
+    typeof result === "object" &&
+    "error" in (result as Record<string, unknown>)
+  );
+}
+
+async function resolveGitHubAuth(args: Record<string, unknown>): Promise<GitHubAuth> {
+  const inlineToken = tokenFromArgs(args);
+  if (inlineToken) return { token: inlineToken, shouldMarkProof: false };
+
+  const resolved = await resolveCredentials("github", { ...args });
+  if ("error" in resolved) {
+    return { token: "", shouldMarkProof: false, setupError: resolved };
+  }
+
+  return {
+    token: tokenFromArgs(resolved),
+    shouldMarkProof: credentialResolvedFromUnClick(resolved),
+  };
+}
 
 // ── Fetch helper ───────────────────────────────────────────────────────────────
 
@@ -158,23 +201,34 @@ export async function githubAction(
   action: string,
   args:   Record<string, unknown>
 ): Promise<unknown> {
-  const token = String(args.access_token ?? "").trim();
-
   try {
+    const auth = await resolveGitHubAuth(args);
+    if (!auth.token && auth.setupError && isAuthenticatedAction(action, args)) {
+      return auth.setupError;
+    }
+
+    const token = auth.token;
+    let result: unknown;
     switch (action) {
-      case "search_repos":  return searchRepos(token, args);
-      case "get_repo":      return getRepo(token, args);
-      case "list_issues":   return listIssues(token, args);
-      case "create_issue":  return createIssue(token, args);
-      case "list_prs":      return listPRs(token, args);
-      case "get_user":      return getUser(token, args);
-      case "list_gists":    return listGists(token, args);
-      case "search_code":   return searchCode(token, args);
+      case "search_repos":  result = await searchRepos(token, args); break;
+      case "get_repo":      result = await getRepo(token, args); break;
+      case "list_issues":   result = await listIssues(token, args); break;
+      case "create_issue":  result = await createIssue(token, args); break;
+      case "list_prs":      result = await listPRs(token, args); break;
+      case "get_user":      result = await getUser(token, args); break;
+      case "list_gists":    result = await listGists(token, args); break;
+      case "search_code":   result = await searchCode(token, args); break;
       default:
         return {
           error: `Unknown GitHub action: "${action}". Valid actions: search_repos, get_repo, list_issues, create_issue, list_prs, get_user, list_gists, search_code.`,
         };
     }
+
+    if (auth.shouldMarkProof && !providerCallFailed(result)) {
+      await markCredentialLiveTested("github");
+    }
+
+    return result;
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
