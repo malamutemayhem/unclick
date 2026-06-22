@@ -7,6 +7,7 @@ import {
   pairingToolResult,
   peekRpc,
   PUBLIC_PAIRING_TOOL,
+  publicDiscoveryRpcResponse,
   publicPairIdFromRequest,
   publicToolsForUnpairedClient,
 } from "./mcp";
@@ -199,5 +200,57 @@ describe("public MCP pairing door", () => {
       params: { name: "load_memory" },
     });
     expect(protectedCall.authRequired).toBe(true);
+  });
+
+  it("returns public discovery for stale bearer tools/list instead of falling through to the transport", () => {
+    const pairId = createPublicMcpPairId();
+    const response = publicDiscoveryRpcResponse(
+      { jsonrpc: "2.0", id: 8, method: "tools/list", params: {} },
+      pairId,
+    );
+
+    expect(response?.id).toBe(8);
+    expect(response?.result).toMatchObject({
+      tools: expect.arrayContaining([
+        expect.objectContaining({ name: PUBLIC_PAIRING_TOOL.name }),
+      ]),
+    });
+  });
+
+  it("lets stale bearer clients call the pairing tool without a private key", () => {
+    const pairId = createPublicMcpPairId();
+    const response = publicDiscoveryRpcResponse(
+      {
+        jsonrpc: "2.0",
+        id: 9,
+        method: "tools/call",
+        params: {
+          name: PUBLIC_PAIRING_TOOL.name,
+          arguments: { email: "USER@Example.COM" },
+        },
+      },
+      pairId,
+    );
+    const text = (response?.result as ReturnType<typeof pairingToolResult>)
+      .content[0]?.text;
+
+    expect(response?.id).toBe(9);
+    expect(text).toContain(`%2Fpair%2Fconnected%3Fpair%3D${pairId}`);
+    expect(text).toContain("user%40example.com");
+    expect(text).not.toContain("uc_");
+  });
+
+  it("does not downgrade protected tool calls to public discovery", () => {
+    const response = publicDiscoveryRpcResponse(
+      {
+        jsonrpc: "2.0",
+        id: 10,
+        method: "tools/call",
+        params: { name: "load_memory", arguments: { lite: true } },
+      },
+      createPublicMcpPairId(),
+    );
+
+    expect(response).toBeNull();
   });
 });

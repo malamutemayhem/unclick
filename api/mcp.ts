@@ -64,6 +64,9 @@ const AUTH_REQUIRED_METHODS = new Set<string>(["initialize", "tools/call"]);
 
 type JsonRpcId = string | number | null;
 
+const MCP_PROTOCOL_VERSION = "2025-03-26";
+const MCP_SERVER_INFO = { name: "@unclick/mcp-server", version: "0.3.0" };
+
 export const PUBLIC_PAIRING_TOOL = {
   name: "unclick_start_pairing",
   title: "Connect UnClick",
@@ -251,6 +254,63 @@ export function pairingToolResult(
       },
     ],
   };
+}
+
+export function publicDiscoveryRpcResponse(
+  body: unknown,
+  pairId: string,
+):
+  | {
+      jsonrpc: "2.0";
+      result: unknown;
+      id: JsonRpcId;
+    }
+  | null {
+  const method = singleRpcMethod(body);
+  const toolName = singleToolName(body);
+  const id = peekRpc(body).id;
+
+  if (method === "tools/list") {
+    return {
+      jsonrpc: "2.0",
+      result: { tools: publicToolsForUnpairedClient() },
+      id,
+    };
+  }
+
+  if (method === "tools/call" && toolName === PUBLIC_PAIRING_TOOL.name) {
+    return {
+      jsonrpc: "2.0",
+      result: pairingToolResult(singleToolArgs(body), pairId),
+      id,
+    };
+  }
+
+  if (method === "initialize") {
+    return {
+      jsonrpc: "2.0",
+      result: {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: { tools: {} },
+        serverInfo: MCP_SERVER_INFO,
+      },
+      id,
+    };
+  }
+
+  return null;
+}
+
+function sendPublicDiscoveryIfAllowed(
+  req: VercelRequest,
+  res: VercelResponse,
+): boolean {
+  const pairId = publicPairIdFromRequest(req) ?? createPublicMcpPairId();
+  const response = publicDiscoveryRpcResponse(req.body, pairId);
+  if (!response) return false;
+  attachPublicPairHeaders(res, pairId);
+  res.status(200).json(response);
+  return true;
 }
 
 // Peek the JSON-RPC body so we can (1) echo the request id back in error
@@ -624,13 +684,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     (bearerToken.startsWith("uc_") || bearerToken.startsWith("agt_")
       ? bearerToken
       : "");
-  const method = singleRpcMethod(req.body);
-  const toolName = singleToolName(req.body);
 
   let ctx: ApiKeyContext | null;
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
+    if (!ctx && sendPublicDiscoveryIfAllowed(req, res)) {
+      return;
+    }
     if (!ctx && peeked.authRequired) {
       attachMcpOAuthChallenge(res, "invalid_token");
       return res.status(401).json({
@@ -652,17 +713,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ctx = await validatePublicMcpPair(publicPairId);
       }
     }
-    if (!ctx && method === "initialize") {
-      ensurePublicPairId(req, res);
-      return res.status(200).json({
-        jsonrpc: "2.0",
-        result: {
-          protocolVersion: "2025-03-26",
-          capabilities: { tools: {} },
-          serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
-        },
-        id: peeked.id,
-      });
+    if (!ctx && sendPublicDiscoveryIfAllowed(req, res)) {
+      return;
     }
     if (!ctx && peeked.authRequired) {
       attachMcpOAuthChallenge(res, "invalid_token");
@@ -685,42 +737,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!ctx && publicPairId) {
       ctx = await validatePublicMcpPair(publicPairId);
     }
-    if (!ctx && method === "tools/list") {
-      ensurePublicPairId(req, res);
-      return res.status(200).json({
-        jsonrpc: "2.0",
-        result: { tools: publicToolsForUnpairedClient() },
-        id: peeked.id,
-      });
-    }
-    if (
-      !ctx &&
-      method === "tools/call" &&
-      toolName === PUBLIC_PAIRING_TOOL.name
-    ) {
-      const pairId = ensurePublicPairId(req, res);
-      return res.status(200).json({
-        jsonrpc: "2.0",
-        result: pairingToolResult(singleToolArgs(req.body), pairId),
-        id: peeked.id,
-      });
-    }
     // Discovery-mode initialize: strict MCP clients (Grok) send initialize
     // before tools/list. Without a bearer token this is a bare public client
     // attempting discovery, not an OAuth handshake, so let it through with
     // minimal capabilities. No tenant data is exposed. The client can then
     // proceed to tools/list and see unclick_start_pairing.
-    if (!ctx && method === "initialize") {
-      const pairId = ensurePublicPairId(req, res);
-      return res.status(200).json({
-        jsonrpc: "2.0",
-        result: {
-          protocolVersion: "2025-03-26",
-          capabilities: { tools: {} },
-          serverInfo: { name: "@unclick/mcp-server", version: "0.3.0" },
-        },
-        id: peeked.id,
-      });
+    if (!ctx && sendPublicDiscoveryIfAllowed(req, res)) {
+      return;
     }
     if (!ctx && peeked.authRequired) {
       const pairId = ensurePublicPairId(req, res);
