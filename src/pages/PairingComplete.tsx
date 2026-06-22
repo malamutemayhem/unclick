@@ -185,7 +185,7 @@ export default function PairingCompletePage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
                   {publicPairStatus === "paired"
-                    ? "Pairing saved. Keep using https://unclick.world/api/mcp in the AI app. Private fallbacks are only for apps that cannot keep web sign-in."
+                    ? "Pairing saved. Return to your AI app and try again. If the app still asks to connect, use the paired URL below instead."
                     : "Return to your AI app and keep using the public MCP URL."}
                 </p>
               </div>
@@ -231,18 +231,24 @@ export default function PairingCompletePage() {
               </div>
 
               {pairedMcpUrl ? (
-                <details className="rounded-xl border border-border/60 bg-background/25 p-4">
-                  <summary className="cursor-pointer text-sm font-semibold text-heading">
-                    Private fallback for stubborn AI apps
-                  </summary>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    Use this only if the same AI app still shows only Connect
-                    UnClick after sign-in. Keep the static URL as the normal
-                    path. This private fallback is revokable and should stay
-                    private.
-                  </p>
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <ExternalLink className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold text-heading">
+                        Paired URL for Grok, ChatGPT, and stateless apps
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Some AI apps do not keep cookies or session headers
+                        between requests. If the app still asks to connect after
+                        sign-in, reconfigure it with this URL instead. It embeds
+                        your connection identity in the path so no session state
+                        is needed.
+                      </p>
+                    </div>
+                  </div>
                   <div className="mt-3 flex items-stretch gap-2">
-                    <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-card/60 px-3 py-2 font-mono text-xs text-heading">
+                    <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs text-heading">
                       {maskPrivateValue(pairedMcpUrl)}
                     </code>
                     <Button
@@ -256,7 +262,7 @@ export default function PairingCompletePage() {
                       {copied === "paired" ? "Copied" : "Copy"}
                     </Button>
                   </div>
-                </details>
+                </div>
               ) : null}
 
               <details className="rounded-xl border border-border/60 bg-background/25 p-4">

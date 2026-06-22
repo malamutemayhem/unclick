@@ -23,7 +23,7 @@ describe("public MCP door copy", () => {
     const src = pairingPage();
 
     expect(src).toContain(
-      "Pairing saved. Keep using https://unclick.world/api/mcp",
+      "Pairing saved. Return to your AI app and try again",
     );
     expect(src).toContain("Use this static MCP URL");
     expect(src).toContain(
@@ -31,10 +31,10 @@ describe("public MCP door copy", () => {
     );
     expect(src).toContain("MCP client. No personal key in the URL");
     expect(src).toContain("const primaryMcpUrl = PUBLIC_MCP_URL");
-    expect(src).toContain("Private fallback for stubborn AI apps");
+    expect(src).toContain("Paired URL for Grok, ChatGPT, and stateless apps");
     expect(src).toContain("${PUBLIC_MCP_URL}/p/");
-    expect(src).toContain("Keep the static URL as the normal");
-    expect(src).toContain("path. This private fallback is revokable");
+    expect(src).toContain("do not keep cookies or session headers");
+    expect(src).toContain("It embeds");
     expect(src).toContain("Compatibility URL for older AI apps");
     expect(src).toContain("contains a private connection key");
     expect(src).not.toContain("Claude still");
