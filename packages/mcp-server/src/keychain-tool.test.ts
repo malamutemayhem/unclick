@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 
-import { keychainAction } from "./keychain-tool.js";
+import { keychainAction, keychainGetCredential } from "./keychain-tool.js";
 
 const savedEnv = { ...process.env };
 
@@ -16,6 +17,7 @@ describe("keychain connection status", () => {
     process.env = {
       ...savedEnv,
       UNCLICK_API_KEY: "uc_test_key_for_status_parity",
+      UNCLICK_API_KEY_HASH: "",
       SUPABASE_URL: "https://example.supabase.co",
       SUPABASE_SERVICE_ROLE_KEY: "service-role",
     };
@@ -69,6 +71,57 @@ describe("keychain connection status", () => {
     expect(result.last_tested_age_hours).toBeNull();
     expect(result.source).toBe("user_credentials");
     expect(result.message).toContain("has not been live-tested yet");
+  });
+
+  it("reports read-only status with a precomputed key hash when plaintext key is absent", async () => {
+    const expectedHash = createHash("sha256")
+      .update("uc_test_key_for_status_parity")
+      .digest("hex");
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_API_KEY_HASH = expectedHash;
+
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL) => {
+      const url = String(input);
+      if (url.includes("/rest/v1/platform_credentials?")) {
+        expect(url).toContain(`key_hash=eq.${expectedHash}`);
+        return jsonResponse([]);
+      }
+      if (url.includes("/rest/v1/user_credentials?")) {
+        expect(url).toContain(`api_key_hash=eq.${expectedHash}`);
+        return jsonResponse([
+          {
+            platform_slug: "gmail",
+            label: null,
+            is_valid: true,
+            last_tested_at: "2026-06-22T05:44:29.304Z",
+            created_at: "2026-06-22T05:38:30.433Z",
+            updated_at: "2026-06-22T05:44:29.304Z",
+          },
+        ]);
+      }
+      if (url.includes("/rest/v1/managed_app_connections?")) {
+        expect(url).toContain(`api_key_hash=eq.${expectedHash}`);
+        return jsonResponse([]);
+      }
+      if (url.includes("/rest/v1/metering_events")) return jsonResponse(null, 201);
+      throw new Error(`Unexpected fetch: ${url}`);
+    }));
+
+    const result = await keychainAction("keychain_status", { platform: "gmail" }) as {
+      error?: string;
+      connected?: boolean;
+      platform?: string;
+      source?: string;
+      verified?: boolean;
+    };
+
+    expect(result.error).toBeUndefined();
+    expect(result.platform).toBe("gmail");
+    expect(result.connected).toBe(true);
+    expect(result.verified).toBe(true);
+    expect(result.source).toBe("user_credentials");
+
+    await expect(keychainGetCredential("gmail")).resolves.toBeNull();
   });
 
   it("treats stale probe evidence as needing a fresh check", async () => {

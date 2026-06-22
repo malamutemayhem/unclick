@@ -47,6 +47,7 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "oauth_saved_web_login_wins_over_legacy_keychain" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "public_mcp_stale_auth_keeps_pairing_available" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "supabase_oauth_proves_management_api_before_connected" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "keychain_status_supports_hash_only_metadata" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -118,6 +119,21 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /tool_keychain_status_merges_all_connection_sources/);
+  });
+
+  it("blocks when keychain status requires the plaintext key for read-only metadata", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.keychainTool = sources.keychainTool
+      .replaceAll("UNCLICK_API_KEY_HASH", "UNCLICK_DISABLED_KEY_HASH")
+      .replaceAll("currentApiKeyHash()", "hashKeyFull(apiKey)");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /keychain_status_supports_hash_only_metadata/);
   });
 
   it("blocks when stale public MCP auth can bypass the pairing discovery path", async () => {

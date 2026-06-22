@@ -425,6 +425,17 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
+    "keychain_status_supports_hash_only_metadata",
+    sources.keychainTool.includes("UNCLICK_API_KEY_HASH")
+      && sources.keychainTool.includes("function currentApiKeyHash")
+      && sources.keychainTool.includes("UNCLICK_API_KEY or UNCLICK_API_KEY_HASH")
+      && sources.keychainTool.includes("currentApiKeyHash()")
+      && sources.keychainTool.includes("if (!apiKey || !supaUrl || !serviceKey) return null;"),
+    "Read-only keychain status can use a precomputed key hash while credential decrypt/use still requires the plaintext key."
+  );
+
+  addCheck(
+    globalChecks,
     "public_mcp_stale_auth_keeps_pairing_available",
     sources.mcpApi.includes("export function publicDiscoveryRpcResponse")
       && sources.mcpApi.includes('method === "tools/list"')

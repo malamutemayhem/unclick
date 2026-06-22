@@ -5,6 +5,7 @@
 //
 // Required env vars:
 //   UNCLICK_API_KEY           - caller's UnClick API key (never stored)
+//   UNCLICK_API_KEY_HASH      - optional pre-hashed key for read-only status
 //   SUPABASE_URL              - Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY - service role key (bypasses RLS)
 
@@ -37,6 +38,14 @@ async function sbFetch(
   let data: unknown;
   try { data = await res.json(); } catch { data = null; }
   return { ok: res.ok, status: res.status, data };
+}
+
+function currentApiKeyHash(): string | null {
+  const configuredHash = String(process.env.UNCLICK_API_KEY_HASH ?? "").trim();
+  if (configuredHash) return configuredHash;
+
+  const apiKey = String(process.env.UNCLICK_API_KEY ?? "").trim();
+  return apiKey ? hashKeyFull(apiKey) : null;
 }
 
 // ─── Connection status helpers ───────────────────────────────────────────────
@@ -618,17 +627,19 @@ async function keychainConnect(args: Record<string, unknown>): Promise<unknown> 
 }
 
 async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
-  if (!apiKey)     return { error: "UNCLICK_API_KEY env var is not set." };
   if (!supaUrl)    return { error: "SUPABASE_URL env var is not set." };
   if (!serviceKey) return { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set." };
 
   const start    = Date.now();
-  const keyHash  = hashKeyFull(apiKey);
+  const keyHash  = currentApiKeyHash();
   const platform = args.platform ? String(args.platform).trim().toLowerCase() : null;
+
+  if (!keyHash) {
+    return { error: "UNCLICK_API_KEY or UNCLICK_API_KEY_HASH env var is not set." };
+  }
 
   const { ok, rows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, platform);
 
@@ -740,7 +751,6 @@ async function keychainDisconnect(args: Record<string, unknown>): Promise<unknow
 }
 
 async function keychainListPlatforms(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
@@ -760,9 +770,9 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
 
   const platforms = data as Array<Record<string, unknown>>;
 
-  // If the caller has an API key, enrich with connection status
-  if (apiKey) {
-    const keyHash  = hashKeyFull(apiKey);
+  // If the caller has an API key or a precomputed hash, enrich with status metadata.
+  const keyHash = currentApiKeyHash();
+  if (keyHash) {
     const { ok: sOk, rows: statusRows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, null);
 
     const ms = Date.now() - start;
