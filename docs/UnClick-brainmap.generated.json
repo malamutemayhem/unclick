@@ -15925,8 +15925,8 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "95586e0ae4a1",
-      "bytes": 5172
+      "hash": "2afb4e183159",
+      "bytes": 5499
     },
     {
       "source": "docs/adr/0005-two-layer-admin-gating.md",

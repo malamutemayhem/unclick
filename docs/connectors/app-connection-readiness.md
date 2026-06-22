@@ -156,6 +156,21 @@ For the core build connectors:
 - Supabase status proof needs organization and project read. Database, Edge
   Function, Auth, Storage, or secret mutation work requires Secret Steward.
 
+Builder profiles are not session credentials. Keep direct session connectors
+separate from UnClick-internal connectors:
+
+- Direct session connectors are attached to the current ChatGPT/Codex/Claude
+  runtime.
+- UnClick-internal connectors are credentials stored inside UnClick and usable
+  only through UnClick MCP/tool actions.
+
+A fresh worker session must pass runtime preflight in the plane being tested:
+GitHub needs a working git credential helper and push probe, or a writable
+GitHub MCP/API path; an UnClick-only worker can satisfy that only by proving
+UnClick GitHub branch/contents, PR, and checks actions. Vercel needs the target
+team/project scope. Supabase needs Management API project proof. A connected
+catalog badge does not satisfy any of those runtime checks.
+
 ## Live proof checklist
 
 Before telling a user "live":

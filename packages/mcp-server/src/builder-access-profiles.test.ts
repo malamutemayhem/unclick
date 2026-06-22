@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   BUILDER_ACCESS_PROFILES,
+  BUILDER_SESSION_PROVISIONING_CONTRACTS,
+  inferBuilderRuntimeCapabilities,
   requiredProfileForProvider,
   validateBuilderAccessPlan,
 } from "./builder-access-profiles.js";
@@ -53,6 +55,80 @@ describe("builder access profiles", () => {
     })).toEqual([]);
   });
 
+  it("does not treat a connected GitHub catalog app as a builder push path", () => {
+    const runtimeCapabilities = inferBuilderRuntimeCapabilities("github", [
+      "github_connected_catalog_visible",
+    ]);
+
+    expect(runtimeCapabilities).toEqual([]);
+    expect(validateBuilderAccessPlan({
+      provider: "github",
+      profile: "trusted_builder",
+      runtimeCapabilities,
+    })).toContain("github runtime is missing github_contents_write_or_git_push_credential.");
+  });
+
+  it("classifies the missing Claude Code push credential as a runtime provisioning failure", () => {
+    const runtimeCapabilities = inferBuilderRuntimeCapabilities("github", [
+      "unclick_github_connection_available",
+      "github_pull_request_write_verified",
+      "github_checks_read_verified",
+    ]);
+
+    expect(runtimeCapabilities).not.toContain("github_contents_write_or_git_push_credential");
+    expect(runtimeCapabilities).not.toContain("branch_create_and_push");
+    expect(BUILDER_SESSION_PROVISIONING_CONTRACTS.github.failureMode).toMatch(/session git credential/);
+    expect(validateBuilderAccessPlan({
+      provider: "github",
+      profile: "trusted_builder",
+      runtimeCapabilities,
+    })).toEqual([
+      "github runtime is missing github_contents_write_or_git_push_credential.",
+      "github runtime is missing branch_create_and_push.",
+    ]);
+  });
+
+  it("allows an UnClick-only GitHub builder when the UnClick bridge proves write tools", () => {
+    const runtimeCapabilities = inferBuilderRuntimeCapabilities("github", [
+      "unclick_github_connection_available",
+      "unclick_github_branch_write_verified",
+      "unclick_github_contents_write_verified",
+      "unclick_github_pull_request_write_verified",
+      "unclick_github_checks_read_verified",
+    ]);
+
+    expect(validateBuilderAccessPlan({
+      provider: "github",
+      profile: "trusted_builder",
+      runtimeCapabilities,
+    })).toEqual([]);
+  });
+
+  it("documents direct session connectors and UnClick-internal connectors as separate planes", () => {
+    expect(BUILDER_SESSION_PROVISIONING_CONTRACTS.github.connectorPlanes).toEqual([
+      "direct_session_connector",
+      "unclick_internal_connector",
+    ]);
+    expect(BUILDER_SESSION_PROVISIONING_CONTRACTS.github.failureMode).toMatch(/inside UnClick/);
+    expect(BUILDER_SESSION_PROVISIONING_CONTRACTS.github.failureMode).toMatch(/direct session git credential/);
+  });
+
+  it("passes GitHub builder work when a session proves the actual git push path", () => {
+    const runtimeCapabilities = inferBuilderRuntimeCapabilities("github", [
+      "git_credential_helper_configured",
+      "git_proxy_auth_configured",
+      "git_push_probe_succeeded",
+      "github_pull_request_write_verified",
+      "github_checks_read_verified",
+    ]);
+
+    expect(validateBuilderAccessPlan({
+      provider: "github",
+      profile: "trusted_builder",
+      runtimeCapabilities,
+    })).toEqual([]);
+  });
+
   it("raises provider secret work to a secret steward profile", () => {
     expect(requiredProfileForProvider("supabase", false)).toBe("trusted_builder");
     expect(requiredProfileForProvider("supabase", true)).toBe("secret_steward");
@@ -81,5 +157,24 @@ describe("builder access profiles", () => {
         "domain_alias_write_when_assigned",
       ],
     })).toEqual([]);
+  });
+
+  it("does not treat connected Vercel catalog access as target team deployment scope", () => {
+    const runtimeCapabilities = inferBuilderRuntimeCapabilities("vercel", [
+      "vercel_connected_catalog_visible",
+    ]);
+
+    expect(runtimeCapabilities).toEqual([]);
+    expect(validateBuilderAccessPlan({
+      provider: "vercel",
+      profile: "secret_steward",
+      needsSecretWork: true,
+      runtimeCapabilities,
+    })).toEqual([
+      "vercel runtime is missing vercel_project_read_write.",
+      "vercel runtime is missing deployment_create_and_inspect.",
+      "vercel runtime is missing environment_variable_write.",
+      "vercel runtime is missing domain_alias_write_when_assigned.",
+    ]);
   });
 });

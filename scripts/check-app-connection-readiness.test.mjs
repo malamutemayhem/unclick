@@ -50,6 +50,7 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "keychain_status_supports_hash_only_metadata" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_agents_have_privileged_secret_work_hierarchy" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_github_requires_real_push_path" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "builder_runtime_preflight_separates_profiles_from_session_credentials" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_provider_matrix_covers_github_vercel_supabase" && check.status === "pass"));
   });
 
@@ -170,6 +171,24 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /builder_github_requires_real_push_path/);
+  });
+
+  it("blocks when builder access loses runtime startup credential proof", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.builderAccessProfiles = sources.builderAccessProfiles
+      .replaceAll("BUILDER_SESSION_PROVISIONING_CONTRACTS", "BUILDER_SESSION_NOT_CHECKED")
+      .replaceAll("inferBuilderRuntimeCapabilities", "trustConnectedProfile")
+      .replaceAll("git_credential_helper_configured", "git_runtime_unchecked")
+      .replaceAll("writable_github_mcp_connected", "github_mcp_visibility_unknown")
+      .replaceAll("A connected GitHub app without a session git credential", "A connected GitHub app is enough");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /builder_runtime_preflight_separates_profiles_from_session_credentials/);
   });
 
   it("blocks when the core builder provider matrix drops provider secret requirements", async () => {

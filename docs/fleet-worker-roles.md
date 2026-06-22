@@ -68,7 +68,7 @@ Before calling up a bench worker, check:
 - XPass access: Pass-family workers know which XPass tool or report to use, or the packet stays context-only.
 - Proof format: the worker can reply with PASS/BLOCKER, owned files, tests, PR or receipt, and next action.
 - Stop conditions: the packet names secrets, billing, DNS, data deletion, deploy, migration, force-push, and ownership limits.
-- Privilege profile: secret, deploy, domain, migration, or push work names the required builder profile and proves the runtime has the matching connector capability.
+- Privilege profile: secret, deploy, domain, migration, or push work names the required builder profile and proves the runtime has the matching startup capability in the active connector plane. Direct session connectors and UnClick-internal connectors are separate. For example, a push packet needs a working git credential helper/push probe, a direct writable GitHub MCP/API path, or proven UnClick GitHub branch/PR/checks actions; a deployment packet needs target Vercel team/project scope.
 - Next ACK wording: the worker can ACK one bounded action, not a broad project promise.
 
 Bench call-up routing is deterministic:

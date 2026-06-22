@@ -67,6 +67,34 @@ Do not confuse "connector is connected" with "builder can ship." GitHub builder
 work must have a real branch push or contents-write path. Vercel and Supabase
 secret work must run through Secret Steward or higher, with proof and audit.
 
+### Runtime Preflight
+
+A profile is permission, not proof. There are two connector planes:
+
+- Direct session connectors: tools or credentials attached to the current
+  ChatGPT/Codex/Claude runtime.
+- UnClick-internal connectors: credentials stored inside UnClick and usable only
+  through UnClick MCP/tool actions.
+
+Before routing a shipping job to a worker, the runtime must prove the matching
+startup capability in the plane being tested:
+
+- GitHub: configured git credential helper plus successful push probe, or a
+  writable GitHub MCP/API path; pull request write; checks read. An UnClick-only
+  worker can pass this by proving UnClick GitHub branch/contents, PR, and checks
+  actions; it does not need a native session connector unless it is expected to
+  run local `git push`.
+- Vercel: target team/project scope; deployment create or inspect; environment
+  write when assigned secret work; domain/alias write when assigned.
+- Supabase: organization read; project read; database/function or secret write
+  only when assigned.
+
+If a worker reports a git proxy credential error, missing credential helper, or
+read-only GitHub MCP, treat it as a runtime provisioning blocker. Do not retry
+the same push loop and do not call the worker a Trusted Builder until a fresh
+runtime proves the push/API path in either the direct-session plane or the
+UnClick-internal plane.
+
 ## GitHub Checks
 
 GitHub Actions are useful green and red lights, but they are not the whole factory.
