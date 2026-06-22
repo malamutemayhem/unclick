@@ -46,6 +46,27 @@ Risky work needs three roles:
 
 A single subscription or tether may serve more than one role only when the role switch is explicit and logged. The important boundary is role separation inside UnClick, not how many paid accounts are involved.
 
+## Privileged Builder Profiles
+
+Use the source-backed hierarchy in
+`packages/mcp-server/src/builder-access-profiles.ts` when a worker needs more
+than ordinary patch access.
+
+- Observer: read-only status/code inspection.
+- Scoped Builder: scoped patches and PRs, no secret use.
+- Trusted Builder: branch push, PR, checks, preview deploys, and indirect use
+  of stored connector credentials.
+- Secret Steward: write or rotate provider secrets, Vercel env vars, and
+  assigned Supabase database/function/secrets work with a short lease and audit
+  receipt.
+- Release Captain: merge or promote after proof gates pass.
+- Break Glass Admin: temporary emergency lane for raw secret reveal or provider
+  admin repair.
+
+Do not confuse "connector is connected" with "builder can ship." GitHub builder
+work must have a real branch push or contents-write path. Vercel and Supabase
+secret work must run through Secret Steward or higher, with proof and audit.
+
 ## GitHub Checks
 
 GitHub Actions are useful green and red lights, but they are not the whole factory.
@@ -68,7 +89,7 @@ Do not let a stalled external check freeze the lane.
 
 ## Safety Stops
 
-Do not run autonomous mutation for:
+Do not run ordinary builder mutation for:
 
 - Secrets or credentials.
 - Billing.
@@ -79,7 +100,9 @@ Do not run autonomous mutation for:
 - Destructive migrations.
 - Production deploys.
 
-Those can still be prepared, audited, and routed, but mutation needs explicit approval and proof.
+Those can still be prepared, audited, and routed. Mutation needs the matching
+privileged profile, explicit approval, a short lease when secrets are involved,
+and proof.
 
 ## First Dry Run
 

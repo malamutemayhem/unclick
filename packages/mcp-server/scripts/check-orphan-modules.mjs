@@ -26,7 +26,9 @@ const allowlistPath = join(here, "orphan-modules-allowlist.json");
 // Entry roots: anything the published server can start from. Keep this small
 // and explicit; a new genuine entrypoint should be added here on purpose.
 // "index.ts" is the published bin (unclick-mcp); "server.ts" is main/exports.
-const ROOTS = ["index.ts", "server.ts"]
+// builder-access-profiles.ts is a source-backed policy contract consumed by
+// ConnectorPass and docs, not by the runtime server import graph.
+const ROOTS = ["index.ts", "server.ts", "builder-access-profiles.ts"]
   .map((r) => join(srcDir, r))
   .filter((p) => existsSync(p));
 
