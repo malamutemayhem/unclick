@@ -113,10 +113,12 @@ describe("higgsfield connector resilience (L2)", () => {
         const params = body.params as Record<string, unknown>;
         expect(params.name).toBe("generate_image");
         expect(params.arguments).toMatchObject({
-          prompt: "a studio photo of a dog",
-          model: "nano_banana_pro",
-          resolution: "2k",
-          aspect_ratio: "4:3",
+          params: {
+            prompt: "a studio photo of a dog",
+            model: "nano_banana_pro",
+            resolution: "2k",
+            aspect_ratio: "4:3",
+          },
         });
         return jsonResponse({
           jsonrpc: "2.0",
@@ -224,9 +226,11 @@ describe("higgsfield connector resilience (L2)", () => {
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("models_explore");
     expect(toolCallArguments[0]).toMatchObject({
-      action: "search",
-      type: "image",
-      query: "banana",
+      params: {
+        action: "search",
+        type: "image",
+        query: "banana",
+      },
     });
   });
 
@@ -298,8 +302,8 @@ describe("higgsfield connector resilience (L2)", () => {
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("models_explore");
     expect(toolCallCount).toBe(2);
-    expect(attemptedArgs[0]).toMatchObject({ action: "list", type: "image", query: "banana" });
-    expect(attemptedArgs[1]).toMatchObject({ action: "search", type: "image", query: "banana" });
+    expect(attemptedArgs[0]).toMatchObject({ params: { action: "list", type: "image", query: "banana" } });
+    expect(attemptedArgs[1]).toMatchObject({ params: { action: "search", type: "image", query: "banana" } });
     expect(result.mcp_argument_fallback).toMatchObject({ attempted: 2 });
   });
 
@@ -391,5 +395,74 @@ describe("higgsfield connector resilience (L2)", () => {
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("generate_image");
     expect(toolCallCount).toBe(2);
+  });
+
+  it("does not mark Higgsfield connected proof when the native MCP call returns an error", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    let proofPatchCount = 0;
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = String(init?.method ?? "GET").toUpperCase();
+      const bodyText = String(init?.body ?? "");
+      const body = bodyText.startsWith("{") ? JSON.parse(bodyText) as Record<string, unknown> : {};
+
+      if (url === "https://unclick.test/api/credentials?platform=higgsfield") {
+        return jsonResponse({
+          credential_kind: "higgsfield_mcp_oauth",
+          access_token: "mcp-token",
+          refresh_token: "refresh-token",
+          client_id: "client-123",
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          token_type: "Bearer",
+          mcp_url: "https://mcp.higgsfield.ai/mcp",
+        });
+      }
+
+      if (url === "https://unclick.test/api/credentials" && method === "PATCH") {
+        proofPatchCount += 1;
+        return jsonResponse({ success: true });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "initialize") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: {} }, { headers: { "mcp-session-id": "session-1" } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "notifications/initialized") {
+        return acceptedResponse();
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/list") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: { tools: [{ name: "generate_image" }] } });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/call") {
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: {
+            isError: true,
+            content: [{ type: "text", text: "Input validation error: expected object at path ['params']" }],
+          },
+        });
+      }
+
+      throw new Error(`Unexpected fetch ${method} ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await higgsfield_generate_image({
+      prompt: "a 2k cat portrait",
+      model: "nano_banana_pro",
+      resolution: "2k",
+      aspect_ratio: "1:1",
+    }) as Record<string, unknown>;
+
+    expect(result.provider).toBe("higgsfield_mcp");
+    expect(result.tool).toBe("generate_image");
+    expect(JSON.stringify(result)).toContain("Input validation error");
+    expect(proofPatchCount).toBe(0);
   });
 });

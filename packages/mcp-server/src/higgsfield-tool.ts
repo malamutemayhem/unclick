@@ -468,7 +468,7 @@ async function callNativeHiggsfieldTool(
       fetched_at: new Date().toISOString(),
       next_steps: ["This used the signed-in customer's Higgsfield account, plan, and credits."],
     });
-    if (shouldMarkProof) await markCredentialLiveTested("higgsfield");
+    if (shouldMarkProof && !nativeResultIsError(result)) await markCredentialLiveTested("higgsfield");
     return result;
   };
 
@@ -524,6 +524,11 @@ function nativeResultLooksLikeArgumentError(value: unknown): boolean {
   ].some((needle) => text.includes(needle));
 }
 
+function nativeResultIsError(value: unknown): boolean {
+  const result = isRecord(value) && "result" in value ? value.result : value;
+  return isRecord(result) && result.isError === true;
+}
+
 function uniqueNativeArgCandidates(candidates: Record<string, unknown>[]): Record<string, unknown>[] {
   const seen = new Set<string>();
   const out: Record<string, unknown>[] = [];
@@ -534,6 +539,10 @@ function uniqueNativeArgCandidates(candidates: Record<string, unknown>[]): Recor
     out.push(candidate);
   }
   return out;
+}
+
+function mcpParamsEnvelopeCandidates(args: Record<string, unknown>): Record<string, unknown>[] {
+  return uniqueNativeArgCandidates([{ params: args }, args]);
 }
 
 function modelExploreCandidates(args: Record<string, unknown>): Record<string, unknown>[] {
@@ -548,9 +557,9 @@ function modelExploreCandidates(args: Record<string, unknown>): Record<string, u
     ? [requestedAction, "search", "list"]
     : [query ? "search" : "list", "search", "list"];
 
-  return uniqueNativeArgCandidates(
-    actions.filter(Boolean).map((action) => ({ action, ...base })),
-  );
+  const flatCandidates = actions.filter(Boolean).map((action) => ({ action, ...base }));
+  const wrappedCandidates = flatCandidates.map((candidate) => ({ params: candidate }));
+  return uniqueNativeArgCandidates([...wrappedCandidates, ...flatCandidates]);
 }
 
 async function callNativeHiggsfieldToolWithArgumentFallbacks(
@@ -635,10 +644,10 @@ export async function higgsfield_generate_video(args: Record<string, unknown>): 
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(
+    return callNativeHiggsfieldToolWithArgumentFallbacks(
       connection.credentials,
       ["generate_video", "video_generate"],
-      videoMcpArgs(args),
+      mcpParamsEnvelopeCandidates(videoMcpArgs(args)),
       connection.shouldMarkProof,
     );
   }
@@ -663,10 +672,10 @@ export async function higgsfield_generate_image(args: Record<string, unknown>): 
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(
+    return callNativeHiggsfieldToolWithArgumentFallbacks(
       connection.credentials,
       ["generate_image", "image_generate"],
-      imageMcpArgs(args),
+      mcpParamsEnvelopeCandidates(imageMcpArgs(args)),
       connection.shouldMarkProof,
     );
   }
@@ -712,9 +721,12 @@ export async function higgsfield_get_status(args: Record<string, unknown>): Prom
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(connection.credentials, ["get_status", "generation_status", "jobs_get_status"], {
-      generation_id: generationId,
-    }, connection.shouldMarkProof);
+    return callNativeHiggsfieldToolWithArgumentFallbacks(
+      connection.credentials,
+      ["get_status", "generation_status", "jobs_get_status"],
+      mcpParamsEnvelopeCandidates({ generation_id: generationId }),
+      connection.shouldMarkProof,
+    );
   }
 
   const result = await hfGet<Record<string, unknown>>(connection.apiKey, `/generation/${encodeURIComponent(generationId)}`);
