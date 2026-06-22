@@ -9,7 +9,12 @@ import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredent
 
 const SUPABASE_MANAGEMENT_BASE = "https://api.supabase.com";
 
-type CredentialResult = { token: string; shouldMarkProof: boolean } | NotConnectedResult | Record<string, unknown>;
+type ResolvedCredential = { token: string; shouldMarkProof: boolean };
+type CredentialResult = ResolvedCredential | NotConnectedResult | Record<string, unknown>;
+
+function isResolvedCredential(value: CredentialResult): value is ResolvedCredential {
+  return typeof (value as { token?: unknown }).token === "string";
+}
 
 async function getSupabaseToken(args: Record<string, unknown>): Promise<CredentialResult> {
   const inline = String(args.access_token ?? args.api_key ?? "").trim();
@@ -21,7 +26,10 @@ async function getSupabaseToken(args: Record<string, unknown>): Promise<Credenti
     if (token) return { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) };
   }
 
-  return requireCredential("supabase", args);
+  const fallback = requireCredential("supabase", args);
+  return typeof fallback === "string"
+    ? { token: fallback, shouldMarkProof: false }
+    : fallback;
 }
 
 async function supabaseRequest(
@@ -83,7 +91,7 @@ function arrayFromApi(data: unknown, fallbackKey: string): Record<string, unknow
 export async function listSupabaseProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (!("token" in token)) return token;
+    if (!isResolvedCredential(token)) return token;
 
     const params: Record<string, string> = {};
     if (args.organization_id) params.organization_id = String(args.organization_id);
@@ -117,7 +125,7 @@ export async function listSupabaseProjects(args: Record<string, unknown>): Promi
 export async function getSupabaseProject(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (!("token" in token)) return token;
+    if (!isResolvedCredential(token)) return token;
     const projectRef = String(args.project_ref ?? args.ref ?? "").trim();
     if (!projectRef) return { error: "project_ref is required." };
 
@@ -139,7 +147,7 @@ export async function getSupabaseProject(args: Record<string, unknown>): Promise
 export async function listSupabaseOrganizations(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = await getSupabaseToken(args);
-    if (!("token" in token)) return token;
+    if (!isResolvedCredential(token)) return token;
 
     const data = await supabaseRequest(token.token, "/v1/organizations");
     const organizations = arrayFromApi(data, "organizations");

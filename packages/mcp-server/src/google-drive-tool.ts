@@ -6,10 +6,15 @@ const DRIVE_SOURCE = "Google Drive API v3";
 const TEXT_PREVIEW_LIMIT = 64_000;
 
 type ResolvedToken = { token: string; shouldMarkProof: boolean };
+type TokenResolutionError = Record<string, unknown> & { error: string };
 
-async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
+function isResolvedToken(auth: ResolvedToken | TokenResolutionError): auth is ResolvedToken {
+  return typeof (auth as { token?: unknown }).token === "string";
+}
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | TokenResolutionError> {
   const resolved = await resolveCredentials("google-drive", args);
-  if ("error" in resolved) return resolved;
+  if ("error" in resolved) return resolved as TokenResolutionError;
   const token = String(resolved.access_token ?? "").trim();
   return token
     ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
@@ -73,7 +78,7 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 
 export async function driveSearch(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const rawQ = String(args.q ?? "").trim();
   const query = String(args.query ?? "").trim();
   const q = rawQ || (query ? `name contains '${escapeDriveQuery(query)}' and trashed = false` : "trashed = false");
@@ -89,7 +94,7 @@ export async function driveSearch(args: Record<string, unknown>): Promise<unknow
 
 export async function driveRead(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const fileId = String(args.file_id ?? args.id ?? "").trim();
   if (!fileId) return { error: "file_id is required." };
 

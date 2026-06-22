@@ -5,10 +5,15 @@ const GMAIL_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 const GMAIL_SOURCE = "Gmail API v1";
 
 type ResolvedToken = { token: string; shouldMarkProof: boolean };
+type TokenResolutionError = Record<string, unknown> & { error: string };
 
-async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
+function isResolvedToken(auth: ResolvedToken | TokenResolutionError): auth is ResolvedToken {
+  return typeof (auth as { token?: unknown }).token === "string";
+}
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | TokenResolutionError> {
   const resolved = await resolveCredentials("gmail", args);
-  if ("error" in resolved) return resolved;
+  if ("error" in resolved) return resolved as TokenResolutionError;
   const token = String(resolved.access_token ?? "").trim();
   return token
     ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
@@ -72,7 +77,7 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 
 export async function gmailSearch(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const data = await gmailRequest(auth.token, "GET", "/messages", {
     query: {
       q: String(args.query ?? "").trim() || undefined,
@@ -86,7 +91,7 @@ export async function gmailSearch(args: Record<string, unknown>): Promise<unknow
 
 export async function gmailRead(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const id = String(args.message_id ?? args.id ?? "").trim();
   if (!id) return { error: "message_id is required." };
   const format = String(args.format ?? "metadata").trim() || "metadata";
@@ -102,7 +107,7 @@ export async function gmailRead(args: Record<string, unknown>): Promise<unknown>
 
 export async function gmailSend(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const to = String(args.to ?? "").trim();
   const subject = String(args.subject ?? "").trim();
   const body = String(args.body ?? "").trim();

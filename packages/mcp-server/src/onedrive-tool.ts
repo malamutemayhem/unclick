@@ -6,10 +6,15 @@ const ONEDRIVE_SOURCE = "Microsoft Graph OneDrive API";
 const TEXT_PREVIEW_LIMIT = 64_000;
 
 type ResolvedToken = { token: string; shouldMarkProof: boolean };
+type TokenResolutionError = Record<string, unknown> & { error: string };
 
-async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
+function isResolvedToken(auth: ResolvedToken | TokenResolutionError): auth is ResolvedToken {
+  return typeof (auth as { token?: unknown }).token === "string";
+}
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | TokenResolutionError> {
   const resolved = await resolveCredentials("onedrive", args);
-  if ("error" in resolved) return resolved;
+  if ("error" in resolved) return resolved as TokenResolutionError;
   const token = String(resolved.access_token ?? "").trim();
   return token
     ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
@@ -96,7 +101,7 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 
 export async function onedriveList(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const folderId = String(args.folder_id ?? "").trim();
   const path = folderId
     ? `/me/drive/items/${encodeURIComponent(folderId)}/children`
@@ -111,7 +116,7 @@ export async function onedriveList(args: Record<string, unknown>): Promise<unkno
 
 export async function onedriveSearch(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required." };
   const safeQuery = query.replace(/'/g, "''");
@@ -125,7 +130,7 @@ export async function onedriveSearch(args: Record<string, unknown>): Promise<unk
 
 export async function onedriveRead(args: Record<string, unknown>): Promise<unknown> {
   const auth = await requireToken(args);
-  if (!("token" in auth)) return auth;
+  if (!isResolvedToken(auth)) return auth;
   const itemId = String(args.item_id ?? args.file_id ?? args.id ?? "").trim();
   if (!itemId) return { error: "item_id is required." };
 
