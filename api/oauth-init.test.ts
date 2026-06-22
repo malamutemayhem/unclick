@@ -143,9 +143,9 @@ describe("oauth init", () => {
         expect(String(response.headers.get("Set-Cookie"))).toContain("unclick_oauth_pkce_verifier");
         if (platform === "supabase") {
           const payload = response.payload as { authorization_url?: string; scope?: string };
-          expect(payload.scope).toBe("projects:read organizations:read");
+          expect(payload.scope).toBe("all");
           expect(payload.authorization_url).toContain("https://api.supabase.com/v1/oauth/authorize");
-          expect(payload.authorization_url).toContain("scope=projects%3Aread+organizations%3Aread");
+          expect(payload.authorization_url).toContain("scope=all");
         }
       }
     } finally {
