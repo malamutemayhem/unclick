@@ -1,15 +1,19 @@
 import { stampMeta } from "./connector-meta.js";
-import { resolveCredentials } from "./vault-bridge.js";
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
 
 const DRIVE_BASE = "https://www.googleapis.com/drive/v3";
 const DRIVE_SOURCE = "Google Drive API v3";
 const TEXT_PREVIEW_LIMIT = 64_000;
 
-async function requireToken(args: Record<string, unknown>): Promise<string | Record<string, unknown>> {
+type ResolvedToken = { token: string; shouldMarkProof: boolean };
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
   const resolved = await resolveCredentials("google-drive", args);
   if ("error" in resolved) return resolved;
   const token = String(resolved.access_token ?? "").trim();
-  return token || { error: "Google Drive access_token could not be resolved." };
+  return token
+    ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
+    : { error: "Google Drive access_token could not be resolved." };
 }
 
 function escapeDriveQuery(value: string): string {
@@ -68,36 +72,38 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 }
 
 export async function driveSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   const rawQ = String(args.q ?? "").trim();
   const query = String(args.query ?? "").trim();
   const q = rawQ || (query ? `name contains '${escapeDriveQuery(query)}' and trashed = false` : "trashed = false");
-  const { text } = await driveFetch(token, "/files", {
+  const { text } = await driveFetch(auth.token, "/files", {
     q,
     pageSize: Math.min(100, Number(args.limit) || 20),
     pageToken: String(args.page_token ?? "").trim() || undefined,
     fields: "nextPageToken,files(id,name,mimeType,webViewLink,modifiedTime,size,owners(displayName,emailAddress))",
   });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("google-drive");
   return stamp(parseJson(text), ["Use drive_read with a returned file id to inspect metadata or a text preview."]);
 }
 
 export async function driveRead(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   const fileId = String(args.file_id ?? args.id ?? "").trim();
   if (!fileId) return { error: "file_id is required." };
 
-  const metadataResponse = await driveFetch(token, `/files/${encodeURIComponent(fileId)}`, {
+  const metadataResponse = await driveFetch(auth.token, `/files/${encodeURIComponent(fileId)}`, {
     fields: "id,name,mimeType,webViewLink,modifiedTime,size,owners(displayName,emailAddress)",
   });
   const metadata = parseJson<Record<string, unknown>>(metadataResponse.text);
   const mimeType = String(metadata.mimeType ?? "");
 
   if (mimeType === "application/vnd.google-apps.document") {
-    const exported = await driveFetch(token, `/files/${encodeURIComponent(fileId)}/export`, {
+    const exported = await driveFetch(auth.token, `/files/${encodeURIComponent(fileId)}/export`, {
       mimeType: "text/plain",
     });
+    if (auth.shouldMarkProof) await markCredentialLiveTested("google-drive");
     return stamp({
       file: metadata,
       text: exported.text.slice(0, TEXT_PREVIEW_LIMIT),
@@ -106,7 +112,8 @@ export async function driveRead(args: Record<string, unknown>): Promise<unknown>
   }
 
   if (mimeType.startsWith("text/") || mimeType === "application/json" || mimeType === "application/xml") {
-    const content = await driveFetch(token, `/files/${encodeURIComponent(fileId)}`, { alt: "media" });
+    const content = await driveFetch(auth.token, `/files/${encodeURIComponent(fileId)}`, { alt: "media" });
+    if (auth.shouldMarkProof) await markCredentialLiveTested("google-drive");
     return stamp({
       file: metadata,
       text: content.text.slice(0, TEXT_PREVIEW_LIMIT),
@@ -114,6 +121,7 @@ export async function driveRead(args: Record<string, unknown>): Promise<unknown>
     }, ["Use drive_search to find related files or narrow the query."]);
   }
 
+  if (auth.shouldMarkProof) await markCredentialLiveTested("google-drive");
   return stamp({
     file: metadata,
     text: null,

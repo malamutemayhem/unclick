@@ -1,14 +1,18 @@
 import { stampMeta } from "./connector-meta.js";
-import { resolveCredentials } from "./vault-bridge.js";
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
 
 const GMAIL_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 const GMAIL_SOURCE = "Gmail API v1";
 
-async function requireToken(args: Record<string, unknown>): Promise<string | Record<string, unknown>> {
+type ResolvedToken = { token: string; shouldMarkProof: boolean };
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
   const resolved = await resolveCredentials("gmail", args);
   if ("error" in resolved) return resolved;
   const token = String(resolved.access_token ?? "").trim();
-  return token || { error: "Gmail access_token could not be resolved." };
+  return token
+    ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
+    : { error: "Gmail access_token could not be resolved." };
 }
 
 function base64Url(value: string): string {
@@ -67,36 +71,38 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 }
 
 export async function gmailSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
-  const data = await gmailRequest(token, "GET", "/messages", {
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
+  const data = await gmailRequest(auth.token, "GET", "/messages", {
     query: {
       q: String(args.query ?? "").trim() || undefined,
       maxResults: Math.min(100, Number(args.limit) || 10),
       pageToken: String(args.page_token ?? "").trim() || undefined,
     },
   });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("gmail");
   return stamp(data, ["Use gmail_read with a returned message id to read metadata and body snippets."]);
 }
 
 export async function gmailRead(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   const id = String(args.message_id ?? args.id ?? "").trim();
   if (!id) return { error: "message_id is required." };
   const format = String(args.format ?? "metadata").trim() || "metadata";
-  const data = await gmailRequest(token, "GET", `/messages/${encodeURIComponent(id)}`, {
+  const data = await gmailRequest(auth.token, "GET", `/messages/${encodeURIComponent(id)}`, {
     query: {
       format,
       metadataHeaders: format === "metadata" ? "From" : undefined,
     },
   });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("gmail");
   return stamp(data, ["Use gmail_search to find related messages, or gmail_send to send a reply when appropriate."]);
 }
 
 export async function gmailSend(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   const to = String(args.to ?? "").trim();
   const subject = String(args.subject ?? "").trim();
   const body = String(args.body ?? "").trim();
@@ -114,6 +120,7 @@ export async function gmailSend(args: Record<string, unknown>): Promise<unknown>
     "",
     body,
   ].join("\r\n"));
-  const data = await gmailRequest(token, "POST", "/messages/send", { body: { raw } });
+  const data = await gmailRequest(auth.token, "POST", "/messages/send", { body: { raw } });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("gmail");
   return stamp(data, ["Use gmail_search to confirm the sent message or find the thread later."]);
 }

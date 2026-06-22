@@ -104,7 +104,7 @@ async function supabaseFetch(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
   res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
   res.setHeader("CDN-Cache-Control", "no-store");
@@ -119,6 +119,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ error: "Server credentials not configured." });
+  }
+
+  // ── PATCH: record live proof after a connector call succeeds ──────────────
+  if (req.method === "PATCH") {
+    const authHeader = req.headers.authorization ?? "";
+    const apiKey     = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const body       = req.body as { platform?: string; label?: string | null } | undefined;
+    const platform   = String(body?.platform ?? "").trim();
+    const label      = typeof body?.label === "string" ? body.label.trim() : "";
+
+    if (!apiKey)   return res.status(401).json({ error: "Authorization header required." });
+    if (!platform) return res.status(400).json({ error: "platform is required." });
+
+    const apiKeyHash = sha256hex(apiKey);
+    const testedAt   = new Date().toISOString();
+    const labelFilter = label
+      ? `&label=eq.${encodeURIComponent(label)}`
+      : "&label=is.null";
+    const tableUrl =
+      `${supabaseUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}` +
+      `&platform_slug=eq.${encodeURIComponent(platform)}${labelFilter}`;
+
+    const { ok, status, data } = await supabaseFetch(
+      tableUrl,
+      "PATCH",
+      supabaseHeaders(serviceRoleKey),
+      { is_valid: true, last_tested_at: testedAt, updated_at: testedAt }
+    );
+    if (!ok) return res.status(status).json({ error: "Failed to mark credential tested." });
+
+    const rows = Array.isArray(data) ? data : [];
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No stored credential matched this platform." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      platform,
+      label: label || null,
+      last_tested_at: testedAt,
+    });
   }
 
   // ── GET: retrieve decrypted credentials ───────────────────────────────────

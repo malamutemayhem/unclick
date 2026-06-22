@@ -21,6 +21,31 @@ import { keychainGetCredential }         from "./keychain-tool.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const UNCLICK_CREDENTIAL_SOURCE = "__unclick_credential_source";
+
+export function credentialResolvedFromUnClick(args: Record<string, unknown>): boolean {
+  return args[UNCLICK_CREDENTIAL_SOURCE] === "user_credentials";
+}
+
+export async function markCredentialLiveTested(slug: string): Promise<void> {
+  const apiKey = process.env.UNCLICK_API_KEY?.trim();
+  if (!apiKey) return;
+
+  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+  try {
+    await fetch(`${apiBase}/api/credentials`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ platform: slug }),
+    });
+  } catch {
+    // Proof stamping is best-effort; the successful provider call still returns.
+  }
+}
+
 function envKey(slug: string, fieldKey: string): string {
   return `UNCLICK_${slug.toUpperCase().replace(/-/g, "_")}_${fieldKey.toUpperCase().replace(/-/g, "_")}`;
 }
@@ -145,7 +170,10 @@ export async function resolveCredentials(
         stillMissing = stillMissing.filter(
           (f) => !resolved[f.key] || String(resolved[f.key]).trim() === ""
         );
-        if (stillMissing.length === 0) return resolved;
+        if (stillMissing.length === 0) {
+          resolved[UNCLICK_CREDENTIAL_SOURCE] = "user_credentials";
+          return resolved;
+        }
       }
     } catch {
       // network miss - fall through to error

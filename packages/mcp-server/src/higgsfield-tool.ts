@@ -4,6 +4,7 @@
 
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { markCredentialLiveTested } from "./vault-bridge.js";
 
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 const HF_MCP_URL = "https://mcp.higgsfield.ai/mcp";
@@ -22,8 +23,8 @@ interface HiggsfieldMcpCredentials {
 }
 
 type HiggsfieldConnection =
-  | { mode: "mcp"; credentials: HiggsfieldMcpCredentials }
-  | { mode: "api"; apiKey: string }
+  | { mode: "mcp"; credentials: HiggsfieldMcpCredentials; shouldMarkProof: boolean }
+  | { mode: "api"; apiKey: string; shouldMarkProof: boolean }
   | NotConnectedResult;
 
 class HiggsfieldMcpAuthError extends Error {}
@@ -193,18 +194,22 @@ async function ensureFreshMcpCredentials(credentials: HiggsfieldMcpCredentials):
 
 async function resolveHiggsfieldConnection(args: Record<string, unknown>): Promise<HiggsfieldConnection> {
   const explicitApiKey = String(args.api_key ?? "").trim();
-  if (explicitApiKey) return { mode: "api", apiKey: explicitApiKey };
+  if (explicitApiKey) return { mode: "api", apiKey: explicitApiKey, shouldMarkProof: false };
 
   const stored = await fetchStoredHiggsfieldCredentials();
   const storedApiKey = typeof stored?.api_key === "string" ? stored.api_key.trim() : "";
   if (isHiggsfieldMcpCredential(stored)) {
-    return { mode: "mcp", credentials: await ensureFreshMcpCredentials(toMcpCredentials(stored)) };
+    return {
+      mode: "mcp",
+      credentials: await ensureFreshMcpCredentials(toMcpCredentials(stored)),
+      shouldMarkProof: true,
+    };
   }
 
-  if (storedApiKey) return { mode: "api", apiKey: storedApiKey };
+  if (storedApiKey) return { mode: "api", apiKey: storedApiKey, shouldMarkProof: true };
 
   const envApiKey = process.env.HIGGSFIELD_API_KEY?.trim();
-  if (envApiKey) return { mode: "api", apiKey: envApiKey };
+  if (envApiKey) return { mode: "api", apiKey: envApiKey, shouldMarkProof: false };
 
   return higgsfieldNotConnected();
 }
@@ -437,6 +442,7 @@ async function callNativeHiggsfieldTool(
   credentials: HiggsfieldMcpCredentials,
   preferredNames: string[],
   toolArgs: Record<string, unknown>,
+  shouldMarkProof = false,
 ): Promise<unknown> {
   let fresh = await ensureFreshMcpCredentials(credentials);
 
@@ -452,7 +458,7 @@ async function callNativeHiggsfieldTool(
     if (higgsfieldNativeAuthError(called.result)) {
       throw new HiggsfieldMcpAuthError("Higgsfield login expired. Reconnect Higgsfield from UnClick Apps.");
     }
-    return stampMeta({
+    const result = stampMeta({
       provider: "higgsfield_mcp",
       tool: toolName,
       arguments: toolArgs,
@@ -462,6 +468,8 @@ async function callNativeHiggsfieldTool(
       fetched_at: new Date().toISOString(),
       next_steps: ["This used the signed-in customer's Higgsfield account, plan, and credits."],
     });
+    if (shouldMarkProof) await markCredentialLiveTested("higgsfield");
+    return result;
   };
 
   try {
@@ -549,10 +557,11 @@ async function callNativeHiggsfieldToolWithArgumentFallbacks(
   credentials: HiggsfieldMcpCredentials,
   preferredNames: string[],
   candidates: Record<string, unknown>[],
+  shouldMarkProof = false,
 ): Promise<unknown> {
   let lastResult: unknown;
   for (let index = 0; index < candidates.length; index += 1) {
-    const result = await callNativeHiggsfieldTool(credentials, preferredNames, candidates[index]);
+    const result = await callNativeHiggsfieldTool(credentials, preferredNames, candidates[index], shouldMarkProof);
     if (!nativeResultLooksLikeArgumentError(result)) {
       if (index === 0 || !isRecord(result)) return result;
       return {
@@ -626,11 +635,17 @@ export async function higgsfield_generate_video(args: Record<string, unknown>): 
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(connection.credentials, ["generate_video", "video_generate"], videoMcpArgs(args));
+    return callNativeHiggsfieldTool(
+      connection.credentials,
+      ["generate_video", "video_generate"],
+      videoMcpArgs(args),
+      connection.shouldMarkProof,
+    );
   }
 
   const body = videoMcpArgs(args);
   const result = await hfPost<Record<string, unknown>>(connection.apiKey, "/video/generate", body);
+  if (connection.shouldMarkProof) await markCredentialLiveTested("higgsfield");
 
   return {
     generation_id: result.id ?? result.generation_id ?? null,
@@ -648,11 +663,17 @@ export async function higgsfield_generate_image(args: Record<string, unknown>): 
   const connection = await resolveHiggsfieldConnection(args);
   if ("error" in connection) return connection;
   if (connection.mode === "mcp") {
-    return callNativeHiggsfieldTool(connection.credentials, ["generate_image", "image_generate"], imageMcpArgs(args));
+    return callNativeHiggsfieldTool(
+      connection.credentials,
+      ["generate_image", "image_generate"],
+      imageMcpArgs(args),
+      connection.shouldMarkProof,
+    );
   }
 
   const body = imageMcpArgs(args);
   const result = await hfPost<Record<string, unknown>>(connection.apiKey, "/image/generate", body);
+  if (connection.shouldMarkProof) await markCredentialLiveTested("higgsfield");
 
   return {
     generation_id: result.id ?? result.generation_id ?? null,
@@ -671,10 +692,12 @@ export async function higgsfield_get_styles(args: Record<string, unknown>): Prom
       connection.credentials,
       ["models_explore", "get_styles"],
       modelExploreCandidates(args),
+      connection.shouldMarkProof,
     );
   }
 
   const data = await hfGet<{ styles?: unknown[]; data?: unknown[] }>(connection.apiKey, "/styles");
+  if (connection.shouldMarkProof) await markCredentialLiveTested("higgsfield");
   const styles = data.styles ?? data.data ?? [];
   return {
     count: Array.isArray(styles) ? styles.length : 0,
@@ -691,10 +714,11 @@ export async function higgsfield_get_status(args: Record<string, unknown>): Prom
   if (connection.mode === "mcp") {
     return callNativeHiggsfieldTool(connection.credentials, ["get_status", "generation_status", "jobs_get_status"], {
       generation_id: generationId,
-    });
+    }, connection.shouldMarkProof);
   }
 
   const result = await hfGet<Record<string, unknown>>(connection.apiKey, `/generation/${encodeURIComponent(generationId)}`);
+  if (connection.shouldMarkProof) await markCredentialLiveTested("higgsfield");
 
   return stampMeta({
     generation_id: generationId,

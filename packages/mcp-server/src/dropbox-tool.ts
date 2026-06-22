@@ -5,16 +5,20 @@
 // a JSON body; no-argument endpoints take no body.
 
 import { stampMeta } from "./connector-meta.js";
-import { resolveCredentials } from "./vault-bridge.js";
+import { credentialResolvedFromUnClick, markCredentialLiveTested, resolveCredentials } from "./vault-bridge.js";
 
 const DROPBOX_BASE = "https://api.dropboxapi.com/2";
 const DROPBOX_SOURCE = "Dropbox API v2";
 
-async function requireToken(args: Record<string, unknown>): Promise<string | Record<string, unknown>> {
+type ResolvedToken = { token: string; shouldMarkProof: boolean };
+
+async function requireToken(args: Record<string, unknown>): Promise<ResolvedToken | Record<string, unknown>> {
   const resolved = await resolveCredentials("dropbox", args);
   if ("error" in resolved) return resolved;
   const token = String(resolved.access_token ?? "").trim();
-  return token || { error: "Dropbox access_token could not be resolved." };
+  return token
+    ? { token, shouldMarkProof: credentialResolvedFromUnClick(resolved) }
+    : { error: "Dropbox access_token could not be resolved." };
 }
 
 async function dbxPost<T>(token: string, path: string, body?: unknown): Promise<T> {
@@ -49,26 +53,29 @@ function stamp(result: unknown, nextSteps: string[]): Record<string, unknown> {
 }
 
 export async function dropboxListFolder(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   // Root is the empty string in Dropbox, not "/".
   const path = String(args.path ?? "").trim() === "/" ? "" : String(args.path ?? "").trim();
-  const data = await dbxPost(token, "/files/list_folder", { path, limit: Math.min(2000, Number(args.limit) || 100) });
+  const data = await dbxPost(auth.token, "/files/list_folder", { path, limit: Math.min(2000, Number(args.limit) || 100) });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("dropbox");
   return stamp(data, ["Use dropbox_search to find a file by name, or pass a returned folder path to list it."]);
 }
 
 export async function dropboxSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required (a file or folder name to search for)." };
-  const data = await dbxPost(token, "/files/search_v2", { query, options: { max_results: Math.min(1000, Number(args.limit) || 25) } });
+  const data = await dbxPost(auth.token, "/files/search_v2", { query, options: { max_results: Math.min(1000, Number(args.limit) || 25) } });
+  if (auth.shouldMarkProof) await markCredentialLiveTested("dropbox");
   return stamp(data, ["Use dropbox_list_folder with a returned path to browse around a match."]);
 }
 
 export async function dropboxGetAccount(args: Record<string, unknown>): Promise<unknown> {
-  const token = await requireToken(args);
-  if (typeof token !== "string") return token;
-  const data = await dbxPost(token, "/users/get_current_account");
+  const auth = await requireToken(args);
+  if (!("token" in auth)) return auth;
+  const data = await dbxPost(auth.token, "/users/get_current_account");
+  if (auth.shouldMarkProof) await markCredentialLiveTested("dropbox");
   return stamp(data, ["Use dropbox_list_folder to browse this account's files."]);
 }
