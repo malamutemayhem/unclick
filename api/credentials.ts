@@ -32,6 +32,7 @@ import {
   fetchManagedConnectionCredentials,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
+import { needsRefresh, refreshOAuthCredential } from "./lib/oauth-refresh.js";
 
 // ─── Crypto helpers ───────────────────────────────────────────────────────────
 
@@ -98,6 +99,65 @@ async function supabaseFetch(
   let data: unknown;
   try { data = await res.json(); } catch { data = null; }
   return { ok: res.ok, status: res.status, data };
+}
+
+// ─── OAuth refresh on read ────────────────────────────────────────────────────
+// The single chokepoint every OAuth connector funnels through (vault-bridge ->
+// GET /api/credentials). If a stored access token is expiring and we hold a
+// refresh token, mint a fresh one here so connectors never receive a dead token.
+// Best-effort: any failure returns the stored credential unchanged, so this can
+// never be worse than not refreshing at all.
+async function refreshStoredCredential(params: {
+  platform:       string;
+  credentials:    Record<string, string>;
+  rowId:          string;
+  apiKey:         string;
+  supabaseUrl:    string;
+  serviceRoleKey: string;
+  force:          boolean;
+}): Promise<Record<string, string>> {
+  const { platform, credentials, rowId, apiKey, supabaseUrl, serviceRoleKey, force } = params;
+
+  try {
+    if (!needsRefresh(platform, credentials, force)) return credentials;
+
+    const refreshed = await refreshOAuthCredential(platform, credentials, process.env);
+    if (!refreshed) return credentials;
+
+    // Persist the rotated token so the next read is already fresh, and stamp the
+    // proof fields (a successful refresh proves the credential is live).
+    if (rowId) {
+      try {
+        const salt = crypto.randomBytes(SALT_BYTES);
+        const key  = deriveKey(apiKey, salt);
+        const { iv, authTag, ciphertext } = encrypt(JSON.stringify(refreshed), key);
+        const now = new Date().toISOString();
+        await supabaseFetch(
+          `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(rowId)}`,
+          "PATCH",
+          { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
+          {
+            encrypted_data:  ciphertext,
+            encryption_iv:   iv,
+            encryption_tag:  authTag,
+            encryption_salt: salt.toString("hex"),
+            is_valid:        true,
+            last_tested_at:  now,
+            updated_at:      now,
+          }
+        );
+      } catch {
+        // persistence is best-effort; still hand back the freshly minted token
+        return refreshed;
+      }
+    }
+
+    return refreshed;
+  } catch {
+    // Any unexpected failure falls back to the stored credential, so refresh can
+    // never be worse than not refreshing.
+    return credentials;
+  }
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
@@ -168,6 +228,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey     = authHeader.replace(/^Bearer\s+/i, "").trim();
     const platform   = String(req.query.platform ?? "").trim();
     const label      = typeof req.query.label === "string" ? req.query.label.trim() : "";
+    const forceRefresh = String(req.query.force_refresh ?? "").toLowerCase() === "1"
+      || String(req.query.force_refresh ?? "").toLowerCase() === "true";
 
     if (!apiKey)   return res.status(401).json({ error: "Authorization header required." });
     if (!platform) return res.status(400).json({ error: "platform query param required." });
@@ -221,7 +283,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         key
       );
       const credentials = JSON.parse(plaintext) as Record<string, string>;
-      return res.status(200).json(credentials);
+      const finalCredentials = await refreshStoredCredential({
+        platform,
+        credentials,
+        rowId:          String(row.id ?? ""),
+        apiKey,
+        supabaseUrl,
+        serviceRoleKey,
+        force:          forceRefresh,
+      });
+      return res.status(200).json(finalCredentials);
     } catch {
       return res.status(500).json({ error: "Failed to decrypt credentials. The API key may have changed." });
     }
