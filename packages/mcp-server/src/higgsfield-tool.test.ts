@@ -113,12 +113,10 @@ describe("higgsfield connector resilience (L2)", () => {
         const params = body.params as Record<string, unknown>;
         expect(params.name).toBe("generate_image");
         expect(params.arguments).toMatchObject({
-          params: {
           prompt: "a studio photo of a dog",
           model: "nano_banana_pro",
           resolution: "2k",
           aspect_ratio: "4:3",
-          },
         });
         return jsonResponse({
           jsonrpc: "2.0",
@@ -226,7 +224,9 @@ describe("higgsfield connector resilience (L2)", () => {
     expect(result.provider).toBe("higgsfield_mcp");
     expect(result.tool).toBe("models_explore");
     expect(toolCallArguments[0]).toMatchObject({
-      params: { action: "search", type: "image", query: "banana" },
+      action: "search",
+      type: "image",
+      query: "banana",
     });
   });
 
@@ -270,7 +270,7 @@ describe("higgsfield connector resilience (L2)", () => {
         toolCallCount += 1;
         const params = body.params as Record<string, unknown>;
         const argsPayload = params.arguments as Record<string, unknown>;
-        attemptedArgs.push(argsPayload.params as Record<string, unknown>);
+        attemptedArgs.push(argsPayload);
         if (toolCallCount === 1) {
           return jsonResponse({
             jsonrpc: "2.0",

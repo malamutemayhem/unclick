@@ -182,6 +182,7 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
         waiting("Env names match", "Start and callback code use the same client ID, client secret, and redirect URI names."),
         waiting("State is signed", "Login state is signed and checked before credentials are stored."),
         waiting("PKCE is consistent", "PKCE is enabled on both start and callback, or on neither."),
+        waiting("Scopes travel with login", "The provider sign-in URL requests the same permissions the backend tools need."),
         waiting("Setup-pending is recoverable", "Missing provider config returns a clear setup-pending state and keeps fallback available."),
         waiting("Live smoke proves provider readiness", "Production OAuth start returns a provider-ready payload before the app is called done."),
       ],
@@ -191,6 +192,7 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
       rows: [
         waiting("Stored connection is usable", "Tools can use the account saved by the web login without asking for a pasted token again."),
         waiting("Token field stays optional", "Login-first tools keep raw token fields optional so stored credentials can satisfy calls."),
+        waiting("Native tool shape is preserved", "Bridge code forwards the provider's expected argument shape instead of wrapping or dropping fields."),
         waiting("Connected badge is truthful", "Admin status merges every stored connection source the tool runtime can use."),
         waiting("Disconnect scope is clear", "Removing access affects the intended connection without surprising unrelated apps."),
         waiting("Generated setup data is fresh", "Generated connector setup and map artifacts are refreshed with the source change."),

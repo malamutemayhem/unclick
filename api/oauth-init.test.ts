@@ -139,7 +139,14 @@ describe("oauth init", () => {
           code_challenge_method: "S256",
         });
         expect((response.payload as { code_challenge?: string }).code_challenge).toMatch(/^[A-Za-z0-9_-]+$/);
+        expect((response.payload as { authorization_url?: string }).authorization_url).toContain("code_challenge=");
         expect(String(response.headers.get("Set-Cookie"))).toContain("unclick_oauth_pkce_verifier");
+        if (platform === "supabase") {
+          const payload = response.payload as { authorization_url?: string; scope?: string };
+          expect(payload.scope).toBe("projects:read organizations:read");
+          expect(payload.authorization_url).toContain("https://api.supabase.com/v1/oauth/authorize");
+          expect(payload.authorization_url).toContain("scope=projects%3Aread+organizations%3Aread");
+        }
       }
     } finally {
       restoreEnv("VERCEL_CLIENT_ID", previous.VERCEL_CLIENT_ID);

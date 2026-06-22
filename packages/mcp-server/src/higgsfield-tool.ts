@@ -446,7 +446,7 @@ async function callNativeHiggsfieldTool(
     const called = await mcpRequest({
       credentials: session.credentials,
       method: "tools/call",
-      params: { name: toolName, arguments: { params: toolArgs } },
+      params: { name: toolName, arguments: toolArgs },
       sessionId: session.sessionId,
     });
     if (higgsfieldNativeAuthError(called.result)) {
@@ -540,10 +540,9 @@ function modelExploreCandidates(args: Record<string, unknown>): Record<string, u
     ? [requestedAction, "search", "list"]
     : [query ? "search" : "list", "search", "list"];
 
-  return uniqueNativeArgCandidates([
-    ...actions.filter(Boolean).map((action) => ({ action, ...base })),
-    base,
-  ]);
+  return uniqueNativeArgCandidates(
+    actions.filter(Boolean).map((action) => ({ action, ...base })),
+  );
 }
 
 async function callNativeHiggsfieldToolWithArgumentFallbacks(
