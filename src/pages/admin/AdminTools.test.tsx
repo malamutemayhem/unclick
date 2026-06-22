@@ -53,6 +53,15 @@ describe("AdminTools (Apps library)", () => {
     );
   });
 
+  it("keeps code-registry sign-in apps connectable when the database connector row is missing", async () => {
+    const { buildAdminConnectorMap } = await import("./AdminTools");
+    const map = buildAdminConnectorMap([]);
+
+    expect(map.get("gmail")?.auth_type).toBe("oauth2");
+    expect(map.get("google-drive")?.auth_type).toBe("oauth2");
+    expect(map.get("onedrive")?.auth_type).toBe("oauth2");
+  });
+
   // Each of these renders the FULL generated catalog (650+ rows) in jsdom,
   // which can take well over the default 10s on a contended CI runner. The
   // wider budget keeps slow runners from flaking; the assertions are unchanged.

@@ -274,11 +274,32 @@ export function evaluateConnectionReadinessSources(
 
   addCheck(
     globalChecks,
-    "admin_modal_routes_login_apps_to_connect_page",
-    sources.connectAppModal.includes("connector.auth_type === \"oauth2\"")
-      && sources.connectAppModal.includes("href={`/connect/${app.slug}`}")
-      && sources.connectAppModal.includes("Continue to"),
-    "Admin Apps sends OAuth apps to the full /connect/:slug login journey."
+    "admin_apps_open_login_apps_directly",
+    sources.adminTools.includes("function shouldUseConnectPage")
+      && sources.adminTools.includes("connector.auth_type === \"oauth2\"")
+      && sources.adminTools.includes("openConnectionPopup(`/connect/${app.slug}`")
+      && sources.adminTools.includes("connector.supports_managed_connection || connector.supports_hosted_mcp_connection")
+      && sources.adminTools.includes("setConnectTarget(app)"),
+    "Admin Apps opens sign-in apps directly into /connect/:slug and reserves the modal for managed, hosted MCP, and key-entry flows."
+  );
+
+  addCheck(
+    globalChecks,
+    "admin_apps_registry_fallback_keeps_login_apps_connectable",
+    sources.adminTools.includes("function buildAdminConnectorMap")
+      && sources.adminTools.includes("CONNECTORS[app.slug]")
+      && sources.adminTools.includes("auth_type: config.authType")
+      && sources.adminTools.includes('supports_hosted_mcp_connection: app.slug === "higgsfield"'),
+    "Admin Apps falls back to the code connector registry so missing database connector rows cannot make sign-in apps look built-in."
+  );
+
+  addCheck(
+    globalChecks,
+    "admin_apps_saved_status_uses_customer_language",
+    sources.adminTools.includes('label: "Login saved"')
+      && sources.adminTools.includes('label: "Key saved"')
+      && sources.connectAppModal.includes("will verify it when"),
+    "Saved but unproven credentials use customer-facing saved-state labels instead of sounding broken."
   );
 
   addCheck(

@@ -153,15 +153,15 @@ describe("ConnectAppModal", () => {
         credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
       },
       isConnected: false,
-      statusLabel: "Needs check",
+      statusLabel: "Login saved",
       onStartHostedMcpLogin,
       onDisconnect,
     });
 
     expect(screen.getByRole("heading", { name: /manage higgsfield/i })).toBeInTheDocument();
-    expect(screen.getByText(/higgsfield is saved in unclick/i)).toBeInTheDocument();
-    expect(screen.getByText(/has not passed a live check yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/higgsfield login is saved/i)).toBeInTheDocument();
+    expect(screen.getByText(/higgsfield login is saved in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/will verify it when a higgsfield tool runs/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/higgsfield login is saved/i).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
     await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
@@ -256,7 +256,7 @@ describe("ConnectAppModal", () => {
         credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
       },
       isConnected: false,
-      statusLabel: "Needs check",
+      statusLabel: "Key saved",
       onDisconnect,
     });
 

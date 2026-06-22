@@ -86,7 +86,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
 | src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | 4ec8bac9e74a | 13767 |
+| src/pages/admin/AdminTools.tsx | 98d380464adc | 15981 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
@@ -201,7 +201,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 0c43fa5b8d29 | 35389 |
+| scripts/pinballwake-xpass-gate-room.mjs | 03f219e31d62 | 35439 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |

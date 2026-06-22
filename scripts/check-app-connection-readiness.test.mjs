@@ -129,6 +129,52 @@ describe("app connection readiness", () => {
     assert.match(actionText(receipt), /admin_apps_separates_saved_visibility_from_live_proof/);
   });
 
+  it("blocks when Admin Apps sends login apps through the extra modal hop", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools.replace(
+      "openConnectionPopup(`/connect/${app.slug}`, app.slug);",
+      "setConnectTarget(app);"
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["supabase"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_open_login_apps_directly/);
+  });
+
+  it("blocks when Admin Apps loses the code-registry fallback for sign-in apps", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools
+      .replace("function buildAdminConnectorMap", "function buildMissingConnectorMap")
+      .replace("CONNECTORS[app.slug]", "undefined");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["gmail"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_registry_fallback_keeps_login_apps_connectable/);
+  });
+
+  it("blocks when saved credentials regress to scary check-needed wording", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.adminTools = sources.adminTools
+      .replace('label: "Login saved"', 'label: "Needs check"')
+      .replace('label: "Key saved"', 'label: "Needs check"');
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /admin_apps_saved_status_uses_customer_language/);
+  });
+
   it("blocks when OAuth start and callback disagree on env names", async () => {
     const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
     sources.oauthInit = sources.oauthInit.replace(
