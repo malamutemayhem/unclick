@@ -7,7 +7,7 @@ import {
   repoFromGitProxySegments,
   unclickApiKeyFromAuth,
   validateGitProxyPath,
-} from "../lib/git-proxy.js";
+} from "./lib/git-proxy.js";
 
 export const config = {
   api: {
@@ -34,6 +34,16 @@ function originForRequest(req: VercelRequest): string {
   const host = String(req.headers["x-forwarded-host"] ?? req.headers.host ?? "unclick.world");
   const proto = String(req.headers["x-forwarded-proto"] ?? (host.includes("localhost") ? "http" : "https"));
   return `${proto}://${host}`;
+}
+
+function segmentsFromRequest(req: VercelRequest): string[] {
+  const fromRewrite = gitProxyPathSegments(req.query.path);
+  if (fromRewrite.length) return fromRewrite;
+
+  const pathname = new URL(String(req.url ?? ""), originForRequest(req)).pathname;
+  const prefix = "/api/git-proxy/";
+  if (!pathname.startsWith(prefix)) return [];
+  return gitProxyPathSegments(pathname.slice(prefix.length));
 }
 
 async function savedGitHubToken(req: VercelRequest, apiKey: string): Promise<string | null> {
@@ -95,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).send("UnClick API key required.");
   }
 
-  const segments = gitProxyPathSegments(req.query.path);
+  const segments = segmentsFromRequest(req);
   const pathCheck = validateGitProxyPath(req.method, segments, req.query);
   if (!pathCheck.ok) return res.status(400).send(pathCheck.reason ?? "Invalid git proxy path.");
 

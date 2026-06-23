@@ -47,8 +47,9 @@ const SOURCE_PATHS = {
   vaultBridge: "packages/mcp-server/src/vault-bridge.ts",
   builderAccessProfiles: "packages/mcp-server/src/builder-access-profiles.ts",
   githubTool: "packages/mcp-server/src/github-tool.ts",
-  gitProxy: "api/git-proxy/[...path].ts",
+  gitProxy: "api/git-proxy.ts",
   gitProxyLib: "api/lib/git-proxy.ts",
+  vercelConfig: "vercel.json",
   vercelTool: "packages/mcp-server/src/vercel-tool.ts",
   supabaseTool: "packages/mcp-server/src/supabase-tool.ts",
   dropboxTool: "packages/mcp-server/src/dropbox-tool.ts",
@@ -525,6 +526,22 @@ export function evaluateConnectionReadinessSources(
       && sources.gitProxyLib.includes("repoAllowed")
       && sources.gitProxyLib.includes("key === \"path\" || key === \"key\""),
     "The UnClick git proxy requires UnClick auth, retrieves saved GitHub credentials server-side, forwards only smart-git endpoints, and never forwards the UnClick key to GitHub."
+  );
+
+  const vercelConfigData = readJson(sources.vercelConfig, { rewrites: [] });
+  const vercelRewrites = Array.isArray(vercelConfigData.rewrites) ? vercelConfigData.rewrites : [];
+  const gitProxyRewriteAt = vercelRewrites.findIndex((rewrite) =>
+    rewrite?.source === "/api/git-proxy/:path*" && rewrite?.destination === "/api/git-proxy?path=:path*"
+  );
+  const spaCatchallAt = vercelRewrites.findIndex((rewrite) => rewrite?.source === "/((?!.*\\.).*)");
+  addCheck(
+    globalChecks,
+    "unclick_git_proxy_has_production_rewrite",
+    gitProxyRewriteAt !== -1
+      && sources.vercelConfig.includes('"destination": "/api/git-proxy?path=:path*"')
+      && spaCatchallAt !== -1
+      && gitProxyRewriteAt < spaCatchallAt,
+    "The UnClick git proxy has an explicit Vercel rewrite before the SPA catchall so production Git smart-HTTP URLs reach the API function instead of 404ing."
   );
 
   addCheck(
