@@ -3653,7 +3653,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "github_action",
-        "description": "Interact with the GitHub REST API: search repos, get repo details, list and create issues, list PRs, get user profiles, list gists, and search code."
+        "description": "Interact with the GitHub REST API: search/read repos, create branches and commits, open PRs, comment, merge, and read workflow checks."
       }
     ]
   },
