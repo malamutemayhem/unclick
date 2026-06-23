@@ -47,6 +47,8 @@ const SOURCE_PATHS = {
   vaultBridge: "packages/mcp-server/src/vault-bridge.ts",
   builderAccessProfiles: "packages/mcp-server/src/builder-access-profiles.ts",
   githubTool: "packages/mcp-server/src/github-tool.ts",
+  gitProxy: "api/git-proxy/[...path].ts",
+  gitProxyLib: "api/lib/git-proxy.ts",
   vercelTool: "packages/mcp-server/src/vercel-tool.ts",
   supabaseTool: "packages/mcp-server/src/supabase-tool.ts",
   dropboxTool: "packages/mcp-server/src/dropbox-tool.ts",
@@ -482,6 +484,47 @@ export function evaluateConnectionReadinessSources(
       && sources.builderAccessProfiles.includes("A connected GitHub app inside UnClick is not the same thing as a direct session git credential")
       && sources.builderAccessProfiles.includes("vercel_team_scope_verified"),
     "Builder runtime preflight separates direct session connectors from UnClick-internal connectors and requires proven startup credentials or writable APIs."
+  );
+
+  const githubBuilderActions = [
+    "create_branch",
+    "push_files",
+    "create_pull_request",
+    "comment_issue_or_pr",
+    "merge_pull_request",
+    "list_checks",
+  ];
+  addCheck(
+    globalChecks,
+    "unclick_github_connector_exposes_builder_write_path",
+    githubBuilderActions.every((action) => sources.githubTool.includes(`case "${action}"`))
+      && githubBuilderActions.every((action) => sources.toolWiring.includes(`"${action}"`))
+      && sources.githubTool.includes('resolveCredentials("github"')
+      && sources.githubTool.includes("/git/refs")
+      && sources.githubTool.includes("/git/blobs")
+      && sources.githubTool.includes("/git/trees")
+      && sources.githubTool.includes("/git/commits")
+      && sources.githubTool.includes("/pulls")
+      && sources.githubTool.includes("/check-runs")
+      && sources.githubTool.includes("markCredentialLiveTested(\"github\")"),
+    "The UnClick-internal GitHub connector exposes a builder write path: branch creation, file commits, PRs, comments/merge, checks, and saved-login proof stamping."
+  );
+
+  addCheck(
+    globalChecks,
+    "unclick_git_proxy_keeps_github_secret_server_side",
+    sources.gitProxy.includes("bodyParser: false")
+      && sources.gitProxy.includes("unclickApiKeyFromAuth")
+      && sources.gitProxy.includes("savedGitHubToken")
+      && sources.gitProxy.includes("/api/credentials")
+      && sources.gitProxy.includes("validateGitProxyPath")
+      && sources.gitProxy.includes("repoAllowed")
+      && sources.gitProxyLib.includes("git-receive-pack")
+      && sources.gitProxyLib.includes("git-upload-pack")
+      && sources.gitProxyLib.includes("githubBasicAuthHeader")
+      && sources.gitProxyLib.includes("repoAllowed")
+      && sources.gitProxyLib.includes("key === \"path\" || key === \"key\""),
+    "The UnClick git proxy requires UnClick auth, retrieves saved GitHub credentials server-side, forwards only smart-git endpoints, and never forwards the UnClick key to GitHub."
   );
 
   addCheck(

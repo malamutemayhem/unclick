@@ -51,6 +51,8 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_agents_have_privileged_secret_work_hierarchy" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_github_requires_real_push_path" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_runtime_preflight_separates_profiles_from_session_credentials" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "unclick_github_connector_exposes_builder_write_path" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "unclick_git_proxy_keeps_github_secret_server_side" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_provider_matrix_covers_github_vercel_supabase" && check.status === "pass"));
   });
 
@@ -189,6 +191,39 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /builder_runtime_preflight_separates_profiles_from_session_credentials/);
+  });
+
+  it("blocks when the UnClick GitHub connector loses builder write actions", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.githubTool = sources.githubTool
+      .replaceAll('case "push_files"', 'case "push_files_disabled"')
+      .replaceAll("/git/blobs", "/git/read-only-blobs")
+      .replaceAll("/pulls", "/pulls-read-only");
+    sources.toolWiring = sources.toolWiring.replaceAll('"push_files"', '"push_files_disabled"');
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /unclick_github_connector_exposes_builder_write_path/);
+  });
+
+  it("blocks when the UnClick git proxy stops keeping GitHub secrets server-side", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.gitProxy = sources.gitProxy
+      .replaceAll("savedGitHubToken", "callerSuppliedGithubToken")
+      .replaceAll("/api/credentials", "/api/raw-token");
+    sources.gitProxyLib = sources.gitProxyLib.replaceAll("key === \"path\" || key === \"key\"", "key === \"path\"");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /unclick_git_proxy_keeps_github_secret_server_side/);
   });
 
   it("blocks when the core builder provider matrix drops provider secret requirements", async () => {
