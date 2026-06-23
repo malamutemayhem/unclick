@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1137,
-    "source_manifest": 250,
-    "pages": 116,
+    "inventory": 1139,
+    "source_manifest": 221,
+    "pages": 86,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,13 +21,13 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 60
+      "count": 52
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 56
+      "count": 34
     },
     {
       "id": "tools",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 136
+      "count": 168
     },
     {
       "id": "launch-and-onboarding",
@@ -119,16 +119,6 @@
       "meaning": "Internal analytics view for platform signals and usage.",
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "route": "/admin/analytics",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-app-testing-src-pages-admin-adminapptesting-tsx-admin-app-testing",
-      "division": "Admin surfaces",
-      "name": "Admin App Testing",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin App Testing.",
-      "source": "src/pages/admin/AdminAppTesting.tsx",
-      "route": "/admin/app-testing",
       "tags": []
     },
     {
@@ -182,16 +172,6 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-admin-capability-balance-src-pages-admin-admincapabilitybalance-tsx-admin-capability-balance",
-      "division": "Admin surfaces",
-      "name": "Admin Capability Balance",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Capability Balance.",
-      "source": "src/pages/admin/AdminCapabilityBalance.tsx",
-      "route": "/admin/capability-balance",
-      "tags": []
-    },
-    {
       "id": "admin-surfaces-admin-page-admin-checks-src-pages-admin-adminecosystempages-tsx-admin-checks-productid",
       "division": "Admin surfaces",
       "name": "Admin Checks",
@@ -222,6 +202,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-admin-circle-permissions-src-pages-admin-admincirclepermissions-tsx-admin-circle-permissions",
+      "division": "Admin surfaces",
+      "name": "Admin Circle Permissions",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Circle Permissions.",
+      "source": "src/pages/admin/AdminCirclePermissions.tsx",
+      "route": "/admin/circle/permissions",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-admin-codebase-src-pages-admin-admincodebase-tsx-admin-codebase",
       "division": "Admin surfaces",
       "name": "Admin Codebase",
@@ -229,16 +219,6 @@
       "meaning": "Internal source and architecture orientation surface.",
       "source": "src/pages/admin/AdminCodebase.tsx",
       "route": "/admin/codebase",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-control-tower-src-pages-admin-admincontroltower-tsx-admin-controltower",
-      "division": "Admin surfaces",
-      "name": "Admin Control Tower",
-      "kind": "admin page",
-      "meaning": "Big-job coordinator that turns broad work into worker lanes and proof paths.",
-      "source": "src/pages/admin/AdminControlTower.tsx",
-      "route": "/admin/controltower",
       "tags": []
     },
     {
@@ -342,16 +322,6 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-admin-orchestrator-log-src-pages-admin-adminorchestratorlog-tsx-admin-orchestrator-log",
-      "division": "Admin surfaces",
-      "name": "Admin Orchestrator Log",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Orchestrator Log.",
-      "source": "src/pages/admin/AdminOrchestratorLog.tsx",
-      "route": "/admin/orchestrator/log",
-      "tags": []
-    },
-    {
       "id": "admin-surfaces-admin-page-admin-pinball-wake-src-pages-admin-adminpinballwake-tsx-admin-pinballwake",
       "division": "Admin surfaces",
       "name": "Admin Pinball Wake",
@@ -379,56 +349,6 @@
       "meaning": "Master heartbeat copy policy for scheduled AI seats.",
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "route": "/admin/agents/heartbeat",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-seats-api-src-pages-admin-adminseatsapi-tsx-admin-agents-api",
-      "division": "Admin surfaces",
-      "name": "Admin Seats Api",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Seats Api.",
-      "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "route": "/admin/agents/api",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-seats-api-routing-src-pages-admin-adminseatsapirouting-tsx-admin-agents-api-routing",
-      "division": "Admin surfaces",
-      "name": "Admin Seats Api Routing",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Seats Api Routing.",
-      "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
-      "route": "/admin/agents/api/routing",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-seats-api-usage-src-pages-admin-adminseatsapiusage-tsx-admin-agents-api-usage",
-      "division": "Admin surfaces",
-      "name": "Admin Seats Api Usage",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Seats Api Usage.",
-      "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
-      "route": "/admin/agents/api/usage",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-seats-local-src-pages-admin-adminseatslocal-tsx-admin-agents-local",
-      "division": "Admin surfaces",
-      "name": "Admin Seats Local",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Seats Local.",
-      "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "route": "/admin/agents/local",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-admin-seats-subscription-src-pages-admin-adminseatssubscription-tsx-admin-agents-subscription",
-      "division": "Admin surfaces",
-      "name": "Admin Seats Subscription",
-      "kind": "admin page",
-      "meaning": "Admin surface for Admin Seats Subscription.",
-      "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "route": "/admin/agents/subscription",
       "tags": []
     },
     {
@@ -542,12 +462,12 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-boardroom-tsx-admin-boardroom",
+      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-fishbowl-tsx-admin-boardroom",
       "division": "Admin surfaces",
       "name": "Boardroom",
       "kind": "admin page",
-      "meaning": "Admin surface for Boardroom.",
-      "source": "src/pages/admin/Boardroom.tsx",
+      "meaning": "Boardroom discussion surface for worker coordination.",
+      "source": "src/pages/admin/Fishbowl.tsx",
       "route": "/admin/boardroom",
       "tags": []
     },
@@ -2192,6 +2112,96 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-admin-app-testing-src-pages-admin-adminapptesting-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin App Testing",
+      "kind": "component",
+      "meaning": "Admin surface for Admin App Testing.",
+      "source": "src/pages/admin/AdminAppTesting.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-capability-balance-src-pages-admin-admincapabilitybalance-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Capability Balance",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Capability Balance.",
+      "source": "src/pages/admin/AdminCapabilityBalance.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-control-tower-src-pages-admin-admincontroltower-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Control Tower",
+      "kind": "component",
+      "meaning": "Big-job coordinator that turns broad work into worker lanes and proof paths.",
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-orchestrator-log-src-pages-admin-adminorchestratorlog-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Orchestrator Log",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Orchestrator Log.",
+      "source": "src/pages/admin/AdminOrchestratorLog.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-api-src-pages-admin-adminseatsapi-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Api",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Api.",
+      "source": "src/pages/admin/AdminSeatsApi.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-api-routing-src-pages-admin-adminseatsapirouting-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Api Routing",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Api Routing.",
+      "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-api-usage-src-pages-admin-adminseatsapiusage-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Api Usage",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Api Usage.",
+      "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-local-src-pages-admin-adminseatslocal-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Local",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Local.",
+      "source": "src/pages/admin/AdminSeatsLocal.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-seats-subscription-src-pages-admin-adminseatssubscription-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin Seats Subscription",
+      "kind": "component",
+      "meaning": "Admin surface for Admin Seats Subscription.",
+      "source": "src/pages/admin/AdminSeatsSubscription.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-admin-xpass-hub-src-pages-admin-adminxpasshub-tsx-no-route",
       "division": "Modules and apps",
       "name": "Admin XPass Hub",
@@ -2248,6 +2258,16 @@
       "kind": "component",
       "meaning": "User-facing page for Backstage Pass.",
       "source": "src/pages/BackstagePass.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-boardroom-src-pages-admin-boardroom-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Boardroom",
+      "kind": "component",
+      "meaning": "Admin surface for Boardroom.",
+      "source": "src/pages/admin/Boardroom.tsx",
       "route": "",
       "tags": []
     },
@@ -2332,6 +2352,196 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-home-preview-src-pages-homepreview-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview.",
+      "source": "src/pages/HomePreview.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-b-src-pages-homepreviewb-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview B",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview B.",
+      "source": "src/pages/HomePreviewB.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-c-src-pages-homepreviewc-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview C",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview C.",
+      "source": "src/pages/HomePreviewC.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-d-src-pages-homepreviewd-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview D",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview D.",
+      "source": "src/pages/HomePreviewD.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-e-src-pages-homepreviewe-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview E",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview E.",
+      "source": "src/pages/HomePreviewE.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-f-src-pages-homepreviewf-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview F",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview F.",
+      "source": "src/pages/HomePreviewF.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-g-src-pages-homepreviewg-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview G",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview G.",
+      "source": "src/pages/HomePreviewG.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-h-src-pages-homepreviewh-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview H",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview H.",
+      "source": "src/pages/HomePreviewH.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-i-src-pages-homepreviewi-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview I",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview I.",
+      "source": "src/pages/HomePreviewI.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-j-src-pages-homepreviewj-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview J",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview J.",
+      "source": "src/pages/HomePreviewJ.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-k-src-pages-homepreviewk-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview K",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview K.",
+      "source": "src/pages/HomePreviewK.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-l-src-pages-homepreviewl-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview L",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview L.",
+      "source": "src/pages/HomePreviewL.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-m-src-pages-homepreviewm-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview M",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview M.",
+      "source": "src/pages/HomePreviewM.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-n-src-pages-homepreviewn-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview N",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview N.",
+      "source": "src/pages/HomePreviewN.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-o-src-pages-homepreviewo-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview O",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview O.",
+      "source": "src/pages/HomePreviewO.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-p-src-pages-homepreviewp-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview P",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview P.",
+      "source": "src/pages/HomePreviewP.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-q-src-pages-homepreviewq-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview Q",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview Q.",
+      "source": "src/pages/HomePreviewQ.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-home-preview-r-src-pages-homepreviewr-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Home Preview R",
+      "kind": "component",
+      "meaning": "User-facing page for Home Preview R.",
+      "source": "src/pages/HomePreviewR.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-homepage-sample-src-pages-homepagesample-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Homepage Sample",
+      "kind": "component",
+      "meaning": "User-facing page for Homepage Sample.",
+      "source": "src/pages/HomepageSample.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-ideas-src-pages-admin-boardroom-ideas-tsx-no-route",
       "division": "Modules and apps",
       "name": "Ideas",
@@ -2362,6 +2572,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-mcp-authorize-src-pages-mcpauthorize-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Mcp Authorize",
+      "kind": "component",
+      "meaning": "User-facing page for Mcp Authorize.",
+      "source": "src/pages/McpAuthorize.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-memory-activity-tab-src-pages-admin-memory-memoryactivitytab-tsx-no-route",
       "division": "Modules and apps",
       "name": "Memory Activity Tab",
@@ -2378,6 +2598,16 @@
       "kind": "component",
       "meaning": "User-facing page for Not Found.",
       "source": "src/pages/NotFound.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-pairing-complete-src-pages-pairingcomplete-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Pairing Complete",
+      "kind": "component",
+      "meaning": "User-facing page for Pairing Complete.",
+      "source": "src/pages/PairingComplete.tsx",
       "route": "",
       "tags": []
     },
@@ -2448,6 +2678,16 @@
       "kind": "component",
       "meaning": "Tool page for Un Click Tools.",
       "source": "src/pages/admin/tools/UnClickTools.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-why-src-pages-why-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Why",
+      "kind": "component",
+      "meaning": "User-facing page for Why.",
+      "source": "src/pages/Why.tsx",
       "route": "",
       "tags": []
     },
@@ -3762,196 +4002,6 @@
       "tags": []
     },
     {
-      "id": "public-surfaces-public-page-home-preview-src-pages-homepreview-tsx-home-preview",
-      "division": "Public surfaces",
-      "name": "Home Preview",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview.",
-      "source": "src/pages/HomePreview.tsx",
-      "route": "/home-preview",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-b-src-pages-homepreviewb-tsx-home-preview-b",
-      "division": "Public surfaces",
-      "name": "Home Preview B",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview B.",
-      "source": "src/pages/HomePreviewB.tsx",
-      "route": "/home-preview-b",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-c-src-pages-homepreviewc-tsx-home-preview-c",
-      "division": "Public surfaces",
-      "name": "Home Preview C",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview C.",
-      "source": "src/pages/HomePreviewC.tsx",
-      "route": "/home-preview-c",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-d-src-pages-homepreviewd-tsx-home-preview-d",
-      "division": "Public surfaces",
-      "name": "Home Preview D",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview D.",
-      "source": "src/pages/HomePreviewD.tsx",
-      "route": "/home-preview-d",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-e-src-pages-homepreviewe-tsx-home-preview-e",
-      "division": "Public surfaces",
-      "name": "Home Preview E",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview E.",
-      "source": "src/pages/HomePreviewE.tsx",
-      "route": "/home-preview-e",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-f-src-pages-homepreviewf-tsx-home-preview-f",
-      "division": "Public surfaces",
-      "name": "Home Preview F",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview F.",
-      "source": "src/pages/HomePreviewF.tsx",
-      "route": "/home-preview-f",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-g-src-pages-homepreviewg-tsx-home-preview-g",
-      "division": "Public surfaces",
-      "name": "Home Preview G",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview G.",
-      "source": "src/pages/HomePreviewG.tsx",
-      "route": "/home-preview-g",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-h-src-pages-homepreviewh-tsx-home-preview-h",
-      "division": "Public surfaces",
-      "name": "Home Preview H",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview H.",
-      "source": "src/pages/HomePreviewH.tsx",
-      "route": "/home-preview-h",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-i-src-pages-homepreviewi-tsx-home-preview-i",
-      "division": "Public surfaces",
-      "name": "Home Preview I",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview I.",
-      "source": "src/pages/HomePreviewI.tsx",
-      "route": "/home-preview-i",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-j-src-pages-homepreviewj-tsx-home-preview-j",
-      "division": "Public surfaces",
-      "name": "Home Preview J",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview J.",
-      "source": "src/pages/HomePreviewJ.tsx",
-      "route": "/home-preview-j",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-k-src-pages-homepreviewk-tsx-home-preview-k",
-      "division": "Public surfaces",
-      "name": "Home Preview K",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview K.",
-      "source": "src/pages/HomePreviewK.tsx",
-      "route": "/home-preview-k",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-l-src-pages-homepreviewl-tsx-home-preview-l",
-      "division": "Public surfaces",
-      "name": "Home Preview L",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview L.",
-      "source": "src/pages/HomePreviewL.tsx",
-      "route": "/home-preview-l",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-m-src-pages-homepreviewm-tsx-home-preview-m",
-      "division": "Public surfaces",
-      "name": "Home Preview M",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview M.",
-      "source": "src/pages/HomePreviewM.tsx",
-      "route": "/home-preview-m",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-n-src-pages-homepreviewn-tsx-home-preview-n",
-      "division": "Public surfaces",
-      "name": "Home Preview N",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview N.",
-      "source": "src/pages/HomePreviewN.tsx",
-      "route": "/home-preview-n",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-o-src-pages-homepreviewo-tsx-home-preview-o",
-      "division": "Public surfaces",
-      "name": "Home Preview O",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview O.",
-      "source": "src/pages/HomePreviewO.tsx",
-      "route": "/home-preview-o",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-p-src-pages-homepreviewp-tsx-home-preview-p",
-      "division": "Public surfaces",
-      "name": "Home Preview P",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview P.",
-      "source": "src/pages/HomePreviewP.tsx",
-      "route": "/home-preview-p",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-q-src-pages-homepreviewq-tsx-home-preview-q",
-      "division": "Public surfaces",
-      "name": "Home Preview Q",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview Q.",
-      "source": "src/pages/HomePreviewQ.tsx",
-      "route": "/home-preview-q",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-home-preview-r-src-pages-homepreviewr-tsx-home-preview-r",
-      "division": "Public surfaces",
-      "name": "Home Preview R",
-      "kind": "public page",
-      "meaning": "User-facing page for Home Preview R.",
-      "source": "src/pages/HomePreviewR.tsx",
-      "route": "/home-preview-r",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-homepage-sample-src-pages-homepagesample-tsx-uipass-home-sample",
-      "division": "Public surfaces",
-      "name": "Homepage Sample",
-      "kind": "public page",
-      "meaning": "User-facing page for Homepage Sample.",
-      "source": "src/pages/HomepageSample.tsx",
-      "route": "/uipass-home-sample",
-      "tags": []
-    },
-    {
       "id": "public-surfaces-public-page-index-src-pages-index-tsx",
       "division": "Public surfaces",
       "name": "Index",
@@ -3999,16 +4049,6 @@
       "meaning": "Sign-in page.",
       "source": "src/pages/Login.tsx",
       "route": "/login",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-mcp-authorize-src-pages-mcpauthorize-tsx-mcp-authorize",
-      "division": "Public surfaces",
-      "name": "Mcp Authorize",
-      "kind": "public page",
-      "meaning": "User-facing page for Mcp Authorize.",
-      "source": "src/pages/McpAuthorize.tsx",
-      "route": "/mcp/authorize",
       "tags": []
     },
     {
@@ -4069,16 +4109,6 @@
       "meaning": "User-facing page for Organiser.",
       "source": "src/pages/Organiser.tsx",
       "route": "/organiser",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-pairing-complete-src-pages-pairingcomplete-tsx-pair-connected",
-      "division": "Public surfaces",
-      "name": "Pairing Complete",
-      "kind": "public page",
-      "meaning": "User-facing page for Pairing Complete.",
-      "source": "src/pages/PairingComplete.tsx",
-      "route": "/pair/connected",
       "tags": []
     },
     {
@@ -4179,16 +4209,6 @@
       "meaning": "User-facing page for Vibe Coding.",
       "source": "src/pages/VibeCoding.tsx",
       "route": "/developers/vibe-coding",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-why-src-pages-why-tsx-why",
-      "division": "Public surfaces",
-      "name": "Why",
-      "kind": "public page",
-      "meaning": "User-facing page for Why.",
-      "source": "src/pages/Why.tsx",
-      "route": "/why",
       "tags": []
     },
     {
@@ -11476,40 +11496,10 @@
       "src/pages/admin/AdminActivity.tsx"
     ],
     [
-      "/admin/agents/api/routing",
-      "Admin Seats Api Routing",
-      "Admin surface for Admin Seats Api Routing.",
-      "src/pages/admin/AdminSeatsApiRouting.tsx"
-    ],
-    [
-      "/admin/agents/api/usage",
-      "Admin Seats Api Usage",
-      "Admin surface for Admin Seats Api Usage.",
-      "src/pages/admin/AdminSeatsApiUsage.tsx"
-    ],
-    [
-      "/admin/agents/api",
-      "Admin Seats Api",
-      "Admin surface for Admin Seats Api.",
-      "src/pages/admin/AdminSeatsApi.tsx"
-    ],
-    [
       "/admin/agents/heartbeat",
       "Admin Seat Heartbeat",
       "Master heartbeat copy policy for scheduled AI seats.",
       "src/pages/admin/AdminSeatHeartbeat.tsx"
-    ],
-    [
-      "/admin/agents/local",
-      "Admin Seats Local",
-      "Admin surface for Admin Seats Local.",
-      "src/pages/admin/AdminSeatsLocal.tsx"
-    ],
-    [
-      "/admin/agents/subscription",
-      "Admin Seats Subscription",
-      "Admin surface for Admin Seats Subscription.",
-      "src/pages/admin/AdminSeatsSubscription.tsx"
     ],
     [
       "/admin/agents",
@@ -11522,12 +11512,6 @@
       "Admin Analytics",
       "Internal analytics view for platform signals and usage.",
       "src/pages/admin/AdminAnalytics.tsx"
-    ],
-    [
-      "/admin/app-testing",
-      "Admin App Testing",
-      "Admin surface for Admin App Testing.",
-      "src/pages/admin/AdminAppTesting.tsx"
     ],
     [
       "/admin/apps",
@@ -11568,20 +11552,14 @@
     [
       "/admin/boardroom",
       "Boardroom",
-      "Admin surface for Boardroom.",
-      "src/pages/admin/Boardroom.tsx"
+      "Boardroom discussion surface for worker coordination.",
+      "src/pages/admin/Fishbowl.tsx"
     ],
     [
       "/admin/brainmap",
       "Admin Brainmap",
       "Generated ecosystem map that teaches seats what UnClick is.",
       "src/pages/admin/AdminBrainmap.tsx"
-    ],
-    [
-      "/admin/capability-balance",
-      "Admin Capability Balance",
-      "Admin surface for Admin Capability Balance.",
-      "src/pages/admin/AdminCapabilityBalance.tsx"
     ],
     [
       "/admin/checks/:productId",
@@ -11596,6 +11574,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/circle/permissions",
+      "Admin Circle Permissions",
+      "Admin surface for Admin Circle Permissions.",
+      "src/pages/admin/AdminCirclePermissions.tsx"
+    ],
+    [
       "/admin/circle",
       "Admin Circle",
       "Admin surface for Admin Circle.",
@@ -11606,12 +11590,6 @@
       "Admin Codebase",
       "Internal source and architecture orientation surface.",
       "src/pages/admin/AdminCodebase.tsx"
-    ],
-    [
-      "/admin/controltower",
-      "Admin Control Tower",
-      "Big-job coordinator that turns broad work into worker lanes and proof paths.",
-      "src/pages/admin/AdminControlTower.tsx"
     ],
     [
       "/admin/copypass",
@@ -11696,12 +11674,6 @@
       "Admin Moderation",
       "Admin surface for Admin Moderation.",
       "src/pages/admin/AdminModeration.tsx"
-    ],
-    [
-      "/admin/orchestrator/log",
-      "Admin Orchestrator Log",
-      "Admin surface for Admin Orchestrator Log.",
-      "src/pages/admin/AdminOrchestratorLog.tsx"
     ],
     [
       "/admin/orchestrator/timeline",
@@ -11914,114 +11886,6 @@
       "src/pages/FAQPage.tsx"
     ],
     [
-      "/home-preview-b",
-      "Home Preview B",
-      "User-facing page for Home Preview B.",
-      "src/pages/HomePreviewB.tsx"
-    ],
-    [
-      "/home-preview-c",
-      "Home Preview C",
-      "User-facing page for Home Preview C.",
-      "src/pages/HomePreviewC.tsx"
-    ],
-    [
-      "/home-preview-d",
-      "Home Preview D",
-      "User-facing page for Home Preview D.",
-      "src/pages/HomePreviewD.tsx"
-    ],
-    [
-      "/home-preview-e",
-      "Home Preview E",
-      "User-facing page for Home Preview E.",
-      "src/pages/HomePreviewE.tsx"
-    ],
-    [
-      "/home-preview-f",
-      "Home Preview F",
-      "User-facing page for Home Preview F.",
-      "src/pages/HomePreviewF.tsx"
-    ],
-    [
-      "/home-preview-g",
-      "Home Preview G",
-      "User-facing page for Home Preview G.",
-      "src/pages/HomePreviewG.tsx"
-    ],
-    [
-      "/home-preview-h",
-      "Home Preview H",
-      "User-facing page for Home Preview H.",
-      "src/pages/HomePreviewH.tsx"
-    ],
-    [
-      "/home-preview-i",
-      "Home Preview I",
-      "User-facing page for Home Preview I.",
-      "src/pages/HomePreviewI.tsx"
-    ],
-    [
-      "/home-preview-j",
-      "Home Preview J",
-      "User-facing page for Home Preview J.",
-      "src/pages/HomePreviewJ.tsx"
-    ],
-    [
-      "/home-preview-k",
-      "Home Preview K",
-      "User-facing page for Home Preview K.",
-      "src/pages/HomePreviewK.tsx"
-    ],
-    [
-      "/home-preview-l",
-      "Home Preview L",
-      "User-facing page for Home Preview L.",
-      "src/pages/HomePreviewL.tsx"
-    ],
-    [
-      "/home-preview-m",
-      "Home Preview M",
-      "User-facing page for Home Preview M.",
-      "src/pages/HomePreviewM.tsx"
-    ],
-    [
-      "/home-preview-n",
-      "Home Preview N",
-      "User-facing page for Home Preview N.",
-      "src/pages/HomePreviewN.tsx"
-    ],
-    [
-      "/home-preview-o",
-      "Home Preview O",
-      "User-facing page for Home Preview O.",
-      "src/pages/HomePreviewO.tsx"
-    ],
-    [
-      "/home-preview-p",
-      "Home Preview P",
-      "User-facing page for Home Preview P.",
-      "src/pages/HomePreviewP.tsx"
-    ],
-    [
-      "/home-preview-q",
-      "Home Preview Q",
-      "User-facing page for Home Preview Q.",
-      "src/pages/HomePreviewQ.tsx"
-    ],
-    [
-      "/home-preview-r",
-      "Home Preview R",
-      "User-facing page for Home Preview R.",
-      "src/pages/HomePreviewR.tsx"
-    ],
-    [
-      "/home-preview",
-      "Home Preview",
-      "User-facing page for Home Preview.",
-      "src/pages/HomePreview.tsx"
-    ],
-    [
       "/i",
       "Install Recover",
       "User-facing page for Install Recover.",
@@ -12038,12 +11902,6 @@
       "Login",
       "Sign-in page.",
       "src/pages/Login.tsx"
-    ],
-    [
-      "/mcp/authorize",
-      "Mcp Authorize",
-      "User-facing page for Mcp Authorize.",
-      "src/pages/McpAuthorize.tsx"
     ],
     [
       "/memory/connect",
@@ -12080,12 +11938,6 @@
       "Organiser",
       "User-facing page for Organiser.",
       "src/pages/Organiser.tsx"
-    ],
-    [
-      "/pair/connected",
-      "Pairing Complete",
-      "User-facing page for Pairing Complete.",
-      "src/pages/PairingComplete.tsx"
     ],
     [
       "/pricing",
@@ -12140,18 +11992,6 @@
       "Tools",
       "Public tools marketplace entry point.",
       "src/pages/Tools.tsx"
-    ],
-    [
-      "/uipass-home-sample",
-      "Homepage Sample",
-      "User-facing page for Homepage Sample.",
-      "src/pages/HomepageSample.tsx"
-    ],
-    [
-      "/why",
-      "Why",
-      "User-facing page for Why.",
-      "src/pages/Why.tsx"
     ],
     [
       "/xpass",
@@ -15940,13 +15780,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "8385c5fc8837",
-      "bytes": 23840
+      "hash": "11325dbf55de",
+      "bytes": 15330
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "228b3abca85e",
-      "bytes": 33739
+      "hash": "25d8fb487727",
+      "bytes": 26284
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16214,34 +16054,9 @@
       "bytes": 14794
     },
     {
-      "source": "src/pages/admin/AdminSeatsApiRouting.tsx",
-      "hash": "4caf939d9bed",
-      "bytes": 22147
-    },
-    {
-      "source": "src/pages/admin/AdminSeatsApiUsage.tsx",
-      "hash": "5bfc0414856f",
-      "bytes": 16509
-    },
-    {
-      "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "0ba01613eeed",
-      "bytes": 37681
-    },
-    {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
       "hash": "232071cb463f",
       "bytes": 11711
-    },
-    {
-      "source": "src/pages/admin/AdminSeatsLocal.tsx",
-      "hash": "720301565c67",
-      "bytes": 37209
-    },
-    {
-      "source": "src/pages/admin/AdminSeatsSubscription.tsx",
-      "hash": "8511bc4559db",
-      "bytes": 25328
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -16252,11 +16067,6 @@
       "source": "src/pages/admin/AdminAnalytics.tsx",
       "hash": "dcc1351f518e",
       "bytes": 10345
-    },
-    {
-      "source": "src/pages/admin/AdminAppTesting.tsx",
-      "hash": "5ba37cf2abff",
-      "bytes": 11567
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
@@ -16284,9 +16094,9 @@
       "bytes": 25705
     },
     {
-      "source": "src/pages/admin/Boardroom.tsx",
-      "hash": "61d332b5a15e",
-      "bytes": 37186
+      "source": "src/pages/admin/Fishbowl.tsx",
+      "hash": "missing",
+      "bytes": 0
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
@@ -16294,14 +16104,14 @@
       "bytes": 26608
     },
     {
-      "source": "src/pages/admin/AdminCapabilityBalance.tsx",
-      "hash": "f8080095c92c",
-      "bytes": 13774
+      "source": "src/pages/admin/AdminCirclePermissions.tsx",
+      "hash": "4f60c3ab7d0e",
+      "bytes": 12224
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
-      "hash": "76282f364efd",
-      "bytes": 16913
+      "hash": "e6509b972d7d",
+      "bytes": 5038
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -16367,11 +16177,6 @@
       "source": "src/pages/admin/AdminModeration.tsx",
       "hash": "27cae956bcfd",
       "bytes": 883
-    },
-    {
-      "source": "src/pages/admin/AdminOrchestratorLog.tsx",
-      "hash": "af0abb526002",
-      "bytes": 12944
     },
     {
       "source": "src/pages/admin/AdminOrchestrator.tsx",
@@ -16524,96 +16329,6 @@
       "bytes": 690
     },
     {
-      "source": "src/pages/HomePreviewB.tsx",
-      "hash": "740b7c75ff4f",
-      "bytes": 13290
-    },
-    {
-      "source": "src/pages/HomePreviewC.tsx",
-      "hash": "745b962b93bb",
-      "bytes": 7976
-    },
-    {
-      "source": "src/pages/HomePreviewD.tsx",
-      "hash": "bf9b808df797",
-      "bytes": 13283
-    },
-    {
-      "source": "src/pages/HomePreviewE.tsx",
-      "hash": "3e3475996100",
-      "bytes": 10218
-    },
-    {
-      "source": "src/pages/HomePreviewF.tsx",
-      "hash": "085701ab6ab6",
-      "bytes": 9407
-    },
-    {
-      "source": "src/pages/HomePreviewG.tsx",
-      "hash": "9cd9b1bd010d",
-      "bytes": 9388
-    },
-    {
-      "source": "src/pages/HomePreviewH.tsx",
-      "hash": "a3506c10e904",
-      "bytes": 7657
-    },
-    {
-      "source": "src/pages/HomePreviewI.tsx",
-      "hash": "ce585ce705e2",
-      "bytes": 9188
-    },
-    {
-      "source": "src/pages/HomePreviewJ.tsx",
-      "hash": "c3775593c542",
-      "bytes": 7366
-    },
-    {
-      "source": "src/pages/HomePreviewK.tsx",
-      "hash": "061b8829d918",
-      "bytes": 8386
-    },
-    {
-      "source": "src/pages/HomePreviewL.tsx",
-      "hash": "bfdc7b2435c3",
-      "bytes": 8572
-    },
-    {
-      "source": "src/pages/HomePreviewM.tsx",
-      "hash": "e233bb1fcb74",
-      "bytes": 7140
-    },
-    {
-      "source": "src/pages/HomePreviewN.tsx",
-      "hash": "2eb6467f0845",
-      "bytes": 6730
-    },
-    {
-      "source": "src/pages/HomePreviewO.tsx",
-      "hash": "0a7c61aba798",
-      "bytes": 7398
-    },
-    {
-      "source": "src/pages/HomePreviewP.tsx",
-      "hash": "0926126a670a",
-      "bytes": 6256
-    },
-    {
-      "source": "src/pages/HomePreviewQ.tsx",
-      "hash": "24989092c44b",
-      "bytes": 5097
-    },
-    {
-      "source": "src/pages/HomePreviewR.tsx",
-      "hash": "a9c7e1529e7a",
-      "bytes": 1315
-    },
-    {
-      "source": "src/pages/HomePreview.tsx",
-      "hash": "4768b94b20d1",
-      "bytes": 7592
-    },
-    {
       "source": "src/pages/InstallRecover.tsx",
       "hash": "56c822e69817",
       "bytes": 6971
@@ -16627,11 +16342,6 @@
       "source": "src/pages/Login.tsx",
       "hash": "dce8bcccd23f",
       "bytes": 8743
-    },
-    {
-      "source": "src/pages/McpAuthorize.tsx",
-      "hash": "e72687e0881f",
-      "bytes": 3961
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -16657,11 +16367,6 @@
       "source": "src/pages/Organiser.tsx",
       "hash": "ae35be237d83",
       "bytes": 16581
-    },
-    {
-      "source": "src/pages/PairingComplete.tsx",
-      "hash": "93f97943a8a3",
-      "bytes": 12470
     },
     {
       "source": "src/pages/Pricing.tsx",
@@ -16707,16 +16412,6 @@
       "source": "src/pages/Tools.tsx",
       "hash": "869de7f93568",
       "bytes": 14806
-    },
-    {
-      "source": "src/pages/HomepageSample.tsx",
-      "hash": "29f43758121d",
-      "bytes": 21971
-    },
-    {
-      "source": "src/pages/Why.tsx",
-      "hash": "5e1b86927d88",
-      "bytes": 11110
     },
     {
       "source": "src/pages/XPass.tsx",

@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 8385c5fc8837 | 23840 |
-| src/pages/admin/AdminShell.tsx | 228b3abca85e | 33739 |
+| src/App.tsx | 11325dbf55de | 15330 |
+| src/pages/admin/AdminShell.tsx | 25d8fb487727 | 26284 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
@@ -77,24 +77,18 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | a509edc689ae | 1073 |
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
-| src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
-| src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 232071cb463f | 11711 |
-| src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
-| src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
-| src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
 | src/pages/admin/AdminTools.tsx | 7890f786a6b5 | 16370 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
-| src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
+| src/pages/admin/Fishbowl.tsx | missing | 0 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
-| src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
-| src/pages/admin/AdminCircle.tsx | 76282f364efd | 16913 |
+| src/pages/admin/AdminCirclePermissions.tsx | 4f60c3ab7d0e | 12224 |
+| src/pages/admin/AdminCircle.tsx | e6509b972d7d | 5038 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
 | src/pages/admin/crews/CrewComposer.tsx | 2d65d1f907b8 | 13908 |
@@ -108,7 +102,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminKeychain.tsx | d24135238f4d | 70823 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
-| src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
 | src/pages/admin/AdminOrchestrator.tsx | d04b65dd3548 | 94909 |
 | src/pages/admin/AdminPinballWake.tsx | c57ce13fa82d | 21866 |
 | src/pages/admin/AdminSettings.tsx | 2dc2b8547f5e | 29995 |
@@ -139,34 +132,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 8608d2a82e46 | 16679 |
 | src/pages/FAQPage.tsx | 40edfe371870 | 690 |
-| src/pages/HomePreviewB.tsx | 740b7c75ff4f | 13290 |
-| src/pages/HomePreviewC.tsx | 745b962b93bb | 7976 |
-| src/pages/HomePreviewD.tsx | bf9b808df797 | 13283 |
-| src/pages/HomePreviewE.tsx | 3e3475996100 | 10218 |
-| src/pages/HomePreviewF.tsx | 085701ab6ab6 | 9407 |
-| src/pages/HomePreviewG.tsx | 9cd9b1bd010d | 9388 |
-| src/pages/HomePreviewH.tsx | a3506c10e904 | 7657 |
-| src/pages/HomePreviewI.tsx | ce585ce705e2 | 9188 |
-| src/pages/HomePreviewJ.tsx | c3775593c542 | 7366 |
-| src/pages/HomePreviewK.tsx | 061b8829d918 | 8386 |
-| src/pages/HomePreviewL.tsx | bfdc7b2435c3 | 8572 |
-| src/pages/HomePreviewM.tsx | e233bb1fcb74 | 7140 |
-| src/pages/HomePreviewN.tsx | 2eb6467f0845 | 6730 |
-| src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
-| src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
-| src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
-| src/pages/HomePreviewR.tsx | a9c7e1529e7a | 1315 |
-| src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | dce8bcccd23f | 8743 |
-| src/pages/McpAuthorize.tsx | e72687e0881f | 3961 |
 | src/pages/MemoryConnect.tsx | 128a2dddc94f | 18504 |
 | src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
 | src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | c377de0c911d | 13282 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
@@ -176,8 +149,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 869de7f93568 | 14806 |
-| src/pages/HomepageSample.tsx | 29f43758121d | 21971 |
-| src/pages/Why.tsx | 5e1b86927d88 | 11110 |
 | src/pages/XPass.tsx | f463df200347 | 11433 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -268,8 +239,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 60 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
+| Admin surfaces | Private operator views and internal control panels. | 52 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 34 |
 | Tools | MCP and gateway capabilities available to seats. | 676 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -278,7 +249,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 127 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 168 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -314,29 +285,22 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | --- | --- | --- | --- |
 | / | Index | Public home and first explanation of UnClick. | src/pages/Index.tsx |
 | /admin/activity | Admin Activity | Admin surface for Admin Activity. | src/pages/admin/AdminActivity.tsx |
-| /admin/agents/api/routing | Admin Seats Api Routing | Admin surface for Admin Seats Api Routing. | src/pages/admin/AdminSeatsApiRouting.tsx |
-| /admin/agents/api/usage | Admin Seats Api Usage | Admin surface for Admin Seats Api Usage. | src/pages/admin/AdminSeatsApiUsage.tsx |
-| /admin/agents/api | Admin Seats Api | Admin surface for Admin Seats Api. | src/pages/admin/AdminSeatsApi.tsx |
 | /admin/agents/heartbeat | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | src/pages/admin/AdminSeatHeartbeat.tsx |
-| /admin/agents/local | Admin Seats Local | Admin surface for Admin Seats Local. | src/pages/admin/AdminSeatsLocal.tsx |
-| /admin/agents/subscription | Admin Seats Subscription | Admin surface for Admin Seats Subscription. | src/pages/admin/AdminSeatsSubscription.tsx |
 | /admin/agents | Admin Agents | Admin surface for Admin Agents. | src/pages/admin/AdminAgents.tsx |
 | /admin/analytics | Admin Analytics | Internal analytics view for platform signals and usage. | src/pages/admin/AdminAnalytics.tsx |
-| /admin/app-testing | Admin App Testing | Admin surface for Admin App Testing. | src/pages/admin/AdminAppTesting.tsx |
 | /admin/apps | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |
 | /admin/autopilot/expressbuild | Admin Express Build | Admin surface for Admin Express Build. | src/pages/admin/AdminExpressBuild.tsx |
 | /admin/autopilot | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/benchmarks | Admin Benchmarks | Admin surface for Admin Benchmarks. | src/pages/admin/AdminBenchmarks.tsx |
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
-| /admin/boardroom | Boardroom | Admin surface for Boardroom. | src/pages/admin/Boardroom.tsx |
+| /admin/boardroom | Boardroom | Boardroom discussion surface for worker coordination. | src/pages/admin/Fishbowl.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
-| /admin/capability-balance | Admin Capability Balance | Admin surface for Admin Capability Balance. | src/pages/admin/AdminCapabilityBalance.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/circle/permissions | Admin Circle Permissions | Admin surface for Admin Circle Permissions. | src/pages/admin/AdminCirclePermissions.tsx |
 | /admin/circle | Admin Circle | Admin surface for Admin Circle. | src/pages/admin/AdminCircle.tsx |
 | /admin/codebase | Admin Codebase | Internal source and architecture orientation surface. | src/pages/admin/AdminCodebase.tsx |
-| /admin/controltower | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | src/pages/admin/AdminControlTower.tsx |
 | /admin/copypass | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | src/pages/admin/copypass/CopyPassCatalog.tsx |
 | /admin/crews/:id/edit | Crew Composer | Crews admin page for Crew Composer. | src/pages/admin/crews/CrewComposer.tsx |
 | /admin/crews/new | Crew Composer | Crews admin page for Crew Composer. | src/pages/admin/crews/CrewComposer.tsx |
@@ -351,7 +315,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/ledger | Admin Ledger | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/memory | Admin Memory | Admin view of persistent memory, facts, sessions, and recall. | src/pages/admin/AdminMemory.tsx |
 | /admin/moderation | Admin Moderation | Admin surface for Admin Moderation. | src/pages/admin/AdminModeration.tsx |
-| /admin/orchestrator/log | Admin Orchestrator Log | Admin surface for Admin Orchestrator Log. | src/pages/admin/AdminOrchestratorLog.tsx |
 | /admin/orchestrator/timeline | Admin Orchestrator | Readable continuity stream for seats and operator context. | src/pages/admin/AdminOrchestrator.tsx |
 | /admin/orchestrator | Admin Orchestrator | Readable continuity stream for seats and operator context. | src/pages/admin/AdminOrchestrator.tsx |
 | /admin/pinballwake | Admin Pinball Wake | PinballWake rooms, wake routes, and automation visibility. | src/pages/admin/AdminPinballWake.tsx |
@@ -387,35 +350,15 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /docs | Docs | User-facing page for Docs. | src/pages/Docs.tsx |
 | /dogfood | Dogfood Report | Public dogfood proof report. | src/pages/DogfoodReport.tsx |
 | /faq | FAQ | User-facing page for FAQPage. | src/pages/FAQPage.tsx |
-| /home-preview-b | Home Preview B | User-facing page for Home Preview B. | src/pages/HomePreviewB.tsx |
-| /home-preview-c | Home Preview C | User-facing page for Home Preview C. | src/pages/HomePreviewC.tsx |
-| /home-preview-d | Home Preview D | User-facing page for Home Preview D. | src/pages/HomePreviewD.tsx |
-| /home-preview-e | Home Preview E | User-facing page for Home Preview E. | src/pages/HomePreviewE.tsx |
-| /home-preview-f | Home Preview F | User-facing page for Home Preview F. | src/pages/HomePreviewF.tsx |
-| /home-preview-g | Home Preview G | User-facing page for Home Preview G. | src/pages/HomePreviewG.tsx |
-| /home-preview-h | Home Preview H | User-facing page for Home Preview H. | src/pages/HomePreviewH.tsx |
-| /home-preview-i | Home Preview I | User-facing page for Home Preview I. | src/pages/HomePreviewI.tsx |
-| /home-preview-j | Home Preview J | User-facing page for Home Preview J. | src/pages/HomePreviewJ.tsx |
-| /home-preview-k | Home Preview K | User-facing page for Home Preview K. | src/pages/HomePreviewK.tsx |
-| /home-preview-l | Home Preview L | User-facing page for Home Preview L. | src/pages/HomePreviewL.tsx |
-| /home-preview-m | Home Preview M | User-facing page for Home Preview M. | src/pages/HomePreviewM.tsx |
-| /home-preview-n | Home Preview N | User-facing page for Home Preview N. | src/pages/HomePreviewN.tsx |
-| /home-preview-o | Home Preview O | User-facing page for Home Preview O. | src/pages/HomePreviewO.tsx |
-| /home-preview-p | Home Preview P | User-facing page for Home Preview P. | src/pages/HomePreviewP.tsx |
-| /home-preview-q | Home Preview Q | User-facing page for Home Preview Q. | src/pages/HomePreviewQ.tsx |
-| /home-preview-r | Home Preview R | User-facing page for Home Preview R. | src/pages/HomePreviewR.tsx |
-| /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
 | /login | Login | Sign-in page. | src/pages/Login.tsx |
-| /mcp/authorize | Mcp Authorize | User-facing page for Mcp Authorize. | src/pages/McpAuthorize.tsx |
 | /memory/connect | Memory Connect | User-facing page for Memory Connect. | src/pages/MemoryConnect.tsx |
 | /memory/setup-guide | Memory Setup Guide | User-facing page for Memory Setup Guide. | src/pages/MemorySetupGuide.tsx |
 | /memory/setup | Memory Setup | User-facing page for Memory Setup. | src/pages/MemorySetup.tsx |
 | /memory | Memory | Public memory product page. | src/pages/Memory.tsx |
 | /new-to-ai | New To AI | Beginner-friendly AI orientation. | src/pages/NewToAI.tsx |
 | /organiser | Organiser | User-facing page for Organiser. | src/pages/Organiser.tsx |
-| /pair/connected | Pairing Complete | User-facing page for Pairing Complete. | src/pages/PairingComplete.tsx |
 | /pricing | Pricing | Plans, billing, and packaging. | src/pages/Pricing.tsx |
 | /privacy | Privacy | Privacy policy. | src/pages/Privacy.tsx |
 | /signup | Signup | Sign-up page. | src/pages/Signup.tsx |
@@ -425,8 +368,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /tools/scheduling | Scheduling | Tool page for Scheduling. | src/pages/tools/Scheduling.tsx |
 | /tools/solve | Solve | Tool page for Solve. | src/pages/tools/Solve.tsx |
 | /tools | Tools | Public tools marketplace entry point. | src/pages/Tools.tsx |
-| /uipass-home-sample | Homepage Sample | User-facing page for Homepage Sample. | src/pages/HomepageSample.tsx |
-| /why | Why | User-facing page for Why. | src/pages/Why.tsx |
 | /xpass | XPass | User-facing page for XPass. | src/pages/XPass.tsx |
 
 ## Tool Families and Meaning
@@ -1117,18 +1058,16 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Activity | Admin surface for Admin Activity. | /admin/activity | src/pages/admin/AdminActivity.tsx |
 | Admin surfaces | admin page | Admin Agents | Admin surface for Admin Agents. | /admin/agents | src/pages/admin/AdminAgents.tsx |
 | Admin surfaces | admin page | Admin Analytics | Internal analytics view for platform signals and usage. | /admin/analytics | src/pages/admin/AdminAnalytics.tsx |
-| Admin surfaces | admin page | Admin App Testing | Admin surface for Admin App Testing. | /admin/app-testing | src/pages/admin/AdminAppTesting.tsx |
 | Admin surfaces | admin page | Admin Audit Log | Internal audit trail for sensitive admin actions. | /admin/audit-log | src/pages/admin/AdminAuditLog.tsx |
 | Admin surfaces | admin page | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | /admin/autopilot | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
-| Admin surfaces | admin page | Admin Capability Balance | Admin surface for Admin Capability Balance. | /admin/capability-balance | src/pages/admin/AdminCapabilityBalance.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Circle | Admin surface for Admin Circle. | /admin/circle | src/pages/admin/AdminCircle.tsx |
+| Admin surfaces | admin page | Admin Circle Permissions | Admin surface for Admin Circle Permissions. | /admin/circle/permissions | src/pages/admin/AdminCirclePermissions.tsx |
 | Admin surfaces | admin page | Admin Codebase | Internal source and architecture orientation surface. | /admin/codebase | src/pages/admin/AdminCodebase.tsx |
-| Admin surfaces | admin page | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | /admin/controltower | src/pages/admin/AdminControlTower.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
 | Admin surfaces | admin page | Admin Express Build | Admin surface for Admin Express Build. | /admin/autopilot/expressbuild | src/pages/admin/AdminExpressBuild.tsx |
 | Admin surfaces | admin page | Admin Jobs | Operational job and task queue. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
@@ -1139,15 +1078,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Moderation | Admin surface for Admin Moderation. | /admin/moderation | src/pages/admin/AdminModeration.tsx |
 | Admin surfaces | admin page | Admin Orchestrator | Readable continuity stream for seats and operator context. | /admin/orchestrator/timeline | src/pages/admin/AdminOrchestrator.tsx |
 | Admin surfaces | admin page | Admin Orchestrator | Readable continuity stream for seats and operator context. | /admin/orchestrator | src/pages/admin/AdminOrchestrator.tsx |
-| Admin surfaces | admin page | Admin Orchestrator Log | Admin surface for Admin Orchestrator Log. | /admin/orchestrator/log | src/pages/admin/AdminOrchestratorLog.tsx |
 | Admin surfaces | admin page | Admin Pinball Wake | PinballWake rooms, wake routes, and automation visibility. | /admin/pinballwake | src/pages/admin/AdminPinballWake.tsx |
 | Admin surfaces | admin page | Admin Projects | Admin surface for Admin Ecosystem Pages. | /admin/projects | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
-| Admin surfaces | admin page | Admin Seats Api | Admin surface for Admin Seats Api. | /admin/agents/api | src/pages/admin/AdminSeatsApi.tsx |
-| Admin surfaces | admin page | Admin Seats Api Routing | Admin surface for Admin Seats Api Routing. | /admin/agents/api/routing | src/pages/admin/AdminSeatsApiRouting.tsx |
-| Admin surfaces | admin page | Admin Seats Api Usage | Admin surface for Admin Seats Api Usage. | /admin/agents/api/usage | src/pages/admin/AdminSeatsApiUsage.tsx |
-| Admin surfaces | admin page | Admin Seats Local | Admin surface for Admin Seats Local. | /admin/agents/local | src/pages/admin/AdminSeatsLocal.tsx |
-| Admin surfaces | admin page | Admin Seats Subscription | Admin surface for Admin Seats Subscription. | /admin/agents/subscription | src/pages/admin/AdminSeatsSubscription.tsx |
 | Admin surfaces | admin page | Admin Settings | Account and admin configuration. | /admin/settings | src/pages/admin/AdminSettings.tsx |
 | Admin surfaces | admin page | Admin Shell | Admin surface for Admin Shell. | /admin | src/pages/admin/AdminShell.tsx |
 | Admin surfaces | admin page | Admin Skills | Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
@@ -1159,7 +1092,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Workers | Admin surface for Admin Ecosystem Pages. | /admin/workers | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin XGate | Admin surface for Admin XGate. | /admin/xgate | src/pages/admin/AdminXGate.tsx |
 | Admin surfaces | admin page | Admin You | Personal account, identity, and access panel. | /admin/you | src/pages/admin/AdminYou.tsx |
-| Admin surfaces | admin page | Boardroom | Admin surface for Boardroom. | /admin/boardroom | src/pages/admin/Boardroom.tsx |
+| Admin surfaces | admin page | Boardroom | Boardroom discussion surface for worker coordination. | /admin/boardroom | src/pages/admin/Fishbowl.tsx |
 | Admin surfaces | admin page | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | /admin/copypass | src/pages/admin/copypass/CopyPassCatalog.tsx |
 | Admin surfaces | admin page | Crew Composer | Crews admin page for Crew Composer. | /admin/crews/:id/edit | src/pages/admin/crews/CrewComposer.tsx |
 | Admin surfaces | admin page | Crew Composer | Crews admin page for Crew Composer. | /admin/crews/new | src/pages/admin/crews/CrewComposer.tsx |
@@ -1324,12 +1257,22 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
+| Modules and apps | component | Admin App Testing | Admin surface for Admin App Testing. | - | src/pages/admin/AdminAppTesting.tsx |
+| Modules and apps | component | Admin Capability Balance | Admin surface for Admin Capability Balance. | - | src/pages/admin/AdminCapabilityBalance.tsx |
+| Modules and apps | component | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | - | src/pages/admin/AdminControlTower.tsx |
+| Modules and apps | component | Admin Orchestrator Log | Admin surface for Admin Orchestrator Log. | - | src/pages/admin/AdminOrchestratorLog.tsx |
+| Modules and apps | component | Admin Seats Api | Admin surface for Admin Seats Api. | - | src/pages/admin/AdminSeatsApi.tsx |
+| Modules and apps | component | Admin Seats Api Routing | Admin surface for Admin Seats Api Routing. | - | src/pages/admin/AdminSeatsApiRouting.tsx |
+| Modules and apps | component | Admin Seats Api Usage | Admin surface for Admin Seats Api Usage. | - | src/pages/admin/AdminSeatsApiUsage.tsx |
+| Modules and apps | component | Admin Seats Local | Admin surface for Admin Seats Local. | - | src/pages/admin/AdminSeatsLocal.tsx |
+| Modules and apps | component | Admin Seats Subscription | Admin surface for Admin Seats Subscription. | - | src/pages/admin/AdminSeatsSubscription.tsx |
 | Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
 | Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |
 | Modules and apps | component | Arena Problem | Arena page for Arena Problem. | - | src/pages/arena/ArenaProblem.tsx |
 | Modules and apps | component | Arena Submit Problem | Arena page for Arena Submit Problem. | - | src/pages/arena/ArenaSubmitProblem.tsx |
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
+| Modules and apps | component | Boardroom | Admin surface for Boardroom. | - | src/pages/admin/Boardroom.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
 | Modules and apps | component | Code Tab | Memory admin panel for Code Tab. | - | src/pages/admin/memory/CodeTab.tsx |
@@ -1338,11 +1281,32 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
 | Modules and apps | component | Empty State | Memory admin panel for Empty State. | - | src/pages/admin/memory/EmptyState.tsx |
 | Modules and apps | component | Facts Tab | Memory admin panel for Facts Tab. | - | src/pages/admin/memory/FactsTab.tsx |
+| Modules and apps | component | Home Preview | User-facing page for Home Preview. | - | src/pages/HomePreview.tsx |
+| Modules and apps | component | Home Preview B | User-facing page for Home Preview B. | - | src/pages/HomePreviewB.tsx |
+| Modules and apps | component | Home Preview C | User-facing page for Home Preview C. | - | src/pages/HomePreviewC.tsx |
+| Modules and apps | component | Home Preview D | User-facing page for Home Preview D. | - | src/pages/HomePreviewD.tsx |
+| Modules and apps | component | Home Preview E | User-facing page for Home Preview E. | - | src/pages/HomePreviewE.tsx |
+| Modules and apps | component | Home Preview F | User-facing page for Home Preview F. | - | src/pages/HomePreviewF.tsx |
+| Modules and apps | component | Home Preview G | User-facing page for Home Preview G. | - | src/pages/HomePreviewG.tsx |
+| Modules and apps | component | Home Preview H | User-facing page for Home Preview H. | - | src/pages/HomePreviewH.tsx |
+| Modules and apps | component | Home Preview I | User-facing page for Home Preview I. | - | src/pages/HomePreviewI.tsx |
+| Modules and apps | component | Home Preview J | User-facing page for Home Preview J. | - | src/pages/HomePreviewJ.tsx |
+| Modules and apps | component | Home Preview K | User-facing page for Home Preview K. | - | src/pages/HomePreviewK.tsx |
+| Modules and apps | component | Home Preview L | User-facing page for Home Preview L. | - | src/pages/HomePreviewL.tsx |
+| Modules and apps | component | Home Preview M | User-facing page for Home Preview M. | - | src/pages/HomePreviewM.tsx |
+| Modules and apps | component | Home Preview N | User-facing page for Home Preview N. | - | src/pages/HomePreviewN.tsx |
+| Modules and apps | component | Home Preview O | User-facing page for Home Preview O. | - | src/pages/HomePreviewO.tsx |
+| Modules and apps | component | Home Preview P | User-facing page for Home Preview P. | - | src/pages/HomePreviewP.tsx |
+| Modules and apps | component | Home Preview Q | User-facing page for Home Preview Q. | - | src/pages/HomePreviewQ.tsx |
+| Modules and apps | component | Home Preview R | User-facing page for Home Preview R. | - | src/pages/HomePreviewR.tsx |
+| Modules and apps | component | Homepage Sample | User-facing page for Homepage Sample. | - | src/pages/HomepageSample.tsx |
 | Modules and apps | component | Ideas | Admin surface for Ideas. | - | src/pages/admin/boardroom/Ideas.tsx |
 | Modules and apps | component | Info Card | Memory admin panel for Info Card. | - | src/pages/admin/memory/InfoCard.tsx |
 | Modules and apps | component | Library Tab | Memory admin panel for Library Tab. | - | src/pages/admin/memory/LibraryTab.tsx |
+| Modules and apps | component | Mcp Authorize | User-facing page for Mcp Authorize. | - | src/pages/McpAuthorize.tsx |
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
+| Modules and apps | component | Pairing Complete | User-facing page for Pairing Complete. | - | src/pages/PairingComplete.tsx |
 | Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
 | Modules and apps | component | search Highlight | Admin surface for search Highlight. | - | src/pages/admin/searchHighlight.tsx |
 | Modules and apps | component | Sessions Tab | Memory admin panel for Sessions Tab. | - | src/pages/admin/memory/SessionsTab.tsx |
@@ -1350,6 +1314,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Settings | Admin surface for Settings. | - | src/pages/admin/boardroom/Settings.tsx |
 | Modules and apps | component | Storage Bar | Memory admin panel for Storage Bar. | - | src/pages/admin/memory/StorageBar.tsx |
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
+| Modules and apps | component | Why | User-facing page for Why. | - | src/pages/Why.tsx |
 | Modules and apps | package | abn mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/abn-mcp/package.json |
 | Modules and apps | package | amber mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/amber-mcp/package.json |
 | Modules and apps | package | australiapost mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/australiapost-mcp/package.json |
@@ -1481,38 +1446,17 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Docs | User-facing page for Docs. | /docs | src/pages/Docs.tsx |
 | Public surfaces | public page | Dogfood Report | Public dogfood proof report. | /dogfood | src/pages/DogfoodReport.tsx |
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
-| Public surfaces | public page | Home Preview | User-facing page for Home Preview. | /home-preview | src/pages/HomePreview.tsx |
-| Public surfaces | public page | Home Preview B | User-facing page for Home Preview B. | /home-preview-b | src/pages/HomePreviewB.tsx |
-| Public surfaces | public page | Home Preview C | User-facing page for Home Preview C. | /home-preview-c | src/pages/HomePreviewC.tsx |
-| Public surfaces | public page | Home Preview D | User-facing page for Home Preview D. | /home-preview-d | src/pages/HomePreviewD.tsx |
-| Public surfaces | public page | Home Preview E | User-facing page for Home Preview E. | /home-preview-e | src/pages/HomePreviewE.tsx |
-| Public surfaces | public page | Home Preview F | User-facing page for Home Preview F. | /home-preview-f | src/pages/HomePreviewF.tsx |
-| Public surfaces | public page | Home Preview G | User-facing page for Home Preview G. | /home-preview-g | src/pages/HomePreviewG.tsx |
-| Public surfaces | public page | Home Preview H | User-facing page for Home Preview H. | /home-preview-h | src/pages/HomePreviewH.tsx |
-| Public surfaces | public page | Home Preview I | User-facing page for Home Preview I. | /home-preview-i | src/pages/HomePreviewI.tsx |
-| Public surfaces | public page | Home Preview J | User-facing page for Home Preview J. | /home-preview-j | src/pages/HomePreviewJ.tsx |
-| Public surfaces | public page | Home Preview K | User-facing page for Home Preview K. | /home-preview-k | src/pages/HomePreviewK.tsx |
-| Public surfaces | public page | Home Preview L | User-facing page for Home Preview L. | /home-preview-l | src/pages/HomePreviewL.tsx |
-| Public surfaces | public page | Home Preview M | User-facing page for Home Preview M. | /home-preview-m | src/pages/HomePreviewM.tsx |
-| Public surfaces | public page | Home Preview N | User-facing page for Home Preview N. | /home-preview-n | src/pages/HomePreviewN.tsx |
-| Public surfaces | public page | Home Preview O | User-facing page for Home Preview O. | /home-preview-o | src/pages/HomePreviewO.tsx |
-| Public surfaces | public page | Home Preview P | User-facing page for Home Preview P. | /home-preview-p | src/pages/HomePreviewP.tsx |
-| Public surfaces | public page | Home Preview Q | User-facing page for Home Preview Q. | /home-preview-q | src/pages/HomePreviewQ.tsx |
-| Public surfaces | public page | Home Preview R | User-facing page for Home Preview R. | /home-preview-r | src/pages/HomePreviewR.tsx |
-| Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
 | Public surfaces | public page | Jobsmith | User-facing page for Jobsmith. | /jobsmith | src/pages/Jobsmith.tsx |
 | Public surfaces | public page | Link In Bio | Tool page for Link In Bio. | /tools/link-in-bio | src/pages/tools/LinkInBio.tsx |
 | Public surfaces | public page | Login | Sign-in page. | /login | src/pages/Login.tsx |
-| Public surfaces | public page | Mcp Authorize | User-facing page for Mcp Authorize. | /mcp/authorize | src/pages/McpAuthorize.tsx |
 | Public surfaces | public page | Memory | Public memory product page. | /memory | src/pages/Memory.tsx |
 | Public surfaces | public page | Memory Connect | User-facing page for Memory Connect. | /memory/connect | src/pages/MemoryConnect.tsx |
 | Public surfaces | public page | Memory Setup | User-facing page for Memory Setup. | /memory/setup | src/pages/MemorySetup.tsx |
 | Public surfaces | public page | Memory Setup Guide | User-facing page for Memory Setup Guide. | /memory/setup-guide | src/pages/MemorySetupGuide.tsx |
 | Public surfaces | public page | New To AI | Beginner-friendly AI orientation. | /new-to-ai | src/pages/NewToAI.tsx |
 | Public surfaces | public page | Organiser | User-facing page for Organiser. | /organiser | src/pages/Organiser.tsx |
-| Public surfaces | public page | Pairing Complete | User-facing page for Pairing Complete. | /pair/connected | src/pages/PairingComplete.tsx |
 | Public surfaces | public page | Pricing | Plans, billing, and packaging. | /pricing | src/pages/Pricing.tsx |
 | Public surfaces | public page | Privacy | Privacy policy. | /privacy | src/pages/Privacy.tsx |
 | Public surfaces | public page | Scheduling | Tool page for Scheduling. | /tools/scheduling | src/pages/tools/Scheduling.tsx |
@@ -1523,7 +1467,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Tools | Public tools marketplace entry point. | /tools | src/pages/Tools.tsx |
 | Public surfaces | public page | Verify Mfa | User-facing page for Verify Mfa. | /auth/verify-mfa | src/pages/VerifyMfa.tsx |
 | Public surfaces | public page | Vibe Coding | User-facing page for Vibe Coding. | /developers/vibe-coding | src/pages/VibeCoding.tsx |
-| Public surfaces | public page | Why | User-facing page for Why. | /why | src/pages/Why.tsx |
 | Public surfaces | public page | XPass | User-facing page for XPass. | /xpass | src/pages/XPass.tsx |
 | Rooms | PinballWake room | ack ledger | PinballWake room logic generated from scripts/pinballwake-ack-ledger-room.mjs. | - | scripts/pinballwake-ack-ledger-room.mjs |
 | Rooms | PinballWake room | buildbait | PinballWake room logic generated from scripts/pinballwake-buildbait-room.mjs. | - | scripts/pinballwake-buildbait-room.mjs |
