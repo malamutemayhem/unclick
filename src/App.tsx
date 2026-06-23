@@ -1,153 +1,71 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// The homepage stays statically imported: "/" must paint instantly with the
-// entry bundle. Every other route is lazy so visiting the homepage no longer
-// downloads the admin suite, the design-lane previews, and every brochure
-// page in one 5 MB chunk (the "slow on some devices" fix).
 import Index from "./pages/Index.tsx";
+import NotFound from "./pages/NotFound.tsx";
+import DocsPage from "./pages/Docs.tsx";
+import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
+import SchedulingPage from "./pages/tools/Scheduling.tsx";
+import SolvePage from "./pages/tools/Solve.tsx";
+// Arena is hidden for now (not deleted). Its pages, components, and API
+// remain in the codebase; only the public routes are turned off below.
+// import ArenaHome from "./pages/arena/ArenaHome.tsx";
+// import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
+// import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
+// import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
+import FAQPage from "./pages/FAQPage.tsx";
+import ConnectPage from "./pages/Connect.tsx";
+import DevelopersPage from "./pages/Developers.tsx";
+import DeveloperDocsPage from "./pages/DeveloperDocs.tsx";
+import DeveloperSubmitPage from "./pages/DeveloperSubmit.tsx";
+import VibeCodingPage from "./pages/VibeCoding.tsx";
+import TermsPage from "./pages/Terms.tsx";
+import PrivacyPage from "./pages/Privacy.tsx";
+import MemoryPage from "./pages/Memory.tsx";
+import MemorySetupPage from "./pages/MemorySetup.tsx";
+import MemoryConnectPage from "./pages/MemoryConnect.tsx";
+import MemorySetupGuidePage from "./pages/MemorySetupGuide.tsx";
+import PricingPage from "./pages/Pricing.tsx";
+import OrganiserPage from "./pages/Organiser.tsx";
+import DispatchPage from "./pages/Dispatch.tsx";
+import CrewsPage from "./pages/Crews.tsx";
+import ToolsPage from "./pages/Tools.tsx";
+import AppsPage from "./pages/Apps.tsx";
+import AppDetailPage from "./pages/AppDetail.tsx";
+import JobsmithPage from "./pages/Jobsmith.tsx";
+import NewToAIPage from "./pages/NewToAI.tsx";
+import SmartHomePage from "./pages/SmartHome.tsx";
+import InstallRecoverPage from "./pages/InstallRecover.tsx";
+import XPassPage from "./pages/XPass.tsx";
+import DogfoodReportPage from "./pages/DogfoodReport.tsx";
+import LoginPage from "./pages/Login.tsx";
+import SignupPage from "./pages/Signup.tsx";
+import AuthCallbackPage from "./pages/AuthCallback.tsx";
+import VerifyMfaPage from "./pages/VerifyMfa.tsx";
 import RequireAuth from "./components/RequireAuth.tsx";
 import RequireAdmin from "./components/RequireAdmin.tsx";
 import BetaBanner from "./components/BetaBanner.tsx";
-import { SiteAurora } from "@/components/brand";
-import { trackPageView } from "./lib/analytics.ts";
-
-const HomepageSample = lazy(() => import("./pages/HomepageSample.tsx"));
-const HomePreview = lazy(() => import("./pages/HomePreview.tsx"));
-const HomePreviewB = lazy(() => import("./pages/HomePreviewB.tsx"));
-const HomePreviewC = lazy(() => import("./pages/HomePreviewC.tsx"));
-const HomePreviewD = lazy(() => import("./pages/HomePreviewD.tsx"));
-const HomePreviewE = lazy(() => import("./pages/HomePreviewE.tsx"));
-const HomePreviewF = lazy(() => import("./pages/HomePreviewF.tsx"));
-const HomePreviewG = lazy(() => import("./pages/HomePreviewG.tsx"));
-const HomePreviewH = lazy(() => import("./pages/HomePreviewH.tsx"));
-const HomePreviewI = lazy(() => import("./pages/HomePreviewI.tsx"));
-const HomePreviewJ = lazy(() => import("./pages/HomePreviewJ.tsx"));
-const HomePreviewK = lazy(() => import("./pages/HomePreviewK.tsx"));
-const HomePreviewL = lazy(() => import("./pages/HomePreviewL.tsx"));
-const HomePreviewM = lazy(() => import("./pages/HomePreviewM.tsx"));
-const HomePreviewN = lazy(() => import("./pages/HomePreviewN.tsx"));
-const HomePreviewO = lazy(() => import("./pages/HomePreviewO.tsx"));
-const HomePreviewP = lazy(() => import("./pages/HomePreviewP.tsx"));
-const HomePreviewQ = lazy(() => import("./pages/HomePreviewQ.tsx"));
-const HomePreviewR = lazy(() => import("./pages/HomePreviewR.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
-const DocsPage = lazy(() => import("./pages/Docs.tsx"));
-const LinkInBioPage = lazy(() => import("./pages/tools/LinkInBio.tsx"));
-const SchedulingPage = lazy(() => import("./pages/tools/Scheduling.tsx"));
-const SolvePage = lazy(() => import("./pages/tools/Solve.tsx"));
-// Arena is hidden for now (not deleted). Its pages, components, and API
-// remain in the codebase; only the public routes are turned off below.
-// const ArenaHome = lazy(() => import("./pages/arena/ArenaHome.tsx"));
-// const ArenaProblem = lazy(() => import("./pages/arena/ArenaProblem.tsx"));
-// const ArenaLeaderboard = lazy(() => import("./pages/arena/ArenaLeaderboard.tsx"));
-// const ArenaSubmitProblem = lazy(() => import("./pages/arena/ArenaSubmitProblem.tsx"));
-const FAQPage = lazy(() => import("./pages/FAQPage.tsx"));
-const ConnectPage = lazy(() => import("./pages/Connect.tsx"));
-const DevelopersPage = lazy(() => import("./pages/Developers.tsx"));
-const DeveloperDocsPage = lazy(() => import("./pages/DeveloperDocs.tsx"));
-const DeveloperSubmitPage = lazy(() => import("./pages/DeveloperSubmit.tsx"));
-const VibeCodingPage = lazy(() => import("./pages/VibeCoding.tsx"));
-const TermsPage = lazy(() => import("./pages/Terms.tsx"));
-const PrivacyPage = lazy(() => import("./pages/Privacy.tsx"));
-const MemoryPage = lazy(() => import("./pages/Memory.tsx"));
-const MemorySetupPage = lazy(() => import("./pages/MemorySetup.tsx"));
-const MemoryConnectPage = lazy(() => import("./pages/MemoryConnect.tsx"));
-const MemorySetupGuidePage = lazy(() => import("./pages/MemorySetupGuide.tsx"));
-const PricingPage = lazy(() => import("./pages/Pricing.tsx"));
-const OrganiserPage = lazy(() => import("./pages/Organiser.tsx"));
-const DispatchPage = lazy(() => import("./pages/Dispatch.tsx"));
-const CrewsPage = lazy(() => import("./pages/Crews.tsx"));
-const ToolsPage = lazy(() => import("./pages/Tools.tsx"));
-const AppsPage = lazy(() => import("./pages/Apps.tsx"));
-const AppDetailPage = lazy(() => import("./pages/AppDetail.tsx"));
-const JobsmithPage = lazy(() => import("./pages/Jobsmith.tsx"));
-const NewToAIPage = lazy(() => import("./pages/NewToAI.tsx"));
-const WhyPage = lazy(() => import("./pages/Why.tsx"));
-const SmartHomePage = lazy(() => import("./pages/SmartHome.tsx"));
-const InstallRecoverPage = lazy(() => import("./pages/InstallRecover.tsx"));
-const XPassPage = lazy(() => import("./pages/XPass.tsx"));
-const DogfoodReportPage = lazy(() => import("./pages/DogfoodReport.tsx"));
-const LoginPage = lazy(() => import("./pages/Login.tsx"));
-const SignupPage = lazy(() => import("./pages/Signup.tsx"));
-const AuthCallbackPage = lazy(() => import("./pages/AuthCallback.tsx"));
-const McpAuthorizePage = lazy(() => import("./pages/McpAuthorize.tsx"));
-const PairingCompletePage = lazy(() => import("./pages/PairingComplete.tsx"));
-const VerifyMfaPage = lazy(() => import("./pages/VerifyMfa.tsx"));
-const BrochurePage = lazy(() => import("./components/BrochurePage.tsx"));
-const AdminShell = lazy(() => import("./pages/admin/AdminShell.tsx"));
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.tsx"));
-const AdminYou = lazy(() => import("./pages/admin/AdminYou.tsx"));
-const AdminMemory = lazy(() => import("./pages/admin/AdminMemory.tsx"));
-const AdminKeychain = lazy(() => import("./pages/admin/AdminKeychain.tsx"));
-const AdminCircle = lazy(() => import("./pages/admin/AdminCircle.tsx"));
-const AdminTools = lazy(() => import("./pages/admin/AdminTools.tsx"));
-const AdminSkills = lazy(() => import("./pages/admin/AdminSkills.tsx"));
-const AdminActivity = lazy(() => import("./pages/admin/AdminActivity.tsx"));
-const AdminSettings = lazy(() => import("./pages/admin/AdminSettings.tsx"));
-const AdminAgentsPage = lazy(() => import("./pages/admin/AdminAgents.tsx"));
-const AdminSeatHeartbeatPage = lazy(() => import("./pages/admin/AdminSeatHeartbeat.tsx"));
-const AdminSeatsApi = lazy(() => import("./pages/admin/AdminSeatsApi.tsx"));
-const AdminSeatsApiRouting = lazy(() => import("./pages/admin/AdminSeatsApiRouting.tsx"));
-const AdminSeatsApiUsage = lazy(() => import("./pages/admin/AdminSeatsApiUsage.tsx"));
-const AdminSeatsLocal = lazy(() => import("./pages/admin/AdminSeatsLocal.tsx"));
-const AdminSeatsSubscription = lazy(() => import("./pages/admin/AdminSeatsSubscription.tsx"));
-const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics.tsx"));
-const AdminCapabilityBalance = lazy(() => import("./pages/admin/AdminCapabilityBalance.tsx"));
-const AdminCodebase = lazy(() => import("./pages/admin/AdminCodebase.tsx"));
-const AdminOrchestratorPage = lazy(() => import("./pages/admin/AdminOrchestrator.tsx"));
-const AdminOrchestratorLog = lazy(() => import("./pages/admin/AdminOrchestratorLog.tsx"));
-const AdminTestPass = lazy(() => import("./pages/admin/AdminTestPass.tsx"));
-const TestPassCatalog = lazy(() => import("./pages/admin/testpass/TestPassCatalog.tsx"));
-const NewRunWizard = lazy(() => import("./pages/admin/testpass/NewRunWizard.tsx"));
-const RunDetail = lazy(() => import("./pages/admin/testpass/RunDetail.tsx"));
-const ReportDetail = lazy(() => import("./pages/admin/testpass/ReportDetail.tsx"));
-const CopyPassCatalog = lazy(() => import("./pages/admin/copypass/CopyPassCatalog.tsx"));
-const CrewsCatalog = lazy(() => import("./pages/admin/crews/CrewsCatalog.tsx"));
-const CrewComposer = lazy(() => import("./pages/admin/crews/CrewComposer.tsx"));
-const CrewsRuns = lazy(() => import("./pages/admin/crews/CrewsRuns.tsx"));
-const CrewsSettings = lazy(() => import("./pages/admin/crews/CrewsSettings.tsx"));
-const CrewRun = lazy(() => import("./pages/admin/crews/CrewRun.tsx"));
-const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
-const AdminSystemHealth = lazy(() => import("./pages/admin/AdminSystemHealth.tsx"));
-const AdminPinballWake = lazy(() => import("./pages/admin/AdminPinballWake.tsx"));
-const AdminModeration = lazy(() => import("./pages/admin/AdminModeration.tsx"));
-const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog.tsx"));
-const AdminBrainmap = lazy(() => import("./pages/admin/AdminBrainmap.tsx"));
-const AdminJobs = lazy(() => import("./pages/admin/AdminJobs.tsx"));
-const AdminControlTower = lazy(() => import("./pages/admin/AdminControlTower.tsx"));
-const AdminJobsmith = lazy(() => import("./pages/admin/AdminJobsmith.tsx"));
-const AdminAppTesting = lazy(() => import("./pages/admin/AdminAppTesting.tsx"));
-const AdminBenchmarks = lazy(() => import("./pages/admin/AdminBenchmarks.tsx"));
-const AdminTruthRate = lazy(() => import("./pages/admin/AdminTruthRate.tsx"));
-const AdminXGate = lazy(() => import("./pages/admin/AdminXGate.tsx"));
-const AdminExpressBuild = lazy(() => import("./pages/admin/AdminExpressBuild.tsx"));
-const AdminAutopilot = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminAutopilot })),
-);
-const AdminBilling = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminBilling })),
-);
-const AdminChecks = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminChecks })),
-);
-const AdminLedger = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminLedger })),
-);
-const AdminProjects = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminProjects })),
-);
-const AdminWorkers = lazy(() =>
-  import("./pages/admin/AdminEcosystemPages.tsx").then((m) => ({ default: m.AdminWorkers })),
-);
-const SignalsCatalog = lazy(() => import("./pages/admin/signals/SignalsCatalog.tsx"));
-const SignalsSettings = lazy(() => import("./pages/admin/signals/SignalsSettings.tsx"));
-const Boardroom = lazy(() => import("./pages/admin/Boardroom.tsx"));
-// BuildDeskPage import removed 2026-05-28 - page hidden (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
+import AdminShell from "./pages/admin/AdminShell.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminYou from "./pages/admin/AdminYou.tsx";
+import AdminMemory from "./pages/admin/AdminMemory.tsx";
+import AdminKeychain from "./pages/admin/AdminKeychain.tsx";
+import AdminCircle from "./pages/admin/AdminCircle.tsx";
+import AdminCirclePermissions from "./pages/admin/AdminCirclePermissions.tsx";
+import AdminTools from "./pages/admin/AdminTools.tsx";
+import AdminSkills from "./pages/admin/AdminSkills.tsx";
+import AdminActivity from "./pages/admin/AdminActivity.tsx";
+import AdminSettings from "./pages/admin/AdminSettings.tsx";
+import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
+import AdminSeatHeartbeatPage from "./pages/admin/AdminSeatHeartbeat.tsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
+import AdminCodebase from "./pages/admin/AdminCodebase.tsx";
+import AdminOrchestratorPage from "./pages/admin/AdminOrchestrator.tsx";
+import AdminTestX\ÜÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ÐYZ[•\Ý\ÜËÞŽÂš[\Ü\Ý\ÜÐØ][ÙÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹Ý\Ý\ÜËÕ\Ý\ÜÐØ][ÙËÞŽÂš[\Ü™]Ô[•Ú^˜\™œ›ÛH‹‹ÜYÙ\ËØYZ[‹Ý\Ý\ÜËÓ™]Ô[•Ú^˜\™ÞŽÂš[\Ü[‘]Z[œ›ÛH‹‹ÜYÙ\ËØYZ[‹Ý\Ý\ÜËÔ[‘]Z[ÞŽÂš[\Ü™\Ü]Z[œ›ÛH‹‹ÜYÙ\ËØYZ[‹Ý\Ý\ÜËÔ™\Ü]Z[ÞŽÂš[\ÜÛÜT\ÜÐØ][ÙÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÛÜ\\ÜËÐÛÜT\ÜÐØ][ÙËÞŽÂš[\ÜÜ™]ÜÐØ][ÙÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÜ™]ÜËÐÜ™]ÜÐØ][ÙËÞŽÂš[\ÜÜ™]ÐÛÛ\ÜÙ\ˆœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÜ™]ÜËÐÜ™]ÐÛÛ\ÜÙ\‹ÞŽÂš[\ÜÜ™]ÜÔ[œÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÜ™]ÜËÐÜ™]ÜÔ[œËÞŽÂš[\ÜÜ™]ÜÔÙ][™ÜÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÜ™]ÜËÐÜ™]ÜÔÙ][™ÜËÞŽÂš[\ÜÜ™]Ô[ˆœ›ÛH‹‹ÜYÙ\ËØYZ[‹ØÜ™]ÜËÐÜ™]Ô[‹ÞŽÂš[\ÜYZ[•\Ù\œÈœ›ÛH‹‹ÜYÙ\ËØYZ[‹ÐYZ[•\Ù\œËÞŽÂš[\ÜYZ[”Þ\Ý[RX[œ›ÛH‹‹ÜYÙ\ËØYZ[‹ÐYZ[”Þ\Ý[RX[ÞŽÂš[\ÜYZ[”[˜˜[ØZÙHœ›ÛH‹‹ÜYÙ\ËØYZ[‹ÐYZ[”[˜˜[ØZÙKÞŽÂš[\ÜYZ[“[Ù\˜][ÛŠg&öÒ"â÷vW2öFÖ–âôFÖ–äÖöFW&F–öâçG7‚#°¦–×÷'BFÖ–äVF—DÆörg&öÒ"â÷vW2öFÖ–âôFÖ–äVF—DÆörçG7‚#°¦–×÷'BFÖ–ä'&–æÖg&öÒ"â÷vW2öFÖ–âôFÖ–ä'&–æÖçG7‚#°¦–×÷'BFÖ–ä¦ö'2g&öÒ"â÷vW2öFÖ–âôFÖ–ä¦ö'2çG7‚#°¦–×÷'BFÖ–ä¦ö'6Ö—F‚g&öÒ"â÷vW2öFÖ–âôFÖ–ä¦ö'6Ö—F‚çG7‚#°¦–×÷'BFÖ–ä&Væ6†Ö&·2g&öÒ"â÷vW2öFÖ–âôFÖ–ä&Væ6†Ö&·2çG7‚#°¦–×÷'BFÖ–åG'WF…&FRg&öÒ"â÷vW2öFÖ–âôFÖ–åG'WF…&FRçG7‚#°¦–×÷'BFÖ–å„vFRg&öÒ"â÷vW2öFÖ–âôFÖ–å„vFRçG7‚#°¦–×÷'BFÖ–äW‡&W74'V–ÆB™É½´€ˆ¸½Á…•Ì½…‘µ¥¸½‘µ¥¹áÁÉ•ÍÍ	Õ¥±¹ÑÍàˆì)¥µÁ½ÉÐì(€‘µ¥¹ÕÑ½Á¥±½Ð°(€‘µ¥¹	¥±±¥¹œ°(€‘µ¥¹¡•­Ì°(€‘µ¥¹1•‘•È°(€‘µ¥¹AÉ½©•ÑÌ°(€‘µ¥¹]½É­•ÉÌ°)ô™É½´€ˆ¸½Á…•Ì½…‘µ¥¸½‘µ¥¹½ÍåÍÑ•µA…•Ì¹ÑÍàˆì)¥µÁ½ÉÐM¥¹…±Í…Ñ…±½œ™É½´€ˆ¸½Á…•Ì½…‘µ¥¸½Í¥¹…±Ì½M¥¹…±Í…Ñ…±½œ¹ÑÍàˆì)¥µÁ½ÉÐM¥¹…±ÍM•ÑÑ¥¹Ì™É½´€ˆ¸½Á…•Ì½…‘µ¥¸½Í¥¹…±Ì½M¥¹…±ÍM•ÑÑ¥¹Ì¹ÑÍàˆì)¥µÁ½ÉÐ¥Í¡‰½Ý°™É½´€ˆ¸½Á…•Ì½…‘µ¥¸½¥Í¡‰½Ý°¹ÑÍàˆì(¼¼	Õ¥±‘•Í­A…”¥µÁ½ÉÐÉ•µ½Ù•€ÈÀÈØ´ÀÔ´Èà€´Á…”¡¥‘‘•¸Á•È¡É¥Ì€¡‘•Ù•±½Á•Èµ…É­•ÑÁ±…”Á…ÕÍ•¤¸¥±”É•Ñ…¥¹•…ÐÍÉŒ½Á…•Ì½	Õ¥±‘•Í¬¹ÑÍàì€½‰Õ¥±É½ÕÑ”É•‘¥É•ÑÌÑ¼€¼¸)¥µÁ½ÉÐìÑÉ…­A…•Y¥•Üô¦rom "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
 
@@ -162,33 +80,6 @@ function AnalyticsPageviewTracker() {
   return null;
 }
 
-function HashScrollHandler() {
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!location.hash) return;
-    const targetId = decodeURIComponent(location.hash.slice(1));
-    if (!targetId || targetId.includes("=")) return;
-
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById(targetId)?.scrollIntoView({ block: "start", behavior: "auto" });
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [location.hash, location.pathname, location.search]);
-
-  return null;
-}
-
-/** Quiet, theme-consistent placeholder while a lazy route chunk loads. */
-function RouteFallback() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center" aria-busy="true">
-      <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary/25 border-t-primary" />
-    </div>
-  );
-}
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -196,32 +87,10 @@ const App = () => (
       <Sonner />
       <Analytics />
       <BrowserRouter>
-        <SiteAurora />
         <AnalyticsPageviewTracker />
-        <HashScrollHandler />
         <BetaBanner />
-        <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/home-preview" element={<HomePreview />} />
-          <Route path="/home-preview-b" element={<HomePreviewB />} />
-          <Route path="/home-preview-c" element={<HomePreviewC />} />
-          <Route path="/home-preview-d" element={<HomePreviewD />} />
-          <Route path="/home-preview-e" element={<HomePreviewE />} />
-          <Route path="/home-preview-f" element={<HomePreviewF />} />
-          <Route path="/home-preview-g" element={<HomePreviewG />} />
-          <Route path="/home-preview-h" element={<HomePreviewH />} />
-          <Route path="/home-preview-i" element={<HomePreviewI />} />
-          <Route path="/home-preview-j" element={<HomePreviewJ />} />
-          <Route path="/home-preview-k" element={<HomePreviewK />} />
-          <Route path="/home-preview-l" element={<HomePreviewL />} />
-          <Route path="/home-preview-m" element={<HomePreviewM />} />
-          <Route path="/home-preview-n" element={<HomePreviewN />} />
-          <Route path="/home-preview-o" element={<HomePreviewO />} />
-          <Route path="/home-preview-p" element={<HomePreviewP />} />
-          <Route path="/home-preview-q" element={<HomePreviewQ />} />
-          <Route path="/home-preview-r" element={<HomePreviewR />} />
-          <Route path="/uipass-home-sample" element={<HomepageSample />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />
           <Route path="/tools/scheduling" element={<SchedulingPage />} />
@@ -248,17 +117,7 @@ const App = () => (
           <Route path="/apps" element={<AppsPage />} />
           <Route path="/apps/:slug" element={<AppDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
-          {/* Product brochure pages (public marketing; interactive surfaces live under /admin) */}
-          <Route path="/skills" element={<BrochurePage slug="skills" />} />
-          <Route path="/orchestrator" element={<BrochurePage slug="orchestrator" />} />
-          <Route path="/passport" element={<BrochurePage slug="passport" />} />
-          <Route path="/seats" element={<BrochurePage slug="seats" />} />
-          <Route path="/autopilot" element={<BrochurePage slug="autopilot" />} />
-          <Route path="/xgate" element={<BrochurePage slug="xgate" />} />
-          <Route path="/jobs" element={<BrochurePage slug="jobs" />} />
-          <Route path="/control-tower" element={<BrochurePage slug="control-tower" />} />
-          <Route path="/ledger" element={<BrochurePage slug="ledger" />} />
-          <Route path="/workers" element={<BrochurePage slug="workers" />} />
+          <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           {/* /memory/admin redirects to the new admin shell */}
@@ -283,6 +142,7 @@ const App = () => (
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
             <Route path="circle" element={<AdminCircle />} />
+            <Route path="circle/permissions" element={<AdminCirclePermissions />} />
             <Route path="apps" element={<AdminTools />} />
             <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />
@@ -292,15 +152,9 @@ const App = () => (
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
-            <Route path="agents/api" element={<AdminSeatsApi />} />
-            <Route path="agents/api/routing" element={<AdminSeatsApiRouting />} />
-            <Route path="agents/api/usage" element={<AdminSeatsApiUsage />} />
-            <Route path="agents/local" element={<AdminSeatsLocal />} />
-            <Route path="agents/subscription" element={<AdminSeatsSubscription />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
             <Route path="jobs" element={<AdminJobs />} />
-            <Route path="controltower" element={<AdminControlTower />} />
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
@@ -310,69 +164,4 @@ const App = () => (
             <Route path="testpass"              element={<TestPassCatalog />} />
             <Route path="testpass/new"          element={<NewRunWizard />} />
             <Route path="testpass/runs/:id"     element={<RunDetail />} />
-            <Route path="testpass/packs/:id/edit" element={<AdminTestPass />} />
-            <Route path="testpass/reports"      element={<Navigate to="/admin/testpass" replace />} />
-            <Route path="testpass/reports/:id"  element={<ReportDetail />} />
-            <Route path="copypass"              element={<CopyPassCatalog />} />
-            <Route path="crews"          element={<CrewsCatalog />} />
-            <Route path="crews/new"      element={<CrewComposer />} />
-            <Route path="crews/:id/edit" element={<CrewComposer />} />
-            <Route path="crews/runs"          element={<CrewsRuns />} />
-            <Route path="crews/runs/:runId"  element={<CrewRun />} />
-            <Route path="crews/settings"      element={<CrewsSettings />} />
-            {/* End-user visible read-only continuity surface */}
-            <Route path="orchestrator"   element={<AdminOrchestratorPage />} />
-            <Route path="orchestrator/story" element={<Navigate to="/admin/orchestrator" replace />} />
-            <Route path="orchestrator/timeline" element={<AdminOrchestratorPage />} />
-            <Route path="orchestrator/log" element={<AdminOrchestratorLog />} />
-            {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
-            <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
-            <Route path="capability-balance" element={<RequireAdmin><AdminCapabilityBalance /></RequireAdmin>} />
-            <Route path="codebase"       element={<RequireAdmin><AdminCodebase /></RequireAdmin>} />
-            <Route path="users"          element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
-            <Route path="system-health"  element={<RequireAdmin><AdminSystemHealth /></RequireAdmin>} />
-            <Route path="pinballwake"    element={<RequireAdmin><AdminPinballWake /></RequireAdmin>} />
-            <Route path="moderation"     element={<RequireAdmin><AdminModeration /></RequireAdmin>} />
-            <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
-            <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
-            <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
-            <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
-            <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
-            <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
-            <Route path="signals"          element={<SignalsCatalog />} />
-            <Route path="signals/settings" element={<SignalsSettings />} />
-            <Route path="boardroom"        element={<Boardroom />} />
-            <Route path="fishbowl"         element={<Navigate to="/admin/boardroom" replace />} />
-          </Route>
-          {/* Phase 2 auth surface */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          <Route path="/mcp/authorize" element={<McpAuthorizePage />} />
-          <Route path="/pair/connected" element={<PairingCompletePage />} />
-          <Route path="/auth/verify-mfa" element={<VerifyMfaPage />} />
-          <Route path="/organiser" element={<OrganiserPage />} />
-          <Route path="/dispatch" element={<DispatchPage />} />
-          <Route path="/crews" element={<CrewsPage />} />
-          <Route path="/xpass" element={<XPassPage />} />
-          <Route path="/dogfood" element={<DogfoodReportPage />} />
-          {/* BuildDesk: hidden 2026-05-28. Developer dispatch surface
-              for AI coding workers, paused until the developer marketplace
-              chapter is ready. Page component retained; route redirected. */}
-          <Route path="/build" element={<Navigate to="/" replace />} />
-          <Route path="/new-to-ai" element={<NewToAIPage />} />
-          <Route path="/why" element={<WhyPage />} />
-          <Route path="/smarthome" element={<SmartHomePage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          {/* Install ticket recovery: fresh 24h code for returning users */}
-          <Route path="/i" element={<InstallRecoverPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+            <Route path="testpass/packs/:id/edit" element={<AdminTestX\ÜÈÏŸHÏ‚ˆ›Ý]H]H\Ý\ÜËÜ™\ÜÈˆ[[Y[^Ï˜]šYØ]HÏH‹ØYZ[‹Ý\Ý\ÜÈˆ™\XÙHÏŸHÏ‚ˆ›Ý]H]H\Ý\ÜËÜ™\ÜËÎšYˆ[[Y[^Ï™\Ü]Z[ÏŸHÏ‚ˆ›Ý]H]H˜ÛÜ\\ÜÈˆ[[Y[^ÏÛÜV746FÆöróçÒóà¢Å&÷WFRFƒÒ&7&Ww2"VÆVÖVçC×³Ä7&Ww46FÆöróçÒóà¢Å&÷WFRFƒÒ&7&Ww2öæWr"VÆVÖVçC×³Ä7&Wt6ö×÷6W"óçÒóà¢Å&÷WFRFƒÒ&7&Ww2ó¦–BöVF—B"VÆVÖVçC×³Ä7&Wt6ö×÷6W"óçÒóà¢Å&÷WFRFƒÒ&7&Ww2÷'Vç2"VÆVÖVçC×³Ä7&Ww5'Vç2óçÒóà¢Å&÷WFRFƒÒ&7&Ww2÷'Vç2ó§'Vä–B"VÆVÖVçC×³Ä7&Wu'VâóçÒóà¢Å&÷WFRFƒÒ&7&Ww2÷6WGF–æw2"VÆVÖVçC×³Ä7&Ww56WGF–æw2óçÒóà¢²ò¢VæB×W6W"f—6–&ÆR&VBÖöæÇ’6öçF–çV—G’7W&f6R¢÷Ð¢Å&÷WFRFƒÒ&÷&6†W7G&F÷""VÆVÖVçC×³ÄFÖ–ä÷&6†W7G&F÷%vRóçÒóà¢Å&÷WFRFƒÒ&÷&6†W7G&F÷"÷7F÷'’"VÆVÖVçC×³Äæf–vFRFóÒ"öFÖ–âö÷&6†W7G&F÷""&WÆ6RóçÒóà¢Å&÷WFRFƒÒ&÷&6†W7G&F÷"÷F–ÖVÆ–æR"VÆVÖVçC×³ÄFÖ–ä÷&6†W7G&F÷%vRóçÒóà¢²ò¢FÖ–âÖöæÇ’7W&f6W2‡w&VB–â&WV—&TFÖ–ã²Ç6ò†–FFVâg&öÒæöâÖFÖ–â6–FV&"’¢÷Ð¢Å&÷WFRFƒÒ&æÇ—F–72"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–äæÇ—F–72óãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ&6öFV&6R"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–ä6öFV&6RóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'W6W'2"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–åW6W'2óãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'7—7FVÒÖ†VÇF‚"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–å7—7FVÔ†VÇF‚óãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'–æ&ÆÇv¶R"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–å–æ&ÆÅv¶RóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ&ÖöFW&F–öâ"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–äÖöFW&F–öâóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ&VF—BÖÆör"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–äVF—DÆöróãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ&'&–æÖ"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–ä'&–æÖóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ&&Væ6†Ö&·2"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–ä&Væ6†Ö&·2óãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'G'WF‚×&FR"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–åG'WF…&FRóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'†vFR"VÆVÖVçC×³Å&WV—&TFÖ–ããÄFÖ–å„vFRóãÂõ&WV—&TFÖ–ãçÒóà¢Å&÷WFRFƒÒ'6–væÇ2"VÆVÖVçC×³Å6–væÇ46FÆöróçÒóà¢Å&÷WFRFƒÒ'6–væÇ2÷6WGF–æw2"VÆVÖVçC×³Å6–væÇ56WGF–æw2óçÒóà¢Å&÷WFRFƒÒ&&ö&G&ööÒ"VÆVÖVçC×³Äf—6†&÷vÂóçÒóà¢Å&÷WFRFƒÒ&f—6†&÷vÂ"VÆVÖVçC×³Äæf–vFRFóÒ"öFÖ–âö&ö&G&ööÒ"&WÆ6RóçÒóà¢Âõ&÷WFSà¢²ò¢†6R"WF‚7W&f6R¢÷Ð¢Å&÷WFRFƒÒ"öÆöv–â"VÆVÖVçC×³ÄÆöv–åvRóçÒóà¢Å&÷WFRFƒÒ"÷6–vçW"VÆVÖVçC×³Å6–vçWvRóçÒóà¢Å&÷WFRFƒÒ"öWF‚ö6ÆÆ&6²"VÆVÖVçC×³ÄWF„6ÆÆ&6µvRóçÒóà¢Å&÷WFRFƒÒ"öWF‚÷fW&–g’ÖÖf"VÆVÖVçC×³ÅfW&–g”ÖfvRóçÒóà¢Å&÷WFRFƒÒ"ö÷&væ—6W""VÆVÖVçC×³Ä÷&væ—6W%vRóçÒóà¢Å&÷WFRFƒÒ"öF—7F6‚"VÆVÖVçC×³ÄF—7F6…vRóçÒóà¢Å&÷WFRFƒÒ"ö7&Ww2"VÆVÖVçC×³Ä7&Ww5vRóçÒóà¢Å&÷WFRFƒÒ"÷‡72"VÆVÖVçC×³Å…75vRóçÒóà¢Å&÷WFRFƒÒ"öFövfööB"VÆVÖVçC×³ÄFövfööE&W÷'EvRóçÒóà¢²ò¢'V–ÆDFW6³¢†–FFVâW"6‡&—2##bÓRÓ#‚âFWfVÆ÷W"F—7F6‚7W&f6P¢f÷"’6öF–ærv÷&¶W'2ÂW6VBVçF–ÂF†RFWfVÆ÷W"Ö&¶WGÆ6P¢6†FW"—2&VG’âvR6ö×öæVçB&WF–æVC²&÷WFR&VF—&V7FVBâ¢÷Ð¢Å&÷WFRFƒÒ"ö'V–ÆB"VÆVÖVçC×³Äæf–vFRFóÒ"ò"&WÆ6RóçÒóà¢Å&÷WFRFƒÒ"öæWr×FòÖ’"VÆVÖVçC×³ÄæWuFô•vRóçÒóà¢Å&÷WFRFƒÒ"÷6Ö'F†öÖR"VÆVÖVçC×³Å6Ö'D†öÖUvRóçÒóà¢Å&÷WFRFƒÒ"÷&–6–ær"VÆVÖVçC×³Å&–6–æuvRóçÒóà¢²ò¢–ç7FÆÂF–6¶WB&V6÷fW'“¢g&W6‚#F‚6öFRf÷"&WGW&æ–ærW6W'2¢÷Ð¢Å&÷WFRFƒÒ"ö’"VÆVÖVçC×³Ä–ç7FÆÅ&V6÷fW%vRóçÒóà¢²ò¢DBÄÂ5U5DôÒ$õUDU2$õdRD„R4D4‚ÔÄÂ"¢"$õUDR¢÷Ð¢Å&÷WFRFƒÒ"¢"VÆVÖVçC×³Äæ÷Df÷VæBóçÒóà¢Âõ&÷WFW3à¢Âô'&÷w6W%&÷WFW#à¢ÂõFööÇF—&÷f–FW#à¢ÂõVW'”6Æ–VçE&÷f–FW#à¢“° ¦W‡÷'BFVfVÇB°
