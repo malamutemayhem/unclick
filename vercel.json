@@ -43,6 +43,7 @@
     { "source": "/api/oauth-init",         "destination": "/api/oauth-init" },
     { "source": "/api/oauth-callback",     "destination": "/api/oauth-callback" },
     { "source": "/api/credentials",        "destination": "/api/credentials" },
+    { "source": "/api/git-proxy/:path*",    "destination": "/api/git-proxy?path=:path*" },
     { "source": "/api/mcp/oauth/authorize", "destination": "/api/mcp-oauth-authorize" },
     { "source": "/api/mcp/oauth/register",  "destination": "/api/mcp-oauth-register" },
     { "source": "/api/mcp/oauth/token",     "destination": "/api/mcp-oauth-token" },

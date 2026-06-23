@@ -53,6 +53,7 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_runtime_preflight_separates_profiles_from_session_credentials" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "unclick_github_connector_exposes_builder_write_path" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "unclick_git_proxy_keeps_github_secret_server_side" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "unclick_git_proxy_has_production_rewrite" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_provider_matrix_covers_github_vercel_supabase" && check.status === "pass"));
   });
 
@@ -224,6 +225,19 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /unclick_git_proxy_keeps_github_secret_server_side/);
+  });
+
+  it("blocks when the UnClick git proxy production rewrite is missing", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    sources.vercelConfig = sources.vercelConfig.replaceAll("/api/git-proxy/:path*", "/api/git-proxy-disabled/:path*");
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /unclick_git_proxy_has_production_rewrite/);
   });
 
   it("blocks when the core builder provider matrix drops provider secret requirements", async () => {
