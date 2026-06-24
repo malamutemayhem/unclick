@@ -125,6 +125,20 @@ Two physically separate transport paths, chosen by `chat_threads.key_source`. Th
 
 Either way, the model dropdown is populated by `GET <base_url>/v1/models` and only the redacted turn text (never the local token) is POSTed to the server ingest for continuity. Nothing auto-connects; the user clicks an explicit detect button.
 
+### Lanes are channels of traffic, not key gates
+
+A seat lane (`local`, `api`, `subscription`) is only the channel the model traffic flows through. It is the LLM source, nothing more. It never decides who you are, whether you are allowed to use Chat, or whether a turn can be saved. This is a hard rule, learned from the Crews regression where deliberation reached for the plaintext platform key to authenticate its own save call, failed on the session channel, and surfaced as a misleading "not configured / set your API key" error. Chat must not reproduce that.
+
+The rule, stated plainly:
+
+1. **Tenant identity comes from the authenticated session, not a key in hand.** The tenant (`api_key_hash`) is already established on every authenticated path. All Chat persistence and Orchestrator continuity run off that tenancy plus the service role. They never require the plaintext UnClick platform key to write a row.
+2. **The plaintext platform key has exactly one job.** In the `api` lane it derives the decryption key for the user's OWN provider key (proof-of-possession then decrypt), so the upstream model call can be made. It is never a gate on running, persisting, deliberating, or reading history. If it is absent, only the upstream call on a paid provider is affected, nothing else.
+3. **A provider key is the channel, not a platform gate.** The `api` lane needs the user's OpenRouter/OpenAI/etc. key because that key IS the traffic channel for that lane. That is not key-chasing; it is the source the user chose. Local needs no key; subscription needs no key.
+4. **The subscription / council lane follows the same rule.** When Chat routes a council through Crews / MCP sampling, it persists via the established tenancy and deliberates on whatever model the client brings (subscription, api, or local). It must never reach for the platform key to save a run. This is the exact decouple that fixes "the system kept thinking it was API based."
+5. **Error copy names the channel, never a missing platform key.** If a lane cannot run, the message says which channel needs attention (a paid provider with no saved key, a local engine not detected, a client without sampling). It never tells a user in an authenticated session to "set" or "get" an UnClick key, because there is no such key to chase.
+
+This is a constraint on every future Chat surface, spend gate, and council wiring, not a one-off.
+
 ### Human-to-human realtime
 
 A `chat_threads.kind = 'human'` thread shares the `chat_thread_messages` stream with `sender_kind = 'human'` and a typed `participants` roster. No model call is ever involved. `chat_thread_messages` is on `supabase_realtime`, but the browser cannot read it directly (RLS deny-all): the Chat window subscribes to the realtime channel filtered by `thread_id` for sub-second fan-out, then on each event calls a service-role-fronted read action `chat_thread_read` (`.eq('api_key_hash', hash)` plus `.eq('thread_id', id)`) for the authoritative row. Sends go through `chat_thread_send`, which validates participant membership, inserts, and mirrors the human turn into `chat_messages` for continuity. Presence and typing ride `metadata` plus a lightweight heartbeat reusing the `channel_status` pattern, and the typing indicator for agents is driven by the real run lifecycle (thinking, calling tools, drafting), not a fake bubble. A lightweight last-read pointer drives unread counts; read affordances are suppressed on agent members.
