@@ -3,7 +3,7 @@
   "name": "UnClick Local (Discovery Sensor)",
   "version": "0.1.0",
   "description": "Learns the shape of sites you use (never your data) to draft connectors on device.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "contextMenus", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
@@ -17,5 +17,6 @@
   "web_accessible_resources": [
     { "resources": ["inject.js"], "matches": ["<all_urls>"] }
   ],
-  "action": { "default_popup": "panel.html", "default_title": "UnClick Local" }
+  "action": { "default_popup": "panel.html", "default_title": "UnClick Local" },
+  "options_page": "options.html"
 }

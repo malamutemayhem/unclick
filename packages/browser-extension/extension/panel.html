@@ -5,37 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>UnClick Local</title>
     <style>
-      body {
-        font: 13px/1.4 system-ui, sans-serif;
-        margin: 0;
-        padding: 12px;
-        width: 360px;
-        color: #111;
-      }
-      h1 { font-size: 15px; margin: 0 0 4px; }
-      .sub { color: #666; margin: 0 0 12px; }
+      body { font: 13px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 380px; color: #111; }
+      h1 { font-size: 15px; margin: 0 0 2px; }
+      .sub { color: #666; margin: 0 0 10px; }
+      .status { display: flex; gap: 10px; align-items: center; background: #f3f5f7; border-radius: 8px; padding: 8px; margin-bottom: 10px; font-size: 12px; }
+      .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; }
+      .status .ok { background: #0a7d2c; }
+      .status .warn { background: #b00020; }
+      .bar { display: flex; gap: 6px; margin-bottom: 10px; }
+      button { font: inherit; cursor: pointer; }
       .host { border: 1px solid #ddd; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
       .host-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .host-name { font-weight: 600; }
-      .count { color: #666; font-size: 12px; }
-      select { font: inherit; }
-      button { font: inherit; cursor: pointer; }
+      .cover { color: #666; font-size: 12px; }
+      .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
       .endpoints { margin: 6px 0 0; padding-left: 16px; color: #333; }
       .endpoints li { font-family: ui-monospace, monospace; font-size: 12px; }
       .empty { color: #888; }
-      .row { display: flex; gap: 6px; align-items: center; }
       .danger { color: #b00020; border-color: #b00020; }
+      details { margin-top: 10px; }
+      summary { cursor: pointer; font-weight: 600; }
+      textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: 12px; }
+      pre { background: #f3f5f7; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
       footer { margin-top: 8px; color: #888; font-size: 11px; }
+      a { color: #1a56db; }
     </style>
   </head>
   <body>
     <h1>UnClick Local</h1>
     <p class="sub">It learns how sites are built, never what you do on them.</p>
+
+    <div class="status" id="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Checking status...</span>
+    </div>
+
+    <div class="bar">
+      <button id="savePage">Save this page to Memory</button>
+    </div>
+
     <div id="list"><p class="empty">No sites learned yet.</p></div>
-    <div class="row">
+
+    <details id="previewBox">
+      <summary>Redaction preview (try it)</summary>
+      <p class="sub">Paste a URL (include query params). See what is kept (names) and that values are dropped. Nothing is sent or stored.</p>
+      <textarea id="previewInput" rows="2" placeholder="https://api.example.com/users/12345?email=you@x.com&token=secret"></textarea>
+      <div class="row"><button id="previewRun">Preview</button></div>
+      <pre id="previewOut" hidden></pre>
+    </details>
+
+    <div class="bar" style="margin-top:10px">
+      <button id="settings">Settings</button>
       <button id="clear" class="danger">Delete everything</button>
     </div>
-    <footer>Shapes only. Nothing is uploaded. Set a site to "off" to stop watching it.</footer>
-    <script src="panel.js"></script>
+
+    <footer>Shapes only. Nothing is uploaded automatically. Set a site to "off" to stop watching it.</footer>
+    <script type="module" src="panel.js"></script>
   </body>
 </html>
