@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   sha256hex,
+  hashesEqual,
   encryptCredential,
   decryptCredential,
   readProviderKey,
@@ -11,13 +12,25 @@ const API_KEY = "uc_test_key_abcdef0123456789";
 describe("sha256hex", () => {
   it("is deterministic and 64 hex chars", () => {
     const a = sha256hex(API_KEY);
-    const b = sha256hex(API_KEY);
-    expect(a).toBe(b);
+    expect(a).toBe(sha256hex(API_KEY));
     expect(a).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("differs for different keys", () => {
     expect(sha256hex(API_KEY)).not.toBe(sha256hex("uc_other"));
+  });
+});
+
+describe("hashesEqual (constant-time)", () => {
+  it("matches identical hashes", () => {
+    const h = sha256hex(API_KEY);
+    expect(hashesEqual(h, h)).toBe(true);
+  });
+
+  it("rejects different hashes and mismatched lengths", () => {
+    expect(hashesEqual(sha256hex(API_KEY), sha256hex("uc_other"))).toBe(false);
+    expect(hashesEqual("abcd", "abcdef")).toBe(false);
+    expect(hashesEqual("", "abcd")).toBe(false);
   });
 });
 
@@ -34,9 +47,9 @@ describe("encrypt/decrypt round trip (owned vault scheme)", () => {
     }
   });
 
-  it("throws when decrypting with the wrong key (proof of possession)", () => {
+  it("throws a generic sanitized error with the wrong key (no oracle, proof of possession)", () => {
     const row = encryptCredential(API_KEY, "sk-or-secret-123");
-    expect(() => decryptCredential("uc_wrong_key", row)).toThrow();
+    expect(() => decryptCredential("uc_wrong_key", row)).toThrow("Decryption failed");
   });
 });
 
@@ -56,5 +69,19 @@ describe("readProviderKey", () => {
   it("returns null when no usable key field exists", () => {
     const row = encryptCredential(API_KEY, JSON.stringify({ note: "no key here" }));
     expect(readProviderKey(API_KEY, row)).toBeNull();
+  });
+
+  it("ignores a crafted __proto__ payload and never pollutes the prototype", () => {
+    const row = encryptCredential(
+      API_KEY,
+      JSON.stringify({ __proto__: { api_key: "evil" }, note: "x" }),
+    );
+    expect(readProviderKey(API_KEY, row)).toBeNull();
+    expect(({} as Record<string, unknown>).api_key).toBeUndefined();
+  });
+
+  it("ignores a non-allowlisted requested field and uses safe synonyms", () => {
+    const row = encryptCredential(API_KEY, JSON.stringify({ api_key: "sk-ok" }));
+    expect(readProviderKey(API_KEY, row, "__proto__")).toBe("sk-ok");
   });
 });
