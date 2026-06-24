@@ -17,20 +17,31 @@ slice.
 - `src/shape.ts` - capture an exchange, strip all values, produce a type-only shape.
 - `src/privacy.ts` - off / me-only / public tiers (default me-only) and the k-anonymity gate.
 - `src/connector-draft.ts` - merge shapes into a connector draft; classify read vs write.
+- `src/redaction-report.ts` - value-free preview of what stripping removed.
+- `src/memory.ts` - build the save_fact request (key only in the Authorization header).
+- `src/status.ts` - connection + signals summaries and the toolbar badge.
+- `src/coverage.ts` - honest per-host coverage counts and the learn-this-site decision.
 
 ## The trust contract
 
-The site network is built from **shapes**, not your data. The canary test in `src/shape.test.ts`
-proves that real values never survive into a shape.
+The site network is built from **shapes**, not your data. The canary tests in `src/shape.test.ts`
+and `src/redaction-report.test.ts` prove that real values never survive into a shape or report.
 
 ## Run tests
 
+This package is plain source for now (not an npm workspace), so its tests run via the repo's vitest.
+The root CI includes `packages/browser-extension/src/**` in the root vitest run. Locally:
+
 ```bash
-npx vitest run
+cd packages/browser-extension && npx vitest run
 ```
+
+A `package.json` plus a `package-lock.json` entry returns with the Phase 7.2 bundler/publish step;
+for now it is omitted so the strict root `npm ci` rail stays green.
 
 ## Extension scaffold
 
-`extension/` holds a Manifest V3 scaffold (capture hook, background worker, glass-box panel). The
-authoritative, tested logic lives in `src/`. `extension/core.js` is a hand-mirrored copy used by the
-scaffold until the Phase 7.2 bundler step replaces it with a compiled bundle of `src/`.
+`extension/` holds a Manifest V3 scaffold (capture hook, background worker, glass-box panel, options
+page). The authoritative, tested logic lives in `src/`. `extension/core.js` and `extension/api.js`
+are hand-mirrors of the TS core used by the scaffold until the Phase 7.2 bundler replaces them with a
+compiled bundle of `src/`.
