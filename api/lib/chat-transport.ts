@@ -45,11 +45,15 @@ export function isPrivateHost(rawUrl: string): boolean {
   } catch {
     return true; // unparseable -> treat as unsafe
   }
+  // WHATWG URL keeps IPv6 hosts in brackets, e.g. "[::1]".
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".localhost")) return true;
   if (host === "127.0.0.1" || host === "0.0.0.0" || host === "::1") return true;
   if (host.startsWith("10.") || host.startsWith("192.168.")) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(host)) return true;
   if (host === "169.254.169.254") return true; // cloud metadata endpoint
+  // IPv6 link-local (fe80::/10) and unique-local (fc00::/7).
+  if (host.includes(":") && (host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd"))) return true;
   return false;
 }
 
