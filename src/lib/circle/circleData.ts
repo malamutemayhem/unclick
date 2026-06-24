@@ -63,7 +63,13 @@ export interface PermissionTable {
 }
 
 // Members
-
+//
+// Demo roster only. The whole UI is data-driven off this array (the matrix
+// columns are `repeat(MEMBERS.length, ...)`, every row/header maps over it, the
+// landing count reads PEERS.length), so it already renders for any number of
+// members. Production replaces this list with the operator's real circle from
+// the connections backend (the DB + RLS follow-up); nothing downstream assumes
+// a fixed count. YOU is always the first entry; PEERS is everyone else.
 export const MEMBERS: CircleMember[] = [
   { id: "you",   name: "You",   initials: "Y", isYou: true,    accent: "#61C1C4" },
   { id: "priya", name: "Priya", initials: "P", handle: "priya", accent: "#A78BFA" },
