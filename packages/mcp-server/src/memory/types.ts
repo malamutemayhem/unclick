@@ -107,6 +107,7 @@ export interface MemoryProfileCard {
   working_now: string[];
   do_not_repeat: string[];
   timezone_context?: string;
+  style_directive?: string;
   memory_health: string[];
   source_receipts: MemoryProfileCardReceipt[];
 }

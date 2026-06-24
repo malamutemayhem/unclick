@@ -340,6 +340,46 @@ function buildTimezoneContext(business: unknown[]): string | undefined {
   return label ? compactProfileLine(`Operator timezone: ${label}`, 140) : undefined;
 }
 
+// Operator AI Style: dedicated, untruncated profile-card surfacing.
+//
+// /admin/you stores the operator's standing tone rules as a ready-made
+// imperative `directive` string in the preference/ai_style business_context row
+// (priority 99, decay_tier hot), so it leads the business_context list at
+// load_memory time. buildTimezoneContext already gives the sibling
+// operator_timezone preference its own profile-card line; ai_style had no
+// equivalent and only rode along as a generic business_context row whose value
+// is compacted to ~130 chars in lite mode, cutting the directive mid-sentence so
+// agents skimmed past it. Surface the full directive here so load_memory hands
+// every connected agent the standing style rules as one imperative line, the
+// same way the orchestrator seat handshake does (api/lib/orchestrator-context.ts).
+function aiStyleDirectiveFromRow(row: Record<string, unknown>): string | undefined {
+  if (str(row.category).toLowerCase() !== "preference") return undefined;
+  if (str(row.key).toLowerCase() !== "ai_style") return undefined;
+  if (hasSensitiveMemorySignal(row.category, row.key, row.value)) return undefined;
+  let value = asRecord(row.value);
+  if (!value && typeof row.value === "string") {
+    try {
+      value = asRecord(JSON.parse(row.value));
+    } catch {
+      value = null;
+    }
+  }
+  const directive = value ? str(value.directive).trim() : "";
+  return directive || undefined;
+}
+
+function buildStyleDirective(business: unknown[]): string | undefined {
+  for (const raw of business) {
+    const row = asRecord(raw);
+    if (!row) continue;
+    const directive = aiStyleDirectiveFromRow(row);
+    // The directive is capped at <= 300 chars at write time; allow headroom so it
+    // is surfaced in full rather than re-truncated here.
+    if (directive) return compactProfileLine(directive, 320);
+  }
+  return undefined;
+}
+
 function uniqueProfileItems<T extends { line: string | null | undefined }>(
   items: T[],
   limit: number
@@ -439,6 +479,7 @@ function buildMemoryProfileCard(params: {
     working_now: workingNow,
     do_not_repeat: doNotRepeat,
     timezone_context: buildTimezoneContext(params.business),
+    style_directive: buildStyleDirective(params.business),
     memory_health: [
       `${Math.min(params.business.length, 6)} of ${params.business.length} business context rows returned`,
       `${Math.min(params.facts.length, 12)} of ${params.facts.length} active facts returned`,
@@ -527,7 +568,11 @@ export function compactStartupContextForStrictClients(
 
   out.business_context = business.slice(0, 6).map((row) => {
     const r = asRecord(row) ?? {};
-    return { category: r.category, key: r.key, value: compactJsonValue(r.value, 130), priority: r.priority };
+    // The operator AI Style directive (preference/ai_style) is a standing rule
+    // agents must obey, so give its value enough budget that the imperative
+    // directive survives compaction instead of being cut mid-sentence at 130.
+    const valueBudget = aiStyleDirectiveFromRow(r) ? 360 : 130;
+    return { category: r.category, key: r.key, value: compactJsonValue(r.value, valueBudget), priority: r.priority };
   });
   out.profile_card = buildMemoryProfileCard({ business, facts: startupFacts, sessions, includeSessionSummaries });
   out.active_facts = startupFacts.slice(0, 12).map((row) => {
