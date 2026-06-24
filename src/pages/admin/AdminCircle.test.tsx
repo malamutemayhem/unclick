@@ -1,157 +1,53 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-vi.mock("@/lib/auth", () => ({
-  useSession: () => ({
-    session: { access_token: "test-session-token" },
-    user: { email: "owner@example.com" },
-    loading: false,
-  }),
-}));
+import AdminCircle from "./AdminCircle";
+import { PEERS } from "@/lib/circle/circleData";
 
-const circleFixture = {
-  me: { id: "me", email: "owner@example.com" },
-  sharing_count: 1,
-  links: [
-    {
-      id: "link-1",
-      status: "accepted",
-      direction: "linked",
-      person: { user_id: "them", email: "alex@example.com", display_name: "Alex", avatar_url: null },
-      created_at: "2026-06-19T00:00:00.000Z",
-      accepted_at: "2026-06-19T00:01:00.000Z",
-      permissions: {
-        shared_memory: {
-          give_enabled: true,
-          give_accepted: true,
-          give_active: true,
-          receive_enabled: false,
-          receive_offered: true,
-          receive_active: false,
-        },
-        shared_orchestrator: {
-          give_enabled: false,
-          give_accepted: false,
-          give_active: false,
-          receive_enabled: false,
-          receive_offered: false,
-          receive_active: false,
-        },
-      },
-    },
-  ],
-  audit: [
-    {
-      id: "audit-1",
-      action: "permission_enabled",
-      permission: "shared_memory",
-      created_at: "2026-06-19T00:02:00.000Z",
-    },
-  ],
-};
-
-async function renderAdminCircle() {
-  const { default: AdminCircle } = await import("./AdminCircle");
-  render(
+// AdminCircle is the Circle landing surface: a roster of connected members with
+// live share counts and the entry point to the deterministic permissions
+// matrix. It reads the ledger from localStorage and renders synchronously, so
+// these tests need no network or session stubs.
+function renderAdminCircle() {
+  return render(
     <MemoryRouter>
       <AdminCircle />
     </MemoryRouter>,
-  );
-  await screen.findByRole("heading", { name: "Circle" });
-  await screen.findByText("Alex");
-}
-
-function stubCircleFetch() {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.includes("/api/account-links?action=list")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(circleFixture),
-        });
-      }
-      if (url.includes("/api/account-links?action=") && init?.method === "POST") {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ success: true }),
-        });
-      }
-      return Promise.resolve({
-        ok: false,
-        json: () => Promise.resolve({ error: "Unexpected request" }),
-      });
-    }),
   );
 }
 
 describe("AdminCircle", () => {
   beforeEach(() => {
-    vi.resetModules();
-    stubCircleFetch();
+    localStorage.clear();
   });
 
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    localStorage.clear();
   });
 
-  it("renders linked people, permission switches, and audit rows", async () => {
-    await renderAdminCircle();
+  it("renders the Circle landing with the member roster", () => {
+    renderAdminCircle();
 
-    expect(screen.getByText("They can see my memory")).toBeInTheDocument();
-    expect(screen.getByText("I can receive their memory")).toBeInTheDocument();
-    expect(screen.getByText("Permission Enabled")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Circle" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Members" })).toBeInTheDocument();
+    for (const member of PEERS) {
+      expect(screen.getByText(member.name)).toBeInTheDocument();
+    }
   });
 
-  it("sends invites with the signed-in session", async () => {
-    await renderAdminCircle();
+  it("links to the deterministic permissions matrix", () => {
+    renderAdminCircle();
 
-    fireEvent.change(screen.getByLabelText("Circle invite email"), {
-      target: { value: "friend@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Add to Circle/i }));
-
-    await waitFor(() => {
-      const inviteCall = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.find(([url]) =>
-        String(url).includes("action=invite"),
-      );
-      expect(inviteCall).toBeTruthy();
-      expect(inviteCall?.[1]).toEqual(
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.objectContaining({ Authorization: "Bearer test-session-token" }),
-          body: JSON.stringify({ email: "friend@example.com" }),
-        }),
-      );
-    });
+    const permissionsLink = screen.getByRole("link", { name: /Permissions/i });
+    expect(permissionsLink).toHaveAttribute("href", "/admin/circle/permissions");
   });
 
-  it("sends explicit permission direction changes", async () => {
-    await renderAdminCircle();
+  it("summarises share counts from the ledger on every member card", () => {
+    renderAdminCircle();
 
-    fireEvent.click(screen.getByRole("switch", { name: "They can see my chat log" }));
-
-    await waitFor(() => {
-      const permissionCall = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.find(([url]) =>
-        String(url).includes("action=set_permission"),
-      );
-      expect(permissionCall).toBeTruthy();
-      expect(permissionCall?.[1]).toEqual(
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.objectContaining({ Authorization: "Bearer test-session-token" }),
-          body: JSON.stringify({
-            link_id: "link-1",
-            permission: "shared_orchestrator",
-            direction: "give",
-            enabled: true,
-          }),
-        }),
-      );
-    });
+    expect(screen.getAllByText("You share")).toHaveLength(PEERS.length);
+    expect(screen.getAllByText("Shares with you")).toHaveLength(PEERS.length);
   });
 });

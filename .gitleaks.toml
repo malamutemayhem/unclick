@@ -26,4 +26,6 @@ regexes = [
   '''unclick-keychain-v1''',
   # localStorage key name, not a credential.
   '''jobsmith\.cvFacts\.v1''',
+  # localStorage key name for the Circle permissions ledger, not a credential.
+  '''unclick_circle_permissions_v1''',
 ]
