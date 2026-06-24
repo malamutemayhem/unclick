@@ -33,7 +33,31 @@ connector, from any agent container, with:
 
 - no paste (raw bytes, any size),
 - byte-exact integrity (verified by checksum),
-- no GitHub credential ever exposed to the agent runtime.
+- no GitHub credential ever exposed to the agent runtime,
+- a good experience for any UnClick account that connects GitHub (this is a
+  public, multi-tenant product feature, not an internal/fleet-only tool).
+
+## Public-facing requirement (multi-tenant)
+
+This ships to every UnClick account, so the design must be correct for a
+brand-new user, not just the internal fleet repo. Requirements:
+
+- Per-account auth. A push session runs under the calling UnClick account and
+  commits using THAT account's own connected GitHub (its OAuth / GitHub App
+  installation), never a shared or admin login.
+- Repo scope from the account. Allowed repos are exactly what that account's
+  GitHub connection grants. An account can never push to a repo it has not
+  connected.
+- Tenant isolation. Signed upload URLs and staged blobs are namespaced per
+  account and per push session. One account can never read, overwrite, or
+  push another account's files.
+- Clean first run. If the account has not connected GitHub yet, the connector
+  returns a clear "connect your GitHub" prompt with the connect link, not a
+  cryptic error (today's path can surface a raw "missing api_key"). After a
+  one-time connect, begin_push / commit_push just work.
+- Same surface everywhere. The agent flow is identical across Claude.ai,
+  ChatGPT connectors, IDE clients, and fleet workers; nothing is hard-wired to
+  one repo or one login.
 
 ## Chosen design: file-upload handoff, UnClick commits server-side
 
@@ -95,6 +119,9 @@ Flow:
   (target 5 min), one push session.
 - Staged blobs are deleted on commit and on abort, plus a TTL sweep.
 - Repo scope is enforced server-side, identical to `push_files`.
+- Per-account isolation: push sessions, signed URLs, and staged blobs are
+  scoped to the calling UnClick account. No account can read, overwrite, or
+  push another account's files.
 - Audit log records `push_session_id`, repo, branch, file paths, sizes, and
   sha256. Never file content, never secrets.
 - This adds a Storage bucket and a server-side push endpoint, so it is a
@@ -113,6 +140,11 @@ Flow:
 - Auto-clean: staging is empty after both commit and abort.
 - Authz: an agent cannot target a repo outside its authorized scope.
 - Concurrency: two simultaneous sessions do not collide (keyed by session id).
+- New account: a freshly connected account completes begin_push -> upload ->
+  commit_push with no key handling; an account that has not connected GitHub
+  gets a clear connect prompt, not a raw error.
+- Tenant isolation: account A cannot read account B's staged blobs, reuse B's
+  signed URLs, or push to B's repos.
 
 ## Rollout
 
