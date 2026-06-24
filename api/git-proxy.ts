@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
-  githubBasicAuthHeader,
+  buildForwardHeaders,
+  COPIED_GIT_RESPONSE_HEADERS,
   githubRemoteUrl,
   gitProxyPathSegments,
   repoAllowed,
@@ -61,27 +62,14 @@ async function savedGitHubToken(req: VercelRequest, apiKey: string): Promise<str
 }
 
 function forwardableHeaders(req: VercelRequest, githubToken: string): Headers {
-  const headers = new Headers();
-  const accept = req.headers.accept;
-  const contentType = req.headers["content-type"];
-  const userAgent = req.headers["user-agent"];
-  if (typeof accept === "string") headers.set("Accept", accept);
-  if (typeof contentType === "string") headers.set("Content-Type", contentType);
-  if (typeof userAgent === "string") headers.set("User-Agent", userAgent);
-  headers.set("Authorization", githubBasicAuthHeader(githubToken));
-  return headers;
+  return new Headers(buildForwardHeaders(req.headers, githubToken));
 }
 
 function copyGitResponseHeaders(upstream: Response, res: VercelResponse): void {
-  const safeHeaders = [
-    "content-type",
-    "content-length",
-    "cache-control",
-    "expires",
-    "pragma",
-    "www-authenticate",
-  ];
-  for (const header of safeHeaders) {
+  // content-length and content-encoding are intentionally NOT copied: the fetch
+  // runtime has already decompressed the upstream body, so the bytes we send are
+  // decoded and the runtime recomputes content-length from them.
+  for (const header of COPIED_GIT_RESPONSE_HEADERS) {
     const value = upstream.headers.get(header);
     if (value) res.setHeader(header, value);
   }

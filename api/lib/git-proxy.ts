@@ -100,3 +100,52 @@ export function repoAllowed(repo: string, allowlist: string | undefined): boolea
     .filter(Boolean);
   return entries.length === 0 || entries.includes(normalized);
 }
+
+// Request headers we forward to GitHub. Strict default-deny allowlist: only
+// these are copied from the incoming request. Content-Encoding MUST be
+// forwarded because git gzips the buffered upload-pack/receive-pack POST body
+// by default; dropping it makes GitHub read gzip magic bytes as pkt-lines and
+// return 400. Git-Protocol enables protocol v2. We deliberately do NOT forward
+// Content-Length or Transfer-Encoding (the HTTP transport recomputes framing
+// from the fully buffered body), nor Accept-Encoding (the fetch runtime
+// negotiates and transparently decompresses responses itself).
+export const FORWARDED_GIT_REQUEST_HEADERS = [
+  "accept",
+  "content-type",
+  "content-encoding",
+  "user-agent",
+  "git-protocol",
+] as const;
+
+// Response headers safe to copy back to the git client. content-length and
+// content-encoding are intentionally EXCLUDED: the fetch runtime auto
+// decompresses the upstream body, so the bytes we send are already decoded.
+// Copying the upstream (compressed) content-length or content-encoding would
+// mis-describe the body and corrupt the git stream. The transport recomputes
+// content-length from the bytes actually sent.
+export const COPIED_GIT_RESPONSE_HEADERS = [
+  "content-type",
+  "cache-control",
+  "expires",
+  "pragma",
+  "www-authenticate",
+] as const;
+
+// Builds the headers forwarded to GitHub from an incoming request. Authorization
+// is always hard-set to the GitHub token AFTER the allowlist copy, so the
+// caller's UnClick key (or any client Authorization/Cookie) can never reach
+// github.com. Header names are matched lowercase (Node lowercases incoming
+// header names); array-valued headers collapse to the first value.
+export function buildForwardHeaders(
+  incoming: Record<string, string | string[] | undefined>,
+  githubToken: string,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const name of FORWARDED_GIT_REQUEST_HEADERS) {
+    const raw = incoming[name];
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (typeof value === "string" && value) out[name] = value;
+  }
+  out.authorization = githubBasicAuthHeader(githubToken);
+  return out;
+}
