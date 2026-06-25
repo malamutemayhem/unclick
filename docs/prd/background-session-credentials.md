@@ -1,52 +1,96 @@
-# Background-session connectors: why they fail, and the fix
+# Background-session connectors + native git push: why there is friction, and the fix
 
-Status: diagnosis confirmed in code; mitigation is a config change (no deploy); the durable fix is a reviewed change. This doc is the plan, not yet implemented.
+Status: diagnosis confirmed against `main` via connector code search. The native
+git push is BUILT and DEPLOYED; the connectors stall on a missing env key; the
+friction is that this worker environment is not configured to use what already
+exists. The fixes below are mostly environment config, not new code.
 
 ## Symptom
 
-In background / agent / web sessions, connectors report "not connected" (Vercel, Supabase, etc.), `git push`/`fetch` is blocked, and Memory tenant-scoping can break. Interactive sessions work. It looks like many separate connector bugs; it is actually two root causes.
+In background / agent / web sessions, connectors report "not connected" (Vercel,
+Supabase, etc.), and `git push`/`fetch` is blocked - so work falls back to the
+slow connector `push_files` path. Interactive sessions work. It looks like many
+connector bugs; it is really an environment-not-wired-up problem.
 
-## Root cause 1 (the big one): no api key in the session environment
+## Root cause 1: no api key in the session environment
 
-Every credential path derives its decryption key from the user's UnClick api key:
+Every credential path derives its key material from the user's UnClick api key:
 
-- `api/credentials.ts` decrypts server-side: `deriveKey(apiKey, salt)` = PBKDF2-SHA256 over the api key from the `Authorization: Bearer` header.
-- `packages/mcp-server/src/vault-bridge.ts:105` reads `process.env.UNCLICK_API_KEY`; if it is absent it SKIPS the Supabase credential lookup entirely and returns a "not configured" / "not connected" error (the credential row exists; the lookup never ran).
-- `packages/mcp-server/src/server.ts` computes `api_key_hash` from `UNCLICK_API_KEY`; without it, Memory tenant scoping has no tenant.
+- `api/credentials.ts` decrypts server-side using a key derived from the api key
+  in the `Authorization: Bearer` header (PBKDF2). This coupling is DELIBERATE
+  (proof-of-possession): credentials stay tied to the current key.
+- `packages/mcp-server/src/vault-bridge.ts` reads `process.env.UNCLICK_API_KEY`;
+  if it is absent it SKIPS the credential lookup and returns "not connected" -
+  the credential row exists, the lookup never ran.
+- Memory tenancy (`api_key_hash`) likewise has no tenant without the key.
 
-Background/web sessions do not carry `UNCLICK_API_KEY` in their environment, so all of the above silently no-op. Confirmed: a live web session has no `UNCLICK_*` env vars at all.
+Background/web sessions carry NO `UNCLICK_API_KEY` (confirmed: a live web session
+had zero `UNCLICK_*` env vars). So the lookups silently no-op.
 
-> The decryptor is fine and already server-side. The session just isn't holding a key to present.
+## Root cause 2: the native git push exists, but this environment cannot reach it
 
-## Root cause 2 (separate): git is trapped by a harness rewrite
+The native push is REAL and on `main` (verified by code search), not missing as a
+prior version of this doc wrongly claimed:
 
-The sandbox injects a global `insteadOf` that rewrites every `github.com` URL to a local proxy (`127.0.0.1:41729`) that demands a password no session has. There is NO UnClick git proxy in the repo (`api/git-proxy.ts` does not exist; earlier notes claiming it does were wrong). A `GITHUB_TOKEN` is present and reaches github.com directly through the agent HTTPS proxy when the injected config is bypassed.
+- `api/git-proxy.ts` (+ `api/git-proxy.test.ts`) - an authenticated git
+  smart-HTTP proxy. Authenticates by the caller's UnClick api key, looks up that
+  account's GitHub token server-side, forwards real git protocol to github.com.
+  The GitHub token never leaves UnClick.
+- `vercel.json` routes it, so it is live on Vercel.
+- `scripts/unclick-git-remote.mjs` (+ test) - the helper that points a repo's git
+  remote at the proxy so plain `git push` just works.
+- `scripts/check-app-connection-readiness.mjs` - readiness check.
+- `docs/github-connector-native-push.md` - canonical reference.
+
+So why the friction here? This worker environment is not wired to use it:
+
+1. A harness-injected global `insteadOf` rewrites every `github.com` URL to a
+   dead local proxy (`127.0.0.1:41729`) that demands a password no session has.
+2. Egress to `unclick.world` is BLOCKED (HTTPS CONNECT returns 403), so the
+   deployed proxy is unreachable from this session.
+3. No `UNCLICK_API_KEY` for the proxy to authenticate against (root cause 1).
+4. `scripts/unclick-git-remote.mjs` is never run at session start.
 
 ## Fixes
 
-### A. Mitigation - quickest, no code, no deploy (fixes root cause 1 everywhere)
+### A. Set the api key in the environment - fixes connectors + git auth (quickest)
 
-Set `UNCLICK_API_KEY` as a configured environment variable on the Claude Code web environment. Every session (foreground and background) then has a key, and the existing server-side decryption resolves all connector credentials + Memory tenancy. Use a DEDICATED, revocable api key for automation, not your primary one. Caveat: a `uc_` key in env is full-power; the scoped version is fix C.
+Add `UNCLICK_API_KEY` (a dedicated, revocable key) as a configured environment
+variable on the Claude Code web environment. Every session then resolves
+connector credentials and can authenticate to the git proxy. No code, no deploy.
 
-### B. Git recipe (fixes root cause 2 per session)
+### B. Let the environment reach + use the native proxy (the real native push)
 
-Use the token + bypass the injected rewrite:
+No new code needed - the proxy already exists. Configure the environment:
 
-```
-GIT_CONFIG_GLOBAL=/dev/null \
-  git -c http.sslCAInfo=/root/.ccr/ca-bundle.crt \
-      -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" \
-      <clone|fetch|push> https://github.com/<owner>/<repo> <ref>
-```
+1. Allow egress to `unclick.world` and `github.com` in the environment network
+   policy (today both are blocked, which is what forces the connector fallback).
+2. Run `node scripts/unclick-git-remote.mjs` at session start (setup script /
+   SessionStart hook) so the git remote points at the deployed proxy.
+3. The key from fix A authenticates the push.
 
-Proper fix: configure working git auth at the environment level so native `git` just works, or build a real `api/git-proxy.ts` that authenticates by UnClick api key and forwards git protocol (net-new; what prior notes wrongly assumed existed).
+Then plain `git push` / PR / merge work natively in every session. Canonical
+reference: `docs/github-connector-native-push.md`.
 
-### C. Durable fix - scoped agent keys + token refresh (the recommended, reviewed change)
+### C. Durable hardening - scoped agent keys + token refresh
 
-1. Re-key credential encryption so it is NOT tied to the raw api key string. Today `key = PBKDF2(rawApiKey)`, so only the exact `uc_` key that encrypted a credential can decrypt it - an `agt_` key cannot. Move to: random per-credential data key (DEK), wrapped under a per-ACCOUNT master key the server holds, addressed by `api_key_hash` (stable across a user's `uc_`/`agt_` keys). Then any valid key for the account authenticates; the server unwraps and decrypts. Requires a one-time re-encryption migration of existing rows.
-2. Implement the `agt_` agent-key path. The format is already recognized (`api/credentials.ts:182`) but unimplemented. Issue scoped, revocable agent keys for automation (least privilege per connector / per scope) instead of handing out the full `uc_` key.
-3. Add OAuth `refresh_token` storage + refresh-on-call so expiring tokens auto-renew (no refresh handling exists today; only in-memory caches in a couple of connectors).
+1. Issue scoped, revocable agent keys (`agt_`) for automation instead of handing
+   out the full `uc_` key. The format is already recognized in `api/credentials.ts`
+   but the path is unimplemented.
+2. Keep credentials tied to the presenting key (proof-of-possession) per the
+   2026-06-25 incident decision; do NOT blanket re-key. To let an agent key use a
+   connector, grant that credential to the agent key EXPLICITLY (a deliberate,
+   per-credential, revocable grant) rather than making all keys decrypt all creds.
+3. Add OAuth `refresh_token` storage + refresh-on-call so expiring tokens renew.
 
 ## Sequencing
 
-A now (instant relief) -> B as a documented recipe / env-level git fix -> C as the hardened, reviewed replacement for A. C needs a decision on the re-keying approach before implementation.
+A now (instant relief) -> B (turn the already-built native push on for worker
+sessions: egress + remote script) -> C (scoped keys + refresh as hardening).
+
+## Correction log
+
+An earlier version of this doc stated `api/git-proxy.ts` did not exist and the
+native proxy needed building. That was wrong - it was a stale-local-clone error.
+The proxy, its tests, the remote-config script, the readiness checker, the vercel
+route, and the docs are all on `main`.
