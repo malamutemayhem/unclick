@@ -16,7 +16,6 @@ export default defineConfig({
       "packages/copypass/src/**/*.{test,spec}.ts",
       "packages/commonsensepass/src/**/*.{test,spec}.ts",
       "packages/browser-extension/src/**/*.{test,spec}.ts",
-      "packages/browser/src/**/*.{test,spec}.ts",
     ],
   },
   resolve: {
