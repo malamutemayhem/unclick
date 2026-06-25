@@ -22,7 +22,7 @@ Cross-user sharing is therefore **only possible in managed cloud**. In BYOD it i
 `circle_link_permissions` (central Supabase, migration `20260624140000_memory_circle_sharing.sql`):
 
 | column | meaning |
-|--------|--------|
+|--------|---------|
 | `owner_api_key_hash`   | the memory owner (grantor) |
 | `grantee_api_key_hash` | the reader who may receive access |
 | `owner_enabled`        | owner has opted in |
