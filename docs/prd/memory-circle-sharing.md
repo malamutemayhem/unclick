@@ -1,6 +1,6 @@
 # Memory Circle Sharing - PRD
 
-Status: **Increment 1 shipped** (enforcement core + data model + flag, deny-by-default, off by default). Not yet live for users - increment 2 wires it into the read path. See "Roadmap" below.
+Status: **Increment 1 shipped, increment 2 consent write path shipped** (enforcement core + data model + flag + consent ops). Not yet live for users - still needs read-path wiring. See "Roadmap" below.
 
 ## Why
 
@@ -19,10 +19,10 @@ Cross-user sharing is therefore **only possible in managed cloud**. In BYOD it i
 
 ## Data model
 
-`circle_link_permissions` (central Supabase, migration `20260624120000_memory_circle_sharing.sql`):
+`circle_link_permissions` (central Supabase, migration `20260624140000_memory_circle_sharing.sql`):
 
 | column | meaning |
-|--------|---------|
+|--------|--------|
 | `owner_api_key_hash`   | the memory owner (grantor) |
 | `grantee_api_key_hash` | the reader who may receive access |
 | `owner_enabled`        | owner has opted in |
@@ -30,6 +30,8 @@ Cross-user sharing is therefore **only possible in managed cloud**. In BYOD it i
 | `revoked_at`           | set when either side withdraws; deactivates the share |
 
 A share is **active** only when `owner_enabled AND grantee_enabled AND revoked_at IS NULL`. Direction matters: one row authorizes grantee to read owner, not the reverse. Mutual sharing is two rows. The table is service_role-only (RLS enabled, no policy).
+
+**Lane hash compatibility:** The `*_api_key_hash` columns contain the resolved lane hash (stable across API key rotations) when called through the hosted MCP endpoint. PR #1586 resolves `lane_hash` at the API layer (`api/mcp.ts`) and sets `UNCLICK_API_KEY_HASH` before the MCP server processes the request, so Circle automatically uses stable identity without any code change. The column names keep `api_key_hash` for consistency with the existing `mc_*` tables.
 
 ## Enforcement core
 
@@ -43,7 +45,21 @@ A share is **active** only when `owner_enabled AND grantee_enabled AND revoked_a
   - cross-user read with an active, mutual, non-revoked grant -> allow
 - `isCircleGrantActive`, `selectActiveGrant`, `circleSharingEnabled` (flag `MEMORY_CIRCLE_ENABLED`, default off).
 
-Covered by `packages/mcp-server/src/memory/__tests__/circle.test.ts`.
+Covered by `packages/mcp-server/src/memory/__tests__/circle.test.ts` (9 tests).
+
+## Consent write path
+
+`packages/mcp-server/src/memory/circle-consent.ts` provides the data operations for managing circle_link_permissions rows:
+
+- `createShareOffer(supabase, ownerHash, granteeHash)` - owner offers to share; creates or re-enables a row with `owner_enabled = true`
+- `acceptShare(supabase, ownerHash, granteeHash)` - grantee accepts; sets `grantee_enabled = true` on a non-revoked row
+- `revokeShare(supabase, ownerHash, granteeHash, revokerHash)` - either side revokes; sets `revoked_at`
+- `listShares(supabase, callerHash)` - lists all shares where caller is owner or grantee, with role and active annotations
+- `fetchCircleGrants(supabase, ownerHash, readerHash)` - fetches consent rows for the read gate
+
+All operations validate inputs before touching the DB: self-shares rejected, empty identities rejected, revoke restricted to participants.
+
+Covered by `packages/mcp-server/src/memory/__tests__/circle-consent.test.ts` (19 tests).
 
 ## Flag
 
@@ -52,11 +68,12 @@ Covered by `packages/mcp-server/src/memory/__tests__/circle.test.ts`.
 ## Roadmap
 
 - **Increment 1 (done):** consent table, enforcement core, tests, flag. Lands and persists the foundation. Changes nothing for users yet.
-- **Increment 2 (next, needs review before merge):** the part that actually serves shared data, and the higher-risk one because it widens cross-tenant access:
-  1. a way for a read to name a target owner (a `?owner=` / param on `load_memory` / `search_memory`),
-  2. wiring `canReadCircleMemory` into the read chokepoint so every read funnels through the gate and an unconsented target is denied,
-  3. an audit log of cross-user reads,
-  4. the consent UI (request, accept, revoke) and the `circle_link_permissions` write path.
+- **Increment 2a (done):** consent write path - the data operations for creating, accepting, revoking, and listing shares. 19 tests. Does not yet wire into MCP tools.
+- **Increment 2b (next, needs review before merge):** the part that actually serves shared data, and the higher-risk one because it widens cross-tenant access:
+  1. MCP tool registration for the consent operations (create/accept/revoke/list shares),
+  2. a way for a read to name a target owner (a `?owner=` / param on `load_memory` / `search_memory`),
+  3. wiring `canReadCircleMemory` into the read chokepoint so every read funnels through the gate and an unconsented target is denied,
+  4. an audit log of cross-user reads.
 - **Increment 3:** surface in the website (the admin Circle pages from the earlier demo, rebuilt against the real table instead of localStorage).
 
 ## Loss-prevention note
