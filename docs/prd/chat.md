@@ -139,6 +139,17 @@ The rule, stated plainly:
 
 This is a constraint on every future Chat surface, spend gate, and council wiring, not a one-off.
 
+### Tenant-lane stability (forward-compat with the account-lane fix)
+
+Two unrelated things both got called "lane," so pin the terms down before they collide:
+
+- A **seat lane** (`local`, `api`, `subscription`) is the model traffic channel, described above. It says where a turn's compute came from.
+- A **tenant lane** is where an account's data is filed. The platform is moving tenancy off a raw `api_key_hash` and onto a stable per-account `lane_hash` (a hidden id that survives key rotation), because scoping directly on `api_key_hash` strands data when a key is rotated or an account holds more than one key (see `docs/incidents/2026-06-21-tenant-lane-split.md` and the `account_lane_hash` / `consolidate_account_lanes` migrations).
+
+These are independent: a seat lane never decides tenancy, and `lane_hash` never decides compute source.
+
+Chat tables (`chat_threads`, `chat_thread_messages`) and the vault lookup in `api/chat.ts` scope by `api_key_hash` today, which matches the current codebase and is correct until the account-lane fix ships. The moment it does, Chat MUST adopt `lane_hash` for those tables and the vault read, with a backfill, or Chat conversations inherit the exact rotation-stranding bug that fix removes. This is the same "identity is not a key in hand" rule as the seat-lane principle above, applied to tenancy: do not key durable Chat data to a rotatable secret once a stable account lane exists. Track this as a hard dependency on that fix, not an optional follow-up.
+
 ### Human-to-human realtime
 
 A `chat_threads.kind = 'human'` thread shares the `chat_thread_messages` stream with `sender_kind = 'human'` and a typed `participants` roster. No model call is ever involved. `chat_thread_messages` is on `supabase_realtime`, but the browser cannot read it directly (RLS deny-all): the Chat window subscribes to the realtime channel filtered by `thread_id` for sub-second fan-out, then on each event calls a service-role-fronted read action `chat_thread_read` (`.eq('api_key_hash', hash)` plus `.eq('thread_id', id)`) for the authoritative row. Sends go through `chat_thread_send`, which validates participant membership, inserts, and mirrors the human turn into `chat_messages` for continuity. Presence and typing ride `metadata` plus a lightweight heartbeat reusing the `channel_status` pattern, and the typing indicator for agents is driven by the real run lifecycle (thinking, calling tools, drafting), not a fake bubble. A lightweight last-read pointer drives unread counts; read affordances are suppressed on agent members.
