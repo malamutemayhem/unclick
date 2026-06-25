@@ -10,7 +10,7 @@ The "whole site feels broken" symptom is actually three separate failure modes
 that all trace to the same key/lane confusion:
 
 1. **Partial data migration (api_key_hash surfaces).** The live repair migrated
-   ONLY the Boardroom/Fishbowl tables (`mc_fishbowl_*`, `mc_agent_dispatches`)
+   ONLY the Boardroom/Boardroom tables (`mc_fishbowl_*`, `mc_agent_dispatches`)
    from the orphan lane `9940983a...` to the canonical lane `6c6cb0c3...`. Every
    other `api_key_hash`-scoped surface still has its history in the orphan lane:
    memory layers (`mc_business_context`, `mc_knowledge_library`,
