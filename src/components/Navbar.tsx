@@ -31,7 +31,6 @@ const Navbar = () => {
   const navLinks = [
     { label: "Apps", href: "/apps" },
     { label: "Memory", href: "/memory" },
-    { label: "Browser", href: "/browser" },
     { label: "XPass", href: "/xpass" },
     { label: "Docs", href: "/docs" },
     { label: "New to AI", href: "/new-to-ai" },

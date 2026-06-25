@@ -41,7 +41,6 @@ import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
 import XPassPage from "./pages/XPass.tsx";
-import UnClickBrowserPage from "./pages/UnClickBrowser.tsx";
 import DogfoodReportPage from "./pages/DogfoodReport.tsx";
 import LoginPage from "./pages/Login.tsx";
 import SignupPage from "./pages/Signup.tsx";
@@ -59,7 +58,6 @@ import AdminTools from "./pages/admin/AdminTools.tsx";
 import AdminSkills from "./pages/admin/AdminSkills.tsx";
 import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
-import AdminBrowser from "./pages/admin/AdminBrowser.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
 import AdminSeatHeartbeatPage from "./pages/admin/AdminSeatHeartbeat.tsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
@@ -181,7 +179,6 @@ const App = () => (
             <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
-            <Route path="browser" element={<AdminBrowser />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
@@ -238,7 +235,6 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/xpass" element={<XPassPage />} />
-          <Route path="/browser" element={<UnClickBrowserPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
           {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace
