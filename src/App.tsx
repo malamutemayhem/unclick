@@ -71,6 +71,7 @@ const WhyPage = lazy(() => import("./pages/Why.tsx"));
 const SmartHomePage = lazy(() => import("./pages/SmartHome.tsx"));
 const InstallRecoverPage = lazy(() => import("./pages/InstallRecover.tsx"));
 const XPassPage = lazy(() => import("./pages/XPass.tsx"));
+const UnClickBrowserPage = lazy(() => import("./pages/UnClickBrowser.tsx"));
 const DogfoodReportPage = lazy(() => import("./pages/DogfoodReport.tsx"));
 const LoginPage = lazy(() => import("./pages/Login.tsx"));
 const SignupPage = lazy(() => import("./pages/Signup.tsx"));
@@ -85,6 +86,7 @@ const AdminYou = lazy(() => import("./pages/admin/AdminYou.tsx"));
 const AdminMemory = lazy(() => import("./pages/admin/AdminMemory.tsx"));
 const AdminKeychain = lazy(() => import("./pages/admin/AdminKeychain.tsx"));
 const AdminCircle = lazy(() => import("./pages/admin/AdminCircle.tsx"));
+const AdminBrowser = lazy(() => import("./pages/admin/AdminBrowser.tsx"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools.tsx"));
 const AdminSkills = lazy(() => import("./pages/admin/AdminSkills.tsx"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity.tsx"));
@@ -289,6 +291,7 @@ const App = () => (
             <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="browser" element={<AdminBrowser />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
@@ -357,6 +360,7 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/xpass" element={<XPassPage />} />
+          <Route path="/browser" element={<UnClickBrowserPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
           {/* BuildDesk: hidden 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace
