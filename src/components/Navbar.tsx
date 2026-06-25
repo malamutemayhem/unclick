@@ -1,131 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import { presets } from "@/lib/design-system";
 
 /**
- * Public site navigation (IA regrouped 2026-06-11, Council ruling).
+ * Navbar (Apple-inspired polish pass, 2026-05-28).
  *
- *  - Every destination stays reachable, but the top level carries eight
- *    items instead of ten: the four platform pages group under one
- *    dropdown, and XPass (the proof layer) earns its own marquee spot.
- *  - Dropdowns are state-controlled and compose the shared menu preset.
- *  - Border appears only after scroll; otherwise the bar is translucent over
- *    the aurora canvas. "Boardroom" never appears as "Fishbowl".
+ *  - Text-only links. No per-item icons. Apple-style restraint.
+ *  - Sentence case labels.
+ *  - Border appears only after scroll. Otherwise the bar is transparent over the page.
+ *  - "Boardroom" replaces any reference to Fishbowl.
+ *  - BuildDesk and BackstagePass are not surfaced here per Chris 2026-05-28.
  */
-
-type NavChild = { label: string; href: string };
-type NavItem = { label: string; href: string; children?: NavChild[] };
-
-// Header is the brochure: every item links to a public marketing page that
-// explains the product. The interactive surfaces live in the signed-in
-// dashboard at /admin/*, reached via "Get started" / "Dashboard".
-const NAV_ITEMS: NavItem[] = [
-  { label: "Why UnClick", href: "/why" },
-  { label: "Apps", href: "/apps" },
-  { label: "Memory", href: "/memory" },
-  { label: "XPass", href: "/xpass" },
-  {
-    label: "Autopilot",
-    href: "/autopilot",
-    children: [
-      { label: "XGate", href: "/xgate" },
-      { label: "Jobs", href: "/jobs" },
-      { label: "Control Tower", href: "/control-tower" },
-      { label: "Ledger", href: "/ledger" },
-      { label: "Workers", href: "/workers" },
-    ],
-  },
-  {
-    label: "Platform",
-    href: "/skills",
-    children: [
-      { label: "Skills", href: "/skills" },
-      { label: "Orchestrator", href: "/orchestrator" },
-      { label: "Passport", href: "/passport" },
-      { label: "Seats", href: "/seats" },
-    ],
-  },
-  { label: "Docs", href: "/docs" },
-  { label: "Intro", href: "/new-to-ai" },
-];
-
-/**
- * Desktop dropdown for a nav item with children. State-controlled so it closes
- * reliably: on child click, on route change, on mouse-leave, on focus leaving
- * the group, and on Escape. (A pure CSS group-hover/focus-within dropdown stays
- * stuck open after a click because the clicked link keeps focus.)
- */
-function NavDropdown({
-  item,
-  linkClass,
-  isActive,
-}: {
-  item: NavItem;
-  linkClass: (href: string) => string;
-  isActive: (href: string) => boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
-  const [lastPath, setLastPath] = useState(pathname);
-  if (pathname !== lastPath) {
-    setLastPath(pathname);
-    setOpen(false);
-  }
-
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") setOpen(false);
-      }}
-    >
-      <Link
-        to={item.href}
-        className={`${linkClass(item.href)} gap-1`}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onFocus={() => setOpen(true)}
-      >
-        {item.label}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
-      </Link>
-      <div
-        className={`absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 transition-all duration-150 ${
-          open ? "visible opacity-100" : "invisible opacity-0"
-        }`}
-      >
-        <div className={`min-w-[190px] ${presets.menu}`}>
-          {item.children?.map((child) => (
-            <Link
-              key={child.label}
-              to={child.href}
-              onClick={() => setOpen(false)}
-              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                isActive(child.href)
-                  ? "bg-primary/10 text-primary"
-                  : "text-body hover:bg-white/[0.05] hover:text-heading"
-              }`}
-            >
-              {child.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [openMobileGroups, setOpenMobileGroups] = useState<Record<string, boolean>>({});
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -140,43 +28,50 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const navLinks = [
+    { label: "Apps", href: "/apps" },
+    { label: "Memory", href: "/memory" },
+    { label: "Browser", href: "/browser" },
+    { label: "XPass", href: "/xpass" },
+    { label: "Docs", href: "/docs" },
+    { label: "New to AI", href: "/new-to-ai" },
+  ];
+
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
 
-  const linkClass = (href: string) =>
-    `inline-flex min-h-6 items-center text-sm transition-colors hover:text-heading ${
-      isActive(href) ? "text-heading" : "text-body"
-    }`;
-
   return (
     <nav
-      className={`site-navbar fixed left-0 right-0 z-50 transition-colors duration-200 ${
+      className={`fixed left-0 right-0 z-50 transition-colors duration-200 ${
         scrolled
           ? "border-b border-border/40 bg-background/85 backdrop-blur-md"
-          : "border-b border-transparent bg-transparent"
+          : "border-b border-transparent bg-background/60 backdrop-blur-sm"
       }`}
       style={{ top: "var(--bbn-h, 0px)" }}
     >
-      <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6">
+      <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-6">
         <Link to="/" className="inline-flex min-h-6 shrink-0 items-center" aria-label="UnClick home">
           <img
             src="/logo-wordmark.svg"
             alt="UnClick"
-            className="h-[3.3rem] w-auto pb-[3px] pt-2"
+            style={{ height: "3.3rem" }}
+            className="w-auto pt-2 pb-[3px]"
           />
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-x-5 min-[1180px]:flex">
-          {NAV_ITEMS.map((item) =>
-            item.children ? (
-              <NavDropdown key={item.label} item={item} linkClass={linkClass} isActive={isActive} />
-            ) : (
-              <Link key={item.label} to={item.href} className={linkClass(item.href)}>
-                {item.label}
-              </Link>
-            ),
-          )}
+        <div className="hidden items-center gap-7 lg:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              to={link.href}
+              className={`inline-flex min-h-6 items-center text-sm transition-colors hover:text-heading ${
+                isActive(link.href) ? "text-heading" : "text-body"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         <div className="flex items-center gap-4">
@@ -197,7 +92,7 @@ const Navbar = () => {
               </Link>
               <a
                 href={installHref}
-                className="hidden min-h-9 items-center whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
+                className="hidden min-h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
               >
                 Get started
               </a>
@@ -206,23 +101,23 @@ const Navbar = () => {
 
           {/* Hamburger */}
           <button
-            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 min-[1180px]:hidden"
+            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={open}
           >
             <motion.span
-              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))] origin-center"
+              className="block h-0.5 w-5 bg-heading origin-center"
               animate={open ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))]"
+              className="block h-0.5 w-5 bg-heading"
               animate={open ? { opacity: 0 } : { opacity: 1 }}
               transition={{ duration: 0.1 }}
             />
             <motion.span
-              className="block h-0.5 w-5 bg-[hsl(var(--heading-text))] origin-center"
+              className="block h-0.5 w-5 bg-heading origin-center"
               animate={open ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
@@ -238,88 +133,45 @@ const Navbar = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md min-[1180px]:hidden"
+            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md lg:hidden"
           >
-            <div className="flex max-h-[70vh] flex-col gap-1 overflow-y-auto px-6 py-4">
-              {NAV_ITEMS.map((item) =>
-                item.children ? (
-                  <div key={item.label}>
-                    <div className="flex items-center">
-                      <Link
-                        to={item.href}
-                        onClick={() => setOpen(false)}
-                        className="flex min-h-8 flex-1 items-center py-2 text-sm text-body transition-colors hover:text-heading"
-                      >
-                        {item.label}
-                      </Link>
-                      <button
-                        onClick={() =>
-                          setOpenMobileGroups((g) => ({ ...g, [item.label]: !g[item.label] }))
-                        }
-                        aria-label={`Toggle ${item.label} submenu`}
-                        aria-expanded={Boolean(openMobileGroups[item.label])}
-                        className="flex h-8 w-8 items-center justify-center text-muted-foreground"
-                      >
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${openMobileGroups[item.label] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                    </div>
-                    {openMobileGroups[item.label] && (
-                      <div className="ml-3 flex flex-col gap-0.5 border-l border-border/40 pl-3">
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.label}
-                            to={child.href}
-                            onClick={() => setOpen(false)}
-                            className="flex min-h-8 items-center py-1.5 text-sm text-body transition-colors hover:text-heading"
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
+            <div className="flex flex-col gap-1 px-6 py-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {isLoggedIn ? (
+                <Link
+                  to="/admin/you"
+                  onClick={() => setOpen(false)}
+                  className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
                   <Link
-                    key={item.label}
-                    to={item.href}
+                    to="/login"
                     onClick={() => setOpen(false)}
-                    className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
                   >
-                    {item.label}
+                    Log in
                   </Link>
-                ),
+                  <a
+                    href={installHref}
+                    onClick={() => setOpen(false)}
+                    className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                  >
+                    Get started
+                  </a>
+                </>
               )}
-
-              <div className="mt-2 border-t border-border/40 pt-3">
-                {isLoggedIn ? (
-                  <Link
-                    to="/admin/you"
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
-                  >
-                    Dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <Link
-                      to="/login"
-                      onClick={() => setOpen(false)}
-                      className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
-                    >
-                      Log in
-                    </Link>
-                    <a
-                      href={installHref}
-                      onClick={() => setOpen(false)}
-                      className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
-                    >
-                      Get started
-                    </a>
-                  </>
-                )}
-              </div>
             </div>
           </motion.div>
         )}
