@@ -1433,9 +1433,66 @@ async function resolveSessionTenant(
   return null;
 }
 
+// ─── Agent (raw api_key) tenant resolver ─────────────────────────────────
+//
+// Root cause of the 2026-06 "AI job board empty" lane-split incident: this
+// endpoint used to trust ANY raw uc_* / agt_* key by hashing it directly, so
+// a stale or unregistered key silently forked a parallel "orphan" tenant lane
+// (Boardroom jobs + memory written under a hash with no api_keys row) that the
+// signed-in web app could never see. We now require the hash to match a
+// registered, ACTIVE api_keys row before it can act as a tenant - the same
+// stricter check used by validateApiKey() in api/mcp.ts and
+// resolveTestPassRunActor() in api/testpass-run.ts.
+//
+// Returns the registered key_hash to scope by, or null to reject (callers
+// turn null into a 401). The raw token is never logged; only the safe,
+// non-secret hash prefix is, so orphan-key attempts stay observable.
+export async function resolveAgentApiKeyHash(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  token: string,
+): Promise<string | null> {
+  const apiKeyHash = sha256hex(token);
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?key_hash=eq.${encodeURIComponent(apiKeyHash)}` +
+    `&select=key_hash,is_active,lane_hash&limit=1`;
+
+  let rows: Array<{ key_hash?: string | null; is_active?: boolean | null; lane_hash?: string | null }>;
+  try {
+    const apiRes = await fetch(qUrl, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    });
+    if (!apiRes.ok) return null;
+    rows = (await apiRes.json().catch(() => [])) as Array<{
+      key_hash?: string | null;
+      is_active?: boolean | null;
+      lane_hash?: string | null;
+    }>;
+  } catch {
+    return null;
+  }
+
+  const row = rows[0];
+  if (!row || row.is_active === false) {
+    // No registered/active row: a stale or unknown key. Refuse to mint or
+    // read a lane for it. Log only the non-secret hash prefix.
+    console.warn(
+      `[memory-admin] rejected unregistered or inactive raw api_key (hash ${apiKeyHash.slice(0, 10)}...); ` +
+        "refusing to create or read an orphan tenant lane",
+    );
+    return null;
+  }
+  // Return the stable account lane, not the raw key hash, so an in-place key
+  // rotation (reset_api_key) keeps this agent on the same memory lane.
+  // key_hash is NOT NULL, so the final arm is unreachable; fall back to null
+  // (never the raw submitted hash) so a malformed row can never mint an
+  // orphan lane - the very pattern this guardrail exists to prevent.
+  return row.lane_hash ?? row.key_hash ?? null;
+}
+
 // ─── Effective api_key_hash resolver ─────────────────────────────────────
 //
-// Security model (fixes #60):
+// Security model (fixes #60; hardened after the 2026-06 lane-split incident):
 //
 // This endpoint is reached from two distinct auth contexts:
 //
@@ -1448,8 +1505,10 @@ async function resolveSessionTenant(
 //      cannot route the request to the wrong tenant.
 //
 //   2. Agent (off-site MCP clients). The Authorization header is a
-//      raw uc_* / agt_* UnClick api_key. We hash it directly. There is
-//      no Supabase session on this path.
+//      raw uc_* / agt_* UnClick api_key. We hash it, then REQUIRE that
+//      hash to match a registered, active api_keys row before it can act
+//      as a tenant (see resolveAgentApiKeyHash above). An unregistered
+//      key can no longer fork an orphan tenant lane.
 //
 // Paths are mutually exclusive: the first byte-level prefix check tells
 // us which one applies. The old "hash whatever came in the Bearer"
@@ -1462,9 +1521,10 @@ async function resolveApiKeyHash(
   const token = bearerFrom(req);
   if (!token) return null;
 
-  // Agent path: raw api_key, trust as-is and hash directly.
+  // Agent path: raw api_key. Validate against an active api_keys row;
+  // never trust an unregistered key as a tenant (lane-split guardrail).
   if (token.startsWith("uc_") || token.startsWith("agt_")) {
-    return sha256hex(token);
+    return resolveAgentApiKeyHash(supabaseUrl, serviceRoleKey, token);
   }
 
   // Web UI path: Supabase session JWT. Resolve the signed-in user and
@@ -1473,7 +1533,15 @@ async function resolveApiKeyHash(
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
   if (!user) return null;
 
-  const qUrl = `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}&select=key_hash&limit=1`;
+  // Pick the SAME key every other surface does. A user can own more than
+  // one api_keys row (regenerations, BYOD). Without an is_active filter and
+  // a deterministic order, two endpoints can resolve the same human to two
+  // different key_hashes -> the data appears to live in different "lanes"
+  // depending on which page you open. Mirror validateSessionCookie() in
+  // api/mcp.ts exactly: active key, most-recently-used first.
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash,lane_hash&limit=1`;
   try {
     const apiRes = await fetch(qUrl, {
       headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
@@ -1481,10 +1549,13 @@ async function resolveApiKeyHash(
     if (!apiRes.ok) return null;
     const rows = (await apiRes.json().catch(() => [])) as Array<{
       key_hash?: string | null;
+      lane_hash?: string | null;
     }>;
     const row = rows[0];
     if (!row) return null;
-    return row.key_hash ?? null;
+    // Stable account lane first; falls back to key_hash for rows predating the
+    // lane_hash backfill (behaviour-neutral).
+    return row.lane_hash ?? row.key_hash ?? null;
   } catch {
     return null;
   }
@@ -4980,12 +5051,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash: string | null } | null;
+          .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
         }
+        // Preferences are memory: write them to the stable account lane so they
+        // survive rotation and match where load_memory reads them.
+        const laneHash = keyRow.lane_hash ?? keyRow.key_hash;
 
         const timezone = String(req.body?.timezone ?? "").trim();
         if (!isValidTimeZoneName(timezone)) {
@@ -4993,7 +5067,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const source: OperatorTimeSource = req.body?.source === "manual" ? "manual" : "browser";
         const nowIso = new Date().toISOString();
-        const existing = await readOperatorTimeContext(supabase, keyRow.key_hash);
+        const existing = await readOperatorTimeContext(supabase, laneHash);
         if (existing?.source === "manual" && source === "browser") {
           return res.status(200).json({ success: true, operator_time: existing, manual_override_preserved: true });
         }
@@ -5011,7 +5085,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_business_context")
           .upsert(
             {
-              api_key_hash: keyRow.key_hash,
+              api_key_hash: laneHash,
               category: OPERATOR_TIME_CATEGORY,
               key: OPERATOR_TIME_KEY,
               value,
@@ -5033,12 +5107,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash: string | null } | null;
+          .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
         }
+        // Write to the stable memory lane (see operator_timezone_update).
+        const laneHash = keyRow.lane_hash ?? keyRow.key_hash;
 
         const nowIso = new Date().toISOString();
         const payload = isRecord(req.body) ? req.body : {};
@@ -5048,7 +5124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_business_context")
           .upsert(
             {
-              api_key_hash: keyRow.key_hash,
+              api_key_hash: laneHash,
               category: AI_STYLE_CATEGORY,
               key: AI_STYLE_KEY,
               value,
@@ -5137,9 +5213,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const rawKey = `uc_${crypto.randomBytes(16).toString("hex")}`;
+        const newKeyHash = sha256hex(rawKey);
         const { error } = await supabase.from("api_keys").insert({
           user_id:   user.id,
-          key_hash:  sha256hex(rawKey),
+          key_hash:  newKeyHash,
+          // Pin the account's memory lane at birth. From here on the lane is
+          // stable: rotating the key (reset_api_key) swaps key_hash but leaves
+          // lane_hash, so memory never strands.
+          lane_hash: newKeyHash,
           key_prefix: rawKey.slice(0, 8),
           label:     "default",
           tier:      effectiveMemoryTier("free", user.email),
@@ -5189,6 +5270,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const rawKey = `uc_${crypto.randomBytes(16).toString("hex")}`;
+        // Rotate IN PLACE: swap key_hash but deliberately do NOT touch
+        // lane_hash, so the operator stays on the same memory lane. This is
+        // the whole point of the account-stable-lane fix; never add lane_hash
+        // to this update.
         const { error: updateError } = await supabase
           .from("api_keys")
           .update({
@@ -5229,10 +5314,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash?: string | null } | null;
-        const apiKeyHash = keyRow?.key_hash ?? null;
+          .maybeSingle()).data as { key_hash?: string | null; lane_hash?: string | null } | null;
+        // Scope the wipe to the MEMORY LANE, where the account's data actually
+        // lives. After a rotation that is lane_hash, not the current key_hash;
+        // using key_hash here would orphan every memory row (compliance gap).
+        const apiKeyHash = keyRow?.lane_hash ?? keyRow?.key_hash ?? null;
 
         // Idempotency: if a previous deletion removed the api_keys link
         // already, return a benign response without re-attempting.
@@ -5346,7 +5434,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // auth deletion. Clean it up now that the cascade is done.
         if (apiKeyHash) {
           try {
-            await supabase.from("api_keys").delete().eq("key_hash", apiKeyHash);
+            // apiKeyHash is the resolved LANE (lane_hash). After an in-place
+            // rotation lane_hash and key_hash can differ, so match either to
+            // avoid leaving a dangling api_keys row.
+            await supabase
+              .from("api_keys")
+              .delete()
+              .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`);
           } catch { /* best effort */ }
         }
 
