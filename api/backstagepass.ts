@@ -355,13 +355,26 @@ async function resolveTenant(
 
   // Look up the user's api_keys row. Support both new-shape (key_hash
   // column, Phase-2) and legacy (api_key plaintext column, Phase-1).
-  const qUrl = `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}&select=key_hash,api_key&limit=1`;
+  // Pick the SAME active key every other surface resolves to (mirror
+  // validateSessionCookie() in api/mcp.ts): without an is_active filter and
+  // a deterministic order, a user with more than one api_keys row could
+  // resolve to a different key_hash here than in /api/mcp or memory-admin,
+  // stranding their credentials in a separate tenant lane.
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash,api_key&limit=1`;
   const { ok, data } = await supaFetch(qUrl, "GET", supaHeaders(serviceRoleKey));
   if (!ok) return null;
   const rows = (data as Array<{ key_hash?: string | null; api_key?: string | null }>) ?? [];
   const row  = rows[0];
   if (!row) return null;
 
+  // Credentials are bound to the CURRENT key, NOT the memory lane: values are
+  // encrypted with a key derived from the raw api_key, and reveal/test do
+  // proof-of-possession against this hash. So this MUST stay key_hash (never
+  // lane_hash) - otherwise a rotated account fails proof-of-possession and
+  // cannot decrypt. Memory follows the stable account lane; secrets are
+  // re-entered after a key rotation by design.
   const keyHash = row.key_hash ?? (row.api_key ? sha256hex(row.api_key) : null);
   if (!keyHash) return null;
 
