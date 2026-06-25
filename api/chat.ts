@@ -19,9 +19,9 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from "ai";
-import { resolveApiChatModel } from "./lib/chat-transport";
-import { sha256hex, readProviderKey, type EncryptedCredential } from "./lib/chat-crypto";
-import { decideChatProviderCall } from "./lib/chat-spend";
+import { resolveApiChatModel } from "./lib/chat-transport.js";
+import { sha256hex, readProviderKey, type EncryptedCredential } from "./lib/chat-crypto.js";
+import { decideChatProviderCall } from "./lib/chat-spend.js";
 
 const MAX_STEPS = 5;
 
