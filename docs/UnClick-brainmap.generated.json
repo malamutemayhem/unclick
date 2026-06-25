@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1137,
-    "source_manifest": 250,
-    "pages": 116,
+    "inventory": 1138,
+    "source_manifest": 251,
+    "pages": 117,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 60
+      "count": 61
     },
     {
       "id": "public-surfaces",
@@ -189,6 +189,16 @@
       "meaning": "Admin surface for Admin Capability Balance.",
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "route": "/admin/capability-balance",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-chat-src-pages-admin-adminchat-tsx-admin-chat",
+      "division": "Admin surfaces",
+      "name": "Admin Chat",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Chat.",
+      "source": "src/pages/admin/AdminChat.tsx",
+      "route": "/admin/chat",
       "tags": []
     },
     {
@@ -11584,6 +11594,12 @@
       "src/pages/admin/AdminCapabilityBalance.tsx"
     ],
     [
+      "/admin/chat",
+      "Admin Chat",
+      "Admin surface for Admin Chat.",
+      "src/pages/admin/AdminChat.tsx"
+    ],
+    [
       "/admin/checks/:productId",
       "Admin Checks",
       "Admin surface for Admin Ecosystem Pages.",
@@ -15940,13 +15956,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "8385c5fc8837",
-      "bytes": 23840
+      "hash": "cab0a7a15c7b",
+      "bytes": 23975
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "228b3abca85e",
-      "bytes": 33739
+      "hash": "82f4d9ee4721",
+      "bytes": 33849
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16297,6 +16313,11 @@
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "hash": "f8080095c92c",
       "bytes": 13774
+    },
+    {
+      "source": "src/pages/admin/AdminChat.tsx",
+      "hash": "ffcb94d7cf28",
+      "bytes": 6046
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
