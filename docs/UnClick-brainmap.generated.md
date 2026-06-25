@@ -23,7 +23,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
 | src/App.tsx | cab0a7a15c7b | 23975 |
-| src/pages/admin/AdminShell.tsx | 228b3abca85e | 33739 |
+| src/pages/admin/AdminShell.tsx | 82f4d9ee4721 | 33849 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
