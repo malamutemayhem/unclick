@@ -14,6 +14,15 @@
 -- the central Supabase alongside the api_keys + mc_* tables and is keyed by
 -- api_key_hash, exactly like the managed memory tables.
 --
+-- NOTE (key-rotation, see incident 2026-06-25): this table keys on api_key_hash,
+-- which is rotation-FRAGILE - if a user rotates their key, these grants would
+-- strand (the same bug the account lane_hash work fixes for memory: branch
+-- claude/amazing-meitner-65jet9, migration 20260624120000_account_lane_hash).
+-- FOLLOW-UP: once that lane_hash work lands, re-key these columns to lane_hash
+-- (owner_lane_hash / grantee_lane_hash) so Circle shares survive key rotation.
+-- Kept on api_key_hash here only so this is mergeable independently; it is
+-- flag-gated off (MEMORY_CIRCLE_ENABLED) so nothing depends on it yet.
+--
 -- App-layer enforcement is the source of truth (see memory/circle.ts
 -- canReadCircleMemory). This migration provides the storage plus an IMMUTABLE
 -- predicate so a read RPC can push the same "is this share active" rule down
