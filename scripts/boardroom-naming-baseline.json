@@ -1,7 +1,7 @@
 {
   "$comment": "Boardroom naming ratchet baseline. Per-file count of legacy 'fishbowl'/'popcorn' occurrences (path + content, case-insensitive substring). CI fails when any count grows (new legacy references are banned) or when it shrinks without this file being regenerated. Regenerate with: npm run boardroom:baseline. Policy: docs/fishbowl-compat-map.md.",
-  "total_legacy_occurrences": 1612,
-  "file_count": 180,
+  "total_legacy_occurrences": 1613,
+  "file_count": 181,
   "files": {
     ".claude/agents/heartbeat.md": 3,
     ".github/architecture-qc-checklist.md": 4,
@@ -74,6 +74,7 @@
     "docs/fishbowl-emoji-role-registry.md": 8,
     "docs/fleet-broadcast-template.md": 6,
     "docs/fleet-worker-roles.md": 5,
+    "docs/incidents/2026-06-21-tenant-lane-split-recovery-runbook.md": 1,
     "docs/memory-hardening/MEMORY_HARDENING_MASTER_PLAN.md": 3,
     "docs/path-a-boardroom-rename-migration.md": 31,
     "docs/path-a-eval-harness-spec.md": 2,
