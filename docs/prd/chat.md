@@ -30,12 +30,12 @@ Non-goals (v1):
 - No ML ranking, no comparative seat-vs-seat rating (Elo, Bradley-Terry, TrueSkill), no LLM-as-judge in the public rank. There is no like-for-like comparison to rate today, so any such rating would be fabricated. These are gated on duplicate or bake-off dispatch existing first, and even then a quality term stays a small capped tiebreaker that can never outrank reliability or truth-rate.
 - No hosted or platform-key fallback model. The existing server-side Gemini fallback in `AIChatPanel` is intentionally dropped for Chat.
 - No subscription or platform-key framing anywhere. All cost is the user's own spend.
-- No bulk rename of Fishbowl to Boardroom, and Chat rooms do not merge into the Fishbowl coordination tables. Fishbowl stays the internal delivery alias per `AUTOPILOT.md`; Chat rooms are a separate user-facing room type.
+- No rename of the existing coordination room, and Chat rooms do not merge into the Boardroom coordination tables. The Boardroom stays the internal coordination surface per `AUTOPILOT.md`; Chat rooms are a separate user-facing room type.
 - No voice, no file attachments, no cross-tenant leaderboards.
 
 ## Naming
 
-The feature is **Chat**. The coordination room remains **Boardroom** to the user and **Fishbowl** in code and live metadata, unchanged by this work.
+The feature is **Chat**. The existing coordination room, the **Boardroom**, is unchanged by this work.
 
 ## Architecture
 
@@ -197,7 +197,7 @@ Adopt now:
 - Honest, original API-vs-Local privacy-posture labels and a Local/Private trust badge with an honest data-path disclosure.
 - Bring-your-own local endpoint with prefilled defaults (Ollama 11434, LM Studio 1234/v1, vLLM 8000/v1) and an explicit detect button; nothing auto-connects.
 - Tool-call gating and a Passport-scoped capability allowlist for local agents, confirm-before-execute on write, spend, or send.
-- Unified participant model (human and agent_seat members carry a type, agents reference `seat_id`); Chat rooms stay a distinct room type separate from Fishbowl.
+- Unified participant model (human and agent_seat members carry a type, agents reference `seat_id`); Chat rooms stay a distinct room type separate from the Boardroom.
 - Explicit agent invocation via `@`-mention only; one mention is one agent turn; sequential single-agent turns in multi-party rooms (the mention is the v1 speaker-selection function).
 - Agent presence from the existing heartbeat (`last_seen`, `current_status`, `next_checkin`; awaiting-key, rate-limited); typing from the real run lifecycle; a lightweight last-read pointer for unread counts; agent join on assignment with a visible system event and a configurable context boundary.
 
@@ -220,8 +220,8 @@ SeatScore = BaseScore x PenaltyGate
 
 - `BaseScore` is a weighted mean over the rate families that have data, each scored with a Wilson lower bound (so a 1-of-1 seat cannot top a 40-of-45 seat) and a `MIN_EVENTS` provisional treatment below threshold. Families are excluded and the weights renormalized when missing, never scored as 0. Families and sources:
   - Proof / truth-rate (heaviest): `verified / (verified + false_green)` from `mc_routing_arm_stats` by `arm = assigned_to_agent_id`, or live via `scoreLiveJobs` grouped by assignee. Keep `false_green` (honesty) separate from `stale` (reliability) so going quiet is not scored as lying. Reuse `armLeaderboard()` (`api/lib/eval/router-bandit.ts`) and `summarizeTruthRate()` (`api/lib/score-trace.ts`).
-  - Reliability: stale, reopen, rollback, user-corrected rates from `mc_fishbowl_todos` over the window.
-  - Recency / liveness: from `mc_fishbowl_profiles`. Until an append-only check-in ledger exists, fold heartbeat into recency and say so in the UI rather than weighting a heartbeat-reliability signal that has no historical data. Reuse `freshnessPenalty` and `missedCheckInPenalty` after extracting them from `AdminAgentsSeatUtils.ts` (currently unexported, frontend-only) into a shared module the server can import.
+  - Reliability: stale, reopen, rollback, user-corrected rates from the Boardroom todo ledger over the window.
+  - Recency / liveness: from the Boardroom seat profiles. Until an append-only check-in ledger exists, fold heartbeat into recency and say so in the UI rather than weighting a heartbeat-reliability signal that has no historical data. Reuse `freshnessPenalty` and `missedCheckInPenalty` after extracting them from `AdminAgentsSeatUtils.ts` (currently unexported, frontend-only) into a shared module the server can import.
 - `PenaltyGate` is a multiplicative gate for hard failures only (for example blocked routing policy), kept few and individually justified, sanity-checked against real data so a recovering seat is not over-punished by stacked gates.
 - Time decay: 7-day half-life over a 30-day window, per-tenant tunable, auto-widen the window when fleet volume is low. Deterministic public tie-break and a visible per-signal breakdown so every rank is explainable from server-observed signals.
 
