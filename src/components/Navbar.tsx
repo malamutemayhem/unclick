@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Apps", href: "/apps" },
   { label: "Memory", href: "/memory" },
   { label: "XPass", href: "/xpass" },
+  { label: "Browser", href: "/browser" },
   {
     label: "Autopilot",
     href: "/autopilot",
