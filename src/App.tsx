@@ -101,6 +101,7 @@ const AdminCapabilityBalance = lazy(() => import("./pages/admin/AdminCapabilityB
 const AdminCodebase = lazy(() => import("./pages/admin/AdminCodebase.tsx"));
 const AdminOrchestratorPage = lazy(() => import("./pages/admin/AdminOrchestrator.tsx"));
 const AdminOrchestratorLog = lazy(() => import("./pages/admin/AdminOrchestratorLog.tsx"));
+const AdminChatPage = lazy(() => import("./pages/admin/AdminChat.tsx"));
 const AdminTestPass = lazy(() => import("./pages/admin/AdminTestPass.tsx"));
 const TestPassCatalog = lazy(() => import("./pages/admin/testpass/TestPassCatalog.tsx"));
 const NewRunWizard = lazy(() => import("./pages/admin/testpass/NewRunWizard.tsx"));
@@ -325,6 +326,7 @@ const App = () => (
             <Route path="orchestrator/story" element={<Navigate to="/admin/orchestrator" replace />} />
             <Route path="orchestrator/timeline" element={<AdminOrchestratorPage />} />
             <Route path="orchestrator/log" element={<AdminOrchestratorLog />} />
+            <Route path="chat" element={<AdminChatPage />} />
             {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
             <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
             <Route path="capability-balance" element={<RequireAdmin><AdminCapabilityBalance /></RequireAdmin>} />
