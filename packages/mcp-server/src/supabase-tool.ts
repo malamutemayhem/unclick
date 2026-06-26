@@ -194,6 +194,7 @@ async function supabasePost(token: string, path: string, body: unknown): Promise
   const timeoutMs = Number(process.env.SUPABASE_MANAGEMENT_TIMEOUT_MS) || 30000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   let res: Response;
   try {
     res = await fetch(`${SUPABASE_MANAGEMENT_BASE}${path}`, {
@@ -215,6 +216,7 @@ async function supabasePost(token: string, path: string, body: unknown): Promise
   } finally {
     clearTimeout(timer);
   }
+
   if (res.status === 401) throw new Error("Invalid or expired Supabase token. Reconnect Supabase in UnClick Apps.");
   if (res.status === 403) throw new Error("Supabase access forbidden. The token needs Management API write access for this project.");
   if (res.status === 404) throw new Error(`Supabase resource not found at ${path} (check the project ref).`);
@@ -229,27 +231,47 @@ async function supabasePost(token: string, path: string, body: unknown): Promise
   try { return JSON.parse(text); } catch { return text; }
 }
 
+// supabase_execute_sql: run an arbitrary SQL statement against a project's database.
 export async function executeSupabaseSql(args: Record<string, unknown>): Promise<unknown> {
   try {
     const projectRef = String(args.project_ref ?? args.ref ?? "").trim();
     const sql = String(args.sql ?? args.query ?? "").trim();
     if (!projectRef) return { error: "project_ref is required (the xxxx in xxxx.supabase.co)." };
     if (!sql) return { error: "sql is required." };
+
     const verdict = inspectSupabaseSql(sql);
     if (verdict.destructive && args.confirm !== true) {
-      return { error: "This SQL looks destructive and was blocked.", reasons: verdict.reasons, how_to_proceed: "Re-run with confirm: true if you are sure.", blocked_sql_preview: sql.slice(0, 400) };
+      return {
+        error: "This SQL looks destructive and was blocked.",
+        reasons: verdict.reasons,
+        how_to_proceed: "Re-run with confirm: true if you are sure.",
+        blocked_sql_preview: sql.slice(0, 400),
+      };
     }
+
     const token = await getSupabaseToken(args);
     if (!isResolvedCredential(token)) return token;
+
     const data = await supabasePost(token.token, `/v1/projects/${encodeURIComponent(projectRef)}/database/query`, { query: sql });
     if (token.shouldMarkProof) await markCredentialLiveTested("supabase");
     const rows = Array.isArray(data) ? data : data == null ? [] : [data];
-    return stampMeta({ ok: true, project_ref: projectRef, destructive: verdict.destructive, row_count: rows.length, rows }, { source: "Supabase Management API", fetched_at: new Date().toISOString(), next_steps: ["Use supabase_apply_migration to run and record a versioned migration."] });
+    return stampMeta({
+      ok: true,
+      project_ref: projectRef,
+      destructive: verdict.destructive,
+      row_count: rows.length,
+      rows,
+    }, {
+      source: "Supabase Management API",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use supabase_apply_migration to run and record a versioned migration."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
 }
 
+// supabase_apply_migration: run a named, tracked migration against a project's database.
 export async function applySupabaseMigration(args: Record<string, unknown>): Promise<unknown> {
   try {
     const projectRef = String(args.project_ref ?? args.ref ?? "").trim();
@@ -258,11 +280,23 @@ export async function applySupabaseMigration(args: Record<string, unknown>): Pro
     if (!projectRef) return { error: "project_ref is required." };
     if (!name) return { error: "name is required (a short snake_case migration name)." };
     if (!sql) return { error: "sql is required." };
+
     const token = await getSupabaseToken(args);
     if (!isResolvedCredential(token)) return token;
+
     const data = await supabasePost(token.token, `/v1/projects/${encodeURIComponent(projectRef)}/database/migrations`, { name, query: sql });
     if (token.shouldMarkProof) await markCredentialLiveTested("supabase");
-    return stampMeta({ ok: true, applied: true, project_ref: projectRef, name, result: data }, { source: "Supabase Management API", fetched_at: new Date().toISOString(), next_steps: ["Use supabase_execute_sql with a SELECT to verify the change landed."] });
+    return stampMeta({
+      ok: true,
+      applied: true,
+      project_ref: projectRef,
+      name,
+      result: data,
+    }, {
+      source: "Supabase Management API",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use supabase_execute_sql with a SELECT to verify the change landed."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
