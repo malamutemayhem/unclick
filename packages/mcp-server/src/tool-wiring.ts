@@ -134,6 +134,7 @@ import {
 
 import {
   listSupabaseProjects, getSupabaseProject, listSupabaseOrganizations,
+  executeSupabaseSql, applySupabaseMigration,
 } from "./supabase-tool.js";
 
 import {
@@ -3062,6 +3063,38 @@ export const ADDITIONAL_TOOLS = [
         access_token: { type: "string", description: "Optional Supabase access token. Omit it to use the connected Supabase login when available." },
         api_key: { type: "string", description: "Legacy token alias." },
       },
+    },
+  },
+  {
+    name: "supabase_execute_sql",
+    description: "Run a SQL statement against a Supabase project's database via the Management API. Destructive statements require confirm: true.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        project_ref: { type: "string", description: "Supabase project ref (the xxxx in xxxx.supabase.co)." },
+        sql: { type: "string", description: "The SQL to run." },
+        confirm: { type: "boolean", description: "Set true to allow a destructive statement the guard would block." },
+        access_token: { type: "string", description: "Optional Supabase access token. Omit to use the connected login." },
+        api_key: { type: "string", description: "Legacy token alias." },
+      },
+      required: ["project_ref", "sql"],
+    },
+  },
+  {
+    name: "supabase_apply_migration",
+    description: "Apply a named, tracked migration to a Supabase project's database via the Management API.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        project_ref: { type: "string", description: "Supabase project ref." },
+        name: { type: "string", description: "Short snake_case migration name." },
+        sql: { type: "string", description: "The migration SQL." },
+        access_token: { type: "string", description: "Optional Supabase access token. Omit to use the connected login." },
+        api_key: { type: "string", description: "Legacy token alias." },
+      },
+      required: ["project_ref", "name", "sql"],
     },
   },
   {
@@ -23152,6 +23185,8 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   supabase_list_projects:      (args) => listSupabaseProjects(args),
   supabase_get_project:        (args) => getSupabaseProject(args),
   supabase_list_organizations: (args) => listSupabaseOrganizations(args),
+  supabase_execute_sql:        (args) => executeSupabaseSql(args),
+  supabase_apply_migration:    (args) => applySupabaseMigration(args),
 
   // toggl-tool.ts
   toggl_time_entries:   (args) => getTogglTimeEntries(args),
