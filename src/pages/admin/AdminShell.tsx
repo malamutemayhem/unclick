@@ -70,6 +70,7 @@ import {
   SlidersHorizontal,
   Trophy,
   TowerControl,
+  Ticket,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -449,6 +450,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/pinballwake",   label: "PinballWake",           icon: BellRing    },
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
+  { path: "/admin/backstagepass", label: "BackstagePass",         icon: Ticket      },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
   { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
@@ -783,7 +785,7 @@ export default function AdminShell() {
 
   return (
     <div className="flex min-h-screen text-foreground">
-      {/* ── Desktop sidebar (md+) ───────────────── */}
+      {/* Desktop sidebar (md+) */}
       <aside className={`fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-[#06202c]/70 backdrop-blur-xl ${collapsed ? "" : "md:flex"}`} style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
@@ -829,7 +831,7 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      {/* ── Desktop top bar (md+) with global search ───────── */}
+      {/* Desktop top bar (md+) with global search */}
       <header className={`fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-[#06202c]/70 backdrop-blur-xl md:flex ${collapsed ? "md:pl-0" : "md:pl-56"}`} style={{ top: "var(--bbn-h, 0px)" }}>
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
           <button
@@ -847,7 +849,7 @@ export default function AdminShell() {
         </div>
       </header>
 
-      {/* ── Mobile/tablet top bar (<md) ──────────────── */}
+      {/* Mobile/tablet top bar (<md) */}
       <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-[#06202c]/80 backdrop-blur-xl px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
         <Link to="/">
           <img
@@ -899,7 +901,7 @@ export default function AdminShell() {
         </div>
       )}
 
-      {/* ── Main content ────────────────────── */}
+      {/* Main content */}
       <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
