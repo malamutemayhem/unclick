@@ -76,6 +76,10 @@ Covered by `packages/mcp-server/src/memory/__tests__/circle-consent.test.ts` (19
   4. an audit log of cross-user reads.
 - **Increment 3:** surface in the website (the admin Circle pages from the earlier demo, rebuilt against the real table instead of localStorage).
 
+## Scope note
+
+This PR is the Circle memory-sharing work only. An earlier, unwired `supabase-write-tool.ts` connector was briefly committed on this branch and has been removed; the canonical Supabase write connector (`supabase-tool.ts`) is tracked separately. Keeping it off this branch keeps the connector catalog gates (tool-index, depth-ladder) green here.
+
 ## Loss-prevention note
 
 To stop this work evaporating again: it is pushed to GitHub the moment it is testable (not saved for session end), and also mirrored to a timestamped backup branch. GitHub retains branches indefinitely, so once pushed the work cannot be lost to a container wipe.
