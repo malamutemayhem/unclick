@@ -1,6 +1,6 @@
 [package]
 name = "unclick-browser"
-version = "0.1.0"
+version = "0.2.0"
 description = "UnClick Browser"
 edition = "2021"
 
@@ -9,3 +9,5 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.12", features = ["gzip", "brotli", "deflate"] }

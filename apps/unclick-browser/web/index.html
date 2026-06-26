@@ -6,99 +6,66 @@
 <title>UnClick Browser</title>
 <style>
   :root {
-    --bg: #0b1517; --panel: #0f1c1f; --line: #1c2f33;
-    --text: #d7e3e4; --soft: #8aa3a6; --head: #ffffff;
-    --teal: #61C1C4; --teal-ink: #06222a;
+    --bg:#0b1517; --panel:#0f1c1f; --line:#1c2f33;
+    --text:#d7e3e4; --soft:#8aa3a6; --head:#ffffff; --teal:#61C1C4; --teal-ink:#06222a;
   }
-  html[data-theme="light"] {
-    --bg: #f5f7f7; --panel: #ffffff; --line: #e2e8e8;
-    --text: #1f2a2b; --soft: #5b6b6c; --head: #0c1516;
-    --teal: #2f9fa3; --teal-ink: #ffffff;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    background: var(--bg); color: var(--text);
-    font: 17px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    display: flex; flex-direction: column;
-  }
-  header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px; border-bottom: 1px solid var(--line);
-    background: var(--panel); position: sticky; top: 0;
-  }
-  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--head); white-space: nowrap; }
-  .brand .dot { width: 14px; height: 14px; border-radius: 4px; background: var(--teal); display: inline-block; }
-  .bar { flex: 1; display: flex; gap: 8px; }
-  .bar input {
-    flex: 1; min-width: 0; padding: 9px 14px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 15px;
-  }
-  .bar input:focus { outline: none; border-color: var(--teal); }
-  button {
-    border: 0; border-radius: 10px; padding: 9px 14px; font-size: 15px; cursor: pointer;
-    background: var(--teal); color: var(--teal-ink); font-weight: 600;
-  }
-  .ghost { background: transparent; color: var(--soft); border: 1px solid var(--line); }
-  main { flex: 1; overflow-y: auto; }
-  .reader { max-width: 720px; margin: 0 auto; padding: 56px 24px 96px; }
-  .kicker { color: var(--teal); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 14px; }
-  h1 { color: var(--head); font-size: 40px; line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.02em; }
-  h2 { color: var(--head); font-size: 22px; margin: 40px 0 10px; }
-  p { margin: 0 0 18px; }
-  .soft { color: var(--soft); }
-  ul { padding-left: 20px; } li { margin: 6px 0; }
-  .card { border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; background: var(--panel); margin: 22px 0; }
-  footer { color: var(--soft); font-size: 13px; border-top: 1px solid var(--line); padding: 12px 16px; text-align: center; }
+  html[data-theme="light"]{ --bg:#f5f7f7; --panel:#ffffff; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516; --teal:#2f9fa3; --teal-ink:#ffffff; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg);color:var(--text);font:17px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;}
+  header{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--head);white-space:nowrap;}
+  .brand .dot{width:14px;height:14px;border-radius:4px;background:var(--teal);}
+  .bar{flex:1;display:flex;gap:8px;}
+  .bar input{flex:1;min-width:0;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;}
+  .bar input:focus{outline:none;border-color:var(--teal);}
+  button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;cursor:pointer;background:var(--teal);color:var(--teal-ink);font-weight:600;}
+  .ghost{background:transparent;color:var(--soft);border:1px solid var(--line);}
+  main{flex:1;overflow-y:auto;}
+  #status{max-width:720px;margin:0 auto;padding:14px 24px 0;color:var(--soft);font-size:14px;}
+  #reader{max-width:720px;margin:0 auto;padding:32px 24px 96px;}
+  .doc h1{color:var(--head);font-size:34px;line-height:1.2;margin:0 0 18px;letter-spacing:-0.02em;}
+  .doc h2{color:var(--head);font-size:24px;margin:34px 0 10px;}
+  .doc h3{color:var(--head);font-size:20px;margin:26px 0 8px;}
+  .doc h4{color:var(--head);font-size:17px;margin:22px 0 6px;}
+  .doc p{margin:0 0 18px;}
+  .doc a{color:var(--teal);text-decoration:none;cursor:pointer;}
+  .doc a:hover{text-decoration:underline;}
+  .doc img{max-width:100%;height:auto;max-height:80vh;border-radius:10px;display:block;margin:18px auto;}
+  .doc ul,.doc ol{padding-left:22px;margin:0 0 18px;}
+  .doc li{margin:6px 0;}
+  .doc blockquote{margin:0 0 18px;padding:4px 18px;border-left:3px solid var(--teal);color:var(--soft);}
+  .doc pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:14px;}
+  .doc code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:14px;}
+  .doc pre code{border:0;padding:0;}
+  .doc table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:15px;}
+  .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
+  .doc hr{border:0;border-top:1px solid var(--line);margin:28px 0;}
+  .welcome .kicker{color:var(--teal);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 14px;}
+  .welcome h1{color:var(--head);font-size:40px;line-height:1.15;margin:0 0 10px;letter-spacing:-0.02em;}
+  .welcome .soft{color:var(--soft);}
 </style>
 </head>
 <body>
   <header>
-    <div class="brand"><span class="dot"></span> UnClick Browser</div>
+    <div class="brand"><span class="dot"></span> UnClick</div>
     <div class="bar">
-      <input id="addr" type="text" placeholder="Type a web address" value="https://example.com" />
+      <input id="addr" type="text" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
       <button id="go">Read</button>
     </div>
     <button class="ghost" id="theme">Light</button>
   </header>
   <main>
-    <article class="reader">
-      <p class="kicker">UnClick / Browser</p>
-      <h1>The web, calm.</h1>
-      <p class="soft">UnClick Browser rebuilds every page into one fast, consistent, easy to read view. Same layout everywhere. No clutter, no popups, no surprise.</p>
-
-      <div class="card">
-        <strong>You are running the beta.</strong>
-        <p class="soft" id="msg" style="margin:8px 0 0">This first build proves the install: one download, one click, done. The live reader, where you type any address and it reformats the page, lands in the next update. Your address bar above is ready for it.</p>
+    <div id="status"></div>
+    <div id="reader">
+      <div class="welcome">
+        <p class="kicker">UnClick / Browser</p>
+        <h1>The web, calm.</h1>
+        <p class="soft">Type any web address above and press Enter. UnClick fetches the page and rebuilds it into this one clean, calm format. Same look on every site.</p>
+        <p class="soft">Try wikipedia.org, a news article, or a blog post. Switch dark and light with the button, top right.</p>
       </div>
-
-      <h2>What it does</h2>
-      <ul>
-        <li>One clean format for every site, so reading feels the same anywhere.</li>
-        <li>Fast and light. It uses your system, not a second copy of a whole browser.</li>
-        <li>Dark and light, your choice. Try the toggle, top right.</li>
-        <li>Built so your AI feels at home, and humans are welcome too.</li>
-      </ul>
-
-      <h2>Sample reading view</h2>
-      <p>This paragraph shows the reading style. Comfortable measure, generous spacing, calm color. Long pages stay easy on the eyes because every site is poured into the same simple shape.</p>
-      <p class="soft">Tip: press the Light button to switch themes. Everything here works offline, inside the app.</p>
-    </article>
+    </div>
   </main>
-  <footer>UnClick Browser, beta. Free while we polish.</footer>
-
-  <script>
-    const root = document.documentElement;
-    const themeBtn = document.getElementById("theme");
-    themeBtn.addEventListener("click", () => {
-      const light = root.getAttribute("data-theme") === "light";
-      root.setAttribute("data-theme", light ? "dark" : "light");
-      themeBtn.textContent = light ? "Light" : "Dark";
-    });
-    const msg = document.getElementById("msg");
-    const note = () => { msg.textContent = "Live reading lands in the next update. This build proves the install works."; };
-    document.getElementById("go").addEventListener("click", note);
-    document.getElementById("addr").addEventListener("keydown", (e) => { if (e.key === "Enter") note(); });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
