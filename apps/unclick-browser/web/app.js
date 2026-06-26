@@ -5,19 +5,23 @@
   var addr = document.getElementById("addr");
   var goBtn = document.getElementById("go");
   var backBtn = document.getElementById("back");
+  var fwdBtn = document.getElementById("fwd");
   var reader = document.getElementById("reader");
   var statusEl = document.getElementById("status");
   var themeBtn = document.getElementById("theme");
   var root = document.documentElement;
 
   var currentUrl = "";
-  var hist = [];
+  var hist = [];   // pages behind us
+  var fwd = [];    // pages ahead of us (after a back)
 
   themeBtn.addEventListener("click", function () {
     var light = root.getAttribute("data-theme") === "light";
     root.setAttribute("data-theme", light ? "dark" : "light");
     themeBtn.textContent = light ? "Light" : "Dark";
   });
+
+  function setMode(mode) { root.setAttribute("data-mode", mode); }
 
   function normalizeUrl(input) {
     var u = (input || "").trim();
@@ -29,6 +33,16 @@
   function resolve(href, base) {
     if (!href) return "";
     try { return new URL(href, base).href; } catch (e) { return ""; }
+  }
+  function hostOf(u) {
+    try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; }
+  }
+  function originOf(u) {
+    try { return new URL(u).origin; } catch (e) { return ""; }
+  }
+  function metaContent(doc, key) {
+    var m = doc.querySelector('meta[property="' + key + '"]') || doc.querySelector('meta[name="' + key + '"]');
+    return m ? (m.getAttribute("content") || "") : "";
   }
 
   var DROP = { SCRIPT:1, STYLE:1, NOSCRIPT:1, IFRAME:1, SVG:1, FORM:1, TEMPLATE:1, NAV:1, HEADER:1, FOOTER:1, ASIDE:1, BUTTON:1, INPUT:1, SELECT:1, TEXTAREA:1, LINK:1, META:1, VIDEO:1, AUDIO:1, CANVAS:1 };
@@ -153,22 +167,111 @@
     }
   }
 
-  function setStatus(html) { statusEl.innerHTML = html || ""; }
-
-  function showLiveOption(url) {
-    setStatus('This page builds itself with scripts, so the calm reader sees little. <a id="live">Open the live page</a> instead.');
-    var live = document.getElementById("live");
-    if (live) live.addEventListener("click", function () { window.location.href = url; });
+  // Turn "image + headline" links into one tidy horizontal card, so a list of
+  // stories reads as a clean column instead of a tall image-over-text stack.
+  function cardify(scope) {
+    var links = scope.querySelectorAll("a[data-href]");
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var img = a.querySelector("img");
+      var txt = (a.textContent || "").trim();
+      if (!img || txt.length < 12) continue;
+      var kids = [], k;
+      for (k = 0; k < a.childNodes.length; k++) kids.push(a.childNodes[k]);
+      var body = document.createElement("div");
+      body.className = "card-body";
+      for (k = 0; k < kids.length; k++) {
+        if (kids[k] === img) continue;
+        if (kids[k].nodeType === 1 && kids[k].tagName === "IMG") continue; // keep one thumb
+        body.appendChild(kids[k]);
+      }
+      if (!(body.textContent || "").trim()) continue;
+      a.classList.add("card");
+      a.innerHTML = "";
+      img.className = "card-thumb";
+      img.removeAttribute("style");
+      a.appendChild(img);
+      a.appendChild(body);
+    }
   }
 
-  function render(url, isBack) {
+  // Same source banner on every page: site logo + name, left aligned.
+  function masthead(doc, base) {
+    var host = hostOf(base);
+    var site = metaContent(doc, "og:site_name") || metaContent(doc, "application-name") || host;
+    var iconHref = "";
+    var ic = doc.querySelector('link[rel~="icon"]') || doc.querySelector('link[rel="shortcut icon"]') || doc.querySelector('link[rel="apple-touch-icon"]');
+    if (ic && ic.getAttribute("href")) iconHref = resolve(ic.getAttribute("href"), base);
+    if (!iconHref && host) iconHref = originOf(base) + "/favicon.ico";
+
+    var bar = document.createElement("div");
+    bar.className = "masthead";
+    if (iconHref) {
+      var fav = document.createElement("img");
+      fav.className = "fav";
+      fav.src = iconHref;
+      fav.alt = "";
+      fav.onerror = function () { this.style.display = "none"; };
+      bar.appendChild(fav);
+    }
+    var name = document.createElement("span");
+    name.className = "site";
+    name.textContent = site || host || "Source";
+    bar.appendChild(name);
+    if (host && site && site !== host) {
+      var grow = document.createElement("span"); grow.className = "grow"; bar.appendChild(grow);
+      var h = document.createElement("span"); h.className = "host"; h.textContent = host; bar.appendChild(h);
+    }
+    return bar;
+  }
+
+  // Same footer on every page: a clear way back to the live source.
+  function footer(base) {
+    var host = hostOf(base) || base;
+    var f = document.createElement("div");
+    f.className = "pagefoot";
+    var src = document.createElement("a");
+    src.setAttribute("data-href", base);
+    src.textContent = host;
+    var live = document.createElement("a");
+    live.className = "live";
+    live.textContent = "Open the live page";
+    live.style.cursor = "pointer";
+    live.addEventListener("click", function (e) { e.preventDefault(); window.location.href = base; });
+    f.appendChild(document.createTextNode("Source: "));
+    f.appendChild(src);
+    f.appendChild(document.createTextNode("  ·  "));
+    f.appendChild(live);
+    return f;
+  }
+
+  function setStatus(html) { statusEl.innerHTML = html || ""; }
+
+  // Script-built page: show a loud amber banner with one clear button.
+  function showLiveOption(url) {
+    setMode("live");
+    reader.innerHTML = "";
+    var b = document.createElement("div");
+    b.className = "livebanner";
+    var ic = document.createElement("div"); ic.className = "lb-icon"; ic.textContent = "⚡";
+    var tx = document.createElement("div"); tx.className = "lb-text";
+    var st = document.createElement("strong"); st.textContent = "This page builds itself with scripts.";
+    var sp = document.createElement("span"); sp.textContent = "The calm reader sees very little here. Open the full live page instead.";
+    tx.appendChild(st); tx.appendChild(sp);
+    var btn = document.createElement("button"); btn.className = "lb-btn"; btn.textContent = "Show the live page";
+    btn.addEventListener("click", function () { window.location.href = url; });
+    b.appendChild(ic); b.appendChild(tx); b.appendChild(btn);
+    reader.appendChild(b);
+    setStatus("");
+    var m = document.querySelector("main"); if (m) m.scrollTop = 0;
+  }
+
+  function render(url) {
     invoke("fetch_url", { url: url }).then(function (page) {
       var base = (page && page.final_url) || url;
       var html = (page && page.html) || "";
       var doc = new DOMParser().parseFromString(html, "text/html");
-      var title = "";
-      var og = doc.querySelector("meta[property='og:title']");
-      if (og && og.getAttribute("content")) title = og.getAttribute("content");
+      var title = metaContent(doc, "og:title");
       if (!title && doc.querySelector("title")) title = doc.querySelector("title").textContent;
       if (!title && doc.querySelector("h1")) title = doc.querySelector("h1").textContent;
 
@@ -196,10 +299,17 @@
 
       if (textLen(article) < 200 && !article.querySelector("img")) { showLiveOption(url); return; }
 
+      cardify(article);
+
+      // Re-parse a fresh doc for masthead meta (stripJunk mutated the first one).
+      var metaDoc = new DOMParser().parseFromString(html, "text/html");
       reader.innerHTML = "";
+      reader.appendChild(masthead(metaDoc, base));
       reader.appendChild(article);
+      reader.appendChild(footer(base));
+
+      setMode("native");
       setStatus("");
-      if (!isBack) { if (currentUrl && currentUrl !== url) hist.push(currentUrl); }
       currentUrl = url;
       var links = reader.querySelectorAll("a[data-href]");
       for (var i = 0; i < links.length; i++) {
@@ -211,28 +321,57 @@
     });
   }
 
-  function go(rawUrl, isBack) {
+  function updateNav() {
+    if (backBtn) backBtn.disabled = hist.length === 0;
+    if (fwdBtn) fwdBtn.disabled = fwd.length === 0;
+  }
+
+  // mode: undefined/"new" = fresh nav, "back", "fwd", "reload".
+  function go(rawUrl, mode) {
     if (!invoke) { setStatus("This page only works inside the UnClick Browser app."); return; }
     var url = normalizeUrl(rawUrl);
     if (!url) return;
+    if (!mode || mode === "new") {
+      if (currentUrl && currentUrl !== url) hist.push(currentUrl);
+      fwd = [];
+    } else if (mode === "back") {
+      if (currentUrl) fwd.push(currentUrl);
+    } else if (mode === "fwd") {
+      if (currentUrl) hist.push(currentUrl);
+    }
+    updateNav();
     addr.value = url;
     setStatus("Loading " + url + " ...");
-    render(url, isBack);
+    render(url);
   }
 
-  function back() { if (hist.length) { var prev = hist.pop(); go(prev, true); } }
+  function back() { if (hist.length) { go(hist.pop(), "back"); } }
+  function forward() { if (fwd.length) { go(fwd.pop(), "fwd"); } }
 
   goBtn.addEventListener("click", function () { go(addr.value); });
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
   if (backBtn) backBtn.addEventListener("click", back);
+  if (fwdBtn) fwdBtn.addEventListener("click", forward);
+
+  // Mouse side buttons: 3 = back, 4 = forward (the usual thumb buttons).
+  window.addEventListener("mouseup", function (e) {
+    if (e.button === 3) { e.preventDefault(); back(); }
+    else if (e.button === 4) { e.preventDefault(); forward(); }
+  });
+  window.addEventListener("auxclick", function (e) {
+    if (e.button === 3 || e.button === 4) e.preventDefault();
+  });
 
   window.addEventListener("keydown", function (e) {
     var inField = document.activeElement === addr;
     if ((e.ctrlKey || e.metaKey) && (e.key === "l" || e.key === "k")) { e.preventDefault(); addr.focus(); addr.select(); return; }
-    if ((e.ctrlKey || e.metaKey) && e.key === "r") { e.preventDefault(); if (currentUrl) go(currentUrl, true); return; }
-    if (e.key === "F5") { e.preventDefault(); if (currentUrl) go(currentUrl, true); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key === "r") { e.preventDefault(); if (currentUrl) go(currentUrl, "reload"); return; }
+    if (e.key === "F5") { e.preventDefault(); if (currentUrl) go(currentUrl, "reload"); return; }
     if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); back(); return; }
+    if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); forward(); return; }
     if (e.key === "Backspace" && !inField) { e.preventDefault(); back(); return; }
     if (e.key === "Escape" && inField) { addr.blur(); }
   });
+
+  updateNav();
 })();
