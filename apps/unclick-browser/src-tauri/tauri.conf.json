@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "UnClick Browser",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "identifier": "world.unclick.browser",
   "build": {
     "frontendDist": "../web"
@@ -23,7 +23,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -31,5 +34,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/malamutemayhem/unclick/releases/download/browser-app-latest/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkwRjUyNzgyQkVCMzIxQgpSV1FiTXVzcmVGSVBDVDBtakRkaEt3K1Bva3JZZHFJQlk0QjR2Q29OY2JnbjFCaGRmMGx6U3E3Tgo="
+    }
   }
 }
