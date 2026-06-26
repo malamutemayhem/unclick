@@ -40,6 +40,9 @@ jobs:
         with:
           workspaces: apps/unclick-browser/src-tauri
 
+      - name: Generate source icon
+        run: node scripts/make-icon.mjs
+
       - name: Generate icons
         run: npx --yes @tauri-apps/cli@2 icon src-tauri/source-icon.png -o src-tauri/icons
 
