@@ -1,49 +1,91 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-mode="native">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>UnClick Browser</title>
 <style>
-  :root { --bg:#0b1517; --panel:#0f1c1f; --line:#1c2f33; --text:#d7e3e4; --soft:#8aa3a6; --head:#ffffff; --teal:#61C1C4; --teal-ink:#06222a; }
-  html[data-theme="light"]{ --bg:#f5f7f7; --panel:#ffffff; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516; --teal:#2f9fa3; --teal-ink:#ffffff; }
+  :root {
+    --bg:#0b1517; --panel:#0f1c1f; --line:#1c2f33; --text:#d7e3e4; --soft:#8aa3a6; --head:#ffffff;
+    --teal:#61C1C4; --teal-ink:#06222a;
+    --warm:#E8A33D; --warm-ink:#2a1600; --warm-bg:rgba(232,163,61,.10); --warm-line:rgba(232,163,61,.45); --warm-head:#F0B458; --warm-soft:#c9a877;
+  }
+  html[data-theme="light"]{
+    --bg:#f5f7f7; --panel:#ffffff; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516;
+    --teal:#2f9fa3; --teal-ink:#ffffff;
+    --warm:#C77A12; --warm-ink:#ffffff; --warm-bg:#fdf3e3; --warm-line:#e8c596; --warm-head:#8a5410; --warm-soft:#7a5a2e;
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;}
-  body{background:var(--bg);color:var(--text);font:17px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;}
-  header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;}
+  body{background:var(--bg);color:var(--text);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;}
+  /* Header is the consistent master banner. A coloured top rail tells you the mode:
+     teal = calm native reader, amber = a raw live page. */
+  header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);border-top:3px solid var(--teal);background:var(--panel);position:sticky;top:0;z-index:5;}
+  html[data-mode="live"] header{border-top-color:var(--warm);}
   .brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--head);white-space:nowrap;}
   .brand .dot{width:14px;height:14px;border-radius:4px;background:var(--teal);}
+  html[data-mode="live"] .brand .dot{background:var(--warm);}
   .nav{display:flex;gap:6px;}
-  .icobtn{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;}
+  .icobtn{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;font-weight:600;}
   .icobtn:hover{color:var(--head);}
+  .icobtn:disabled{opacity:.35;cursor:default;}
   .bar{flex:1;display:flex;gap:8px;}
   .bar input{flex:1;min-width:0;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;}
   .bar input:focus{outline:none;border-color:var(--teal);}
   button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;cursor:pointer;background:var(--teal);color:var(--teal-ink);font-weight:600;}
   .ghost{background:transparent;color:var(--soft);border:1px solid var(--line);}
   main{flex:1;overflow-y:auto;}
-  #status{max-width:720px;margin:0 auto;padding:14px 24px 0;color:var(--soft);font-size:14px;}
+  #status{max-width:760px;margin:0 auto;padding:12px 24px 0;color:var(--soft);font-size:14px;}
   #status a{color:var(--teal);cursor:pointer;}
-  #reader{max-width:720px;margin:0 auto;padding:28px 24px 96px;}
-  .doc h1{color:var(--head);font-size:34px;line-height:1.2;margin:0 0 18px;letter-spacing:-0.02em;}
-  .doc h2{color:var(--head);font-size:24px;margin:34px 0 10px;}
-  .doc h3{color:var(--head);font-size:20px;margin:26px 0 8px;}
-  .doc h4,.doc h5,.doc h6{color:var(--head);font-size:17px;margin:22px 0 6px;}
-  .doc p{margin:0 0 18px;}
+  #reader{max-width:760px;margin:0 auto;padding:20px 24px 72px;}
+
+  /* Source masthead: same shape on every site, so the page always opens the same way. */
+  .masthead{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+  .masthead .fav{width:22px;height:22px;border-radius:6px;flex:none;background:var(--bg);object-fit:cover;margin:0;}
+  .masthead .site{font-weight:600;color:var(--head);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .masthead .host{color:var(--soft);font-size:13px;white-space:nowrap;}
+  .masthead .grow{flex:1;}
+
+  .doc h1{color:var(--head);font-size:32px;line-height:1.2;margin:0 0 14px;letter-spacing:-0.02em;}
+  .doc h2{color:var(--head);font-size:23px;margin:28px 0 8px;}
+  .doc h3{color:var(--head);font-size:19px;margin:22px 0 6px;}
+  .doc h4,.doc h5,.doc h6{color:var(--head);font-size:17px;margin:18px 0 6px;}
+  .doc p{margin:0 0 14px;}
   .doc a{color:var(--teal);text-decoration:none;cursor:pointer;}
   .doc a:hover{text-decoration:underline;}
-  .doc img{max-width:100%;height:auto;max-height:80vh;border-radius:10px;display:block;margin:18px auto;background:var(--panel);}
-  .doc figure{margin:18px 0;}
+  .doc img{max-width:100%;height:auto;max-height:360px;border-radius:10px;display:block;margin:14px auto;background:var(--panel);}
+  .doc figure{margin:14px 0;}
   .doc figcaption{color:var(--soft);font-size:14px;text-align:center;margin-top:6px;}
-  .doc ul,.doc ol{padding-left:22px;margin:0 0 18px;}
-  .doc li{margin:6px 0;}
-  .doc blockquote{margin:0 0 18px;padding:4px 18px;border-left:3px solid var(--teal);color:var(--soft);}
+  .doc ul,.doc ol{padding-left:22px;margin:0 0 14px;}
+  .doc li{margin:5px 0;}
+  .doc blockquote{margin:0 0 14px;padding:4px 18px;border-left:3px solid var(--teal);color:var(--soft);}
   .doc pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:14px;}
   .doc code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:14px;}
   .doc pre code{border:0;padding:0;}
-  .doc table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:15px;display:block;overflow-x:auto;}
+  .doc table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:15px;display:block;overflow-x:auto;}
   .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
-  .doc hr{border:0;border-top:1px solid var(--line);margin:28px 0;}
+  .doc hr{border:0;border-top:1px solid var(--line);margin:22px 0;}
+
+  /* Teaser card: an image-plus-text link becomes one tidy row, not a tall stack. */
+  .doc a.card{display:flex;gap:14px;align-items:flex-start;padding:10px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
+  .doc a.card:hover{border-color:var(--teal);text-decoration:none;}
+  .doc a.card .card-thumb{width:132px;height:88px;flex:none;object-fit:cover;border-radius:8px;margin:0;background:var(--bg);}
+  .doc a.card .card-body{flex:1;min-width:0;color:var(--head);font-weight:600;line-height:1.35;font-size:16px;}
+  .doc a.card .card-body *{margin:0;color:inherit;font-weight:inherit;}
+
+  /* Footer region: same on every page, your way back to the source. */
+  .pagefoot{margin:36px 0 0;padding:14px 0 0;border-top:1px solid var(--line);color:var(--soft);font-size:14px;}
+  .pagefoot a{color:var(--teal);}
+  .pagefoot a.live{color:var(--warm);}
+
+  /* Live-page banner: amber, so it reads as "raw page", not the calm reader. */
+  .livebanner{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:14px;border:1px solid var(--warm-line);background:var(--warm-bg);margin-top:6px;}
+  .lb-icon{font-size:26px;line-height:1;}
+  .lb-text{flex:1;display:flex;flex-direction:column;gap:3px;}
+  .lb-text strong{color:var(--warm-head);font-size:17px;}
+  .lb-text span{color:var(--warm-soft);font-size:14px;}
+  .lb-btn{background:var(--warm);color:var(--warm-ink);font-weight:700;white-space:nowrap;}
+
   .welcome .kicker{color:var(--teal);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 14px;}
   .welcome h1{color:var(--head);font-size:40px;line-height:1.15;margin:0 0 10px;letter-spacing:-0.02em;}
   .welcome .soft{color:var(--soft);}
@@ -53,7 +95,8 @@
 <body>
   <header>
     <div class="nav">
-      <button class="icobtn" id="back" title="Back (Alt+Left)">&#8249;</button>
+      <button class="icobtn" id="back" title="Back (Alt+Left, mouse back)" disabled>&#8249;</button>
+      <button class="icobtn" id="fwd" title="Forward (Alt+Right, mouse forward)" disabled>&#8250;</button>
     </div>
     <div class="brand"><span class="dot"></span> UnClick</div>
     <div class="bar">
@@ -69,7 +112,7 @@
         <p class="kicker">UnClick / Browser</p>
         <h1>The web, calm.</h1>
         <p class="soft">Type any web address above and press Enter. UnClick fetches the page and rebuilds it into this one clean, calm format. Same look on every site.</p>
-        <p class="soft">Shortcuts: <kbd>Ctrl L</kbd> address bar, <kbd>Ctrl R</kbd> reload, <kbd>Alt Left</kbd> back, <kbd>Esc</kbd> blur.</p>
+        <p class="soft">Move around like any browser: <kbd>Alt &larr;</kbd> / <kbd>Alt &rarr;</kbd> back and forward, your mouse side buttons too, <kbd>Ctrl L</kbd> for the address bar, <kbd>Ctrl R</kbd> to reload.</p>
       </div>
     </div>
   </main>
