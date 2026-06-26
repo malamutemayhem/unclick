@@ -1,13 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { Combobox, type ComboOption } from "@/components/admin/Combobox";
 import {
   CHAT_PROVIDERS,
   CHAT_API_ENDPOINT,
   findChatProvider,
   getChatApiKey,
   estimateTokens,
+  fetchOpenRouterModels,
+  type ChatModelOption,
 } from "@/components/admin/chatTransportConfig";
 
 // Join the text parts of a UI message into a single string.
@@ -17,10 +20,17 @@ function messageText(parts: { type: string }[]): string {
     .join("");
 }
 
+const PROVIDER_OPTIONS: ComboOption[] = CHAT_PROVIDERS.map((p) => ({
+  value: p.slug,
+  label: p.label,
+}));
+
 export default function AdminChatPage() {
   const [providerSlug, setProviderSlug] = useState(CHAT_PROVIDERS[0].slug);
   const [model, setModel] = useState(CHAT_PROVIDERS[0].models[0].value);
   const [input, setInput] = useState("");
+  const [liveModels, setLiveModels] = useState<ChatModelOption[] | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   const apiKey = getChatApiKey();
   const provider = findChatProvider(providerSlug);
@@ -29,6 +39,30 @@ export default function AdminChatPage() {
   const { messages, sendMessage, status, stop, error } = useChat({ transport });
 
   const busy = status === "submitted" || status === "streaming";
+
+  // OpenRouter: pull the live catalog so new and trending models show up on
+  // their own. Other providers use their curated list. Always falls back.
+  useEffect(() => {
+    if (providerSlug !== "openrouter") {
+      setLiveModels(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingModels(true);
+    fetchOpenRouterModels()
+      .then((rows) => {
+        if (!cancelled) setLiveModels(rows);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingModels(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerSlug]);
+
+  const modelOptions: ComboOption[] =
+    providerSlug === "openrouter" && liveModels ? liveModels : provider?.models ?? [];
 
   function onProviderChange(slug: string) {
     setProviderSlug(slug);
@@ -70,28 +104,29 @@ export default function AdminChatPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <Combobox
           value={providerSlug}
-          onChange={(e) => onProviderChange(e.target.value)}
-          className="rounded-md border border-border/50 bg-card/40 px-2 py-1.5 text-sm text-body"
-        >
-          {CHAT_PROVIDERS.map((p) => (
-            <option key={p.slug} value={p.slug}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-        <select
+          options={PROVIDER_OPTIONS}
+          onChange={onProviderChange}
+          searchPlaceholder="Search providers..."
+          className="min-w-[9rem]"
+        />
+        <Combobox
           value={model}
-          onChange={(e) => setModel(e.target.value)}
-          className="rounded-md border border-border/50 bg-card/40 px-2 py-1.5 text-sm text-body"
-        >
-          {provider?.models.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
+          options={modelOptions}
+          onChange={setModel}
+          placeholder="Pick a model"
+          searchPlaceholder="Search models..."
+          emptyText={loadingModels ? "Loading..." : "No match - type to use a custom id."}
+          allowCustom
+          loading={loadingModels && modelOptions.length === 0}
+          className="min-w-[13rem] flex-1 sm:flex-none"
+        />
+        {providerSlug === "openrouter" && (
+          <span className="text-[10px] text-muted-foreground">
+            {liveModels ? `${liveModels.length} live` : loadingModels ? "syncing..." : "curated"}
+          </span>
+        )}
         <span className="mx-1 text-border">|</span>
         <Link to="/admin/agents/api" className="text-xs text-primary hover:underline">
           Set up API keys
