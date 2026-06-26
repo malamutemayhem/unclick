@@ -127,6 +127,7 @@ const AdminJobsmith = lazy(() => import("./pages/admin/AdminJobsmith.tsx"));
 const AdminAppTesting = lazy(() => import("./pages/admin/AdminAppTesting.tsx"));
 const AdminBenchmarks = lazy(() => import("./pages/admin/AdminBenchmarks.tsx"));
 const AdminTruthRate = lazy(() => import("./pages/admin/AdminTruthRate.tsx"));
+const AdminBackstagePass = lazy(() => import("./pages/admin/AdminBackstagePass.tsx"));
 const AdminXGate = lazy(() => import("./pages/admin/AdminXGate.tsx"));
 const AdminExpressBuild = lazy(() => import("./pages/admin/AdminExpressBuild.tsx"));
 const AdminAutopilot = lazy(() =>
@@ -343,6 +344,7 @@ const App = () => (
             <Route path="app-testing"    element={<RequireAdmin><AdminAppTesting /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
+            <Route path="backstagepass"  element={<RequireAdmin><AdminBackstagePass /></RequireAdmin>} />
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
