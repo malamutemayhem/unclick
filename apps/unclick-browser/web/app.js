@@ -2,18 +2,23 @@
   var tauri = window.__TAURI__;
   var invoke = tauri && tauri.core ? tauri.core.invoke : null;
 
+  var tabstrip = document.getElementById("tabstrip");
+  var newTabBtn = document.getElementById("newtab");
   var addr = document.getElementById("addr");
   var goBtn = document.getElementById("go");
   var backBtn = document.getElementById("back");
   var fwdBtn = document.getElementById("fwd");
+  var modeChip = document.getElementById("modechip");
   var reader = document.getElementById("reader");
   var statusEl = document.getElementById("status");
   var themeBtn = document.getElementById("theme");
+  var mainEl = document.querySelector("main");
   var root = document.documentElement;
 
-  var currentUrl = "";
-  var hist = [];   // pages behind us
-  var fwd = [];    // pages ahead of us (after a back)
+  // Two reading modes:  zen = the calm UnClick read,  native = the raw live page.
+  var tabs = [];
+  var activeId = 0;
+  var seq = 0;
 
   themeBtn.addEventListener("click", function () {
     var light = root.getAttribute("data-theme") === "light";
@@ -43,6 +48,18 @@
   function metaContent(doc, key) {
     var m = doc.querySelector('meta[property="' + key + '"]') || doc.querySelector('meta[name="' + key + '"]');
     return m ? (m.getAttribute("content") || "") : "";
+  }
+  function pageTitle(doc) {
+    var t = metaContent(doc, "og:title");
+    if (!t && doc.querySelector("title")) t = doc.querySelector("title").textContent;
+    if (!t && doc.querySelector("h1")) t = doc.querySelector("h1").textContent;
+    return (t || "").trim();
+  }
+  function faviconOf(doc, base) {
+    var ic = doc.querySelector('link[rel~="icon"]') || doc.querySelector('link[rel="shortcut icon"]') || doc.querySelector('link[rel="apple-touch-icon"]');
+    var href = (ic && ic.getAttribute("href")) ? resolve(ic.getAttribute("href"), base) : "";
+    if (!href) { var o = originOf(base); if (o) href = o + "/favicon.ico"; }
+    return href;
   }
 
   var DROP = { SCRIPT:1, STYLE:1, NOSCRIPT:1, IFRAME:1, SVG:1, FORM:1, TEMPLATE:1, NAV:1, HEADER:1, FOOTER:1, ASIDE:1, BUTTON:1, INPUT:1, SELECT:1, TEXTAREA:1, LINK:1, META:1, VIDEO:1, AUDIO:1, CANVAS:1 };
@@ -167,56 +184,88 @@
     }
   }
 
-  // Turn "image + headline" links into one tidy horizontal card, so a list of
-  // stories reads as a clean column instead of a tall image-over-text stack.
-  function cardify(scope) {
-    var links = scope.querySelectorAll("a[data-href]");
-    for (var i = 0; i < links.length; i++) {
-      var a = links[i];
-      var img = a.querySelector("img");
-      var txt = (a.textContent || "").trim();
-      if (!img || txt.length < 12) continue;
-      var kids = [], k;
-      for (k = 0; k < a.childNodes.length; k++) kids.push(a.childNodes[k]);
-      var body = document.createElement("div");
-      body.className = "card-body";
-      for (k = 0; k < kids.length; k++) {
-        if (kids[k] === img) continue;
-        if (kids[k].nodeType === 1 && kids[k].tagName === "IMG") continue; // keep one thumb
-        body.appendChild(kids[k]);
-      }
-      if (!(body.textContent || "").trim()) continue;
-      a.classList.add("card");
-      a.innerHTML = "";
-      img.className = "card-thumb";
-      img.removeAttribute("style");
-      a.appendChild(img);
-      a.appendChild(body);
+  // Fuse a "story unit" (eyebrow label + headline link + thumbnail + blurb) that
+  // sits as separate sibling elements into one tidy card. This is what listing
+  // pages (news.com.au etc.) ship: the picture, headline and summary are three
+  // separate links, so without this they render as a tall scattered stack.
+  function txtOf(n) { return (n && n.textContent || "").trim(); }
+  function firstImg(n) { return n && (n.tagName === "IMG" ? n : (n.querySelector ? n.querySelector("img") : null)); }
+  function isHeadline(n) { return n.tagName === "A" && n.getAttribute("data-href") && txtOf(n).length >= 14; }
+  function isImageOnly(n) { return (n.tagName === "IMG") || (n.tagName === "A" && firstImg(n) && txtOf(n).length < 14); }
+  function isBlurb(n) { return n.tagName === "P" && txtOf(n).length >= 28; }
+  function isEyebrow(n) { return (n.tagName === "A" || n.tagName === "SPAN" || /^H[3-6]$/.test(n.tagName)) && txtOf(n).length > 0 && txtOf(n).length <= 26 && !firstImg(n); }
+
+  function buildCard(u) {
+    var card = document.createElement(u.href ? "a" : "div");
+    card.className = "card" + (u.image ? "" : " card-text");
+    if (u.href) card.setAttribute("data-href", u.href);
+    if (u.image) {
+      u.image.className = "card-thumb";
+      u.image.removeAttribute("style");
+      u.image.removeAttribute("width");
+      u.image.removeAttribute("height");
+      u.image.loading = "lazy";
+      card.appendChild(u.image);
     }
+    var body = document.createElement("div");
+    body.className = "card-body";
+    if (u.eyebrow) { var e = document.createElement("div"); e.className = "card-eyebrow"; e.textContent = u.eyebrow; body.appendChild(e); }
+    var ti = document.createElement("div"); ti.className = "card-title"; ti.textContent = u.title; body.appendChild(ti);
+    if (u.blurb) { var b = document.createElement("div"); b.className = "card-blurb"; b.textContent = u.blurb; body.appendChild(b); }
+    card.appendChild(body);
+    return card;
+  }
+
+  function restructureTeasers(article) {
+    var src = [];
+    for (var c = 0; c < article.childNodes.length; c++) { if (article.childNodes[c].nodeType === 1) src.push(article.childNodes[c]); }
+    var used = new Array(src.length);
+    var out = [];
+
+    for (var i = 0; i < src.length; i++) {
+      if (used[i]) continue;
+      var n = src[i];
+      if (isHeadline(n)) {
+        var unit = { href: n.getAttribute("data-href"), title: txtOf(n), image: firstImg(n), blurb: null, eyebrow: null };
+        // Look ahead a few siblings for this story's image and blurb.
+        for (var f = i + 1; f < src.length && f <= i + 3; f++) {
+          if (used[f]) continue;
+          if (isHeadline(src[f])) break;
+          if (!unit.image && isImageOnly(src[f])) { unit.image = firstImg(src[f]); used[f] = true; continue; }
+          if (!unit.blurb && isBlurb(src[f])) { unit.blurb = txtOf(src[f]); used[f] = true; break; }
+        }
+        // Pull a short label sitting just above the headline up as the eyebrow.
+        if (out.length && isEyebrow(out[out.length - 1])) { unit.eyebrow = txtOf(out.pop()); }
+        out.push(buildCard(unit));
+        used[i] = true;
+        continue;
+      }
+      out.push(n);
+    }
+
+    // Only worth rebuilding if we actually formed cards.
+    var made = 0;
+    for (var k = 0; k < out.length; k++) { if (out[k].className && out[k].className.indexOf("card") === 0) made++; }
+    if (!made) return;
+    while (article.firstChild) article.removeChild(article.firstChild);
+    for (var o = 0; o < out.length; o++) article.appendChild(out[o]);
   }
 
   // Same source banner on every page: site logo + name, left aligned.
   function masthead(doc, base) {
     var host = hostOf(base);
     var site = metaContent(doc, "og:site_name") || metaContent(doc, "application-name") || host;
-    var iconHref = "";
-    var ic = doc.querySelector('link[rel~="icon"]') || doc.querySelector('link[rel="shortcut icon"]') || doc.querySelector('link[rel="apple-touch-icon"]');
-    if (ic && ic.getAttribute("href")) iconHref = resolve(ic.getAttribute("href"), base);
-    if (!iconHref && host) iconHref = originOf(base) + "/favicon.ico";
-
+    var iconHref = faviconOf(doc, base);
     var bar = document.createElement("div");
     bar.className = "masthead";
     if (iconHref) {
       var fav = document.createElement("img");
-      fav.className = "fav";
-      fav.src = iconHref;
-      fav.alt = "";
+      fav.className = "fav"; fav.src = iconHref; fav.alt = "";
       fav.onerror = function () { this.style.display = "none"; };
       bar.appendChild(fav);
     }
     var name = document.createElement("span");
-    name.className = "site";
-    name.textContent = site || host || "Source";
+    name.className = "site"; name.textContent = site || host || "Source";
     bar.appendChild(name);
     if (host && site && site !== host) {
       var grow = document.createElement("span"); grow.className = "grow"; bar.appendChild(grow);
@@ -225,19 +274,17 @@
     return bar;
   }
 
-  // Same footer on every page: a clear way back to the live source.
-  function footer(base) {
+  // Same footer on every page: a clear way to the raw page.
+  function footer(tab) {
+    var base = tab.final || tab.url;
     var host = hostOf(base) || base;
     var f = document.createElement("div");
     f.className = "pagefoot";
     var src = document.createElement("a");
-    src.setAttribute("data-href", base);
-    src.textContent = host;
+    src.setAttribute("data-href", base); src.textContent = host;
     var live = document.createElement("a");
-    live.className = "live";
-    live.textContent = "Open the live page";
-    live.style.cursor = "pointer";
-    live.addEventListener("click", function (e) { e.preventDefault(); window.location.href = base; });
+    live.className = "live"; live.textContent = "Open in Native"; live.style.cursor = "pointer";
+    live.addEventListener("click", function (e) { e.preventDefault(); setTabMode(tab, "native"); });
     f.appendChild(document.createTextNode("Source: "));
     f.appendChild(src);
     f.appendChild(document.createTextNode("  ·  "));
@@ -245,133 +292,263 @@
     return f;
   }
 
-  function setStatus(html) { statusEl.innerHTML = html || ""; }
+  function injectBase(html, base) {
+    var tag = '<base href="' + String(base).replace(/"/g, "&quot;") + '">';
+    if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, "<head$1>" + tag);
+    if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, "<html$1><head>" + tag + "</head>");
+    return "<head>" + tag + "</head>" + html;
+  }
 
-  // Script-built page: show a loud amber banner with one clear button.
-  function showLiveOption(url) {
-    setMode("live");
+  function setStatus(html) { statusEl.innerHTML = html || ""; }
+  function scrollTop() { if (mainEl) mainEl.scrollTop = 0; }
+
+  // ---------- tab model ----------
+  function newTab(activate) {
+    var t = { id: ++seq, url: "", mode: "zen", title: "New tab", host: "", favicon: "", html: "", final: "", hist: [], fwd: [] };
+    tabs.push(t);
+    if (activate !== false) activeId = t.id;
+    return t;
+  }
+  function activeTab() { for (var i = 0; i < tabs.length; i++) if (tabs[i].id === activeId) return tabs[i]; return null; }
+
+  function closeTab(id) {
+    var idx = -1;
+    for (var i = 0; i < tabs.length; i++) if (tabs[i].id === id) idx = i;
+    if (idx < 0) return;
+    tabs.splice(idx, 1);
+    if (!tabs.length) newTab();
+    if (activeId === id) activeId = tabs[Math.min(idx, tabs.length - 1)].id;
+    renderTabs();
+    showActive();
+  }
+
+  function chip(t) {
+    var el = document.createElement("div");
+    el.className = "tab" + (t.mode === "native" ? " native" : "") + (t.id === activeId ? " active" : "");
+    if (t.mode === "native" && t.favicon) {
+      var f = document.createElement("img"); f.className = "tfav"; f.src = t.favicon;
+      f.onerror = function () { this.style.display = "none"; };
+      el.appendChild(f);
+    } else {
+      var d = document.createElement("span"); d.className = "tdot"; el.appendChild(d);
+    }
+    var lab = document.createElement("span"); lab.className = "tlabel";
+    lab.textContent = t.mode === "native" ? (t.host || hostOf(t.url) || "native") : (t.title || "New tab");
+    el.appendChild(lab);
+    if (t.mode === "native") { var p = document.createElement("span"); p.className = "pulse"; el.appendChild(p); }
+    var x = document.createElement("span"); x.className = "tclose"; x.textContent = "×";
+    x.addEventListener("click", function (e) { e.stopPropagation(); closeTab(t.id); });
+    el.appendChild(x);
+    el.addEventListener("click", function () { if (t.id !== activeId) { activeId = t.id; renderTabs(); showActive(); } });
+    el.addEventListener("auxclick", function (e) { if (e.button === 1) { e.preventDefault(); closeTab(t.id); } });
+    return el;
+  }
+
+  function renderTabs() {
+    tabstrip.innerHTML = "";
+    for (var i = 0; i < tabs.length; i++) tabstrip.appendChild(chip(tabs[i]));
+  }
+
+  // ---------- rendering ----------
+  function renderWelcome() {
+    setMode("zen");
+    reader.innerHTML =
+      '<div class="welcome">' +
+      '<p class="kicker">UnClick / Browser</p>' +
+      '<h1>The web, calm.</h1>' +
+      '<p class="soft">Type any web address above and press Enter. UnClick rebuilds the page into Zen: one clean, calm, fast read. Flip to Native any time to see the raw live page.</p>' +
+      '<p class="soft">Tabs: <kbd>Ctrl T</kbd> new, <kbd>Ctrl W</kbd> close, <kbd>Ctrl Tab</kbd> next. Move: <kbd>Alt &larr;</kbd> / <kbd>Alt &rarr;</kbd> and your mouse side buttons. <kbd>Ctrl L</kbd> address bar.</p>' +
+      '</div>';
+    setStatus("");
+  }
+
+  function buildReader(html, base) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var title = pageTitle(doc);
+    var article = document.createElement("article"); article.className = "doc";
+    if (title) { var h0 = document.createElement("h1"); h0.textContent = title; article.appendChild(h0); }
+    stripJunk(doc);
+    var rootNode = pickRoot(doc);
+    imgCount = 0;
+    if (rootNode) clean(rootNode, base, article);
+    tidy(article);
+    if (textLen(article) < 600) {
+      var ld = jsonLdArticle(doc);
+      if (ld) {
+        article = document.createElement("article"); article.className = "doc";
+        var ht = document.createElement("h1"); ht.textContent = (ld.headline || title || "").trim(); article.appendChild(ht);
+        var paras = ld.body.split(/\n{2,}|\r\n\r\n/);
+        for (var p = 0; p < paras.length; p++) { var pp = paras[p].trim(); if (pp) { var pe = document.createElement("p"); pe.textContent = pp; article.appendChild(pe); } }
+      }
+    }
+    restructureTeasers(article);
+    var thin = textLen(article) < 200 && !article.querySelector("img");
+    return { article: article, thin: thin };
+  }
+
+  function renderZen(t) {
+    setMode("zen");
+    if (!t.html) { renderWelcome(); return; }
+    var built = buildReader(t.html, t.final || t.url);
+    if (built.thin) { showNativeBanner(t); return; }
+    var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
+    reader.innerHTML = "";
+    reader.appendChild(masthead(metaDoc, t.final || t.url));
+    reader.appendChild(built.article);
+    reader.appendChild(footer(t));
+    setStatus("");
+    bindLinks();
+    scrollTop();
+  }
+
+  function renderNative(t) {
+    setMode("native");
+    reader.innerHTML = "";
+    var frame = document.createElement("iframe");
+    frame.className = "liveframe";
+    // Sandboxed without same-origin: the live page renders and scripts run, but
+    // it cannot reach our app shell or the Tauri bridge. Safe live view.
+    frame.setAttribute("sandbox", "allow-scripts allow-forms allow-popups");
+    frame.setAttribute("referrerpolicy", "no-referrer");
+    frame.srcdoc = injectBase(t.html || "", t.final || t.url);
+    reader.appendChild(frame);
+    setStatus("");
+    scrollTop();
+  }
+
+  function renderActive() {
+    var t = activeTab();
+    if (!t) return;
+    if (t.mode === "native" && t.html) renderNative(t);
+    else renderZen(t);
+  }
+
+  // Amber banner shown when a Zen read comes back nearly empty (script-built page).
+  function showNativeBanner(t) {
+    setMode("zen");
     reader.innerHTML = "";
     var b = document.createElement("div");
     b.className = "livebanner";
     var ic = document.createElement("div"); ic.className = "lb-icon"; ic.textContent = "⚡";
     var tx = document.createElement("div"); tx.className = "lb-text";
     var st = document.createElement("strong"); st.textContent = "This page builds itself with scripts.";
-    var sp = document.createElement("span"); sp.textContent = "The calm reader sees very little here. Open the full live page instead.";
+    var sp = document.createElement("span"); sp.textContent = "Zen sees very little here. Switch to Native to see the full live page.";
     tx.appendChild(st); tx.appendChild(sp);
-    var btn = document.createElement("button"); btn.className = "lb-btn"; btn.textContent = "Show the live page";
-    btn.addEventListener("click", function () { window.location.href = url; });
+    var btn = document.createElement("button"); btn.className = "lb-btn"; btn.textContent = "Switch to Native";
+    btn.addEventListener("click", function () { setTabMode(t, "native"); });
     b.appendChild(ic); b.appendChild(tx); b.appendChild(btn);
     reader.appendChild(b);
     setStatus("");
-    var m = document.querySelector("main"); if (m) m.scrollTop = 0;
+    scrollTop();
   }
 
-  function render(url) {
-    invoke("fetch_url", { url: url }).then(function (page) {
-      var base = (page && page.final_url) || url;
-      var html = (page && page.html) || "";
-      var doc = new DOMParser().parseFromString(html, "text/html");
-      var title = metaContent(doc, "og:title");
-      if (!title && doc.querySelector("title")) title = doc.querySelector("title").textContent;
-      if (!title && doc.querySelector("h1")) title = doc.querySelector("h1").textContent;
-
-      var article = document.createElement("article");
-      article.className = "doc";
-      if (title && title.trim()) { var h0 = document.createElement("h1"); h0.textContent = title.trim(); article.appendChild(h0); }
-
-      stripJunk(doc);
-      var rootNode = pickRoot(doc);
-      imgCount = 0;
-      if (rootNode) clean(rootNode, base, article);
-      tidy(article);
-
-      // If the cleaned page is thin, try JSON-LD article body before giving up.
-      if (textLen(article) < 600) {
-        var ld = jsonLdArticle(doc);
-        if (ld) {
-          article = document.createElement("article");
-          article.className = "doc";
-          var ht = document.createElement("h1"); ht.textContent = (ld.headline || title || "").trim(); article.appendChild(ht);
-          var paras = ld.body.split(/\n{2,}|\r\n\r\n/);
-          for (var p = 0; p < paras.length; p++) { var pp = paras[p].trim(); if (pp) { var pe = document.createElement("p"); pe.textContent = pp; article.appendChild(pe); } }
-        }
-      }
-
-      if (textLen(article) < 200 && !article.querySelector("img")) { showLiveOption(url); return; }
-
-      cardify(article);
-
-      // Re-parse a fresh doc for masthead meta (stripJunk mutated the first one).
-      var metaDoc = new DOMParser().parseFromString(html, "text/html");
-      reader.innerHTML = "";
-      reader.appendChild(masthead(metaDoc, base));
-      reader.appendChild(article);
-      reader.appendChild(footer(base));
-
-      setMode("native");
-      setStatus("");
-      currentUrl = url;
-      var links = reader.querySelectorAll("a[data-href]");
-      for (var i = 0; i < links.length; i++) {
-        links[i].addEventListener("click", function (e) { e.preventDefault(); go(this.getAttribute("data-href")); });
-      }
-      var m = document.querySelector("main"); if (m) m.scrollTop = 0;
-    }).catch(function (err) {
-      setStatus("Could not load that page. " + (err && err.toString ? err.toString() : ""));
-    });
+  function bindLinks() {
+    var links = reader.querySelectorAll("a[data-href]");
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener("click", function (e) { e.preventDefault(); go(this.getAttribute("data-href")); });
+    }
   }
 
+  function syncChrome() {
+    var t = activeTab();
+    if (!t) return;
+    addr.value = t.url || "";
+    modeChip.textContent = t.mode === "native" ? "Native" : "Zen";
+    setMode(t.mode === "native" && t.html ? "native" : "zen");
+    updateNav();
+  }
+
+  function showActive() {
+    renderActive();
+    syncChrome();
+  }
+
+  function setTabMode(t, mode) {
+    t.mode = mode;
+    if (t.id === activeId) { renderActive(); syncChrome(); }
+    renderTabs();
+  }
+  function toggleMode() {
+    var t = activeTab();
+    if (!t || !t.html) return;
+    setTabMode(t, t.mode === "native" ? "zen" : "native");
+  }
+
+  // ---------- navigation ----------
   function updateNav() {
-    if (backBtn) backBtn.disabled = hist.length === 0;
-    if (fwdBtn) fwdBtn.disabled = fwd.length === 0;
+    var t = activeTab();
+    if (backBtn) backBtn.disabled = !t || t.hist.length === 0;
+    if (fwdBtn) fwdBtn.disabled = !t || t.fwd.length === 0;
   }
 
-  // mode: undefined/"new" = fresh nav, "back", "fwd", "reload".
-  function go(rawUrl, mode) {
+  // histMode: undefined/"new" = fresh nav, "back", "fwd", "reload".
+  function go(rawUrl, histMode) {
     if (!invoke) { setStatus("This page only works inside the UnClick Browser app."); return; }
     var url = normalizeUrl(rawUrl);
     if (!url) return;
-    if (!mode || mode === "new") {
-      if (currentUrl && currentUrl !== url) hist.push(currentUrl);
-      fwd = [];
-    } else if (mode === "back") {
-      if (currentUrl) fwd.push(currentUrl);
-    } else if (mode === "fwd") {
-      if (currentUrl) hist.push(currentUrl);
-    }
-    updateNav();
+    var t = activeTab();
+    if (!t) { t = newTab(); renderTabs(); }
+    if (!histMode || histMode === "new") { if (t.url && t.url !== url) t.hist.push(t.url); t.fwd = []; }
+    else if (histMode === "back") { if (t.url) t.fwd.push(t.url); }
+    else if (histMode === "fwd") { if (t.url) t.hist.push(t.url); }
+    t.url = url;
     addr.value = url;
     setStatus("Loading " + url + " ...");
-    render(url);
+    updateNav();
+    invoke("fetch_url", { url: url }).then(function (page) {
+      t.html = (page && page.html) || "";
+      t.final = (page && page.final_url) || url;
+      var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
+      t.title = pageTitle(metaDoc) || hostOf(t.final);
+      t.host = hostOf(t.final);
+      t.favicon = faviconOf(metaDoc, t.final);
+      if (t.id === activeId) { renderActive(); syncChrome(); }
+      renderTabs();
+    }).catch(function (err) {
+      if (t.id === activeId) setStatus("Could not load that page. " + (err && err.toString ? err.toString() : ""));
+    });
   }
 
-  function back() { if (hist.length) { go(hist.pop(), "back"); } }
-  function forward() { if (fwd.length) { go(fwd.pop(), "fwd"); } }
+  function back() { var t = activeTab(); if (t && t.hist.length) go(t.hist.pop(), "back"); }
+  function forward() { var t = activeTab(); if (t && t.fwd.length) go(t.fwd.pop(), "fwd"); }
 
   goBtn.addEventListener("click", function () { go(addr.value); });
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
   if (backBtn) backBtn.addEventListener("click", back);
   if (fwdBtn) fwdBtn.addEventListener("click", forward);
+  if (modeChip) modeChip.addEventListener("click", toggleMode);
+  if (newTabBtn) newTabBtn.addEventListener("click", function () { newTab(); renderTabs(); showActive(); addr.focus(); });
 
-  // Mouse side buttons: 3 = back, 4 = forward (the usual thumb buttons).
+  // Mouse side buttons: 3 = back, 4 = forward.
   window.addEventListener("mouseup", function (e) {
     if (e.button === 3) { e.preventDefault(); back(); }
     else if (e.button === 4) { e.preventDefault(); forward(); }
   });
-  window.addEventListener("auxclick", function (e) {
-    if (e.button === 3 || e.button === 4) e.preventDefault();
-  });
+  window.addEventListener("auxclick", function (e) { if (e.button === 3 || e.button === 4) e.preventDefault(); });
 
   window.addEventListener("keydown", function (e) {
     var inField = document.activeElement === addr;
-    if ((e.ctrlKey || e.metaKey) && (e.key === "l" || e.key === "k")) { e.preventDefault(); addr.focus(); addr.select(); return; }
-    if ((e.ctrlKey || e.metaKey) && e.key === "r") { e.preventDefault(); if (currentUrl) go(currentUrl, "reload"); return; }
-    if (e.key === "F5") { e.preventDefault(); if (currentUrl) go(currentUrl, "reload"); return; }
+    var mod = e.ctrlKey || e.metaKey;
+    if (mod && (e.key === "t" || e.key === "T")) { e.preventDefault(); newTab(); renderTabs(); showActive(); addr.focus(); return; }
+    if (mod && (e.key === "w" || e.key === "W")) { e.preventDefault(); closeTab(activeId); return; }
+    if (mod && e.key === "Tab") {
+      e.preventDefault();
+      if (tabs.length < 2) return;
+      var idx = 0; for (var i = 0; i < tabs.length; i++) if (tabs[i].id === activeId) idx = i;
+      var next = e.shiftKey ? (idx - 1 + tabs.length) % tabs.length : (idx + 1) % tabs.length;
+      activeId = tabs[next].id; renderTabs(); showActive(); return;
+    }
+    if (mod && (e.key === "l" || e.key === "k" || e.key === "L" || e.key === "K")) { e.preventDefault(); addr.focus(); addr.select(); return; }
+    if (mod && (e.key === "r" || e.key === "R")) { e.preventDefault(); var t = activeTab(); if (t && t.url) go(t.url, "reload"); return; }
+    if (e.key === "F5") { e.preventDefault(); var rt = activeTab(); if (rt && rt.url) go(rt.url, "reload"); return; }
     if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); back(); return; }
     if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); forward(); return; }
     if (e.key === "Backspace" && !inField) { e.preventDefault(); back(); return; }
     if (e.key === "Escape" && inField) { addr.blur(); }
   });
 
-  updateNav();
+  // start with one Zen tab on the welcome screen
+  newTab();
+  renderTabs();
+  showActive();
 })();
