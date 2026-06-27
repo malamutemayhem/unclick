@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark" data-mode="native">
+<html lang="en" data-theme="dark" data-mode="zen">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,20 +11,38 @@
     --warm:#E8A33D; --warm-ink:#2a1600; --warm-bg:rgba(232,163,61,.10); --warm-line:rgba(232,163,61,.45); --warm-head:#F0B458; --warm-soft:#c9a877;
   }
   html[data-theme="light"]{
-    --bg:#f5f7f7; --panel:#ffffff; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516;
+    --bg:#f5f7f7; --panel:#eef2f2; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516;
     --teal:#2f9fa3; --teal-ink:#ffffff;
     --warm:#C77A12; --warm-ink:#ffffff; --warm-bg:#fdf3e3; --warm-line:#e8c596; --warm-head:#8a5410; --warm-soft:#7a5a2e;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;}
   body{background:var(--bg);color:var(--text);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;}
-  /* Header is the consistent master banner. A coloured top rail tells you the mode:
-     teal = calm native reader, amber = a raw live page. */
-  header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);border-top:3px solid var(--teal);background:var(--panel);position:sticky;top:0;z-index:5;}
-  html[data-mode="live"] header{border-top-color:var(--warm);}
+
+  /* Tab strip. The 3px top rail is teal for the calm reader, amber when the
+     active tab is a raw live page. That colour is the main "where am I" tell. */
+  #tabrow{display:flex;align-items:stretch;gap:6px;padding:6px 8px 0;background:var(--panel);border-top:3px solid var(--teal);}
+  html[data-mode="native"] #tabrow{border-top-color:var(--warm);}
+  #tabstrip{display:flex;align-items:stretch;gap:4px;flex:1;overflow-x:auto;scrollbar-width:thin;}
+  .tab{display:flex;align-items:center;gap:7px;max-width:230px;min-width:124px;padding:7px 9px;border-radius:9px 9px 0 0;background:transparent;color:var(--soft);cursor:pointer;font-size:13px;white-space:nowrap;user-select:none;}
+  .tab:hover{color:var(--text);}
+  .tab.active{background:var(--bg);color:var(--head);}
+  .tab .tdot{width:13px;height:13px;border-radius:4px;background:var(--teal);flex:none;}
+  .tab.native .tfav{width:15px;height:15px;border-radius:4px;flex:none;object-fit:cover;background:var(--panel);}
+  .tab .tlabel{flex:1;overflow:hidden;text-overflow:ellipsis;}
+  .tab.native .tlabel{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .tab .pulse{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none;animation:uc-pulse 1.8s ease-in-out infinite;}
+  @keyframes uc-pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+  .tab .tclose{opacity:0;font-size:15px;line-height:1;padding:0 3px;border-radius:5px;color:var(--soft);}
+  .tab:hover .tclose,.tab.active .tclose{opacity:.55;}
+  .tab .tclose:hover{opacity:1;background:var(--line);color:var(--head);}
+  #newtab{align-self:center;background:transparent;color:var(--soft);border:1px solid var(--line);width:30px;height:30px;border-radius:8px;padding:0;font-size:18px;flex:none;}
+  #newtab:hover{color:var(--head);}
+
+  header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:relative;z-index:5;}
   .brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--head);white-space:nowrap;}
   .brand .dot{width:14px;height:14px;border-radius:4px;background:var(--teal);}
-  html[data-mode="live"] .brand .dot{background:var(--warm);}
+  html[data-mode="native"] .brand .dot{background:var(--warm);}
   .nav{display:flex;gap:6px;}
   .icobtn{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;font-weight:600;}
   .icobtn:hover{color:var(--head);}
@@ -34,12 +52,20 @@
   .bar input:focus{outline:none;border-color:var(--teal);}
   button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;cursor:pointer;background:var(--teal);color:var(--teal-ink);font-weight:600;}
   .ghost{background:transparent;color:var(--soft);border:1px solid var(--line);}
-  main{flex:1;overflow-y:auto;}
-  #status{max-width:760px;margin:0 auto;padding:12px 24px 0;color:var(--soft);font-size:14px;}
-  #status a{color:var(--teal);cursor:pointer;}
-  #reader{max-width:760px;margin:0 auto;padding:20px 24px 72px;}
+  /* The mode chip: teal "Zen" or amber "Native". Click it to flip, instantly. */
+  #modechip{background:transparent;border:1px solid var(--teal);color:var(--teal);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;letter-spacing:.02em;}
+  html[data-mode="native"] #modechip{border-color:var(--warm);color:var(--warm);}
 
-  /* Source masthead: same shape on every site, so the page always opens the same way. */
+  main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+  #status{max-width:760px;width:100%;margin:0 auto;padding:12px 24px 0;color:var(--soft);font-size:14px;}
+  #status a{color:var(--teal);cursor:pointer;}
+  #reader{max-width:760px;width:100%;margin:0 auto;padding:20px 24px 72px;}
+
+  /* Live view fills the frame edge to edge. */
+  html[data-mode="native"] #status{display:none;}
+  html[data-mode="native"] #reader{max-width:none;margin:0;padding:0;flex:1;display:flex;}
+  .liveframe{width:100%;height:100%;min-height:calc(100vh - 96px);border:0;display:block;background:#fff;}
+
   .masthead{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
   .masthead .fav{width:22px;height:22px;border-radius:6px;flex:none;background:var(--bg);object-fit:cover;margin:0;}
   .masthead .site{font-weight:600;color:var(--head);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -66,19 +92,20 @@
   .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
   .doc hr{border:0;border-top:1px solid var(--line);margin:22px 0;}
 
-  /* Teaser card: an image-plus-text link becomes one tidy row, not a tall stack. */
-  .doc a.card{display:flex;gap:14px;align-items:flex-start;padding:10px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
+  /* Teaser card: eyebrow + headline + blurb + thumb, fused into one tidy row. */
+  .doc .card{display:flex;gap:14px;align-items:flex-start;padding:12px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
   .doc a.card:hover{border-color:var(--teal);text-decoration:none;}
-  .doc a.card .card-thumb{width:132px;height:88px;flex:none;object-fit:cover;border-radius:8px;margin:0;background:var(--bg);}
-  .doc a.card .card-body{flex:1;min-width:0;color:var(--head);font-weight:600;line-height:1.35;font-size:16px;}
-  .doc a.card .card-body *{margin:0;color:inherit;font-weight:inherit;}
+  .doc .card .card-thumb{width:150px;height:100px;flex:none;object-fit:cover;border-radius:8px;margin:0;background:var(--bg);}
+  .doc .card.card-text{padding:11px 14px;}
+  .doc .card .card-body{flex:1;min-width:0;}
+  .doc .card .card-eyebrow{color:var(--teal);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;margin:0 0 4px;}
+  .doc .card .card-title{color:var(--head);font-weight:600;font-size:17px;line-height:1.3;margin:0;}
+  .doc .card .card-blurb{color:var(--soft);font-size:14px;line-height:1.5;margin:5px 0 0;}
 
-  /* Footer region: same on every page, your way back to the source. */
   .pagefoot{margin:36px 0 0;padding:14px 0 0;border-top:1px solid var(--line);color:var(--soft);font-size:14px;}
   .pagefoot a{color:var(--teal);}
   .pagefoot a.live{color:var(--warm);}
 
-  /* Live-page banner: amber, so it reads as "raw page", not the calm reader. */
   .livebanner{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:14px;border:1px solid var(--warm-line);background:var(--warm-bg);margin-top:6px;}
   .lb-icon{font-size:26px;line-height:1;}
   .lb-text{flex:1;display:flex;flex-direction:column;gap:3px;}
@@ -93,6 +120,10 @@
 </style>
 </head>
 <body>
+  <div id="tabrow">
+    <div id="tabstrip"></div>
+    <button id="newtab" title="New tab (Ctrl+T)">+</button>
+  </div>
   <header>
     <div class="nav">
       <button class="icobtn" id="back" title="Back (Alt+Left, mouse back)" disabled>&#8249;</button>
@@ -103,18 +134,12 @@
       <input id="addr" type="text" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
       <button id="go">Read</button>
     </div>
+    <button id="modechip" title="Switch between Zen (calm read) and Native (the raw page)">Zen</button>
     <button class="ghost" id="theme">Light</button>
   </header>
   <main>
     <div id="status"></div>
-    <div id="reader">
-      <div class="welcome">
-        <p class="kicker">UnClick / Browser</p>
-        <h1>The web, calm.</h1>
-        <p class="soft">Type any web address above and press Enter. UnClick fetches the page and rebuilds it into this one clean, calm format. Same look on every site.</p>
-        <p class="soft">Move around like any browser: <kbd>Alt &larr;</kbd> / <kbd>Alt &rarr;</kbd> back and forward, your mouse side buttons too, <kbd>Ctrl L</kbd> for the address bar, <kbd>Ctrl R</kbd> to reload.</p>
-      </div>
-    </div>
+    <div id="reader"></div>
   </main>
   <script src="app.js"></script>
 </body>
