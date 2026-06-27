@@ -30,15 +30,10 @@ jobs:
         continue-on-error: true
       - name: Build
         run: npm run build
-      # Brainmap staleness is a generated-artifact freshness signal, not a code
-      # defect. The brainmap-auto-update workflow regenerates it on main on a
-      # schedule, so a stale generated file must not block PR merge. Advisory
-      # only; the brainmap structure test below still blocks.
-      - name: Brainmap stale guard (advisory)
-        run: npm run brainmap:check
-        continue-on-error: true
-      - name: Brainmap structure test
-        run: npm run test:brainmap
+      - name: Brainmap stale guard
+        run: |
+          npm run brainmap:check
+          npm run test:brainmap
       - name: Tests
         run: npm test --if-present
       - name: Continuous Improvement watch guard
