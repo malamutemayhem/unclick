@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1138,
-    "source_manifest": 251,
-    "pages": 117,
+    "inventory": 1140,
+    "source_manifest": 253,
+    "pages": 119,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,13 +21,13 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 61
+      "count": 62
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 56
+      "count": 57
     },
     {
       "id": "tools",
@@ -179,6 +179,16 @@
       "meaning": "Generated ecosystem map that teaches seats what UnClick is.",
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-browser-src-pages-admin-adminbrowser-tsx-admin-browser",
+      "division": "Admin surfaces",
+      "name": "Admin Browser",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Browser.",
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "route": "/admin/browser",
       "tags": []
     },
     {
@@ -4169,6 +4179,16 @@
       "meaning": "Public tools marketplace entry point.",
       "source": "src/pages/Tools.tsx",
       "route": "/tools",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-un-click-browser-src-pages-unclickbrowser-tsx-browser",
+      "division": "Public surfaces",
+      "name": "Un Click Browser",
+      "kind": "public page",
+      "meaning": "User-facing page for Un Click Browser.",
+      "source": "src/pages/UnClickBrowser.tsx",
+      "route": "/browser",
       "tags": []
     },
     {
@@ -11588,6 +11608,12 @@
       "src/pages/admin/AdminBrainmap.tsx"
     ],
     [
+      "/admin/browser",
+      "Admin Browser",
+      "Admin surface for Admin Browser.",
+      "src/pages/admin/AdminBrowser.tsx"
+    ],
+    [
       "/admin/capability-balance",
       "Admin Capability Balance",
       "Admin surface for Admin Capability Balance.",
@@ -11868,6 +11894,12 @@
       "Verify Mfa",
       "User-facing page for Verify Mfa.",
       "src/pages/VerifyMfa.tsx"
+    ],
+    [
+      "/browser",
+      "Un Click Browser",
+      "User-facing page for Un Click Browser.",
+      "src/pages/UnClickBrowser.tsx"
     ],
     [
       "/connect/:platform",
@@ -15956,8 +15988,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "cab0a7a15c7b",
-      "bytes": 23975
+      "hash": "ac840923e824",
+      "bytes": 24260
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -15996,8 +16028,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ee6e7f0dd609",
-      "bytes": 2047
+      "hash": "90193714f71b",
+      "bytes": 2305
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -16310,6 +16342,11 @@
       "bytes": 26608
     },
     {
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "hash": "c3b7c8dbb483",
+      "bytes": 4193
+    },
+    {
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "hash": "f8080095c92c",
       "bytes": 13774
@@ -16493,6 +16530,11 @@
       "source": "src/pages/VerifyMfa.tsx",
       "hash": "f5c6b05b7844",
       "bytes": 6545
+    },
+    {
+      "source": "src/pages/UnClickBrowser.tsx",
+      "hash": "4761bb2bc945",
+      "bytes": 11236
     },
     {
       "source": "src/pages/Connect.tsx",
