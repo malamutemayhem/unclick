@@ -8,7 +8,9 @@
   var goBtn = document.getElementById("go");
   var backBtn = document.getElementById("back");
   var fwdBtn = document.getElementById("fwd");
-  var modeChip = document.getElementById("modechip");
+  var segZen = document.getElementById("segZen");
+  var segNative = document.getElementById("segNative");
+  var lockBtn = document.getElementById("lockBtn");
   var reader = document.getElementById("reader");
   var statusEl = document.getElementById("status");
   var themeBtn = document.getElementById("theme");
@@ -16,14 +18,16 @@
   var root = document.documentElement;
 
   // Two reading modes:  zen = the calm UnClick read,  native = the raw live page.
+  // Default is Zen-auto: try Zen, fall back to Native per-page, revert when able.
+  // nativeLock = true pins Native on every site until the user unlocks it.
   var tabs = [];
   var activeId = 0;
   var seq = 0;
+  var nativeLock = false;
 
   themeBtn.addEventListener("click", function () {
     var light = root.getAttribute("data-theme") === "light";
     root.setAttribute("data-theme", light ? "dark" : "light");
-    themeBtn.textContent = light ? "Light" : "Dark";
   });
 
   function setMode(mode) { root.setAttribute("data-mode", mode); }
@@ -427,8 +431,10 @@
   function renderActive() {
     var t = activeTab();
     if (!t) return;
-    if (t.mode === "native" && t.html) renderNative(t);
-    else renderZen(t);
+    if (!t.html) { renderZen(t); return; }              // welcome screen
+    if (nativeLock) { t.mode = "native"; renderNative(t); return; }
+    if (t.mode === "native") { renderNative(t); return; }
+    renderZen(t);                                        // may auto-fall back to Native
   }
 
   // A small, low-key toast that fades on its own. Used for quiet hints like
@@ -454,9 +460,19 @@
     var t = activeTab();
     if (!t) return;
     addr.value = t.url || "";
-    modeChip.textContent = t.mode === "native" ? "Native" : "Zen";
-    setMode(t.mode === "native" && t.html ? "native" : "zen");
+    var showingNative = (nativeLock || t.mode === "native") && !!t.html;
+    setMode(showingNative ? "native" : "zen");
+    updateSeg(showingNative);
     updateNav();
+  }
+
+  function updateSeg(showingNative) {
+    if (segZen) segZen.classList.toggle("active", !showingNative);
+    if (segNative) segNative.classList.toggle("active", !!showingNative);
+    if (lockBtn) {
+      lockBtn.classList.toggle("on", nativeLock);
+      lockBtn.title = nativeLock ? "Native locked on every site (click to unlock)" : "Lock Native on every site";
+    }
   }
 
   function showActive() {
@@ -469,10 +485,25 @@
     if (t.id === activeId) { renderActive(); syncChrome(); }
     renderTabs();
   }
-  function toggleMode() {
+  // Zen-auto: drop any Native lock and try the calm read (auto-falls back if thin).
+  function setPrefZen() {
+    nativeLock = false;
     var t = activeTab();
-    if (!t || !t.html) return;
-    setTabMode(t, t.mode === "native" ? "zen" : "native");
+    if (t) { t.mode = "zen"; if (t.html) renderActive(); }
+    syncChrome(); renderTabs();
+  }
+  // Native for this view (not locked - the next site goes back to Zen-auto).
+  function setPrefNative() {
+    var t = activeTab();
+    if (t) { t.mode = "native"; if (t.html) renderActive(); }
+    syncChrome(); renderTabs();
+  }
+  // The lock: keep Native on every site, or release back to Zen-auto.
+  function toggleLock() {
+    nativeLock = !nativeLock;
+    var t = activeTab();
+    if (t) { t.mode = nativeLock ? "native" : "zen"; if (t.html) renderActive(); }
+    syncChrome(); renderTabs();
   }
 
   // ---------- navigation ----------
@@ -503,6 +534,8 @@
       t.title = pageTitle(metaDoc) || hostOf(t.final);
       t.host = hostOf(t.final);
       t.favicon = faviconOf(metaDoc, t.final);
+      // Each fresh load re-tries Zen unless Native is locked (auto-revert).
+      t.mode = nativeLock ? "native" : "zen";
       if (t.id === activeId) { renderActive(); syncChrome(); }
       renderTabs();
     }).catch(function (err) {
@@ -517,7 +550,9 @@
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
   if (backBtn) backBtn.addEventListener("click", back);
   if (fwdBtn) fwdBtn.addEventListener("click", forward);
-  if (modeChip) modeChip.addEventListener("click", toggleMode);
+  if (segZen) segZen.addEventListener("click", setPrefZen);
+  if (segNative) segNative.addEventListener("click", setPrefNative);
+  if (lockBtn) lockBtn.addEventListener("click", toggleLock);
   if (newTabBtn) newTabBtn.addEventListener("click", function () { newTab(); renderTabs(); showActive(); addr.focus(); });
 
   // Mouse side buttons: 3 = back, 4 = forward.
