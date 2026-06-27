@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "note": "Expected baskets per fixture for the Lane 8 harness. Basket names use the canonical CanonicalBlock.kind vocabulary from BASKETS_ENGINE_PLAN.md Section 3.4. The harness only scores baskets whose type is actually registered in UCB.baskets at run time, so unimplemented lanes show as 'pending' rather than failing the gate.",
+  "aliases": {
+    "grid": "teaser",
+    "list": "teaser",
+    "teaser-card": "teaser",
+    "card": "teaser",
+    "cards": "teaser",
+    "article": "article-body",
+    "body": "article-body",
+    "prose": "article-body",
+    "nav": "menu",
+    "megamenu": "menu",
+    "logo": "masthead",
+    "banner": "masthead",
+    "pagefoot": "footer",
+    "crumbs": "breadcrumb",
+    "slider": "carousel",
+    "embed-card": "embed",
+    "media": "embed"
+  },
+  "thresholds": {
+    "precision": 0.5,
+    "recall": 0.5,
+    "maxFixtureErrors": 0,
+    "note": "Floors are enforced only with --strict. Default run passes when no fixture throws, so the harness stays green on a partial engine and on the v0.5.x baseline."
+  },
+  "fixtures": [
+    {
+      "file": "news-listing.html",
+      "category": "news-listing",
+      "framework": "wordpress",
+      "expect": { "baskets": ["masthead", "breadcrumb", "teaser", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "news-article.html",
+      "category": "news-article",
+      "framework": "nextjs",
+      "expect": { "baskets": ["masthead", "breadcrumb", "hero", "article-body", "footer"], "usedNative": false }
+    },
+    {
+      "file": "blog-index.html",
+      "category": "blog-index",
+      "framework": "ghost",
+      "expect": { "baskets": ["masthead", "teaser", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "blog-post.html",
+      "category": "blog-post",
+      "framework": "ghost",
+      "expect": { "baskets": ["masthead", "hero", "article-body", "footer"], "usedNative": false }
+    },
+    {
+      "file": "ecommerce-grid.html",
+      "category": "ecommerce-grid",
+      "framework": "shopify",
+      "expect": { "baskets": ["masthead", "menu", "teaser", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "product-page.html",
+      "category": "product-page",
+      "framework": "shopify",
+      "expect": { "baskets": ["masthead", "hero", "stats", "article-body", "footer"], "usedNative": false }
+    },
+    {
+      "file": "docs.html",
+      "category": "docs",
+      "framework": "docusaurus",
+      "expect": { "baskets": ["masthead", "menu", "breadcrumb", "article-body", "table", "footer"], "usedNative": false }
+    },
+    {
+      "file": "gov-info.html",
+      "category": "gov-info",
+      "framework": "drupal",
+      "expect": { "baskets": ["masthead", "breadcrumb", "article-body", "table", "footer"], "usedNative": false }
+    },
+    {
+      "file": "spa-shell.html",
+      "category": "spa-shell",
+      "framework": "vite",
+      "expect": { "baskets": [], "usedNative": true }
+    },
+    {
+      "file": "megamenu-retailer.html",
+      "category": "megamenu-retailer",
+      "framework": "webflow",
+      "expect": { "baskets": ["masthead", "menu", "teaser", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "table-heavy.html",
+      "category": "table-heavy",
+      "framework": "unknown",
+      "expect": { "baskets": ["masthead", "table", "footer"], "usedNative": false }
+    },
+    {
+      "file": "carousel-heavy.html",
+      "category": "carousel-heavy",
+      "framework": "squarespace",
+      "expect": { "baskets": ["masthead", "hero", "carousel", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "stats-landing.html",
+      "category": "stats-landing",
+      "framework": "unknown",
+      "expect": { "baskets": ["masthead", "hero", "stats", "teaser", "footer"], "repeatGroups": 1, "usedNative": false }
+    },
+    {
+      "file": "minimal-empty.html",
+      "category": "edge-empty",
+      "framework": "unknown",
+      "expect": { "baskets": [], "usedNative": true }
+    }
+  ]
+}
