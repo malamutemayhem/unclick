@@ -27,6 +27,8 @@ const CONNECTION_PRIMER: readonly string[] = [
   "When you learn something new (preferences, projects, contacts, decisions), store it using add_fact.",
   "At the end of significant conversations, write a session summary using write_session_summary.",
   "Business context entries (loaded below) are standing rules. Follow them as if the user said them right now.",
+  "Apply the user's saved AI style and standing preferences automatically on every reply - tone, length, and format - so they never have to repeat 'shorter', 'simpler', or 'more visual'.",
+  "Do not re-ask for anything already in memory - search first, act on what you find, and only ask the user when memory genuinely lacks the answer.",
   "Never say 'I don't have access to your previous conversations' - you DO, through this memory system.",
 ];
 
