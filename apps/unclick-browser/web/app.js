@@ -5,7 +5,6 @@
   var tabstrip = document.getElementById("tabstrip");
   var newTabBtn = document.getElementById("newtab");
   var addr = document.getElementById("addr");
-  var goBtn = document.getElementById("go");
   var backBtn = document.getElementById("back");
   var fwdBtn = document.getElementById("fwd");
   var segZen = document.getElementById("segZen");
@@ -546,7 +545,6 @@
   function back() { var t = activeTab(); if (t && t.hist.length) go(t.hist.pop(), "back"); }
   function forward() { var t = activeTab(); if (t && t.fwd.length) go(t.fwd.pop(), "fwd"); }
 
-  goBtn.addEventListener("click", function () { go(addr.value); });
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
   if (backBtn) backBtn.addEventListener("click", back);
   if (fwdBtn) fwdBtn.addEventListener("click", forward);
