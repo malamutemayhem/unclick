@@ -22,15 +22,15 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | cab0a7a15c7b | 23975 |
-| src/pages/admin/AdminShell.tsx | 82f4d9ee4721 | 33849 |
+| src/App.tsx | d0a17ae939d7 | 24407 |
+| src/pages/admin/AdminShell.tsx | 882d0f50c475 | 33987 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
+| .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
 | package.json | 989f2a2ed48d | 7828 |
@@ -93,8 +93,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
 | src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
+| src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
-| src/pages/admin/AdminChat.tsx | ffcb94d7cf28 | 6046 |
+| src/pages/admin/AdminChat.tsx | 9ceacf7f9203 | 7266 |
 | src/pages/admin/AdminCircle.tsx | 76282f364efd | 16913 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
@@ -104,6 +105,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 2871e49013fa | 5931 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
+| src/pages/admin/AdminInduction.tsx | ba29a76752db | 13681 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
 | src/pages/admin/AdminKeychain.tsx | d24135238f4d | 70823 |
@@ -130,6 +132,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
+| src/pages/UnClickBrowser.tsx | 4761bb2bc945 | 11236 |
 | src/pages/Connect.tsx | b010830d8d67 | 34860 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
@@ -269,8 +272,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 61 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
+| Admin surfaces | Private operator views and internal control panels. | 63 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 57 |
 | Tools | MCP and gateway capabilities available to seats. | 676 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -332,6 +335,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/boardroom | Boardroom | Admin surface for Boardroom. | src/pages/admin/Boardroom.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
+| /admin/browser | Admin Browser | Admin surface for Admin Browser. | src/pages/admin/AdminBrowser.tsx |
 | /admin/capability-balance | Admin Capability Balance | Admin surface for Admin Capability Balance. | src/pages/admin/AdminCapabilityBalance.tsx |
 | /admin/chat | Admin Chat | Admin surface for Admin Chat. | src/pages/admin/AdminChat.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
@@ -347,6 +351,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/crews/settings | Crews Settings | Crews admin page for Crews Settings. | src/pages/admin/crews/CrewsSettings.tsx |
 | /admin/crews | Crews Catalog | Crews admin page for Crews Catalog. | src/pages/admin/crews/CrewsCatalog.tsx |
 | /admin/dashboard | Admin Dashboard | Front door for current operator state. | src/pages/admin/AdminDashboard.tsx |
+| /admin/induction | Admin Induction | Admin surface for Admin Induction. | src/pages/admin/AdminInduction.tsx |
 | /admin/jobs | Admin Jobs | Operational job and task queue. | src/pages/admin/AdminJobs.tsx |
 | /admin/jobsmith | Admin Jobsmith | Admin surface for Admin Jobsmith. | src/pages/admin/AdminJobsmith.tsx |
 | /admin/keychain | Admin Keychain | Passport and credential connection health. | src/pages/admin/AdminKeychain.tsx |
@@ -379,6 +384,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /apps | Apps | User-facing page for Apps. | src/pages/Apps.tsx |
 | /auth/callback | Auth Callback | User-facing page for Auth Callback. | src/pages/AuthCallback.tsx |
 | /auth/verify-mfa | Verify Mfa | User-facing page for Verify Mfa. | src/pages/VerifyMfa.tsx |
+| /browser | Un Click Browser | User-facing page for Un Click Browser. | src/pages/UnClickBrowser.tsx |
 | /connect/:platform | Connect | User-facing page for Connect. | src/pages/Connect.tsx |
 | /crews | Crews | Public Crews explanation and entry point. | src/pages/Crews.tsx |
 | /developers/docs | Developer Docs | Developer documentation. | src/pages/DeveloperDocs.tsx |
@@ -1125,6 +1131,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
+| Admin surfaces | admin page | Admin Browser | Admin surface for Admin Browser. | /admin/browser | src/pages/admin/AdminBrowser.tsx |
 | Admin surfaces | admin page | Admin Capability Balance | Admin surface for Admin Capability Balance. | /admin/capability-balance | src/pages/admin/AdminCapabilityBalance.tsx |
 | Admin surfaces | admin page | Admin Chat | Admin surface for Admin Chat. | /admin/chat | src/pages/admin/AdminChat.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
@@ -1134,6 +1141,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | /admin/controltower | src/pages/admin/AdminControlTower.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
 | Admin surfaces | admin page | Admin Express Build | Admin surface for Admin Express Build. | /admin/autopilot/expressbuild | src/pages/admin/AdminExpressBuild.tsx |
+| Admin surfaces | admin page | Admin Induction | Admin surface for Admin Induction. | /admin/induction | src/pages/admin/AdminInduction.tsx |
 | Admin surfaces | admin page | Admin Jobs | Operational job and task queue. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
 | Admin surfaces | admin page | Admin Jobsmith | Admin surface for Admin Jobsmith. | /admin/jobsmith | src/pages/admin/AdminJobsmith.tsx |
 | Admin surfaces | admin page | Admin Keychain | Passport and credential connection health. | /admin/keychain | src/pages/admin/AdminKeychain.tsx |
@@ -1524,6 +1532,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Solve | Tool page for Solve. | /tools/solve | src/pages/tools/Solve.tsx |
 | Public surfaces | public page | Terms | Terms of service. | /terms | src/pages/Terms.tsx |
 | Public surfaces | public page | Tools | Public tools marketplace entry point. | /tools | src/pages/Tools.tsx |
+| Public surfaces | public page | Un Click Browser | User-facing page for Un Click Browser. | /browser | src/pages/UnClickBrowser.tsx |
 | Public surfaces | public page | Verify Mfa | User-facing page for Verify Mfa. | /auth/verify-mfa | src/pages/VerifyMfa.tsx |
 | Public surfaces | public page | Vibe Coding | User-facing page for Vibe Coding. | /developers/vibe-coding | src/pages/VibeCoding.tsx |
 | Public surfaces | public page | Why | User-facing page for Why. | /why | src/pages/Why.tsx |

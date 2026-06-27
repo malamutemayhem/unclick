@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1138,
-    "source_manifest": 251,
-    "pages": 117,
+    "inventory": 1141,
+    "source_manifest": 254,
+    "pages": 120,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,13 +21,13 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 61
+      "count": 63
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 56
+      "count": 57
     },
     {
       "id": "tools",
@@ -182,6 +182,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-admin-browser-src-pages-admin-adminbrowser-tsx-admin-browser",
+      "division": "Admin surfaces",
+      "name": "Admin Browser",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Browser.",
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "route": "/admin/browser",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-admin-capability-balance-src-pages-admin-admincapabilitybalance-tsx-admin-capability-balance",
       "division": "Admin surfaces",
       "name": "Admin Capability Balance",
@@ -269,6 +279,16 @@
       "meaning": "Admin surface for Admin Express Build.",
       "source": "src/pages/admin/AdminExpressBuild.tsx",
       "route": "/admin/autopilot/expressbuild",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-induction-src-pages-admin-admininduction-tsx-admin-induction",
+      "division": "Admin surfaces",
+      "name": "Admin Induction",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Induction.",
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "route": "/admin/induction",
       "tags": []
     },
     {
@@ -4169,6 +4189,16 @@
       "meaning": "Public tools marketplace entry point.",
       "source": "src/pages/Tools.tsx",
       "route": "/tools",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-un-click-browser-src-pages-unclickbrowser-tsx-browser",
+      "division": "Public surfaces",
+      "name": "Un Click Browser",
+      "kind": "public page",
+      "meaning": "User-facing page for Un Click Browser.",
+      "source": "src/pages/UnClickBrowser.tsx",
+      "route": "/browser",
       "tags": []
     },
     {
@@ -11588,6 +11618,12 @@
       "src/pages/admin/AdminBrainmap.tsx"
     ],
     [
+      "/admin/browser",
+      "Admin Browser",
+      "Admin surface for Admin Browser.",
+      "src/pages/admin/AdminBrowser.tsx"
+    ],
+    [
       "/admin/capability-balance",
       "Admin Capability Balance",
       "Admin surface for Admin Capability Balance.",
@@ -11676,6 +11712,12 @@
       "Admin Dashboard",
       "Front door for current operator state.",
       "src/pages/admin/AdminDashboard.tsx"
+    ],
+    [
+      "/admin/induction",
+      "Admin Induction",
+      "Admin surface for Admin Induction.",
+      "src/pages/admin/AdminInduction.tsx"
     ],
     [
       "/admin/jobs",
@@ -11868,6 +11910,12 @@
       "Verify Mfa",
       "User-facing page for Verify Mfa.",
       "src/pages/VerifyMfa.tsx"
+    ],
+    [
+      "/browser",
+      "Un Click Browser",
+      "User-facing page for Un Click Browser.",
+      "src/pages/UnClickBrowser.tsx"
     ],
     [
       "/connect/:platform",
@@ -15956,13 +16004,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "cab0a7a15c7b",
-      "bytes": 23975
+      "hash": "d0a17ae939d7",
+      "bytes": 24407
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "82f4d9ee4721",
-      "bytes": 33849
+      "hash": "882d0f50c475",
+      "bytes": 33987
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15996,8 +16044,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ee6e7f0dd609",
-      "bytes": 2047
+      "hash": "ab3e717a4ae9",
+      "bytes": 1663
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -16310,14 +16358,19 @@
       "bytes": 26608
     },
     {
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "hash": "c3b7c8dbb483",
+      "bytes": 4193
+    },
+    {
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "hash": "f8080095c92c",
       "bytes": 13774
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "ffcb94d7cf28",
-      "bytes": 6046
+      "hash": "9ceacf7f9203",
+      "bytes": 7266
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -16363,6 +16416,11 @@
       "source": "src/pages/admin/AdminDashboard.tsx",
       "hash": "e38f909e6d5b",
       "bytes": 7090
+    },
+    {
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "hash": "ba29a76752db",
+      "bytes": 13681
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -16493,6 +16551,11 @@
       "source": "src/pages/VerifyMfa.tsx",
       "hash": "f5c6b05b7844",
       "bytes": 6545
+    },
+    {
+      "source": "src/pages/UnClickBrowser.tsx",
+      "hash": "4761bb2bc945",
+      "bytes": 11236
     },
     {
       "source": "src/pages/Connect.tsx",
