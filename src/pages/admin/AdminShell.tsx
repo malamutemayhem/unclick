@@ -70,6 +70,7 @@ import {
   SlidersHorizontal,
   Trophy,
   TowerControl,
+  GraduationCap,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -715,6 +716,7 @@ function SidebarNav({
       <SectionHeader label="Agents" />
       <SeatsNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/induction" label="Induction"               icon={GraduationCap} onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
 
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}
@@ -783,7 +785,7 @@ export default function AdminShell() {
 
   return (
     <div className="flex min-h-screen text-foreground">
-      {/* ── Desktop sidebar (md+) ───────────────── */}
+      {/* ── Desktop sidebar (md+) ────────────────── */}
       <aside className={`fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-[#06202c]/70 backdrop-blur-xl ${collapsed ? "" : "md:flex"}`} style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
@@ -899,7 +901,7 @@ export default function AdminShell() {
         </div>
       )}
 
-      {/* ── Main content ────────────────────── */}
+      {/* ── Main content ───────────────────── */}
       <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
