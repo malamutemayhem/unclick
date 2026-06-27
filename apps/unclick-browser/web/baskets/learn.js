@@ -320,7 +320,9 @@ UCB.baskets = UCB.baskets || {};
         if (!win || !win.region) { continue; }
         var score = typeof win.score === "number" ? win.score : 0;
         if (score < config.recordMinScore) { continue; }
-        var basket = basketType(win.basket);
+        // classify emits { region, basket(object), type(string), score }; prefer the
+        // explicit type string, fall back to reading .type off the basket object.
+        var basket = basketType(win.type) || basketType(win.basket);
         if (!basket) { continue; }
         var node = win.region.node || win.region;
         var selector = sharedSelector(node);
