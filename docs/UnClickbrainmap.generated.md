@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | cab0a7a15c7b | 23975 |
-| src/pages/admin/AdminShell.tsx | 82f4d9ee4721 | 33849 |
+| src/App.tsx | 14314b5ba07f | 24453 |
+| src/pages/admin/AdminShell.tsx | 7b1bf91058df | 33866 |
 | src/pages/admin/AdminBackstagePass.tsx | 783eb21efbf6 | 8807 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
