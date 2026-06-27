@@ -390,7 +390,15 @@
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
     var built = buildReader(t.html, t.final || t.url);
-    if (built.thin) { showNativeBanner(t); return; }
+    if (built.thin) {
+      // Nothing worth simplifying on this one, so just show it live - quietly.
+      t.mode = "native";
+      renderNative(t);
+      renderTabs();
+      syncChrome();
+      flash("Best viewed live");
+      return;
+    }
     var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
     reader.innerHTML = "";
     reader.appendChild(masthead(metaDoc, t.final || t.url));
@@ -423,23 +431,16 @@
     else renderZen(t);
   }
 
-  // Amber banner shown when a Zen read comes back nearly empty (script-built page).
-  function showNativeBanner(t) {
-    setMode("zen");
-    reader.innerHTML = "";
-    var b = document.createElement("div");
-    b.className = "livebanner";
-    var ic = document.createElement("div"); ic.className = "lb-icon"; ic.textContent = "⚡";
-    var tx = document.createElement("div"); tx.className = "lb-text";
-    var st = document.createElement("strong"); st.textContent = "This page builds itself with scripts.";
-    var sp = document.createElement("span"); sp.textContent = "Zen sees very little here. Switch to Native to see the full live page.";
-    tx.appendChild(st); tx.appendChild(sp);
-    var btn = document.createElement("button"); btn.className = "lb-btn"; btn.textContent = "Switch to Native";
-    btn.addEventListener("click", function () { setTabMode(t, "native"); });
-    b.appendChild(ic); b.appendChild(tx); b.appendChild(btn);
-    reader.appendChild(b);
-    setStatus("");
-    scrollTop();
+  // A small, low-key toast that fades on its own. Used for quiet hints like
+  // "we showed you the live page because there was nothing to simplify".
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function flash(msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 3500);
   }
 
   function bindLinks() {
