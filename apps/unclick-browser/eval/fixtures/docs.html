@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Docusaurus v3.1.0">
+  <title>Configuration - Acme SDK Docs</title>
+  <meta property="og:site_name" content="Acme SDK">
+</head>
+<body class="docs">
+  <header class="navbar">
+    <a class="navbar__brand" href="/"><img src="/img/acme-logo.svg" alt="Acme SDK"></a>
+    <nav class="navbar__items"><a href="/docs">Docs</a><a href="/api">API</a><a href="/blog">Blog</a></nav>
+  </header>
+
+  <div class="docs-layout">
+    <nav class="sidebar" aria-label="Docs">
+      <ul class="menu__list">
+        <li><a href="/docs/intro">Introduction</a></li>
+        <li><a href="/docs/install">Installation</a></li>
+        <li><a href="/docs/config">Configuration</a></li>
+        <li><a href="/docs/auth">Authentication</a></li>
+        <li><a href="/docs/cli">CLI reference</a></li>
+        <li><a href="/docs/faq">FAQ</a></li>
+      </ul>
+    </nav>
+
+    <main class="docs-main">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <ol><li><a href="/docs">Docs</a></li><li aria-current="page">Configuration</li></ol>
+      </nav>
+      <article class="markdown">
+        <h1>Configuration</h1>
+        <p>The Acme SDK reads configuration from a single file at the root of your project. Every key is optional and falls back to a sensible default.</p>
+        <p>Configuration is resolved once at startup and cached for the lifetime of the process.</p>
+        <h2>Options</h2>
+        <table class="config-table">
+          <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>timeout</td><td>number</td><td>8000</td><td>Request timeout in milliseconds.</td></tr>
+            <tr><td>retries</td><td>number</td><td>3</td><td>How many times to retry a failed request.</td></tr>
+            <tr><td>baseUrl</td><td>string</td><td>https://api.acme.dev</td><td>The API origin to call.</td></tr>
+            <tr><td>cache</td><td>boolean</td><td>true</td><td>Whether to cache idempotent responses.</td></tr>
+          </tbody>
+        </table>
+        <p>After editing the file, restart the process for changes to take effect.</p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer footer--dark">
+    <nav><a href="/docs">Docs</a><a href="/api">API</a><a href="/community">Community</a><a href="/github">GitHub</a></nav>
+    <p>Copyright 2026 Acme. Built with Docusaurus.</p>
+  </footer>
+</body>
+</html>
