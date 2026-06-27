@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
   "appCount": 675,
-  "toolCount": 1604,
+  "toolCount": 1606,
   "categories": [
     "AI",
     "Books",
@@ -12699,7 +12699,7 @@
       "blurb": "Connect a Supabase project for UnClick and direct MCP workflows.",
       "domain": "supabase.com",
       "network": "online",
-      "toolCount": 8,
+      "toolCount": 10,
       "tools": [
         {
           "name": "supabase_list_projects",
@@ -12712,6 +12712,14 @@
         {
           "name": "supabase_list_organizations",
           "description": "List Supabase organizations visible to the connected Supabase account. Read-only Management API call."
+        },
+        {
+          "name": "supabase_execute_sql",
+          "description": "Run a SQL statement against a Supabase project's database via the Management API. Destructive statements require confirm: true."
+        },
+        {
+          "name": "supabase_apply_migration",
+          "description": "Apply a named, tracked migration to a Supabase project's database via the Management API."
         },
         {
           "name": "vercel_get_domain",

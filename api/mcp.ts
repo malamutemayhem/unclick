@@ -377,7 +377,7 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
   const apiKeyHash = sha256hex(apiKey);
   const { data, error } = await supabase
     .from("api_keys")
-    .select("user_id, tier, is_active")
+    .select("user_id, tier, is_active, lane_hash")
     .eq("key_hash", apiKeyHash)
     .maybeSingle();
 
@@ -404,7 +404,7 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     .then(() => {});
 
   return {
-    api_key_hash: apiKeyHash,
+    api_key_hash: (data.lane_hash as string | null) ?? apiKeyHash,
     tier: effectiveMemoryTier(data.tier ?? "free", accountEmail),
     user_id: data.user_id ?? null,
     account_email: accountEmail,
@@ -419,7 +419,7 @@ async function apiKeyContextForUser(
 ): Promise<ApiKeyContext | null> {
   const { data: keyRow, error: keyErr } = await supabase
     .from("api_keys")
-    .select("key_hash, tier, is_active, last_used_at")
+    .select("key_hash, tier, is_active, last_used_at, lane_hash")
     .eq("user_id", userId)
     .eq("is_active", true)
     .order("last_used_at", { ascending: false, nullsFirst: false })
@@ -434,7 +434,7 @@ async function apiKeyContextForUser(
     .then(() => {});
 
   return {
-    api_key_hash: keyRow.key_hash,
+    api_key_hash: (keyRow.lane_hash as string | null) ?? keyRow.key_hash,
     tier: effectiveMemoryTier(keyRow.tier ?? "free", email),
     user_id: userId,
     account_email: email,

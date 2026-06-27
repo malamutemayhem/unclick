@@ -71,6 +71,7 @@ const WhyPage = lazy(() => import("./pages/Why.tsx"));
 const SmartHomePage = lazy(() => import("./pages/SmartHome.tsx"));
 const InstallRecoverPage = lazy(() => import("./pages/InstallRecover.tsx"));
 const XPassPage = lazy(() => import("./pages/XPass.tsx"));
+const UnClickBrowserPage = lazy(() => import("./pages/UnClickBrowser.tsx"));
 const DogfoodReportPage = lazy(() => import("./pages/DogfoodReport.tsx"));
 const LoginPage = lazy(() => import("./pages/Login.tsx"));
 const SignupPage = lazy(() => import("./pages/Signup.tsx"));
@@ -85,8 +86,10 @@ const AdminYou = lazy(() => import("./pages/admin/AdminYou.tsx"));
 const AdminMemory = lazy(() => import("./pages/admin/AdminMemory.tsx"));
 const AdminKeychain = lazy(() => import("./pages/admin/AdminKeychain.tsx"));
 const AdminCircle = lazy(() => import("./pages/admin/AdminCircle.tsx"));
+const AdminBrowser = lazy(() => import("./pages/admin/AdminBrowser.tsx"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools.tsx"));
 const AdminSkills = lazy(() => import("./pages/admin/AdminSkills.tsx"));
+const AdminInduction = lazy(() => import("./pages/admin/AdminInduction.tsx"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity.tsx"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings.tsx"));
 const AdminAgentsPage = lazy(() => import("./pages/admin/AdminAgents.tsx"));
@@ -101,6 +104,7 @@ const AdminCapabilityBalance = lazy(() => import("./pages/admin/AdminCapabilityB
 const AdminCodebase = lazy(() => import("./pages/admin/AdminCodebase.tsx"));
 const AdminOrchestratorPage = lazy(() => import("./pages/admin/AdminOrchestrator.tsx"));
 const AdminOrchestratorLog = lazy(() => import("./pages/admin/AdminOrchestratorLog.tsx"));
+const AdminChatPage = lazy(() => import("./pages/admin/AdminChat.tsx"));
 const AdminTestPass = lazy(() => import("./pages/admin/AdminTestPass.tsx"));
 const TestPassCatalog = lazy(() => import("./pages/admin/testpass/TestPassCatalog.tsx"));
 const NewRunWizard = lazy(() => import("./pages/admin/testpass/NewRunWizard.tsx"));
@@ -286,8 +290,10 @@ const App = () => (
             <Route path="apps" element={<AdminTools />} />
             <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />
+            <Route path="induction" element={<AdminInduction />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="browser" element={<AdminBrowser />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="autopilot" element={<AdminAutopilot />} />
             <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
@@ -325,6 +331,7 @@ const App = () => (
             <Route path="orchestrator/story" element={<Navigate to="/admin/orchestrator" replace />} />
             <Route path="orchestrator/timeline" element={<AdminOrchestratorPage />} />
             <Route path="orchestrator/log" element={<AdminOrchestratorLog />} />
+            <Route path="chat" element={<AdminChatPage />} />
             {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
             <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
             <Route path="capability-balance" element={<RequireAdmin><AdminCapabilityBalance /></RequireAdmin>} />
@@ -355,6 +362,7 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/xpass" element={<XPassPage />} />
+          <Route path="/browser" element={<UnClickBrowserPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
           {/* BuildDesk: hidden 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace
