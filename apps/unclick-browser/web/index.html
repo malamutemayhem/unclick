@@ -27,7 +27,7 @@
   .tab{display:flex;align-items:center;gap:7px;max-width:230px;min-width:124px;padding:7px 9px;border-radius:9px 9px 0 0;background:transparent;color:var(--soft);cursor:pointer;font-size:13px;white-space:nowrap;user-select:none;}
   .tab:hover{color:var(--text);}
   .tab.active{background:var(--bg);color:var(--head);}
-  .tab .tdot{width:13px;height:13px;border-radius:4px;background:var(--teal);flex:none;}
+  .tab .tdot{width:14px;height:18px;background:url(mark.svg) center/contain no-repeat;flex:none;}
   .tab.native .tfav{width:15px;height:15px;border-radius:4px;flex:none;object-fit:cover;background:var(--panel);}
   .tab .tlabel{flex:1;overflow:hidden;text-overflow:ellipsis;}
   .tab.native .tlabel{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
@@ -41,8 +41,7 @@
 
   header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:relative;z-index:5;}
   .brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--head);white-space:nowrap;}
-  .brand .dot{width:14px;height:14px;border-radius:4px;background:var(--teal);}
-  html[data-mode="native"] .brand .dot{background:var(--warm);}
+  .brand .dot{width:16px;height:21px;background:url(mark.svg) center/contain no-repeat;}
   .nav{display:flex;gap:6px;}
   .icobtn{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;font-weight:600;}
   .icobtn:hover{color:var(--head);}
@@ -106,12 +105,9 @@
   .pagefoot a{color:var(--teal);}
   .pagefoot a.live{color:var(--warm);}
 
-  .livebanner{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:14px;border:1px solid var(--warm-line);background:var(--warm-bg);margin-top:6px;}
-  .lb-icon{font-size:26px;line-height:1;}
-  .lb-text{flex:1;display:flex;flex-direction:column;gap:3px;}
-  .lb-text strong{color:var(--warm-head);font-size:17px;}
-  .lb-text span{color:var(--warm-soft);font-size:14px;}
-  .lb-btn{background:var(--warm);color:var(--warm-ink);font-weight:700;white-space:nowrap;}
+  /* Quiet auto-fading hint, bottom-centre, never blocks the page. */
+  #toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(8px);background:var(--panel);border:1px solid var(--warm-line);color:var(--warm-soft);font-size:13px;padding:7px 15px;border-radius:999px;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;z-index:50;box-shadow:0 6px 22px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
   .welcome .kicker{color:var(--teal);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 14px;}
   .welcome h1{color:var(--head);font-size:40px;line-height:1.15;margin:0 0 10px;letter-spacing:-0.02em;}
@@ -141,6 +137,7 @@
     <div id="status"></div>
     <div id="reader"></div>
   </main>
+  <div id="toast"></div>
   <script src="app.js"></script>
 </body>
 </html>
