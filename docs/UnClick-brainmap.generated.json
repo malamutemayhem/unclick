@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1138,
-    "source_manifest": 251,
-    "pages": 117,
+    "inventory": 1141,
+    "source_manifest": 254,
+    "pages": 120,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,13 +21,13 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 61
+      "count": 63
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 56
+      "count": 57
     },
     {
       "id": "tools",
@@ -152,6 +152,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-admin-backstage-pass-src-pages-admin-adminbackstagepass-tsx-admin-backstagepass",
+      "division": "Admin surfaces",
+      "name": "Admin Backstage Pass",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Backstage Pass.",
+      "source": "src/pages/admin/AdminBackstagePass.tsx",
+      "route": "/admin/backstagepass",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-admin-benchmarks-src-pages-admin-adminbenchmarks-tsx-admin-benchmarks",
       "division": "Admin surfaces",
       "name": "Admin Benchmarks",
@@ -179,6 +189,16 @@
       "meaning": "Generated ecosystem map that teaches seats what UnClick is.",
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-browser-src-pages-admin-adminbrowser-tsx-admin-browser",
+      "division": "Admin surfaces",
+      "name": "Admin Browser",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Browser.",
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "route": "/admin/browser",
       "tags": []
     },
     {
@@ -4169,6 +4189,16 @@
       "meaning": "Public tools marketplace entry point.",
       "source": "src/pages/Tools.tsx",
       "route": "/tools",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-un-click-browser-src-pages-unclickbrowser-tsx-browser",
+      "division": "Public surfaces",
+      "name": "Un Click Browser",
+      "kind": "public page",
+      "meaning": "User-facing page for Un Click Browser.",
+      "source": "src/pages/UnClickBrowser.tsx",
+      "route": "/browser",
       "tags": []
     },
     {
@@ -11564,6 +11594,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/backstagepass",
+      "Admin Backstage Pass",
+      "Admin surface for Admin Backstage Pass.",
+      "src/pages/admin/AdminBackstagePass.tsx"
+    ],
+    [
       "/admin/benchmarks",
       "Admin Benchmarks",
       "Admin surface for Admin Benchmarks.",
@@ -11586,6 +11622,12 @@
       "Admin Brainmap",
       "Generated ecosystem map that teaches seats what UnClick is.",
       "src/pages/admin/AdminBrainmap.tsx"
+    ],
+    [
+      "/admin/browser",
+      "Admin Browser",
+      "Admin surface for Admin Browser.",
+      "src/pages/admin/AdminBrowser.tsx"
     ],
     [
       "/admin/capability-balance",
@@ -11868,6 +11910,12 @@
       "Verify Mfa",
       "User-facing page for Verify Mfa.",
       "src/pages/VerifyMfa.tsx"
+    ],
+    [
+      "/browser",
+      "Un Click Browser",
+      "User-facing page for Un Click Browser.",
+      "src/pages/UnClickBrowser.tsx"
     ],
     [
       "/connect/:platform",
@@ -15956,13 +16004,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "cab0a7a15c7b",
-      "bytes": 23975
+      "hash": "14314b5ba07f",
+      "bytes": 24453
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "82f4d9ee4721",
-      "bytes": 33849
+      "hash": "7b1bf91058df",
+      "bytes": 33866
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15996,8 +16044,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ee6e7f0dd609",
-      "bytes": 2047
+      "hash": "90193714f71b",
+      "bytes": 2305
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -16295,6 +16343,11 @@
       "bytes": 13772
     },
     {
+      "source": "src/pages/admin/AdminBackstagePass.tsx",
+      "hash": "783eb21efbf6",
+      "bytes": 8807
+    },
+    {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
       "hash": "d3f1d4d1e298",
       "bytes": 25705
@@ -16308,6 +16361,11 @@
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "hash": "48525d7a37d1",
       "bytes": 26608
+    },
+    {
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "hash": "c3b7c8dbb483",
+      "bytes": 4193
     },
     {
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
@@ -16493,6 +16551,11 @@
       "source": "src/pages/VerifyMfa.tsx",
       "hash": "f5c6b05b7844",
       "bytes": 6545
+    },
+    {
+      "source": "src/pages/UnClickBrowser.tsx",
+      "hash": "4761bb2bc945",
+      "bytes": 11236
     },
     {
       "source": "src/pages/Connect.tsx",
