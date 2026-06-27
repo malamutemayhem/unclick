@@ -297,7 +297,7 @@
 
   function injectBase(html, base) {
     var tag = '<base href="' + String(base).replace(/"/g, "&quot;") + '">';
-    if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, "<head$1>" + tag);
+    if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, "<hea$1>" + tag);
     if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, "<html$1><head>" + tag + "</head>");
     return "<head>" + tag + "</head>" + html;
   }
@@ -389,9 +389,36 @@
     return { article: article, thin: thin };
   }
 
+  // Engine-first: for listing-shaped pages the baskets engine produces a clean
+  // card grid (its strength). Fully guarded; on anything it does not strongly
+  // simplify (articles, tables, thin pages) it returns false and we fall through
+  // to the proven reader below, so this can never regress a page.
+  function tryEngineListing(t) {
+    try {
+      if (!window.UCB || !UCB.pipeline || typeof UCB.pipeline.run !== "function") return false;
+      var res = UCB.pipeline.run(t.html, t.final || t.url);
+      if (!res || !res.blocks || !res.blocks.length) return false;
+      var listing = false;
+      for (var i = 0; i < res.blocks.length; i++) {
+        var b = res.blocks[i];
+        if ((b.kind === "grid" || b.kind === "carousel" || b.kind === "gallery") && b.items && b.items.length >= 3) { listing = true; break; }
+      }
+      if (!listing || typeof UCB.renderCanonical !== "function") return false;
+      var frag = UCB.renderCanonical(res.blocks);
+      if (!frag || !frag.childNodes || !frag.childNodes.length) return false;
+      reader.innerHTML = "";
+      reader.appendChild(frag);
+      setStatus("");
+      bindLinks();
+      scrollTop();
+      return true;
+    } catch (e) { return false; }
+  }
+
   function renderZen(t) {
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
+    if (tryEngineListing(t)) return;
     var built = buildReader(t.html, t.final || t.url);
     if (built.thin) {
       // Nothing worth simplifying on this one, so just show it live - quietly.
