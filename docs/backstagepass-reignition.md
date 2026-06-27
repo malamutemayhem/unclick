@@ -91,3 +91,10 @@ provider-side key generation/revocation.
   the genuinely hard frontier and is out of scope for the early phases.
 - **Phase 5 - per-tenant policy + compliance reporting**: custom rotation
   windows per credential type and an overdue-credentials report.
+
+## Status
+
+Phase 1 is implemented on PR #1598: the admin control room, the per-tenant
+`backstagepass_vault_enabled` toggle, the `vault-bridge` runtime gate, and the
+`/api/backstagepass-settings` endpoint. The generated ecosystem brainmap
+includes the new admin surface at `/admin/backstagepass`.
