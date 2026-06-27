@@ -1,0 +1,6 @@
+var JUNK = /(^|[-_ ])(ad|ads)\w*|sr-only/i;
+var re = /^www\./;
+win: C:\path\to\thing
+escapes: \n \r \t \\ \/ ·
+"double" and 'single' quotes
+body.split(/\n{2,}|\r\n\r\n/);
