@@ -230,12 +230,14 @@
       var n = src[i];
       if (isHeadline(n)) {
         var unit = { href: n.getAttribute("data-href"), title: txtOf(n), image: firstImg(n), blurb: null, eyebrow: null };
+        // Look ahead a few siblings for this story's image and blurb.
         for (var f = i + 1; f < src.length && f <= i + 3; f++) {
           if (used[f]) continue;
           if (isHeadline(src[f])) break;
           if (!unit.image && isImageOnly(src[f])) { unit.image = firstImg(src[f]); used[f] = true; continue; }
           if (!unit.blurb && isBlurb(src[f])) { unit.blurb = txtOf(src[f]); used[f] = true; break; }
         }
+        // Pull a short label sitting just above the headline up as the eyebrow.
         if (out.length && isEyebrow(out[out.length - 1])) { unit.eyebrow = txtOf(out.pop()); }
         out.push(buildCard(unit));
         used[i] = true;
@@ -244,6 +246,7 @@
       out.push(n);
     }
 
+    // Only worth rebuilding if we actually formed cards.
     var made = 0;
     for (var k = 0; k < out.length; k++) { if (out[k].className && out[k].className.indexOf("card") === 0) made++; }
     if (!made) return;
