@@ -51,9 +51,20 @@
   .bar input:focus{outline:none;border-color:var(--teal);}
   button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;cursor:pointer;background:var(--teal);color:var(--teal-ink);font-weight:600;}
   .ghost{background:transparent;color:var(--soft);border:1px solid var(--line);}
-  /* The mode chip: teal "Zen" or amber "Native". Click it to flip, instantly. */
-  #modechip{background:transparent;border:1px solid var(--teal);color:var(--teal);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;letter-spacing:.02em;}
-  html[data-mode="native"] #modechip{border-color:var(--warm);color:var(--warm);}
+  /* Mode toggle: Zen (calm, auto) | Native, plus a lock to keep Native on. */
+  .modeseg{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;flex:none;}
+  .modeseg .seg{padding:6px 13px;font-size:12px;font-weight:700;color:var(--soft);cursor:pointer;user-select:none;letter-spacing:.02em;}
+  .modeseg .seg:hover{color:var(--text);}
+  .modeseg #segZen.active{background:var(--teal);color:var(--teal-ink);}
+  .modeseg #segNative.active{background:var(--warm);color:var(--warm-ink);}
+  .modeseg .seg-lock{display:flex;align-items:center;padding:6px 9px;color:var(--soft);cursor:pointer;border-left:1px solid var(--line);}
+  .modeseg .seg-lock:hover{color:var(--text);}
+  .modeseg .seg-lock.on{color:var(--warm);}
+  .iconbtn{width:36px;height:34px;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;padding:0;flex:none;}
+  .iconbtn:hover{color:var(--head);}
+  .iconbtn .ico-sun{display:none;}
+  html[data-theme="light"] .iconbtn .ico-moon{display:none;}
+  html[data-theme="light"] .iconbtn .ico-sun{display:inline;}
 
   main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
   #status{max-width:760px;width:100%;margin:0 auto;padding:12px 24px 0;color:var(--soft);font-size:14px;}
@@ -128,10 +139,13 @@
     <div class="brand"><span class="dot"></span> UnClick</div>
     <div class="bar">
       <input id="addr" type="text" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
-      <button id="go">Read</button>
     </div>
-    <button id="modechip" title="Switch between Zen (calm read) and Native (the raw page)">Zen</button>
-    <button class="ghost" id="theme">Light</button>
+    <div class="modeseg">
+      <span class="seg" id="segZen" role="button" tabindex="0" title="Zen: the calm read. Auto-shows Native when a site needs it.">Zen</span>
+      <span class="seg" id="segNative" role="button" tabindex="0" title="Native: the raw live page">Native</span>
+      <span class="seg-lock" id="lockBtn" role="button" tabindex="0" title="Lock Native on every site"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1zm2 0h6V7a3 3 0 0 0-6 0v3z"/></svg></span>
+    </div>
+    <button class="iconbtn" id="theme" title="Light / dark"><svg class="ico ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><svg class="ico ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M4.3 12H2.2M21.8 12h-2.1M5.7 5.7 4.2 4.2M19.8 19.8l-1.5-1.5M18.3 5.7l1.5-1.5M4.2 19.8l1.5-1.5"/></svg></button>
   </header>
   <main>
     <div id="status"></div>
