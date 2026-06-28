@@ -1356,7 +1356,7 @@ import {
 
 // ─── Developer / Productivity ─────────────────────────────────────────────────
 import { githubAction } from "./github-tool.js";
-import { workspaceTool } from "./workspace-tool.js";
+import { workspaceTool } from "./workspace-room.js";
 import { gitlabAction } from "./gitlab-tool.js";
 import { clickupAction } from "./clickup-tool.js";
 import { linearAction } from "./linear-tool.js";
