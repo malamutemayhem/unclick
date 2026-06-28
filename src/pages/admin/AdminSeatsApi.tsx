@@ -73,6 +73,7 @@ interface AuditEntry {
 const AI_PROVIDER_CATALOG = [
   { slug: "anthropic", name: "Anthropic", desc: "Claude API keys", placeholder: "sk-ant-..." },
   { slug: "openai", name: "OpenAI", desc: "GPT and embeddings", placeholder: "sk-..." },
+  { slug: "openrouter", name: "OpenRouter", desc: "Any model via one key", placeholder: "sk-or-v1-..." },
   { slug: "google-ai", name: "Google AI", desc: "Gemini API keys", placeholder: "AIza..." },
   { slug: "cohere", name: "Cohere", desc: "Command and embeddings", placeholder: "co-..." },
   { slug: "mistral", name: "Mistral", desc: "Mistral model access", placeholder: "..." },
