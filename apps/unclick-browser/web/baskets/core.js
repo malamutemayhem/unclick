@@ -70,6 +70,26 @@ UCB.baskets = UCB.baskets || {};
 
   function safe(fn) { try { return fn(); } catch (e) { return null; } }
 
+  // The heading that introduces a group: a short h1-h4 sitting just before the
+  // group (its previous sibling) or as the group container's own first heading.
+  // Capped in length so a stray paragraph never becomes a section title.
+  function sectionHeading(node) {
+    try {
+      if (!node) return "";
+      var prev = node.previousElementSibling;
+      var hops = 0;
+      while (prev && hops < 3) {
+        if (/^H[1-4]$/.test(prev.tagName)) { var t = (prev.textContent || "").trim(); return t.length <= 48 ? t : ""; }
+        if (prev.textContent && prev.textContent.trim()) break;   // real content between, give up
+        prev = prev.previousElementSibling; hops++;
+      }
+      var p = node.parentNode;
+      var head = (p && p.querySelector) ? p.querySelector("h1,h2,h3,h4") : null;
+      if (head && (!node.contains || !node.contains(head))) { var ht = (head.textContent || "").trim(); return ht.length <= 48 ? ht : ""; }
+      return "";
+    } catch (e) { return ""; }
+  }
+
   // ---- classify: best-scoring basket per region; claimed regions are not descended ----
   // A region is only claimed when its own best score is at least as high as the
   // best score found anywhere below it. This stops a broad container (e.g. body)
@@ -387,9 +407,55 @@ UCB.baskets = UCB.baskets || {};
         if (it.media || it.blurb || (it.meta && it.meta.price) || it.title.length > 28) content++;
         if (articleHref(it.href)) arts++;
       }
-      if (content > 0) return { kind: "grid", items: items };
-      if (arts >= Math.ceil(items.length * 0.6)) return { kind: "grid", items: items };
+      // A grid keeps the section heading that sits just above it ("Sport",
+      // "Most popular") so the page reads with the same structure as the site,
+      // not a context-free wall of cards. Nav bars never take a heading.
+      var heading = sectionHeading(region.node);
+      if (content > 0) return { kind: "grid", items: items, title: heading };
+      if (arts >= Math.ceil(items.length * 0.6)) return { kind: "grid", items: items, title: heading };
       return { kind: "menu", items: items };
+    }
+  };
+
+  // ---- hero basket: the single prominent lead story a homepage opens with. ----
+  // The teaser basket only fires on repeated groups (>= 3), so a one-off lead
+  // unit (big image + an <h1>/<h2> headline + a standfirst) was being dropped
+  // entirely. This claims it as a hero so the most important story survives.
+  // It scores below a real teaser group, and a group container is always
+  // claimed by teaser at the parent before the classifier descends to a child,
+  // so cards inside a grid never get mistaken for heroes.
+  UCB.baskets.hero = {
+    type: "hero",
+    detect: function (region, ctx) {
+      if (!region || region.kind === "group") return 0;
+      var n = region.node;
+      if (!n || !n.querySelector) return 0;
+      var h = n.querySelector("h1, h2");
+      if (!h) return 0;
+      var htext = (h.textContent || "").trim();
+      if (htext.length < 18) return 0;                 // a real headline, not "Sport"
+      if (!n.querySelector("img")) return 0;           // heroes carry a lead image
+      if (!n.querySelector("a[href]")) return 0;       // and must be navigable
+      if ((n.textContent || "").trim().length > 1400) return 0; // not a whole article/page
+      return 0.72;
+    },
+    normalize: function (region, ctx) {
+      var n = region.node;
+      var h = n.querySelector("h1, h2");
+      var a = (h && h.querySelector("a[href]")) || n.querySelector("a[href]");
+      var title = (h && (h.textContent || "").trim()) || (a && util.text(a));
+      if (!title) return null;
+      var p = n.querySelector("p,[class*=standfirst],[class*=stand-first],[class*=blurb],[class*=summary],[class*=excerpt]");
+      var blurb = p ? (p.textContent || "").trim() : "";
+      if (blurb === title) blurb = "";
+      var src = util.imgSrc(n);
+      return {
+        kind: "hero",
+        title: title.slice(0, 200),
+        blurb: blurb ? blurb.slice(0, 280) : "",
+        href: a ? util.resolve(a.getAttribute("href"), ctx.base) : "",
+        media: src ? { src: util.resolve(src, ctx.base), alt: util.attr(util.firstImg(n), "alt") } : null
+      };
     }
   };
 })();
