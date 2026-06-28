@@ -6,7 +6,14 @@ import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-import { classifyLayer, auditNaming, renderText } from "./audit-fishbowl-naming.mjs";
+import {
+  classifyLayer,
+  auditNaming,
+  renderText,
+  countLegacyOccurrences,
+  buildBaselineCounts,
+  compareToBaseline,
+} from "./audit-fishbowl-naming.mjs";
 
 let tmp;
 before(async () => {
@@ -21,6 +28,10 @@ before(async () => {
   await fs.writeFile(path.join(tmp, "docs", "history.md"), `Originally called Fishbowl. Then Popcorn. Now Boardroom.\n`);
   await fs.writeFile(path.join(tmp, "tests", "fishbowl.test.ts"), `it("fishbowl works", ()=>{})\n`);
   await fs.writeFile(path.join(tmp, "src", "clean.ts"), `// no legacy names\n`);
+  // Legacy name in the PATH but not the contents: must still be counted.
+  await fs.writeFile(path.join(tmp, "src", "components", "popcorn-free.ts"), `// clean contents\n`);
+  // Generated brainmap artifacts are excluded from the scan entirely.
+  await fs.writeFile(path.join(tmp, "docs", "UnClick-brainmap.generated.json"), `{"file":"api/fishbowl-watcher.ts"}\n`);
 });
 after(async () => { if (tmp) await fs.rm(tmp, { recursive: true, force: true }); });
 
@@ -88,6 +99,84 @@ describe("auditNaming end-to-end (real fs fixture)", () => {
     const report = await auditNaming(tmp);
     assert.ok(report.summary.files_with_fishbowl >= 2);
     assert.ok(report.summary.files_with_popcorn >= 1);
+  });
+});
+
+describe("countLegacyOccurrences (substring, the ratchet's counter)", () => {
+  test("counts plain words case-insensitively", () => {
+    assert.equal(countLegacyOccurrences("Fishbowl fishbowl FISHBOWL"), 3);
+    assert.equal(countLegacyOccurrences("popcorn Popcorn"), 2);
+  });
+  test("counts compound identifiers the word-boundary regex used to miss", () => {
+    assert.equal(countLegacyOccurrences("FishbowlProfile"), 1);
+    assert.equal(countLegacyOccurrences("fishbowl_list_todos"), 1);
+    assert.equal(countLegacyOccurrences("mc_fishbowl_todos"), 1);
+    assert.equal(countLegacyOccurrences("useFishbowlViewPrefs + FishbowlMessageLaneTag"), 2);
+  });
+  test("returns 0 for clean text", () => {
+    assert.equal(countLegacyOccurrences("Boardroom is the canonical name"), 0);
+  });
+});
+
+describe("legacy footprint includes the file path", () => {
+  test("a legacy-named file with clean contents is still reported", async () => {
+    const report = await auditNaming(tmp);
+    const pathOnly = report.matches.find((m) => m.file.endsWith("src/components/popcorn-free.ts"));
+    assert.ok(pathOnly, "expected the legacy-named-but-clean file to be reported");
+    assert.equal(pathOnly.legacy_occurrences, 1);
+    assert.equal(pathOnly.hits.fishbowl + pathOnly.hits.popcorn, 0);
+  });
+  test("generated brainmap artifacts are not scanned", async () => {
+    const report = await auditNaming(tmp);
+    const generated = report.matches.find((m) => m.file.includes("UnClick-brainmap.generated"));
+    assert.equal(generated, undefined);
+  });
+  test("renderText labels path-only matches", () => {
+    const out = renderText({
+      root: "/x",
+      filesScanned: 1,
+      summary: { files_with_fishbowl: 0, files_with_popcorn: 0, files_with_both_legacy: 0, files_with_legacy_and_boardroom: 0, total_legacy_occurrences: 1 },
+      by_layer: {
+        ui: [{ file: "src/fishbowl-x.ts", layer: "ui", hits: { fishbowl: 0, popcorn: 0, boardroom: 0 }, legacy_occurrences: 1, coexists_with_boardroom: false }],
+      },
+      matches: [],
+    });
+    assert.match(out, /legacy name in path only/);
+  });
+});
+
+describe("compareToBaseline (the ratchet)", () => {
+  const baseline = { "api/a.ts": 3, "docs/b.md": 1 };
+
+  test("clean when counts match exactly", () => {
+    const diff = compareToBaseline({ "api/a.ts": 3, "docs/b.md": 1 }, baseline);
+    assert.equal(diff.clean, true);
+  });
+  test("flags brand-new legacy files", () => {
+    const diff = compareToBaseline({ "api/a.ts": 3, "docs/b.md": 1, "src/new.ts": 2 }, baseline);
+    assert.equal(diff.clean, false);
+    assert.deepEqual(diff.newFiles, [{ file: "src/new.ts", count: 2 }]);
+  });
+  test("flags increased counts in existing files", () => {
+    const diff = compareToBaseline({ "api/a.ts": 5, "docs/b.md": 1 }, baseline);
+    assert.equal(diff.clean, false);
+    assert.deepEqual(diff.increased, [{ file: "api/a.ts", base: 3, count: 5 }]);
+  });
+  test("flags stale baseline when counts shrink or files disappear", () => {
+    const diff = compareToBaseline({ "api/a.ts": 1 }, baseline);
+    assert.equal(diff.clean, false);
+    assert.deepEqual(diff.decreased, [{ file: "api/a.ts", base: 3, count: 1 }]);
+    assert.deepEqual(diff.removed, ["docs/b.md"]);
+  });
+  test("buildBaselineCounts maps files to occurrence counts, sorted", () => {
+    const counts = buildBaselineCounts({
+      matches: [
+        { file: "b.ts", legacy_occurrences: 2 },
+        { file: "a.ts", legacy_occurrences: 7 },
+      ],
+    });
+    assert.deepEqual(Object.keys(counts), ["a.ts", "b.ts"]);
+    assert.equal(counts["a.ts"], 7);
   });
 });
 

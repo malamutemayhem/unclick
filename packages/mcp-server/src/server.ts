@@ -22,12 +22,16 @@ import { reportToolFailureBug } from "./tool-failure-report.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
+import { WORKSPACE_VISIBLE_TOOLS, handleWorkspaceTool } from "./workspace-tool.js";
 import { createHash } from "node:crypto";
+
+// Build provenance stamp, set by the release tooling. Do not edit by hand.
+export const BUILD_PROVENANCE = "f4a078b9-a81f-4871-97d2-debdf2b23f2b";
 
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
 // Fires a fire-and-forget event to the self-hosted Umami instance every time
-// an agent actually invokes a tool. Lets Chris see which tools get used.
+// an agent actually invokes a tool. Lets the operator see which tools get used.
 // No-ops silently if UMAMI_WEBSITE_ID is not set (e.g. dev / local runs).
 // Never awaited so it cannot slow or break a tool call even if Umami is down.
 function trackToolCall(toolName: string): void {
@@ -330,6 +334,7 @@ const INTERNAL_TOOLS = [
 // add_fact, write_session_summary, set_business_context) still work via
 // MEMORY_TOOL_ALIASES for backwards compatibility.
 export const VISIBLE_TOOLS = [
+  ...WORKSPACE_VISIBLE_TOOLS,
   {
     name: "load_memory",
     title: "Load memory",
@@ -864,6 +869,11 @@ export const VISIBLE_TOOLS = [
         description: { type: "string", description: "Optional longer description (max 4000 chars)" },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
         assigned_to_agent_id: { type: "string", description: "Optional agent_id of the agent who should own this todo" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day.",
+        },
       },
       required: ["agent_id", "title"],
     },
@@ -872,7 +882,8 @@ export const VISIBLE_TOOLS = [
     name: "create_expressroom_draft",
     title: "Create a DraftRoom Manual draft",
     description:
-      "Creates a Manual DraftRoom draft. Use this when a chat seat has built a visible first draft while context is fresh and needs to store the brief, job mirror, short description, and supplied draft code. " +
+      "Creates a Manual DraftRoom draft. DraftRoom is the first station when a capable subscription chat seat has fresh build context. Build or fit the smallest safe draft immediately, then store the brief, job mirror, short description, and supplied draft code. " +
+      "Do not park fresh context for a low-capacity unattended runner unless the chat seat records the exact blocker and next build step. " +
       "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later enter the official Jobs Board conveyor belt, then be integrated, tested, reviewed, and proved.",
     inputSchema: {
       type: "object" as const,
@@ -883,7 +894,11 @@ export const VISIBLE_TOOLS = [
         official_todo_id: { type: "string", description: "Optional existing Jobs Board todo id to mirror." },
         short_description: { type: "string", description: "Quick read of the draft job." },
         brief_markdown: { type: "string", description: "Detailed intake brief from the chat." },
-        supplied_code: { type: "string", description: "Draft code, patch notes, file contents, pseudocode, or test outline supplied by the chat-first builder." },
+        supplied_code: {
+          type: "string",
+          description:
+            "Required capture field for concrete code, patch notes, file contents, pseudocode, ScopePack, or test outline supplied by the chat-first builder. If no code is supplied, record the exact blocker and next build step.",
+        },
         supplied_code_status: { type: "string", enum: ["not_supplied", "partial", "complete", "unknown"], default: "not_supplied" },
         source_chat_session_id: { type: "string", description: "Optional source chat/session id." },
       },
@@ -916,7 +931,7 @@ export const VISIBLE_TOOLS = [
     name: "promote_expressroom_draft",
     title: "Insert DraftRoom draft into Jobs",
     description:
-      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
+      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. If the warm chat seat did not supply code, keep the exact blocker and next build step visible. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -933,7 +948,7 @@ export const VISIBLE_TOOLS = [
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
-      "Update a todo's title, description, priority, status, or assignee. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
+      "Update a todo's title, description, priority, status, assignee, or due date. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -945,6 +960,11 @@ export const VISIBLE_TOOLS = [
         status: { type: "string", enum: ["open", "in_progress", "done", "dropped"] },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
         assigned_to_agent_id: { type: "string", description: "Pass empty string to unassign" },
+        due_at: {
+          type: "string",
+          description:
+            "Optional due date in ISO format. A date-only value like 2026-06-15 means due by the end of that day. Pass empty string to clear.",
+        },
       },
       required: ["agent_id", "todo_id"],
     },
@@ -1560,6 +1580,7 @@ const DIRECT_TOOLS = [
 
 type RuntimeToolSchema = {
   name: string;
+  description?: string;
   inputSchema?: unknown;
 };
 
@@ -1601,8 +1622,8 @@ function registerToolInputSchema(tool: RuntimeToolSchema): void {
   if (tool.inputSchema) TOOL_INPUT_SCHEMAS.set(tool.name, tool.inputSchema);
 }
 
-for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADDITIONAL_TOOLS]) {
-  registerToolInputSchema(tool);
+for (const tools of [INTERNAL_TOOLS, VISIBLE_TOOLS, DIRECT_TOOLS, ADDITIONAL_TOOLS] as unknown as RuntimeToolSchema[][]) {
+  for (const tool of tools) registerToolInputSchema(tool);
 }
 
 export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
@@ -1714,11 +1735,11 @@ const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
 );
 
-export const ADVERTISED_TOOLS = [
-  ...VISIBLE_TOOLS,
+export const ADVERTISED_TOOLS: readonly RuntimeToolSchema[] = [
+  ...(VISIBLE_TOOLS as unknown as RuntimeToolSchema[]),
   ...EXPRESSROOM_VISIBLE_TOOLS,
   ...AUTOPILOT_VISIBLE_TOOLS,
-  ...ADDITIONAL_TOOLS,
+  ...(ADDITIONAL_TOOLS as unknown as RuntimeToolSchema[]),
 ];
 
 /** Combinators the Anthropic API rejects at the TOP level of a tool schema. */
@@ -1923,6 +1944,9 @@ export function createServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    const __workspaceResult = await handleWorkspaceTool(name, args);
+    if (__workspaceResult) return __workspaceResult;
 
     // Enforcement (defense in depth): refuse a call to an app the tenant turned
     // off, even if the client kept a stale tool list.

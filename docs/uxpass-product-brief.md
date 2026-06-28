@@ -8,11 +8,11 @@ A new agent-native usability and journey QC product for UnClick, sister to TestP
 
 ## 1. Executive summary
 
-UXPass is the journey and usability equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "can a human or AI agent understand the task, move through it, recover from mistakes, and finish with confidence." The product runs a panel of specialised critics in parallel against a live URL, Storybook component, or Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Fishbowl as todos.
+UXPass is the journey and usability equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "can a human or AI agent understand the task, move through it, recover from mistakes, and finish with confidence." The product runs a panel of specialised critics in parallel against a live URL, Storybook component, or Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Boardroom as todos.
 
 The wedge is unowned. Hotjar and Clarity show frustration after the fact. Lighthouse, axe, and performance tooling answer useful narrow questions. UXPass focuses on the end-to-end human experience: clear goal, clear first step, low friction, useful feedback, safe recovery, and a confident finish. UIPass owns the separate visible interface lane: layout, spacing, typography, responsive fit, state styling, screenshots, and visual polish.
 
-Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Fishbowl, Crews, BackstagePass and Signals all run journey QC on themselves continuously. Second, the run loop reuses Crews for the multi-critic deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Fishbowl as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
+Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Boardroom, Crews, BackstagePass and Signals all run journey QC on themselves continuously. Second, the run loop reuses Crews for the multi-critic deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Boardroom as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
 
 The build is ten chunks, each one to two days for Bailey or Cowork or Codex Worker 2. Chunks one through six ship a credible MVP (one URL, four hats, one report). Chunks seven through ten add Figma, the creative-edge hats (Agent Readability, Dark Pattern Detector), the marketing site, and the full hat roster.
 
@@ -33,14 +33,14 @@ The research surfaced roughly forty viable candidates across visual regression, 
 | 1 | **Lost Pixel** | MIT | github.com/lost-pixel/lost-pixel | Modern TypeScript, multi-mode capture (Storybook, Ladle, page, Playwright, custom), GitHub Action native, last release v3.22.0 in Nov 2024. Architecturally the closest cultural fit to TestPass and UXPass | Visual diff layer, screenshot capture pipeline |
 | 2 | **axe-core** | MPL 2.0 | github.com/dequelabs/axe-core | Industry-standard accessibility engine, ~7.1k stars, v4.11.3 released April 2025, MPL 2.0 is file-level copyleft and safe to embed | Accessibility Auditor hat brain |
 | 3 | **Lighthouse CI** | Apache 2.0 | github.com/GoogleChrome/lighthouse-ci | Canonical "fail the PR if budget regresses" pattern, v0.15.1 released June 2025. Assertion config maps one-to-one to UXPass YAML packs | Performance Engineer hat orchestrator |
-| 4 | **Stagehand** | MIT | github.com/browserbase/stagehand | AI-native Playwright wrapper with act, extract, observe, agent primitives. ~22k stars, very active. Switched in v3 to using the Chrome accessibility tree as substrate, exactly the pattern UXPass needs for agent-readability scoring | Agent Readability scorer, AI-driven flow runner |
+| 4 | **Stagehand** | MIT | upstream project repository | AI-native Playwright wrapper with act, extract, observe, agent primitives. ~22k stars, very active. Switched in v3 to using the Chrome accessibility tree as substrate, exactly the pattern UXPass needs for agent-readability scoring | Agent Readability scorer, AI-driven flow runner |
 | 5 | **rrweb** | MIT | github.com/rrweb-io/rrweb | Canonical record and replay primitive used by Sentry, PostHog and OpenReplay. ~18k stars, active | Capture engine for the replay lane and motion analysis |
 
 ### 2.2 Visual regression layer
 
 Lost Pixel is the primary fork target. Reg-suit (MIT, github.com/reg-viz/reg-suit, last commit Feb 2026) supplies the plugin model for key-generator, publisher and notifier, mapping cleanly to a YAML-pack approach. **Odiff** (MIT, github.com/dmtrKovalenko/odiff, v4.3.2 released Nov 2025) is the diff primitive of choice: SIMD-first, roughly six times faster than pixelmatch on 4K screenshots. Pixelmatch is the portable JS fallback.
 
-Skip BackstopJS (slowing maintenance, last meaningful release Sep 2024), Loki (inactive since 2023 in any meaningful sense), Wraith (PhantomJS era, abandoned), and Galen (Java/Selenium, abandoned). Avoid forking the WebPageTest master branch outright: it is licensed Polyform Shield 1.0.0, a source-available licence with an anti-competitive clause that is hostile to commercial products. The older `apache` branch is the only safely Apache 2.0 path and it lags badly.
+Skip BackstopJS (slowing maintenance, last meaningful release Sep 2024), Loki (inactive since 2023 in any meaningful sense), Wraith (PhantomJS era, abandoned), and Galen (Java/Selenium, abandoned). Avoid forking the WebPageTest master branch outright: it is licensed Polyform Shield 1.0.0, a source-available licence with a restrictive clause that is hostile to commercial products. The older `apache` branch is the only safely Apache 2.0 path and it lags badly.
 
 ### 2.3 Accessibility layer
 
@@ -57,6 +57,20 @@ Lighthouse CI is the orchestrator. **Unlighthouse** (MIT, github.com/harlan-zw/u
 `@storybook/addon-a11y` (MIT) is the canonical pattern reference for the accessibility panel UX: rule overrides, story-scoped config, deep-linking. The Storybook test runner (MIT, v0.24.2 released Nov 2025, ~270 stars) is the universal Jest-plus-Playwright wrapper for non-Vite Storybooks. `chromaui/chromatic-cli` (MIT, v16.3.0 released April 2025) is a high-quality reference for git-aware change detection and JUnit reporting, but tightly coupled to Chromatic SaaS so its value is patterns rather than drop-in reuse.
 
 Note one caveat: `@axe-core/react` does not officially support React 18 or later. Use axe-core directly.
+
+### 2.5.1 UIPass UI toolbox layer
+
+UIPass now has a curated toolbox registry in `packages/uxpass/src/ui-toolbox.ts`. The rule is simple: use proven foundations first, then add tasteful motion or community components only when they pass gates.
+
+The **core default stack** is shadcn/ui for owned React/Tailwind component files, Radix UI Primitives for accessible interaction behavior, React Aria Components or Base UI when complex accessibility and cross-device behavior matter, Floating UI for positioning, Motion for React for purposeful animation, Lucide React for recognizable icons, and the repo's existing styling helpers (`clsx`, `tailwind-merge`, `class-variance-authority`) for variant hygiene.
+
+The **recommended acceleration stack** is 21st.dev Community Components, Magic UI, Aceternity UI, and Origin UI. These are useful because they give AI seats better starting points than inventing a hero, pricing section, nav, footer, or micro-interaction from scratch. They are not free passes. UIPass must record source provenance, license fit, accessibility behavior, local design-system fit, mobile proof, reduced-motion proof, performance budget, brand fit, and screenshot evidence before implementation counts as approved.
+
+The **specialist stack** is cmdk for command palettes, Sonner for toast feedback, Embla for carousels, and Vaul for mobile drawers. These should only be used when the interaction pattern is genuinely needed. Carousels and drawers in particular must prove keyboard, touch, focus, and reachability.
+
+The **advisory stack** includes UI UX Pro Max style intelligence. It can improve taste, references, and critique prompts, but it cannot be treated as a runtime dependency, component source, license proof, or visual evidence.
+
+Continuous improvement is handled by the UIPass toolbox scoreboard: `approved`, `needs_proof`, `blocked`, `unknown_source`, `by_tier`, and `missing_gate_counts`. Repeated missing gates become improvement jobs. For example, if workers repeatedly miss reduced-motion evidence on Aceternity or Magic UI snippets, UIPass should add a fixture or prompt rule rather than relying on the operator to remind the seat.
 
 ### 2.6 Design token layer
 
@@ -82,7 +96,7 @@ From `alexpate/awesome-design-systems`: Shopify Polaris (MIT) supplies tone and 
 
 | Project | Licence | UXPass posture |
 |---|---|---|
-| WebPageTest master branch | Polyform Shield 1.0.0 | Do not fork: anti-competitive clause |
+| WebPageTest master branch | Polyform Shield 1.0.0 | Do not fork: restrictive clause |
 | Pa11y | LGPL 3.0 | Treat as inspiration, not embed |
 | Asqatasun, Equalify | AGPL v3 | Project-level copyleft, do not embed |
 | OpenReplay, PostHog EE dirs | AGPL v3 + EE | Connector only, not fork |
@@ -94,47 +108,33 @@ From `alexpate/awesome-design-systems`: Shopify Polaris (MIT) supplies tone and 
 
 ---
 
-## 3. Phase 2: Competitor analysis and the differentiation strategy
+## 3. Phase 2: Market landscape and differentiation strategy
 
-Eighteen competitors covered, organised into four lanes. The summary table below is the at-a-glance map. Detail follows.
+The market review covered visual regression, accessibility, usability, analytics, design-token, and in-context feedback tools. Public positioning should stay category-level: UXPass is not trying to be another screenshot diff, replay, or analytics product. It should be the agent-native quality layer that turns design, motion, accessibility, comprehension, and dark-pattern signals into work an AI agent can safely fix.
 
-### 3.1 Competitor summary
+### 3.1 Category summary
 
-| Competitor | Lane | Cheapest paid tier | Best feature to mirror | UXPass twist |
-|---|---|---|---|---|
-| Chromatic | Visual regression | $149/mo, 35k snapshots | TurboSnap (only changed components) | Score full screens for agent-readability, not just isolated components |
-| Percy (BrowserStack) | Visual regression | ~$99/mo Professional | Intelli-ignore for dynamic regions | Score the dynamic content's quality, do not just suppress it |
-| Applitools | Visual AI QA | ~$99 to $199/mo small team | Visual AI noise suppression | Move beyond diff to absolute aesthetic quality |
-| Argos CI | OSS visual regression | $100/mo Pro, 35k screenshots | ARIA snapshots (semantic regression) | Extend ARIA snapshots into a full agent-comprehension score |
-| Lost Pixel | OSS visual regression | "From $100" Platform | Composable Storybook + page + Playwright | First-class agent-native review, not just visual diffs |
-| Polypane | Multi-viewport browser | $9/mo Solo annual | All breakpoints and a11y simulators on one screen | Automate Polypane's manual audit and emit a numeric score |
-| Maze | Usability testing | $99/seat/mo Starter | AI moderator and 5 to 6M panel | AI agent panel returns scores in seconds, not days |
-| UXtweak | Usability testing | €49/mo annual Plus | 130-country panel | Same as Maze: AI panel for CI-speed feedback |
-| Stark | Accessibility | ~$600/yr 10 seats Grow | Continuous Accessibility (Figma plus code plus URL) | Bundle a11y, agent-readability, motion, dark patterns into one score |
-| Figma Variables | Design tokens in Figma | $15/editor/mo Pro | Variables and modes with REST API | Grade live URLs against design intent encoded in variables |
-| Builder.io Visual Copilot / Fusion | AI design-to-code | From $19/user/mo | Component mapping to your repo | Sit downstream as the grader of every Fusion-generated PR |
-| Galileo AI / Uizard | AI UI generation | Galileo $19/mo, Uizard Pro $12/seat/mo | Prompt-to-UI in seconds | Score generated UI for taste and dark patterns |
-| Vercel Speed Insights | Real Core Web Vitals | $10/mo per project | One-click CWV with HTML attribution | Add experience vitals beyond CWV |
-| Vercel Web Analytics | Event analytics | $0.00003/event on Pro | Tightly bound to Vercel deployments | Same Vercel-adjacent positioning, design-quality lens |
-| Bunny RUM | Edge perf telemetry | Bundled with CDN from $1/mo | Cheap edge perf | Position UXPass on top of any RUM, not as one |
-| Ahrefs Site Audit | SEO crawler | $29/mo Starter, $129/mo Lite | 170-plus issues per crawl | Crawl for design and dark-pattern issues, not technical SEO |
-| Hotjar | Behaviour analytics | $39/mo Plus, 100 sessions/day | Rage-click and dead-click detection | Map frustration signals into specific UI defects an agent can fix |
-| Microsoft Clarity | Behaviour analytics | Free | No session caps, free | Free is not a moat; UXPass is preventive, Clarity is reactive |
-| Lyssna | Remote usability | Free plus paid panel responses | Mix-and-match study builder | AI panel signal in seconds inside the PR |
-| Vercel Toolbar / Netlify Drawer | In-context feedback | Free on all plans | Convert comment to Linear/Jira issue | Auto-file the issue an agent already detected |
-| Sentry user feedback | Crash plus feedback | Free across all plans | Tied to Session Replay and stack trace | "Robot Sentry feedback": proactive AI defect reports filed in the same triage workflow |
+| Category | Typical buyer signal | UXPass position |
+|---|---|---|
+| Visual regression | Teams want changed screens caught before merge | Score full pages for agent-readability, not just pixel drift |
+| Visual AI QA | Teams want noise suppression and stable screenshot checks | Move beyond diffing toward absolute experience quality |
+| Multi-viewport audit | Teams want every breakpoint reviewed quickly | Automate viewport coverage and emit a readable score |
+| Usability research | Teams want evidence without waiting days for panels | Use AI panel feedback as a fast CI signal |
+| Accessibility | Teams want continuous checks across design and code | Bundle accessibility, semantics, motion, and dark-pattern risk |
+| Design tokens | Teams want live pages to match design intent | Grade URLs against explicit brand and token expectations |
+| AI UI generation | Teams want generated interfaces reviewed before shipping | Sit downstream as the quality grader for agent-built UI |
+| Performance and analytics | Teams want live user signals and real vitals | Add experience quality signals beyond speed and events |
+| In-context feedback | Teams want comments converted into tracked work | Auto-file the defect an agent can already explain and fix |
 
 ### 3.2 The pricing band
 
-Three of UXPass's most relevant peers anchor the per-month figure. Argos CI Pro starts at $100 per month for 35,000 screenshots with extra screenshots at $0.004 each ($0.0015 for Storybook). Chromatic starts at $149 per month for 35,000 snapshots. Vercel Speed Insights is $10 per project per month on Pro and Enterprise. UXPass should slot between Vercel Speed Insights and Argos: cheap enough that an indie developer adopts it on every project, expensive enough that the marginal LLM cost of fifteen hats is covered.
+The practical band sits between lightweight site telemetry and heavier visual QA suites: cheap enough for an indie developer to run on every project, but high enough to cover a multi-hat review pass and the model cost behind it.
 
-### 3.3 The blue-ocean spaces
+### 3.3 The open spaces
 
-Seven gaps no competitor occupies. UXPass should occupy all seven, but lead with the Agent Readability Score and Dark Pattern Detector because those carry the most regulatory and forward-looking weight.
+Seven category gaps matter most: AI-driven first-run experience scoring, motion design quality, automated dark-pattern detection, vector aesthetic quality, generated-background appropriateness, brand-voice match, and agent-readable UI semantics.
 
-The seven gaps: AI-driven first-run experience scoring (Maze and Lyssna take days, nobody does it per PR), motion design quality scoring (visual regression tools actively disable motion), dark pattern detection automated (Brignull's taxonomy plus EU DSA Article 25 plus the post-vacatur FTC ANPRM creates a regulatory wedge), vector aesthetic quality scoring (no tool grades whether a hero illustration is on-brand and well composed), generative background appropriateness (visual regression tools suppress AI-generated regions as noise), brand-voice-to-tone-of-voice match (no tool scores headline copy against a defined brand voice), and agent-readable UI semantics (Argos has ARIA snapshots and Stark has accessibility audits but both stop at human screen readers).
-
-The headline recommendation is unchanged from the research subagent: do not compete with Chromatic, Percy or Applitools on diff fidelity, and do not compete with Hotjar or Clarity on traffic analytics. Own "agent and human comprehension score" plus motion, dark patterns, brand voice, and aesthetic coherence.
+The headline recommendation is unchanged: own "agent and human comprehension score" plus motion, dark patterns, brand voice, and aesthetic coherence.
 
 ---
 
@@ -148,7 +148,7 @@ UXPass's headline number is a weighted 0 to 100 composite called the **UX Score*
 |---|---|---|
 | Agent Readability | 25% | The single strongest forward-looking differentiator. As LLM browsers (Atlas, Comet) and Stagehand-class agents become primary traffic, sites that fail this score will silently lose conversions. Nobody else measures it |
 | Dark Pattern Cleanliness | 25% | High weight because of regulatory teeth: EU DSA Article 25 (in force 17 Feb 2024), the forthcoming Digital Fairness Act, US state ARLs, and the post-vacatur FTC ANPRM where comments closed 13 April 2026 |
-| Aesthetic Coherence | 20% | Most visible "feels expensive" signal. Maps to bento grid quality, palette discipline, type system, modern colour and motion adoption. Hardest for competitors to copy quickly |
+| Aesthetic Coherence | 20% | Most visible "feels expensive" signal. Maps to bento grid quality, palette discipline, type system, modern colour and motion adoption. Hardest to imitate quickly |
 | Motion Quality | 15% | Motion is now a brand surface (View Transitions API reached Baseline Newly Available in October 2025). Bad motion is worse than no motion |
 | First-Run Quality | 15% | The activation gate. Maps directly to revenue. Currently invisible to all existing audit tools |
 
@@ -197,14 +197,14 @@ Six baseline packs ship with UXPass on day one, one per existing tool. Each pack
 |---|---|---|
 | TestPass | `internal/testpass-admin.yaml` | `/admin/testpass`, pack list, run detail, pack editor |
 | Memory | `internal/memory-admin.yaml` | `/admin/memory`, fact list, identity panel, session search |
-| Fishbowl | `internal/fishbowl-admin.yaml` | `/admin/fishbowl`, todos kanban, ideas, message feed |
+| Boardroom | `internal/fishbowl-admin.yaml` | `/admin/boardroom`, todos kanban, ideas, message feed |
 | Crews | `internal/crews-admin.yaml` | `/admin/crews`, council view, agent roster, run detail |
 | BackstagePass | `internal/backstagepass-admin.yaml` | `/admin/backstagepass`, vault entries, audit log |
 | Signals | `internal/signals-admin.yaml` | `/admin/signals`, route list, severity feed, channel config |
 
 ### 5.3 Result routing
 
-UXPass results route through three existing UnClick layers. Severity-tagged events go to **Signals** (action_needed for any Critical, warning for High, info for Medium, debug for Low). High-severity findings auto-create **Fishbowl todos** through the Fishbowl bolt-on, mirroring TestPass exactly. Credentials for the Figma API, Browserbase keys, and any LLM provider keys live in **BackstagePass** keyed by tenant.
+UXPass results route through three existing UnClick layers. Severity-tagged events go to **Signals** (action_needed for any Critical, warning for High, info for Medium, debug for Low). High-severity findings auto-create **Boardroom todos** through the Boardroom bolt-on, mirroring TestPass exactly. Credentials for design APIs, browser-session providers, and any LLM provider keys live in **BackstagePass** keyed by tenant.
 
 ### 5.4 The external surface remains identical in feel to TestPass
 
@@ -226,7 +226,7 @@ Step three: **Parallel hat execution.** Each hat is a single LLM call with a tig
 
 Step four: **Synthesiser.** A single Synthesiser hat reads all hat verdicts and produces the per-item composite and the UX Score. The Synthesiser also resolves overlap: if Accessibility, Visual Designer and Brand Steward all flag the same low-contrast button, the Synthesiser merges them into one finding with three corroborating sources.
 
-Step five: **Routing.** Findings flow into Signals (severity-tagged) and Fishbowl (high-severity creates a todo). The remediation chips are auto-attached to the todo so an agent picking it up has the suggested fix inline.
+Step five: **Routing.** Findings flow into Signals (severity-tagged) and Boardroom (high-severity creates a todo). The remediation chips are auto-attached to the todo so an agent picking it up has the suggested fix inline.
 
 ### 6.2 Reuse Crews where it makes sense
 
@@ -276,7 +276,7 @@ Identical in feel to TestPass. Identical CLI shape. Identical GitHub Action. Ide
 
 ### 7.1 The admin surface
 
-`/admin/uxpass` mirrors `/admin/testpass`: pack list, recent runs, scores over time, top failing items. The pack editor has a YAML preview pane on the right and a form-driven editor on the left, same as TestPass. The run detail page is where UXPass diverges richer: annotated screenshots with bounding boxes on issues, hat-by-hat verdict cards, the Synthesiser composite, the UX Score with a sub-score breakdown, before/after visual diffs (when a previous run exists), and the remediation chip queue with one-click "send to Fishbowl" buttons.
+`/admin/uxpass` mirrors `/admin/testpass`: pack list, recent runs, scores over time, top failing items. The pack editor has a YAML preview pane on the right and a form-driven editor on the left, same as TestPass. The run detail page is where UXPass diverges richer: annotated screenshots with bounding boxes on issues, hat-by-hat verdict cards, the Synthesiser composite, the UX Score with a sub-score breakdown, before/after visual diffs (when a previous run exists), and the remediation chip queue with one-click "send to Boardroom" buttons.
 
 ### 7.2 The pack format
 

@@ -1,7 +1,7 @@
 # Jobsmith Universal Rules v1
 Generated: 2026-05-18  
-Sources: cvchecklists_1, 1a, 1b, 2, 3 + prior research (40-rule v0 pack)  
-Total rules: 229  
+Sources: cvchecklists_1, 1a, 1b, 2, 3 + anti-ai-slop corpus + prior research (40-rule v0 pack)
+Total rules: 232
 Categories: AGE, AIDETECT, APPLICATION_STRATEGY, ATS, COVER, INTERVIEW_PREP, LINKEDIN, METADATA, PRIVACY, ROLE_SPECIFIC, TRUTH, VISUAL, VOICE
 
 ## How this rule pack works
@@ -1010,7 +1010,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   category: TRUTH
   what: "Every quantified claim traces to a real source: a project, role, dataset, or piece of work the applicant can point to. If the source says \"managed a team\", the draft cannot say \"managed a team of seven\"."
   why: |
-    Chris-locked standing rule. Truth is the floor; specificity is the ceiling. Detectors are not the threat; reference checks are.
+    Operator-locked standing rule. Truth is the floor; specificity is the ceiling. Detectors are not the threat; reference checks are.
   sources:
     - doc: cvchecklists_1.md
       section: C. Bullet craft
@@ -2416,7 +2416,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   decay_period_days: 90
   last_verified_at: 2026-05-18
   volatile: true
-  notes: Chris-locked standing rule; engine blocks publish.
+  notes: Operator-locked standing rule; engine blocks publish.
 ```
 
 ```yaml
@@ -2425,13 +2425,13 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   category: AIDETECT
   what: "No em dashes (U+2014) anywhere. Replace with colon, comma, two sentences, or parentheses."
   why: |
-    Em dash is now the strongest single AI tell in 2024 to 2026 drafts. Both human writers and AI detectors flag it. Chris-locked standing rule.
+    Em dash is now the strongest single AI tell in 2024 to 2026 drafts. Both human writers and AI detectors flag it. Operator-locked standing rule.
   sources:
     - doc: cvchecklists_1.md
       section: C. Punctuation tells
       round: 1
     - doc: cvchecklists_1.md
-      section: L. Chris-specific rules
+      section: L. Operator-specific rules
       round: 1
     - doc: cvchecklists_1a.md
       section: Punctuation AI Tells
@@ -2456,7 +2456,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   decay_period_days: 90
   last_verified_at: 2026-05-18
   volatile: false
-  notes: Chris-locked standing rule.
+  notes: Operator-locked standing rule.
 ```
 
 ```yaml
@@ -3303,6 +3303,90 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   last_verified_at: 2026-05-18
   volatile: false
   notes: ""
+- rule_id: JS-AIDETECT-33
+  name: no_negative_parallelism
+  category: AIDETECT
+  what: "Flag not-X-but-Y phrasing and related negative parallelism that reads like model-polished contrast."
+  why: |
+    The PR #951 anti-AI-slop corpus calls out negative parallelism as a common synthetic rhythm in CVs and cover letters. The check gives JobSmith a deterministic first pass before human review.
+  sources:
+    - doc: anti-ai-slop_1_2.md
+      section: C1/M12 negative parallelism and detector tells
+      round: 1
+    - doc: anti-ai-slop_2_2.md
+      section: Structure fixes
+      round: 1
+  applies_when:
+    doc_type: [cv, cover_letter, linkedin]
+    role_family: any
+    age_band: any
+    jurisdiction: any
+    ats_vendor: any
+  when_not_applies: A direct quote from the job ad or a named quote where the contrast is intentional and sourced.
+  check_method:
+    type: regex
+    spec: '\b(?:it''s\s+)?not\s+[^.!?]{2,80}?(?:,\s*)?(?:but|it''s|it is)\s+[^.!?]{2,120}'
+  severity: WARN
+  decay_period_days: 90
+  last_verified_at: 2026-05-20
+  volatile: true
+  notes: "PR #951 first ingestion slice."
+- rule_id: JS-AIDETECT-34
+  name: no_bold_term_explainer_format
+  category: AIDETECT
+  what: "Flag bold-label or title-colon explanation lines such as Strategic Fit: ... when they appear as formulaic AI list formatting."
+  why: |
+    The PR #951 anti-AI-slop corpus identifies bold term plus explanation formatting as a high-frequency AI draft artifact. CV and cover outputs should use natural headings or real bullets instead.
+  sources:
+    - doc: anti-ai-slop_1_2.md
+      section: E1 bold term explanation format
+      round: 1
+    - doc: anti-ai-slop_2_2.md
+      section: AI Vocabulary Watchlist and structure fixes
+      round: 1
+  applies_when:
+    doc_type: [cv, cover_letter, linkedin]
+    role_family: any
+    age_band: any
+    jurisdiction: any
+    ats_vendor: any
+  when_not_applies: A real section heading in the template or a target form field label.
+  check_method:
+    type: regex
+    spec: '(?:^|\n)(?:[-*]\s*)?(?:\*\*)?[A-Z][A-Za-z ]{2,32}(?::(?:\*\*)?|\*\*:)\s+[A-Z]'
+  severity: WARN
+  decay_period_days: 90
+  last_verified_at: 2026-05-20
+  volatile: true
+  notes: "PR #951 first ingestion slice."
+- rule_id: JS-AIDETECT-35
+  name: no_detector_evasion_prompts
+  category: AIDETECT
+  what: "Block detector-evasion or humanizer prompt residue in application copy."
+  why: |
+    The PR #951 anti-AI-slop corpus is explicit that detector evasion is not proof of quality or authorship. If this residue appears in a draft, JobSmith should block submit-ready status.
+  sources:
+    - doc: anti-ai-slop_1_2.md
+      section: Humanizer prompt families
+      round: 1
+    - doc: anti-ai-slop_2_2.md
+      section: Prompts to avoid and detector policy
+      round: 1
+  applies_when:
+    doc_type: [cv, cover_letter, linkedin]
+    role_family: any
+    age_band: any
+    jurisdiction: any
+    ats_vendor: any
+  when_not_applies: Never in submit-ready application copy.
+  check_method:
+    type: keyword_list
+    spec: "Phrase list: [make this undetectable, bypass AI detectors, fool AI detectors, humanize this AI text, beat AI detection, evade detection, pass as human, remove AI detection]"
+  severity: ERROR
+  decay_period_days: 90
+  last_verified_at: 2026-05-20
+  volatile: true
+  notes: "PR #951 first ingestion slice."
 ```
 
 ### COVER
@@ -3775,7 +3859,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 - rule_id: JS-LINKEDIN-03
   name: customised_linkedin_url
   category: LINKEDIN
-  what: "LinkedIn URL on the CV uses the customised slug (linkedin.com/in/chrisbyrne), not the default with random characters (linkedin.com/in/chris-byrne-1a2b3c4d5e)."
+  what: "LinkedIn URL on the CV uses the customised slug (linkedin.com/in/janesmith), not the default with random characters (linkedin.com/in/jane-smith-1a2b3c4d5e)."
   why: Default-slug URLs read as junior; clean slug reads as polished.
   sources:
     - doc: cvchecklists_1.md
@@ -4472,7 +4556,7 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
   why: Industry typography standard; Word's widowControl is the engine-level fix.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
     - doc: cvchecklists_2.md
       section: E. Second-pass scrub
@@ -5763,21 +5847,21 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-18
-  name: chris_education_phrasing
+  name: operator_education_phrasing
   category: ROLE_SPECIFIC
-  what: "Chris's education leads with \"University Degree Equivalent (22+ Years Extensive Professional Experience)\" per Chris brand standard."
-  why: Chris-locked personal override; preserves the framing that's in current Jobsmith brand.
+  what: "The operator's education leads with \"University Degree Equivalent (22+ Years Extensive Professional Experience)\" per operator brand standard."
+  why: Operator-locked personal override; preserves the framing that's in current Jobsmith brand.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
-  when_not_applies: Never (for Chris's applications).
+  when_not_applies: Never (for the operator's applications).
   check_method:
     type: regex
     spec: Education section begins with that exact phrasing.
@@ -5790,17 +5874,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-19
-  name: chris_prompt_composition
+  name: operator_prompt_composition
   category: ROLE_SPECIFIC
-  what: "Chris uses \"Prompt composition\" not \"prompt engineering\"."
-  why: Chris-locked brand vocabulary; preserves voice fingerprint.
+  what: "The operator uses \"Prompt composition\" not \"prompt engineering\"."
+  why: Operator-locked brand vocabulary; preserves voice fingerprint.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter, linkedin]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
@@ -5817,17 +5901,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-20
-  name: chris_higgsfield_top_2
+  name: operator_higgsfield_top_2
   category: ROLE_SPECIFIC
   what: "Higgsfield placement is stated as \"top 2%\" (not \"top 2 percent\", not \"top tier\")."
-  why: Chris-locked brand standard.
+  why: Operator-locked brand standard.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any
@@ -5844,17 +5928,17 @@ At runtime the engine routes each rule through its applies_when filter (doc_type
 
 ```yaml
 - rule_id: JS-ROLE_SPECIFIC-21
-  name: chris_keep_lore_off_cv
+  name: operator_keep_lore_off_cv
   category: ROLE_SPECIFIC
   what: "Bailey, Malamute Mayhem, UnClick lore stays off the CV unless directly role-relevant."
-  why: Chris-locked rule; preserves CV focus and protects brand from leakage.
+  why: Operator-locked rule; preserves CV focus and protects brand from leakage.
   sources:
     - doc: cvchecklists_1.md
-      section: L. Chris-specific
+      section: L. Operator-specific
       round: 1
   applies_when:
     doc_type: [cv, cover_letter]
-    role_family: chris_personal
+    role_family: operator_personal
     age_band: any
     jurisdiction: any
     ats_vendor: any

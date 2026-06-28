@@ -22,6 +22,9 @@ const CORE_SOURCES = [
   "docs/adr/0006-orchestrator-is-user-chat.md",
   "src/App.tsx",
   "src/pages/admin/AdminShell.tsx",
+  "src/pages/admin/AdminControlTower.tsx",
+  "src/lib/controltower.ts",
+  "docs/prd/controltower.md",
   "src/pages/admin/AdminSkills.tsx",
   "src/lib/skillLibrary.ts",
   "src/lib/skillLibrarySeeds.ts",
@@ -78,41 +81,48 @@ const SEAT_INDUCTION = [
   ],
   [
     "4",
+    "Check Control Tower",
+    "For big jobs, use Control Tower to split work into worker lanes, copy boxes, stale takeovers, and proof paths.",
+    "Control Tower",
+    "/admin/controltower",
+  ],
+  [
+    "5",
     "Pass through Brainmap",
     "Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates.",
     "Ecosystem Brainmap",
     "/admin/brainmap",
   ],
   [
-    "5",
+    "6",
     "Choose the Launchpad lane",
     "Route the work through the safest current Autopilot lane before acting or handing off.",
     "Launchpad",
     "/admin/pinballwake",
   ],
   [
-    "6",
+    "7",
     "Ask Crews Council if needed",
     "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
     "Crews Council",
     "scripts/pinballwake-launchpad-room.mjs",
   ],
   [
-    "7",
+    "8",
     "Check proof gates",
     "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
     "Proof Ledger",
     "docs/agent-observability.md",
   ],
   [
-    "8",
+    "9",
     "Dogtest the outcome",
     "Run the focused local tests and browser or live proof that match the touched surface.",
     "XPass and CI",
     "package.json",
   ],
   [
-    "9",
+    "10",
     "Reply and log proof",
     "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
     "Boardroom and Orchestrator",
@@ -137,6 +147,7 @@ const DIVISIONS = [
 
 const STATIC_SYSTEMS = [
   ["Launch and onboarding", "Launchpad", "route", "Control hub that points seats to the next safe operating lane.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
+  ["Launch and onboarding", "Control Tower", "coordination layer", "Big-job coordinator that creates worker lanes, Master Copy Box prompts, worker counts, stale takeovers, and XGate/XPass/Crews proof paths.", "src/pages/admin/AdminControlTower.tsx", "/admin/controltower"],
   ["Launch and onboarding", "Crews Council Induction", "judgement prompt", "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
   ["Launch and onboarding", "Heartbeat Master", "policy", "Canonical schedule prompt and procedure for safe heartbeat seats.", "src/pages/admin/AdminSeatHeartbeat.tsx", "/admin/agents/heartbeat"],
   ["Launch and onboarding", "Ecosystem Brainmap", "map", "Generated sitemap and system map that teaches seats what UnClick contains.", "src/pages/admin/AdminBrainmap.tsx", "/admin/brainmap"],
@@ -147,6 +158,7 @@ const STATIC_SYSTEMS = [
   ["Passes and gates", "FidelityPass", "fidelity gate", "Checks exactness and invariant preservation when copying, refactoring, or translating content.", "scripts/fidelitycopy.test.mjs", ""],
   ["Passes and gates", "CommonSensePass", "judgment gate", "Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims.", "api/commonsensepass-bridge.test.ts", ""],
   ["Passes and gates", "WakePass", "wake gate", "Verifies ACKs, stale handoffs, and worker wake requests before motion claims.", "docs/pinballwake-igniteonly-api.md", ""],
+  ["Passes and gates", "UIPass Toolbox", "component source gate", "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.", "packages/uxpass/src/ui-toolbox.ts", ""],
   ["Wrappers and protocols", "NudgeOnly", "bridge", "Low-risk receipt nudges that never mutate source-of-truth state.", "docs/pinballwake-nudgeonly-api.md", ""],
   ["Wrappers and protocols", "IgniteOnly", "bridge", "Verified worker wake packets only, never build, merge, or completion state.", "docs/pinballwake-igniteonly-api.md", ""],
   ["Wrappers and protocols", "SeatRelay", "claim lifecycle", "Stale release, smart reassignment, and bonded handoff for stuck worker claims.", "docs/UnClick-brainmap.generated.md", ""],
@@ -164,6 +176,7 @@ const PAGE_MEANINGS = {
   AdminAuditLog: "Internal audit trail for sensitive admin actions.",
   AdminBrainmap: "Generated ecosystem map that teaches seats what UnClick is.",
   AdminCodebase: "Internal source and architecture orientation surface.",
+  AdminControlTower: "Big-job coordinator that turns broad work into worker lanes and proof paths.",
   AdminDashboard: "Front door for current operator state.",
   AdminJobs: "Operational job and task queue.",
   AdminKeychain: "Passport and credential connection health.",
@@ -234,6 +247,9 @@ function meaningForComponent(component, file) {
 }
 
 function displayPageName(component, file) {
+  if (component === "Fishbowl" || path.basename(file, path.extname(file)) === "Fishbowl") {
+    return "Boardroom";
+  }
   const sourceBase = path.basename(file, path.extname(file));
   if (component.endsWith("Page") && (PAGE_MEANINGS[sourceBase] || PUBLIC_PAGE_MEANINGS[sourceBase])) {
     return titleFromName(sourceBase);
@@ -271,6 +287,15 @@ function parseRouteEntries(appSource) {
   const imports = new Map();
   const defaultImportPattern = /import\s+([A-Za-z_$][\w$]*)\s+from\s+"([^"]+)"/g;
   for (const match of appSource.matchAll(defaultImportPattern)) {
+    const resolved = resolveImportPath(match[2]);
+    if (resolved) imports.set(match[1], resolved);
+  }
+
+  // Route-level code splitting: pages bind as
+  //   const X = lazy(() => import("./pages/X.tsx"))
+  // including the .then((m) => ({ default: m.Name })) named-export form.
+  const lazyImportPattern = /const\s+([A-Za-z_$][\w$]*)\s*=\s*lazy\(\s*\(\)\s*=>\s*import\("([^"]+)"\)/g;
+  for (const match of appSource.matchAll(lazyImportPattern)) {
     const resolved = resolveImportPath(match[2]);
     if (resolved) imports.set(match[1], resolved);
   }
@@ -361,6 +386,7 @@ function table(headers, rows) {
 function routeForPage(file) {
   const base = path.basename(file, path.extname(file));
   if (file === "src/pages/admin/AdminBrainmap.tsx") return "/admin/brainmap";
+  if (file === "src/pages/admin/AdminControlTower.tsx") return "/admin/controltower";
   if (base === "AdminSeatHeartbeat") return "/admin/agents/heartbeat";
   if (base.startsWith("Admin")) return `/admin/${base.replace(/^Admin/, "").replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`;
   if (file.includes("/tools/")) return `/tools/${base.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`;
@@ -437,6 +463,7 @@ function classifyConceptFile(file) {
   const lower = file.toLowerCase();
   if (/(\.test\.|__tests__|\.spec\.)/.test(lower)) return null;
   if (lower.includes("brainmap")) return ["Launch and onboarding", "brainmap source"];
+  if (lower.includes("controltower") || lower.includes("control-tower")) return ["Launch and onboarding", "coordination layer"];
   if (lower.includes("heartbeat")) return ["Launch and onboarding", "heartbeat source"];
   if (lower.includes("jobsmith")) return ["Modules and apps", "app module"];
   if (lower.includes("autopilot")) return ["Automations", "autopilot module"];
@@ -566,7 +593,7 @@ async function collectBrainmapModel(root) {
     owner_visibility: {
       route: "/admin/brainmap",
       audience: "private yellow admin",
-      owner_email: "creativelead@malamutemayhem.com",
+      owner_email: process.env.BRAINMAP_OWNER_EMAIL ?? "(configured via env)",
     },
     counts: {
       divisions: DIVISIONS.length,
@@ -682,7 +709,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "## Safety Rules",
     "",
     "- Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.",
-    "- Brainmap visual admin is owner-only for `creativelead@malamutemayhem.com` inside the Yellow Private Admin lane.",
+    "- Brainmap visual admin is owner-only (configured via BRAINMAP_OWNER_EMAIL env var) inside the Yellow Private Admin lane.",
     "- NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.",
     "- IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.",
     "- Heartbeats must never print keys or credentials.",

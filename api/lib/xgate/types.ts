@@ -12,6 +12,7 @@ export type ActionClass =
 export type Environment = "dev" | "staging" | "prod";
 export type AutonomyLevel = "interactive" | "unattended";
 export type GateVerdict = "allow" | "deny" | "ask" | "rewrite";
+export type GateMode = "off" | "watch" | "block";
 
 export interface ActionDescriptor {
   class: ActionClass;

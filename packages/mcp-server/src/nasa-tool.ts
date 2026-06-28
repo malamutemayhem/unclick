@@ -5,7 +5,7 @@
 import { stampMeta } from "./connector-meta.js";
 
 const NASA_BASE = "https://api.nasa.gov";
-const NASA_TIMEOUT_MS = Number(process.env.NASA_TIMEOUT_MS) || 10000;
+const NASA_TIMEOUT_MS = Number(process.env.NASA_TIMEOUT_MS) || 20000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 

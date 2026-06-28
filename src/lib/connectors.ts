@@ -21,6 +21,9 @@ export interface ConnectorConfig {
   scopes?:     string[];
   authUrl?:    string;
   tokenUrl?:   string;
+  /** Extra query params some providers require on the authorize URL
+   *  (e.g. Google's access_type=offline for a refresh token). */
+  extraAuthParams?: Record<string, string>;
   credentialFields: CredentialField[];
   docsUrl?:    string;
 }
@@ -58,50 +61,97 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   vercel: {
     name:        "Vercel",
     slug:        "vercel",
-    authType:    "api_key",
-    description: "Vercel projects, deployments, domains, and environment variables.",
+    authType:    "oauth2",
+    description: "Vercel account access for UnClick deployment actions. Connect with Vercel login; the hosted MCP is a separate sign-in path.",
+    scopes: [
+      "openid",
+      "email",
+      "profile",
+      "offline_access",
+    ],
+    authUrl:  "https://vercel.com/oauth/authorize",
+    tokenUrl: "https://api.vercel.com/login/oauth/token",
     credentialFields: [
       {
         key:          "api_key",
-        label:        "Vercel token",
-        description:  "Vercel account token used by UnClick for deployment and project checks.",
+        label:        "Vercel token fallback",
+        description:  "Use only if Vercel login is unavailable. Token is used by UnClick's Vercel actions.",
         secret:       true,
         placeholder:  "vcp_...",
-        findGuideUrl: "https://vercel.com/account/settings/tokens",
+        findGuideUrl: "https://vercel.com/account/tokens",
       },
     ],
     docsUrl: "https://vercel.com/docs/rest-api",
   },
 
+  higgsfield: {
+    name:        "Higgsfield",
+    slug:        "higgsfield",
+    authType:    "oauth2",
+    description: "Higgsfield MCP account login for image, video, character, and campaign generation.",
+    scopes: [
+      "openid",
+      "email",
+      "offline_access",
+    ],
+    authUrl:  "https://mcp.higgsfield.ai/oauth2/authorize",
+    tokenUrl: "https://mcp.higgsfield.ai/oauth2/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Higgsfield MCP token fallback",
+        description:  "Use only if the Higgsfield login flow is unavailable. The normal path is Connect with Higgsfield.",
+        secret:       true,
+        placeholder:  "Bearer token from Higgsfield MCP OAuth",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+      {
+        key:          "refresh_token",
+        label:        "Higgsfield refresh token",
+        description:  "Optional refresh token returned by Higgsfield MCP OAuth.",
+        secret:       true,
+        placeholder:  "refresh token",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+      {
+        key:          "client_id",
+        label:        "Higgsfield MCP client ID",
+        description:  "Needed only for manual token fallback refresh. The normal Connect flow saves this automatically.",
+        secret:       false,
+        placeholder:  "OAuth client id",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+      {
+        key:          "mcp_url",
+        label:        "Higgsfield MCP URL",
+        description:  "Needed only for manual token fallback. The default is https://mcp.higgsfield.ai/mcp.",
+        secret:       false,
+        placeholder:  "https://mcp.higgsfield.ai/mcp",
+        findGuideUrl: "https://higgsfield.ai/mcp",
+      },
+    ],
+    docsUrl: "https://higgsfield.ai/mcp",
+  },
+
   supabase: {
     name:        "Supabase",
     slug:        "supabase",
-    authType:    "api_key",
-    description: "Supabase project access for database, auth, and service operations.",
+    authType:    "oauth2",
+    description: "Supabase Management API access for UnClick-side workflows. Connect with Supabase login; the hosted MCP is a separate developer sign-in.",
+    scopes: [
+      "projects:read",
+      "organizations:read",
+    ],
+    authUrl:  "https://api.supabase.com/v1/oauth/authorize",
+    tokenUrl: "https://api.supabase.com/v1/oauth/token",
     credentialFields: [
       {
-        key:          "project_ref",
-        label:        "Project ref",
-        description:  "The short Supabase project reference from your project URL.",
-        secret:       false,
-        placeholder:  "abcdefghijklmnopqrst",
-        findGuideUrl: "https://supabase.com/dashboard/projects",
-      },
-      {
-        key:          "anon_key",
-        label:        "Anon key",
-        description:  "Public anon key for client-safe checks.",
+        key:          "access_token",
+        label:        "Supabase access token fallback",
+        description:  "Use only if Supabase login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
         secret:       true,
-        placeholder:  "eyJhbGciOi...",
-        findGuideUrl: "https://supabase.com/dashboard/project/_/settings/api",
-      },
-      {
-        key:          "service_role_key",
-        label:        "Service role key",
-        description:  "Server-only key. Store only inside Passport or trusted server environments.",
-        secret:       true,
-        placeholder:  "eyJhbGciOi...",
-        findGuideUrl: "https://supabase.com/dashboard/project/_/settings/api",
+        placeholder:  "sbp_... or OAuth access token",
+        findGuideUrl: "https://supabase.com/dashboard/account/tokens",
       },
     ],
     docsUrl: "https://supabase.com/docs/reference",
@@ -302,6 +352,183 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
       },
     ],
     docsUrl: "https://docs.joinmastodon.org/",
+  },
+
+  spotify: {
+    name:        "Spotify",
+    slug:        "spotify",
+    authType:    "oauth2",
+    description: "Search, playlists, library, and listening data from your Spotify account.",
+    scopes: [
+      "user-read-private",
+      "playlist-read-private",
+      "user-library-read",
+      "user-top-read",
+    ],
+    authUrl:  "https://accounts.spotify.com/authorize",
+    tokenUrl: "https://accounts.spotify.com/api/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Spotify access token fallback",
+        description:  "Use only if Spotify login is unavailable. An OAuth access token from your own Spotify developer app.",
+        secret:       true,
+        placeholder:  "BQ...",
+        findGuideUrl: "https://developer.spotify.com/dashboard",
+      },
+    ],
+    docsUrl: "https://developer.spotify.com/documentation/web-api",
+  },
+
+  dropbox: {
+    name:        "Dropbox",
+    slug:        "dropbox",
+    authType:    "oauth2",
+    description: "Files, folders, and account access in your Dropbox.",
+    scopes: [
+      "files.metadata.read",
+      "files.content.read",
+      "account_info.read",
+    ],
+    authUrl:  "https://www.dropbox.com/oauth2/authorize",
+    tokenUrl: "https://api.dropboxapi.com/oauth2/token",
+    extraAuthParams: { token_access_type: "offline" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Dropbox access token fallback",
+        description:  "Use only if Dropbox login is unavailable. Generate one from your Dropbox app console.",
+        secret:       true,
+        findGuideUrl: "https://www.dropbox.com/developers/apps",
+      },
+    ],
+    docsUrl: "https://www.dropbox.com/developers/documentation/http/documentation",
+  },
+
+  gmail: {
+    name:        "Gmail",
+    slug:        "gmail",
+    authType:    "oauth2",
+    description: "Search, read, and send mail through a connected Gmail account.",
+    scopes: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Gmail access token fallback",
+        description:  "Use only if Gmail login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/gmail/api",
+  },
+
+  "google-drive": {
+    name:        "Google Drive",
+    slug:        "google-drive",
+    authType:    "oauth2",
+    description: "Browse, search, and read files through a connected Google Drive account.",
+    scopes: [
+      "https://www.googleapis.com/auth/drive.readonly",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Google Drive access token fallback",
+        description:  "Use only if Google Drive login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/drive/api",
+  },
+
+  onedrive: {
+    name:        "OneDrive",
+    slug:        "onedrive",
+    authType:    "oauth2",
+    description: "Browse, search, and read files through a connected OneDrive account.",
+    scopes: [
+      "offline_access",
+      "User.Read",
+      "Files.Read",
+    ],
+    authUrl:  "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "OneDrive access token fallback",
+        description:  "Use only if OneDrive login is unavailable. Prefer the login flow so UnClick stores the connected account token.",
+        secret:       true,
+        findGuideUrl: "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+      },
+    ],
+    docsUrl: "https://learn.microsoft.com/graph/onedrive-concept-overview",
+  },
+
+  "google-workspace": {
+    name:        "Google Workspace",
+    slug:        "google-workspace",
+    authType:    "oauth2",
+    description: "Gmail, Drive, and Calendar through one Google sign-in.",
+    scopes: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/calendar",
+    ],
+    authUrl:  "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Google access token fallback",
+        description:  "Use only if Google login is unavailable.",
+        secret:       true,
+        placeholder:  "ya29...",
+        findGuideUrl: "https://console.cloud.google.com/apis/credentials",
+      },
+    ],
+    docsUrl: "https://developers.google.com/workspace",
+  },
+
+  "microsoft-graph": {
+    name:        "Microsoft 365",
+    slug:        "microsoft-graph",
+    authType:    "oauth2",
+    description: "Outlook mail, Calendar, OneDrive, and Teams through one Microsoft sign-in.",
+    scopes: [
+      "offline_access",
+      "User.Read",
+      "Mail.Read",
+      "Mail.Send",
+      "Calendars.ReadWrite",
+      "Files.ReadWrite",
+    ],
+    authUrl:  "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    credentialFields: [
+      {
+        key:          "access_token",
+        label:        "Microsoft access token fallback",
+        description:  "Use only if Microsoft login is unavailable.",
+        secret:       true,
+        placeholder:  "EwB...",
+        findGuideUrl: "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+      },
+    ],
+    docsUrl: "https://learn.microsoft.com/graph/overview",
   },
 
 };

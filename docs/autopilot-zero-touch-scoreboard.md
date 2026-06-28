@@ -14,7 +14,7 @@ A ref is `zero_touch=true` when every recorded event for that ref came from auto
 
 A ref is human-touched when any event has one of these signals:
 
-- a human-looking actor id, such as `human-*`, `operator-*`, `chris`, or `malamutemayhem`
+- a human-looking actor id, such as `human-*`, `operator-*`, or `malamutemayhem`
 - explicit payload flags such as `human_touch`, `operator_touch`, or `manual_touch`
 - payload source fields such as `trigger_source=operator_chat`, `source=manual`, or `origin=live_chat`
 

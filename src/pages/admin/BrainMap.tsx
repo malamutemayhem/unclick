@@ -212,7 +212,7 @@ export default function BrainMap() {
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-2xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
           <h2 className="mb-4 text-sm font-semibold text-white">Public tree</h2>
           <div className="space-y-3">
             {TREE.map((node, index) => {
@@ -232,7 +232,7 @@ export default function BrainMap() {
             </ul>
           </section>
 
-          <section className="rounded-2xl border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
             <h2 className="text-sm font-semibold text-white">Historical names</h2>
             <p className="mt-1 text-xs leading-5 text-white/45">
               These names may appear in older receipts or notes; current work should use the official names.

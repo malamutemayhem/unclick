@@ -5,8 +5,8 @@
  * NO password field. NO GitHub button. Per preflight decisions.
  */
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
@@ -18,14 +18,15 @@ import { Loader2, Mail, Check } from "lucide-react";
 import { signInWithMagicLink, signInWithOAuth, useSession } from "@/lib/auth";
 import { posthog } from "@/lib/posthog";
 import { track } from "@/lib/analytics";
-import { useEffect } from "react";
 
 export default function LoginPage() {
   useCanonical("https://unclick.world/login");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session, loading: sessionLoading } = useSession();
 
-  const [email, setEmail] = useState("");
+  const nextPath = safeNext(searchParams.get("next"));
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [busy, setBusy] = useState<"magic" | "google" | "azure" | null>(null);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -33,9 +34,9 @@ export default function LoginPage() {
   // If already authenticated, bounce to memory admin.
   useEffect(() => {
     if (!sessionLoading && session) {
-      navigate("/admin", { replace: true });
+      navigate(nextPath, { replace: true });
     }
-  }, [sessionLoading, session, navigate]);
+  }, [sessionLoading, session, navigate, nextPath]);
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -48,11 +49,8 @@ export default function LoginPage() {
     setBusy("magic");
     track("login_started", { method: "magic" });
     try {
-      await signInWithMagicLink(trimmed);
+      await signInWithMagicLink(trimmed, nextPath);
       setSent(true);
-      // TODO(posthog-migration): remove umami call once PostHog validated
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).umami?.track("signin", { method: "magic_link" });
       posthog.capture("signin_started", { method: "magic_link" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
@@ -65,12 +63,9 @@ export default function LoginPage() {
     setError("");
     setBusy(provider);
     track("login_started", { method: provider });
-    // TODO(posthog-migration): remove umami call once PostHog validated
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).umami?.track("signin", { method: provider });
     posthog.capture("signin_started", { method: provider });
     try {
-      await signInWithOAuth(provider);
+      await signInWithOAuth(provider, nextPath);
       // Redirect happens via Supabase. Nothing else to do here.
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't start sign in. Try again.");
@@ -199,6 +194,11 @@ export default function LoginPage() {
       <Footer />
     </div>
   );
+}
+
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/admin";
+  return value;
 }
 
 function GoogleIcon({ className }: { className?: string }) {

@@ -32,6 +32,7 @@ import {
 
 const DATA_DIR = path.join(os.homedir(), ".unclick", "memory");
 const TABLE = "memory_load_events";
+const EVAL_SCORECARD_TABLE = "memory_eval_scorecards";
 
 export interface MemoryLoadEvent {
   tool_name: string;
@@ -88,6 +89,82 @@ export function logMemoryLoadEvent(event: Omit<MemoryLoadEvent, "created_at">): 
     appendLocal(row);
   }
 }
+
+// --- lane-08: decay and consolidation metrics ---
+export function recordMemoryMetric(
+  metric: "hot_set_staleness" | "dedup_collapse_rate",
+  value: number,
+  params: Record<string, unknown> = {},
+): void {
+  logMemoryLoadEvent({
+    tool_name: "memory.metric",
+    params: {
+      metric,
+      value,
+      lane: "08",
+      ...params,
+    },
+  });
+}
+// --- end lane-08 ---
+// --- lane-10: eval scorecard instrumentation ---
+export interface MemoryEvalScorecardEvent {
+  suite_id: string;
+  scorecard: Record<string, unknown>;
+  metrics: Record<string, unknown>;
+}
+
+function appendLocalEvalScorecard(row: MemoryEvalScorecardEvent & { id: string; created_at: string }): void {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const file = path.join(DATA_DIR, `${EVAL_SCORECARD_TABLE}.json`);
+    let rows: unknown[] = [];
+    if (fs.existsSync(file)) {
+      try {
+        rows = JSON.parse(fs.readFileSync(file, "utf8"));
+        if (!Array.isArray(rows)) rows = [];
+      } catch {
+        rows = [];
+      }
+    }
+    rows.push(row);
+    const tmp = file + ".tmp";
+    fs.writeFileSync(tmp, JSON.stringify(rows, null, 2));
+    fs.renameSync(tmp, file);
+  } catch {
+    // instrumentation must never crash the caller
+  }
+}
+
+async function insertSupabaseEvalScorecard(row: MemoryEvalScorecardEvent & { created_at: string }): Promise<void> {
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    const sb = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    const apiKeyHash = process.env.UNCLICK_API_KEY_HASH;
+    const table = apiKeyHash ? "mc_memory_eval_scorecards" : EVAL_SCORECARD_TABLE;
+    const payload = apiKeyHash ? { api_key_hash: apiKeyHash, ...row } : row;
+    await sb.from(table).insert(payload);
+  } catch {
+    // table may not exist until the lane-10 migration is applied
+  }
+}
+
+export function logMemoryEvalScorecard(event: MemoryEvalScorecardEvent): void {
+  const row = {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    ...event,
+  };
+  if (process.env.SUPABASE_URL) {
+    void insertSupabaseEvalScorecard(row);
+  } else {
+    appendLocalEvalScorecard(row);
+  }
+}
+// --- end lane-10 ---
 
 /** Called from the Initialize handler. */
 export function trackInitialize(

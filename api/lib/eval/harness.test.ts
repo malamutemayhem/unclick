@@ -71,6 +71,23 @@ describe("eval harness", () => {
     expect(gate.ok).toBe(false);
   });
 
+  it("baselineFromRun produces finite values even with NaN summary stats", () => {
+    const synthetic = {
+      results: [],
+      summary: {
+        verified: 0,
+        falseGreen: 0,
+        truthRate: NaN,
+        hallucinatedCompletionRate: NaN,
+        netReward: 0,
+      },
+      mismatches: [],
+    };
+    const baseline = baselineFromRun(synthetic as any, "nan-guard");
+    expect(Number.isFinite(baseline.truthRate)).toBe(true);
+    expect(Number.isFinite(baseline.hallucinatedCompletionRate)).toBe(true);
+  });
+
   it("renders a markdown report with headline metrics and a gate section", () => {
     const run = runEval();
     const baseline = baselineFromRun(run, "self");

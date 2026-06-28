@@ -2,63 +2,58 @@ import { useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { presets } from "@/lib/design-system";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+  }, [location.pathname]);
 
-    // Signal to crawlers that this is a 404
-    let meta = document.querySelector('meta[name="robots"]');
+  // One effect owns title + robots: capture whatever was there, set the 404
+  // state, restore the captured values on unmount. No hardcoded tagline, so
+  // this page can never reintroduce a second product line.
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = "404: Page not found | UnClick";
+
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    let created = false;
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "robots");
       document.head.appendChild(meta);
+      created = true;
     }
-    const prev = meta.getAttribute("content") ?? "";
+    const prevRobots = meta.getAttribute("content");
     meta.setAttribute("content", "noindex, nofollow");
 
     return () => {
-      meta!.setAttribute("content", prev || "index, follow");
-    };
-  }, [location.pathname]);
-
-  useEffect(() => {
-    document.title = "404: Page Not Found | UnClick";
-    // Mark page as noindex so 404s don't get indexed
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
-    const prev = meta?.content ?? "index, follow";
-    if (meta) meta.content = "noindex, nofollow";
-    return () => {
-      document.title = "UnClick: The App Store for AI Agents";
-      if (meta) meta.content = prev;
+      document.title = prevTitle;
+      if (created) {
+        meta!.remove();
+      } else if (prevRobots !== null) {
+        meta!.setAttribute("content", prevRobots);
+      }
     };
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className={presets.page}>
       <Navbar />
       <main className="mx-auto max-w-2xl px-6 pb-32 pt-40 text-center">
         <p className="font-mono text-xs uppercase tracking-widest text-primary">404</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-heading sm:text-5xl">
-          Page not found
-        </h1>
-        <p className="mt-4 text-body text-lg leading-relaxed">
+        <h1 className={`mt-4 ${presets.h1Product}`}>Page not found</h1>
+        <p className="mt-4 text-lg leading-relaxed text-body">
           This page doesn't exist, or maybe it moved.
         </p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link
-            to="/"
-            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-          >
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link to="/" className={presets.ctaPrimary}>
             Go home
           </Link>
-          <Link
-            to="/arena"
-            className="rounded-lg border border-border/60 px-5 py-2.5 text-sm font-medium text-heading hover:border-primary/30 transition-colors"
-          >
-            Browse Arena
+          <Link to="/apps" className={presets.ctaGhost}>
+            Browse apps
           </Link>
         </div>
       </main>

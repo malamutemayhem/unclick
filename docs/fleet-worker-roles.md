@@ -22,7 +22,7 @@ canonical copy-paste message for waking or aligning multiple workers at once.
 - One builder owns each PR.
 - Helpers can scout or review, but must not edit the same files as the builder.
 - Do not force-push another worker's branch.
-- Do not touch secrets, auth, billing, DNS/domains, migrations, or destructive cleanup without explicit approval.
+- Do not touch secrets, auth, billing, DNS/domains, migrations, or destructive cleanup without an explicit privileged profile assignment. Secret work uses Secret Steward or Break Glass Admin; release promotion uses Release Captain.
 - Hold risky merges even when CI is green.
 
 ## Active workers
@@ -45,7 +45,7 @@ canonical copy-paste message for waking or aligning multiple workers at once.
 | --- | --- | --- |
 | 🛡️ | Gatekeeper | Add when the fleet needs a dedicated release-safety and anti-stomp reviewer. Gatekeeper should inspect duplicate PRs, risky merges, incomplete verification, and scope creep. |
 
-Gatekeeper is not active unless Chris creates a new chat and registers it in Fishbowl.
+Gatekeeper is not active unless the operator creates a new chat and registers it in Fishbowl.
 
 ## Routing guide
 
@@ -68,6 +68,7 @@ Before calling up a bench worker, check:
 - XPass access: Pass-family workers know which XPass tool or report to use, or the packet stays context-only.
 - Proof format: the worker can reply with PASS/BLOCKER, owned files, tests, PR or receipt, and next action.
 - Stop conditions: the packet names secrets, billing, DNS, data deletion, deploy, migration, force-push, and ownership limits.
+- Privilege profile: secret, deploy, domain, migration, or push work names the required builder profile and proves the runtime has the matching startup capability in the active connector plane. Direct session connectors and UnClick-internal connectors are separate. For example, a push packet needs a working git credential helper/push probe, a direct writable GitHub MCP/API path, or proven UnClick GitHub branch/PR/checks actions; a deployment packet needs target Vercel team/project scope.
 - Next ACK wording: the worker can ACK one bounded action, not a broad project promise.
 
 Bench call-up routing is deterministic:

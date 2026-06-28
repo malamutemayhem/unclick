@@ -30,6 +30,8 @@ describe("PinballWake Planning Room", () => {
       "scripts/pinballwake-runner-loop.mjs",
       "scripts/pinballwake-runner-loop.test.mjs",
     ]);
+    assert.match(result.scopepack.warm_chat_build_rule, /subscription chat seat/);
+    assert.match(result.scopepack.warm_chat_build_rule, /DraftRoom/);
     assert.equal(validateScopePack(result.scopepack).ok, true);
   });
 

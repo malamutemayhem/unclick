@@ -201,7 +201,7 @@ describe("AdminOrchestratorPage", () => {
                     kind: "decision",
                     actor_agent_id: "codex-orchestrator-seat",
                     summary:
-                      "Decision from Session. This should guide what seats do next. This becomes part of the shared story until Chris changes direction.",
+                      "Decision from Session. This should guide what seats do next. This becomes part of the shared story until the operator changes direction.",
                     tags: ["decision"],
                   },
                   {
@@ -404,7 +404,7 @@ describe("AdminOrchestratorPage", () => {
 
     renderOrchestrator();
 
-    expect((await screen.findAllByText(/Chris asked: Can Story hold more conversation by default/i)).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/You Asked: Can Story hold more conversation by default/i)).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByText("Read more"));
 
     await waitFor(() =>
@@ -422,7 +422,7 @@ describe("AdminOrchestratorPage", () => {
       }),
     );
     expect(screen.queryByText("Writing the latest story...")).not.toBeInTheDocument();
-    expect(screen.getAllByText(/Chris asked: Can Story hold more conversation by default/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/You Asked: Can Story hold more conversation by default/i).length).toBeGreaterThan(0);
 
     resolveDeepHistory(jsonResponse(contextWithEvents(initialEvents)));
   });
@@ -436,7 +436,7 @@ describe("AdminOrchestratorPage", () => {
     expect(screen.getByLabelText("Analogies")).toBeChecked();
     expect(screen.getByPlaceholderText("Filter Orchestrator feed")).toBeInTheDocument();
     expect(
-      (await screen.findAllByText(/Chris said: Orchestrator context should show subscription messages/i))
+      (await screen.findAllByText(/You said: Orchestrator context should show subscription messages/i))
         .length,
     ).toBeGreaterThan(0);
     expect((await screen.findAllByText("Codex Orchestrator Seat")).length).toBeGreaterThan(1);

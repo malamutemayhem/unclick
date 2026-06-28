@@ -63,10 +63,11 @@ interface TelegramChatMember {
 async function telegramCall<T>(
   token: string,
   method: string,
-  params: Record<string, unknown> = {}
+  params: Record<string, unknown> = {},
+  extraTimeoutMs = 0
 ): Promise<T> {
   const url = `${TELEGRAM_API_BASE}/bot${token}/${method}`;
-  const TELEGRAM_TIMEOUT_MS = Number(process.env.TELEGRAM_TIMEOUT_MS) || 15000;
+  const TELEGRAM_TIMEOUT_MS = (Number(process.env.TELEGRAM_TIMEOUT_MS) || 15000) + extraTimeoutMs;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TELEGRAM_TIMEOUT_MS);
   let response: Response;
@@ -312,7 +313,7 @@ export async function telegramGetUpdates(args: Record<string, unknown>): Promise
     params.allowed_updates = allowedUpdates;
   }
 
-  const updates = await telegramCall<TelegramUpdate[]>(token, "getUpdates", params);
+  const updates = await telegramCall<TelegramUpdate[]>(token, "getUpdates", params, timeout * 1000);
 
   const nextOffset = updates.length > 0 ? updates[updates.length - 1].update_id + 1 : offset;
 

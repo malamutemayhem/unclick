@@ -22,8 +22,8 @@ describe("orchestrator context", () => {
           current_status: "Building Orchestrator context",
         },
         {
-          agent_id: "human-chris",
-          display_name: "Chris",
+          agent_id: "human-operator",
+          display_name: "Operator",
           user_agent_hint: "admin-ui",
           last_seen_at: "2026-05-09T09:00:00.000Z",
         },
@@ -38,8 +38,8 @@ describe("orchestrator context", () => {
         },
         {
           id: "msg-user",
-          author_agent_id: "human-chris",
-          text: "Chris greenlit the Orchestrator context layer.",
+          author_agent_id: "human-operator",
+          text: "Operator greenlit the Orchestrator context layer.",
           tags: ["decision"],
           created_at: "2026-05-09T10:20:00.000Z",
         },
@@ -176,12 +176,12 @@ describe("orchestrator context", () => {
     });
     expect(context.current_state_card.zero_touch_scoreboard.summary).toContain("zero-touch refs");
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.role).toBe("human");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.role).toBe("human");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.freshness_label).toBe("Live");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.source_app_label).toBe("Codex");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.connection_label).toBe("Connected");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.source_app_label).toBe("Admin UI");
-    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.freshness_label).toBe("Recent");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.source_app_label).toBe("Admin UI");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-operator")?.freshness_label).toBe("Recent");
     expect(context.continuity_events.some((event) => event.kind === "proof" && event.source_id === "msg-proof")).toBe(true);
     expect(context.continuity_events.some((event) => event.source_kind === "conversation_turn" && event.role === "user")).toBe(true);
     expect(context.library_snapshots.map((snapshot) => snapshot.source_kind)).toEqual(
@@ -358,6 +358,59 @@ describe("orchestrator context", () => {
     expect(context.seat_handshake.next_prompt).toContain("Australia/Sydney");
   });
 
+  it("surfaces the operator ai_style directive into the seat handoff prompt", () => {
+    const directive =
+      "Operator AI style, always honor unless overridden in-session: keep answers short; explain simply; use bullet points; no emoji.";
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [
+        {
+          id: "bc-ai-style",
+          category: "preference",
+          key: "ai_style",
+          value: {
+            directive,
+            response_length: "short",
+            updated_at: "2026-05-10T00:50:00.000Z",
+          },
+          priority: 99,
+          updated_at: "2026-05-10T00:50:00.000Z",
+        },
+      ],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style?.directive).toBe(directive);
+    expect(context.seat_handshake.next_prompt).toContain(directive);
+  });
+
+  it("omits the ai_style line from the handoff prompt when no preference is set", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style).toBeNull();
+    expect(context.seat_handshake.next_prompt).toContain("Use this compact handoff. Orchestrator");
+  });
+
   it("labels profile-card check-in freshness for AI seats", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-09T12:00:00.000Z",
@@ -432,7 +485,7 @@ describe("orchestrator context", () => {
         {
           id: "msg-decision-secret",
           author_agent_id: "chatgpt-codex-seat",
-          text: "Chris greenlit rolling snapshots with Authorization: Bearer sk-test-not-real-token in copied debug text.",
+          text: "Operator greenlit rolling snapshots with Authorization: Bearer sk-test-not-real-token in copied debug text.",
           tags: ["decision"],
           created_at: "2026-05-09T12:58:00.000Z",
         },
@@ -1130,8 +1183,8 @@ describe("orchestrator context", () => {
       messages: [
         {
           id: "msg-decision",
-          author_agent_id: "human-chris",
-          text: "Chris greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
+          author_agent_id: "human-operator",
+          text: "Operator greenlit Orchestrator V1 proof with AutoPilotKit and PinballWake.",
           tags: ["decision"],
           created_at: "2026-05-10T00:11:00.000Z",
         },
@@ -1308,7 +1361,7 @@ describe("computeActiveJobsCount (v9 definition)", () => {
       [
         {
           agent_id: "builder-stale",
-          // 6 days ago. The exact case Chris hit earlier today (todo e9e308cd
+          // 6 days ago. The exact case the operator hit earlier today (todo e9e308cd
           // assigned to "master" who hadn't been seen in 6 days but was
           // still counted as an active job).
           last_seen_at: new Date(NOW_MS - 6 * 24 * HOUR_MS).toISOString(),
@@ -1755,5 +1808,172 @@ describe("orchestrator truth reconciliation (Boardroom drift)", () => {
     expect(reconciliation.reconciled_state).toBe("quiet");
     expect(reconciliation.drift_detected).toBe(false);
     expect(reconciliation.reason_code).toBe("no_drift_quiet");
+  });
+});
+
+describe("proof debt and continuous improvement scoreboards", () => {
+  const emptySources = {
+    profiles: [],
+    messages: [],
+    comments: [],
+    dispatches: [],
+    signals: [],
+    sessions: [],
+    library: [],
+    businessContext: [],
+    conversationTurns: [],
+  };
+
+  const todoBase = {
+    description: null,
+    created_by_agent_id: "builder-seat",
+    created_at: "2026-06-11T08:00:00.000Z",
+    updated_at: "2026-06-11T09:00:00.000Z",
+  };
+
+  it("separates done rows with proof from proof debt and completion claims", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "done-proved-1", title: "Ship widget", status: "done", priority: "high" },
+        { ...todoBase, id: "done-naked-1", title: "Polish docs", status: "done", priority: "normal" },
+        {
+          ...todoBase,
+          id: "claim-naked-1",
+          title: "Refactor parser",
+          status: "in_progress",
+          priority: "high",
+          assigned_to_agent_id: "builder-seat",
+        },
+        { ...todoBase, id: "open-quiet-1", title: "Spike idea", status: "open", priority: "low" },
+      ],
+      comments: [
+        {
+          id: "c-1",
+          target_kind: "todo",
+          target_id: "done-proved-1",
+          author_agent_id: "builder-seat",
+          text: "PASS: shipped; proof: PR #123 merged, tests green.",
+          created_at: "2026-06-11T10:00:00.000Z",
+        },
+        {
+          id: "c-2",
+          target_kind: "todo",
+          target_id: "claim-naked-1",
+          author_agent_id: "builder-seat",
+          text: "DONE, wrapping up now before the deadline.",
+          created_at: "2026-06-11T10:30:00.000Z",
+        },
+      ],
+    });
+
+    const board = context.current_state_card.proof_debt_scoreboard;
+    expect(board.done_todos_scanned).toBe(2);
+    expect(board.done_with_proof).toBe(1);
+    expect(board.done_missing_proof).toBe(1);
+    expect(board.pass_claims_without_proof).toBe(1);
+    expect(board.debt_examples.some((line) => line.includes("done-nak"))).toBe(true);
+    expect(board.debt_examples.some((line) => line.includes("claim-na"))).toBe(true);
+    expect(board.summary).toContain("2 job(s) look complete without observable proof");
+  });
+
+  it("does not treat ordinary hex-looking words as commit proof", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [{ ...todoBase, id: "done-word-1", title: "Wordy close", status: "done", priority: "normal" }],
+      comments: [
+        {
+          id: "c-3",
+          target_kind: "todo",
+          target_id: "done-word-1",
+          author_agent_id: "builder-seat",
+          text: "All effaced and decaffed, no receipts attached.",
+          created_at: "2026-06-11T10:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(context.current_state_card.proof_debt_scoreboard.done_missing_proof).toBe(1);
+  });
+
+  it("reports a quiet proof-debt board when nothing looks complete", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [{ ...todoBase, id: "open-1", title: "Open chip", status: "open", priority: "normal" }],
+    });
+
+    const board = context.current_state_card.proof_debt_scoreboard;
+    expect(board.done_todos_scanned).toBe(0);
+    expect(board.summary).toBe("No completed-looking jobs in the loaded window.");
+  });
+
+  it("counts friction classes and seeds a read-only packet past the threshold", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "q-1", title: "Unowned one", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-2", title: "Unowned two", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-3", title: "Unowned three", status: "open", priority: "normal" },
+        { ...todoBase, id: "q-4", title: "Unowned four", status: "open", priority: "normal" },
+      ],
+      signals: [
+        {
+          id: "sig-1",
+          tool: "github_action",
+          action: "run_failed",
+          severity: "action_needed",
+          summary: "Scheduled run failed.",
+          created_at: "2026-06-11T11:00:00.000Z",
+        },
+      ],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.queue_friction).toBe(4);
+    expect(board.automation_friction).toBe(1);
+    expect(board.proof_friction).toBe(0);
+    expect(board.dominant_friction).toBe("queue");
+    expect(board.next_actions[0]).toContain("Route 4 unassigned open todo(s)");
+    expect(board.improvement_packet).not.toBeNull();
+    expect(board.improvement_packet?.read_only).toBe(true);
+    expect(board.improvement_packet?.owned_files).toEqual([]);
+    expect(board.improvement_packet?.create_todo_payload.priority).toBe("normal");
+    expect(board.improvement_packet?.evidence).toContain("queue=4");
+  });
+
+  it("holds the packet below the dominance threshold and prefers proof when counts tie", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [
+        { ...todoBase, id: "tie-done-1", title: "Closed quietly", status: "done", priority: "normal" },
+        { ...todoBase, id: "tie-q-1", title: "Unowned", status: "open", priority: "normal" },
+      ],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.proof_friction).toBe(1);
+    expect(board.queue_friction).toBe(1);
+    expect(board.dominant_friction).toBe("proof");
+    expect(board.improvement_packet).toBeNull();
+    expect(board.next_actions[0]).toContain("proof-debt");
+  });
+
+  it("reports an all-quiet improvement board with no actions", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-06-11T12:00:00.000Z",
+      ...emptySources,
+      todos: [],
+    });
+
+    const board = context.current_state_card.continuous_improvement_scoreboard;
+    expect(board.dominant_friction).toBeNull();
+    expect(board.next_actions).toEqual([]);
+    expect(board.improvement_packet).toBeNull();
+    expect(board.summary).toContain("Dominant: none");
   });
 });

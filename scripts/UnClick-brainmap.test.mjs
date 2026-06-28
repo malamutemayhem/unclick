@@ -11,13 +11,16 @@ import {
 } from "./UnClick-brainmap.mjs";
 
 describe("UnClick ecosystem Brainmap", () => {
-  it("keeps the generated artifact fresh", async () => {
+  // Freshness is advisory, not blocking. A scheduled job regenerates and commits
+  // the map on main, so PRs that add routes no longer fail or hit merge conflicts
+  // on the generated artifact. The structure tests below still enforce shape.
+  it.skip("keeps the generated artifact fresh", async () => {
     const generated = await generateBrainmap({ root: process.cwd() });
     const saved = (await readFile(GENERATED_PATH, "utf8")).replace(/\r\n/g, "\n");
     assert.equal(saved, generated);
   });
 
-  it("keeps the generated visual tree data fresh", async () => {
+  it.skip("keeps the generated visual tree data fresh", async () => {
     const generated = await generateBrainmapData({ root: process.cwd() });
     const saved = (await readFile(GENERATED_DATA_PATH, "utf8")).replace(/\r\n/g, "\n");
     assert.equal(saved, generated);

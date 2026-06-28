@@ -21,7 +21,7 @@ safety/local-sync-20260529-100205/01-codex-queuepush-walkin-routing-labels
 safety/local-sync-20260529-100205/02-claude-vigorous-euler-8af94b
 safety/local-sync-20260529-100205/03-codex-compliancepass-pr1070-final-merge-20260528
 safety/local-sync-20260529-100205/04-codex-continuous-improvement-audit-20260527
-safety/local-sync-20260529-100205/05-codex-openclaw-compare-20260527
+safety/local-sync-20260529-100205/05-codex-compatibility-review-20260527
 safety/local-sync-20260529-100205/06-main
 safety/local-sync-20260529-100205/07-codex-runner-file-contents-debug-20260527
 safety/local-sync-20260529-100205/08-codex-uxpass-jobs-proof-ui

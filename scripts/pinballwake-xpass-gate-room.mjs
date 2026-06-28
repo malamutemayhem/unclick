@@ -9,6 +9,7 @@ const CHECK_ORDER = [
   "flowpass",
   "securitypass",
   "rotatepass",
+  "connectorpass",
   "copypass",
   "fidelitypass",
   "seopass",
@@ -27,6 +28,7 @@ const CHECK_LABELS = {
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   copypass: "CopyPass",
   fidelitypass: "FidelityPass",
   seopass: "SEOPass",
@@ -55,6 +57,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
+  ["connectorpass", "connectorpass"],
 ]);
 
 const ENTERPRISE_READINESS_TERMS = [
@@ -66,6 +69,55 @@ const ENTERPRISE_READINESS_TERMS = [
   "model inventory",
   "technical documentation",
   "training data",
+];
+
+const APP_CONNECTION_SURFACE_PATHS = [
+  "src/lib/connectors.ts",
+  "src/data/app-catalog.generated.json",
+  "src/data/connector-setup.generated.json",
+  "src/pages/connect",
+  "src/components/apps/connectappmodal",
+  "src/components/apps/applenses",
+  "src/components/apps/appicon",
+  "src/pages/admin/admintools",
+  "packages/mcp-server/src/connector-setup.ts",
+  "packages/mcp-server/src/keychain-tool.ts",
+  "api/oauth-init.ts",
+  "api/oauth-callback.ts",
+  "api/oauth-state.ts",
+  "api/credentials.ts",
+  "api/lib/managed-connections",
+  "api/memory-admin.ts",
+];
+
+const APP_CONNECTION_TERMS = [
+  "app connection",
+  "app connector",
+  "connector rollout",
+  "connect page",
+  "provider login",
+  "oauth login",
+  "oauth setup",
+  "keychain parity",
+  "token fallback",
+  "connected badge",
+  "connected apps",
+  "connected lens",
+  "saved connection",
+  "saved connections",
+  "saved credential",
+  "saved credentials",
+  "login saved",
+  "key saved",
+  "saved status",
+  "live proof",
+  "live-tested",
+  "needs check",
+  "connection_state",
+  "setup pending",
+  "managed connection",
+  "compatibility connector",
+  "hosted mcp",
 ];
 
 const COUNCIL_TRIGGER_TERMS = [
@@ -149,7 +201,7 @@ function hasAny(text, terms) {
 }
 
 function exactCopyRequest(text) {
-  return /(\b1:1\b|\b1 for 1\b|\bone-to-one\b|\bone for one\b|\bexact copy\b|\bcopy exactly\b|\bcopy this without changing\b|\bexactly as source\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
+  return /(\b1:1\b|\b1 for 1\b|\bone-to-one\b|\bone for one\b|\bexact copy\b|\bcopy exactly\b|\bcopy without changing\b|\bexactly as source\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
 }
 
 function codeFile(path) {
@@ -179,6 +231,13 @@ function enterpriseReadinessSurface(path, allText) {
     path.includes("compliance") ||
     path.startsWith("public/enterprise/") ||
     hasAny(allText, ENTERPRISE_READINESS_TERMS)
+  );
+}
+
+function appConnectionSurface(path, allText) {
+  return (
+    APP_CONNECTION_SURFACE_PATHS.some((surfacePath) => path.includes(surfacePath)) ||
+    (path.startsWith("supabase/migrations/") && hasAny(allText, APP_CONNECTION_TERMS))
   );
 }
 
@@ -214,6 +273,16 @@ function addReason(map, check, reason) {
   map.get(check).add(reason);
 }
 
+function addAppConnectionReasons(map, reason) {
+  addReason(map, "connectorpass", `app connector readiness proof: ${reason}`);
+  addReason(map, "testpass", `app connection readiness needs deterministic proof: ${reason}`);
+  addReason(map, "uxpass", `provider login, saved-state, and fallback UX surface: ${reason}`);
+  addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);
+  addReason(map, "securitypass", `credential/OAuth storage surface: ${reason}`);
+  addReason(map, "rotatepass", `credential lifecycle/redaction surface: ${reason}`);
+  addReason(map, "commonsensepass", `saved connection visibility and connected badges must not collapse into one proof claim: ${reason}`);
+}
+
 export function selectXPassChecks(input = {}) {
   const files = changedFiles(input);
   const text = targetText(input);
@@ -224,6 +293,13 @@ export function selectXPassChecks(input = {}) {
   for (const path of files) {
     const pathWords = path.replace(/[\/_.-]+/g, " ");
     const passProduct = passProductForPath(path);
+
+    if (appConnectionSurface(path, allText)) {
+      addAppConnectionReasons(reasons, path);
+      if (codeFile(path) && !testFile(path)) {
+        addReason(reasons, "sloppass", `app connection implementation quality surface: ${path}`);
+      }
+    }
 
     if (passProduct) {
       const productCheck = PASS_PRODUCT_CHECKS.get(passProduct);
@@ -473,6 +549,9 @@ export function selectXPassChecks(input = {}) {
 
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
+  }
+  if (hasAny(allText, APP_CONNECTION_TERMS)) {
+    addAppConnectionReasons(reasons, "target text mentions app connector login readiness");
   }
   if (hasAny(allText, ["ui", "visual", "screen", "screenshots", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "layout", "spacing", "typography", "mobile", "responsive", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uipass", "target text mentions UI/visual changes");

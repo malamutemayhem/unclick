@@ -27,7 +27,7 @@ describe("LocalBackend memory parity", () => {
     const backend = new LocalBackend();
 
     const fact = await backend.addFact({
-      fact: "Chris wants local Memory recall to find saved facts.",
+      fact: "User wants local Memory recall to find saved facts.",
       category: "technical",
       confidence: 0.95,
     });
@@ -53,7 +53,7 @@ describe("LocalBackend memory parity", () => {
     const backend = new LocalBackend();
 
     const durable = await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.9,
     });
@@ -77,7 +77,7 @@ describe("LocalBackend memory parity", () => {
 
     const context = await backend.getStartupContext(3) as { active_facts: Array<{ fact: string }> };
     const facts = context.active_facts.map((row) => row.fact);
-    assert.ok(facts.includes("Chris prefers compact memory first with source receipts."));
+    assert.ok(facts.includes("User prefers compact memory first with source receipts."));
     assert.equal(facts.some((fact) => fact.includes("heartbeat")), false);
     assert.equal(facts.some((fact) => fact.includes("stale fact")), false);
 
@@ -94,6 +94,52 @@ describe("LocalBackend memory parity", () => {
     assert.equal(byId.get(operational.id)?.access_count, 0);
     assert.equal(byId.get(invalidated.id)?.access_count, 0);
     assert.ok(byId.get(invalidated.id)?.invalidated_at);
+  });
+
+  test("startup context preserves provenance fields on active local facts", async (t) => {
+    const { LocalBackend } = await import("../local.js");
+    const backend = new LocalBackend();
+    // Provenance surfacing is gated behind MEMORY_PROVENANCE_ENABLED (lane-03 owns it;
+    // flag off keeps startup context byte-identical to today).
+    const prevProvenanceFlag = process.env.MEMORY_PROVENANCE_ENABLED;
+    process.env.MEMORY_PROVENANCE_ENABLED = "1";
+    t.after(() => {
+      if (prevProvenanceFlag === undefined) delete process.env.MEMORY_PROVENANCE_ENABLED;
+      else process.env.MEMORY_PROVENANCE_ENABLED = prevProvenanceFlag;
+    });
+
+    const saved = await backend.addFact({
+      fact: "User wants startup receipts surfaced for profile cards.",
+      category: "preference",
+      confidence: 0.91,
+    });
+
+    const rows = readRows<{
+      id: string;
+      source_agent_id?: string | null;
+      source_ref?: string | null;
+      receipt_id?: string | null;
+    } & Record<string, unknown>>("extracted_facts");
+    const row = rows.find((item) => item.id === saved.id);
+    assert.ok(row);
+    row.source_agent_id = "agent-worker-3";
+    row.source_ref = "conversation:receipt-source";
+    row.receipt_id = "receipt-startup-1";
+    fs.writeFileSync(path.join(tempDir, "extracted_facts.json"), JSON.stringify(rows, null, 2));
+
+    const context = await backend.getStartupContext(3) as {
+      active_facts: Array<{
+        fact: string;
+        source_agent_id?: string | null;
+        source_ref?: string | null;
+        receipt_id?: string | null;
+      }>;
+    };
+    const active = context.active_facts.find((item) => item.fact.includes("startup receipts"));
+    assert.ok(active);
+    assert.equal(active.source_agent_id, "agent-worker-3");
+    assert.equal(active.source_ref, "conversation:receipt-source");
+    assert.equal(active.receipt_id, "receipt-startup-1");
   });
 
   test("local search and startup context respect valid_from", async () => {

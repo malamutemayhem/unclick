@@ -109,7 +109,7 @@ function analyseModule(base, source, wiring, testFiles) {
   // bare status-only errors (the genius anti-pattern)
   c.bareStatusErrors = (source.match(/`HTTP\s*\$\{/g) || []).length;
 
-  // shared client adoption (the migration target — expected 0 today)
+  // shared client adoption (the migration target, expected 0 today)
   c.usesSharedClient = /from\s+"\.\/http-client|httpClient\(|sharedFetch\(/.test(source);
 
   // tests

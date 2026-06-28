@@ -141,7 +141,7 @@ Live proof from rollout testing:
 - 12/12 painpoint bucket matches.
 - 0 false positives on the healthy completed control.
 
-The first catalogue is based on the prior bottlenecks Chris called out: stale WakePass ACKs, duplicate wakes, unclear ownership, missing proof, heartbeat noise, quiet/liveness drift, and blockers visible without an active owning job.
+The first catalogue is based on the prior bottlenecks the operator called out: stale WakePass ACKs, duplicate wakes, unclear ownership, missing proof, heartbeat noise, quiet/liveness drift, and blockers visible without an active owning job.
 
 ## MCP Tools
 

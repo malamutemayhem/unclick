@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CrewsNav from "@/components/crews/CrewsNav";
 import TemplateCard from "@/components/crews/TemplateCard";
-import { CREW_TEMPLATES } from "@/data/mockCrewTemplates";
+import { CREW_TEMPLATES } from "@/data/crewTemplates";
 import { STARTER_CREWS } from "@/data/starterCrews";
 import type { CrewTemplate, Agent } from "@/types/crews";
 import { useSession } from "@/lib/auth";
@@ -103,7 +103,7 @@ export default function CrewsCatalog() {
                   type="button"
                   onClick={() => handleCopyPrompt(crew.id, crew.example_prompt)}
                   className="group w-full rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-left text-xs text-[#666] transition-colors hover:border-[#61C1C4]/30 hover:text-[#aaa]"
-                  title="Click to copy this example prompt"
+                  title="Copy example prompt"
                 >
                   <span className="text-[#555] group-hover:text-[#888]">Example: </span>
                   {copied === crew.id ? (

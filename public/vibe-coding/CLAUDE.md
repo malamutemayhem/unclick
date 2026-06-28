@@ -1,4 +1,4 @@
-# UnClick — AI Assistant Context
+# UnClick: AI Assistant Context
 
 Drop this file in your project root. It gives your AI assistant (Claude, Cursor, Copilot, Windsurf) everything it needs to build well on top of UnClick.
 
@@ -11,7 +11,7 @@ UnClick is a unified tool API for AI agents. One API key unlocks 100+ tools acro
 **How it works:**
 - One key, one endpoint pattern, every tool
 - MCP-compatible: works natively with Claude, Cursor, and any MCP client
-- Also has a plain REST API — no SDK required, just fetch
+- Also has a plain REST API. No SDK required, just fetch
 
 **REST API pattern:**
 ```
@@ -60,7 +60,7 @@ Errors are structured for AI to interpret. If a call fails, the error message te
 | Tool name | What it does |
 |-----------|-------------|
 | `openweather` | Current weather and forecasts via OpenWeatherMap |
-| `weatherapi` | Weather with more detail — UV, air quality, astronomy |
+| `weatherapi` | Weather with more detail: UV, air quality, astronomy |
 | `opencage` | Forward and reverse geocoding |
 | `ipinfo` | IP address geolocation and ISP info |
 | `here_maps` | Routing, geocoding, and place search |
@@ -127,7 +127,7 @@ Errors are structured for AI to interpret. If a call fails, the error message te
 | `australiapost` | Postcode lookup and parcel tracking |
 | `sendle` | Parcel shipping rates and labels via Sendle |
 | `ipaustralia` | Trade mark and patent search |
-| `tab` | Australian racing — TAB odds and results |
+| `tab` | Australian racing - TAB odds and results |
 | `thelott` | Australian lottery draws and results |
 
 ### Science & Environment
@@ -143,7 +143,7 @@ Errors are structured for AI to interpret. If a call fails, the error message te
 ## Section 3: How to call tools
 
 ```javascript
-// Basic pattern — works in any JS/TS project
+// Basic pattern - works in any JS/TS project
 const response = await fetch('https://api.unclick.world/tools/openweather', {
   method: 'POST',
   headers: {
@@ -158,7 +158,7 @@ const response = await fetch('https://api.unclick.world/tools/openweather', {
 const result = await response.json();
 
 if (!result.success) {
-  // Handle the error — result.error is a human-readable string
+  // Handle the error - result.error is a human-readable string
   throw new Error(result.error);
 }
 
@@ -167,7 +167,7 @@ console.log(result.data);
 ```
 
 ```typescript
-// TypeScript helper — add this to your project
+// TypeScript helper - add this to your project
 async function callUnclick<T>(toolName: string, args: Record<string, unknown>): Promise<T> {
   const res = await fetch(`https://api.unclick.world/tools/${toolName}`, {
     method: 'POST',
@@ -209,7 +209,7 @@ def call_unclick(tool_name: str, args: dict) -> dict:
 
 ---
 
-## Section 4: Quality standards — AI must follow these
+## Section 4: Quality standards (AI must follow these)
 
 These are not suggestions. Every app built on UnClick should meet these standards before submission.
 
@@ -220,13 +220,13 @@ These are not suggestions. Every app built on UnClick should meet these standard
 
 **Error handling**
 - Always check `result.success` before using `result.data`
-- Every error that reaches the user must be human-readable — not a raw error object, not `[object Object]`
+- Every error that reaches the user must be human-readable, not a raw error object, not `[object Object]`
 - Catch network failures separately from API errors (the fetch itself can fail)
 
 **Loading states**
 - Every async call must have a loading state
 - The UI must not appear broken while data is fetching
-- Use skeleton screens or spinners — never just hide content
+- Use skeleton screens or spinners, never just hide content
 
 **Mobile-first**
 - Design for 375px width first, then expand
@@ -236,7 +236,7 @@ These are not suggestions. Every app built on UnClick should meet these standard
 
 **UI components**
 - Use `@unclick/ui` components if the package is available in this project
-- Otherwise use the design tokens from the existing theme — don't introduce new colors or font sizes
+- Otherwise use the design tokens from the existing theme. Don't introduce new colors or font sizes
 
 **Scope discipline**
 - Do one thing well. If the app is growing beyond its original brief, push back.
@@ -248,13 +248,13 @@ These are not suggestions. Every app built on UnClick should meet these standard
 
 Always do this first. It takes 5 minutes and prevents hours of rework.
 
-1. **Define who this is for** — not "users", but a specific person with a specific job. "A tradie tracking quotes on their phone" is useful. "People who need stuff" is not.
+1. **Define who this is for**: not "users", but a specific person with a specific job. "A tradie tracking quotes on their phone" is useful. "People who need stuff" is not.
 
-2. **Map the core flow** — what happens when everything works perfectly, in 3-5 steps. If you can't describe it in 5 steps, the app is too complex. Simplify before building.
+2. **Map the core flow**: what happens when everything works perfectly, in 3-5 steps. If you can't describe it in 5 steps, the app is too complex. Simplify before building.
 
-3. **Identify failure modes** — what does the user see when the API call fails? When there's no data? When they're offline? These are not edge cases. Plan them.
+3. **Identify failure modes**: what does the user see when the API call fails? When there's no data? When they're offline? These are not edge cases. Plan them.
 
-4. **List the UnClick tools** — which tools does this app need, and what args does each call require? Confirm the tool names against Section 2 above.
+4. **List the UnClick tools**: which tools does this app need, and what args does each call require? Confirm the tool names against Section 2 above.
 
 5. **Then code.**
 

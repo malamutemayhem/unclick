@@ -95,6 +95,20 @@ describe("jobToRunTrace", () => {
     expect(scoreTrace(trace).outcome).toBe("false_green");
   });
 
+  it("does not accept a verifier when both closer and creator are null", () => {
+    const comments: BoardroomComment[] = [
+      { author_agent_id: "ghost", text: "PASS", is_pass_proof: true },
+    ];
+    const trace = jobToRunTrace(
+      input(
+        { status: "done" },
+        { comments, xpassReceipt: freshPass, currentHeadSha: "head-1", completionCode: "allowed" },
+      ),
+    );
+    expect(trace.closerAgentId).toBeNull();
+    expect(trace.verifierAgentId).toBeNull();
+  });
+
   it("propagates rolled_back and user_corrected hard negatives", () => {
     const trace = jobToRunTrace(
       input({ status: "done", rolled_back: true }, { xpassReceipt: freshPass, currentHeadSha: "head-1" }),

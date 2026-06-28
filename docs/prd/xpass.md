@@ -101,7 +101,7 @@ XPass does not own the finding logic for each Pass. It owns orchestration and pr
 | --- | --- | --- |
 | XPass | selection, ordering, shared run receipt, summary, exclusions | "Run TestPass plus SecurityPass because this is an MCP PR." |
 | Individual Pass | domain checks, disclaimer, evidence, pass/fail semantics | TestPass probe results, CopyPass claim findings, SecurityPass hygiene findings |
-| CopyRoom | exact 1:1 copying and copy-fidelity receipts | "Copy this source exactly and preserve every word, punctuation mark, line break, and structure." |
+| CopyRoom | exact 1:1 reproduction and fidelity receipts | "Reproduce this authorized source exactly and preserve every word, punctuation mark, line break, and structure." |
 | FidelityPass | XPass/QC wrapper over CopyRoom fidelity evidence | "Verify the CopyRoom receipt proves source and output match, or return N/A when no exact copy is in scope." |
 | WakePass | action-required dispatch and missed-ACK visibility | failed scheduled run needs a worker, stale check needs reclaim |
 | Connections | credential and provider status used by checks | GitHub token valid, Search Console needs reconnect |
@@ -149,7 +149,7 @@ Legacy naming:
 
 - EnterprisePass is the old internal name for CompliancePass.
 - QualityPass is retired wording for SlopPass.
-- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
+- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless the operator explicitly promotes it.
 
 ## XPass product promotion ladder
 
@@ -299,6 +299,13 @@ Use an individual Pass when:
 - the result needs a domain-specific disclaimer
 - the check is still being built or validated
 - credentials or target setup only exist for one Pass
+
+Use UIPass when:
+
+- an app, landing page, component, or admin surface needs interface polish rather than journey-only UX review
+- an AI seat wants to use shadcn/ui, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity UI, Origin UI, cmdk, Sonner, Embla, Vaul, or UI UX Pro Max style intelligence
+- the work needs a source-and-proof scoreboard before implementation: provenance, licence fit, accessibility primitive, design-system fit, mobile proof, reduced-motion proof, performance budget, brand fit, and screenshot proof
+- repeated missing UI proof should become a continuous-improvement job rather than another manual reminder
 
 Use CopyRoom when:
 

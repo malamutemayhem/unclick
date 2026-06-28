@@ -25,7 +25,7 @@ That's it. The checks run, pass, and the PR becomes mergeable through the normal
 ## What this is NOT
 
 - **NOT a bypass.** The required checks actually run and actually pass. The branch-protection ruleset is honored. No `--admin` flag, no merge-without-review.
-- **NOT a fix.** It papers over a path-filter mismatch. The underlying fix is to widen the workflow's `paths:` filter (or the required-check definition) to include `api/**` so that api-only PRs trigger the same checks. That requires `workflow` scope on the branch-protection ruleset — tracked as the option-A half of Boardroom todo `e1a51d36`.
+- **NOT a fix.** It papers over a path-filter mismatch. The underlying fix is to widen the workflow's `paths:` filter (or the required-check definition) to include `api/**` so that api-only PRs trigger the same checks. That requires `workflow` scope on the branch-protection ruleset, tracked as the option-A half of Boardroom todo `e1a51d36`.
 
 ## Why not just widen the filter
 
@@ -38,13 +38,13 @@ So in the meantime, when you hit the symptom, use the empty-commit unstick. It i
 
 ## Historical context
 
-- PR #1047: first observation. Chris discovered the unstick after the required checks sat as "expected" for over an hour on a one-character ESM extension fix.
+- PR #1047: first observation. The operator discovered the unstick after the required checks sat as "expected" for over an hour on a one-character ESM extension fix.
 - PR #1165 (this doc): second observation, meta-recursive. The docs-only PR landing this very procedure was itself blocked by the same bug. Applied the unstick to land it.
 - Lesson captured in `20260527 UnClick_Session_Handover.md` §12.
 - Boardroom todo `e1a51d36` is the parent for this whole topic. It links the option A / option B fork.
 
 ## See also
 
-- `docs/audit/2026-05-28-missing-jobs-cowork-lane.md` — the missing-jobs sub-lane that filed `e1a51d36`.
-- `scripts/api-lib-esm-extension-guard.test.mjs` — the regression guard for the exact PR #1047 bug class.
-- `.github/workflows/ci.yml` — the required-check workflow whose path filter is the root of this.
+- `docs/audit/2026-05-28-missing-jobs-cowork-lane.md` - the missing-jobs sub-lane that filed `e1a51d36`.
+- `scripts/api-lib-esm-extension-guard.test.mjs` - the regression guard for the exact PR #1047 bug class.
+- `.github/workflows/ci.yml` - the required-check workflow whose path filter is the root of this.

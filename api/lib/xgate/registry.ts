@@ -108,6 +108,16 @@ export const XGATE_GATE_MANIFEST: XGateGateManifestEntry[] = [
       return import(/* @vite-ignore */ path);
     },
   },
+  {
+    key: "trendslop",
+    part: 10,
+    gateName: "trendSlopGate",
+    importPath: "./gates/trendslop-gate.js",
+    importModule: async () => {
+      const path = "./gates/trendslop-gate.js";
+      return import(/* @vite-ignore */ path);
+    },
+  },
 ];
 
 export async function loadXGateRegistry(

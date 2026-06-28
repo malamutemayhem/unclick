@@ -119,6 +119,14 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
     recommended_fix:
       "Qualify the capability, name the proof boundary, or link to the receipt that supports the claim.",
   },
+  {
+    id: "display-copy-widow",
+    label: "Display copy widow risk",
+    goal: "Display headings should not drop one or two short words onto their own line (a hanger).",
+    severity: "low",
+    recommended_fix:
+      "Bind the last two words with a non-breaking space, or apply text-wrap: balance (or pretty), so the heading keeps a tidy last line.",
+  },
 ].map((check) => CopyPassCheckDefinitionSchema.parse(check));
 
 const VALUE_TERMS = [
@@ -546,6 +554,21 @@ export function detectCopyPassFindings(
       );
     }
 
+    if (
+      isActive(activeCheckIds, "display-copy-widow") &&
+      isDisplayBlock(block) &&
+      hasWidowRisk(block.text)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "display-copy-widow"),
+          "Display heading risks a one-word last line",
+          "This heading is long enough to wrap, and its final short word is not bound, so it can drop onto its own line.",
+        ),
+      );
+    }
+
     return findings;
   });
 
@@ -565,6 +588,24 @@ export function normalizeCopy(value: string): string {
 
 function isPrimaryBlock(block: CopyPassCopyBlock): boolean {
   return block.kind === "hero" || block.kind === "headline";
+}
+
+function isDisplayBlock(block: CopyPassCopyBlock): boolean {
+  return block.kind === "hero" || block.kind === "headline";
+}
+
+/**
+ * Heuristic widow ("hanger") risk for display headings, from text alone: long
+ * enough to wrap, ending in a short word, and not already bound with a
+ * non-breaking space. CSS text-wrap: balance also clears the real defect; this
+ * is a low-severity nudge to apply one of those fixes.
+ */
+function hasWidowRisk(value: string): boolean {
+  if (value.includes("\u00A0")) return false; // already bound with a non-breaking space
+  const words = value.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (words.length < 6) return false; // short headings rarely wrap into a hanger
+  const lastWord = words[words.length - 1];
+  return lastWord.length <= 5; // a tiny trailing word ("acts.", "that.") is the classic orphan
 }
 
 function isPolicyExampleCatalog(block: CopyPassCopyBlock, normalized: string): boolean {

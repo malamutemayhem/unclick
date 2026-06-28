@@ -8,7 +8,7 @@
 #
 # Install (opt-in, per developer):
 #   git config core.hooksPath scripts/hooks
-# or copy this file to .git/hooks/pre-commit and mark it executable.
+# or place this file at .git/hooks/pre-commit and mark it executable.
 #
 # Make it blocking instead of warn-only by exporting:
 #   UNCLICK_CHECKOUT_GUARD_STRICT=1

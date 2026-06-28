@@ -212,7 +212,7 @@ Sources:
 
 99. **Use human specificity by accumulation.** A handful of small specifics across the CV, named projects, real constraints, real tradeoffs, defensible numbers, named tools, safe client or sector detail, and verifiable links, shifts the trust default more than one polished paragraph. Sources: [1a], [1b], [2], [3].
 
-100. **Apply Chris-specific and brand-specific rules where relevant.** No em dashes anywhere; avoid typographic hangers and orphans; ATS-friendly format beats aesthetics; use "prompt composition" rather than "prompt engineering"; state Higgsfield as "top 2%"; keep Bailey, Malamute Mayhem, and UnClick lore out of the CV unless directly relevant; education may lead with "University Degree Equivalent (22+ Years Extensive Professional Experience)" where appropriate. Sources: [1], [3].
+100. **Apply operator-specific and brand-specific rules where relevant.** No em dashes anywhere; avoid typographic hangers and orphans; ATS-friendly format beats aesthetics; use "prompt composition" rather than "prompt engineering"; state Higgsfield as "top 2%"; keep Bailey, Malamute Mayhem, and UnClick lore out of the CV unless directly relevant; education may lead with "University Degree Equivalent (22+ Years Extensive Professional Experience)" where appropriate. Sources: [1], [3].
 
 101. **Maintain the quality bar for productised rules.** A rule should have a source, date, stability signal, market scope, risk category, risk of blind use, safe default, exception, and retirement path when evidence changes. Avoid magic numbers, scare tactics, and false certainty about opaque hiring systems. Sources: [1b].
 

@@ -124,7 +124,7 @@ export default function SignalsSettings() {
       )}
 
       <div className="flex flex-col gap-6">
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <label className="flex items-center justify-between">
             <span>
               <span className="block text-sm font-medium text-white">Email</span>
@@ -134,7 +134,7 @@ export default function SignalsSettings() {
               type="checkbox"
               checked={prefs.email_enabled}
               onChange={(e) => update("email_enabled", e.target.checked)}
-              className="h-4 w-4 rounded border-white/20 bg-[#111]"
+              className="h-4 w-4 rounded border-white/20 bg-white/[0.03]"
             />
           </label>
           {prefs.email_enabled && (
@@ -143,12 +143,12 @@ export default function SignalsSettings() {
               value={prefs.email_address ?? ""}
               onChange={(e) => update("email_address", e.target.value)}
               placeholder="you@example.com"
-              className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555]"
+              className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555]"
             />
           )}
         </section>
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <label className="flex items-center justify-between">
             <span>
               <span className="block text-sm font-medium text-white">Phone push</span>
@@ -158,12 +158,12 @@ export default function SignalsSettings() {
               type="checkbox"
               checked={prefs.phone_push_enabled}
               onChange={(e) => update("phone_push_enabled", e.target.checked)}
-              className="h-4 w-4 rounded border-white/20 bg-[#111]"
+              className="h-4 w-4 rounded border-white/20 bg-white/[0.03]"
             />
           </label>
         </section>
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <label className="flex items-center justify-between">
             <span>
               <span className="block text-sm font-medium text-white">Telegram</span>
@@ -173,7 +173,7 @@ export default function SignalsSettings() {
               type="checkbox"
               checked={prefs.telegram_enabled}
               onChange={(e) => update("telegram_enabled", e.target.checked)}
-              className="h-4 w-4 rounded border-white/20 bg-[#111]"
+              className="h-4 w-4 rounded border-white/20 bg-white/[0.03]"
             />
           </label>
           {prefs.telegram_enabled && (
@@ -183,14 +183,14 @@ export default function SignalsSettings() {
                 value={prefs.telegram_chat_id ?? ""}
                 onChange={(e) => update("telegram_chat_id", e.target.value)}
                 placeholder="123456789"
-                className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555]"
+                className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555]"
               />
               <p className="mt-1 text-xs text-[#666]">Your Telegram Chat ID (available from @userinfobot)</p>
             </>
           )}
         </section>
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <h3 className="text-sm font-medium text-white">Quiet hours</h3>
           <p className="mt-0.5 text-xs text-[#888]">Do not disturb me during these hours.</p>
           <div className="mt-3 flex items-center gap-2 text-sm text-[#ccc]">
@@ -199,25 +199,25 @@ export default function SignalsSettings() {
               type="time"
               value={prefs.quiet_hours_start ?? ""}
               onChange={(e) => update("quiet_hours_start", e.target.value)}
-              className="rounded-lg border border-white/[0.08] bg-[#0A0A0A] px-2 py-1.5"
+              className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1.5"
             />
             <span>to</span>
             <input
               type="time"
               value={prefs.quiet_hours_end ?? ""}
               onChange={(e) => update("quiet_hours_end", e.target.value)}
-              className="rounded-lg border border-white/[0.08] bg-[#0A0A0A] px-2 py-1.5"
+              className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1.5"
             />
           </div>
         </section>
 
-        <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+        <section className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
           <h3 className="text-sm font-medium text-white">What to send</h3>
           <p className="mt-0.5 text-xs text-[#888]">Pick how noisy you want this to be.</p>
           <select
             value={prefs.min_severity}
             onChange={(e) => update("min_severity", e.target.value as MinSeverity)}
-            className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc]"
+            className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc]"
           >
             <option value="info">Everything</option>
             <option value="action_needed">Actions needed and critical only</option>

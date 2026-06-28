@@ -1,17 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { KeyRound, PenSquare, Sparkles, Wrench } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import { APP_CATALOG, APP_COUNT, TOOL_COUNT } from "@/lib/appCatalog";
+import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCatalog";
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
+import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
+import { AppLensBar } from "@/components/apps/AppLensBar";
+import { applyLens, lensCounts, actionLabelFor, hasSavedConnection, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { CONNECTORS } from "@/lib/connectors";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
+import { startHostedMcpLogin } from "./hostedMcpLogin";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
-// only to derive each app's connection status (connected / needs key / built-in).
-interface Connector {
+// only to derive each app's connection status (connected / needs key / built-in)
+// and to feed the connect wizard.
+export interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
-  credential: { is_valid: boolean; last_tested_at: string | null } | null;
+  setup_url?: string | null;
+  supports_managed_connection?: boolean;
+  supports_hosted_mcp_connection?: boolean;
+  managed_provider_config_key?: string | null;
+  credential: {
+    id?: string | null;
+    is_valid: boolean;
+    last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
+    source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+    managed?: {
+      provider: string;
+      provider_config_key: string | null;
+      external_connection_id: string;
+      auth_mode: string;
+      status: string;
+      account_label: string | null;
+      scope_summary: string | null;
+      connected_at: string | null;
+    } | null;
+  } | null;
+}
+
+export function buildAdminConnectorMap(connectors: Connector[]) {
+  const map = new Map<string, Connector>();
+  for (const c of connectors) map.set(c.id, c);
+
+  for (const app of APP_CATALOG) {
+    if (map.has(app.slug)) continue;
+    const config = CONNECTORS[app.slug];
+    if (!config?.authType) continue;
+    map.set(app.slug, {
+      id: app.slug,
+      auth_type: config.authType,
+      setup_url: config.docsUrl ?? null,
+      credential: null,
+      supports_hosted_mcp_connection: app.slug === "higgsfield",
+      supports_managed_connection: false,
+      managed_provider_config_key: null,
+    });
+  }
+
+  return map;
 }
 
 export default function AdminToolsPage() {
@@ -20,29 +68,51 @@ export default function AdminToolsPage() {
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
+  // One filter state, two controls: the rail and the chips both read/write
+  // this URL param, so views are linkable and survive refresh.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lens = parseAppLens(searchParams.get("lens"));
+  const selectLens = useCallback(
+    (next: AppLens) => {
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "all") params.delete("lens");
+          else params.set("lens", next);
+          return params;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
-  useEffect(() => {
-    if (!session) return;
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_tools", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (res.ok) {
-          const body = await res.json();
-          setConnectors(body.connectors ?? []);
-          setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
-        }
-      } catch {
-        // status is best-effort; the catalog still renders without it.
+  const refreshStatus = useCallback(async (): Promise<Connector[] | null> => {
+    if (!session) return null;
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_tools", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const body = await res.json();
+        const nextConnectors = (body.connectors ?? []) as Connector[];
+        setConnectors(nextConnectors);
+        setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
+        return nextConnectors;
       }
-    })();
+    } catch {
+      // status is best-effort; the catalog still renders without it.
+    }
+    return null;
   }, [session]);
 
+  useEffect(() => {
+    void refreshStatus();
+  }, [refreshStatus]);
+
   const connectorBySlug = useMemo(() => {
-    const map = new Map<string, Connector>();
-    for (const c of connectors) map.set(c.id, c);
-    return map;
+    return buildAdminConnectorMap(connectors);
   }, [connectors]);
 
   const enabled = useMemo(() => {
@@ -96,11 +166,161 @@ export default function AdminToolsPage() {
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
-    if (c.credential?.is_valid) return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
-    if (c.auth_type === "oauth2") return { label: "Needs login", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
-    if (c.auth_type) return { label: "Needs key", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (isConnected(c)) {
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    }
+    if (c.credential?.connection_state === "pending") {
+      return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    }
+    if (c.credential?.is_valid) {
+      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    }
+    if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.supports_hosted_mcp_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    if (c.auth_type) return { label: "Add access", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
   }
+
+  // Clicking the status pill opens the connect wizard for any connector-backed
+  // app (also lets you replace or re-prove an existing key). Built-in apps have
+  // nothing to connect.
+  function handleStatusClick(app: AppEntry) {
+    if (!connectorBySlug.has(app.slug)) return;
+    openAppConnection(app);
+  }
+
+  // Buttons say the action (Connect / Add key / Manage); pills say the truth.
+  function actionOf(app: AppEntry) {
+    const label = actionLabelFor(connectorBySlug.get(app.slug));
+    if (!label) return null;
+    return { label, onClick: () => openAppConnection(app) };
+  }
+
+  function disconnectActionOf(app: AppEntry) {
+    const connector = connectorBySlug.get(app.slug);
+    if (!connector?.credential?.is_valid) return null;
+    return {
+      label: "Disconnect",
+      onClick: () => {
+        if (!window.confirm(`Disconnect ${app.name}?`)) return;
+        setSaving(true);
+        setSaveError(null);
+        void disconnectApp(app.slug)
+          .catch((err) => {
+            setSaveError(err instanceof Error ? err.message : "Disconnect failed.");
+          })
+          .finally(() => setSaving(false));
+      },
+    };
+  }
+
+  async function disconnectApp(slug: string) {
+    if (!session) throw new Error("Sign in again to disconnect apps.");
+    const res = await fetch("/api/memory-admin?action=admin_disconnect_app", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ platform: slug }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) throw new Error(body.error ?? `Disconnect failed with ${res.status}.`);
+    await refreshStatus();
+    setConnectTarget(null);
+  }
+
+  function connectionSignature(connector: Connector | undefined) {
+    const credential = connector?.credential;
+    return [
+      credential?.id ?? "",
+      credential?.is_valid ? "valid" : "invalid",
+      credential?.last_tested_at ?? "",
+      credential?.connection_state ?? "",
+      credential?.source ?? "",
+    ].join("|");
+  }
+
+  function watchConnectionPopup(popup: Window | null, slug: string) {
+    let tries = 0;
+    const maxTries = 45;
+    const initialConnector = connectorBySlug.get(slug);
+    const initiallySaved = hasSavedConnection(initialConnector);
+    const initialSignature = connectionSignature(initialConnector);
+    const timer = window.setInterval(() => {
+      tries += 1;
+      void refreshStatus().then((nextConnectors) => {
+        const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
+        const savedNow = hasSavedConnection(connector);
+        const changedSavedConnection = savedNow && connectionSignature(connector) !== initialSignature;
+        const shouldCloseForSavedConnection = savedNow && (!initiallySaved || changedSavedConnection);
+        if (shouldCloseForSavedConnection || popup?.closed || tries >= maxTries) {
+          window.clearInterval(timer);
+          if (shouldCloseForSavedConnection && popup && !popup.closed) popup.close();
+        }
+      });
+    }, 2000);
+  }
+
+  function openConnectionPopup(url: string, slug: string) {
+    const width = 560;
+    const height = 760;
+    const dualScreenLeft = window.screenLeft ?? window.screenX ?? 0;
+    const dualScreenTop = window.screenTop ?? window.screenY ?? 0;
+    const viewportWidth = window.outerWidth || document.documentElement.clientWidth || screen.width;
+    const viewportHeight = window.outerHeight || document.documentElement.clientHeight || screen.height;
+    const left = Math.max(0, Math.round(dualScreenLeft + (viewportWidth - width) / 2));
+    const top = Math.max(0, Math.round(dualScreenTop + (viewportHeight - height) / 2));
+    const popup = window.open(
+      url,
+      `unclick_connect_${slug}`,
+      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
+    );
+    if (!popup) {
+      window.location.assign(url);
+      return;
+    }
+    popup.focus();
+    watchConnectionPopup(popup, slug);
+  }
+
+  function shouldUseConnectPage(app: AppEntry) {
+    const connector = connectorBySlug.get(app.slug);
+    if (!connector) return false;
+    if (connector.supports_managed_connection || connector.supports_hosted_mcp_connection) return false;
+    const fieldCount = CONNECTORS[app.slug]?.credentialFields.length ?? 1;
+    return connector.auth_type === "oauth2" || fieldCount > 1;
+  }
+
+  function openAppConnection(app: AppEntry) {
+    if (shouldUseConnectPage(app)) {
+      openConnectionPopup(`/connect/${app.slug}`, app.slug);
+      return;
+    }
+    setConnectTarget(app);
+  }
+
+  async function beginManagedConnection(slug: string) {
+    if (!session) throw new Error("Sign in again to connect apps.");
+    const res = await fetch("/api/memory-admin?action=admin_begin_managed_connection", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ platform: slug }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { connect_url?: string; error?: string };
+    if (!res.ok) throw new Error(body.error ?? `Connect failed with ${res.status}.`);
+    if (!body.connect_url) throw new Error("The connection provider did not return a sign-in link.");
+    openConnectionPopup(body.connect_url, slug);
+  }
+
+  async function beginHostedMcpLogin(slug: string) {
+    const popup = await startHostedMcpLogin({
+      slug,
+      sessionAccessToken: session?.access_token,
+    });
+    if (popup) watchConnectionPopup(popup, slug);
+  }
+
+  const counts = useMemo(() => lensCounts(APP_CATALOG, connectorBySlug), [connectorBySlug]);
+  const lensedApps = useMemo(() => applyLens(APP_CATALOG, lens, connectorBySlug), [lens, connectorBySlug]);
 
   if (!session) {
     return <p className="text-sm text-white/50">Sign in to manage Apps.</p>;
@@ -131,19 +351,40 @@ export default function AdminToolsPage() {
         </div>
       )}
 
+      <div className="mb-3">
+        <AppLensBar lens={lens} counts={counts} onSelect={selectLens} />
+      </div>
       <AppsTable
-        apps={APP_CATALOG}
+        apps={lensedApps}
         mode="admin"
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
         statusOf={statusOf}
+        onStatusClick={handleStatusClick}
+        actionOf={actionOf}
+        disconnectOf={disconnectActionOf}
         busy={saving}
       />
 
+      {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (
+        <ConnectAppModal
+          app={connectTarget}
+          connector={connectorBySlug.get(connectTarget.slug)!}
+          accessToken={session.access_token}
+          onClose={() => setConnectTarget(null)}
+          onSaved={() => void refreshStatus()}
+          isConnected={isConnected(connectorBySlug.get(connectTarget.slug))}
+          statusLabel={statusOf(connectTarget)?.label ?? null}
+          onDisconnect={() => disconnectApp(connectTarget.slug)}
+          onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}
+          onStartHostedMcpLogin={() => beginHostedMcpLogin(connectTarget.slug)}
+        />
+      )}
+
       {/* Slim footer: where keys and related libraries live */}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
-        <FooterLink to="/admin/keychain" icon={<KeyRound className="h-4 w-4 text-[#E2B93B]" />} title="Passport" desc="Add API keys and logins for apps that need them." />
+        <FooterLink to="/admin/keychain" icon={<KeyRound className="h-4 w-4 text-[#E2B93B]" />} title="Connections" desc="Manage app connections your AI is allowed to use." />
         <FooterLink to="/admin/skills" icon={<Sparkles className="h-4 w-4 text-[#61C1C4]" />} title="Skills Library" desc="Reusable skill packs your agents can install." />
         <FooterLink to="/admin/copypass" icon={<PenSquare className="h-4 w-4 text-fuchsia-300" />} title="CopyPass" desc="Quality checks for writing and copy." />
       </div>

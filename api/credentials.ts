@@ -11,9 +11,9 @@
  *
  * POST /api/credentials
  *   Body: { platform: string, credentials: Record<string, string>,
- *           api_key: string, label?: string }
+ *           api_key: string, label?: string, mark_tested?: boolean }
  *   Encrypts and stores credentials in Supabase user_credentials table.
- *   Upserts on (api_key_hash, platform_slug, label) — pass different
+ *   Upserts on (api_key_hash, platform_slug, label). Pass different
  *   labels to store multiple credentials for the same platform.
  *   Used by Connect.tsx for bot_token / api_key flows (no OAuth exchange needed).
  *
@@ -28,6 +28,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "crypto";
+import {
+  fetchManagedConnectionCredentials,
+  type ManagedConnectionRow,
+} from "./lib/managed-connections.js";
+import { needsRefresh, refreshOAuthCredential } from "./lib/oauth-refresh.js";
 
 // ─── Crypto helpers ───────────────────────────────────────────────────────────
 
@@ -96,12 +101,74 @@ async function supabaseFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
+// ─── OAuth refresh on read ────────────────────────────────────────────────────
+// The single chokepoint every OAuth connector funnels through (vault-bridge ->
+// GET /api/credentials). If a stored access token is expiring and we hold a
+// refresh token, mint a fresh one here so connectors never receive a dead token.
+// Best-effort: any failure returns the stored credential unchanged, so this can
+// never be worse than not refreshing at all.
+async function refreshStoredCredential(params: {
+  platform:       string;
+  credentials:    Record<string, string>;
+  rowId:          string;
+  apiKey:         string;
+  supabaseUrl:    string;
+  serviceRoleKey: string;
+  force:          boolean;
+}): Promise<Record<string, string>> {
+  const { platform, credentials, rowId, apiKey, supabaseUrl, serviceRoleKey, force } = params;
+
+  try {
+    if (!needsRefresh(platform, credentials, force)) return credentials;
+
+    const refreshed = await refreshOAuthCredential(platform, credentials, process.env);
+    if (!refreshed) return credentials;
+
+    // Persist the rotated token so the next read is already fresh, and stamp the
+    // proof fields (a successful refresh proves the credential is live).
+    if (rowId) {
+      try {
+        const salt = crypto.randomBytes(SALT_BYTES);
+        const key  = deriveKey(apiKey, salt);
+        const { iv, authTag, ciphertext } = encrypt(JSON.stringify(refreshed), key);
+        const now = new Date().toISOString();
+        await supabaseFetch(
+          `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(rowId)}`,
+          "PATCH",
+          { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
+          {
+            encrypted_data:  ciphertext,
+            encryption_iv:   iv,
+            encryption_tag:  authTag,
+            encryption_salt: salt.toString("hex"),
+            is_valid:        true,
+            last_tested_at:  now,
+            updated_at:      now,
+          }
+        );
+      } catch {
+        // persistence is best-effort; still hand back the freshly minted token
+        return refreshed;
+      }
+    }
+
+    return refreshed;
+  } catch {
+    // Any unexpected failure falls back to the stored credential, so refresh can
+    // never be worse than not refreshing.
+    return credentials;
+  }
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+  res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+  res.setHeader("CDN-Cache-Control", "no-store");
+  res.setHeader("Vercel-CDN-Cache-Control", "no-store");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -114,12 +181,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Server credentials not configured." });
   }
 
+  // ── PATCH: record live proof after a connector call succeeds ──────────────
+  if (req.method === "PATCH") {
+    const authHeader = req.headers.authorization ?? "";
+    const apiKey     = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const body       = req.body as { platform?: string; label?: string | null } | undefined;
+    const platform   = String(body?.platform ?? "").trim();
+    const label      = typeof body?.label === "string" ? body.label.trim() : "";
+
+    if (!apiKey)   return res.status(401).json({ error: "Authorization header required." });
+    if (!platform) return res.status(400).json({ error: "platform is required." });
+
+    const apiKeyHash = sha256hex(apiKey);
+    const testedAt   = new Date().toISOString();
+    const labelFilter = label
+      ? `&label=eq.${encodeURIComponent(label)}`
+      : "&label=is.null";
+    const tableUrl =
+      `${supabaseUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}` +
+      `&platform_slug=eq.${encodeURIComponent(platform)}${labelFilter}`;
+
+    const { ok, status, data } = await supabaseFetch(
+      tableUrl,
+      "PATCH",
+      supabaseHeaders(serviceRoleKey),
+      { is_valid: true, last_tested_at: testedAt, updated_at: testedAt }
+    );
+    if (!ok) return res.status(status).json({ error: "Failed to mark credential tested." });
+
+    const rows = Array.isArray(data) ? data : [];
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No stored credential matched this platform." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      platform,
+      label: label || null,
+      last_tested_at: testedAt,
+    });
+  }
+
   // ── GET: retrieve decrypted credentials ───────────────────────────────────
   if (req.method === "GET") {
     const authHeader = req.headers.authorization ?? "";
     const apiKey     = authHeader.replace(/^Bearer\s+/i, "").trim();
     const platform   = String(req.query.platform ?? "").trim();
     const label      = typeof req.query.label === "string" ? req.query.label.trim() : "";
+    const forceRefresh = String(req.query.force_refresh ?? "").toLowerCase() === "1"
+      || String(req.query.force_refresh ?? "").toLowerCase() === "true";
 
     if (!apiKey)   return res.status(401).json({ error: "Authorization header required." });
     if (!platform) return res.status(400).json({ error: "platform query param required." });
@@ -139,6 +249,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const rows = data as Array<Record<string, unknown>>;
     if (!rows || rows.length === 0) {
+      const managedUrl = `${supabaseUrl}/rest/v1/managed_app_connections?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}&platform_slug=eq.${encodeURIComponent(platform)}&status=eq.connected&select=id,platform_slug,provider,provider_config_key,external_connection_id,auth_mode,status,account_label,scope_summary,last_checked_at,connected_at,created_at,updated_at,metadata&order=updated_at.desc.nullslast&limit=1`;
+      const managed = await supabaseFetch(managedUrl, "GET", supabaseHeaders(serviceRoleKey));
+      const managedRows = managed.ok ? (managed.data as ManagedConnectionRow[]) : [];
+      const managedConnection = managedRows[0];
+      if (managedConnection) {
+        const brokerResult = await fetchManagedConnectionCredentials({ connection: managedConnection });
+        if (brokerResult.ok && brokerResult.credentials) {
+          return res.status(200).json(brokerResult.credentials);
+        }
+        return res.status(brokerResult.status || 502).json({
+          error: brokerResult.error ?? "Managed connection could not provide credentials.",
+          setup_url: `https://unclick.world/admin/apps?lens=connected`,
+        });
+      }
+
       return res.status(404).json({
         error:     label
           ? `No credentials stored for platform "${platform}" with label "${label}".`
@@ -158,7 +283,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         key
       );
       const credentials = JSON.parse(plaintext) as Record<string, string>;
-      return res.status(200).json(credentials);
+      const finalCredentials = await refreshStoredCredential({
+        platform,
+        credentials,
+        rowId:          String(row.id ?? ""),
+        apiKey,
+        supabaseUrl,
+        serviceRoleKey,
+        force:          forceRefresh,
+      });
+      return res.status(200).json(finalCredentials);
     } catch {
       return res.status(500).json({ error: "Failed to decrypt credentials. The API key may have changed." });
     }
@@ -171,9 +305,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       credentials: Record<string, string>;
       api_key:     string;
       label?:      string;
+      mark_tested?: boolean;
     };
 
-    const { platform, credentials, api_key, label } = body ?? {};
+    const { platform, credentials, api_key, label, mark_tested } = body ?? {};
     if (!platform)    return res.status(400).json({ error: "platform is required." });
     if (!credentials) return res.status(400).json({ error: "credentials is required." });
     if (!api_key)     return res.status(400).json({ error: "api_key is required." });
@@ -191,6 +326,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Label normalization: empty string → null (treat "no label" uniformly).
     const normalizedLabel = label && label.trim() ? label.trim() : null;
 
+    const updatedAt = new Date().toISOString();
     const row = {
       api_key_hash:    sha256hex(api_key),
       platform_slug:   platform,
@@ -199,7 +335,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       encryption_iv:   iv,
       encryption_tag:  authTag,
       encryption_salt: salt.toString("hex"),
-      updated_at:      new Date().toISOString(),
+      ...(mark_tested ? { is_valid: true, last_tested_at: updatedAt } : {}),
+      updated_at:      updatedAt,
     };
 
     // Upsert on the (api_key_hash, platform_slug, label) unique index.
@@ -207,7 +344,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // constraint to merge on; without it, Prefer=merge-duplicates falls back
     // to the PK and every insert 409s (the bug that blocked the original
     // vault seed). The index is declared NULLS NOT DISTINCT so a NULL label
-    // behaves as a single distinct "default" value — see migration
+    // behaves as a single distinct "default" value; see migration
     // 20260420040000_user_credentials_label.sql.
     const tableUrl = `${supabaseUrl}/rest/v1/user_credentials?on_conflict=api_key_hash,platform_slug,label`;
     const headers  = {

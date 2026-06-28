@@ -19,18 +19,42 @@ function base64UrlDecode(value: string): string {
 }
 
 function getPlatformSecret(platform: string, env: NodeJS.ProcessEnv): string {
-  switch (platform) {
+  const platformSecret = (() => {
+    switch (platform) {
     case "github":
       return env.GITHUB_CLIENT_SECRET ?? "";
+    case "vercel":
+      return env.VERCEL_CLIENT_SECRET ?? "";
+    case "supabase":
+      return env.SUPABASE_OAUTH_CLIENT_SECRET ?? "";
     case "xero":
       return env.XERO_CLIENT_SECRET ?? "";
     case "reddit":
       return env.REDDIT_CLIENT_SECRET ?? "";
     case "shopify":
       return env.SHOPIFY_CLIENT_SECRET ?? "";
+    case "dropbox":
+      return env.DROPBOX_CLIENT_SECRET ?? "";
+    case "gmail":
+    case "google-drive":
+    case "google-workspace":
+      return env.GOOGLE_WORKSPACE_CLIENT_SECRET ?? "";
+    case "onedrive":
+    case "microsoft-graph":
+      return env.MICROSOFT_GRAPH_CLIENT_SECRET ?? "";
+    case "spotify":
+      return env.SPOTIFY_CLIENT_SECRET ?? "";
     default:
       return "";
-  }
+    }
+  })();
+
+  return platformSecret ||
+    env.OAUTH_STATE_SECRET ||
+    env.MCP_OAUTH_SIGNING_SECRET ||
+    env.UNCLICK_OAUTH_SIGNING_SECRET ||
+    env.SUPABASE_SERVICE_ROLE_KEY ||
+    "";
 }
 
 function signPayload(encodedPayload: string, secret: string): string {

@@ -7,7 +7,7 @@
 
 ## Executive read
 
-UnClick Memory should remain Postgres-backed product state, not loose vector storage. The competitive pattern is clear: long-term memory systems are moving toward layered memory, graph-aware retrieval, source-linked history, and compact context injection. The UnClick edge is to make that agent-native and human-inspectable inside one tenant-scoped state layer.
+UnClick Memory should remain Postgres-backed product state, not loose vector storage. The market pattern is clear: long-term memory systems are moving toward layered memory, graph-aware retrieval, source-linked history, and compact context injection. The UnClick edge is to make that agent-native and human-inspectable inside one tenant-scoped state layer.
 
 The next generation should ship as five connected chips:
 
@@ -33,24 +33,22 @@ Those choices should stay. The next phase should make the layers easier to trust
 
 ## Source-backed market notes
 
-These notes were verified from live public sources on 2026-05-10 UTC.
+These notes were verified from live public sources on 2026-05-10 UTC and are kept category-level for public docs.
 
-| Source | What is source-backed | UnClick inference |
+| Source class | What is source-backed | UnClick inference |
 | --- | --- | --- |
-| Zep docs, `https://help.getzep.com/v2/memory` | Zep stores chat history, builds a user-level knowledge graph, recommends adding human and AI turns together, retrieves a context string plus recent messages and raw facts. | UnClick should capture both user and AI turns, but keep Postgres as the source of truth and make graph-like retrieval an optional derived index. |
-| Zep paper, `https://arxiv.org/abs/2501.13956` | Zep frames temporal knowledge graphs as a way to synthesize conversations and business data, with benchmark claims on deep memory retrieval and temporal reasoning. | Temporal relationships matter, but UnClick should model them through bi-temporal state, provenance, and source receipts before adding a heavy graph dependency. |
-| Mem0 docs, `https://docs.mem0.ai/platform/overview` | Mem0 positions itself as a managed memory layer with graph memory, webhooks, multimodal support, custom categories, governance, and MCP integration. | Mem0 validates memory-as-platform demand. UnClick should compete by integrating memory directly with Boardroom, Heartbeat, Orchestrator, Keychain, and Data Island rather than as a standalone SDK. |
-| Mem0 OSS docs, `https://docs.mem0.ai/open-source/overview` | Mem0 OSS supports library or server mode, self-hosted dashboard/API keys/audit log, configurable LLMs, embeddings, vector stores, rerankers, and Postgres plus pgvector defaults for server mode. | Keep BYOD and managed modes, but avoid pushing configuration burden onto normal users. Advanced knobs belong behind admin/operator surfaces. |
-| Mem0 memory types, `https://docs.mem0.ai/core-concepts/memory-types` | Mem0 separates conversation, session, user, and organizational memory, and warns against storing secrets or unredacted sensitive data in retrievable memory. | UnClick already has richer layers. The missing step is a visible classifier that says why a row is startup-safe, searchable-only, archival, or excluded. |
-| Mem0 paper, `https://arxiv.org/abs/2504.19413` | Mem0 reports long-term memory gains through dynamic extraction, consolidation, retrieval, graph variants, and lower cost/latency versus full-context baselines. | Cheap-first retrieval and compaction should be treated as product architecture, not an optimization afterthought. |
-| Letta stateful agent docs, `https://docs.letta.com/guides/core-concepts/stateful-agents` | Letta persists agent state, memory blocks, messages, reasoning, and tool calls in a database, with important memory blocks pinned into context and old messages retrievable after compaction. | Profile Card should be pinned, editable state. Raw conversations and tool receipts should stay retrievable, not always loaded. |
-| Letta archival memory docs, `https://docs.letta.com/guides/core-concepts/memory/archival-memory` | Letta archival memory is semantically searchable long-term storage queried on demand, with tags and agent tools for insert/search. | UnClick Library Snapshots should combine tagged shelves with source links and human labels, so agents do not treat every retrieved chunk as equal. |
+| Graph-memory systems | Modern memory layers store chat history, build user-level knowledge graphs, retrieve compact context blocks, and keep raw facts available for inspection. | UnClick should capture both user and AI turns, but keep Postgres as the source of truth and make graph-like retrieval an optional derived index. |
+| Temporal-memory research | Temporal relationships improve deep memory retrieval and reasoning when they remain source-linked and queryable. | UnClick should model time through bi-temporal state, provenance, and source receipts before adding a heavy graph dependency. |
+| Managed memory platforms | The market is moving toward graph memory, webhooks, multimodal support, custom categories, governance, and MCP delivery. | Integrate memory directly with Boardroom, Heartbeat, Orchestrator, Keychain, and Data Island rather than as a standalone SDK. |
+| Open-core memory servers | Server mode, self-hosted dashboards, API keys, audit logs, configurable LLMs, embeddings, vector stores, rerankers, and Postgres plus pgvector are common patterns. | Keep BYOD and managed modes, but avoid pushing configuration burden onto normal users. Advanced knobs belong behind admin/operator surfaces. |
+| Memory type models | Conversation, session, user, and organization memory should be separated, and secrets must not enter retrievable memory. | UnClick already has richer layers. The missing step is a visible classifier that says why a row is startup-safe, searchable-only, archival, or excluded. |
+| Stateful-agent systems | Agent state, memory blocks, messages, reasoning, and tool calls are persisted, with important blocks pinned into context and old messages retrievable after compaction. | Profile Card should be pinned, editable state. Raw conversations and tool receipts should stay retrievable, not always loaded. |
 
 ## Recommended architecture
 
 ### 1. Profile Card
 
-Purpose: a compact, always-loaded card that tells a fresh AI Seat who Chris is, what UnClick is, what matters now, and what to avoid.
+Purpose: a compact, always-loaded card that tells a fresh AI Seat who the operator is, what UnClick is, what matters now, and what to avoid.
 
 Recommended fields:
 
@@ -77,7 +75,7 @@ Recommended shelves:
 - Product truth: PRDs, current-state docs, target-state docs, ADRs.
 - Operator preferences: tone, timezone, merge policy, safety rules.
 - Project state: active lanes, completed milestones, blockers, proof receipts.
-- Research: competitor notes, papers, market scans, source links.
+- Research: category notes, papers, market scans, source links.
 - Troubleshooting: issue, cause, fix, proof, expiry.
 
 Implementation guidance:
@@ -156,7 +154,7 @@ Implementation guidance:
 - Prefer summary plus receipts over raw transcript replay.
 - Mark operational self-reports as non-startup memory.
 - Keep old raw chunks queryable, but do not let them crowd the startup context.
-- Require explicit source links for competitor claims and market notes.
+- Require explicit source links for market claims and category notes.
 - Keep export and deep lookup read-only unless a separate write chip is scoped.
 
 ## Build sequence

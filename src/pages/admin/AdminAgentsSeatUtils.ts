@@ -1,4 +1,4 @@
-export interface FishbowlProfile {
+export interface BoardroomProfile {
   agent_id: string;
   emoji: string | null;
   display_name: string | null;
@@ -137,7 +137,7 @@ export function buildSeatOverrideStoragePayload(seats: AISeat[]): Record<string,
   );
 }
 
-export function latestProfileCheckInAt(profile: FishbowlProfile): string | null {
+export function latestProfileCheckInAt(profile: BoardroomProfile): string | null {
   const candidates = [profile.last_seen_at, profile.current_status_updated_at]
     .filter((value): value is string => Boolean(value))
     .map((value) => ({ value, ms: Date.parse(value) }))
@@ -146,7 +146,7 @@ export function latestProfileCheckInAt(profile: FishbowlProfile): string | null 
   return candidates[0]?.value ?? null;
 }
 
-export function profileMatchesSeat(profile: FishbowlProfile, seat: AISeat): boolean {
+export function profileMatchesSeat(profile: BoardroomProfile, seat: AISeat): boolean {
   const haystack = `${profile.agent_id} ${profile.display_name ?? ""} ${profile.user_agent_hint ?? ""}`.toLowerCase();
   const needles = [seat.id, seat.name, seat.provider, seat.device]
     .map((value) => value.toLowerCase().trim())
@@ -154,8 +154,8 @@ export function profileMatchesSeat(profile: FishbowlProfile, seat: AISeat): bool
   return needles.some((needle) => haystack.includes(needle));
 }
 
-export function mapProfilesToSeats(seats: AISeat[], profiles: FishbowlProfile[]): Map<string, FishbowlProfile> {
-  const seatProfiles = new Map<string, FishbowlProfile>();
+export function mapProfilesToSeats(seats: AISeat[], profiles: BoardroomProfile[]): Map<string, BoardroomProfile> {
+  const seatProfiles = new Map<string, BoardroomProfile>();
   const usedProfiles = new Set<string>();
 
   for (const seat of seats) {
@@ -177,11 +177,11 @@ export function mapProfilesToSeats(seats: AISeat[], profiles: FishbowlProfile[])
 }
 
 export function unmatchedRecentProfiles(
-  profiles: FishbowlProfile[],
-  matchedProfiles: Iterable<FishbowlProfile>,
+  profiles: BoardroomProfile[],
+  matchedProfiles: Iterable<BoardroomProfile>,
   nowMs = Date.now(),
   windowMs = 24 * 60 * 60 * 1000,
-): FishbowlProfile[] {
+): BoardroomProfile[] {
   const matchedIds = new Set(Array.from(matchedProfiles).map((profile) => profile.agent_id));
   return profiles.filter((profile) => {
     if (matchedIds.has(profile.agent_id)) return false;
@@ -194,7 +194,7 @@ export function unmatchedRecentProfiles(
 
 export function rankSeatsForRouting(
   seats: AISeat[],
-  profiles: FishbowlProfile[] = [],
+  profiles: BoardroomProfile[] = [],
   nowMs = Date.now(),
 ): AISeat[] {
   const profileMap = mapProfilesToSeats(seats, profiles);
@@ -234,7 +234,7 @@ function freshnessPenalty(checkedInAt: string | null, nowMs: number): { penalty:
   return { penalty: 65, reason: "cold" };
 }
 
-function missedCheckInPenalty(profile: FishbowlProfile | null, nowMs: number): { penalty: number; reason: string | null } {
+function missedCheckInPenalty(profile: BoardroomProfile | null, nowMs: number): { penalty: number; reason: string | null } {
   if (!profile?.next_checkin_at) return { penalty: 0, reason: null };
   const nextMs = Date.parse(profile.next_checkin_at);
   if (!Number.isFinite(nextMs) || nowMs <= nextMs) return { penalty: 0, reason: null };
@@ -252,7 +252,7 @@ function scoreSeatPerformance({
   id: string;
   label: string;
   seat?: AISeat | null;
-  profile?: FishbowlProfile | null;
+  profile?: BoardroomProfile | null;
   nowMs: number;
   source: SeatPerformanceScore["source"];
 }): SeatPerformanceScore {
@@ -295,7 +295,7 @@ function scoreSeatPerformance({
 
 export function buildSeatPerformanceScores(
   seats: AISeat[],
-  profiles: FishbowlProfile[] = [],
+  profiles: BoardroomProfile[] = [],
   nowMs = Date.now(),
 ): SeatPerformanceScore[] {
   const seatProfiles = mapProfilesToSeats(seats, profiles);
@@ -397,7 +397,7 @@ function buildCapabilityNotes({
   signal,
 }: {
   seat: AISeat | null;
-  profile: FishbowlProfile | null;
+  profile: BoardroomProfile | null;
   freshness: SeatFreshnessKind;
   signal: "pass" | "blocker" | null;
 }): string[] {
@@ -418,7 +418,7 @@ function buildCapabilityNotes({
 
 export function buildSeatCapabilityNotes(
   seats: AISeat[],
-  profiles: FishbowlProfile[] = [],
+  profiles: BoardroomProfile[] = [],
   nowMs = Date.now(),
 ): SeatCapabilityNote[] {
   const seatProfiles = mapProfilesToSeats(seats, profiles);

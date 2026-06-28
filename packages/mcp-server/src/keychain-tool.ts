@@ -5,11 +5,13 @@
 //
 // Required env vars:
 //   UNCLICK_API_KEY           - caller's UnClick API key (never stored)
+//   UNCLICK_API_KEY_HASH      - optional pre-hashed key for read-only status
 //   SUPABASE_URL              - Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY - service role key (bypasses RLS)
 
 import { encrypt, decrypt, hashKeyFull } from "./keychain-crypto.js";
 import { resolveCredential } from "./keychain-secure-input.js";
+import { scopesEnabled } from "./memory/scopes.js";
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 
@@ -36,6 +38,180 @@ async function sbFetch(
   let data: unknown;
   try { data = await res.json(); } catch { data = null; }
   return { ok: res.ok, status: res.status, data };
+}
+
+function currentApiKeyHash(): string | null {
+  const configuredHash = String(process.env.UNCLICK_API_KEY_HASH ?? "").trim();
+  if (configuredHash) return configuredHash;
+
+  const apiKey = String(process.env.UNCLICK_API_KEY ?? "").trim();
+  return apiKey ? hashKeyFull(apiKey) : null;
+}
+
+// ─── Connection status helpers ───────────────────────────────────────────────
+
+type CredentialStatusSource =
+  | "platform_credentials"
+  | "user_credentials"
+  | "managed_app_connections";
+
+const STALE_CREDENTIAL_TEST_DAYS = 30;
+
+type CredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
+type CredentialHealth = "healthy" | "untested" | "pending" | "failing" | "stale";
+
+interface CredentialStatusRow {
+  platform:       string;
+  label:          string | null;
+  is_valid:       boolean;
+  last_tested_at: string | null;
+  created_at:     string | null;
+  updated_at:     string | null;
+  source:         CredentialStatusSource;
+  status?:        string | null;
+}
+
+function timestampScore(value: unknown): number {
+  if (typeof value !== "string" || !value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function credentialScore(row: CredentialStatusRow): number {
+  const managedBoost = row.source === "managed_app_connections" ? 100_000_000_000_000 : 0;
+  return (row.is_valid ? 1_000_000_000_000_000 : 0)
+    + managedBoost
+    + (row.last_tested_at ? 1_000_000_000_000 : 0)
+    + Math.max(timestampScore(row.updated_at), timestampScore(row.created_at));
+}
+
+function mergeCredentialRows(rows: CredentialStatusRow[]): CredentialStatusRow[] {
+  const byPlatform = new Map<string, CredentialStatusRow>();
+  for (const row of rows) {
+    const current = byPlatform.get(row.platform);
+    if (!current || credentialScore(row) > credentialScore(current)) {
+      byPlatform.set(row.platform, row);
+    }
+  }
+  return [...byPlatform.values()].sort((a, b) => a.platform.localeCompare(b.platform));
+}
+
+function hoursSinceIso(value: string | null, now = Date.now()): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.floor((now - parsed) / 3_600_000));
+}
+
+function credentialHealth(row: CredentialStatusRow): CredentialHealth {
+  if (row.status === "pending") return "pending";
+  if (!row.is_valid) return "failing";
+
+  const ageHours = hoursSinceIso(row.last_tested_at);
+  if (ageHours === null) return "untested";
+  return ageHours >= STALE_CREDENTIAL_TEST_DAYS * 24 ? "stale" : "healthy";
+}
+
+function credentialConnectionState(row: CredentialStatusRow): CredentialConnectionState {
+  const health = credentialHealth(row);
+  return health === "healthy" ? "connected" : health;
+}
+
+function credentialIsConnected(row: CredentialStatusRow): boolean {
+  return credentialConnectionState(row) === "connected";
+}
+
+function credentialStatusMessage(row: CredentialStatusRow): string {
+  const state = credentialConnectionState(row);
+  if (state === "connected") {
+    return `${row.platform} credential has recorded connection proof from ${row.source}.`;
+  }
+  if (state === "stale") {
+    return `${row.platform} credential has old connection proof from ${row.source}; reconnect or test it before trusting it.`;
+  }
+  if (state === "untested") {
+    return `${row.platform} credential is stored in ${row.source}, but has not been live-tested yet.`;
+  }
+  if (state === "pending") {
+    return `${row.platform} connection is pending.`;
+  }
+  return `${row.platform} credential is saved but not connected.`;
+}
+
+async function readCredentialStatusRows(
+  supaUrl:    string,
+  serviceKey: string,
+  keyHash:    string,
+  platform:   string | null
+): Promise<{ ok: boolean; rows: CredentialStatusRow[] }> {
+  const headers = sbHeaders(serviceKey);
+  const rows: CredentialStatusRow[] = [];
+
+  let platformUrl =
+    `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&select=platform,label,is_valid,last_tested_at,created_at`;
+  if (platform) platformUrl += `&platform=eq.${encodeURIComponent(platform)}`;
+
+  const platformResult = await sbFetch(platformUrl, "GET", headers);
+  if (!platformResult.ok) return { ok: false, rows: [] };
+  for (const row of platformResult.data as Array<Record<string, unknown>>) {
+    rows.push({
+      platform:       String(row.platform ?? ""),
+      label:          row.label == null ? null : String(row.label),
+      is_valid:       row.is_valid !== false,
+      last_tested_at: row.last_tested_at == null ? null : String(row.last_tested_at),
+      created_at:     row.created_at == null ? null : String(row.created_at),
+      updated_at:     null,
+      source:         "platform_credentials",
+    });
+  }
+
+  let userUrl =
+    `${supaUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&select=platform_slug,label,is_valid,last_tested_at,created_at,updated_at`;
+  if (platform) userUrl += `&platform_slug=eq.${encodeURIComponent(platform)}`;
+
+  const userResult = await sbFetch(userUrl, "GET", headers);
+  if (userResult.ok) {
+    for (const row of userResult.data as Array<Record<string, unknown>>) {
+      rows.push({
+        platform:       String(row.platform_slug ?? ""),
+        label:          row.label == null ? null : String(row.label),
+        is_valid:       row.is_valid !== false,
+        last_tested_at: row.last_tested_at == null ? null : String(row.last_tested_at),
+        created_at:     row.created_at == null ? null : String(row.created_at),
+        updated_at:     row.updated_at == null ? null : String(row.updated_at),
+        source:         "user_credentials",
+      });
+    }
+  }
+
+  let managedUrl =
+    `${supaUrl}/rest/v1/managed_app_connections?api_key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&status=in.(connected,pending)` +
+    `&select=platform_slug,status,account_label,last_checked_at,connected_at,created_at,updated_at`;
+  if (platform) managedUrl += `&platform_slug=eq.${encodeURIComponent(platform)}`;
+
+  const managedResult = await sbFetch(managedUrl, "GET", headers);
+  if (managedResult.ok) {
+    for (const row of managedResult.data as Array<Record<string, unknown>>) {
+      const status = row.status == null ? null : String(row.status);
+      rows.push({
+        platform:       String(row.platform_slug ?? ""),
+        label:          row.account_label == null ? null : String(row.account_label),
+        is_valid:       status === "connected",
+        last_tested_at: row.last_checked_at == null
+          ? (row.connected_at == null ? null : String(row.connected_at))
+          : String(row.last_checked_at),
+        created_at:     row.created_at == null ? null : String(row.created_at),
+        updated_at:     row.updated_at == null ? null : String(row.updated_at),
+        source:         "managed_app_connections",
+        status,
+      });
+    }
+  }
+
+  return { ok: true, rows: mergeCredentialRows(rows.filter((row) => row.platform)) };
 }
 
 // ─── Metering ─────────────────────────────────────────────────────────────────
@@ -250,7 +426,9 @@ interface TestResult {
   auth_method:    string;
 }
 
-async function testCredential(
+// Exported so the web admin connect flow (api/memory-admin admin_connect_app)
+// can run the exact same live proof before storing a credential.
+export async function testCredential(
   platform:     string,
   credential:   string,
   testEndpoint: string | null
@@ -449,31 +627,27 @@ async function keychainConnect(args: Record<string, unknown>): Promise<unknown> 
 }
 
 async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
-  if (!apiKey)     return { error: "UNCLICK_API_KEY env var is not set." };
   if (!supaUrl)    return { error: "SUPABASE_URL env var is not set." };
   if (!serviceKey) return { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set." };
 
   const start    = Date.now();
-  const keyHash  = hashKeyFull(apiKey);
+  const keyHash  = currentApiKeyHash();
   const platform = args.platform ? String(args.platform).trim().toLowerCase() : null;
 
-  let queryUrl = `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}&select=platform,label,is_valid,last_tested_at,created_at`;
-  if (platform) {
-    queryUrl += `&platform=eq.${encodeURIComponent(platform)}`;
+  if (!keyHash) {
+    return { error: "UNCLICK_API_KEY or UNCLICK_API_KEY_HASH env var is not set." };
   }
 
-  const { ok, data } = await sbFetch(queryUrl, "GET", sbHeaders(serviceKey));
+  const { ok, rows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, platform);
 
   const ms = Date.now() - start;
   await logMeter(supaUrl, serviceKey, keyHash, platform ?? "all", "status", ok, ms);
 
   if (!ok) return { error: "Failed to query credentials." };
 
-  const rows = data as Array<Record<string, unknown>>;
   if (!rows || rows.length === 0) {
     if (platform) {
       return { platform, connected: false, message: `No credential stored for "${platform}".` };
@@ -481,19 +655,44 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
     return { connected_platforms: [], count: 0 };
   }
 
-  const result = rows.map((r) => ({
-    platform:       r.platform,
-    label:          r.label,
-    is_valid:       r.is_valid,
-    last_tested_at: r.last_tested_at,
-    created_at:     r.created_at,
-  }));
+  const result = rows.map((r) => {
+    const health = credentialHealth(r);
+    const verified = health === "healthy";
+    return {
+      platform:       r.platform,
+      label:          r.label,
+      is_valid:       r.is_valid,
+      credential_saved: true,
+      last_tested_at: r.last_tested_at,
+      last_tested_age_hours: hoursSinceIso(r.last_tested_at),
+      created_at:     r.created_at,
+      updated_at:     r.updated_at,
+      source:         r.source,
+      status:         r.status ?? null,
+      health,
+      verified,
+      connection_state: credentialConnectionState(r),
+      connected:      credentialIsConnected(r),
+    };
+  });
 
   if (platform) {
-    return { ...result[0], connected: true };
+    const row = result[0];
+    return {
+      ...row,
+      message:   credentialStatusMessage(rows[0]),
+    };
   }
 
-  return { connected_platforms: result, count: result.length };
+  const unverified = result.filter((row) => row.credential_saved && !row.verified).map((row) => row.platform);
+  return {
+    connected_platforms: result,
+    count: result.length,
+    unverified_platforms: unverified,
+    warnings: unverified.length > 0
+      ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+      : [],
+  };
 }
 
 async function keychainDisconnect(args: Record<string, unknown>): Promise<unknown> {
@@ -527,15 +726,31 @@ async function keychainDisconnect(args: Record<string, unknown>): Promise<unknow
     return { error: `Failed to remove credential (HTTP ${status}).` };
   }
 
+  // --- lane-04: quarantine memory derived from the revoked credential.
+  // Best-effort: the disconnect still succeeds if quarantine fails. No-op
+  // unless MEMORY_SCOPES_ENABLED is on. ---
+  let memory_quarantined = 0;
+  if (scopesEnabled()) {
+    try {
+      const { getBackend } = await import("./memory/db.js");
+      const backend = await getBackend();
+      const result = await backend.quarantineCredentialMemory(platform);
+      memory_quarantined = result?.quarantined ?? 0;
+    } catch (err) {
+      console.error("[keychain_disconnect] memory quarantine failed:", err);
+    }
+  }
+  // --- end lane-04 ---
+
   return {
     platform,
     label:  label ?? "all",
     status: "disconnected",
+    memory_quarantined,
   };
 }
 
 async function keychainListPlatforms(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
@@ -555,25 +770,41 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
 
   const platforms = data as Array<Record<string, unknown>>;
 
-  // If the caller has an API key, enrich with connection status
-  if (apiKey) {
-    const keyHash  = hashKeyFull(apiKey);
-    const statusUrl = `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}&select=platform,label,is_valid`;
-    const { ok: sOk, data: sData } = await sbFetch(statusUrl, "GET", sbHeaders(serviceKey));
+  // If the caller has an API key or a precomputed hash, enrich with status metadata.
+  const keyHash = currentApiKeyHash();
+  if (keyHash) {
+    const { ok: sOk, rows: statusRows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, null);
 
     const ms = Date.now() - start;
     await logMeter(supaUrl, serviceKey, keyHash, "all", "list_platforms", sOk, ms);
 
     if (sOk) {
-      const connected = new Set(
-        (sData as Array<Record<string, unknown>>).map((r) => String(r.platform))
-      );
-      return {
-        platforms: platforms.map((p) => ({
+      const statuses = new Map(statusRows.map((row) => [row.platform, row]));
+      const platformResults = platforms.map((p) => {
+        const statusRow = statuses.get(String(p.id));
+        const health = statusRow ? credentialHealth(statusRow) : "untested";
+        return {
           ...p,
-          connected: connected.has(String(p.id)),
-        })),
+          id: String(p.id ?? ""),
+          connected: statusRow ? credentialIsConnected(statusRow) : false,
+          credential_saved: Boolean(statusRow),
+          health: statusRow ? health : "missing",
+          verified: statusRow ? health === "healthy" : false,
+          last_tested_age_hours: statusRow ? hoursSinceIso(statusRow.last_tested_at) : null,
+          connection_state: statusRow ? credentialConnectionState(statusRow) : "missing",
+          connected_source: statusRow?.source ?? null,
+        };
+      });
+      const unverified = platformResults
+        .filter((platform) => platform.credential_saved && !platform.verified)
+        .map((platform) => String(platform.id));
+      return {
+        platforms: platformResults,
         count: platforms.length,
+        unverified_platforms: unverified,
+        warnings: unverified.length > 0
+          ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+          : [],
       };
     }
   }

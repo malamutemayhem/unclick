@@ -26,6 +26,7 @@ export default function AuthCallbackPage() {
   const [params] = useSearchParams();
   const { session, loading } = useSession();
 
+  const nextPath = safeNext(params.get("next"));
   const urlError = params.get("error_description") || params.get("error");
   const [timedOut, setTimedOut] = useState(false);
   const tracked = useRef(false);
@@ -51,15 +52,9 @@ export default function AuthCallbackPage() {
         provider,
         created_at: user.created_at,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const umamiTrack = (window as any).umami?.track;
       if (isNewUser) {
-        // TODO(posthog-migration): remove umami call once PostHog validated
-        umamiTrack?.("new_user_signup", { method, email: user.email });
         posthog.capture("signup_completed", { method, email: user.email });
       } else {
-        // TODO(posthog-migration): remove umami call once PostHog validated
-        umamiTrack?.("returning_user_signin", { method });
         posthog.capture("signin_completed", { method });
       }
       // Check if MFA is required before entering the admin shell
@@ -68,11 +63,11 @@ export default function AuthCallbackPage() {
         if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
           navigate("/auth/verify-mfa", { replace: true });
         } else {
-          navigate("/admin", { replace: true });
+          navigate(nextPath, { replace: true });
         }
       })();
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, navigate, nextPath]);
 
   // If we've been waiting more than 8 seconds with no session and no
   // URL error, something went wrong silently - nudge the user back
@@ -124,4 +119,9 @@ export default function AuthCallbackPage() {
       <Footer />
     </div>
   );
+}
+
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/admin";
+  return value;
 }

@@ -5,7 +5,7 @@
 -- spot which prompts / tool patterns / surfaces produce bad outcomes and
 -- then tune system prompts, tool descriptions, or context-assembly rules.
 --
--- Today nothing reads from it — it's append-only capture. That's the point:
+-- Today nothing reads from it. It's append-only capture. That's the point:
 -- start collecting now so the data exists when we have a reason to learn
 -- from it. Without this, any future optimization pass starts from zero.
 --
@@ -69,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_agent_trace_surface_outcome
   ON agent_trace (surface, outcome, created_at DESC);
 
 -- Lock it down: only the service role (serverless API functions) can read
--- or write. No direct client access — agents append via /api/trace,
+-- or write. No direct client access. Agents append via /api/trace,
 -- analytics reads via the admin surface.
 ALTER TABLE agent_trace ENABLE ROW LEVEL SECURITY;
 

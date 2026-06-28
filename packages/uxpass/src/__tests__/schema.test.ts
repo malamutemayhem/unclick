@@ -28,6 +28,28 @@ const validPack = {
     "high-severity": "fishbowl-todos",
     all: "report-only",
   },
+  ui_toolbox: {
+    sources: ["shadcn-ui", "radix-ui", "motion", "21st-dev"],
+    required_gates: [
+      "source-provenance",
+      "license-ok",
+      "a11y-primitive",
+      "design-system-fit",
+      "mobile-fit",
+      "reduced-motion",
+      "performance-budget",
+      "brand-fit",
+      "screenshot-proof",
+    ],
+    candidates: [
+      {
+        source_id: "21st-dev",
+        component_name: "Hero CTA",
+        intended_use: "Marketing landing page polish",
+      },
+    ],
+    scoreboard: true,
+  },
 };
 
 describe("UXPassPackSchema", () => {
@@ -117,6 +139,35 @@ describe("UXPassPackSchema", () => {
     const result = UXPassPackSchema.safeParse({
       ...validPack,
       remediation: { "high-severity": "email-bailey" },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a UIPass toolbox config with known sources and gates", () => {
+    const result = UXPassPackSchema.safeParse(validPack);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.ui_toolbox?.scoreboard).toBe(true);
+      expect(result.data.ui_toolbox?.sources).toContain("21st-dev");
+    }
+  });
+
+  it("rejects an unknown UIPass toolbox source", () => {
+    const result = UXPassPackSchema.safeParse({
+      ...validPack,
+      ui_toolbox: {
+        sources: ["random-gallery-pack"],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an unknown UIPass toolbox gate", () => {
+    const result = UXPassPackSchema.safeParse({
+      ...validPack,
+      ui_toolbox: {
+        required_gates: ["looks-expensive"],
+      },
     });
     expect(result.success).toBe(false);
   });

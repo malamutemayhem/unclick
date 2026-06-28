@@ -125,7 +125,7 @@ Three roles interact with the lane. Each role's authority is **code-enforced** a
    - `pinballwake-build-executor` (lives on the same runner as the requester but enters from a separate entry point with broader authority, splitting the surface).
    - Future: `claude-cowork-builder-seat` once the cowork side has a write-capable surface.
 3. **Reviewers / Safety / Coordinator**: gated downstream of executor PASS; control ready-for-review and merge decisions under the gated-autopilot policy.
-   - `claude-cowork-seat` (reviewer lane; dormant since 2026-05-09; reassignment standing per Chris greenlight).
+   - `claude-cowork-seat` (reviewer lane; dormant since 2026-05-09; reassignment standing per operator greenlight).
    - Future safety seat.
 
 ## Safety boundaries

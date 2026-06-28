@@ -5,9 +5,10 @@
 //   2. Env vars       - UNCLICK_{SLUG}_{FIELD} (e.g., UNCLICK_XERO_ACCESS_TOKEN)
 //   3. Local vault    - keys "{slug}/{field}" in ~/.unclick/vault.enc
 //                       requires UNCLICK_VAULT_PASSWORD env var to auto-unlock
-//   4. Supabase       - encrypted credentials stored via unclick.world/connect/{slug}
+//   4. UnClick API    - encrypted credentials stored via unclick.world/connect/{slug}
 //                       requires UNCLICK_API_KEY env var (the user's UnClick API key)
 //                       fetches from https://unclick.world/api/credentials
+//   5. Keychain       - legacy single-value credentials saved from admin Apps
 //
 // If nothing found: returns a structured error with setup instructions.
 //
@@ -16,15 +17,115 @@
 
 import { vaultAction }                   from "./vault-tool.js";
 import { CONNECTORS, type ConnectorConfig } from "./connectors/index.js";
+import { keychainGetCredential }         from "./keychain-tool.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const UNCLICK_CREDENTIAL_SOURCE = "__unclick_credential_source";
+
+export function credentialResolvedFromUnClick(args: Record<string, unknown>): boolean {
+  return args[UNCLICK_CREDENTIAL_SOURCE] === "user_credentials";
+}
+
+export async function markCredentialLiveTested(slug: string): Promise<void> {
+  const apiKey = process.env.UNCLICK_API_KEY?.trim();
+  if (!apiKey) return;
+
+  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+  try {
+    await fetch(`${apiBase}/api/credentials`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ platform: slug }),
+    });
+  } catch {
+    // Proof stamping is best-effort; the successful provider call still returns.
+  }
+}
+
 function envKey(slug: string, fieldKey: string): string {
-  return `UNCLICK_${slug.toUpperCase()}_${fieldKey.toUpperCase().replace(/-/g, "_")}`;
+  return `UNCLICK_${slug.toUpperCase().replace(/-/g, "_")}_${fieldKey.toUpperCase().replace(/-/g, "_")}`;
 }
 
 function vaultKey(slug: string, fieldKey: string): string {
   return `${slug}/${fieldKey}`;
+}
+
+function hasResolvedCredential(resolved: Record<string, unknown>, key: string): boolean {
+  return Boolean(resolved[key] && String(resolved[key]).trim() !== "");
+}
+
+function unresolvedFields(
+  fields: ConnectorConfig["credentialFields"],
+  resolved: Record<string, unknown>,
+): ConnectorConfig["credentialFields"] {
+  return fields.filter((field) => !hasResolvedCredential(resolved, field.key));
+}
+
+async function tryResolveFromKeychain(
+  slug: string,
+  connector: ConnectorConfig,
+  resolved: Record<string, unknown>,
+  stillMissing: ConnectorConfig["credentialFields"],
+): Promise<ConnectorConfig["credentialFields"]> {
+  // The admin Apps quick-connect path stores one encrypted credential in
+  // platform_credentials. That shape fits single-field key connectors such as
+  // Clockify and Notion. OAuth connectors use this only as a fallback after the
+  // newer /connect credential row has had first chance, so reconnects win.
+  if (connector.credentialFields.length !== 1 || stillMissing.length === 0) {
+    return stillMissing;
+  }
+
+  const field = connector.credentialFields[0];
+  if (!stillMissing.some((f) => f.key === field.key)) return stillMissing;
+
+  try {
+    const val = await keychainGetCredential(slug);
+    if (val && val.trim() !== "") {
+      resolved[field.key] = val.trim();
+    }
+  } catch {
+    // keychain miss - continue to the /connect credential API
+  }
+
+  return unresolvedFields(stillMissing, resolved);
+}
+
+async function tryResolveFromUnClickApi(
+  slug: string,
+  resolved: Record<string, unknown>,
+  stillMissing: ConnectorConfig["credentialFields"],
+): Promise<ConnectorConfig["credentialFields"]> {
+  const apiKey  = process.env.UNCLICK_API_KEY?.trim();
+  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+
+  if (!apiKey) return stillMissing;
+
+  try {
+    const res = await fetch(`${apiBase}/api/credentials?platform=${encodeURIComponent(slug)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, unknown>;
+      for (const field of stillMissing) {
+        if (data[field.key] && String(data[field.key]).trim() !== "") {
+          resolved[field.key] = data[field.key];
+        }
+      }
+      const nextMissing = unresolvedFields(stillMissing, resolved);
+      if (nextMissing.length === 0) {
+        resolved[UNCLICK_CREDENTIAL_SOURCE] = "user_credentials";
+      }
+      return nextMissing;
+    }
+  } catch {
+    // network miss - fall through to the next credential source
+  }
+
+  return stillMissing;
 }
 
 // ─── Core: resolveCredentials ─────────────────────────────────────────────────
@@ -67,9 +168,7 @@ export async function resolveCredentials(
       resolved[field.key] = val.trim();
     }
   }
-  stillMissing = stillMissing.filter(
-    (f) => !resolved[f.key] || String(resolved[f.key]).trim() === ""
-  );
+  stillMissing = unresolvedFields(stillMissing, resolved);
   if (stillMissing.length === 0) return resolved;
 
   // ── 2. Local vault ─────────────────────────────────────────────────────────
@@ -95,36 +194,25 @@ export async function resolveCredentials(
         // vault miss - continue to next source
       }
     }
-    stillMissing = stillMissing.filter(
-      (f) => !resolved[f.key] || String(resolved[f.key]).trim() === ""
-    );
+    stillMissing = unresolvedFields(stillMissing, resolved);
     if (stillMissing.length === 0) return resolved;
   }
 
-  // ── 3. Supabase via UnClick API ────────────────────────────────────────────
-  const apiKey  = process.env.UNCLICK_API_KEY?.trim();
-  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
-
-  if (apiKey) {
-    try {
-      const res = await fetch(`${apiBase}/api/credentials?platform=${encodeURIComponent(slug)}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      if (res.ok) {
-        const data = (await res.json()) as Record<string, unknown>;
-        for (const field of stillMissing) {
-          if (data[field.key] && String(data[field.key]).trim() !== "") {
-            resolved[field.key] = data[field.key];
-          }
-        }
-        stillMissing = stillMissing.filter(
-          (f) => !resolved[f.key] || String(resolved[f.key]).trim() === ""
-        );
-        if (stillMissing.length === 0) return resolved;
-      }
-    } catch {
-      // network miss - fall through to error
-    }
+  // ── 3. UnClick API and Keychain ────────────────────────────────────────────
+  //
+  // OAuth reconnects write a fresh /connect row in user_credentials. Prefer that
+  // path before legacy platform_credentials so an old quick-connect token cannot
+  // silently shadow a newly completed provider login.
+  if (connector.authType === "oauth2") {
+    stillMissing = await tryResolveFromUnClickApi(slug, resolved, stillMissing);
+    if (stillMissing.length === 0) return resolved;
+    stillMissing = await tryResolveFromKeychain(slug, connector, resolved, stillMissing);
+    if (stillMissing.length === 0) return resolved;
+  } else {
+    stillMissing = await tryResolveFromKeychain(slug, connector, resolved, stillMissing);
+    if (stillMissing.length === 0) return resolved;
+    stillMissing = await tryResolveFromUnClickApi(slug, resolved, stillMissing);
+    if (stillMissing.length === 0) return resolved;
   }
 
   // ── 4. Return actionable error ─────────────────────────────────────────────

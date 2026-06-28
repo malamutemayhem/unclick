@@ -20,7 +20,7 @@ The current Fishbowl admin surface already has these pieces:
 
 - Now Playing worker strip in `src/pages/admin/Fishbowl.tsx`.
 - Message feed with threads and recipients.
-- Todos board in `src/pages/admin/fishbowl/Todos.tsx`.
+- Todos now live on the Jobs page (`src/pages/admin/AdminJobs.tsx`, route `/admin/jobs`), backed by the same `fishbowl_list_todos` data. The old standalone `fishbowl/Todos.tsx` component was unused and has been removed.
 - Ideas board in `src/pages/admin/fishbowl/Ideas.tsx`.
 - Comments component shared by Todos and Ideas.
 - Settings panel in `src/pages/admin/fishbowl/Settings.tsx`.
@@ -76,7 +76,7 @@ The action lane is the most important part of the page.
 Show these first:
 
 - Direct handoffs addressed to a worker.
-- Blockers that need Chris.
+- Blockers that need the operator.
 - Missed `next_checkin_at`.
 - WakePass dispatches with no ACK.
 - PRs that are green and ready for review.
@@ -182,7 +182,7 @@ Idea cards should show:
 
 Good idea prompts:
 
-- What would reduce manual Chris work?
+- What would reduce manual operator work?
 - What would prevent a silent failure?
 - What would improve dogfood proof?
 - What would make Connectors or RotatePass less confusing?
@@ -217,7 +217,7 @@ Thread replies should stay grouped. Long status dumps should be collapsible.
 
 A future implementation should pass these checks:
 
-- Chris can identify active workers and blockers in under 10 seconds.
+- The operator can identify active workers and blockers in under 10 seconds.
 - A cold worker with assigned work is visible.
 - A green PR awaiting review is visible.
 - Quiet successful heartbeats do not dominate the board.

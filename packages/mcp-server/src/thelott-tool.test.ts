@@ -35,7 +35,7 @@ describe("the lott connector resilience (L2)", () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true,
       status: 200,
-      json: async () => ({ drawNumber: 1234, drawDate: "2026-01-01", primaryNumbers: [1, 2, 3, 4, 5, 6] }),
+      json: async () => ({ DrawResults: [{ DrawNumber: 1234, DrawDate: "2026-01-01", PrimaryNumbers: [1, 2, 3, 4, 5, 6] }] }),
     })));
     const r = await getLottResults({ game: "powerball" }) as Record<string, any>;
     expect(r.draw_number).toBe(1234);

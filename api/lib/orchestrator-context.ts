@@ -146,6 +146,17 @@ export interface OrchestratorOperatorTimeContext {
   summary: string;
 }
 
+// Operator AI Style preference (set on /admin/you, stored in mc_business_context
+// under category "preference", key "ai_style"). Mirrors the operator_timezone
+// path: read here and woven into the seat handshake prompt so every hosted seat
+// wake carries the operator's standing style directive. directive is the
+// ready-made imperative string built by buildAiStyleDirective (<= 300 chars).
+export interface OrchestratorAiStyleContext {
+  directive: string;
+  updated_at?: string | null;
+  summary: string;
+}
+
 export interface BuildOrchestratorContextInput {
   generatedAt: string;
   continuityLimit?: number;
@@ -251,6 +262,57 @@ export interface OrchestratorZeroTouchScoreboard {
   summary: string;
 }
 
+// proof_debt_scoreboard: completed-looking jobs that still need observable
+// proof. "Completed-looking" means either a done-status todo row, or an open /
+// in_progress todo whose latest comment claims PASS / done / merged. Proof is
+// a deterministic marker scan over that todo's comments (proof:, PR #, commit
+// sha, URL, tests green). Counts are computed over the loaded window only.
+export interface OrchestratorProofDebtScoreboard {
+  done_todos_scanned: number;
+  done_with_proof: number;
+  done_missing_proof: number;
+  pass_claims_without_proof: number;
+  debt_examples: string[];
+  summary: string;
+}
+
+// improvement_packet: a read-only Boardroom ScopePack seed. It never creates
+// a job by itself; Admin Orchestrator may turn it into a Boardroom job only
+// through an explicit create action.
+export interface OrchestratorImprovementPacket {
+  packet_id: "continuous-improvement-scopepack-seed-v1";
+  read_only: true;
+  chip_title: string;
+  rationale: string;
+  evidence: string[];
+  owned_files: string[];
+  proof_required: string;
+  risk_controls: string[];
+  create_todo_payload: {
+    title: string;
+    description: string;
+    priority: "low" | "normal" | "high" | "urgent";
+  };
+}
+
+export type OrchestratorFrictionKind = "proof" | "blocker" | "owner" | "queue" | "automation";
+
+// continuous_improvement_scoreboard: queue, owner, proof, blocker, and
+// automation friction turned into ordered next actions. When one friction
+// class dominates past a threshold, the board emits a read-only ScopePack
+// seed for the Improver lane instead of normalizing the friction.
+export interface OrchestratorContinuousImprovementScoreboard {
+  queue_friction: number;
+  owner_friction: number;
+  proof_friction: number;
+  blocker_friction: number;
+  automation_friction: number;
+  dominant_friction: OrchestratorFrictionKind | null;
+  next_actions: string[];
+  improvement_packet: OrchestratorImprovementPacket | null;
+  summary: string;
+}
+
 export interface OrchestratorSeatHandshake {
   mode: "fresh-seat-pickup";
   summary: string;
@@ -273,7 +335,7 @@ export interface OrchestratorSceneBuilderPacket {
   risk_level: "low" | "medium" | "high";
   next_safe_action: string;
   stop_conditions: string[];
-  chris_needed: boolean;
+  owner_needed: boolean;
   source_receipts: OrchestratorSourceLink[];
   memory_lease_expires_at: string;
   copyroom_required: boolean;
@@ -326,6 +388,18 @@ export interface OrchestratorContext {
     next_actions: string[];
     blockers: string[];
     zero_touch_scoreboard: OrchestratorZeroTouchScoreboard;
+    // proof_debt_scoreboard (added 2026-06-11 by the scoreboard alignment
+    // chip): completed-looking jobs that still need observable proof. Same
+    // window as the rest of the state card; deterministic marker scan, no
+    // model calls. Additive and verdict-only, like zero_touch_scoreboard.
+    proof_debt_scoreboard: OrchestratorProofDebtScoreboard;
+    // continuous_improvement_scoreboard (added 2026-06-11 by the scoreboard
+    // alignment chip): queue / owner / proof / blocker / automation friction
+    // turned into ordered next actions, plus a read-only improvement_packet
+    // ScopePack seed when one friction class dominates. The packet never
+    // creates a job; an explicit Admin Orchestrator create action must do
+    // that.
+    continuous_improvement_scoreboard: OrchestratorContinuousImprovementScoreboard;
     // health_verdict (added 2026-05-12 by PR #746): CommonSensePass R1
     // verdict computed from the same todos+profiles input used to derive
     // active_jobs. Any seat reading the state card can use this as the
@@ -382,6 +456,7 @@ export interface OrchestratorContext {
   };
   profile_cards: OrchestratorProfileCard[];
   human_operator_time: OrchestratorOperatorTimeContext | null;
+  operator_ai_style: OrchestratorAiStyleContext | null;
   continuity_events: OrchestratorContinuityEvent[];
   library_snapshots: OrchestratorLibrarySnapshot[];
   rolling_snapshot: OrchestratorRollingSnapshot;
@@ -442,7 +517,7 @@ const SECRET_PATTERNS: Array<[RegExp, string]> = [
   [/\b(authorization\s*:\s*bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(bearer)\s+[a-z0-9._~+/=-]+/gi, "$1 [redacted secret]"],
   [/\b(api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password|passwd|private[_-]?key)\s*[:=]\s*["']?[^"'\s,;]+/gi, "$1=[redacted secret]"],
-  [/\b(sk-[a-z0-9_-]{8,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,})\b/gi, "[redacted secret]"],
+  [/\b(sk-[a-z0-9_-]{8,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|ghp_[a-z0-9_]{8,}|github_pat_[a-z0-9_]{8,}|xox[baprs]-[a-z0-9-]{8,}|AKIA[0-9A-Z]{12,})\b/gi, "[redacted secret]"],
   [/\b(uc|agt)_[a-z0-9_-]{8,}\b/gi, "[redacted secret]"],
   [/\b(?:\d[ -]*?){13,19}\b/g, "[redacted billing data]"],
 ];
@@ -505,6 +580,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const profiles = compact ? allProfiles.slice(0, maxSummaries) : allProfiles;
   const activeSeatCount = allProfiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
   const humanOperatorTime = buildOperatorTimeContext(input.businessContext, input.generatedAt);
+  const operatorAiStyle = buildAiStyleContext(input.businessContext);
   const zeroTouchScoreboard = buildZeroTouchScoreboard(input.autopilotEvents ?? []);
 
   const activeTodoRows = input.todos
@@ -576,6 +652,21 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     })
     .slice(0, 6);
 
+  const proofDebtScoreboard = buildProofDebtScoreboard(input.todos, input.comments);
+  const continuousImprovementScoreboard = buildContinuousImprovementScoreboard({
+    queueFriction: input.todos.filter(
+      (todo) => todo.status === "open" && !nonEmptyAgentId(todo.assigned_to_agent_id),
+    ).length,
+    // Owner friction mirrors the state-card summary: in_progress rows whose
+    // owner is dormant past the active_jobs freshness window.
+    ownerFriction: Math.max(0, inProgressTodoCount - activeJobsCount),
+    proofFriction: proofDebtScoreboard.done_missing_proof + proofDebtScoreboard.pass_claims_without_proof,
+    blockerFriction: blockers.length,
+    automationFriction: input.signals.filter(
+      (signal) => !signal.read_at && signal.severity !== "info",
+    ).length,
+  });
+
   const allLibrarySnapshots = [
     ...input.library.map(libraryToSnapshot),
     ...input.businessContext.map(businessContextToSnapshot),
@@ -617,6 +708,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     continuityEvents,
     rollingSnapshot,
     humanOperatorTime,
+    operatorAiStyle,
   });
 
   return {
@@ -657,6 +749,8 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       next_actions: nextActions,
       blockers,
       zero_touch_scoreboard: zeroTouchScoreboard,
+      proof_debt_scoreboard: proofDebtScoreboard,
+      continuous_improvement_scoreboard: continuousImprovementScoreboard,
       health_verdict: healthVerdict,
       scene_builder_packet: buildSceneBuilderPacket({
         generatedAt: input.generatedAt,
@@ -679,6 +773,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     },
     profile_cards: profiles,
     human_operator_time: humanOperatorTime,
+    operator_ai_style: operatorAiStyle,
     continuity_events: continuityEvents,
     library_snapshots: librarySnapshots,
     rolling_snapshot: rollingSnapshot,
@@ -743,7 +838,7 @@ function buildSceneBuilderPacket({
       ? "Claim one scoped Boardroom job or post the exact missing proof/blocker; never mark DONE from status text alone."
       : proofState === "proof_required"
         ? "Continue the fresh active job only with named proof, tests, PR, deploy, screenshot, or blocker evidence."
-        : "Stay quiet unless new Boardroom work, proof drift, or a Chris decision appears.";
+        : "Stay quiet unless new Boardroom work, proof drift, or an operator decision appears.";
   const memoryLeaseExpiresAt = new Date(Date.parse(generatedAt) + ACTIVE_WINDOW_MS).toISOString();
 
   return {
@@ -758,7 +853,7 @@ function buildSceneBuilderPacket({
     risk_level: riskLevel,
     next_safe_action: nextSafeAction,
     stop_conditions: sceneBuilderStopConditions,
-    chris_needed: blockers.some((blocker) => /human|chris|operator|decision/i.test(blocker)),
+    owner_needed: blockers.some((blocker) => /human|operator|decision/i.test(blocker)),
     source_receipts: sourceReceipts,
     memory_lease_expires_at: memoryLeaseExpiresAt,
     copyroom_required: focusTodo != null,
@@ -792,6 +887,175 @@ function buildZeroTouchScoreboard(rows: AutopilotTouchMetricsRow[]): Orchestrato
     top_human_touch_reason: topReason,
     top_human_touch_count: topCount,
     touch_reason_counts: metrics.touch_reason_counts,
+    summary,
+  };
+}
+
+function nonEmptyAgentId(value: string | null | undefined): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+// Deterministic proof markers: an explicit proof: field, a PR reference, a
+// commit-looking hex token (must contain a digit so ordinary words like
+// "deadline" never match), a URL, or a tests-green claim.
+const PROOF_EVIDENCE_RE =
+  /(\bproof\s*:\s*\S)|(\bpr\s*#?\d+\b)|(#\d{2,6}\b)|(\b(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b)|(https?:\/\/\S+)|(\btests?\s+(?:are\s+)?(?:green|pass(?:ed|ing)?)\b)/i;
+
+// A completion-looking claim at the start of a comment: PASS, done, complete,
+// shipped, merged. Leading punctuation or a short emoji prefix is tolerated.
+const COMPLETION_CLAIM_RE = /^\s*[^\w\s]{0,4}\s*(?:pass|done|complete(?:d)?|shipped|merged)\b/i;
+
+function buildProofDebtScoreboard(
+  todos: OrchestratorTodoRow[],
+  comments: OrchestratorCommentRow[],
+): OrchestratorProofDebtScoreboard {
+  const commentsByTodo = new Map<string, OrchestratorCommentRow[]>();
+  for (const comment of comments) {
+    if (comment.target_kind !== "todo") continue;
+    const list = commentsByTodo.get(comment.target_id) ?? [];
+    list.push(comment);
+    commentsByTodo.set(comment.target_id, list);
+  }
+  for (const list of commentsByTodo.values()) {
+    list.sort((a, b) => compareIsoDesc(a.created_at, b.created_at));
+  }
+
+  const debtExamples: string[] = [];
+  let doneScanned = 0;
+  let doneWithProof = 0;
+  let doneMissingProof = 0;
+  let passClaimsWithoutProof = 0;
+
+  for (const todo of todos) {
+    const rows = commentsByTodo.get(todo.id) ?? [];
+    const hasProof = rows.some((row) => PROOF_EVIDENCE_RE.test(row.text ?? ""));
+    if (todo.status === "done") {
+      doneScanned += 1;
+      if (hasProof) {
+        doneWithProof += 1;
+      } else {
+        doneMissingProof += 1;
+        if (debtExamples.length < 3) {
+          debtExamples.push(compactText(`done without proof: ${todo.title} (${todo.id.slice(0, 8)})`, 120));
+        }
+      }
+    } else if ((todo.status === "in_progress" || todo.status === "open") && rows.length > 0) {
+      const latest = rows[0];
+      if (COMPLETION_CLAIM_RE.test(latest.text ?? "") && !hasProof) {
+        passClaimsWithoutProof += 1;
+        if (debtExamples.length < 3) {
+          debtExamples.push(compactText(`completion claim without proof: ${todo.title} (${todo.id.slice(0, 8)})`, 120));
+        }
+      }
+    }
+  }
+
+  const debtTotal = doneMissingProof + passClaimsWithoutProof;
+  const summary =
+    doneScanned === 0 && passClaimsWithoutProof === 0
+      ? "No completed-looking jobs in the loaded window."
+      : debtTotal === 0
+        ? `All ${doneScanned} done row(s) in the window carry observable proof.`
+        : compactText(
+            `${debtTotal} job(s) look complete without observable proof (${doneMissingProof} done row(s), ${passClaimsWithoutProof} completion claim(s)). ${doneWithProof}/${doneScanned} done row(s) carry proof.`,
+            200,
+          );
+
+  return {
+    done_todos_scanned: doneScanned,
+    done_with_proof: doneWithProof,
+    done_missing_proof: doneMissingProof,
+    pass_claims_without_proof: passClaimsWithoutProof,
+    debt_examples: debtExamples,
+    summary,
+  };
+}
+
+// Friction dominance order when counts tie. Proof dishonesty is the most
+// corrosive (fake green), then live blockers, then dormant owners, then the
+// unowned queue, then unread automation signals.
+const FRICTION_DOMINANCE: OrchestratorFrictionKind[] = ["proof", "blocker", "owner", "queue", "automation"];
+
+// A read-only ScopePack seed is emitted only when the dominant friction class
+// has at least this many items, so a single bad row never spams the packet.
+const IMPROVEMENT_PACKET_THRESHOLD = 3;
+
+function buildContinuousImprovementScoreboard(input: {
+  queueFriction: number;
+  ownerFriction: number;
+  proofFriction: number;
+  blockerFriction: number;
+  automationFriction: number;
+}): OrchestratorContinuousImprovementScoreboard {
+  const counts: Record<OrchestratorFrictionKind, number> = {
+    proof: input.proofFriction,
+    blocker: input.blockerFriction,
+    owner: input.ownerFriction,
+    queue: input.queueFriction,
+    automation: input.automationFriction,
+  };
+
+  let dominant: OrchestratorFrictionKind | null = null;
+  for (const kind of FRICTION_DOMINANCE) {
+    if (counts[kind] > 0 && (dominant === null || counts[kind] > counts[dominant])) {
+      dominant = kind;
+    }
+  }
+
+  const actionByKind: Record<OrchestratorFrictionKind, string> = {
+    proof: `Audit ${counts.proof} proof-debt job(s): require a PR, commit, or test receipt before close.`,
+    blocker: `Clear ${counts.blocker} blocker signal(s): each needs an owner or an explicit operator decision.`,
+    owner: `Recover ${counts.owner} stale in_progress todo(s): re-claim, release, or update_todo with a fresh ETA.`,
+    queue: `Route ${counts.queue} unassigned open todo(s): claim one scoped chip or park with a reason.`,
+    automation: `Triage ${counts.automation} unread automation signal(s) before they go stale.`,
+  };
+  const nextActions = FRICTION_DOMINANCE.filter((kind) => counts[kind] > 0)
+    .sort((a, b) => counts[b] - counts[a] || FRICTION_DOMINANCE.indexOf(a) - FRICTION_DOMINANCE.indexOf(b))
+    .slice(0, 3)
+    .map((kind) => actionByKind[kind]);
+
+  const evidence = FRICTION_DOMINANCE.map((kind) => `${kind}=${counts[kind]}`);
+  const improvementPacket: OrchestratorImprovementPacket | null =
+    dominant !== null && counts[dominant] >= IMPROVEMENT_PACKET_THRESHOLD
+      ? {
+          packet_id: "continuous-improvement-scopepack-seed-v1",
+          read_only: true,
+          chip_title: `Reduce ${dominant} friction: ${counts[dominant]} item(s) in the current window`,
+          rationale:
+            "Per the Improver lane, recurring friction becomes one scoped front-of-line improvement job instead of normalized noise. This seed is read-only; creating the job requires the explicit Admin Orchestrator create action.",
+          evidence,
+          owned_files: [],
+          proof_required:
+            "Boardroom PASS with before/after counts for the targeted friction class, plus links to the jobs touched.",
+          risk_controls: [
+            "Read-only seed: no job is created by this packet.",
+            "One chip only: do not bundle multiple friction classes.",
+            "Creating the Boardroom job requires the explicit create action, which returns a todo receipt.",
+          ],
+          create_todo_payload: {
+            title: `Reduce ${dominant} friction: ${counts[dominant]} item(s) in the current window`,
+            description: `Dominant friction: ${dominant} (${counts[dominant]} item(s)). Evidence: ${evidence.join(", ")}. Work the matching next action from the continuous_improvement_scoreboard and post before/after counts as proof.`,
+            priority: counts[dominant] >= 10 ? "high" : "normal",
+          },
+        }
+      : null;
+
+  const summary = compactText(
+    `Friction: ${evidence.join(", ")}. Dominant: ${dominant ?? "none"}.${improvementPacket ? " Improvement packet seeded." : ""}`,
+    200,
+  );
+
+  return {
+    queue_friction: counts.queue,
+    owner_friction: counts.owner,
+    proof_friction: counts.proof,
+    blocker_friction: counts.blocker,
+    automation_friction: counts.automation,
+    dominant_friction: dominant,
+    next_actions: nextActions,
+    improvement_packet: improvementPacket,
     summary,
   };
 }
@@ -1105,11 +1369,13 @@ function buildSeatHandshake({
   continuityEvents,
   rollingSnapshot,
   humanOperatorTime,
+  operatorAiStyle,
 }: {
   profiles: OrchestratorProfileCard[];
   continuityEvents: OrchestratorContinuityEvent[];
   rollingSnapshot: OrchestratorRollingSnapshot;
   humanOperatorTime: OrchestratorOperatorTimeContext | null;
+  operatorAiStyle: OrchestratorAiStyleContext | null;
 }): OrchestratorSeatHandshake {
   const usefulEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const recentProof = usefulEvents.find((event) => event.kind === "proof") ?? null;
@@ -1146,6 +1412,17 @@ function buildSeatHandshake({
     ...rollingSnapshot.recent_continuity.slice(0, 4),
   ]);
 
+  // Weave the operator's standing preferences into the seat wake prompt. Both
+  // lines are optional and inert when unset, so the prompt is byte-identical to
+  // before when neither preference exists. operatorAiStyle.directive is the
+  // ready-made imperative string from /admin/you (was previously loaded but
+  // dropped on this path).
+  const operatorTimeLine = humanOperatorTime
+    ? ` Human operator local time is ${humanOperatorTime.summary}.`
+    : "";
+  const aiStyleLine = operatorAiStyle ? ` ${operatorAiStyle.directive}` : "";
+  const nextPrompt = `Use this compact handoff.${operatorTimeLine}${aiStyleLine} Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.`;
+
   return {
     mode: "fresh-seat-pickup",
     summary: compactText(
@@ -1164,9 +1441,7 @@ function buildSeatHandshake({
     recent_proof: recentProof?.summary ?? null,
     active_blocker: blocker?.summary ?? null,
     seat_freshness: seatFreshness,
-    next_prompt: humanOperatorTime
-      ? `Use this compact handoff. Human operator local time is ${humanOperatorTime.summary}. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.`
-      : "Use this compact handoff. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.",
+    next_prompt: nextPrompt,
     source_pointers: sourcePointers,
   };
 }
@@ -1208,6 +1483,25 @@ function buildOperatorTimeContext(
     updated_at: row.updated_at ?? (typeof value.updated_at === "string" ? value.updated_at : null),
     privacy: "timezone-only",
     summary,
+  };
+}
+
+// Mirror of buildOperatorTimeContext for the AI Style preference. The row is
+// stored by /admin/you with a ready-made `directive` string; before this it was
+// fetched into businessContext but never surfaced into the seat prompt.
+function buildAiStyleContext(
+  rows: OrchestratorBusinessContextRow[],
+): OrchestratorAiStyleContext | null {
+  const row = rows.find((item) => item.category === "preference" && item.key === "ai_style");
+  if (!row) return null;
+  const value = parseBusinessContextValue(row.value);
+  const directiveRaw = typeof value.directive === "string" ? value.directive.trim() : "";
+  if (!directiveRaw) return null;
+  const directive = compactText(directiveRaw, 300);
+  return {
+    directive,
+    updated_at: row.updated_at ?? (typeof value.updated_at === "string" ? value.updated_at : null),
+    summary: directive,
   };
 }
 
