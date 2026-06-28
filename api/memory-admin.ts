@@ -112,6 +112,56 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  sha256hex,
+  deriveKey,
+  encryptString,
+  decryptString,
+  decodeProjectRef,
+  deriveAiKeyEncryptionKey,
+  decryptAiApiKey,
+  SALT_BYTES,
+  IV_BYTES,
+} from "./lib/admin/crypto.js";
+import {
+  isReliabilitySource,
+  isReliabilityStatus,
+  isReliabilityHeartbeatState,
+  type ReliabilityStatus,
+  type ReliabilityDispatchRow,
+} from "./lib/admin/reliability.js";
+import {
+  normalizeFishbowlText,
+  isRecord,
+  getClampedLimit,
+  firstRequestValue,
+  parseBooleanRequestValue,
+} from "./lib/admin/request.js";
+import {
+  AI_STYLE_CATEGORY,
+  AI_STYLE_KEY,
+  AI_STYLE_PRIORITY,
+  readAiStylePreferences,
+  normalizeAiStyleValue,
+} from "./lib/admin/ai-style.js";
+// Re-exported so existing importers (and tests) keep resolving these from here.
+export { buildAiStyleDirective, normalizeAiStyleValue } from "./lib/admin/ai-style.js";
+import {
+  OPERATOR_TIME_CATEGORY,
+  OPERATOR_TIME_KEY,
+  isValidTimeZoneName,
+  readOperatorTimeContext,
+  type OperatorTimeSource,
+  type OperatorTimeContextValue,
+} from "./lib/admin/operator-time.js";
+import {
+  parseAdminLibraryRefreshOptions,
+  buildAdminLibraryRefreshPayload,
+  readAdminLibraryTaxonomySources,
+  upsertAdminLibraryDoc,
+} from "./lib/admin/library.js";
+// Re-exported so existing importers (and tests) keep resolving these from here.
+export { parseAdminLibraryRefreshOptions, buildAdminLibraryRefreshPayload } from "./lib/admin/library.js"
 import { encrypt as keychainEncrypt, hashKeyFull as keychainHashKeyFull } from "../packages/mcp-server/src/keychain-crypto.js";
 import { testCredential as keychainTestCredential } from "../packages/mcp-server/src/keychain-tool.js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
@@ -234,248 +284,12 @@ import {
   codeAutoCaptureEnabled,
   libraryAutoCaptureEnabled,
 } from "../packages/mcp-server/src/memory/auto-capture.js";
-import type {
-  LibraryDocInput,
-  MemoryTaxonomySnapshotSource,
-  MemoryTaxonomySnapshotWriteOptions,
-  MemoryTaxonomySnapshotWriteResult,
-} from "../packages/mcp-server/src/memory/types.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { z } from "zod";
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
-
-// ─── Crypto helpers (mirror /api/credentials) ──────────────────────────────
-
-const PBKDF2_ITERATIONS = 100_000;
-const KEY_BYTES = 32;
-const IV_BYTES = 12;
-const SALT_BYTES = 32;
-
-function sha256hex(input: string): string {
-  return crypto.createHash("sha256").update(input).digest("hex");
-}
-
-function normalizeFishbowlText(input: string): string {
-  return input.replace(/[\u2013\u2014]/g, "-");
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-type OperatorTimeSource = "browser" | "manual";
-
-interface OperatorTimeContextValue {
-  timezone: string;
-  source: OperatorTimeSource;
-  detected_at?: string | null;
-  manual_override_at?: string | null;
-  updated_at: string;
-  privacy: "timezone-only";
-}
-
-const OPERATOR_TIME_CATEGORY = "preference";
-const OPERATOR_TIME_KEY = "operator_timezone";
-
-function isValidTimeZoneName(timezone: string): boolean {
-  if (!timezone || timezone.length > 80) return false;
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format(new Date());
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function parseOperatorTimeValue(value: unknown, updatedAt?: string | null): OperatorTimeContextValue | null {
-  let parsed: unknown = value;
-  if (typeof value === "string") {
-    try {
-      parsed = JSON.parse(value);
-    } catch {
-      return null;
-    }
-  }
-  if (!isRecord(parsed)) return null;
-  const timezone = typeof parsed.timezone === "string" ? parsed.timezone.trim() : "";
-  if (!isValidTimeZoneName(timezone)) return null;
-  const source = parsed.source === "manual" || parsed.source === "browser" ? parsed.source : "browser";
-  return {
-    timezone,
-    source,
-    detected_at: typeof parsed.detected_at === "string" ? parsed.detected_at : null,
-    manual_override_at: typeof parsed.manual_override_at === "string" ? parsed.manual_override_at : null,
-    updated_at: typeof parsed.updated_at === "string" ? parsed.updated_at : updatedAt ?? new Date().toISOString(),
-    privacy: "timezone-only",
-  };
-}
-
-async function readOperatorTimeContext(
-  supabase: SupabaseClient,
-  apiKeyHash: string,
-): Promise<OperatorTimeContextValue | null> {
-  const { data, error } = await supabase
-    .from("mc_business_context")
-    .select("value, updated_at")
-    .eq("api_key_hash", apiKeyHash)
-    .eq("category", OPERATOR_TIME_CATEGORY)
-    .eq("key", OPERATOR_TIME_KEY)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? parseOperatorTimeValue(data.value, data.updated_at as string | null) : null;
-}
-
-// ---------------------------------------------------------------------------
-// AI style preferences
-//
-// The operator's standing tone rules (length, complexity, format, emoji, and
-// free-text instructions) live in mc_business_context as a single
-// high-priority `preference`/`ai_style` row. get_startup_context surfaces
-// business_context as standing rules that agents must follow, so writing the
-// rules here reinforces them at every session entrance (load_memory) for every
-// connected agent, with no MCP-package change required. The stored value also
-// carries a compact `directive` string, kept as the first key so strict and
-// compact clients still see the rules after JSON truncation, that states the
-// rules imperatively for the agent to obey.
-// ---------------------------------------------------------------------------
-
-const AI_STYLE_CATEGORY = "preference";
-const AI_STYLE_KEY = "ai_style";
-const AI_STYLE_PRIORITY = 99;
-
-const AI_STYLE_RESPONSE_LENGTHS = ["brief", "medium", "detailed"] as const;
-const AI_STYLE_COMPLEXITIES = ["simple", "standard", "technical"] as const;
-const AI_STYLE_ANALOGIES = ["off", "on"] as const;
-const AI_STYLE_FORMATS = ["prose", "bullets", "visual"] as const;
-const AI_STYLE_EMOJI_LEVELS = ["none", "light", "expressive"] as const;
-
-type AiStyleResponseLength = (typeof AI_STYLE_RESPONSE_LENGTHS)[number];
-type AiStyleComplexity = (typeof AI_STYLE_COMPLEXITIES)[number];
-type AiStyleAnalogies = (typeof AI_STYLE_ANALOGIES)[number];
-type AiStyleFormat = (typeof AI_STYLE_FORMATS)[number];
-type AiStyleEmojiLevel = (typeof AI_STYLE_EMOJI_LEVELS)[number];
-
-interface AiStylePreferencesValue {
-  directive: string;
-  response_length: AiStyleResponseLength;
-  complexity: AiStyleComplexity;
-  analogies: AiStyleAnalogies;
-  format: AiStyleFormat;
-  emoji_level: AiStyleEmojiLevel;
-  custom_instructions: string;
-  updated_at: string;
-  privacy: "style-only";
-}
-
-const AI_STYLE_DEFAULTS = {
-  response_length: "medium" as AiStyleResponseLength,
-  complexity: "simple" as AiStyleComplexity,
-  analogies: "on" as AiStyleAnalogies,
-  format: "prose" as AiStyleFormat,
-  emoji_level: "light" as AiStyleEmojiLevel,
-};
-
-const AI_STYLE_LENGTH_PHRASE: Record<AiStyleResponseLength, string> = {
-  brief: "keep replies brief and to the point",
-  medium: "use medium-length replies",
-  detailed: "give detailed, thorough replies",
-};
-const AI_STYLE_COMPLEXITY_PHRASE: Record<AiStyleComplexity, string> = {
-  simple: "use simple, plain English",
-  standard: "use a standard level of detail",
-  technical: "be precise and technical",
-};
-const AI_STYLE_FORMAT_PHRASE: Record<AiStyleFormat, string> = {
-  prose: "write in flowing prose",
-  bullets: "prefer bullet points and short sections",
-  visual: "lead with visuals such as tables, steps, and examples",
-};
-const AI_STYLE_EMOJI_PHRASE: Record<AiStyleEmojiLevel, string> = {
-  none: "use no emoji",
-  light: "use light emoji",
-  expressive: "use expressive emoji",
-};
-
-function pickAiStyleEnum<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
-  return typeof value === "string" && (allowed as readonly string[]).includes(value)
-    ? (value as T)
-    : fallback;
-}
-
-export function buildAiStyleDirective(fields: {
-  response_length: AiStyleResponseLength;
-  complexity: AiStyleComplexity;
-  analogies: AiStyleAnalogies;
-  format: AiStyleFormat;
-  emoji_level: AiStyleEmojiLevel;
-  custom_instructions: string;
-}): string {
-  const analogyClause = fields.analogies === "on" ? ", and use analogies to explain" : "";
-  const core =
-    `Operator AI style, always honor unless overridden in-session: ` +
-    `${AI_STYLE_LENGTH_PHRASE[fields.response_length]}; ` +
-    `${AI_STYLE_COMPLEXITY_PHRASE[fields.complexity]}${analogyClause}; ` +
-    `${AI_STYLE_FORMAT_PHRASE[fields.format]}; ` +
-    `${AI_STYLE_EMOJI_PHRASE[fields.emoji_level]}.`;
-  const extra = fields.custom_instructions.trim();
-  const full = extra ? `${core} Also: ${extra}` : core;
-  return full.length > 300 ? `${full.slice(0, 297)}...` : full;
-}
-
-export function normalizeAiStyleValue(value: unknown, updatedAt?: string | null): AiStylePreferencesValue {
-  let parsed: unknown = value;
-  if (typeof value === "string") {
-    try {
-      parsed = JSON.parse(value);
-    } catch {
-      parsed = {};
-    }
-  }
-  const rec = isRecord(parsed) ? parsed : {};
-  // Migration: the legacy "analogies" complexity value conflated reading level
-  // with the analogies technique, which made "Simple English" ambiguous. Map it
-  // to plain-English reading level + analogies on, so the two are now separate
-  // and unambiguous controls.
-  const legacyAnalogiesComplexity = rec.complexity === "analogies";
-  const fields = {
-    response_length: pickAiStyleEnum(rec.response_length, AI_STYLE_RESPONSE_LENGTHS, AI_STYLE_DEFAULTS.response_length),
-    complexity: legacyAnalogiesComplexity
-      ? ("simple" as AiStyleComplexity)
-      : pickAiStyleEnum(rec.complexity, AI_STYLE_COMPLEXITIES, AI_STYLE_DEFAULTS.complexity),
-    analogies: rec.analogies === undefined && legacyAnalogiesComplexity
-      ? ("on" as AiStyleAnalogies)
-      : pickAiStyleEnum(rec.analogies, AI_STYLE_ANALOGIES, AI_STYLE_DEFAULTS.analogies),
-    format: pickAiStyleEnum(rec.format, AI_STYLE_FORMATS, AI_STYLE_DEFAULTS.format),
-    emoji_level: pickAiStyleEnum(rec.emoji_level, AI_STYLE_EMOJI_LEVELS, AI_STYLE_DEFAULTS.emoji_level),
-    custom_instructions: typeof rec.custom_instructions === "string"
-      ? rec.custom_instructions.replace(/\s+/g, " ").trim().slice(0, 600)
-      : "",
-  };
-  return {
-    directive: buildAiStyleDirective(fields),
-    ...fields,
-    updated_at: typeof rec.updated_at === "string" ? rec.updated_at : updatedAt ?? new Date().toISOString(),
-    privacy: "style-only",
-  };
-}
-
-async function readAiStylePreferences(
-  supabase: SupabaseClient,
-  apiKeyHash: string,
-): Promise<AiStylePreferencesValue | null> {
-  const { data, error } = await supabase
-    .from("mc_business_context")
-    .select("value, updated_at")
-    .eq("api_key_hash", apiKeyHash)
-    .eq("category", AI_STYLE_CATEGORY)
-    .eq("key", AI_STYLE_KEY)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? normalizeAiStyleValue(data.value, data.updated_at as string | null) : null;
-}
 
 // ---------------------------------------------------------------------------
 // About You
@@ -526,100 +340,6 @@ async function readAboutYou(
   return { text, updated_at: (data.updated_at as string | null) ?? new Date().toISOString() };
 }
 
-const RELIABILITY_SOURCES = [
-  "fishbowl",
-  "connectors",
-  "wakepass",
-  "testpass",
-  "uipass",
-  "uxpass",
-  "flowpass",
-  "securitypass",
-  "manual",
-] as const;
-
-const RELIABILITY_STATUSES = [
-  "queued",
-  "leased",
-  "completed",
-  "failed",
-  "stale",
-  "cancelled",
-] as const;
-
-const RELIABILITY_HEARTBEAT_STATES = [
-  "idle",
-  "received",
-  "accepted",
-  "working",
-  "blocked",
-  "completed",
-] as const;
-
-type ReliabilitySource = (typeof RELIABILITY_SOURCES)[number];
-type ReliabilityStatus = (typeof RELIABILITY_STATUSES)[number];
-type ReliabilityHeartbeatState = (typeof RELIABILITY_HEARTBEAT_STATES)[number];
-
-type ReliabilityDispatchRow = {
-  id: string;
-  api_key_hash: string;
-  dispatch_id: string;
-  source: ReliabilitySource;
-  target_agent_id: string;
-  task_ref: string | null;
-  status: ReliabilityStatus;
-  lease_owner: string | null;
-  lease_expires_at: string | null;
-  last_real_action_at: string | null;
-  payload: Record<string, unknown> | null;
-  created_at: string;
-  updated_at: string;
-};
-
-function isReliabilitySource(value: unknown): value is ReliabilitySource {
-  return typeof value === "string" && RELIABILITY_SOURCES.includes(value as ReliabilitySource);
-}
-
-function isReliabilityStatus(value: unknown): value is ReliabilityStatus {
-  return typeof value === "string" && RELIABILITY_STATUSES.includes(value as ReliabilityStatus);
-}
-
-function isReliabilityHeartbeatState(value: unknown): value is ReliabilityHeartbeatState {
-  return (
-    typeof value === "string" &&
-    RELIABILITY_HEARTBEAT_STATES.includes(value as ReliabilityHeartbeatState)
-  );
-}
-
-function getClampedLimit(value: unknown, fallback = 50, max = 200): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
-  return Math.min(Math.floor(parsed), max);
-}
-
-function firstRequestValue(value: unknown): unknown {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function parseBooleanRequestValue(value: unknown, fallback: boolean): boolean {
-  const first = firstRequestValue(value);
-  if (typeof first === "boolean") return first;
-  if (typeof first === "number") return first !== 0;
-  if (typeof first !== "string") return fallback;
-  const normalized = first.trim().toLowerCase();
-  if (["1", "true", "yes", "y", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "n", "off"].includes(normalized)) return false;
-  return fallback;
-}
-
-export interface AdminLibraryRefreshParseResult {
-  commit: boolean;
-  options: MemoryTaxonomySnapshotWriteOptions;
-  error?: string;
-}
-
-export function parseAdminLibraryRefreshOptions(
-  body: Record<string, unknown> = {},
   query: Record<string, unknown> = {},
 ): AdminLibraryRefreshParseResult {
   const rawCommit = body.commit ?? query.commit;
@@ -657,150 +377,6 @@ export function parseAdminLibraryRefreshOptions(
       ),
     },
   };
-}
-
-type AdminLibraryRefreshPayload = MemoryTaxonomySnapshotWriteResult & {
-  planned_snapshot_count: number;
-  skipped_secret_count: number;
-};
-
-export function buildAdminLibraryRefreshPayload(
-  result: MemoryTaxonomySnapshotWriteResult,
-  skippedSecretCount: number,
-): AdminLibraryRefreshPayload {
-  return {
-    ...result,
-    planned_snapshot_count: result.snapshot_count,
-    skipped_secret_count: skippedSecretCount,
-  };
-}
-
-async function readAdminLibraryTaxonomySources(
-  supabase: SupabaseClient,
-  apiKeyHash: string,
-  maxSources: number,
-): Promise<MemoryTaxonomySnapshotSource[]> {
-  const factLimit = Math.max(1, Math.min(250, maxSources));
-  const sessionLimit = Math.max(1, Math.floor(factLimit / 2));
-  const candidateLimit = Math.min(250, Math.max(factLimit * 3, factLimit));
-  const asOf = new Date();
-  const asOfIso = asOf.toISOString();
-  const [factsRes, sessionsRes] = await Promise.all([
-    supabase
-      .from("mc_extracted_facts")
-      .select("id, fact, category, confidence, created_at, updated_at, valid_from, valid_to, invalidated_at, source_type, startup_fact_kind, status")
-      .eq("api_key_hash", apiKeyHash)
-      .eq("status", "active")
-      .is("invalidated_at", null)
-      .lte("valid_from", asOfIso)
-      .or(`valid_to.is.null,valid_to.gt.${asOfIso}`)
-      .order("confidence", { ascending: false })
-      .order("updated_at", { ascending: false })
-      .limit(candidateLimit),
-    supabase
-      .from("mc_session_summaries")
-      .select("id, summary, topics, created_at")
-      .eq("api_key_hash", apiKeyHash)
-      .order("created_at", { ascending: false })
-      .limit(sessionLimit),
-  ]);
-  if (factsRes.error) throw factsRes.error;
-  if (sessionsRes.error) throw sessionsRes.error;
-
-  type FactRow = {
-    id: string;
-    fact: string;
-    category?: string | null;
-    confidence?: number | null;
-    created_at?: string | null;
-    updated_at?: string | null;
-    valid_to?: string | null;
-    valid_from?: string | null;
-    invalidated_at?: string | null;
-    source_type?: string | null;
-    startup_fact_kind?: string | null;
-    status?: string | null;
-  };
-  type SessionRow = {
-    id: string;
-    summary: string;
-    topics?: string[] | null;
-    created_at?: string | null;
-  };
-
-  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[])
-    .filter((row) => isRecallVisibleFact(row, asOf))
-    .slice(0, factLimit)
-    .map((row) => ({
-      id: row.id,
-      kind: "fact",
-      text: row.fact,
-      category: row.category ?? undefined,
-      confidence: row.confidence ?? null,
-      created_at: row.created_at ?? null,
-      updated_at: row.updated_at ?? null,
-      valid_from: row.valid_from ?? null,
-    }));
-  const sessionSources: MemoryTaxonomySnapshotSource[] = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
-    id: row.id,
-    kind: "session",
-    text: row.summary,
-    category: Array.isArray(row.topics) && row.topics.length > 0 ? row.topics.join(" ") : "session",
-    confidence: 0.75,
-    created_at: row.created_at ?? null,
-    updated_at: row.created_at ?? null,
-    valid_from: row.created_at ?? null,
-  }));
-
-  return [...factSources, ...sessionSources];
-}
-
-async function upsertAdminLibraryDoc(
-  supabase: SupabaseClient,
-  apiKeyHash: string,
-  data: LibraryDocInput,
-): Promise<string> {
-  const { data: existing, error: existingError } = await supabase
-    .from("mc_knowledge_library")
-    .select("id, version")
-    .eq("api_key_hash", apiKeyHash)
-    .eq("slug", data.slug)
-    .maybeSingle();
-  if (existingError) throw existingError;
-
-  if (existing) {
-    const nextVersion = Number(existing.version ?? 1) + 1;
-    const { error } = await supabase
-      .from("mc_knowledge_library")
-      .update({
-        title: data.title,
-        category: data.category,
-        content: data.content,
-        tags: data.tags,
-        last_accessed: new Date().toISOString(),
-        decay_tier: "hot",
-      })
-      .eq("api_key_hash", apiKeyHash)
-      .eq("id", existing.id);
-    if (error) throw error;
-    return `Library doc updated: "${data.title}" (v${nextVersion})`;
-  }
-
-  const { error } = await supabase
-    .from("mc_knowledge_library")
-    .insert({
-      api_key_hash: apiKeyHash,
-      slug: data.slug,
-      title: data.title,
-      category: data.category,
-      content: data.content,
-      tags: data.tags,
-      version: 1,
-      decay_tier: "hot",
-      last_accessed: new Date().toISOString(),
-    });
-  if (error) throw error;
-  return `Library doc created: "${data.title}" (v1)`;
 }
 
 const TOP_OF_MIND_CANDIDATE_LIMIT = 110;
@@ -1129,48 +705,6 @@ async function loadCrewRunContext(
   };
 }
 
-function deriveKey(apiKey: string, salt: Buffer): Buffer {
-  return crypto.pbkdf2Sync(apiKey, salt, PBKDF2_ITERATIONS, KEY_BYTES, "sha256");
-}
-
-function encryptString(plaintext: string, key: Buffer) {
-  const iv = crypto.randomBytes(IV_BYTES);
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  const enc = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
-  return {
-    iv: iv.toString("hex"),
-    authTag: cipher.getAuthTag().toString("hex"),
-    ciphertext: enc.toString("hex"),
-  };
-}
-
-function decryptString(iv: string, authTag: string, ciphertext: string, key: Buffer): string {
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "hex"));
-  decipher.setAuthTag(Buffer.from(authTag, "hex"));
-  return Buffer.concat([
-    decipher.update(Buffer.from(ciphertext, "hex")),
-    decipher.final(),
-  ]).toString("utf8");
-}
-
-/** Decode a Supabase service_role JWT and return the project ref. */
-function decodeProjectRef(jwt: string): string | null {
-  try {
-    const parts = jwt.split(".");
-    if (parts.length !== 3) return null;
-    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    const payload = JSON.parse(Buffer.from(padded, "base64").toString("utf8")) as {
-      ref?: string;
-      role?: string;
-    };
-    if (payload.role !== "service_role") return null;
-    return payload.ref ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /** Load the bundled memory schema SQL. */
 function loadSchemaSql(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -1316,30 +850,6 @@ function normaliseAiChatModel(provider: ChatProvider, value: unknown): string {
 function normaliseAiChatMaxTurns(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 20;
   return Math.min(50, Math.max(1, Math.trunc(value)));
-}
-
-function deriveAiKeyEncryptionKey(): Buffer | null {
-  const secret = process.env.AI_KEY_ENCRYPTION_SECRET;
-  if (!secret) return null;
-  return crypto.createHash("sha256").update(secret).digest();
-}
-
-function decryptAiApiKey(payload: string | null | undefined): string | null {
-  if (!payload) return null;
-  const key = deriveAiKeyEncryptionKey();
-  if (!key) return payload; // stored plaintext fallback
-  try {
-    const buf = Buffer.from(payload, "base64");
-    if (buf.length < IV_BYTES + 16 + 1) return null;
-    const iv = buf.subarray(0, IV_BYTES);
-    const authTag = buf.subarray(buf.length - 16);
-    const ciphertext = buf.subarray(IV_BYTES, buf.length - 16);
-    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-    decipher.setAuthTag(authTag);
-    return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
-  } catch {
-    return null;
-  }
 }
 
 async function resolveTenantAiChatSettings(
@@ -2147,7 +1657,6 @@ RULES:
 - If you do not have enough context to answer, say so. Do not make things up.
 - If the user asks about something outside their UnClick data, politely redirect.
 - No em dashes. Use -- instead.`;
-
 
 // ─── Admin AI chat helpers ─────────────────────────────────────────────────
 
