@@ -10,6 +10,34 @@ UCB.baskets = UCB.baskets || {};
     text: function (n) { return (n && n.textContent || "").trim(); },
     firstImg: function (n) { return n && (n.tagName === "IMG" ? n : (n.querySelector ? n.querySelector("img") : null)); },
     attr: function (n, a) { return (n && n.getAttribute) ? (n.getAttribute(a) || "") : ""; },
+    // Real thumbnail URL for a card. News and shop grids lazy-load: the <img src>
+    // is a 1x1 placeholder and the real asset lives in data-src / data-srcset /
+    // srcset / a <picture><source>. Walk those in priority order and skip the
+    // tiny inline placeholders so cards get a picture instead of a grey box.
+    imgSrc: function (scope) {
+      if (!scope || !scope.querySelector && scope.tagName !== "IMG") return "";
+      var img = (scope.tagName === "IMG") ? scope : (scope.querySelector ? scope.querySelector("img") : null);
+      var src = scope.querySelector ? scope.querySelector("source[srcset],source[data-srcset]") : null;
+      function first(s) { return s ? (String(s).trim().split(",")[0].trim().split(/\s+/)[0] || "") : ""; }
+      var cands = [];
+      if (img) {
+        cands.push(img.getAttribute("data-src"));
+        cands.push(first(img.getAttribute("data-srcset")));
+        cands.push(img.getAttribute("data-original"));
+        cands.push(img.getAttribute("data-lazy-src"));
+        cands.push(first(img.getAttribute("srcset")));
+        cands.push(img.getAttribute("src"));
+      }
+      if (src) { cands.push(first(src.getAttribute("srcset"))); cands.push(first(src.getAttribute("data-srcset"))); }
+      var dataUri = "";
+      for (var i = 0; i < cands.length; i++) {
+        var c = cands[i] && cands[i].trim();
+        if (!c) continue;
+        if (/^data:/i.test(c)) { if (!dataUri && c.length > 256) dataUri = c; continue; }
+        return c;
+      }
+      return dataUri;
+    },
     resolve: function (href, base) { if (!href) return ""; try { return new URL(href, base).href; } catch (e) { return ""; } },
     host: function (u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } },
     meta: function (doc, key) { var m = doc.querySelector('meta[property="' + key + '"]') || doc.querySelector('meta[name="' + key + '"]'); return m ? (m.getAttribute("content") || "") : ""; },
@@ -320,7 +348,7 @@ UCB.baskets = UCB.baskets || {};
         if (eyebrow && (title.indexOf(eyebrow) === 0 || eyebrow.length > 30)) eyebrow = "";
         if (blurb && blurb === title) blurb = "";
         if (price && price.length > 16) price = "";
-        var src = img ? (util.attr(img, "src") || util.attr(img, "data-src")) : "";
+        var src = util.imgSrc(n);
         var key = title.trim().toLowerCase();
         if (!key || seen[key]) continue;
         seen[key] = 1;
@@ -335,17 +363,30 @@ UCB.baskets = UCB.baskets || {};
         });
       }
       if (!items.length) return null;
-      // Short bare links (no image, blurb, price, or headline-length title) are
-      // navigation, not content - render them as one inline bar, never fat cards.
-      var imgs = 0, blurbs = 0, prices = 0, longish = 0;
-      for (var z = 0; z < items.length; z++) {
-        if (items[z].media) imgs++;
-        if (items[z].blurb) blurbs++;
-        if (items[z].meta && items[z].meta.price) prices++;
-        if (items[z].title.length > 28) longish++;
+      // Decide nav-bar vs content-cards. Real navigation is a row of short links
+      // to section landing pages (/sport, /world); content is articles or
+      // products that carry a thumbnail, a blurb, a price, a headline-length
+      // title, or a deep slugged URL. Anything with a content signal stays a
+      // grid, so a thin-extracted article is never mistaken for a button.
+      function articleHref(h) {
+        if (!h) return false;
+        var path = h.replace(/^https?:\/\/[^/]+/i, "").split(/[?#]/)[0];
+        var segs = path.split("/").filter(Boolean);
+        if (segs.length >= 2) return true;
+        var last = segs.length ? segs[segs.length - 1] : "";
+        if (last.length > 16) return true;
+        if ((last.match(/-/g) || []).length >= 2) return true;
+        return /\d/.test(last);
       }
-      if (imgs === 0 && blurbs === 0 && prices === 0 && longish === 0) return { kind: "menu", items: items };
-      return { kind: "grid", items: items };
+      var content = 0, arts = 0;
+      for (var z = 0; z < items.length; z++) {
+        var it = items[z];
+        if (it.media || it.blurb || (it.meta && it.meta.price) || it.title.length > 28) content++;
+        if (articleHref(it.href)) arts++;
+      }
+      if (content > 0) return { kind: "grid", items: items };
+      if (arts >= Math.ceil(items.length * 0.6)) return { kind: "grid", items: items };
+      return { kind: "menu", items: items };
     }
   };
 })();

@@ -75,21 +75,31 @@ UCB.baskets = UCB.baskets || {}; // Lane 2 owns this object; we only ensure it e
       }
       region.children = childRegions;
 
-      // Repetition detection: group children by signature; a signature shared by
-      // >= 3 siblings is a repeated group (card grid, list, nav row, etc.).
-      var bySig = {};
-      for (var r = 0; r < childRegions.length; r++) {
-        var s = childRegions[r].signature;
-        (bySig[s] = bySig[s] || []).push(childRegions[r]);
+      // Repetition detection: a signature shared by >= 3 siblings is a repeated
+      // group (card grid, list, nav row, etc.). The primary key is tag + class
+      // shape only: a real card grid mixes a lead card carrying a standfirst <p>
+      // (or a video badge) with plain cards that lack one, and those must still
+      // group together. The strict signature is the fallback for class-less
+      // structure so generic wrappers are not over-grouped.
+      function groupKey(r) {
+        var c = classShape(r.node);
+        return c ? (r.node.tagName + "|" + c) : r.signature;
       }
-      var bestSig = null, bestN = 0;
-      for (var sig in bySig) {
-        if (bySig[sig].length >= 3 && bySig[sig].length > bestN) { bestN = bySig[sig].length; bestSig = sig; }
+      function bestGroup(keyFn) {
+        var by = {};
+        for (var r = 0; r < childRegions.length; r++) {
+          var k = keyFn(childRegions[r]);
+          (by[k] = by[k] || []).push(childRegions[r]);
+        }
+        var best = null, n = 0;
+        for (var key in by) { if (by[key].length >= 3 && by[key].length > n) { n = by[key].length; best = by[key]; } }
+        return best;
       }
-      if (bestSig) {
+      var group = bestGroup(groupKey) || bestGroup(function (r) { return r.signature; });
+      if (group) {
         region.kind = "group";
-        region.items = bySig[bestSig];
-        region.repeat = bestN;
+        region.items = group;
+        region.repeat = group.length;
       }
     }
 
