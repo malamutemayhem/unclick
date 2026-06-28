@@ -16,6 +16,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readWiring, loadWiringBlocks } from "./wiring-model.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(__dirname, "../src");
 const REPO = path.resolve(__dirname, "../../..");
@@ -44,30 +46,8 @@ function classify(base) {
 }
 
 // ─── Load tool-wiring per-module blocks ────────────────────────────────────────
-// ADDITIONAL_TOOLS is split by `// ── <file>.ts ──` comment headers.
-
-function loadWiringBlocks() {
-  const wiring = fs.readFileSync(path.join(SRC, "tool-wiring.ts"), "utf8");
-  const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
-  const end = wiring.indexOf("export const ADDITIONAL_HANDLERS");
-  const body = wiring.slice(start, end > 0 ? end : undefined);
-
-  const blocks = {};
-  const headerRe = /\/\/ ──\s*([a-zA-Z0-9_-]+\.ts)\s*─/g;
-  const headers = [...body.matchAll(headerRe)];
-  for (let i = 0; i < headers.length; i++) {
-    const file = headers[i][1].replace(/\.ts$/, "");
-    const from = headers[i].index;
-    const to = i + 1 < headers.length ? headers[i + 1].index : body.length;
-    const chunk = body.slice(from, to);
-    const names = [...chunk.matchAll(/^\s*name:\s*"([^"]+)"/gm)].map((m) => m[1]);
-    // crude param + description tallies (heuristic schema-completeness signal)
-    const props = [...chunk.matchAll(/\{\s*type:\s*"/g)].length;
-    const describedProps = [...chunk.matchAll(/description:\s*"/g)].length;
-    blocks[file] = { toolNames: names, toolCount: names.length, props, describedProps };
-  }
-  return blocks;
-}
+// ADDITIONAL_TOOLS is split by `// ── <file>.ts ──` comment headers. The parse
+// lives in wiring-model.mjs (shared with the other tool-wiring generators).
 
 function loadWebsiteTools() {
   try {
@@ -151,7 +131,7 @@ function grade(s) {
 
 // ─── Run ─────────────────────────────────────────────────────────────────────
 
-const wiring = loadWiringBlocks();
+const wiring = loadWiringBlocks(readWiring(SRC));
 const website = loadWebsiteTools();
 
 const testFiles = new Set();
