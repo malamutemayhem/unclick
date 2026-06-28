@@ -115,18 +115,30 @@ UCB.baskets = UCB.baskets || {};
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
   function renderCard(b) {
+    var hasText = !!(b.title || b.eyebrow || b.blurb || (b.meta && b.meta.price));
+    var hasImg = b.media && b.media.src;
+    if (!hasText && !hasImg) return null;            // nothing to show
     var card = document.createElement(b.href ? "a" : "div");
-    card.className = "card" + (b.media && b.media.src ? "" : " card-text");
+    card.className = "card" + (hasImg ? "" : " card-text");
     if (b.href) card.setAttribute("data-href", b.href);
-    if (b.media && b.media.src) {
+    if (hasImg) {
       var img = document.createElement("img");
-      img.className = "card-thumb"; img.src = b.media.src; img.alt = (b.media.alt || ""); img.loading = "lazy";
+      img.className = "card-thumb"; img.alt = (b.media.alt || ""); img.loading = "lazy";
+      // A broken URL, a text-logo, or a tracking pixel should never leave an
+      // empty grey box. Collapse to text; if the card then has no text, drop it.
+      img.onerror = function () {
+        if (img.parentNode) img.parentNode.removeChild(img);
+        card.className = card.className.replace(/\s*card-text$/, "") + " card-text";
+        if (!card.textContent.trim() && card.parentNode) card.parentNode.removeChild(card);
+      };
+      img.src = b.media.src;
       card.appendChild(img);
     }
     var body = el("div", "card-body");
     if (b.eyebrow) body.appendChild(el("div", "card-eyebrow", b.eyebrow));
     if (b.title) body.appendChild(el("div", "card-title", b.title));
     if (b.blurb) body.appendChild(el("div", "card-blurb", b.blurb));
+    if (b.meta && b.meta.price) body.appendChild(el("div", "card-price", b.meta.price));
     card.appendChild(body);
     return card;
   }
@@ -140,14 +152,16 @@ UCB.baskets = UCB.baskets || {};
     return a;
   }
   function renderMasthead(b) {
-    var bar = el("div", "masthead");
+    var host = b.meta && b.meta.host;
+    var bar = document.createElement(host ? "a" : "div");
+    bar.className = "masthead";
+    if (host) bar.setAttribute("data-href", "https://" + host);
     if (b.media && b.media.src) {
       var fav = document.createElement("img");
       fav.className = "fav"; fav.src = b.media.src; fav.alt = (b.media.alt || "");
       fav.onerror = function () { this.style.display = "none"; };
       bar.appendChild(fav);
     }
-    var host = b.meta && b.meta.host;
     bar.appendChild(el("span", "site", b.title || host || "Source"));
     if (host && b.title && b.title !== host) { bar.appendChild(el("span", "grow")); bar.appendChild(el("span", "host", host)); }
     return bar;
@@ -163,7 +177,7 @@ UCB.baskets = UCB.baskets || {};
       f.appendChild(src);
     }
     if (b.meta && b.meta.openInNative) {
-      f.appendChild(document.createTextNode("  \u00B7  "));
+      f.appendChild(document.createTextNode("  ·  "));
       var live = el("a", "live", "Open in Native");
       live.setAttribute("data-native", "1");
       f.appendChild(live);
@@ -177,19 +191,23 @@ UCB.baskets = UCB.baskets || {};
     if (b.blurb) f.appendChild(el("div", "foot-copy", b.blurb));
     return f;
   }
+  // Site navigation renders as one tidy inline bar (no dropdown, no fat-button
+  // stack). Deduped and capped so a 40-link megamenu does not become a wall.
   function renderMenu(b) {
     var items = b.items || [];
     if (!items.length) return null;
-    var d = document.createElement("details");
-    d.className = "menu";
-    if (!(b.meta && b.meta.collapsed === true)) d.open = true;
-    var s = document.createElement("summary");
-    s.textContent = b.title || "Menu";
-    d.appendChild(s);
-    var wrap = el("div", "menu-links");
-    for (var i = 0; i < items.length; i++) { var ln = renderLink(items[i]); if (ln) wrap.appendChild(ln); }
-    d.appendChild(wrap);
-    return d;
+    var nav = el("div", "navbar");
+    var seen = {}, n = 0;
+    for (var i = 0; i < items.length && n < 12; i++) {
+      var it = items[i];
+      if (!it || !it.title) continue;
+      var key = it.title.trim().toLowerCase();
+      if (!key || key.length > 24 || seen[key]) continue;
+      seen[key] = 1;
+      var ln = renderLink(it);
+      if (ln) { nav.appendChild(ln); n++; }
+    }
+    return n ? nav : null;
   }
 
   function renderBlock(b) {
@@ -204,11 +222,17 @@ UCB.baskets = UCB.baskets || {};
       case "carousel":
       case "gallery":
       case "stats": {
-        var wrap = el("div", "doc");
-        if (b.title) wrap.appendChild(el("h2", null, b.title));
         var items = b.items || [];
-        for (var i = 0; i < items.length; i++) { var c = renderBlock(items[i]); if (c) wrap.appendChild(c); }
-        return wrap.childNodes.length ? wrap : null;
+        // Rows for article-style teasers (they carry a blurb); a compact
+        // multi-column grid for tile-style items (products, galleries).
+        var withBlurb = 0, total = 0;
+        for (var i = 0; i < items.length; i++) { if (!items[i]) continue; total++; if (items[i].blurb) withBlurb++; }
+        var compact = b.kind === "gallery" || b.kind === "carousel" || (total >= 3 && withBlurb <= total * 0.34);
+        var wrap = el("div", "cards " + (b.kind === "stats" ? "stat-grid" : (compact ? "card-grid" : "card-list")));
+        for (var j = 0; j < items.length; j++) { var c = renderBlock(items[j]); if (c) wrap.appendChild(c); }
+        if (!wrap.childNodes.length) return null;
+        if (b.title) { var sec = el("section", "sec"); sec.appendChild(el("h2", "sec-title", b.title)); sec.appendChild(wrap); return sec; }
+        return wrap;
       }
       case "article": {
         var art = el("article", "doc");
@@ -276,19 +300,38 @@ UCB.baskets = UCB.baskets || {};
       return good >= 3 ? Math.min(1, good / region.items.length) : 0;
     },
     normalize: function (region, ctx) {
-      var items = [];
+      var items = [], seen = {};
       for (var i = 0; i < region.items.length; i++) {
         var n = region.items[i].node;
+        if (!n || !n.querySelector) { if (n && !n.querySelector) { /* text node */ } }
         var a = (n.tagName === "A" && n.getAttribute("href")) ? n : (n.querySelector ? n.querySelector("a[href]") : null);
+        // Search the whole item (title/price are often siblings of an image-only link).
+        var scope = (n && n.querySelector) ? n : (a || n);
         var img = util.firstImg(n);
-        var title = util.text(a || n);
+        // Pull a real hierarchy out of the card instead of concatenating all text.
+        var h = scope.querySelector ? scope.querySelector("h1,h2,h3,h4,h5,h6,[class*=title],[class*=headline]") : null;
+        var p = scope.querySelector ? scope.querySelector("p,[class*=blurb],[class*=excerpt],[class*=desc],[class*=summary]") : null;
+        var eb = scope.querySelector ? scope.querySelector("[class*=eyebrow],[class*=kicker],[class*=tag],[class*=category],[class*=label]") : null;
+        var pr = scope.querySelector ? scope.querySelector("[class*=price],[class*=amount]") : null;
+        var title = util.text(h) || util.text(a) || util.text(n);
         if (!title) continue;
+        var eyebrow = util.text(eb), blurb = util.text(p), price = util.text(pr);
+        // never let eyebrow/blurb echo the title (that is the doubled-text bug).
+        if (eyebrow && (title.indexOf(eyebrow) === 0 || eyebrow.length > 30)) eyebrow = "";
+        if (blurb && blurb === title) blurb = "";
+        if (price && price.length > 16) price = "";
         var src = img ? (util.attr(img, "src") || util.attr(img, "data-src")) : "";
+        var key = title.trim().toLowerCase();
+        if (!key || seen[key]) continue;
+        seen[key] = 1;
         items.push({
           kind: "teaser",
-          title: title.slice(0, 200),
+          eyebrow: eyebrow ? eyebrow.slice(0, 32) : "",
+          title: title.slice(0, 160),
+          blurb: blurb ? blurb.slice(0, 220) : "",
           href: a ? util.resolve(a.getAttribute("href"), ctx.base) : "",
-          media: src ? { src: util.resolve(src, ctx.base), alt: util.attr(img, "alt") } : null
+          media: src ? { src: util.resolve(src, ctx.base), alt: util.attr(img, "alt") } : null,
+          meta: price ? { price: price } : null
         });
       }
       if (!items.length) return null;

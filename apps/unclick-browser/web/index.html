@@ -23,7 +23,7 @@
      active tab is a raw live page. That colour is the main "where am I" tell. */
   #tabrow{display:flex;align-items:stretch;gap:6px;padding:6px 8px 0;background:var(--panel);border-top:3px solid var(--teal);}
   html[data-mode="native"] #tabrow{border-top-color:var(--warm);}
-  #tabstrip{display:flex;align-items:stretch;gap:4px;flex:1;overflow-x:auto;scrollbar-width:thin;}
+  #tabstrip{display:flex;align-items:stretch;gap:4px;flex:0 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin;}
   .tab{display:flex;align-items:center;gap:7px;max-width:230px;min-width:124px;padding:7px 9px;border-radius:9px 9px 0 0;background:transparent;color:var(--soft);cursor:pointer;font-size:13px;white-space:nowrap;user-select:none;}
   .tab:hover{color:var(--text);}
   .tab.active{background:var(--bg);color:var(--head);}
@@ -76,7 +76,9 @@
   html[data-mode="native"] #reader{max-width:none;margin:0;padding:0;flex:1;display:flex;}
   .liveframe{width:100%;height:100%;min-height:calc(100vh - 96px);border:0;display:block;background:#fff;}
 
-  .masthead{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+  .masthead{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
+  a.masthead{cursor:pointer;}
+  a.masthead:hover{border-color:var(--teal);}
   .masthead .fav{width:22px;height:22px;border-radius:6px;flex:none;background:var(--bg);object-fit:cover;margin:0;}
   .masthead .site{font-weight:600;color:var(--head);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .masthead .host{color:var(--soft);font-size:13px;white-space:nowrap;}
@@ -91,7 +93,7 @@
   .doc a:hover{text-decoration:underline;}
   .doc img{max-width:100%;height:auto;max-height:360px;border-radius:10px;display:block;margin:14px auto;background:var(--panel);}
   .doc figure{margin:14px 0;}
-  .doc figcaption{color:var(--soft);font-size:14px;text-align:center;margin-top:6px;}
+  .doc figcaption{color:var(--soft);font-size:14px;text-align:left;margin-top:6px;}
   .doc ul,.doc ol{padding-left:22px;margin:0 0 14px;}
   .doc li{margin:5px 0;}
   .doc blockquote{margin:0 0 14px;padding:4px 18px;border-left:3px solid var(--teal);color:var(--soft);}
@@ -102,15 +104,18 @@
   .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
   .doc hr{border:0;border-top:1px solid var(--line);margin:22px 0;}
 
-  /* Teaser card: eyebrow + headline + blurb + thumb, fused into one tidy row. */
-  .doc .card{display:flex;gap:14px;align-items:flex-start;padding:12px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
-  .doc a.card:hover{border-color:var(--teal);text-decoration:none;}
-  .doc .card .card-thumb{width:150px;height:100px;flex:none;object-fit:cover;border-radius:8px;margin:0;background:var(--bg);}
-  .doc .card.card-text{padding:11px 14px;}
-  .doc .card .card-body{flex:1;min-width:0;}
-  .doc .card .card-eyebrow{color:var(--teal);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;margin:0 0 4px;}
-  .doc .card .card-title{color:var(--head);font-weight:600;font-size:17px;line-height:1.3;margin:0;}
-  .doc .card .card-blurb{color:var(--soft);font-size:14px;line-height:1.5;margin:5px 0 0;}
+  /* One card definition shared by the reader and the engine so every site
+     looks consistent. Default is a tidy row; .card-grid makes vertical tiles. */
+  .card{display:flex;gap:14px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;overflow:hidden;}
+  a.card{cursor:pointer;}
+  a.card:hover{border-color:var(--teal);text-decoration:none;}
+  .card .card-thumb{width:128px;height:84px;flex:none;object-fit:cover;border-radius:8px;background:var(--bg);}
+  .card.card-text{padding:13px 16px;}
+  .card .card-body{flex:1;min-width:0;}
+  .card .card-eyebrow{color:var(--teal);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;margin:0 0 4px;}
+  .card .card-title{color:var(--head);font-weight:600;font-size:16px;line-height:1.35;margin:0;}
+  .card .card-blurb{color:var(--soft);font-size:14px;line-height:1.5;margin:6px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card .card-price{color:var(--head);font-weight:700;font-size:15px;margin:8px 0 0;}
 
   .pagefoot{margin:36px 0 0;padding:14px 0 0;border-top:1px solid var(--line);color:var(--soft);font-size:14px;}
   .pagefoot a{color:var(--teal);}
@@ -125,14 +130,24 @@
   .welcome .soft{color:var(--soft);}
   kbd{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13px;color:var(--text);}
 
-  /* Baskets-engine render classes (used when the engine handles a listing). */
   .pagefoot .foot-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px;}
   .pagefoot .foot-links a{color:var(--teal);cursor:pointer;}
   .pagefoot .foot-copy{margin-top:8px;color:var(--soft);font-size:13px;}
-  details.menu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:6px 12px;}
-  details.menu summary{cursor:pointer;color:var(--head);font-weight:600;font-size:14px;}
-  details.menu .menu-links{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 2px 4px;}
-  details.menu .menu-links a{color:var(--teal);cursor:pointer;font-size:14px;}
+
+  /* Engine + reader shared layout: inline nav, sections, card collections. */
+  .navbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin:0 0 20px;padding:11px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+  .navbar a,.navbar span{color:var(--soft);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;}
+  .navbar a:hover{color:var(--teal);}
+  .sec{margin:0 0 22px;}
+  .sec-title{color:var(--head);font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px;}
+  .cards{margin:0 0 8px;}
+  .card-list{display:flex;flex-direction:column;gap:10px;}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;}
+  .card-grid .card{flex-direction:column;gap:10px;}
+  .card-grid .card-thumb{width:100%;height:144px;}
+  .card-grid .card-body{width:100%;}
+  .stat-grid .card{flex-direction:column;align-items:flex-start;gap:2px;}
 </style>
 </head>
 <body>
