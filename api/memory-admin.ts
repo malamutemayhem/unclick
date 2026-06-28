@@ -1389,11 +1389,17 @@ async function resolveSessionTenant(
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
   if (!user) return null;
 
-  // New shape: key_hash column from Phase 1 keychain_mvp migration
+  // New shape: key_hash column from Phase 1 keychain_mvp migration.
+  // Resolve the SAME active key every other surface resolves to (mirror
+  // resolveTenant in backstagepass.ts and validateSessionCookie in mcp.ts):
+  // is_active filter + deterministic order so a duplicate api_keys row can
+  // never strand this tenant on a different key_hash than the rest of the app.
   const newQ = await sb
     .from("api_keys")
     .select("key_hash, tier")
     .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("last_used_at", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle();
   const newRow = newQ.data as { key_hash?: string | null; tier?: string | null } | null;
@@ -4879,11 +4885,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        // Look up an existing api_keys row for this user.
+        // Look up an existing api_keys row for this user. Order
+        // deterministically + limit(1) so a duplicate row never raises
+        // PGRST116 (which would null this out and mint another duplicate).
         let keyRow = (await supabase
           .from("api_keys")
           .select("id, key_hash, key_prefix, label, tier, is_active, usage_count, last_used_at, created_at")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as
           | {
               id: string;
@@ -4931,6 +4941,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .from("api_keys")
               .select("id, key_hash, key_prefix, label, tier, is_active, usage_count, last_used_at, created_at")
               .eq("user_id", user.id)
+              .order("last_used_at", { ascending: false, nullsFirst: false })
+              .limit(1)
               .maybeSingle();
             keyRow = retry.data as typeof keyRow;
           } else {
@@ -5049,10 +5061,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to so the
+        // lane we write preferences to matches where load_memory reads them.
         const keyRow = (await supabase
           .from("api_keys")
           .select("key_hash, lane_hash")
           .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
@@ -5105,10 +5122,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to (see
+        // operator_timezone_update) so the lane stays consistent.
         const keyRow = (await supabase
           .from("api_keys")
           .select("key_hash, lane_hash")
           .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
@@ -5144,10 +5166,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to so the
+        // About You block lands on the consistent tenant key.
         const keyRow = (await supabase
           .from("api_keys")
           .select("key_hash")
           .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { key_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
@@ -5197,10 +5224,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1): with a duplicate row present,
+        // a bare maybeSingle() raises PGRST116 and leaves `existing` null,
+        // which would mint yet another duplicate key. Pick the freshest row.
         const existing = (await supabase
           .from("api_keys")
           .select("id, key_prefix, tier")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { id: string; key_prefix: string | null; tier: string | null } | null;
 
         if (existing) {
@@ -5245,10 +5277,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1): with a duplicate row present,
+        // a bare maybeSingle() raises PGRST116 and wrongly 404s a user who
+        // does have a key. Rotate the freshest row.
         const existing = (await supabase
           .from("api_keys")
           .select("id, tier")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { id: string; tier: string | null } | null;
 
         if (!existing) return res.status(404).json({ error: "No API key to reset" });
@@ -5312,10 +5349,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1) so a duplicate row never raises
+        // PGRST116 (which would null this out and skip the scoped wipe,
+        // orphaning the account's memory rows).
         const keyRow = (await supabase
           .from("api_keys")
           .select("key_hash, lane_hash")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { key_hash?: string | null; lane_hash?: string | null } | null;
         // Scope the wipe to the MEMORY LANE, where the account's data actually
         // lives. After a rotation that is lane_hash, not the current key_hash;
