@@ -8750,6 +8750,14 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
         "description": "List Supabase organizations visible to the connected Supabase account. Read-only Management API call."
       },
       {
+        "name": "supabase_execute_sql",
+        "description": "Run a SQL statement against a Supabase project's database via the Management API. Destructive statements require confirm: true."
+      },
+      {
+        "name": "supabase_apply_migration",
+        "description": "Apply a named, tracked migration to a Supabase project's database via the Management API."
+      },
+      {
         "name": "vercel_get_domain",
         "description": "Get information about a Vercel domain."
       },

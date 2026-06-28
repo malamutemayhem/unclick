@@ -22,16 +22,16 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 14314b5ba07f | 24453 |
-| src/pages/admin/AdminShell.tsx | 7b1bf91058df | 33866 |
+| src/App.tsx | 0fd0c27849b9 | 24600 |
+| src/pages/admin/AdminShell.tsx | 3a84071191a0 | 34071 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 90193714f71b | 2305 |
-| .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
+| .github/workflows/ci.yml | 623080333b64 | 2247 |
+| .github/workflows/brainmap-auto-update.yml | 45d1db95a47c | 2101 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
 | package.json | 989f2a2ed48d | 7828 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
@@ -79,7 +79,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
+| src/pages/admin/AdminSeatsApi.tsx | e6458412807a | 37787 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 232071cb463f | 11711 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
@@ -96,7 +96,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
-| src/pages/admin/AdminChat.tsx | ffcb94d7cf28 | 6046 |
+| src/pages/admin/AdminChat.tsx | cb91805a2f38 | 9529 |
 | src/pages/admin/AdminCircle.tsx | 76282f364efd | 16913 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
@@ -106,6 +106,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 2871e49013fa | 5931 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
+| src/pages/admin/AdminInduction.tsx | 38ea7ac92566 | 13693 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
 | src/pages/admin/AdminKeychain.tsx | d24135238f4d | 70823 |
@@ -249,6 +250,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
+| .github/workflows/branch-backup.yml | 163c931d3922 | 1365 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | d5ca538bd8a9 | 2190 |
 | .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
@@ -272,14 +274,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 63 |
+| Admin surfaces | Private operator views and internal control panels. | 64 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 57 |
-| Tools | MCP and gateway capabilities available to seats. | 676 |
+| Tools | MCP and gateway capabilities available to seats. | 677 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 127 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 128 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
@@ -352,6 +354,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/crews/settings | Crews Settings | Crews admin page for Crews Settings. | src/pages/admin/crews/CrewsSettings.tsx |
 | /admin/crews | Crews Catalog | Crews admin page for Crews Catalog. | src/pages/admin/crews/CrewsCatalog.tsx |
 | /admin/dashboard | Admin Dashboard | Front door for current operator state. | src/pages/admin/AdminDashboard.tsx |
+| /admin/induction | Admin Induction | Admin surface for Admin Induction. | src/pages/admin/AdminInduction.tsx |
 | /admin/jobs | Admin Jobs | Operational job and task queue. | src/pages/admin/AdminJobs.tsx |
 | /admin/jobsmith | Admin Jobsmith | Admin surface for Admin Jobsmith. | src/pages/admin/AdminJobsmith.tsx |
 | /admin/keychain | Admin Keychain | Passport and credential connection health. | src/pages/admin/AdminKeychain.tsx |
@@ -1102,6 +1105,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | wordcount | wordcount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordcount-tool.ts |
 | wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordfreq-tool.ts |
 | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordpress-tool.ts |
+| workspace | workspace MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/workspace-tool.ts |
 | worldbank | worldbank MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldbank-tool.ts |
 | worldtime | worldtime MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldtime-tool.ts |
 | xero | xero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xero-tool.ts |
@@ -1142,6 +1146,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | /admin/controltower | src/pages/admin/AdminControlTower.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
 | Admin surfaces | admin page | Admin Express Build | Admin surface for Admin Express Build. | /admin/autopilot/expressbuild | src/pages/admin/AdminExpressBuild.tsx |
+| Admin surfaces | admin page | Admin Induction | Admin surface for Admin Induction. | /admin/induction | src/pages/admin/AdminInduction.tsx |
 | Admin surfaces | admin page | Admin Jobs | Operational job and task queue. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
 | Admin surfaces | admin page | Admin Jobsmith | Admin surface for Admin Jobsmith. | /admin/jobsmith | src/pages/admin/AdminJobsmith.tsx |
 | Admin surfaces | admin page | Admin Keychain | Passport and credential connection health. | /admin/keychain | src/pages/admin/AdminKeychain.tsx |
@@ -1292,6 +1297,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | auto close fishbowl todo.yml | auto close fishbowl todo GitHub automation workflow. | - | .github/workflows/auto-close-fishbowl-todo.yml |
 | Automations | workflow | autonomous runner.yml | autonomous runner GitHub automation workflow. | - | .github/workflows/autonomous-runner.yml |
 | Automations | workflow | brainmap auto update.yml | Scheduled workflow that regenerates the ecosystem Brainmap. | - | .github/workflows/brainmap-auto-update.yml |
+| Automations | workflow | branch backup.yml | branch backup GitHub automation workflow. | - | .github/workflows/branch-backup.yml |
 | Automations | workflow | ci.yml | Continuous integration checks for build, tests, and proof safety. | - | .github/workflows/ci.yml |
 | Automations | workflow | claude.yml | claude GitHub automation workflow. | - | .github/workflows/claude.yml |
 | Automations | workflow | continuous improvement watch.yml | continuous improvement watch GitHub automation workflow. | - | .github/workflows/continuous-improvement-watch.yml |
@@ -2234,6 +2240,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | wordcount | wordcount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordcount-tool.ts |
 | Tools | MCP tool | wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordfreq-tool.ts |
 | Tools | MCP tool | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordpress-tool.ts |
+| Tools | MCP tool | workspace | workspace MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/workspace-tool.ts |
 | Tools | MCP tool | worldbank | worldbank MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldbank-tool.ts |
 | Tools | MCP tool | worldtime | worldtime MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldtime-tool.ts |
 | Tools | MCP tool | xero | xero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xero-tool.ts |

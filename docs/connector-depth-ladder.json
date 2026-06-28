@@ -12998,5 +12998,25 @@
       "agentic": false,
       "sourceStamped": false
     }
+  },
+  {
+    "connector": "workspace",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
   }
 ]
