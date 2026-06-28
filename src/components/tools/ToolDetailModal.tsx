@@ -24,7 +24,9 @@ export function ToolDetailModal({
         const isPlatform = PLATFORM_CONNECTOR_NAMES.has(selectedTool.name);
         const slug = isPlatform ? (PLATFORM_CONNECTOR_SLUGS[selectedTool.name] ?? selectedTool.name.toLowerCase()) : null;
         const connectHref = selectedTool.name === "Passport" ? "/admin/keychain" : `/connect/${slug}`;
-        const isConnected = slug ? connectorStatus[slug] === "connected" : false;
+        const connStatus = slug ? connectorStatus[slug] : undefined;
+        const isConnected = connStatus === "connected";
+        const needsReconnect = connStatus === "needs-reconnect";
 
         return (
           <>
@@ -62,6 +64,11 @@ export function ToolDetailModal({
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
                           <CheckCircle2 size={10} />
                           Connected
+                        </span>
+                      ) : needsReconnect ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                          <span aria-hidden>*</span>
+                          Reconnect
                         </span>
                       ) : (
                         <span className="inline-flex items-center rounded-full bg-muted/30 border border-border/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -123,10 +130,12 @@ export function ToolDetailModal({
                       className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                         isConnected
                           ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
-                          : "bg-primary text-primary-foreground hover:opacity-90"
+                          : needsReconnect
+                            ? "bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20"
+                            : "bg-primary text-primary-foreground hover:opacity-90"
                       }`}
                     >
-                      {selectedTool.name === "Passport" ? "Open Passport" : isConnected ? "Manage connection" : "Connect account"}
+                      {selectedTool.name === "Passport" ? "Open Passport" : isConnected ? "Manage connection" : needsReconnect ? "Reconnect" : "Connect account"}
                     </a>
                     <a
                       href="/docs"
