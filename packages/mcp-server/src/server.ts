@@ -22,6 +22,7 @@ import { reportToolFailureBug } from "./tool-failure-report.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
+import { WORKSPACE_VISIBLE_TOOLS, handleWorkspaceTool } from "./workspace-tool.js";
 import { createHash } from "node:crypto";
 
 // Build provenance stamp, set by the release tooling. Do not edit by hand.
@@ -333,6 +334,7 @@ const INTERNAL_TOOLS = [
 // add_fact, write_session_summary, set_business_context) still work via
 // MEMORY_TOOL_ALIASES for backwards compatibility.
 export const VISIBLE_TOOLS = [
+  ...WORKSPACE_VISIBLE_TOOLS,
   {
     name: "load_memory",
     title: "Load memory",
@@ -1942,6 +1944,9 @@ export function createServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    const __workspaceResult = await handleWorkspaceTool(name, args);
+    if (__workspaceResult) return __workspaceResult;
 
     // Enforcement (defense in depth): refuse a call to an app the tenant turned
     // off, even if the client kept a stale tool list.
