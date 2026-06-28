@@ -1,0 +1,61 @@
+name: Wire Workspace Room (Increment 2)
+
+# Self-running build for File Workspace Increment 2. Triggered by pushing this
+# file (plus workspace-tool.ts, its test, and the wire script) to the
+# claude/workspace-room-inc2 branch. It wires the workspace_* tools into the
+# 108KB server.ts SERVER-SIDE (so no model has to re-emit that file), then opens
+# a clean draft PR with only the feature. The build machinery removes itself
+# from that PR.
+
+on:
+  push:
+    branches: [claude/workspace-room-inc2]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Wire workspace tools into server.ts
+        run: node scripts/wire-workspace-room.mjs
+
+      - name: Install, build, test (non-fatal; the PR's CI is the real gate)
+        working-directory: packages/mcp-server
+        run: |
+          npm install --no-audit --no-fund || true
+          npm run build || echo "::warning::mcp-server build reported errors"
+          npm test || echo "::warning::mcp-server tests reported errors"
+
+      - name: Regenerate indexes (non-fatal)
+        run: |
+          node packages/mcp-server/scripts/connector-depth-ladder.mjs || true
+          npm ci --no-audit --no-fund || true
+          node scripts/generate-app-catalog.mjs || true
+          node scripts/UnClick-brainmap.mjs || true
+
+      - name: Open the Increment 2 draft PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git rm -f scripts/wire-workspace-room.mjs .github/workflows/wire-workspace-room.yml
+          git checkout -b claude/workspace-room-pr
+          git add -A
+          git commit -m "feat(workspace): Increment 2 - workspace_put/push/list MCP tools wired into server.ts"
+          git push -f origin claude/workspace-room-pr
+          gh pr create --draft --base main --head claude/workspace-room-pr \
+            --title "feat(workspace): File Workspace MCP tools (Increment 2)" \
+            --body "Wires **workspace_put / workspace_push / workspace_list** into server.ts so agents can stage and push large files by reference (the Large-PR Room from #1609) - no more inline-push wall. Connector + 7 tests in packages/mcp-server/src/workspace-tool.ts; 3 anchored insertions into server.ts. Built automatically server-side because server.ts (108KB) is itself too big to push by hand - which is the exact problem the Room solves." \
+            || echo "PR already exists; branch force-updated"
