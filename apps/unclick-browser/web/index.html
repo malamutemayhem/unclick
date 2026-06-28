@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-mode="zen">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UnClick Browser</title>
+<style>
+  :root {
+    --bg:#0b1517; --panel:#0f1c1f; --line:#1c2f33; --text:#d7e3e4; --soft:#8aa3a6; --head:#ffffff;
+    --teal:#61C1C4; --teal-ink:#06222a;
+    --warm:#E8A33D; --warm-ink:#2a1600; --warm-bg:rgba(232,163,61,.10); --warm-line:rgba(232,163,61,.45); --warm-head:#F0B458; --warm-soft:#c9a877;
+  }
+  html[data-theme="light"]{
+    --bg:#f5f7f7; --panel:#eef2f2; --line:#e2e8e8; --text:#1f2a2b; --soft:#5b6b6c; --head:#0c1516;
+    --teal:#2f9fa3; --teal-ink:#ffffff;
+    --warm:#C77A12; --warm-ink:#ffffff; --warm-bg:#fdf3e3; --warm-line:#e8c596; --warm-head:#8a5410; --warm-soft:#7a5a2e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg);color:var(--text);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;}
+
+  /* Tab strip. The 3px top rail is teal for the calm reader, amber when the
+     active tab is a raw live page. That colour is the main "where am I" tell. */
+  #tabrow{display:flex;align-items:stretch;gap:6px;padding:6px 8px 0;background:var(--panel);border-top:3px solid var(--teal);}
+  html[data-mode="native"] #tabrow{border-top-color:var(--warm);}
+  #tabstrip{display:flex;align-items:stretch;gap:4px;flex:0 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin;}
+  .tab{display:flex;align-items:center;gap:7px;max-width:230px;min-width:124px;padding:7px 9px;border-radius:9px 9px 0 0;background:transparent;color:var(--soft);cursor:pointer;font-size:13px;white-space:nowrap;user-select:none;}
+  .tab:hover{color:var(--text);}
+  .tab.active{background:var(--bg);color:var(--head);}
+  .tab .tdot{width:14px;height:18px;background:url(mark.svg) center/contain no-repeat;flex:none;}
+  .tab.native .tfav{width:15px;height:15px;border-radius:4px;flex:none;object-fit:cover;background:var(--panel);}
+  .tab .tlabel{flex:1;overflow:hidden;text-overflow:ellipsis;}
+  .tab.native .tlabel{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .tab .pulse{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none;animation:uc-pulse 1.8s ease-in-out infinite;}
+  @keyframes uc-pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+  .tab .tclose{opacity:0;font-size:15px;line-height:1;padding:0 3px;border-radius:5px;color:var(--soft);}
+  .tab:hover .tclose,.tab.active .tclose{opacity:.55;}
+  .tab .tclose:hover{opacity:1;background:var(--line);color:var(--head);}
+  #newtab{align-self:center;background:transparent;color:var(--soft);border:1px solid var(--line);width:30px;height:30px;border-radius:8px;padding:0;font-size:18px;flex:none;}
+  #newtab:hover{color:var(--head);}
+
+  header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:relative;z-index:5;}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--head);white-space:nowrap;}
+  .brand .dot{width:16px;height:21px;background:url(mark.svg) center/contain no-repeat;}
+  .nav{display:flex;gap:6px;}
+  .icobtn{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;font-weight:600;}
+  .icobtn:hover{color:var(--head);}
+  .icobtn:disabled{opacity:.35;cursor:default;}
+  .bar{flex:1;display:flex;gap:8px;}
+  .bar input{flex:1;min-width:0;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;}
+  .bar input:focus{outline:none;border-color:var(--teal);}
+  button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;cursor:pointer;background:var(--teal);color:var(--teal-ink);font-weight:600;}
+  .ghost{background:transparent;color:var(--soft);border:1px solid var(--line);}
+  /* Mode toggle: Zen (calm, auto) | Native, plus a lock to keep Native on. */
+  .modeseg{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;flex:none;}
+  .modeseg .seg{padding:6px 13px;font-size:12px;font-weight:700;color:var(--soft);cursor:pointer;user-select:none;letter-spacing:.02em;}
+  .modeseg .seg:hover{color:var(--text);}
+  .modeseg #segZen.active{background:var(--teal);color:var(--teal-ink);}
+  .modeseg #segNative.active{background:var(--warm);color:var(--warm-ink);}
+  .modeseg .seg-lock{display:flex;align-items:center;padding:6px 9px;color:var(--soft);cursor:pointer;border-left:1px solid var(--line);}
+  .modeseg .seg-lock:hover{color:var(--text);}
+  .modeseg .seg-lock.on{color:var(--warm);}
+  .iconbtn{width:36px;height:34px;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:9px;padding:0;flex:none;}
+  .iconbtn:hover{color:var(--head);}
+  .iconbtn .ico-sun{display:none;}
+  html[data-theme="light"] .iconbtn .ico-moon{display:none;}
+  html[data-theme="light"] .iconbtn .ico-sun{display:inline;}
+
+  main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+  #status{max-width:760px;width:100%;margin:0 auto;padding:12px 24px 0;color:var(--soft);font-size:14px;}
+  #status a{color:var(--teal);cursor:pointer;}
+  #reader{max-width:760px;width:100%;margin:0 auto;padding:20px 24px 72px;}
+
+  /* Live view fills the frame edge to edge. */
+  html[data-mode="native"] #status{display:none;}
+  html[data-mode="native"] #reader{max-width:none;margin:0;padding:0;flex:1;display:flex;}
+  .liveframe{width:100%;height:100%;min-height:calc(100vh - 96px);border:0;display:block;background:#fff;}
+
+  .masthead{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;}
+  a.masthead{cursor:pointer;}
+  a.masthead:hover{border-color:var(--teal);}
+  .masthead .fav{width:22px;height:22px;border-radius:6px;flex:none;background:var(--bg);object-fit:cover;margin:0;}
+  .masthead .site{font-weight:600;color:var(--head);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .masthead .host{color:var(--soft);font-size:13px;white-space:nowrap;}
+  .masthead .grow{flex:1;}
+
+  .doc h1{color:var(--head);font-size:32px;line-height:1.2;margin:0 0 14px;letter-spacing:-0.02em;}
+  .doc h2{color:var(--head);font-size:23px;margin:28px 0 8px;}
+  .doc h3{color:var(--head);font-size:19px;margin:22px 0 6px;}
+  .doc h4,.doc h5,.doc h6{color:var(--head);font-size:17px;margin:18px 0 6px;}
+  .doc p{margin:0 0 14px;}
+  .doc a{color:var(--teal);text-decoration:none;cursor:pointer;}
+  .doc a:hover{text-decoration:underline;}
+  .doc img{max-width:100%;height:auto;max-height:360px;border-radius:10px;display:block;margin:14px auto;background:var(--panel);}
+  .doc figure{margin:14px 0;}
+  .doc figcaption{color:var(--soft);font-size:14px;text-align:left;margin-top:6px;}
+  .doc ul,.doc ol{padding-left:22px;margin:0 0 14px;}
+  .doc li{margin:5px 0;}
+  .doc blockquote{margin:0 0 14px;padding:4px 18px;border-left:3px solid var(--teal);color:var(--soft);}
+  .doc pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:14px;}
+  .doc code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:14px;}
+  .doc pre code{border:0;padding:0;}
+  .doc table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:15px;display:block;overflow-x:auto;}
+  .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
+  .doc hr{border:0;border-top:1px solid var(--line);margin:22px 0;}
+
+  /* One card definition shared by the reader and the engine so every site
+     looks consistent. Default is a tidy row; .card-grid makes vertical tiles. */
+  .card{display:flex;gap:14px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;overflow:hidden;}
+  a.card{cursor:pointer;}
+  a.card:hover{border-color:var(--teal);text-decoration:none;}
+  .card .card-thumb{width:128px;height:84px;flex:none;object-fit:cover;border-radius:8px;background:var(--bg);}
+  .card.card-text{padding:13px 16px;}
+  .card .card-body{flex:1;min-width:0;}
+  .card .card-eyebrow{color:var(--teal);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;margin:0 0 4px;}
+  .card .card-title{color:var(--head);font-weight:600;font-size:16px;line-height:1.35;margin:0;}
+  .card .card-blurb{color:var(--soft);font-size:14px;line-height:1.5;margin:6px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card .card-price{color:var(--head);font-weight:700;font-size:15px;margin:8px 0 0;}
+
+  .pagefoot{margin:36px 0 0;padding:14px 0 0;border-top:1px solid var(--line);color:var(--soft);font-size:14px;}
+  .pagefoot a{color:var(--teal);}
+  .pagefoot a.live{color:var(--warm);}
+
+  /* Quiet auto-fading hint, bottom-centre, never blocks the page. */
+  #toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(8px);background:var(--panel);border:1px solid var(--warm-line);color:var(--warm-soft);font-size:13px;padding:7px 15px;border-radius:999px;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;z-index:50;box-shadow:0 6px 22px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .welcome .kicker{color:var(--teal);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 14px;}
+  .welcome h1{color:var(--head);font-size:40px;line-height:1.15;margin:0 0 10px;letter-spacing:-0.02em;}
+  .welcome .soft{color:var(--soft);}
+  kbd{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13px;color:var(--text);}
+
+  .pagefoot .foot-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px;}
+  .pagefoot .foot-links a{color:var(--teal);cursor:pointer;}
+  .pagefoot .foot-copy{margin-top:8px;color:var(--soft);font-size:13px;}
+
+  /* Engine + reader shared layout: inline nav, sections, card collections. */
+  .navbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin:0 0 20px;padding:11px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+  .navbar a,.navbar span{color:var(--soft);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;}
+  .navbar a:hover{color:var(--teal);}
+  .sec{margin:0 0 22px;}
+  .sec-title{color:var(--head);font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px;}
+  .cards{margin:0 0 8px;}
+  .card-list{display:flex;flex-direction:column;gap:10px;}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;}
+  .card-grid .card{flex-direction:column;gap:10px;}
+  .card-grid .card-thumb{width:100%;height:144px;}
+  .card-grid .card-body{width:100%;}
+  .stat-grid .card{flex-direction:column;align-items:flex-start;gap:2px;}
+</style>
+</head>
+<body>
+  <div id="tabrow">
+    <div id="tabstrip"></div>
+    <button id="newtab" title="New tab (Ctrl+T)">+</button>
+  </div>
+  <header>
+    <div class="nav">
+      <button class="icobtn" id="back" title="Back (Alt+Left, mouse back)" disabled>&#8249;</button>
+      <button class="icobtn" id="fwd" title="Forward (Alt+Right, mouse forward)" disabled>&#8250;</button>
+    </div>
+    <div class="brand"><span class="dot"></span> UnClick</div>
+    <div class="bar">
+      <input id="addr" type="text" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="modeseg">
+      <span class="seg" id="segZen" role="button" tabindex="0" title="Zen: the calm read. Auto-shows Native when a site needs it.">Zen</span>
+      <span class="seg" id="segNative" role="button" tabindex="0" title="Native: the raw live page">Native</span>
+      <span class="seg-lock" id="lockBtn" role="button" tabindex="0" title="Lock Native on every site"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1zm2 0h6V7a3 3 0 0 0-6 0v3z"/></svg></span>
+    </div>
+    <button class="iconbtn" id="theme" title="Light / dark"><svg class="ico ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><svg class="ico ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M4.3 12H2.2M21.8 12h-2.1M5.7 5.7 4.2 4.2M19.8 19.8l-1.5-1.5M18.3 5.7l1.5-1.5M4.2 19.8l1.5-1.5"/></svg></button>
+  </header>
+  <main>
+    <div id="status"></div>
+    <div id="reader"></div>
+  </main>
+  <div id="toast"></div>
+  <script src="baskets/segment.js"></script>
+  <script src="baskets/fingerprint.js"></script>
+  <script src="baskets/learn.js"></script>
+  <script src="baskets/frame.js"></script>
+  <script src="baskets/media.js"></script>
+  <script src="baskets/shape-mcp.js"></script>
+  <script src="baskets/core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

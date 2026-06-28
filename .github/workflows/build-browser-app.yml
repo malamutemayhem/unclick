@@ -1,0 +1,82 @@
+name: Build Browser App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - claude/unclick-browser-app
+    paths:
+      - "apps/unclick-browser/**"
+      - ".github/workflows/build-browser-app.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-browser-app
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/unclick-browser
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/unclick-browser/src-tauri
+      - name: Generate icons
+        run: npx --yes @tauri-apps/cli@2 icon src-tauri/icon.svg -o src-tauri/icons
+      - name: Build installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        run: npx --yes @tauri-apps/cli@2 build
+      - name: Prepare release assets
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*-setup.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { Write-Error "No NSIS installer found under bundle/nsis"; exit 1 }
+          Copy-Item $exe.FullName -Destination "UnClick-Browser-Setup.exe" -Force
+          $sig = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*-setup.exe.sig" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $sig) { Write-Error "No update signature (.sig) found - signing failed"; exit 1 }
+          $sigContent = (Get-Content $sig.FullName -Raw).Trim()
+          $ver = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $pubDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+          $manifest = [ordered]@{
+            version = $ver
+            notes = "UnClick Browser update"
+            pub_date = $pubDate
+            platforms = [ordered]@{
+              "windows-x86_64" = [ordered]@{
+                signature = $sigContent
+                url = "https://github.com/malamutemayhem/unclick/releases/download/browser-app-latest/UnClick-Browser-Setup.exe"
+              }
+            }
+          }
+          $json = $manifest | ConvertTo-Json -Depth 6
+          Set-Content -Path "latest.json" -Value $json -Encoding utf8NoBOM
+          Write-Host "Installer: $($exe.FullName)"
+          Write-Host "Signature: $($sig.FullName)"
+      - name: Publish to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: browser-app-latest
+          name: UnClick Browser (Windows)
+          body: "Rolling Windows build of UnClick Browser (beta). Download UnClick-Browser-Setup.exe once; updates after that are automatic."
+          files: |
+            apps/unclick-browser/UnClick-Browser-Setup.exe
+            apps/unclick-browser/latest.json
+          fail_on_unmatched_files: true
+          prerelease: false

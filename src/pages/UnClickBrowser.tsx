@@ -17,10 +17,11 @@ import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 
-// Beta distribution: app installers publish to GitHub Releases; the extension
-// is loaded from the repo until the Chrome Web Store listing is live. Real
-// links, nothing fake, nothing that 404s.
-const APP_RELEASES_URL = "https://github.com/malamutemayhem/unclick/releases";
+// Beta distribution: the Windows installer publishes to the browser-app-latest
+// release as a single setup .exe, so the button is a real one-click download.
+// The extension loads from the repo until the Chrome Web Store listing is live.
+const APP_INSTALLER_URL =
+  "https://github.com/malamutemayhem/unclick/releases/download/browser-app-latest/UnClick-Browser-Setup.exe";
 const EXTENSION_URL =
   "https://github.com/malamutemayhem/unclick/tree/main/packages/browser-extension";
 
@@ -63,10 +64,8 @@ const STEPS = [
 function useDownloadLabel(): string {
   const [label, setLabel] = useState("Download");
   useEffect(() => {
-    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-    if (/Mac/i.test(ua)) setLabel("Download for Mac");
-    else if (/Win/i.test(ua)) setLabel("Download for Windows");
-    else if (/Linux|X11/i.test(ua)) setLabel("Download for Linux");
+    // Beta ships a Windows installer only; Mac and Linux land later.
+    setLabel("Download for Windows");
   }, []);
   return label;
 }
@@ -113,7 +112,7 @@ export default function UnClickBrowserPage() {
             <FadeIn delay={0.1}>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  href={APP_RELEASES_URL}
+                  href={APP_INSTALLER_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
@@ -132,7 +131,7 @@ export default function UnClickBrowserPage() {
                 </a>
               </div>
               <p className="mt-3 text-xs text-muted-custom">
-                Free while UnClick is in beta. Builds publish to GitHub Releases.
+                Free while UnClick is in beta. Windows installer. Mac and Linux coming soon.
               </p>
             </FadeIn>
           </div>
@@ -178,11 +177,11 @@ export default function UnClickBrowserPage() {
                 </div>
                 <p className="mt-4 text-lg font-semibold text-heading">UnClick Browser</p>
                 <p className="mt-2 flex-1 text-sm leading-6 text-body">
-                  The full app for Mac, Windows, and Linux. The fast, calm reading surface with your
-                  AI built in.
+                  The full app. Windows now, Mac and Linux soon. The fast, calm reading surface
+                  with your AI built in.
                 </p>
                 <a
-                  href={APP_RELEASES_URL}
+                  href={APP_INSTALLER_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-5 inline-flex min-h-11 items-center gap-2 self-start rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
