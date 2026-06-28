@@ -445,6 +445,7 @@
   function renderZen(t) {
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
+    if (isWebApp(t.host, t.html)) { renderUnsupported(t); return; }
     if (looksBlocked(t.html)) {
       t.mode = "native"; renderNative(t); renderTabs(); syncChrome();
       flash("Opened live - this site needs a browser check");
@@ -471,7 +472,43 @@
     scrollTop();
   }
 
+  // Web apps (search engines, mail, social) have no server-rendered article to
+  // simplify, and they refuse to be embedded, so the live iframe just shows the
+  // browser's "refused to connect". Detect them and show an honest panel instead
+  // of a broken frame.
+  function isWebApp(host, html) {
+    host = (host || "").toLowerCase().replace(/^www\./, "");
+    if (host) {
+      if (/(^|\.)google(\.[a-z]{2,3})+$/.test(host)) return true;
+      var APPS = ["gmail.com", "youtube.com", "outlook.com", "outlook.live.com", "office.com", "facebook.com", "instagram.com", "twitter.com", "x.com", "linkedin.com", "figma.com", "notion.so", "slack.com", "discord.com", "messenger.com", "web.whatsapp.com"];
+      for (var i = 0; i < APPS.length; i++) { if (host === APPS[i] || host.slice(-(APPS[i].length + 1)) === "." + APPS[i]) return true; }
+    }
+    if (html) {
+      var bare = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if (bare.length < 200 && /<(div|main)[^>]+id=["'](root|app|__next|__nuxt|svelte)["']/i.test(html)) return true;
+    }
+    return false;
+  }
+  function renderUnsupported(t) {
+    setMode("zen");
+    var host = t.host || hostOf(t.final || t.url) || "This site";
+    var url = t.final || t.url || "";
+    reader.innerHTML = "";
+    var w = document.createElement("div"); w.className = "welcome";
+    var k = document.createElement("p"); k.className = "kicker"; k.textContent = "UnClick / Browser"; w.appendChild(k);
+    var h = document.createElement("h1"); h.textContent = host + " is a web app"; w.appendChild(h);
+    var p1 = document.createElement("p"); p1.className = "soft";
+    p1.textContent = "UnClick rebuilds article and listing pages into a calm read. This one runs entirely in the browser and refuses to be embedded, so there is nothing to simplify or show in-app. Open it in your main browser:";
+    w.appendChild(p1);
+    var p2 = document.createElement("p"); p2.className = "soft";
+    var a = document.createElement("a"); a.className = "live"; a.href = url; a.textContent = url; a.target = "_blank"; a.rel = "noreferrer";
+    p2.appendChild(a); w.appendChild(p2);
+    reader.appendChild(w);
+    setStatus(""); scrollTop();
+  }
+
   function renderNative(t) {
+    if (isWebApp(t.host, t.html)) { renderUnsupported(t); return; }
     setMode("native");
     reader.innerHTML = "";
     var frame = document.createElement("iframe");
