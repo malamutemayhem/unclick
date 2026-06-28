@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1140,
-    "source_manifest": 253,
-    "pages": 119,
-    "tools": 676,
+    "inventory": 1144,
+    "source_manifest": 256,
+    "pages": 120,
+    "tools": 677,
     "rooms": 23,
     "workers": 8
   },
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 62
+      "count": 63
     },
     {
       "id": "public-surfaces",
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 676
+      "count": 677
     },
     {
       "id": "rooms",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 127
+      "count": 129
     },
     {
       "id": "ledgers-and-proof",
@@ -279,6 +279,16 @@
       "meaning": "Admin surface for Admin Express Build.",
       "source": "src/pages/admin/AdminExpressBuild.tsx",
       "route": "/admin/autopilot/expressbuild",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-induction-src-pages-admin-admininduction-tsx-admin-induction",
+      "division": "Admin surfaces",
+      "name": "Admin Induction",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Induction.",
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "route": "/admin/induction",
       "tags": []
     },
     {
@@ -1782,6 +1792,16 @@
       "tags": []
     },
     {
+      "id": "automations-workflow-branch-backup-yml-github-workflows-branch-backup-yml-no-route",
+      "division": "Automations",
+      "name": "branch backup.yml",
+      "kind": "workflow",
+      "meaning": "branch backup GitHub automation workflow.",
+      "source": ".github/workflows/branch-backup.yml",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-workflow-ci-yml-github-workflows-ci-yml-no-route",
       "division": "Automations",
       "name": "ci.yml",
@@ -1978,6 +1998,16 @@
       "kind": "workflow",
       "meaning": "tier2 rollback GitHub automation workflow.",
       "source": ".github/workflows/tier2-rollback.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-wire-workspace-room-yml-github-workflows-wire-workspace-room-yml-no-route",
+      "division": "Automations",
+      "name": "wire workspace room.yml",
+      "kind": "workflow",
+      "meaning": "wire workspace room GitHub automation workflow.",
+      "source": ".github/workflows/wire-workspace-room.yml",
       "route": "",
       "tags": []
     },
@@ -11202,6 +11232,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-workspace-packages-mcp-server-src-workspace-tool-ts-no-route",
+      "division": "Tools",
+      "name": "workspace",
+      "kind": "MCP tool",
+      "meaning": "workspace MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/workspace-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-worldbank-packages-mcp-server-src-worldbank-tool-ts-no-route",
       "division": "Tools",
       "name": "worldbank",
@@ -11702,6 +11742,12 @@
       "Admin Dashboard",
       "Front door for current operator state.",
       "src/pages/admin/AdminDashboard.tsx"
+    ],
+    [
+      "/admin/induction",
+      "Admin Induction",
+      "Admin surface for Admin Induction.",
+      "src/pages/admin/AdminInduction.tsx"
     ],
     [
       "/admin/jobs",
@@ -15587,6 +15633,11 @@
       "packages/mcp-server/src/wordpress-tool.ts"
     ],
     [
+      "workspace",
+      "workspace MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/workspace-tool.ts"
+    ],
+    [
       "worldbank",
       "worldbank MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/worldbank-tool.ts"
@@ -15988,13 +16039,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ac840923e824",
-      "bytes": 24260
+      "hash": "d0a17ae939d7",
+      "bytes": 24407
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "82f4d9ee4721",
-      "bytes": 33849
+      "hash": "882d0f50c475",
+      "bytes": 33987
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16028,13 +16079,13 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "90193714f71b",
-      "bytes": 2305
+      "hash": "623080333b64",
+      "bytes": 2247
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
-      "hash": "4771ebdbdba3",
-      "bytes": 1211
+      "hash": "45d1db95a47c",
+      "bytes": 2101
     },
     {
       "source": ".github/workflows/continuous-improvement-watch.yml",
@@ -16353,8 +16404,8 @@
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "ffcb94d7cf28",
-      "bytes": 6046
+      "hash": "9b7a50544401",
+      "bytes": 8897
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -16400,6 +16451,11 @@
       "source": "src/pages/admin/AdminDashboard.tsx",
       "hash": "e38f909e6d5b",
       "bytes": 7090
+    },
+    {
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "hash": "ba29a76752db",
+      "bytes": 13681
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -17117,6 +17173,11 @@
       "bytes": 15338
     },
     {
+      "source": ".github/workflows/branch-backup.yml",
+      "hash": "163c931d3922",
+      "bytes": 1365
+    },
+    {
       "source": ".github/workflows/claude.yml",
       "hash": "e8fc79a85b6c",
       "bytes": 1085
@@ -17205,6 +17266,11 @@
       "source": ".github/workflows/tier2-rollback.yml",
       "hash": "1468c05586fb",
       "bytes": 1495
+    },
+    {
+      "source": ".github/workflows/wire-workspace-room.yml",
+      "hash": "f08b25dc49fb",
+      "bytes": 2713
     }
   ]
 }
