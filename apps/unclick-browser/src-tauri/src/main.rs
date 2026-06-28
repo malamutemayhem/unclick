@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::time::Duration;
 use tauri_plugin_updater::UpdaterExt;
 
 #[derive(serde::Serialize)]
@@ -15,6 +16,11 @@ async fn fetch_url(url: String) -> Result<Page, String> {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
              (KHTML, like Gecko) UnClickBrowser/0.3 Safari/537.36",
         )
+        // Without these a slow or unreachable host hangs the request forever and
+        // the UI sits on "Loading ..." with no error. Bound the whole request so
+        // it always settles and the front end can show a failure.
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(25))
         .build()
         .map_err(|e| e.to_string())?;
     let resp = client
