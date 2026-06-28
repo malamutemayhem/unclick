@@ -124,3 +124,5 @@ export async function handleWorkspaceTool(
     return result({ error: e instanceof Error ? e.message : "workspace call failed" }, true);
   }
 }
+
+// Increment 2: registered into server.ts via the wire-workspace-room workflow.
