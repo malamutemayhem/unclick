@@ -16477,7 +16477,7 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        action:       { type: "string", enum: ["search_repos", "get_repo", "list_issues", "create_issue", "list_prs", "get_user", "list_gists", "search_code", "create_branch", "push_files", "create_pull_request", "comment_issue_or_pr", "merge_pull_request", "list_checks"], description: "Action: search_repos, get_repo, list_issues, create_issue, list_prs, get_user, list_gists, search_code, create_branch, push_files, create_pull_request, comment_issue_or_pr, merge_pull_request, list_checks." },
+        action:       { type: "string", enum: ["search_repos", "get_repo", "list_issues", "create_issue", "list_prs", "get_user", "list_gists", "search_code", "create_branch", "push_files", "create_pull_request", "comment_issue_or_pr", "merge_pull_request", "close_pull_request", "list_checks"], description: "Action: search_repos, get_repo, list_issues, create_issue, list_prs, get_user, list_gists, search_code, create_branch, push_files, create_pull_request, comment_issue_or_pr, merge_pull_request, close_pull_request, list_checks." },
         access_token: { type: "string", description: "GitHub personal access token (PAT). Saved UnClick GitHub login is used when this is omitted." },
         api_key:      { type: "string", description: "GitHub token fallback. Saved UnClick GitHub login is preferred when omitted." },
         query:        { type: "string", description: "Search query string (for search_repos and search_code)." },
