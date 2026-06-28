@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1138,
-    "source_manifest": 251,
-    "pages": 117,
-    "tools": 676,
+    "inventory": 1144,
+    "source_manifest": 256,
+    "pages": 120,
+    "tools": 677,
     "rooms": 23,
     "workers": 8
   },
@@ -21,19 +21,19 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 61
+      "count": 63
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 56
+      "count": 57
     },
     {
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 676
+      "count": 677
     },
     {
       "id": "rooms",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 127
+      "count": 129
     },
     {
       "id": "ledgers-and-proof",
@@ -182,6 +182,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-admin-browser-src-pages-admin-adminbrowser-tsx-admin-browser",
+      "division": "Admin surfaces",
+      "name": "Admin Browser",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Browser.",
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "route": "/admin/browser",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-admin-capability-balance-src-pages-admin-admincapabilitybalance-tsx-admin-capability-balance",
       "division": "Admin surfaces",
       "name": "Admin Capability Balance",
@@ -269,6 +279,16 @@
       "meaning": "Admin surface for Admin Express Build.",
       "source": "src/pages/admin/AdminExpressBuild.tsx",
       "route": "/admin/autopilot/expressbuild",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-induction-src-pages-admin-admininduction-tsx-admin-induction",
+      "division": "Admin surfaces",
+      "name": "Admin Induction",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Induction.",
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "route": "/admin/induction",
       "tags": []
     },
     {
@@ -1772,6 +1792,16 @@
       "tags": []
     },
     {
+      "id": "automations-workflow-branch-backup-yml-github-workflows-branch-backup-yml-no-route",
+      "division": "Automations",
+      "name": "branch backup.yml",
+      "kind": "workflow",
+      "meaning": "branch backup GitHub automation workflow.",
+      "source": ".github/workflows/branch-backup.yml",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-workflow-ci-yml-github-workflows-ci-yml-no-route",
       "division": "Automations",
       "name": "ci.yml",
@@ -1968,6 +1998,16 @@
       "kind": "workflow",
       "meaning": "tier2 rollback GitHub automation workflow.",
       "source": ".github/workflows/tier2-rollback.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-wire-workspace-room-yml-github-workflows-wire-workspace-room-yml-no-route",
+      "division": "Automations",
+      "name": "wire workspace room.yml",
+      "kind": "workflow",
+      "meaning": "wire workspace room GitHub automation workflow.",
+      "source": ".github/workflows/wire-workspace-room.yml",
       "route": "",
       "tags": []
     },
@@ -4169,6 +4209,16 @@
       "meaning": "Public tools marketplace entry point.",
       "source": "src/pages/Tools.tsx",
       "route": "/tools",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-un-click-browser-src-pages-unclickbrowser-tsx-browser",
+      "division": "Public surfaces",
+      "name": "Un Click Browser",
+      "kind": "public page",
+      "meaning": "User-facing page for Un Click Browser.",
+      "source": "src/pages/UnClickBrowser.tsx",
+      "route": "/browser",
       "tags": []
     },
     {
@@ -11182,6 +11232,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-workspace-packages-mcp-server-src-workspace-tool-ts-no-route",
+      "division": "Tools",
+      "name": "workspace",
+      "kind": "MCP tool",
+      "meaning": "workspace MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/workspace-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-worldbank-packages-mcp-server-src-worldbank-tool-ts-no-route",
       "division": "Tools",
       "name": "worldbank",
@@ -11588,6 +11648,12 @@
       "src/pages/admin/AdminBrainmap.tsx"
     ],
     [
+      "/admin/browser",
+      "Admin Browser",
+      "Admin surface for Admin Browser.",
+      "src/pages/admin/AdminBrowser.tsx"
+    ],
+    [
       "/admin/capability-balance",
       "Admin Capability Balance",
       "Admin surface for Admin Capability Balance.",
@@ -11676,6 +11742,12 @@
       "Admin Dashboard",
       "Front door for current operator state.",
       "src/pages/admin/AdminDashboard.tsx"
+    ],
+    [
+      "/admin/induction",
+      "Admin Induction",
+      "Admin surface for Admin Induction.",
+      "src/pages/admin/AdminInduction.tsx"
     ],
     [
       "/admin/jobs",
@@ -11868,6 +11940,12 @@
       "Verify Mfa",
       "User-facing page for Verify Mfa.",
       "src/pages/VerifyMfa.tsx"
+    ],
+    [
+      "/browser",
+      "Un Click Browser",
+      "User-facing page for Un Click Browser.",
+      "src/pages/UnClickBrowser.tsx"
     ],
     [
       "/connect/:platform",
@@ -15555,6 +15633,11 @@
       "packages/mcp-server/src/wordpress-tool.ts"
     ],
     [
+      "workspace",
+      "workspace MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/workspace-tool.ts"
+    ],
+    [
       "worldbank",
       "worldbank MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/worldbank-tool.ts"
@@ -15956,13 +16039,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "cab0a7a15c7b",
-      "bytes": 23975
+      "hash": "d0a17ae939d7",
+      "bytes": 24407
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "82f4d9ee4721",
-      "bytes": 33849
+      "hash": "882d0f50c475",
+      "bytes": 33987
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -15996,13 +16079,13 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ee6e7f0dd609",
-      "bytes": 2047
+      "hash": "623080333b64",
+      "bytes": 2247
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
-      "hash": "4771ebdbdba3",
-      "bytes": 1211
+      "hash": "45d1db95a47c",
+      "bytes": 2101
     },
     {
       "source": ".github/workflows/continuous-improvement-watch.yml",
@@ -16310,14 +16393,19 @@
       "bytes": 26608
     },
     {
+      "source": "src/pages/admin/AdminBrowser.tsx",
+      "hash": "c3b7c8dbb483",
+      "bytes": 4193
+    },
+    {
       "source": "src/pages/admin/AdminCapabilityBalance.tsx",
       "hash": "f8080095c92c",
       "bytes": 13774
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "ffcb94d7cf28",
-      "bytes": 6046
+      "hash": "9b7a50544401",
+      "bytes": 8897
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -16363,6 +16451,11 @@
       "source": "src/pages/admin/AdminDashboard.tsx",
       "hash": "e38f909e6d5b",
       "bytes": 7090
+    },
+    {
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "hash": "ba29a76752db",
+      "bytes": 13681
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -16493,6 +16586,11 @@
       "source": "src/pages/VerifyMfa.tsx",
       "hash": "f5c6b05b7844",
       "bytes": 6545
+    },
+    {
+      "source": "src/pages/UnClickBrowser.tsx",
+      "hash": "4761bb2bc945",
+      "bytes": 11236
     },
     {
       "source": "src/pages/Connect.tsx",
@@ -17075,6 +17173,11 @@
       "bytes": 15338
     },
     {
+      "source": ".github/workflows/branch-backup.yml",
+      "hash": "163c931d3922",
+      "bytes": 1365
+    },
+    {
       "source": ".github/workflows/claude.yml",
       "hash": "e8fc79a85b6c",
       "bytes": 1085
@@ -17163,6 +17266,11 @@
       "source": ".github/workflows/tier2-rollback.yml",
       "hash": "1468c05586fb",
       "bytes": 1495
+    },
+    {
+      "source": ".github/workflows/wire-workspace-room.yml",
+      "hash": "f08b25dc49fb",
+      "bytes": 2713
     }
   ]
 }

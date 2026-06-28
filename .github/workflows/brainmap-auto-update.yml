@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: brainmap-auto-update
@@ -29,14 +30,28 @@ jobs:
         run: npm run brainmap:generate
       - name: Verify Brainmap
         run: npm run test:brainmap
-      - name: Commit generated Brainmap
+      - name: Open PR with updated Brainmap
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Protected main rejects a direct bot push, so propose the refreshed
+          # map as a pull request instead. One standing branch is reused, so at
+          # most one brainmap PR is ever open.
           if git diff --quiet -- docs/UnClick-brainmap.generated.md docs/UnClick-brainmap.generated.json; then
             echo "Brainmap already current."
             exit 0
           fi
+          BRANCH="bot/brainmap-auto-update"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           git add docs/UnClick-brainmap.generated.md docs/UnClick-brainmap.generated.json
           git commit -m "docs: auto-update ecosystem brainmap"
-          git push
+          git push --force origin "$BRANCH"
+          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')" = "0" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "docs: auto-update ecosystem brainmap" \
+              --body "Automated brainmap regeneration. Protected main blocks a direct bot push, so the refreshed map is proposed here. Safe to squash-merge."
+          else
+            echo "PR already open for $BRANCH; force-pushed the latest map to it."
+          fi
