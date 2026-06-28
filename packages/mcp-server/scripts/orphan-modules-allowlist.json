@@ -13,11 +13,14 @@
     "src/converter-tools.ts",
     "src/heartbeat-noop-reasons.ts",
     "src/local-tools.ts",
+    "src/memory/circle-consent.ts",
+    "src/memory/circle.ts",
     "src/memory/conflicts.ts",
     "src/memory/eval-harness.ts",
     "src/memory/load-events.ts",
     "src/memory/tenant-settings.ts",
     "src/reliability.ts",
+    "src/supabase-migration-guard.ts",
     "src/web-tools.ts"
   ]
 }

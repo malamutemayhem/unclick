@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1140,
-    "source_manifest": 253,
-    "pages": 119,
+    "inventory": 1141,
+    "source_manifest": 254,
+    "pages": 120,
     "tools": 676,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 62
+      "count": 63
     },
     {
       "id": "public-surfaces",
@@ -279,6 +279,16 @@
       "meaning": "Admin surface for Admin Express Build.",
       "source": "src/pages/admin/AdminExpressBuild.tsx",
       "route": "/admin/autopilot/expressbuild",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-induction-src-pages-admin-admininduction-tsx-admin-induction",
+      "division": "Admin surfaces",
+      "name": "Admin Induction",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Induction.",
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "route": "/admin/induction",
       "tags": []
     },
     {
@@ -11704,6 +11714,12 @@
       "src/pages/admin/AdminDashboard.tsx"
     ],
     [
+      "/admin/induction",
+      "Admin Induction",
+      "Admin surface for Admin Induction.",
+      "src/pages/admin/AdminInduction.tsx"
+    ],
+    [
       "/admin/jobs",
       "Admin Jobs",
       "Operational job and task queue.",
@@ -15988,13 +16004,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ac840923e824",
-      "bytes": 24260
+      "hash": "d0a17ae939d7",
+      "bytes": 24407
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "82f4d9ee4721",
-      "bytes": 33849
+      "hash": "882d0f50c475",
+      "bytes": 33987
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16028,8 +16044,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "90193714f71b",
-      "bytes": 2305
+      "hash": "ab3e717a4ae9",
+      "bytes": 1663
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -16353,8 +16369,8 @@
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "ffcb94d7cf28",
-      "bytes": 6046
+      "hash": "9ceacf7f9203",
+      "bytes": 7266
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -16400,6 +16416,11 @@
       "source": "src/pages/admin/AdminDashboard.tsx",
       "hash": "e38f909e6d5b",
       "bytes": 7090
+    },
+    {
+      "source": "src/pages/admin/AdminInduction.tsx",
+      "hash": "ba29a76752db",
+      "bytes": 13681
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",

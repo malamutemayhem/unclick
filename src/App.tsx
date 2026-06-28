@@ -89,6 +89,7 @@ const AdminCircle = lazy(() => import("./pages/admin/AdminCircle.tsx"));
 const AdminBrowser = lazy(() => import("./pages/admin/AdminBrowser.tsx"));
 const AdminTools = lazy(() => import("./pages/admin/AdminTools.tsx"));
 const AdminSkills = lazy(() => import("./pages/admin/AdminSkills.tsx"));
+const AdminInduction = lazy(() => import("./pages/admin/AdminInduction.tsx"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity.tsx"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings.tsx"));
 const AdminAgentsPage = lazy(() => import("./pages/admin/AdminAgents.tsx"));
@@ -289,6 +290,7 @@ const App = () => (
             <Route path="apps" element={<AdminTools />} />
             <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />
+            <Route path="induction" element={<AdminInduction />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="browser" element={<AdminBrowser />} />
