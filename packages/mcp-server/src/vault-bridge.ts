@@ -1,4 +1,4 @@
-// ─── Credential Broker: vault-bridge ──────────────────────────────────────────
+// ─── Credential Broker: vault-bridge ─────────────────────────────────────────
 // Resolves platform credentials before any tool call.
 // Resolution order (first match wins):
 //   1. Inline args    - credentials already in the tool call (pass-through)
@@ -18,8 +18,9 @@
 import { vaultAction }                   from "./vault-tool.js";
 import { CONNECTORS, type ConnectorConfig } from "./connectors/index.js";
 import { keychainGetCredential }         from "./keychain-tool.js";
+import { isBackstagePassVaultEnabled }    from "./memory/tenant-settings.js";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────
 
 const UNCLICK_CREDENTIAL_SOURCE = "__unclick_credential_source";
 
@@ -103,6 +104,9 @@ async function tryResolveFromUnClickApi(
   const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 
   if (!apiKey) return stillMissing;
+  // BackstagePass vault toggle: when OFF, skip the vault lookup so inline /
+  // env / local creds stand on their own (still functional, fewer benefits).
+  if (!(await isBackstagePassVaultEnabled())) return stillMissing;
 
   try {
     const res = await fetch(`${apiBase}/api/credentials?platform=${encodeURIComponent(slug)}`, {
@@ -128,7 +132,7 @@ async function tryResolveFromUnClickApi(
   return stillMissing;
 }
 
-// ─── Core: resolveCredentials ─────────────────────────────────────────────────
+// ─── Core: resolveCredentials ───────────────────────────────────────────────
 
 /**
  * Resolves missing credentials for a platform tool call.
@@ -161,7 +165,7 @@ export async function resolveCredentials(
   const resolved: Record<string, unknown> = { ...args };
   let stillMissing = [...missing];
 
-  // ── 1. Env vars ────────────────────────────────────────────────────────────
+  // ── 1. Env vars ───────────────────────────────────────────────────────
   for (const field of stillMissing) {
     const val = process.env[envKey(slug, field.key)];
     if (val && val.trim() !== "") {
@@ -171,7 +175,7 @@ export async function resolveCredentials(
   stillMissing = unresolvedFields(stillMissing, resolved);
   if (stillMissing.length === 0) return resolved;
 
-  // ── 2. Local vault ─────────────────────────────────────────────────────────
+  // ── 2. Local vault ──────────────────────────────────────────────────
   const vaultPassword = process.env.UNCLICK_VAULT_PASSWORD?.trim();
   if (vaultPassword) {
     for (const field of stillMissing) {
@@ -198,7 +202,7 @@ export async function resolveCredentials(
     if (stillMissing.length === 0) return resolved;
   }
 
-  // ── 3. UnClick API and Keychain ────────────────────────────────────────────
+  // ── 3. UnClick API and Keychain ─────────────────────────────────────────
   //
   // OAuth reconnects write a fresh /connect row in user_credentials. Prefer that
   // path before legacy platform_credentials so an old quick-connect token cannot
@@ -215,11 +219,11 @@ export async function resolveCredentials(
     if (stillMissing.length === 0) return resolved;
   }
 
-  // ── 4. Return actionable error ─────────────────────────────────────────────
+  // ── 4. Return actionable error ───────────────────────────────────────────
   return buildSetupError(connector, slug, stillMissing.map((f) => f.key));
 }
 
-// ─── Error builder ────────────────────────────────────────────────────────────
+// ─── Error builder ──────────────────────────────────────────────────────
 
 function buildSetupError(
   connector: ConnectorConfig,
@@ -252,7 +256,7 @@ function buildSetupError(
   };
 }
 
-// ─── Convenience: connectorFor ────────────────────────────────────────────────
+// ─── Convenience: connectorFor ───────────────────────────────────────────────
 
 /** Returns the connector config for a slug, or null. */
 export function connectorFor(slug: string): ConnectorConfig | null {

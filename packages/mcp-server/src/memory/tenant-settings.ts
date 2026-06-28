@@ -98,6 +98,64 @@ export async function getTenantSettings(): Promise<TenantSettings> {
 /** Back-compat alias. Prefer `getTenantSettings`. */
 export const loadTenantSettings = getTenantSettings;
 
+let cachedVaultEnabled: boolean | null = null;
+
+/**
+ * Whether the BackstagePass credential vault is enabled for this tenant.
+ *
+ * Resolution order:
+ *   1. `BACKSTAGEPASS_VAULT_ENABLED` env override (hard on/off for self-host
+ *      and dev): "0" / "false" / "off" => off, "1" / "true" / "on" => on.
+ *   2. The tenant's `tenant_settings.backstagepass_vault_enabled` column.
+ *   3. Default ON (plumbing in place, exercised by default).
+ *
+ * Read in its own fault-isolated query (separate from getTenantSettings) so a
+ * tenant DB that has not run the column migration can never break the other
+ * tenant settings - it just falls back to ON.
+ */
+export async function isBackstagePassVaultEnabled(): Promise<boolean> {
+  const env = (process.env.BACKSTAGEPASS_VAULT_ENABLED ?? "").trim().toLowerCase();
+  if (env === "0" || env === "false" || env === "off") return false;
+  if (env === "1" || env === "true" || env === "on") return true;
+
+  if (cachedVaultEnabled !== null) return cachedVaultEnabled;
+
+  const apiKey = process.env.UNCLICK_API_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // Local mode or missing key: default ON.
+  if (!apiKey || !supabaseUrl || !serviceKey) {
+    cachedVaultEnabled = true;
+    return cachedVaultEnabled;
+  }
+
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const keyHash = hashApiKey(apiKey);
+    const { data, error } = await sb
+      .from("tenant_settings")
+      .select("backstagepass_vault_enabled")
+      .eq("api_key_hash", keyHash)
+      .maybeSingle();
+
+    if (error || !data) {
+      cachedVaultEnabled = true;
+      return cachedVaultEnabled;
+    }
+    cachedVaultEnabled =
+      (data as { backstagepass_vault_enabled?: boolean }).backstagepass_vault_enabled !== false;
+    return cachedVaultEnabled;
+  } catch {
+    cachedVaultEnabled = true;
+    return cachedVaultEnabled;
+  }
+}
+
 export function resetTenantSettingsCache(): void {
   cached = null;
+  cachedVaultEnabled = null;
 }
