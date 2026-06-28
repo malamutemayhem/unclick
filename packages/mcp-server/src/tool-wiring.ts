@@ -1356,6 +1356,7 @@ import {
 
 // ─── Developer / Productivity ─────────────────────────────────────────────────
 import { githubAction } from "./github-tool.js";
+import { workspaceTool } from "./workspace-tool.js";
 import { gitlabAction } from "./gitlab-tool.js";
 import { clickupAction } from "./clickup-tool.js";
 import { linearAction } from "./linear-tool.js";
@@ -1569,6 +1570,28 @@ import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const ADDITIONAL_TOOLS = [
+  {
+    name: "push_workspace",
+    description: "Push files of ANY size to GitHub through UnClick's server-side Large-PR Room, bypassing the inline tool-argument size limit. Stage each file as one or more put chunks (reuse workspace_id), then push to commit by reference with your saved UnClick GitHub login. Actions: put, list, push, prune.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action:       { type: "string", enum: ["put", "list", "push", "prune"], description: "put (stage a file chunk), list (staged files), push (commit to a branch), prune (clear expired)." },
+        api_key:      { type: "string", description: "UnClick API key. The connected key is used when omitted." },
+        workspace_id: { type: "string", description: "Omit on the first put to get a fresh one; reuse it for later puts and the push." },
+        path:         { type: "string", description: "Repo-relative file path for put (forward slashes)." },
+        content:      { type: "string", description: "File chunk content for put." },
+        seq:          { type: "number", description: "Optional chunk order for put." },
+        owner:        { type: "string", description: "Repository owner login (push)." },
+        repo:         { type: "string", description: "Repository name (push)." },
+        branch:       { type: "string", description: "Target branch to commit to (push)." },
+        base_branch:  { type: "string", description: "Base branch when target is new (push)." },
+        message:      { type: "string", description: "Commit message (push)." },
+      },
+      required: ["action"],
+    },
+  },
 
   // ── bgg-tool.ts ─────────────────────────────────────────────────────────────
   {
@@ -25044,6 +25067,7 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
 
   // github-tool.ts
   github_action:           (args) => githubAction(String(args.action ?? ""), args),
+  push_workspace: (args) => workspaceTool(String(args.action ?? ""), args),
 
   // gitlab-tool.ts
   gitlab_action:           (args) => gitlabAction(String(args.action ?? ""), args),
