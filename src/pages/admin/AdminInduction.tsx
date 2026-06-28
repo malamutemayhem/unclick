@@ -266,7 +266,7 @@ export default function AdminInduction() {
                 {isOpen && (
                   <div className="space-y-2 border-t border-white/[0.06] p-3">
                     {s.rows.map((r, rIdx) => (
-                      <div key={r.key} className={`rounded-lg border border-white/[0.06] bg-black/20 p-3 ${r.enabled ? "" : "opacity-50"}`}>
+                      <div key={r.key} className={`rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 ${r.enabled ? "" : "opacity-50"}`}>
                         <div className="flex items-start gap-2">
                           <span className="mt-2 w-5 shrink-0 text-right text-[11px] text-[#555]">{rIdx + 1}</span>
                           <div className="min-w-0 flex-1 space-y-2">
@@ -274,13 +274,13 @@ export default function AdminInduction() {
                               value={r.rule}
                               onChange={(e) => updateRow(sIdx, rIdx, { rule: e.target.value })}
                               placeholder="The rule, in easy English"
-                              className="w-full rounded border border-white/[0.08] bg-black/30 px-2 py-1.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#61C1C4]/50"
+                              className="w-full rounded border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#61C1C4]/50"
                             />
                             <input
                               value={r.why}
                               onChange={(e) => updateRow(sIdx, rIdx, { why: e.target.value })}
                               placeholder="Why it matters (optional)"
-                              className="w-full rounded border border-white/[0.06] bg-black/20 px-2 py-1.5 text-xs text-white/70 outline-none placeholder:text-white/20 focus:border-[#61C1C4]/40"
+                              className="w-full rounded border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-xs text-white/70 outline-none placeholder:text-white/20 focus:border-[#61C1C4]/40"
                             />
                           </div>
                           <div className="flex shrink-0 flex-col items-center gap-1">
