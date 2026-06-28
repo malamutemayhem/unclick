@@ -335,6 +335,16 @@ UCB.baskets = UCB.baskets || {};
         });
       }
       if (!items.length) return null;
+      // Short bare links (no image, blurb, price, or headline-length title) are
+      // navigation, not content - render them as one inline bar, never fat cards.
+      var imgs = 0, blurbs = 0, prices = 0, longish = 0;
+      for (var z = 0; z < items.length; z++) {
+        if (items[z].media) imgs++;
+        if (items[z].blurb) blurbs++;
+        if (items[z].meta && items[z].meta.price) prices++;
+        if (items[z].title.length > 28) longish++;
+      }
+      if (imgs === 0 && blurbs === 0 && prices === 0 && longish === 0) return { kind: "menu", items: items };
       return { kind: "grid", items: items };
     }
   };
