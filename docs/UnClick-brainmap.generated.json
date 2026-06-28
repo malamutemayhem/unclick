@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1141,
-    "source_manifest": 254,
+    "inventory": 1144,
+    "source_manifest": 256,
     "pages": 120,
-    "tools": 676,
+    "tools": 677,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 676
+      "count": 677
     },
     {
       "id": "rooms",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 127
+      "count": 129
     },
     {
       "id": "ledgers-and-proof",
@@ -1792,6 +1792,16 @@
       "tags": []
     },
     {
+      "id": "automations-workflow-branch-backup-yml-github-workflows-branch-backup-yml-no-route",
+      "division": "Automations",
+      "name": "branch backup.yml",
+      "kind": "workflow",
+      "meaning": "branch backup GitHub automation workflow.",
+      "source": ".github/workflows/branch-backup.yml",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-workflow-ci-yml-github-workflows-ci-yml-no-route",
       "division": "Automations",
       "name": "ci.yml",
@@ -1988,6 +1998,16 @@
       "kind": "workflow",
       "meaning": "tier2 rollback GitHub automation workflow.",
       "source": ".github/workflows/tier2-rollback.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-wire-workspace-room-yml-github-workflows-wire-workspace-room-yml-no-route",
+      "division": "Automations",
+      "name": "wire workspace room.yml",
+      "kind": "workflow",
+      "meaning": "wire workspace room GitHub automation workflow.",
+      "source": ".github/workflows/wire-workspace-room.yml",
       "route": "",
       "tags": []
     },
@@ -11212,6 +11232,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-workspace-packages-mcp-server-src-workspace-tool-ts-no-route",
+      "division": "Tools",
+      "name": "workspace",
+      "kind": "MCP tool",
+      "meaning": "workspace MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/workspace-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-worldbank-packages-mcp-server-src-worldbank-tool-ts-no-route",
       "division": "Tools",
       "name": "worldbank",
@@ -15603,6 +15633,11 @@
       "packages/mcp-server/src/wordpress-tool.ts"
     ],
     [
+      "workspace",
+      "workspace MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/workspace-tool.ts"
+    ],
+    [
       "worldbank",
       "worldbank MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/worldbank-tool.ts"
@@ -16044,13 +16079,13 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "ab3e717a4ae9",
-      "bytes": 1663
+      "hash": "623080333b64",
+      "bytes": 2247
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
-      "hash": "4771ebdbdba3",
-      "bytes": 1211
+      "hash": "45d1db95a47c",
+      "bytes": 2101
     },
     {
       "source": ".github/workflows/continuous-improvement-watch.yml",
@@ -16369,8 +16404,8 @@
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "9ceacf7f9203",
-      "bytes": 7266
+      "hash": "9b7a50544401",
+      "bytes": 8897
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -17138,6 +17173,11 @@
       "bytes": 15338
     },
     {
+      "source": ".github/workflows/branch-backup.yml",
+      "hash": "163c931d3922",
+      "bytes": 1365
+    },
+    {
       "source": ".github/workflows/claude.yml",
       "hash": "e8fc79a85b6c",
       "bytes": 1085
@@ -17226,6 +17266,11 @@
       "source": ".github/workflows/tier2-rollback.yml",
       "hash": "1468c05586fb",
       "bytes": 1495
+    },
+    {
+      "source": ".github/workflows/wire-workspace-room.yml",
+      "hash": "f08b25dc49fb",
+      "bytes": 2713
     }
   ]
 }
