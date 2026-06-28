@@ -73,7 +73,9 @@ export function PlatformToolCard({
 }: PlatformToolCardProps) {
   const slug = PLATFORM_CONNECTOR_SLUGS[tool.name] ?? tool.name.toLowerCase();
   const connectHref = tool.name === "Passport" ? "/admin/keychain" : `/connect/${slug}`;
-  const isConnected = connectorStatus[slug] === "connected";
+  const connStatus = connectorStatus[slug];
+  const isConnected = connStatus === "connected";
+  const needsReconnect = connStatus === "needs-reconnect";
 
   return (
     <FadeIn delay={delay}>
@@ -90,6 +92,14 @@ export function PlatformToolCard({
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-400 shrink-0">
               <CheckCircle2 size={9} />
               Connected
+            </span>
+          ) : needsReconnect ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-medium text-amber-400 shrink-0"
+              title="Saved under a previous key after a rotation. Reconnect to refresh it."
+            >
+              <span aria-hidden>*</span>
+              Reconnect
             </span>
           ) : (
             <span className="inline-flex items-center rounded-full bg-muted/30 border border-border/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0">

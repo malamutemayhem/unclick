@@ -32,4 +32,4 @@ export type TestPassScore = {
   status?: string;
 };
 
-export type ConnectorStatus = Record<string, "connected" | "not-connected">;
+export type ConnectorStatus = Record<string, "connected" | "not-connected" | "needs-reconnect">;

@@ -101,6 +101,29 @@ async function supabaseFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
+// ─── Stable account lane ────────────────────────────────────────────────────
+// Connections are scoped by the account's stable lane_hash (pinned at key
+// birth, preserved across rotation) rather than the rotating key_hash, so a
+// rotation never hides them. Falls back to the key hash itself when the lane is
+// unknown (legacy rows / no api_keys row), which preserves old behaviour.
+async function resolveLaneHash(
+  supabaseUrl:    string,
+  serviceRoleKey: string,
+  apiKeyHash:     string
+): Promise<string> {
+  try {
+    const r = await supabaseFetch(
+      `${supabaseUrl}/rest/v1/api_keys?key_hash=eq.${encodeURIComponent(apiKeyHash)}&select=lane_hash&limit=1`,
+      "GET",
+      supabaseHeaders(serviceRoleKey)
+    );
+    const rows = Array.isArray(r.data) ? (r.data as Array<{ lane_hash?: string | null }>) : [];
+    return rows[0]?.lane_hash || apiKeyHash;
+  } catch {
+    return apiKeyHash;
+  }
+}
+
 // ─── OAuth refresh on read ────────────────────────────────────────────────────
 // The single chokepoint every OAuth connector funnels through (vault-bridge ->
 // GET /api/credentials). If a stored access token is expiring and we hold a
@@ -235,6 +258,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!platform) return res.status(400).json({ error: "platform query param required." });
 
     const apiKeyHash = sha256hex(apiKey);
+    // Scope by the stable account lane so a key rotation never hides a
+    // connection. A row saved under an older key (api_key_hash != current) is
+    // still found here and surfaced as needs_reconnect instead of 404/500.
+    const laneHash = await resolveLaneHash(supabaseUrl, serviceRoleKey, apiKeyHash);
     // Label handling:
     //   - If caller passed ?label=foo, filter to exactly that row.
     //   - If no label passed, prefer the row with NULL label (the "default"),
@@ -242,13 +269,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const labelFilter = label
       ? `&label=eq.${encodeURIComponent(label)}`
       : "";
-    const tableUrl   = `${supabaseUrl}/rest/v1/user_credentials?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}&platform_slug=eq.${encodeURIComponent(platform)}${labelFilter}&select=*&order=label.asc.nullsfirst`;
+    // Match the stable lane OR the current key (covers rows not yet backfilled).
+    const scopeFilter = laneHash === apiKeyHash
+      ? `api_key_hash.eq.${encodeURIComponent(apiKeyHash)}`
+      : `lane_hash.eq.${encodeURIComponent(laneHash)},api_key_hash.eq.${encodeURIComponent(apiKeyHash)}`;
+    const tableUrl   = `${supabaseUrl}/rest/v1/user_credentials?or=(${scopeFilter})&platform_slug=eq.${encodeURIComponent(platform)}${labelFilter}&select=*&order=label.asc.nullsfirst`;
 
     const { ok, data } = await supabaseFetch(tableUrl, "GET", supabaseHeaders(serviceRoleKey));
     if (!ok) return res.status(502).json({ error: "Supabase lookup failed." });
 
-    const rows = data as Array<Record<string, unknown>>;
-    if (!rows || rows.length === 0) {
+    const rows = (data as Array<Record<string, unknown>>) ?? [];
+    if (rows.length === 0) {
       const managedUrl = `${supabaseUrl}/rest/v1/managed_app_connections?api_key_hash=eq.${encodeURIComponent(apiKeyHash)}&platform_slug=eq.${encodeURIComponent(platform)}&status=eq.connected&select=id,platform_slug,provider,provider_config_key,external_connection_id,auth_mode,status,account_label,scope_summary,last_checked_at,connected_at,created_at,updated_at,metadata&order=updated_at.desc.nullslast&limit=1`;
       const managed = await supabaseFetch(managedUrl, "GET", supabaseHeaders(serviceRoleKey));
       const managedRows = managed.ok ? (managed.data as ManagedConnectionRow[]) : [];
@@ -272,7 +303,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const row = rows[0];
+    // Prefer a row encrypted under the CURRENT key (decryptable). If only
+    // older-key rows exist, the connection survived rotation but its secret is
+    // locked to the retired key - report needs_reconnect (HTTP 200) so the UI
+    // can show a "Reconnect" badge and the broker fails soft instead of 500.
+    const freshRow = rows.find((r) => r.api_key_hash === apiKeyHash);
+    if (!freshRow) {
+      const stale = rows[0];
+      return res.status(200).json({
+        needs_reconnect: true,
+        platform_slug:   platform,
+        label:           (stale?.label as string) ?? null,
+        setup_url:       `https://unclick.world/connect/${platform}`,
+      });
+    }
+
+    const row = freshRow;
     try {
       const salt         = Buffer.from(row.encryption_salt as string, "hex");
       const key          = deriveKey(apiKey, salt);
@@ -294,7 +340,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return res.status(200).json(finalCredentials);
     } catch {
-      return res.status(500).json({ error: "Failed to decrypt credentials. The API key may have changed." });
+      // Found under the current key but undecryptable - treat as reconnect,
+      // not a hard 500, so the UI stays coherent.
+      return res.status(200).json({
+        needs_reconnect: true,
+        platform_slug:   platform,
+        label:           (row.label as string) ?? null,
+        setup_url:       `https://unclick.world/connect/${platform}`,
+      });
     }
   }
 
@@ -326,9 +379,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Label normalization: empty string → null (treat "no label" uniformly).
     const normalizedLabel = label && label.trim() ? label.trim() : null;
 
+    // Stamp the stable lane so this connection survives future rotations.
+    const newApiKeyHash = sha256hex(api_key);
+    const laneHash = await resolveLaneHash(supabaseUrl, serviceRoleKey, newApiKeyHash);
+
     const updatedAt = new Date().toISOString();
     const row = {
-      api_key_hash:    sha256hex(api_key),
+      api_key_hash:    newApiKeyHash,
+      lane_hash:       laneHash,
       platform_slug:   platform,
       label:           normalizedLabel,
       encrypted_data:  ciphertext,

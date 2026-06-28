@@ -2683,7 +2683,12 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
             const res = await fetch(`/api/credentials?platform=${slug}`, {
               headers: { Authorization: `Bearer ${key}` },
             });
-            return [slug, res.ok ? "connected" : "not-connected"] as const;
+            if (!res.ok) return [slug, "not-connected"] as const;
+            // A 200 with needs_reconnect means the connection survived a key
+            // rotation but its secret is locked to the retired key - surface a
+            // "Reconnect" state instead of a misleading "Connected".
+            const body = (await res.json().catch(() => null)) as { needs_reconnect?: boolean } | null;
+            return [slug, body?.needs_reconnect ? "needs-reconnect" : "connected"] as const;
           } catch {
             return [slug, "not-connected"] as const;
           }
