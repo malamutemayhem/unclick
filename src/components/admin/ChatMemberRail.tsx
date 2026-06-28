@@ -2,13 +2,15 @@
 // ChatMemberRail - the slim roster beside the chat canvas.
 //
 // Shows who is in the room: the operator (human, with their You-page
-// avatar) and the AI seats. Click a seat to direct the next turn at it
-// (it @mentions that seat in the composer). "Add AI seat" opens an inline
-// picker that reuses the live OpenRouter catalog. Cross-account human
-// members ("Invite member") are the next slice and shown as planned.
+// avatar), connected human members, and the AI seats. Click a seat to
+// direct the next turn at it (it @mentions that seat in the composer).
+// "Add AI seat" opens an inline picker that reuses the live OpenRouter
+// catalog. "Invite member" lists the accounts you are connected to
+// (accepted Circle links) so you can add them to the room.
 //
-// Single-account only for now: every seat runs on the operator's own
-// key, so there is no cross-tenant data here.
+// Each AI seat runs on the operator's own key. Human members are added
+// from the existing cross-account connection graph; live messaging with
+// them is a later slice, so they appear here as present in the room.
 // ============================================================
 
 import { useEffect, useState } from "react";
@@ -23,6 +25,7 @@ import {
   fetchOpenRouterModels,
   type ChatModelOption,
 } from "@/components/admin/chatTransportConfig";
+import { fetchConnectedMembers, type HumanMember } from "@/components/admin/chatMembers";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -37,6 +40,23 @@ const PROVIDER_OPTIONS: ComboOption[] = CHAT_PROVIDERS.map((p) => ({
   value: p.slug,
   label: p.label,
 }));
+
+// A small avatar for a human member: their picture if we have one, else
+// initials. Keeps the rail readable without coupling to UserAvatar's
+// full Supabase User shape (we only hold email + avatar for members).
+function MemberAvatar({ member }: { member: HumanMember }) {
+  if (member.avatarUrl) {
+    return (
+      <img src={member.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+    );
+  }
+  const initials = (member.label || member.email || "?").slice(0, 2).toUpperCase();
+  return (
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-500/15 text-[10px] font-medium text-sky-300">
+      {initials}
+    </span>
+  );
+}
 
 function AddSeatForm({ onAdd }: { onAdd: (slug: string, model: string) => void }) {
   const [slug, setSlug] = useState(CHAT_PROVIDERS[0].slug);
@@ -101,22 +121,103 @@ function AddSeatForm({ onAdd }: { onAdd: (slug: string, model: string) => void }
   );
 }
 
+// Lists the accounts you are connected to (accepted Circle links) that
+// are not already in the room, so you can add them as human members.
+function InviteMemberForm({
+  accessToken,
+  added,
+  onAdd,
+}: {
+  accessToken: string | null;
+  added: HumanMember[];
+  onAdd: (member: HumanMember) => void;
+}) {
+  const [members, setMembers] = useState<HumanMember[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setMembers([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    fetchConnectedMembers(accessToken)
+      .then((rows) => {
+        if (!cancelled) setMembers(rows ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken]);
+
+  const addedIds = new Set(added.map((m) => m.id));
+  const available = (members ?? []).filter((m) => !addedIds.has(m.id));
+
+  return (
+    <div className="flex w-[min(20rem,90vw)] flex-col gap-1 p-3">
+      <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+        Your connections
+      </p>
+      {loading && <p className="px-1 py-2 text-sm text-muted-foreground">Loading...</p>}
+      {!loading && available.length === 0 && (
+        <p className="px-1 py-2 text-xs leading-relaxed text-muted-foreground">
+          No connected members to add yet. Connect with people in{" "}
+          <a href="/admin/circle" className="text-primary hover:underline">
+            Circle
+          </a>
+          , then they show up here.
+        </p>
+      )}
+      {available.map((m) => (
+        <button
+          key={m.id}
+          type="button"
+          onClick={() => onAdd(m)}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-card/50"
+        >
+          <MemberAvatar member={m} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm text-body">{m.label}</span>
+            {m.email && m.email !== m.label && (
+              <span className="block truncate text-[10px] text-muted-foreground">{m.email}</span>
+            )}
+          </span>
+          <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function ChatMemberRail({
   user,
+  accessToken,
   seats,
   activeSeatId,
+  humanMembers,
   onSelectSeat,
   onAddSeat,
   onRemoveSeat,
+  onAddHumanMember,
+  onRemoveHumanMember,
 }: {
   user: User | null;
+  accessToken: string | null;
   seats: AiSeat[];
   activeSeatId: string | null;
+  humanMembers: HumanMember[];
   onSelectSeat: (seat: AiSeat) => void;
   onAddSeat: (slug: string, model: string) => void;
   onRemoveSeat: (id: string) => void;
+  onAddHumanMember: (member: HumanMember) => void;
+  onRemoveHumanMember: (id: string) => void;
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
     <aside className="w-full shrink-0 space-y-1 rounded-lg border border-border/40 bg-card/30 p-3 md:w-60">
@@ -131,6 +232,24 @@ export function ChatMemberRail({
           <p className="text-[10px] text-muted-foreground">you (human)</p>
         </div>
       </div>
+
+      {humanMembers.map((m) => (
+        <div key={m.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5">
+          <MemberAvatar member={m} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-body">{m.label}</p>
+            <p className="truncate text-[10px] text-muted-foreground">member - messaging soon</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onRemoveHumanMember(m.id)}
+            className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+            aria-label={`Remove ${m.label}`}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
 
       {seats.map((s) => (
         <div
@@ -189,15 +308,26 @@ export function ChatMemberRail({
         </PopoverContent>
       </Popover>
 
-      <div
-        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground/50"
-        title="Chat with other UnClick member accounts - coming next."
-      >
-        <UserPlus className="h-4 w-4 shrink-0" /> Invite member
-        <span className="ml-auto rounded border border-white/10 px-1 py-px text-[9px] uppercase tracking-wide">
-          soon
-        </span>
-      </div>
+      <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
+          >
+            <UserPlus className="h-4 w-4 shrink-0" /> Invite member
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="p-0">
+          <InviteMemberForm
+            accessToken={accessToken}
+            added={humanMembers}
+            onAdd={(member) => {
+              onAddHumanMember(member);
+              setInviteOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
     </aside>
   );
 }
