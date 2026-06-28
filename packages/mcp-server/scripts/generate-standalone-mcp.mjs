@@ -23,6 +23,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readWiring, section, toolDefsFor, handlersFor } from "./wiring-model.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG = path.resolve(__dirname, "..");          // packages/mcp-server
 const SRC = path.join(PKG, "src");
@@ -87,50 +89,12 @@ const CONFIG = {
 };
 
 // ─── Parse tool-wiring.ts ──────────────────────────────────────────────────────
+// Section slicing and the per-connector tool/handler extraction live in
+// wiring-model.mjs so every generator parses tool-wiring.ts the same way.
 
-const wiring = fs.readFileSync(path.join(SRC, "tool-wiring.ts"), "utf8");
-
-function section(marker, openTok) {
-  const start = wiring.indexOf(marker);
-  if (start < 0) throw new Error(`marker not found: ${marker}`);
-  const open = wiring.indexOf(openTok, start) + openTok.length;
-  // find matching close by scanning for the section's closing "];" or "};"
-  const close = wiring.indexOf(openTok === "[" ? "\n];" : "\n};", open);
-  return wiring.slice(open, close);
-}
-
-const toolsBody = section("export const ADDITIONAL_TOOLS", "[");
-const handlersBody = section("export const ADDITIONAL_HANDLERS", "{");
-
-// tool definitions for a connector: text between its `// ── <slug>-tool.ts ──`
-// header and the next `// ──` header.
-function toolDefsFor(slug) {
-  const re = new RegExp(`//\\s*[─-]+\\s*${slug}-tool\\.ts\\s*[─-]*`, "g");
-  const m = re.exec(toolsBody);
-  if (!m) return null;
-  const from = m.index + m[0].length;
-  const nextHeader = /\n\s*\/\/\s*[─-]{2,}\s*[a-z0-9_-]+-tool\.ts/g;
-  nextHeader.lastIndex = from;
-  const nm = nextHeader.exec(toolsBody);
-  const to = nm ? nm.index : toolsBody.length;
-  return toolsBody.slice(from, to).replace(/^\s*\n/, "").replace(/,?\s*$/, "");
-}
-
-// handler map entries for a connector: lines under `// <slug>-tool.ts` header.
-function handlersFor(slug) {
-  const re = new RegExp(`//\\s*${slug}-tool\\.ts`, "g");
-  const m = re.exec(handlersBody);
-  if (!m) return null;
-  const from = m.index + m[0].length;
-  const nextHeader = /\n\s*\/\/\s*[a-z0-9_-]+-tool\.ts/g;
-  nextHeader.lastIndex = from;
-  const nm = nextHeader.exec(handlersBody);
-  const to = nm ? nm.index : handlersBody.length;
-  const chunk = handlersBody.slice(from, to);
-  const entries = [...chunk.matchAll(/^\s*([a-z0-9_]+):\s*\(args\)\s*=>\s*([a-zA-Z0-9_]+)\(/gm)]
-    .map((x) => ({ tool: x[1], fn: x[2] }));
-  return entries.length ? entries : null;
-}
+const wiring = readWiring(SRC);
+const toolsBody = section(wiring, "export const ADDITIONAL_TOOLS", "[");
+const handlersBody = section(wiring, "export const ADDITIONAL_HANDLERS", "{");
 
 // ─── Emit a standalone package ─────────────────────────────────────────────────
 
@@ -161,8 +125,8 @@ function generate(slug) {
   const srcFile = path.join(SRC, `${slug}-tool.ts`);
   if (!fs.existsSync(srcFile)) throw new Error(`missing source: ${srcFile}`);
 
-  const defs = toolDefsFor(slug);
-  const handlers = handlersFor(slug);
+  const defs = toolDefsFor(toolsBody, slug);
+  const handlers = handlersFor(handlersBody, slug);
   if (!defs || !handlers) throw new Error(`could not parse wiring for ${slug} (defs:${!!defs} handlers:${!!handlers})`);
 
   const src = fs.readFileSync(srcFile, "utf8");
