@@ -282,14 +282,15 @@ export default function AdminInduction() {
                               placeholder="Why it matters (optional)"
                               className="w-full rounded border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-xs text-white/70 outline-none placeholder:text-white/20 focus:border-[#61C1C4]/40"
                             />
-                        </div>
-                        <div className="flex shrink-0 flex-col items-center gap-1">
-                          <button type="button" onClick={() => updateRow(sIdx, rIdx, { enabled: !r.enabled })} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white" aria-label={r.enabled ? "Disable row" : "Enable row"}>
-                            {r.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                          </button>
-                          <button type="button" onClick={() => moveRow(sIdx, rIdx, -1)} disabled={rIdx === 0} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white disabled:opacity-30" aria-label="Move row up"><ArrowUp className="h-3.5 w-3.5" /></button>
-                          <button type="button" onClick={() => moveRow(sIdx, rIdx, 1)} disabled={rIdx === s.rows.length - 1} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white disabled:opacity-30" aria-label="Move row down"><ArrowDown className="h-3.5 w-3.5" /></button>
-                          <button type="button" onClick={() => deleteRow(sIdx, rIdx)} className="rounded p-1 text-red-400/70 hover:bg-red-500/10 hover:text-red-300" aria-label="Delete row"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-center gap-1">
+                            <button type="button" onClick={() => updateRow(sIdx, rIdx, { enabled: !r.enabled })} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white" aria-label={r.enabled ? "Disable row" : "Enable row"}>
+                              {r.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                            </button>
+                            <button type="button" onClick={() => moveRow(sIdx, rIdx, -1)} disabled={rIdx === 0} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white disabled:opacity-30" aria-label="Move row up"><ArrowUp className="h-3.5 w-3.5" /></button>
+                            <button type="button" onClick={() => moveRow(sIdx, rIdx, 1)} disabled={rIdx === s.rows.length - 1} className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white disabled:opacity-30" aria-label="Move row down"><ArrowDown className="h-3.5 w-3.5" /></button>
+                            <button type="button" onClick={() => deleteRow(sIdx, rIdx)} className="rounded p-1 text-red-400/70 hover:bg-red-500/10 hover:text-red-300" aria-label="Delete row"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
                         </div>
                       </div>
                     ))}
