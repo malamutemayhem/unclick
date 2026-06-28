@@ -27,6 +27,7 @@ function isAuthenticatedAction(action: string, args: Record<string, unknown>): b
       "create_pull_request",
       "comment_issue_or_pr",
       "merge_pull_request",
+      "close_pull_request",
       "list_checks",
     ].includes(action)
   ) return true;
@@ -432,6 +433,17 @@ async function mergePullRequest(token: string, args: Record<string, unknown>): P
   });
 }
 
+async function closePullRequest(token: string, args: Record<string, unknown>): Promise<unknown> {
+  const owner = String(args.owner ?? "").trim();
+  const repo = String(args.repo ?? "").trim();
+  const pullNumber = Number(args.pull_number ?? args.number);
+  if (!owner || !repo) return { error: "owner and repo are required." };
+  if (!Number.isInteger(pullNumber) || pullNumber <= 0) return { error: "pull_number is required." };
+
+  return githubFetch(token, "PATCH", \/pulls/\, {
+    state: "closed",
+  });
+}
 async function listChecks(token: string, args: Record<string, unknown>): Promise<unknown> {
   const owner = String(args.owner ?? "").trim();
   const repo = String(args.repo ?? "").trim();
@@ -475,10 +487,11 @@ export async function githubAction(
       case "create_pull_request": result = await createPullRequest(token, args); break;
       case "comment_issue_or_pr": result = await commentIssueOrPr(token, args); break;
       case "merge_pull_request":  result = await mergePullRequest(token, args); break;
+      case "close_pull_request":  result = await closePullRequest(token, args); break;
       case "list_checks":         result = await listChecks(token, args); break;
       default:
         return {
-          error: `Unknown GitHub action: "${action}". Valid actions: search_repos, get_repo, list_issues, create_issue, list_prs, get_user, list_gists, search_code, create_branch, push_files, create_pull_request, comment_issue_or_pr, merge_pull_request, list_checks.`,
+          error: `Unknown GitHub action: "${action}". Valid actions: search_repos, get_repo, list_issues, create_issue, list_prs, get_user, list_gists, search_code, create_branch, push_files, create_pull_request, comment_issue_or_pr, merge_pull_request, close_pull_request, list_checks.`,
         };
     }
 
