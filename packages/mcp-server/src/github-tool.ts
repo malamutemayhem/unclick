@@ -440,7 +440,7 @@ async function closePullRequest(token: string, args: Record<string, unknown>): P
   if (!owner || !repo) return { error: "owner and repo are required." };
   if (!Number.isInteger(pullNumber) || pullNumber <= 0) return { error: "pull_number is required." };
 
-  return githubFetch(token, "PATCH", \/pulls/\, {
+  return githubFetch(token, "PATCH", `${repoPath(owner, repo)}/pulls/${pullNumber}`, {
     state: "closed",
   });
 }
