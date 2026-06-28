@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useSession } from "@/lib/auth";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
+import type { HumanMember } from "@/components/admin/chatMembers";
 import {
   CHAT_PROVIDERS,
   CHAT_API_ENDPOINT,
@@ -36,7 +37,8 @@ function newSeat(slug: string, model: string, taken: string[]): AiSeat {
 }
 
 export default function AdminChatPage() {
-  const { user } = useSession();
+  const { user, session } = useSession();
+  const accessToken = session?.access_token ?? null;
   const apiKey = getChatApiKey();
 
   const [seats, setSeats] = useState<AiSeat[]>(() => {
@@ -46,6 +48,7 @@ export default function AdminChatPage() {
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
   const [input, setInput] = useState("");
   const [seatByMsg, setSeatByMsg] = useState<Record<string, string>>({});
+  const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatRef = useRef<AiSeat | null>(null);
 
   const transport = useMemo(() => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }), []);
@@ -76,6 +79,14 @@ export default function AdminChatPage() {
   function removeSeat(id: string) {
     setSeats((prev) => prev.filter((s) => s.id !== id));
     setActiveSeatId((cur) => (cur === id ? null : cur));
+  }
+
+  function addHumanMember(member: HumanMember) {
+    setHumanMembers((prev) => (prev.some((m) => m.id === member.id) ? prev : [...prev, member]));
+  }
+
+  function removeHumanMember(id: string) {
+    setHumanMembers((prev) => prev.filter((m) => m.id !== id));
   }
 
   function selectSeat(seat: AiSeat) {
@@ -139,11 +150,15 @@ export default function AdminChatPage() {
       <div className="flex flex-col gap-4 md:flex-row-reverse md:items-start">
         <ChatMemberRail
           user={user}
+          accessToken={accessToken}
           seats={seats}
           activeSeatId={activeSeat?.id ?? null}
+          humanMembers={humanMembers}
           onSelectSeat={selectSeat}
           onAddSeat={addSeat}
           onRemoveSeat={removeSeat}
+          onAddHumanMember={addHumanMember}
+          onRemoveHumanMember={removeHumanMember}
         />
 
         <div className="min-w-0 flex-1 space-y-3">
