@@ -363,20 +363,23 @@ UCB.baskets = UCB.baskets || {};
         });
       }
       if (!items.length) return null;
-      // Decide nav-bar vs content-cards. Real navigation is a row of short links
-      // to section landing pages (/sport, /world); content is articles or
-      // products that carry a thumbnail, a blurb, a price, a headline-length
-      // title, or a deep slugged URL. Anything with a content signal stays a
-      // grid, so a thin-extracted article is never mistaken for a button.
+      // Nav-bar vs content-cards. Content is anything carrying a thumbnail, a
+      // blurb, a price, or a headline-length title. A row of short links with
+      // none of those is site navigation (Electronics, Sport, Deals of the Week)
+      // and renders as one inline bar. The URL override only rescues a genuine
+      // article whose image and blurb did not extract, and only on an
+      // unmistakable article URL (a long slug, many-word slug, or an article
+      // marker) - never a short category path, so /checkout/electronics never
+      // turns into a fat button.
       function articleHref(h) {
         if (!h) return false;
-        var path = h.replace(/^https?:\/\/[^/]+/i, "").split(/[?#]/)[0];
+        var path = h.replace(/^https?:\/\/[^/]+/i, "").split(/[?#]/)[0].replace(/\/+$/, "");
         var segs = path.split("/").filter(Boolean);
-        if (segs.length >= 2) return true;
-        var last = segs.length ? segs[segs.length - 1] : "";
-        if (last.length > 16) return true;
-        if ((last.match(/-/g) || []).length >= 2) return true;
-        return /\d/.test(last);
+        if (!segs.length) return false;
+        if (/news-story|\/article\/|\/story\/|\/p\/|\d{5,}/.test(path)) return true;
+        var last = segs[segs.length - 1];
+        if (last.length >= 24) return true;
+        return (last.match(/-/g) || []).length >= 4;
       }
       var content = 0, arts = 0;
       for (var z = 0; z < items.length; z++) {
