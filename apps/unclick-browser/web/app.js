@@ -159,10 +159,11 @@
         var isrc = imgSrc(node, base);
         if (!isrc) continue;
         var img = document.createElement("img");
-        img.src = isrc;
         img.alt = node.getAttribute("alt") || "";
         img.loading = "lazy";
         img.decoding = "async";
+        img.onerror = function () { if (this.parentNode) this.parentNode.removeChild(this); };
+        img.src = isrc;
         out.appendChild(img);
         imgCount++;
         continue;
@@ -208,6 +209,7 @@
       u.image.removeAttribute("width");
       u.image.removeAttribute("height");
       u.image.loading = "lazy";
+      u.image.onerror = function () { if (this.parentNode) this.parentNode.removeChild(this); if (card.className.indexOf("card-text") < 0) card.className += " card-text"; };
       card.appendChild(u.image);
     }
     var body = document.createElement("div");
@@ -259,8 +261,11 @@
     var host = hostOf(base);
     var site = metaContent(doc, "og:site_name") || metaContent(doc, "application-name") || host;
     var iconHref = faviconOf(doc, base);
-    var bar = document.createElement("div");
+    var origin = originOf(base);
+    // The site logo/name is a link home, like a real site header.
+    var bar = document.createElement(origin ? "a" : "div");
     bar.className = "masthead";
+    if (origin) bar.setAttribute("data-href", origin);
     if (iconHref) {
       var fav = document.createElement("img");
       fav.className = "fav"; fav.src = iconHref; fav.alt = "";
@@ -398,14 +403,27 @@
       if (!window.UCB || !UCB.pipeline || typeof UCB.pipeline.run !== "function") return false;
       var res = UCB.pipeline.run(t.html, t.final || t.url);
       if (!res || !res.blocks || !res.blocks.length) return false;
+      // A real listing has a grid/carousel/gallery whose items carry titles - not
+      // just images. (A bare image carousel reads better through the reader.)
       var listing = false;
       for (var i = 0; i < res.blocks.length; i++) {
         var b = res.blocks[i];
-        if ((b.kind === "grid" || b.kind === "carousel" || b.kind === "gallery") && b.items && b.items.length >= 3) { listing = true; break; }
+        if ((b.kind === "grid" || b.kind === "carousel" || b.kind === "gallery") && b.items && b.items.length >= 3) {
+          var titled = 0;
+          for (var j = 0; j < b.items.length; j++) { if (b.items[j] && b.items[j].title) titled++; }
+          if (titled >= 3) { listing = true; break; }
+        }
       }
       if (!listing || typeof UCB.renderCanonical !== "function") return false;
       var frag = UCB.renderCanonical(res.blocks);
       if (!frag || !frag.childNodes || !frag.childNodes.length) return false;
+      // Quality gate: the engine view must hold real content (cards with text),
+      // not just a masthead + nav. Otherwise fall through to the reader.
+      var probe = document.createElement("div");
+      probe.appendChild(frag.cloneNode(true));
+      var allCards = probe.querySelectorAll(".card"), good = 0;
+      for (var c = 0; c < allCards.length; c++) { if (allCards[c].textContent.trim()) good++; }
+      if (good < 2) return false;
       reader.innerHTML = "";
       reader.appendChild(frag);
       setStatus("");
@@ -415,9 +433,23 @@
     } catch (e) { return false; }
   }
 
+  // Bot-walls / challenge pages (Cloudflare, captcha) have no readable content.
+  // Showing them in Zen is pointless - flip to the live view so the WebView can
+  // pass the check and reach the real page.
+  function looksBlocked(html) {
+    if (!html) return false;
+    var head = html.slice(0, 4000).toLowerCase();
+    return /attention required! \| cloudflare|just a moment\.\.\.|cf-browser-verification|cf-challenge|checking your browser before|verify you are (a )?human|recaptcha|hcaptcha|you have been blocked|access to this page has been denied|please enable (javascript|js) and cookies/.test(head);
+  }
+
   function renderZen(t) {
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
+    if (looksBlocked(t.html)) {
+      t.mode = "native"; renderNative(t); renderTabs(); syncChrome();
+      flash("Opened live - this site needs a browser check");
+      return;
+    }
     if (tryEngineListing(t)) return;
     var built = buildReader(t.html, t.final || t.url);
     if (built.thin) {
@@ -571,6 +603,15 @@
 
   function back() { var t = activeTab(); if (t && t.hist.length) go(t.hist.pop(), "back"); }
   function forward() { var t = activeTab(); if (t && t.fwd.length) go(t.fwd.pop(), "fwd"); }
+
+  // The UnClick logo returns the active tab to the home (welcome) screen.
+  function goHome() {
+    var t = activeTab();
+    if (t) { if (t.url) t.hist.push(t.url); t.url = ""; t.html = ""; t.final = ""; t.title = "New tab"; t.host = ""; t.favicon = ""; t.mode = "zen"; }
+    addr.value = ""; renderActive(); syncChrome(); renderTabs(); addr.focus();
+  }
+  var brandEl = document.querySelector(".brand");
+  if (brandEl) { brandEl.style.cursor = "pointer"; brandEl.title = "Home"; brandEl.addEventListener("click", goHome); }
 
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
   if (backBtn) backBtn.addEventListener("click", back);
