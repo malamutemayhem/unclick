@@ -252,6 +252,58 @@
 
   // ---- masthead ---------------------------------------------------------------
 
+  // A <header> nested inside article/main/section is a content/page-title header
+  // (article-head, api-doc__header, page-title-wrap, mw-body-header), not the
+  // site banner. These were cloning the masthead and stealing the page H1.
+  function isContentHeader(node) {
+    try {
+      var p = node.parentElement || node.parentNode;
+      while (p && p.tagName) {
+        var t = p.tagName;
+        if (t === "ARTICLE" || t === "MAIN" || t === "SECTION") return true;
+        p = p.parentElement || p.parentNode;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // A real logo/brand <img> inside the region. Unlike pickLogo this does NOT
+  // fall back to og:image, so the +0.15 detect bonus cannot be earned by any
+  // page that merely has an og:image (which is almost every page).
+  function hasLogoImg(region) {
+    var node = region && region.node;
+    if (!node || !node.querySelectorAll) return false;
+    var imgs = node.querySelectorAll("img");
+    for (var i = 0; i < imgs.length && i < 12; i++) {
+      var img = imgs[i];
+      var hint = (
+        lc(img.getAttribute && img.getAttribute("alt")) + " " +
+        classOf(img) + " " +
+        lc(img.getAttribute && img.getAttribute("id"))
+      );
+      if (/\b(logo|brand|masthead)\b/.test(hint)) return true;
+    }
+    return false;
+  }
+
+  // A nav region (class/role) that is a breadcrumb, pager or social rail, not
+  // the primary site menu. Used to skip these when collecting masthead nav and
+  // to keep them out of the single "Menu" slot.
+  function isSecondaryNav(node) {
+    var c = classOf(node) + " " + roleOf(node) + " " + lc(node && node.getAttribute && node.getAttribute("aria-label"));
+    return /breadcrumb|crumbs|pager|pagination|\btoc\b|social|share|skip|utility/.test(c);
+  }
+
+  // The header's primary navigation: the first <nav> that is not a breadcrumb/
+  // pager/social rail, else the header itself (so a link list with no <nav>
+  // wrapper is still collected).
+  function primaryNav(node) {
+    if (!node || !node.querySelectorAll) return node;
+    var navs = node.querySelectorAll("nav");
+    for (var i = 0; i < navs.length; i++) { if (!isSecondaryNav(navs[i])) return navs[i]; }
+    return node;
+  }
+
   UCB.baskets["masthead"] = {
     type: "masthead",
     detect: function (region, ctx) {
@@ -261,19 +313,27 @@
         var tag = tagOf(node);
         var role = roleOf(node);
         var cls = classOf(node);
-        // Structural base: only a header-shaped region is a masthead candidate.
-        // Logo/home/nav are confirming bonuses, never standalone signals, so a
-        // generic content region (where og:image still resolves) stays at 0.
-        var base = 0;
-        if (tag === "header") base += 0.5;
-        if (role === "banner") base += 0.5;
-        if (/(masthead|site-header|page-header|global-header|topbar|navbar-brand|site-branding)/.test(cls))
-          base += 0.3;
-        if (base <= 0) return 0;
-        var score = base;
-        if (pickLogo(ctx && ctx.doc, region, ctx && ctx.base)) score += 0.15;
-        if (findHomeLink(node, ctx)) score += 0.15;
-        if (node.querySelector && node.querySelector("nav")) score += 0.1;
+        var bannerClass = /(masthead|site-header|global-header|topbar|navbar-brand|site-branding)/.test(cls);
+        var hasNav = !!(node.querySelector && node.querySelector("nav"));
+        var home = findHomeLink(node, ctx);
+        // Only the site banner is a masthead. A bare <header> tag is not enough:
+        // article/section/page-title headers are <header> too and were cloning
+        // the masthead and discarding the page's real H1. A <header> counts as
+        // the banner only when it carries a banner role/class, or it is a
+        // top-level header (not nested in article/main/section) that actually
+        // carries site nav or a home link.
+        var isBanner = (role === "banner") || bannerClass ||
+          (tag === "header" && !isContentHeader(node) && (hasNav || home));
+        if (!isBanner) return 0;
+        // role="banner" is definitive: a banner must outscore the nav nested
+        // inside it so the classifier claims the masthead (parent-wins) instead
+        // of descending to the menu and discarding the bar.
+        var score = 0.5;
+        if (role === "banner") score += 0.3;
+        if (bannerClass) score += 0.2;
+        if (hasLogoImg(region)) score += 0.15;   // a real logo <img>, not og:image
+        if (home) score += 0.15;
+        if (hasNav) score += 0.1;
         return clamp(score);
       } catch (e) {
         return 0;
@@ -283,6 +343,7 @@
       try {
         var doc = ctx && ctx.doc;
         var base = ctx && ctx.base;
+        var node = region && region.node;
         var name = siteName(doc, ctx) || (ctx && ctx.host) || "";
         var logo = pickLogo(doc, region, base);
         var block = {
@@ -292,6 +353,13 @@
           meta: { host: ctx && ctx.host }
         };
         if (logo) block.media = { src: logo, alt: name };
+        // Carry the site's primary nav. The classifier claims the whole banner
+        // (parent-wins) and never descends to the nested <nav>, so without this
+        // the main navigation was silently dropped on every page. Collect the
+        // header's primary nav links (skip breadcrumb/pagination/social rails)
+        // and hand them to the masthead renderer as an inline bar.
+        var items = collectTopLinks(primaryNav(node), base, 8);
+        if (items && items.length) block.items = items;
         return block;
       } catch (e) {
         return { kind: "masthead", title: (ctx && ctx.host) || "", meta: { host: ctx && ctx.host } };
@@ -358,6 +426,10 @@
       try {
         var node = region && region.node;
         if (!node) return 0;
+        // A breadcrumb or pager is not the primary menu; keeping it out of the
+        // single menu slot stops "Home / News / Transit" crumbs (or "1 2 3 Next")
+        // rendering as the site navigation.
+        if (isSecondaryNav(node)) return 0;
         var tag = tagOf(node);
         var role = roleOf(node);
         var cls = classOf(node);

@@ -77,25 +77,81 @@ UCB.baskets = UCB.baskets || {}; // Lane 2 owns this object; we only ensure it e
 
       // Repetition detection: a signature shared by >= 3 siblings is a repeated
       // group (card grid, list, nav row, etc.). The primary key is tag + class
-      // shape only: a real card grid mixes a lead card carrying a standfirst <p>
-      // (or a video badge) with plain cards that lack one, and those must still
-      // group together. The strict signature is the fallback for class-less
-      // structure so generic wrappers are not over-grouped.
+      // shape; the strict signature is the fallback for class-less structure so
+      // generic wrappers are not over-grouped.
       function groupKey(r) {
         var c = classShape(r.node);
         return c ? (r.node.tagName + "|" + c) : r.signature;
       }
       function bestGroup(keyFn) {
-        var by = {};
+        var by = {}, order = [];
         for (var r = 0; r < childRegions.length; r++) {
           var k = keyFn(childRegions[r]);
-          (by[k] = by[k] || []).push(childRegions[r]);
+          if (!by[k]) { by[k] = []; order.push(k); }
+          by[k].push(childRegions[r]);
         }
         var best = null, n = 0;
-        for (var key in by) { if (by[key].length >= 3 && by[key].length > n) { n = by[key].length; best = by[key]; } }
-        return best;
+        for (var i = 0; i < order.length; i++) { var key = order[i]; if (by[key].length >= 3 && by[key].length > n) { n = by[key].length; best = by[key]; } }
+        return { group: best, by: by };
       }
-      var group = bestGroup(groupKey) || bestGroup(function (r) { return r.signature; });
+
+      // Sponsored / advertisement markers on a node's class or id. A lead card
+      // shares the base card class, but so does an injected "product-card--
+      // sponsored" ad tile; folding the lead back in must not drag the ads in too.
+      function isAdNode(node) {
+        try {
+          var cls = ((typeof node.className === "string" ? node.className : (node.getAttribute ? (node.getAttribute("class") || "") : "")) + " " + (node.id || "")).toLowerCase();
+          return /(^|[-_ ])(ad|ads|advert|advertisement|sponsor|sponsored|promoted|dfp|gpt|taboola|outbrain)([-_ ]|$)/.test(cls);
+        } catch (e) { return false; }
+      }
+
+      // The full set of (digit-collapsed) class tokens on a node.
+      function tokenSet(node) {
+        var set = {};
+        var cls = (typeof node.className === "string") ? node.className : (node.getAttribute ? (node.getAttribute("class") || "") : "");
+        if (cls) { var p = cls.trim().split(/\s+/); for (var i = 0; i < p.length; i++) { var k = p[i].replace(/\d+/g, "#"); if (k) set[k] = 1; } }
+        return set;
+      }
+
+      // Fold a lead/featured sibling back into its group. A real card grid mixes
+      // a lead card carrying an extra modifier class ("product-card
+      // product-card--featured", "related-card story-card lead-related", "post
+      // post-answer answer-accepted") with plain cards that lack it; the strict
+      // class-shape key splits that lead card into its own bucket and drops the
+      // biggest card on the page. We add back any same-tag sibling that (a) is
+      // not already part of its own >= 3 group (so two distinct card types are
+      // never merged) and (b) carries every base class the majority group shares.
+      function foldLeadCards(group, by) {
+        var proto = group[0] && group[0].node;
+        if (!proto || proto.nodeType !== 1) return group;
+        var tag = proto.tagName;
+        var base = tokenSet(proto);
+        for (var i = 1; i < group.length; i++) { var ts = tokenSet(group[i].node); for (var t in base) { if (!ts[t]) delete base[t]; } }
+        var baseKeys = []; for (var b in base) baseKeys.push(b);
+        if (!baseKeys.length) return group;
+        var result = group.slice();
+        for (var s = 0; s < childRegions.length; s++) {
+          var r = childRegions[s];
+          if (!r.node || r.node.nodeType !== 1 || r.node.tagName !== tag) continue;
+          if (result.indexOf(r) !== -1) continue;
+          if (isAdNode(r.node)) continue;               // never fold an ad tile in
+          var bk = groupKey(r);
+          if (by[bk] && by[bk].length >= 3) continue;   // its own distinct group
+          var rt = tokenSet(r.node), ok = true;
+          for (var k = 0; k < baseKeys.length; k++) { if (!rt[baseKeys[k]]) { ok = false; break; } }
+          if (ok) result.push(r);
+        }
+        result.sort(function (a, b) { return childRegions.indexOf(a) - childRegions.indexOf(b); });
+        return result;
+      }
+
+      var primary = bestGroup(groupKey);
+      var group = primary.group;
+      if (group) {
+        group = foldLeadCards(group, primary.by);
+      } else {
+        group = bestGroup(function (r) { return r.signature; }).group;
+      }
       if (group) {
         region.kind = "group";
         region.items = group;

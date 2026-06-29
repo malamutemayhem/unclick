@@ -70,6 +70,74 @@ UCB.baskets = UCB.baskets || {};
 
   function safe(fn) { try { return fn(); } catch (e) { return null; } }
 
+  // Escape text destined for an innerHTML string so a stray < or & in page copy
+  // can never inject markup. Every piece the article basket emits is built from
+  // textContent passed through here, so the serialized body is text-only.
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  // Walk a prose-dominant content container in document order and rebuild a
+  // clean, text-only block of allowed elements (headings, paragraphs, lists,
+  // quotes, code, figures). Boilerplate (nav, ads, promos, bylines, tags,
+  // related/most-read rails, comment forms) is skipped by tag and class so the
+  // article body reads as running text, not a soup of the whole page. Nothing
+  // from the source DOM is copied verbatim; every node is re-emitted from its
+  // textContent (or, for figures, a resolved image URL), so the result is safe
+  // to assign to innerHTML.
+  function serializeProse(container, ctx, skipNode) {
+    var ALLOW = { P: 1, H2: 1, H3: 1, H4: 1, H5: 1, UL: 1, OL: 1, BLOCKQUOTE: 1, PRE: 1, FIGURE: 1 };
+    var SKIP_TAG = { NAV: 1, HEADER: 1, FOOTER: 1, ASIDE: 1, FORM: 1, SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, BUTTON: 1, SELECT: 1 };
+    var SKIP_CLS = /(^|[^a-z])(ad|ads|advert|promo|sponsor|sponsored|newsletter|signup|sign-up|subscribe|share|social|byline|author-byline|tags|tag-list|breadcrumb|pagination|pager|related|recommend|most-read|sidebar|widget|comment|paywall|cookie|skip-link)([^a-z]|$)/i;
+    var out = [], seen = {}, count = 0;
+    function clsOf(el) { try { return (typeof el.className === "string" ? el.className : (el.getAttribute ? (el.getAttribute("class") || "") : "")).toLowerCase(); } catch (e) { return ""; } }
+    function pushText(tag, txt) {
+      txt = (txt || "").replace(/\s+/g, " ").trim();
+      if (!txt) return;
+      var key = tag + "|" + txt.slice(0, 80).toLowerCase();
+      if (seen[key]) return; seen[key] = 1;
+      out.push("<" + tag + ">" + esc(txt) + "</" + tag + ">");
+      count++;
+    }
+    function emit(el) {
+      var tag = el.tagName;
+      if (tag === "UL" || tag === "OL") {
+        var lis = el.children ? el.children : [], rows = [];
+        for (var i = 0; i < lis.length; i++) { if (lis[i].tagName !== "LI") continue; var t = (lis[i].textContent || "").replace(/\s+/g, " ").trim(); if (t) rows.push("<li>" + esc(t.slice(0, 400)) + "</li>"); }
+        if (rows.length) { var lt = (tag === "OL" ? "ol" : "ul"); out.push("<" + lt + ">" + rows.join("") + "</" + lt + ">"); count++; }
+        return;
+      }
+      if (tag === "FIGURE") {
+        var src = util.imgSrc(el), cap = el.querySelector ? el.querySelector("figcaption") : null;
+        if (src) { var u = util.resolve(src, ctx.base); if (u) { var ct = cap ? (cap.textContent || "").trim() : ""; out.push("<figure><img src=\"" + esc(u) + "\" loading=\"lazy\">" + (ct ? "<figcaption>" + esc(ct.slice(0, 200)) + "</figcaption>" : "") + "</figure>"); count++; } }
+        return;
+      }
+      if (tag === "PRE") { var pt = (el.textContent || ""); if (pt.trim()) { out.push("<pre>" + esc(pt.replace(/\s+$/, "")) + "</pre>"); count++; } return; }
+      if (tag === "BLOCKQUOTE") { pushText("blockquote", el.textContent); return; }
+      if (tag === "H2") { pushText("h2", el.textContent); return; }
+      if (tag === "H3") { pushText("h3", el.textContent); return; }
+      if (tag === "H4" || tag === "H5") { pushText("h4", el.textContent); return; }
+      if (tag === "P") { pushText("p", el.textContent); return; }
+    }
+    function walk(node) {
+      var k = node.children || [];
+      for (var i = 0; i < k.length; i++) {
+        var el = k[i];
+        if (el === skipNode) continue;
+        var tag = el.tagName;
+        if (SKIP_TAG[tag]) continue;
+        if (SKIP_CLS.test(clsOf(el))) continue;
+        if (ALLOW[tag]) { emit(el); continue; }      // claimed block: do not descend
+        // A wrapper (div/section) carrying its own text and no block children is
+        // really a paragraph (standfirst, dek, lede); deeper wrappers recurse.
+        var hasBlockChild = el.querySelector && el.querySelector("p,h2,h3,h4,h5,ul,ol,figure,pre,blockquote,div,section,table");
+        if (!hasBlockChild) { var t = (el.textContent || "").trim(); if (t.length >= 24) pushText("p", t); }
+        else walk(el);
+      }
+    }
+    walk(container);
+    if (!count) return "";
+    return out.join("");
+  }
+
   // The heading that introduces a group: a short h1-h4 sitting just before the
   // group (its previous sibling) or as the group container's own first heading.
   // Capped in length so a stray paragraph never becomes a section title.
@@ -144,15 +212,26 @@ UCB.baskets = UCB.baskets || {};
   };
 
   // ---- assemble: winners -> ordered CanonicalBlock[] (frame first, footer last) ----
-  var ORDER = { masthead:0, hero:1, breadcrumb:2, menu:3, stats:4, teaser:5, grid:5, list:5, carousel:5, gallery:5, table:6, article:7, embed:8, footer:9 };
+  // Frame blocks are pinned (masthead/breadcrumb/menu at the top, footer at the
+  // bottom); every body block shares rank 5 so their original document order is
+  // preserved by the stable sort below. This keeps the article body where the
+  // page put it - above its "related stories" rail, not stranded beneath it.
+  var ORDER = { masthead:0, breadcrumb:1, menu:2, hero:5, stats:5, teaser:5, grid:5, list:5, carousel:5, gallery:5, table:5, article:5, embed:5, footer:9 };
   function ord(kind) { return ORDER[kind] != null ? ORDER[kind] : 5; }
   UCB.assemble = function (winners, ctx) {
     var blocks = [];
+    var mastheadSeen = false;
     for (var i = 0; i < winners.length; i++) {
       var out = safe(function () { return winners[i].basket.normalize(winners[i].region, ctx); });
       if (!out) continue;
       var arr = Array.isArray(out) ? out : [out];
-      for (var j = 0; j < arr.length; j++) { if (arr[j]) { arr[j]._ord = ord(arr[j].kind); blocks.push(arr[j]); } }
+      for (var j = 0; j < arr.length; j++) {
+        if (!arr[j]) continue;
+        // One masthead per page. Even with the detector tightened, never let a
+        // second header render a duplicate site bar.
+        if (arr[j].kind === "masthead") { if (mastheadSeen) continue; mastheadSeen = true; }
+        arr[j]._ord = ord(arr[j].kind); blocks.push(arr[j]);
+      }
     }
     blocks.sort(function (a, b) { return a._ord - b._ord; });
     for (var k = 0; k < blocks.length; k++) delete blocks[k]._ord;
@@ -212,6 +291,11 @@ UCB.baskets = UCB.baskets || {};
     }
     bar.appendChild(el("span", "site", b.title || host || "Source"));
     if (host && b.title && b.title !== host) { bar.appendChild(el("span", "grow")); bar.appendChild(el("span", "host", host)); }
+    // The site's primary nav, carried on the masthead because the classifier
+    // claims the whole banner and never descends to the nested <nav>. Rendered
+    // as one tidy inline bar beneath the brand; omitted when there are no links.
+    var nav = renderMenu({ items: b.items || [] });
+    if (nav) { var wrap = el("div", "masthead-wrap"); wrap.appendChild(bar); wrap.appendChild(nav); return wrap; }
     return bar;
   }
   function renderFooter(b) {
@@ -288,6 +372,31 @@ UCB.baskets = UCB.baskets || {};
         if (b.html) { var holder = document.createElement("div"); holder.innerHTML = b.html; while (holder.firstChild) art.appendChild(holder.firstChild); }
         else if (b.blurb) art.appendChild(el("p", null, b.blurb));
         return art;
+      }
+      case "table": {
+        var m = b.meta || {};
+        var headers = m.headers || [], rows = m.rows || [];
+        if (!rows.length && !headers.length) {
+          if (!b.title) return null;
+          var d0 = el("div", "doc"); d0.appendChild(el("h2", null, b.title)); return d0;
+        }
+        var sec = el("section", "sec");
+        if (b.title) sec.appendChild(el("h2", "sec-title", b.title));
+        var tbl = el("table", "data-table");
+        if (headers.length) {
+          var thead = document.createElement("thead"), htr = document.createElement("tr");
+          for (var hi = 0; hi < headers.length; hi++) htr.appendChild(el("th", null, headers[hi]));
+          thead.appendChild(htr); tbl.appendChild(thead);
+        }
+        var tbody = document.createElement("tbody");
+        for (var ri = 0; ri < rows.length; ri++) {
+          var tr = document.createElement("tr"), cells = rows[ri] || [];
+          for (var ci = 0; ci < cells.length; ci++) tr.appendChild(el("td", null, cells[ci]));
+          tbody.appendChild(tr);
+        }
+        tbl.appendChild(tbody); sec.appendChild(tbl);
+        if (m.truncated) sec.appendChild(el("div", "table-more", "Table truncated"));
+        return sec;
       }
       case "masthead": return renderMasthead(b);
       case "footer": return renderFooter(b);
@@ -456,6 +565,63 @@ UCB.baskets = UCB.baskets || {};
         href: a ? util.resolve(a.getAttribute("href"), ctx.base) : "",
         media: src ? { src: util.resolve(src, ctx.base), alt: util.attr(util.firstImg(n), "alt") } : null
       };
+    }
+  };
+
+  // ---- article basket: the running-text body of a readable page. ----
+  // teaser/hero capture card groups and lead units; carousel/gallery/table cover
+  // media; but a page whose value is its prose (a news story, a product
+  // description, a forum question and answers, an API doc, a recipe, a wiki
+  // entry, a government info page) had its entire body silently dropped because
+  // no basket ever emitted kind:"article". This claims a prose-dominant content
+  // region and serializes it in reading order. It deliberately scores BELOW a
+  // teaser group (0.58 vs ~1.0): the classifier only claims a region when its
+  // own score is at least the best score beneath it, so any region that actually
+  // contains a >=3 card grid is left to teaser, and a card grid's own anchor-
+  // heavy text fails the prose-ratio gate here, so the working listing/shop/hero
+  // pages are untouched.
+  UCB.baskets.article = {
+    type: "article",
+    detect: function (region, ctx) {
+      try {
+        if (!region || region.kind === "group") return 0;
+        var n = region.node;
+        if (!n || !n.querySelector) return 0;
+        var tag = n.tagName;
+        if (tag === "BODY" || tag === "HTML" || tag === "HEADER" || tag === "FOOTER" || tag === "NAV" || tag === "FORM") return 0;
+        // Count block-level prose units. Paragraphs must carry real sentences;
+        // headings/lists/quotes/code/figures each count once.
+        var units = 0;
+        var paras = n.querySelectorAll("p");
+        for (var i = 0; i < paras.length; i++) { if ((paras[i].textContent || "").trim().length >= 24) units++; }
+        var others = n.querySelectorAll("pre, blockquote, h2, h3, ul, ol, figure");
+        for (var j = 0; j < others.length; j++) {
+          var o = others[j];
+          if ((o.textContent || "").trim().length >= 12 || (o.querySelector && o.querySelector("img"))) units++;
+        }
+        if (units < 2) return 0;
+        var total = (n.textContent || "").trim().length;
+        if (total < 200) return 0;
+        // Prose ratio: how much text lives outside anchors. A card grid is almost
+        // all anchor text and must stay a teaser grid, not become an article.
+        var anchorText = 0, as = n.querySelectorAll("a");
+        for (var k = 0; k < as.length; k++) anchorText += (as[k].textContent || "").trim().length;
+        var proseRatio = total > 0 ? (1 - anchorText / total) : 0;
+        if (proseRatio < 0.45) return 0;
+        return 0.58;
+      } catch (e) { return 0; }
+    },
+    normalize: function (region, ctx) {
+      try {
+        var n = region.node;
+        var title = "";
+        var h1 = n.querySelector("h1");
+        if (h1) title = (h1.textContent || "").trim();
+        if (!title) { var h2 = n.querySelector("h2"); if (h2) title = (h2.textContent || "").trim(); }
+        var html = serializeProse(n, ctx, h1);
+        if (!html) return null;
+        return { kind: "article", title: title.slice(0, 200), html: html };
+      } catch (e) { return null; }
     }
   };
 })();
