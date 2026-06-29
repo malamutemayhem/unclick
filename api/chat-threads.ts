@@ -226,15 +226,70 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const rows = [...owned, ...joined];
+
+    // Augment each thread with membership shape (shared / my_role /
+    // member_count) using ONE batched query over chat_room_members for all
+    // listed thread ids (no N+1). Solo agent threads have no membership rows,
+    // so they default to shared=false, my_role='owner', member_count=1.
+    const allIds = rows
+      .map((t) => t.id)
+      .filter((id) => /^[0-9a-fA-F-]{36}$/.test(id))
+      .map((id) => encodeURIComponent(id));
+    let memberAllRows: Array<{ thread_id: string; member_lane_hash: string; role: AccessRole; status: string }> = [];
+    if (allIds.length) {
+      const inList = allIds.join(",");
+      const memberAllRes = await fetch(
+        `${rest}/chat_room_members?thread_id=in.(${inList})` +
+          `&status=eq.active&select=thread_id,member_lane_hash,role,status&limit=2000`,
+        { headers: sbHeaders(serviceKey) },
+      );
+      memberAllRows = memberAllRes.ok
+        ? ((await memberAllRes.json().catch(() => [])) as typeof memberAllRows)
+        : [];
+    }
+
+    // Group active members per thread, and capture the caller's own role.
+    const countByThread = new Map<string, number>();
+    const myRoleByThread = new Map<string, AccessRole>();
+    for (const m of memberAllRows) {
+      countByThread.set(m.thread_id, (countByThread.get(m.thread_id) ?? 0) + 1);
+      if (m.member_lane_hash === lane) myRoleByThread.set(m.thread_id, m.role);
+    }
+
     const threads = rows
-      .map((t) => ({
-        id: t.id,
-        title: t.title || "New chat",
-        kind: t.kind || "agent",
-        pinned: Boolean(t.metadata && (t.metadata as { pinned?: boolean }).pinned),
-        created_at: t.created_at,
-        updated_at: t.updated_at,
-      }))
+      .map((t) => {
+        const activeCount = countByThread.get(t.id);
+        const hasMembership = typeof activeCount === "number";
+        // Solo agent thread (no membership rows): the caller owns it alone.
+        if (!hasMembership) {
+          return {
+            id: t.id,
+            title: t.title || "New chat",
+            kind: t.kind || "agent",
+            pinned: Boolean(t.metadata && (t.metadata as { pinned?: boolean }).pinned),
+            created_at: t.created_at,
+            updated_at: t.updated_at,
+            shared: false,
+            my_role: "owner" as const,
+            member_count: 1,
+          };
+        }
+        // Room: caller owns it if their lane is the thread row's lane (owned
+        // set), otherwise read their membership role; default to 'member'.
+        const ownsRow = ownedIds.has(t.id);
+        const myRole: AccessRole = ownsRow ? "owner" : myRoleByThread.get(t.id) ?? "member";
+        return {
+          id: t.id,
+          title: t.title || "New chat",
+          kind: t.kind || "agent",
+          pinned: Boolean(t.metadata && (t.metadata as { pinned?: boolean }).pinned),
+          created_at: t.created_at,
+          updated_at: t.updated_at,
+          shared: activeCount > 1,
+          my_role: (myRole ?? "member") as "owner" | "admin" | "member",
+          member_count: activeCount,
+        };
+      })
       .sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
         return a.updated_at < b.updated_at ? 1 : -1;
@@ -590,6 +645,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     );
     if (!r.ok) return res.status(r.status).json({ error: "Failed to remove member." });
+    return res.status(200).json({ success: true });
+  }
+
+  // ── POST leave (the caller sets THEIR OWN membership row to 'left') ────
+  // A shared-room member exits the room. The room OWNER cannot leave (they
+  // must delete the room or transfer ownership), and a caller with no
+  // membership row is not a member.
+  if (action === "leave") {
+    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
+
+    const owner = await fetchThreadOwner(rest, serviceKey, threadId);
+    if (!owner) return res.status(404).json({ error: "not_a_member" });
+    if (owner.api_key_hash === lane) {
+      return res.status(409).json({
+        error: "owner_cannot_leave",
+        detail: "Delete the room or transfer ownership instead.",
+      });
+    }
+
+    const mine = await fetchMemberByLane(rest, serviceKey, threadId, lane);
+    if (!mine || mine.status === "left") {
+      return res.status(404).json({ error: "not_a_member" });
+    }
+
+    const r = await fetch(
+      `${rest}/chat_room_members?thread_id=eq.${encodeURIComponent(threadId)}` +
+        `&member_lane_hash=eq.${encodeURIComponent(lane)}`,
+      {
+        method: "PATCH",
+        headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+        body: JSON.stringify({ status: "left" }),
+      },
+    );
+    if (!r.ok) return res.status(r.status).json({ error: "Failed to leave room." });
     return res.status(200).json({ success: true });
   }
 

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import { useSession } from "@/lib/auth";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
+import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import type { HumanMember } from "@/components/admin/chatMembers";
 import {
@@ -72,9 +73,189 @@ export default function AdminChatPage() {
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatRef = useRef<AiSeat | null>(null);
 
+  // Persisted chat sessions (threads). The page lists the account's
+  // sessions in the left rail and keeps the active thread's messages in sync.
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const activeThreadRef = useRef<string | null>(null);
+  const didInit = useRef(false);
+
   const transport = useMemo(() => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }), []);
-  const { messages, sendMessage, status, stop, error } = useChat({ transport });
+  const { messages, setMessages, sendMessage, status, stop, error } = useChat({ transport });
   const busy = status === "submitted" || status === "streaming";
+
+  // Auth headers for the chat-threads endpoint, using the logged-in session.
+  function authHeaders(json = false): Record<string, string> {
+    const h: Record<string, string> = {};
+    if (accessToken) h.Authorization = `Bearer ${accessToken}`;
+    if (json) h["Content-Type"] = "application/json";
+    return h;
+  }
+
+  function setActiveThread(id: string | null) {
+    activeThreadRef.current = id;
+    setActiveThreadId(id);
+  }
+
+  // List the account's sessions for the rail.
+  async function refreshThreads() {
+    if (!accessToken) return;
+    try {
+      const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+      if (!r.ok) return;
+      const b = (await r.json()) as { threads?: ChatThread[] };
+      setThreads(Array.isArray(b.threads) ? b.threads : []);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Row shape returned by ?action=messages.
+  interface ThreadMessageRow {
+    id: string;
+    sender_kind: string;
+    sender_id: string | null;
+    model: string | null;
+    content: string | null;
+  }
+
+  // Open a thread: load its shared message stream into the chat UI and
+  // rebuild the per-message seat attribution from the non-human rows.
+  async function selectThread(id: string) {
+    if (!accessToken) return;
+    setActiveThread(id);
+    try {
+      const r = await fetch(
+        `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(id)}`,
+        { headers: authHeaders() },
+      );
+      if (!r.ok) return;
+      const b = (await r.json()) as { messages?: ThreadMessageRow[] };
+      const rows = Array.isArray(b.messages) ? b.messages : [];
+      const uiMessages: UIMessage[] = rows.map((row) => ({
+        id: row.id,
+        role: row.sender_kind === "human" ? "user" : "assistant",
+        parts: [{ type: "text", text: row.content ?? "" }],
+      }));
+      setMessages(uiMessages);
+      // Rebuild seat attribution: assistant rows show which model answered.
+      const attribution: Record<string, string> = {};
+      for (const row of rows) {
+        if (row.sender_kind !== "human") {
+          attribution[row.id] = row.model ?? row.sender_id ?? "AI";
+        }
+      }
+      setSeatByMsg(attribution);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Start a fresh session: clear the canvas, create a thread, make it active.
+  async function newSession() {
+    if (!accessToken) return;
+    setMessages([]);
+    setSeatByMsg({});
+    try {
+      const r = await fetch("/api/chat-threads?action=create", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({}),
+      });
+      if (!r.ok) return;
+      const b = (await r.json()) as { id?: string };
+      if (b.id) setActiveThread(b.id);
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function renameThread(id: string, title: string) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=update", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id, title }),
+      });
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function togglePin(id: string, pinned: boolean) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=update", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id, pinned }),
+      });
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function deleteThread(id: string) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=delete", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id }),
+      });
+      if (activeThreadRef.current === id) {
+        setActiveThread(null);
+        setMessages([]);
+        setSeatByMsg({});
+      }
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Leave a shared room (sets the caller's own membership to 'left').
+  async function leaveThread(id: string) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=leave", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id }),
+      });
+      if (activeThreadRef.current === id) {
+        setActiveThread(null);
+        setMessages([]);
+        setSeatByMsg({});
+      }
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // On first load, list sessions and reopen the most recent one.
+  useEffect(() => {
+    if (didInit.current || !accessToken) return;
+    didInit.current = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+        if (!r.ok) return;
+        const b = (await r.json()) as { threads?: ChatThread[] };
+        const list = Array.isArray(b.threads) ? b.threads : [];
+        setThreads(list);
+        if (list.length > 0) await selectThread(list[0].id);
+      } catch {
+        /* ignore */
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   const activeSeat = seats.find((s) => s.id === activeSeatId) ?? seats[0] ?? null;
 
@@ -135,7 +316,7 @@ export default function AdminChatPage() {
     return { seat: activeSeat, text };
   }
 
-  function onSend() {
+  async function onSend() {
     const raw = input.trim();
     if (!raw || !apiKey || busy) return;
     const { seat, text } = resolveTarget(raw);
@@ -143,13 +324,52 @@ export default function AdminChatPage() {
     targetSeatRef.current = seat;
     setActiveSeatId(seat.id);
     setInput("");
+
+    const content = text.trim() || raw;
+
+    // Ensure a thread exists (create one on the first turn of a session).
+    let threadId = activeThreadRef.current;
+    if (!threadId) {
+      try {
+        const r = await fetch("/api/chat-threads?action=create", {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({}),
+        });
+        if (r.ok) {
+          const b = (await r.json()) as { id?: string };
+          if (b.id) {
+            threadId = b.id;
+            setActiveThread(b.id);
+          }
+        }
+      } catch {
+        /* ignore - fall back to a transient (unpersisted) turn */
+      }
+    }
+
+    // Persist the human turn (this auto-titles the thread server-side).
+    if (threadId) {
+      try {
+        await fetch("/api/chat-threads?action=append", {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({ thread_id: threadId, content }),
+        });
+      } catch {
+        /* ignore */
+      }
+    }
+
     sendMessage(
-      { text: text.trim() || raw },
+      { text: content },
       {
         headers: { Authorization: `Bearer ${apiKey}` },
-        body: { slug: seat.slug, model: seat.model, lane: "api" },
+        body: { slug: seat.slug, model: seat.model, lane: "api", thread_id: threadId ?? undefined },
       },
     );
+
+    await refreshThreads();
   }
 
   const totalTokens = messages.reduce((sum, m) => sum + estimateTokens(messageText(m.parts)), 0);
@@ -267,6 +487,17 @@ export default function AdminChatPage() {
             )}
           </div>
         </div>
+
+        <ChatSessionList
+          threads={threads}
+          activeThreadId={activeThreadId}
+          onNew={newSession}
+          onSelect={selectThread}
+          onRename={renameThread}
+          onTogglePin={togglePin}
+          onDelete={deleteThread}
+          onLeave={leaveThread}
+        />
       </div>
     </div>
   );
