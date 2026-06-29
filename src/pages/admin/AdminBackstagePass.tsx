@@ -5,10 +5,11 @@
 // rotation, audit). Off = tools still resolve credentials from inline args /
 // env vars / local vault, so they stay functional but lose those benefits.
 //
-// Reads/writes GET|POST /api/backstagepass-settings with the tenant's UnClick
-// API key (Bearer). Its SHA-256 hash is the same tenant hash the agent runtime
-// derives, so flipping this here gates that tenant's agent credential lookups.
-// The route is RequireAdmin-gated; the API key authorizes the toggle itself.
+// Auth: like every other admin surface, this authenticates with the Supabase
+// login session (session.access_token), NOT a browser-stored API key. The
+// /api/backstagepass-settings endpoint resolves that session to the tenant's
+// api_key_hash server-side - the same hash the agent runtime derives - so
+// flipping this here gates that tenant's agent credential lookups.
 //
 // Day-to-day credential management (add / reveal / rotate / delete) lives on
 // the Passport surface at /admin/keychain; this page links to it rather than
@@ -16,6 +17,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSession } from "@/lib/auth";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,15 +32,6 @@ import {
 } from "lucide-react";
 
 const YELLOW = "#E2B93B";
-const API_KEY_STORAGE = "unclick_api_key";
-
-function getApiKey(): string {
-  try {
-    return localStorage.getItem(API_KEY_STORAGE) ?? "";
-  } catch {
-    return "";
-  }
-}
 
 interface VaultSettings {
   vault_enabled: boolean;
@@ -54,35 +47,41 @@ function Benefit({
   body: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
       <div className="flex items-center gap-2 text-sm font-semibold text-white">
         <Icon className="h-4 w-4 shrink-0" style={{ color: YELLOW }} />
         {title}
       </div>
-      <div className="mt-2 text-xs leading-relaxed text-[#888]">{body}</div>
+      <div className="mt-2 text-xs leading-relaxed text-[#9aa]">{body}</div>
     </div>
   );
 }
 
 export default function AdminBackstagePass() {
   const { toast } = useToast();
-  const [apiKey] = useState<string>(getApiKey);
+  const { session, loading: sessionLoading } = useSession();
+  const authToken = session?.access_token ?? "";
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(true);
 
   const load = useCallback(async () => {
-    if (!apiKey) {
-      setError("No UnClick API key found in this browser. Open Settings to connect first.");
-      setLoading(false);
+    if (!authToken) {
+      // Either the session is still resolving (keep the spinner) or the user
+      // is genuinely signed out (show a sign-in prompt).
+      if (!sessionLoading) {
+        setError("Sign in to manage BackstagePass.");
+        setLoading(false);
+      }
       return;
     }
     setLoading(true);
     setError(null);
     try {
       const r = await fetch("/api/backstagepass-settings", {
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
       const body = (await r.json()) as VaultSettings & { error?: string };
       if (!r.ok) throw new Error(body.error ?? "Failed to load BackstagePass settings");
@@ -92,7 +91,7 @@ export default function AdminBackstagePass() {
     } finally {
       setLoading(false);
     }
-  }, [apiKey]);
+  }, [authToken, sessionLoading]);
 
   useEffect(() => {
     void load();
@@ -100,7 +99,14 @@ export default function AdminBackstagePass() {
 
   const toggle = useCallback(
     async (next: boolean) => {
-      if (!apiKey) return;
+      if (!authToken) {
+        toast({
+          title: "Sign in first",
+          description: "Your login session is needed to save this setting.",
+          variant: "destructive",
+        });
+        return;
+      }
       const previous = enabled;
       setEnabled(next);
       setSaving(true);
@@ -108,7 +114,7 @@ export default function AdminBackstagePass() {
         const r = await fetch("/api/backstagepass-settings", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${authToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ vault_enabled: next }),
@@ -132,7 +138,7 @@ export default function AdminBackstagePass() {
         setSaving(false);
       }
     },
-    [apiKey, enabled, toast],
+    [authToken, enabled, toast],
   );
 
   return (
@@ -230,7 +236,7 @@ export default function AdminBackstagePass() {
       {/* Link to Passport for actual credential management */}
       <Link
         to="/admin/keychain"
-        className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-[#111111] p-5 transition-colors hover:bg-white/[0.03]"
+        className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 transition-colors hover:border-[#E2B93B]/30 hover:bg-white/[0.05]"
       >
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: YELLOW }} />
