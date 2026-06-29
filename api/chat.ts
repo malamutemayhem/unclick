@@ -23,8 +23,17 @@ import { resolveApiChatModel } from "./lib/chat-transport.js";
 import { sha256hex, readProviderKey, readProviderKeyForAccount, type EncryptedCredential } from "./lib/chat-crypto.js";
 import { decideChatProviderCall } from "./lib/chat-spend.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
+import { fetchMemoryBlock } from "./lib/chat-memory.js";
 
 const MAX_STEPS = 5;
+
+// Prepended to every seat so it knows it is running inside UnClick and treats
+// the user's loaded memory as authoritative context (see fetchMemoryBlock).
+const UNCLICK_SEAT_PREAMBLE =
+  "You are an AI seat running inside UnClick, the user's AI operating system. " +
+  "You are connected to the user's UnClick workspace, and the memory shown below is theirs: treat it as authoritative context about who they are, their standing rules, and what they are working on. " +
+  "If asked whether you are connected to UnClick, the answer is yes - you are running inside their UnClick account with their memory loaded. " +
+  "Use the memory naturally; do not recite it verbatim unless asked.";
 
 // ─── pure, testable helpers ──────────────────────────────────────
 
@@ -224,9 +233,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const modelMessages = await convertToModelMessages(parsed.messages);
 
+  // Ground the seat in the user's UnClick memory. Best-effort: a memory hiccup
+  // returns "" and the chat proceeds with the preamble + any client system text.
+  const memoryBlock = await fetchMemoryBlock(supabaseUrl, serviceKey, apiKeyHash);
+  const groundedSystem = [
+    UNCLICK_SEAT_PREAMBLE,
+    memoryBlock ? `The user's UnClick memory:\n\n${memoryBlock}` : "",
+    parsed.system ?? "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
   const result = streamText({
     model,
-    system: parsed.system,
+    system: groundedSystem,
     messages: modelMessages,
     stopWhen: stepCountIs(MAX_STEPS),
     onError({ error }) {
