@@ -32,7 +32,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET;
+  // Fallback to a V2 name so a typo or stray character in the original env var
+  // name can be sidestepped without another code change.
+  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
   if (!supabaseUrl || !serviceKey) {
     return res.status(500).json({ error: "Server not configured." });
   }
