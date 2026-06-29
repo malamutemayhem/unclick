@@ -64,6 +64,16 @@ const SOURCE_PATHS = {
   prerenderRoutes: "scripts/prerender-routes.mjs",
 };
 
+// tool-wiring.ts was decomposed into a thin re-export index plus
+// additional-tools.ts (ADDITIONAL_TOOLS) and additional-handlers.ts (connector
+// imports + ADDITIONAL_HANDLERS). The tool-surface checks below scan the wiring
+// as plain text, so fold the split files back into a single toolWiring string.
+// A pre-split checkout simply has no extra files to append.
+const TOOL_WIRING_SPLIT_PATHS = [
+  "packages/mcp-server/src/additional-tools.ts",
+  "packages/mcp-server/src/additional-handlers.ts",
+];
+
 function normalize(value) {
   return String(value ?? "").trim().toLowerCase();
 }
@@ -262,6 +272,17 @@ export async function loadConnectionReadinessSources(cwd = process.cwd()) {
     })
   );
   const sources = Object.fromEntries(entries);
+
+  const wiringParts = [sources.toolWiring];
+  for (const splitPath of TOOL_WIRING_SPLIT_PATHS) {
+    try {
+      wiringParts.push(await readSourceFile(cwd, splitPath));
+    } catch {
+      // Pre-split checkout: the decomposed wiring files do not exist yet.
+    }
+  }
+  sources.toolWiring = wiringParts.join("\n");
+
   return {
     ...sources,
     appCatalogData: readJson(sources.appCatalog, { apps: [] }),
