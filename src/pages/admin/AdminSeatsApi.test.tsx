@@ -97,12 +97,11 @@ describe("AdminSeatsApi", () => {
     });
   });
 
-  it("adds an AI provider through BackstagePass add", async () => {
-    localStorage.setItem("unclick_api_key", "uc_test_key");
+  it("adds an AI provider key (account-scoped, login-authed)", async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("action=list")) return jsonResponse({ data: [] });
-      if (url.includes("action=add")) return jsonResponse({ id: "new-1", added: true }, 201);
+      if (url.includes("/api/ai-provider-key")) return jsonResponse({ success: true });
       return jsonResponse({ error: "unexpected" }, 500);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -118,15 +117,15 @@ describe("AdminSeatsApi", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Add provider" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/backstagepass?action=add",
+      "/api/ai-provider-key",
       expect.objectContaining({ method: "POST" }),
     ));
-    const addCall = fetchMock.mock.calls.find(([input]) => String(input).includes("action=add"));
+    const addCall = fetchMock.mock.calls.find(([input]) => String(input).includes("/api/ai-provider-key"));
+    expect(addCall?.[1]?.headers).toMatchObject({ Authorization: "Bearer session-token" });
     expect(JSON.parse(String(addCall?.[1]?.body))).toEqual({
       platform: "openai",
       label: null,
-      api_key: "uc_test_key",
-      values: { api_key: "sk-new" },
+      api_key: "sk-new",
     });
   });
 });
