@@ -23,7 +23,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readWiring, section, toolDefsFor, handlersFor } from "./wiring-model.mjs";
+import { readWiring, readHandlers, section, toolDefsFor, handlersFor } from "./wiring-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG = path.resolve(__dirname, "..");          // packages/mcp-server
@@ -93,8 +93,9 @@ const CONFIG = {
 // wiring-model.mjs so every generator parses tool-wiring.ts the same way.
 
 const wiring = readWiring(SRC);
+const handlersSource = readHandlers(SRC);
 const toolsBody = section(wiring, "export const ADDITIONAL_TOOLS", "[");
-const handlersBody = section(wiring, "export const ADDITIONAL_HANDLERS", "{");
+const handlersBody = section(handlersSource, "export const ADDITIONAL_HANDLERS", "{");
 
 // ─── Emit a standalone package ─────────────────────────────────────────────────
 

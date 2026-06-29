@@ -6,14 +6,15 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
 import {
-  readWiring, section, parseImportCategories, parseToolIndex,
+  readWiring, readHandlers, section, parseImportCategories, parseToolIndex,
   toolDefsFor, handlersFor, loadWiringBlocks,
 } from "./wiring-model.mjs";
 
 const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src");
 const wiring = readWiring(SRC);
+const handlersSrc = readHandlers(SRC); // additional-handlers.ts post-split, tool-wiring.ts before
 const toolsBody = section(wiring, "export const ADDITIONAL_TOOLS", "[");
-const handlersBody = section(wiring, "export const ADDITIONAL_HANDLERS", "{");
+const handlersBody = section(handlersSrc, "export const ADDITIONAL_HANDLERS", "{");
 
 test("section slices non-empty ADDITIONAL_TOOLS / ADDITIONAL_HANDLERS bodies", () => {
   assert.ok(toolsBody.length > 0, "tools body empty");
@@ -33,7 +34,7 @@ test("section throws on a missing marker", () => {
 });
 
 test("parseImportCategories maps slugs to non-empty categories", () => {
-  const map = parseImportCategories(wiring);
+  const map = parseImportCategories(handlersSrc);
   const slugs = Object.keys(map);
   assert.ok(slugs.length > 50, `expected many slugs, got ${slugs.length}`);
   for (const slug of slugs) {
@@ -43,7 +44,7 @@ test("parseImportCategories maps slugs to non-empty categories", () => {
 });
 
 test("parseToolIndex returns sorted, well-formed, non-empty entries", () => {
-  const index = parseToolIndex(wiring);
+  const index = parseToolIndex(wiring, handlersSrc);
   assert.ok(index.length > 100, `expected >100 apps, got ${index.length}`);
   for (let i = 1; i < index.length; i++) {
     assert.ok(index[i - 1].app.localeCompare(index[i].app) <= 0, "index not sorted by app");

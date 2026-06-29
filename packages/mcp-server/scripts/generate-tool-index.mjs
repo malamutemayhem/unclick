@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { parseToolIndex, readWiring } from "./wiring-model.mjs";
+import { parseToolIndex, readWiring, readHandlers } from "./wiring-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(__dirname, "../src");
@@ -26,7 +26,7 @@ const OUT_JSON = path.join(REPO, "docs/tool-index.generated.json");
 
 /** Parse tool-wiring.ts into [{ app, category, tools: [{ name, description }] }]. */
 export function buildToolIndex() {
-  return parseToolIndex(readWiring(SRC));
+  return parseToolIndex(readWiring(SRC), readHandlers(SRC));
 }
 
 function render(index) {

@@ -24,6 +24,16 @@ export function readWiring(srcDir) {
   return fs.readFileSync(path.join(srcDir, "tool-wiring.ts"), "utf8");
 }
 
+/**
+ * Read additional-handlers.ts (the connector imports + ADDITIONAL_HANDLERS map,
+ * split out of tool-wiring.ts). Falls back to tool-wiring.ts when the split file
+ * is absent, so this module also works against the pre-split layout.
+ */
+export function readHandlers(srcDir) {
+  const split = path.join(srcDir, "additional-handlers.ts");
+  return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
+}
+
 // ─── Section slicing ───────────────────────────────────────────────────────
 // Slice the body of an exported literal (ADDITIONAL_TOOLS = [ ... ] or
 // ADDITIONAL_HANDLERS = { ... }) by scanning from its marker to the section's
@@ -42,7 +52,13 @@ export function section(wiring, marker, openTok) {
 // per-connector imports above the ADDITIONAL_TOOLS literal.
 
 export function parseImportCategories(wiring) {
-  const importRegion = wiring.slice(0, wiring.indexOf("export const ADDITIONAL_TOOLS"));
+  // imports live above the first ADDITIONAL_* export, in whichever file holds
+  // them (tool-wiring.ts pre-split, additional-handlers.ts post-split).
+  const cut = ["export const ADDITIONAL_TOOLS", "export const ADDITIONAL_HANDLERS"]
+    .map((m) => wiring.indexOf(m))
+    .filter((i) => i >= 0)
+    .reduce((a, b) => Math.min(a, b), Infinity);
+  const importRegion = wiring.slice(0, Number.isFinite(cut) ? cut : wiring.length);
   const slugCategory = {};
   let category = "Other";
   for (const ln of importRegion.split("\n")) {
@@ -59,9 +75,13 @@ export function parseImportCategories(wiring) {
 // ADDITIONAL_TOOLS literal and the import-region category map. Drives
 // generate-tool-index.mjs.
 
-export function parseToolIndex(wiring) {
-  const slugCategory = parseImportCategories(wiring);
+export function parseToolIndex(toolsText, importsText) {
+  // tools come from the ADDITIONAL_TOOLS literal (tool-wiring.ts); categories
+  // come from the import region (additional-handlers.ts post-split). When called
+  // with one argument, both are read from the same text (pre-split layout).
+  const slugCategory = parseImportCategories(importsText ?? toolsText);
 
+  const wiring = toolsText;
   const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
   const body = wiring.slice(wiring.indexOf("[", start) + 1, wiring.indexOf("\n];", start));
   const headerRe = /\/\/\s*[─-]+\s*([a-z0-9-]+)-tool\.ts\s*[─-]*/g;

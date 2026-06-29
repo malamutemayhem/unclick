@@ -2,6 +2,12 @@
 // Keeps the generated Reddit wiring aligned with reddit-tool.ts until the large
 // generated source is refreshed directly. This runs before build/test so the
 // shipped MCP server advertises and validates public read-only Reddit tools.
+//
+// Stage 2 split the connector imports + ADDITIONAL_HANDLERS into
+// additional-handlers.ts. So the Reddit IMPORT and the Reddit HANDLER entries
+// are patched in additional-handlers.ts, while the Reddit tool SCHEMA block
+// (part of ADDITIONAL_TOOLS) is still patched in tool-wiring.ts. When the split
+// file is absent (pre-split layout) everything falls back to tool-wiring.ts.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -9,43 +15,29 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const wiringPath = path.resolve(here, "../src/tool-wiring.ts");
-let source = fs.readFileSync(wiringPath, "utf8");
-source = source.replace(/\r\n/g, "\n");
-const original = source;
+const handlersPath = path.resolve(here, "../src/additional-handlers.ts");
+const importsAndHandlersPath = fs.existsSync(handlersPath) ? handlersPath : wiringPath;
 
-function replaceOnce(find, replace, label) {
-  if (source.includes(find)) {
-    source = source.replace(find, replace);
-    return;
-  }
-  if (source.includes(replace)) return;
-  throw new Error(`Could not patch ${label}; expected generated text was not found.`);
-}
+const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 
-replaceOnce(
-  `import {
-  redditRead, redditPost, redditComment,
-  redditSearch, redditUser, redditVote, redditSubscribe,
-} from "./reddit-tool.js";`,
-  `import {
-  redditRead, redditPost, redditComment,
-  redditSearch, redditThread, redditUser, redditVote, redditSubscribe,
-} from "./reddit-tool.js";`,
-  "Reddit import"
-);
+// ─── tool-wiring.ts: the Reddit tool schema block (lives in ADDITIONAL_TOOLS) ───
+{
+  let source = read(wiringPath);
+  const original = source;
 
-const redditToolsStart = source.indexOf(`  {
+  const redditToolsStart = source.indexOf(`  {
     name: "reddit_read"`);
-const mastodonToolStart = source.indexOf(`  {
+  if (redditToolsStart !== -1) {
+    const mastodonToolStart = source.indexOf(`  {
     name: "mastodon_action"`, redditToolsStart);
-const nextCommentStart = source.lastIndexOf(`
+    const nextCommentStart = source.lastIndexOf(`
 
   // `, mastodonToolStart);
-if (redditToolsStart === -1 || mastodonToolStart === -1 || nextCommentStart <= redditToolsStart) {
-  throw new Error("Could not locate generated Reddit tool schema block.");
-}
+    if (mastodonToolStart === -1 || nextCommentStart <= redditToolsStart) {
+      throw new Error("Could not locate generated Reddit tool schema block.");
+    }
 
-const redditToolBlock = `  {
+    const redditToolBlock = `  {
     name: "reddit_read",
     description: "Read public posts from a Reddit subreddit. OAuth is optional for public reads.",
     inputSchema: {
@@ -178,26 +170,60 @@ const redditToolBlock = `  {
   },
 `;
 
-source = `${source.slice(0, redditToolsStart)}${redditToolBlock}${source.slice(nextCommentStart)}`;
+    source = `${source.slice(0, redditToolsStart)}${redditToolBlock}${source.slice(nextCommentStart)}`;
+  }
 
-replaceOnce(
-  `  reddit_search:           (args) => redditSearch(args as unknown as Parameters<typeof redditSearch>[0]),
+  if (source !== original) {
+    fs.writeFileSync(wiringPath, source);
+    console.log("Patched Reddit tool schema in tool-wiring.ts.");
+  }
+}
+
+// ─── additional-handlers.ts: the Reddit import + handler entries ────────────────
+{
+  let source = read(importsAndHandlersPath);
+  const original = source;
+
+  const replaceOnce = (find, replace, label) => {
+    if (source.includes(find)) {
+      source = source.replace(find, replace);
+      return;
+    }
+    if (source.includes(replace)) return;
+    throw new Error(`Could not patch ${label}; expected text not found in ${path.basename(importsAndHandlersPath)}.`);
+  };
+
+  replaceOnce(
+    `import {
+  redditRead, redditPost, redditComment,
+  redditSearch, redditUser, redditVote, redditSubscribe,
+} from "./reddit-tool.js";`,
+    `import {
+  redditRead, redditPost, redditComment,
+  redditSearch, redditThread, redditUser, redditVote, redditSubscribe,
+} from "./reddit-tool.js";`,
+    "Reddit import"
+  );
+
+  replaceOnce(
+    `  reddit_search:           (args) => redditSearch(args as unknown as Parameters<typeof redditSearch>[0]),
   reddit_user:             (args) => redditUser(args as unknown as Parameters<typeof redditUser>[0]),`,
-  `  reddit_search:           (args) => redditSearch(args as unknown as Parameters<typeof redditSearch>[0]),
+    `  reddit_search:           (args) => redditSearch(args as unknown as Parameters<typeof redditSearch>[0]),
   reddit_thread:           (args) => redditThread(args as unknown as Parameters<typeof redditThread>[0]),
   reddit_user:             (args) => redditUser(args as unknown as Parameters<typeof redditUser>[0]),`,
-  "Reddit thread handler"
-);
+    "Reddit thread handler"
+  );
 
-replaceOnce(
-  `  reddit_subscribe:        (args) => redditSubscribe(args as unknown as Parameters<typeof redditSubscribe>[0]),`,
-  `  reddit_subscribe:        (args) => redditSubscribe({ ...args, subreddit: String(args.subreddit ?? args.sr ?? "") } as unknown as Parameters<typeof redditSubscribe>[0]),`,
-  "Reddit subscribe alias handler"
-);
+  replaceOnce(
+    `  reddit_subscribe:        (args) => redditSubscribe(args as unknown as Parameters<typeof redditSubscribe>[0]),`,
+    `  reddit_subscribe:        (args) => redditSubscribe({ ...args, subreddit: String(args.subreddit ?? args.sr ?? "") } as unknown as Parameters<typeof redditSubscribe>[0]),`,
+    "Reddit subscribe alias handler"
+  );
 
-if (source !== original) {
-  fs.writeFileSync(wiringPath, source);
-  console.log("Patched Reddit generated wiring for public read tools.");
-} else {
-  console.log("Reddit generated wiring already patched.");
+  if (source !== original) {
+    fs.writeFileSync(importsAndHandlersPath, source);
+    console.log(`Patched Reddit imports/handlers in ${path.basename(importsAndHandlersPath)}.`);
+  }
 }
+
+console.log("Reddit generated wiring patch complete.");

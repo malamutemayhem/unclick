@@ -60,7 +60,16 @@ const SRC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 // the handler's own function body. We scope to the function body (not the
 // whole file) so sibling tools in a multi-tool file don't mask a real miss.
 // ---------------------------------------------------------------------------
-const wiringSrc = fs.readFileSync(path.join(SRC_DIR, "tool-wiring.ts"), "utf8");
+// The connector imports and the ADDITIONAL_HANDLERS map were split out of
+// tool-wiring.ts into additional-handlers.ts (Stage 2). The static fallback
+// parser below builds its importMap + handlerFn from that file; pre-split it
+// reads tool-wiring.ts. (ADDITIONAL_TOOLS/ADDITIONAL_HANDLERS are still imported
+// at runtime from ../tool-wiring.js above, which re-exports the handlers.)
+const splitSrc = path.join(SRC_DIR, "additional-handlers.ts");
+const wiringSrc = fs.readFileSync(
+  fs.existsSync(splitSrc) ? splitSrc : path.join(SRC_DIR, "tool-wiring.ts"),
+  "utf8",
+);
 
 // fnName -> source file (from `import { ... } from "./x.js"`)
 const importMap: Record<string, string> = {};
