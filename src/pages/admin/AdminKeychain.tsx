@@ -402,6 +402,32 @@ export default function AdminKeychain() {
     });
   }
 
+  // Patch a credential in the list so its health badge tracks a just-run live
+  // test. Without this the badge keeps showing the old (possibly stale) verdict
+  // until a manual refresh. ok === null is "no probe ran", so we only re-date.
+  function applyTestResultToCredential(id: string, ok: boolean | null, testedAt: string) {
+    setCredentials((prev) =>
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        const next: Credential = {
+          ...c,
+          last_tested_at:  testedAt,
+          last_checked_at: testedAt,
+        };
+        if (ok === true) {
+          next.is_valid = true;
+          // Drop any backend "stale"/"failing" verdict so credentialHealth
+          // recomputes a fresh Healthy from the new timestamp.
+          next.health_status = undefined;
+        } else if (ok === false) {
+          next.is_valid = false;
+          next.health_status = "failing";
+        }
+        return next;
+      }),
+    );
+  }
+
   async function handleTestConnection(cred: Credential) {
     const apiKey = readLocalApiKey();
     if (!apiKey) {
@@ -433,14 +459,20 @@ export default function AdminKeychain() {
           },
         }));
       } else {
+        const testedAt = body.tested_at ?? new Date().toISOString();
         setTestResult((p) => ({
           ...p,
           [cred.id]: {
             ok:       body.ok ?? null,
             message:  body.message ?? "",
-            testedAt: body.tested_at ?? new Date().toISOString(),
+            testedAt,
           },
         }));
+        // Reflect the fresh live result on the badge immediately instead of
+        // waiting for a manual refresh. A pass clears any stale/failing backend
+        // verdict and re-dates the check; a definite fail flips it to failing.
+        // ok === null means "no probe", so we leave the stored health alone.
+        applyTestResultToCredential(cred.id, body.ok ?? null, testedAt);
       }
     } catch (err) {
       setTestResult((p) => ({
@@ -517,7 +549,7 @@ export default function AdminKeychain() {
       const blob     = await res.blob();
       const url      = URL.createObjectURL(blob);
       const anchor   = document.createElement("a");
-      const filename = res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1]
+      const filename = res.headers.get("Content-Disposition")?.match(/filename=\"([^\"]+)\"/)?.[1]
         ?? `unclick-connections-${new Date().toISOString().slice(0, 10)}.enc`;
       anchor.href     = url;
       anchor.download = filename;
@@ -913,6 +945,25 @@ export default function AdminKeychain() {
                           {testResult[cred.id].ok === true ? "Connection OK. " : testResult[cred.id].ok === false ? "Connection failed. " : ""}
                           {testResult[cred.id].message}
                         </p>
+                      )}
+
+                      {/* Stale or failing access needs re-auth, not just a rotate.
+                          The connect flow re-runs OAuth / hosted-MCP sign-in or
+                          re-takes a key, so offer it as an explicit recovery. */}
+                      {(health === "stale" || health === "failing") && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <Link
+                            to={`/connect/${cred.platform}`}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#E2B93B] transition-colors hover:bg-[#E2B93B]/20"
+                          >
+                            <RefreshCw className="h-3 w-3" /> Reconnect
+                          </Link>
+                          <span className="text-[10px] text-[#777]">
+                            {health === "failing"
+                              ? "Last check failed. Sign in again to restore access."
+                              : "Not verified recently. Reconnect to confirm it still works."}
+                          </span>
+                        </div>
                       )}
 
                       {isOpen && plaintext && (

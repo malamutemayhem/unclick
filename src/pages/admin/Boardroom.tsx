@@ -49,6 +49,11 @@ interface BoardroomProfile {
 const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 const STALE_IDLE_VISIBILITY_MS = 24 * 60 * 60 * 1000;
 
+// If the last successful poll is older than this, the presence we are showing
+// is no longer trustworthy as "live", so we degrade the indicators rather than
+// leave a green dot lying about a feed that has gone quiet or started failing.
+const POLL_STALE_MS = 30 * 1000;
+
 // How many feed threads / agents to show before a "show more" control.
 const FEED_PAGE_SIZE = 20;
 const AGENT_PAGE_SIZE = 6;
@@ -209,10 +214,14 @@ function NowPlayingStrip({
   profiles,
   clusters,
   hideIdle = false,
+  feedStale = false,
 }: {
   profiles: BoardroomProfile[];
   clusters: ProfileCluster<BoardroomProfile>[];
   hideIdle?: boolean;
+  // When the feed poll itself is stale or failing, the presence we hold is no
+  // longer "live", so the strip stops presenting agents as live.
+  feedStale?: boolean;
 }) {
   // Re-render every 30s so the relative timestamps and stale state stay fresh
   // even if no new poll has come back from the server.
@@ -248,14 +257,18 @@ function NowPlayingStrip({
           <span aria-hidden>🎧</span>
           <span>Now Playing</span>
         </h2>
-        <span className="text-[10px] text-[#555]">Updates live</span>
+        <span className={`text-[10px] ${feedStale ? "text-[#a87] " : "text-[#555]"}`}>
+          {feedStale ? "Reconnecting..." : "Updates live"}
+        </span>
       </div>
       <div className="overflow-x-auto">
         <ul className="flex gap-2 px-3 py-3">
           {visibleClusters.map((c) => (
             <Fragment key={c.key}>
               {c.primaries.map((p) => {
-                const stale = isStale(p, nowMs);
+                // A stale or failing feed means we cannot vouch for live presence,
+                // so treat every dot as not-live until a fresh poll lands.
+                const stale = feedStale || isStale(p, nowMs);
                 const statusText = p.current_status?.trim();
                 const hasStatus = statusText && statusText.length > 0;
                 const timeIso = p.current_status_updated_at ?? p.last_seen_at;
@@ -547,11 +560,17 @@ export default function Boardroom() {
   const [loading, setLoading] = useState(false);
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Timestamp (ms) of the last poll that actually returned, plus how long ago
+  // we last had a fresh poll. Used to decay presence when the feed goes quiet.
+  const [lastSuccessAt, setLastSuccessAt] = useState<number | null>(null);
   const [humanAgentId, setHumanAgentId] = useState<string | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
   const [feedShown, setFeedShown] = useState(FEED_PAGE_SIZE);
   const [agentsExpanded, setAgentsExpanded] = useState(false);
   const [settingsCollapsed, setSettingsCollapsed] = useState(true);
+  // Bumps every 30s so the stale-poll check re-evaluates even when no new poll
+  // has resolved (e.g. fetches hanging or the tab returning to focus).
+  const [presenceTick, setPresenceTick] = useState(0);
 
   const { prefs, update, toggleTag, toggleMute } = useBoardroomViewPrefs();
 
@@ -611,6 +630,7 @@ export default function Boardroom() {
       if (!res.ok) throw new Error(body.error ?? "Failed to load Boardroom");
       setMessages(body.messages ?? []);
       setProfiles(body.profiles ?? []);
+      setLastSuccessAt(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load Boardroom");
     } finally {
@@ -662,23 +682,36 @@ export default function Boardroom() {
     return () => clearInterval(id);
   }, [token, fetchFeed]);
 
+  useEffect(() => {
+    const id = setInterval(() => setPresenceTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  void presenceTick;
+
   const showEmptyState =
     firstLoadDone && !error && profiles.length === 0 && messages.length === 0;
   const filtersHideEverything =
     mainFeedMessages.length > 0 && filteredFeed.length === 0;
 
   const nowForCounts = Date.now();
+  // Presence is only "live" if a poll has landed recently. Once the last good
+  // poll ages past the stale window (because polls are failing or hanging), we
+  // stop claiming live instead of holding the last green state.
+  const feedStale =
+    lastSuccessAt === null || nowForCounts - lastSuccessAt > POLL_STALE_MS;
   const connectedCount = profileClusters.reduce((n, c) => n + c.primaries.length, 0);
-  const liveCount = profileClusters.reduce(
-    (n, c) =>
-      n +
-      c.primaries.filter(
-        (p) =>
-          p.last_seen_at &&
-          nowForCounts - new Date(p.last_seen_at).getTime() < STALE_THRESHOLD_MS,
-      ).length,
-    0,
-  );
+  const liveCount = feedStale
+    ? 0
+    : profileClusters.reduce(
+        (n, c) =>
+          n +
+          c.primaries.filter(
+            (p) =>
+              p.last_seen_at &&
+              nowForCounts - new Date(p.last_seen_at).getTime() < STALE_THRESHOLD_MS,
+          ).length,
+        0,
+      );
   const sidebarClusters = agentsExpanded
     ? profileClusters
     : profileClusters.slice(0, AGENT_PAGE_SIZE);
@@ -698,10 +731,10 @@ export default function Boardroom() {
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#888]">
             <span className="flex items-center gap-1.5">
               <span
-                className={`h-2 w-2 rounded-full ${liveCount > 0 ? "bg-green-400" : "bg-[#555]"}`}
+                className={`h-2 w-2 rounded-full ${feedStale ? "border border-[#666] bg-transparent" : liveCount > 0 ? "bg-green-400" : "bg-[#555]"}`}
                 aria-hidden
               />
-              {liveCount} live now
+              {feedStale ? "presence unconfirmed" : `${liveCount} live now`}
             </span>
             <span>{connectedCount} connected</span>
             {actionQueueMessages.length > 0 ? (
@@ -717,8 +750,19 @@ export default function Boardroom() {
 
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          <p className="font-medium">Could not load Boardroom.</p>
-          <p className="mt-1 text-xs text-red-300/80">{error}</p>
+          <p className="font-medium">Could not refresh Boardroom.</p>
+          <p className="mt-1 text-xs text-red-300/80">
+            {error}
+            {lastSuccessAt !== null && ` Showing the last update from ${relativeFromNow(lastSuccessAt, nowForCounts)} ago.`}
+          </p>
+          <button
+            type="button"
+            onClick={() => void fetchFeed()}
+            disabled={loading}
+            className="mt-2 rounded-md border border-red-500/40 px-2.5 py-1 text-xs font-medium text-red-200 hover:bg-red-500/15 disabled:opacity-50"
+          >
+            {loading ? "Retrying..." : "Retry now"}
+          </button>
         </div>
       )}
 
@@ -726,6 +770,7 @@ export default function Boardroom() {
         profiles={visibleProfiles}
         clusters={profileClusters}
         hideIdle={prefs.hideIdleAgents}
+        feedStale={feedStale}
       />
 
       {actionQueueMessages.length > 0 && (
