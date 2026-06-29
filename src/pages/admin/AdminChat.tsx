@@ -170,7 +170,7 @@ export default function AdminChatPage() {
 
       {!apiKey && <CacheKeyPrompt />}
 
-      <div className="flex flex-col gap-4 md:flex-row-reverse md:items-start">
+      <div className="flex flex-col gap-4 md:h-[calc(100vh-13rem)] md:flex-row-reverse md:items-stretch">
         <ChatMemberRail
           user={user}
           accessToken={accessToken}
@@ -184,7 +184,7 @@ export default function AdminChatPage() {
           onRemoveHumanMember={removeHumanMember}
         />
 
-        <div className="min-w-0 flex-1 space-y-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 md:min-h-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Link to="/admin/agents/api" className="text-primary hover:underline">
               Set up API keys
@@ -195,7 +195,7 @@ export default function AdminChatPage() {
             </Link>
           </div>
 
-          <div className="min-h-[46vh] space-y-3 rounded-lg border border-border/40 bg-card/30 p-4">
+          <div className="min-h-[46vh] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 md:min-h-0">
             {messages.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 {activeSeat

@@ -1,12 +1,14 @@
 // ============================================================
-// ChatMemberRail - the slim roster beside the chat canvas.
+// ChatMemberRail - the full-height roster beside the chat canvas.
 //
 // Shows who is in the room: the operator (human, with their You-page
 // avatar), connected human members, and the AI seats. Click a seat to
 // direct the next turn at it (it @mentions that seat in the composer).
-// "Add AI seat" opens an inline picker that reuses the live OpenRouter
-// catalog. "Invite member" lists the accounts you are connected to
-// (accepted Circle links) so you can add them to the room.
+// "Add AI seat" opens an inline picker that lists ONLY the providers you
+// have actually connected a key for (read from /api/ai-provider-key), so
+// the list reflects what you can use instead of the whole catalog.
+// "Invite member" lists the accounts you are connected to (accepted
+// Circle links) so you can add them to the room.
 //
 // Each AI seat runs on the operator's own key. Human members are added
 // from the existing cross-account connection graph; live messaging with
@@ -36,11 +38,6 @@ export interface AiSeat {
   handle: string;
 }
 
-const PROVIDER_OPTIONS: ComboOption[] = CHAT_PROVIDERS.map((p) => ({
-  value: p.slug,
-  label: p.label,
-}));
-
 // A small avatar for a human member: their picture if we have one, else
 // initials. Keeps the rail readable without coupling to UserAvatar's
 // full Supabase User shape (we only hold email + avatar for members).
@@ -58,12 +55,32 @@ function MemberAvatar({ member }: { member: HumanMember }) {
   );
 }
 
-function AddSeatForm({ onAdd }: { onAdd: (slug: string, model: string) => void }) {
-  const [slug, setSlug] = useState(CHAT_PROVIDERS[0].slug);
-  const [model, setModel] = useState(CHAT_PROVIDERS[0].models[0].value);
+// The seat picker, scoped to the providers you have actually connected a key
+// for. connectedSlugs comes from /api/ai-provider-key, so a "✓" here means a
+// real connection, not just the current selection.
+function AddSeatForm({
+  connectedSlugs,
+  onAdd,
+}: {
+  connectedSlugs: string[];
+  onAdd: (slug: string, model: string) => void;
+}) {
+  const connectedProviders = CHAT_PROVIDERS.filter((p) => connectedSlugs.includes(p.slug));
+  const first = connectedProviders[0];
+
+  const [slug, setSlug] = useState(first?.slug ?? "");
+  const [model, setModel] = useState(first?.models[0]?.value ?? "");
   const [live, setLive] = useState<ChatModelOption[] | null>(null);
   const [loading, setLoading] = useState(false);
   const provider = findChatProvider(slug);
+
+  // Once connected providers load, lock onto a real one.
+  useEffect(() => {
+    if (!slug && first) {
+      setSlug(first.slug);
+      setModel(first.models[0]?.value ?? "");
+    }
+  }, [first, slug]);
 
   useEffect(() => {
     if (slug !== "openrouter") {
@@ -84,21 +101,48 @@ function AddSeatForm({ onAdd }: { onAdd: (slug: string, model: string) => void }
     };
   }, [slug]);
 
+  if (connectedProviders.length === 0) {
+    return (
+      <div className="w-[min(18rem,90vw)] p-3 text-sm">
+        <p className="text-body">No AI provider keys connected yet.</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Add a provider key in{" "}
+          <a href="/admin/agents/api" className="text-primary hover:underline">
+            API keys
+          </a>{" "}
+          and it shows up here.
+        </p>
+      </div>
+    );
+  }
+
+  const providerOptions: ComboOption[] = connectedProviders.map((p) => ({
+    value: p.slug,
+    label: p.label,
+  }));
   const modelOptions: ComboOption[] = slug === "openrouter" && live ? live : provider?.models ?? [];
 
   return (
-    <div className="flex w-[min(20rem,90vw)] flex-col gap-2 p-3">
-      <Combobox
-        value={slug}
-        options={PROVIDER_OPTIONS}
-        onChange={(s) => {
-          setSlug(s);
-          const next = findChatProvider(s);
-          if (next) setModel(next.models[0].value);
-        }}
-        searchPlaceholder="Search providers..."
-        className="w-full"
-      />
+    <div className="flex w-[min(18rem,90vw)] flex-col gap-2 p-3">
+      {connectedProviders.length > 1 ? (
+        <Combobox
+          value={slug}
+          options={providerOptions}
+          onChange={(s) => {
+            setSlug(s);
+            const next = findChatProvider(s);
+            if (next) setModel(next.models[0]?.value ?? "");
+          }}
+          searchPlaceholder="Search your providers..."
+          className="w-full"
+        />
+      ) : (
+        <div className="flex items-center gap-2 rounded-md border border-border/50 bg-card/40 px-3 py-1.5 text-sm text-body">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+          <span className="flex-1 truncate">{first?.label}</span>
+          <span className="text-[10px] text-muted-foreground">connected</span>
+        </div>
+      )}
       <Combobox
         value={model}
         options={modelOptions}
@@ -112,11 +156,19 @@ function AddSeatForm({ onAdd }: { onAdd: (slug: string, model: string) => void }
       />
       <button
         type="button"
-        onClick={() => onAdd(slug, model)}
+        onClick={() => {
+          if (slug && model) onAdd(slug, model);
+        }}
         className="rounded-md bg-primary/90 px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary"
       >
         Add seat
       </button>
+      <a
+        href="/admin/agents/api"
+        className="pt-0.5 text-center text-[10px] text-muted-foreground transition-colors hover:text-primary hover:underline"
+      >
+        + Connect another provider
+      </a>
     </div>
   );
 }
@@ -218,116 +270,152 @@ export function ChatMemberRail({
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [connectedSlugs, setConnectedSlugs] = useState<string[]>([]);
+
+  // Which AI providers this account has connected a key for. Drives the seat
+  // picker so it only offers usable providers. Refetches when the picker opens.
+  useEffect(() => {
+    if (!accessToken) {
+      setConnectedSlugs([]);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/ai-provider-key", { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        if (cancelled || !body) return;
+        const rows = Array.isArray(body.providers) ? body.providers : [];
+        const slugs = Array.from(
+          new Set(
+            rows
+              .map((p: { platform_slug?: string }) => p.platform_slug)
+              .filter((s: unknown): s is string => typeof s === "string" && s.length > 0),
+          ),
+        ) as string[];
+        setConnectedSlugs(slugs);
+      })
+      .catch(() => {
+        if (!cancelled) setConnectedSlugs([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, addOpen]);
 
   return (
-    <aside className="w-full shrink-0 space-y-1 rounded-lg border border-border/40 bg-card/30 p-3 md:w-60">
+    <aside className="flex h-full w-full shrink-0 flex-col rounded-lg border border-border/40 bg-card/30 p-3 md:w-64">
       <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
         Members
       </div>
 
-      <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
-        <UserAvatar user={user} className="h-7 w-7" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-body">{user?.email ?? "You"}</p>
-          <p className="text-[10px] text-muted-foreground">you (human)</p>
+      <div className="-mx-1 flex-1 space-y-1 overflow-y-auto px-1">
+        <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
+          <UserAvatar user={user} className="h-7 w-7" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-body">{user?.email ?? "You"}</p>
+            <p className="text-[10px] text-muted-foreground">you (human)</p>
+          </div>
         </div>
+
+        {humanMembers.map((m) => (
+          <div key={m.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5">
+            <MemberAvatar member={m} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-body">{m.label}</p>
+              <p className="truncate text-[10px] text-muted-foreground">member - messaging soon</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onRemoveHumanMember(m.id)}
+              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+              aria-label={`Remove ${m.label}`}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+
+        {seats.map((s) => (
+          <div
+            key={s.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onSelectSeat(s)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectSeat(s);
+              }
+            }}
+            className={cn(
+              "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors",
+              activeSeatId === s.id ? "bg-primary/10" : "hover:bg-card/50",
+            )}
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Bot className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-body">{s.label}</p>
+              <p className="truncate text-[10px] text-muted-foreground">@{s.handle}</p>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveSeat(s.id);
+              }}
+              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+              aria-label={`Remove ${s.label}`}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
       </div>
 
-      {humanMembers.map((m) => (
-        <div key={m.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5">
-          <MemberAvatar member={m} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm text-body">{m.label}</p>
-            <p className="truncate text-[10px] text-muted-foreground">member - messaging soon</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => onRemoveHumanMember(m.id)}
-            className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-            aria-label={`Remove ${m.label}`}
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      ))}
+      <div className="mt-2 space-y-1 border-t border-border/40 pt-2">
+        <Popover open={addOpen} onOpenChange={setAddOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
+            >
+              <Plus className="h-4 w-4 shrink-0" /> Add AI seat
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="p-0">
+            <AddSeatForm
+              connectedSlugs={connectedSlugs}
+              onAdd={(slug, model) => {
+                onAddSeat(slug, model);
+                setAddOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
 
-      {seats.map((s) => (
-        <div
-          key={s.id}
-          role="button"
-          tabIndex={0}
-          onClick={() => onSelectSeat(s)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onSelectSeat(s);
-            }
-          }}
-          className={cn(
-            "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors",
-            activeSeatId === s.id ? "bg-primary/10" : "hover:bg-card/50",
-          )}
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-            <Bot className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm text-body">{s.label}</p>
-            <p className="truncate text-[10px] text-muted-foreground">@{s.handle}</p>
-          </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemoveSeat(s.id);
-            }}
-            className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-            aria-label={`Remove ${s.label}`}
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      ))}
-
-      <Popover open={addOpen} onOpenChange={setAddOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="mt-1 flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
-          >
-            <Plus className="h-4 w-4 shrink-0" /> Add AI seat
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="p-0">
-          <AddSeatForm
-            onAdd={(slug, model) => {
-              onAddSeat(slug, model);
-              setAddOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-
-      <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
-          >
-            <UserPlus className="h-4 w-4 shrink-0" /> Invite member
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="p-0">
-          <InviteMemberForm
-            accessToken={accessToken}
-            added={humanMembers}
-            onAdd={(member) => {
-              onAddHumanMember(member);
-              setInviteOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
+        <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
+            >
+              <UserPlus className="h-4 w-4 shrink-0" /> Invite member
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="p-0">
+            <InviteMemberForm
+              accessToken={accessToken}
+              added={humanMembers}
+              onAdd={(member) => {
+                onAddHumanMember(member);
+                setInviteOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </aside>
   );
 }
