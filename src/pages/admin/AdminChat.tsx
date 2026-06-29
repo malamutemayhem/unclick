@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import { useSession } from "@/lib/auth";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
+import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import type { HumanMember } from "@/components/admin/chatMembers";
 import {
@@ -56,6 +57,15 @@ function loadSeats(): AiSeat[] {
   }
 }
 
+// Shape of a persisted row from /api/chat-threads?action=messages.
+interface ThreadMessageRow {
+  id: string;
+  sender_id?: string | null;
+  sender_kind?: string | null;
+  model?: string | null;
+  content?: string | null;
+}
+
 export default function AdminChatPage() {
   const { user, session } = useSession();
   const accessToken = session?.access_token ?? null;
@@ -72,11 +82,148 @@ export default function AdminChatPage() {
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatRef = useRef<AiSeat | null>(null);
 
+  // Sessions (threads). Each is endless; "New session" starts a fresh one.
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const activeThreadRef = useRef<string | null>(null);
+  activeThreadRef.current = activeThreadId;
+  const didInit = useRef(false);
+
   const transport = useMemo(() => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }), []);
-  const { messages, sendMessage, status, stop, error } = useChat({ transport });
+  const { messages, sendMessage, status, stop, error, setMessages } = useChat({ transport });
   const busy = status === "submitted" || status === "streaming";
 
   const activeSeat = seats.find((s) => s.id === activeSeatId) ?? seats[0] ?? null;
+
+  function authHeaders(json = false): Record<string, string> {
+    const h: Record<string, string> = {};
+    if (accessToken) h.Authorization = `Bearer ${accessToken}`;
+    if (json) h["Content-Type"] = "application/json";
+    return h;
+  }
+
+  async function refreshThreads() {
+    if (!accessToken) return;
+    try {
+      const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+      const b = await r.json().catch(() => ({}));
+      if (r.ok && Array.isArray(b.threads)) setThreads(b.threads as ChatThread[]);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function selectThread(id: string) {
+    setActiveThreadId(id);
+    if (!accessToken) return;
+    try {
+      const r = await fetch(
+        `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(id)}`,
+        { headers: authHeaders() },
+      );
+      const b = await r.json().catch(() => ({}));
+      const rows: ThreadMessageRow[] = r.ok && Array.isArray(b.messages) ? b.messages : [];
+      const ui: UIMessage[] = rows.map((m) => ({
+        id: m.id,
+        role: m.sender_kind === "human" ? "user" : "assistant",
+        parts: [{ type: "text", text: m.content ?? "" }],
+      }));
+      setMessages(ui);
+      const attribution: Record<string, string> = {};
+      for (const m of rows) {
+        if (m.sender_kind !== "human") attribution[m.id] = m.sender_id || m.model || "AI";
+      }
+      setSeatByMsg(attribution);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function newSession() {
+    setMessages([]);
+    setSeatByMsg({});
+    setActiveThreadId(null);
+    if (!accessToken) return;
+    try {
+      const r = await fetch("/api/chat-threads?action=create", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({}),
+      });
+      const b = await r.json().catch(() => ({}));
+      if (r.ok && b.id) {
+        setActiveThreadId(b.id as string);
+        await refreshThreads();
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function renameThread(id: string, title: string) {
+    setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, title } : t)));
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=update", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id, title }),
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function togglePin(id: string, pinned: boolean) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=update", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id, pinned }),
+      });
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function deleteThread(id: string) {
+    if (!accessToken) return;
+    try {
+      await fetch("/api/chat-threads?action=delete", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ thread_id: id }),
+      });
+      if (activeThreadRef.current === id) {
+        setActiveThreadId(null);
+        setMessages([]);
+        setSeatByMsg({});
+      }
+      await refreshThreads();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // On first load, list sessions and reopen the most recent one.
+  useEffect(() => {
+    if (!accessToken || didInit.current) return;
+    didInit.current = true;
+    void (async () => {
+      try {
+        const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+        const b = await r.json().catch(() => ({}));
+        const list: ChatThread[] = r.ok && Array.isArray(b.threads) ? b.threads : [];
+        setThreads(list);
+        if (list.length > 0) void selectThread(list[0].id);
+      } catch {
+        /* ignore */
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   // Attribute each assistant turn to the seat it was sent to, as it arrives.
   useEffect(() => {
@@ -135,21 +282,57 @@ export default function AdminChatPage() {
     return { seat: activeSeat, text };
   }
 
-  function onSend() {
+  async function onSend() {
     const raw = input.trim();
     if (!raw || !apiKey || busy) return;
     const { seat, text } = resolveTarget(raw);
     if (!seat) return;
     targetSeatRef.current = seat;
     setActiveSeatId(seat.id);
+    const content = text.trim() || raw;
     setInput("");
+
+    // Ensure a session exists (create one on the first turn).
+    let tid = activeThreadRef.current;
+    if (!tid && accessToken) {
+      try {
+        const r = await fetch("/api/chat-threads?action=create", {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({}),
+        });
+        const b = await r.json().catch(() => ({}));
+        if (r.ok && b.id) {
+          tid = b.id as string;
+          setActiveThreadId(tid);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // Persist the human turn (this also auto-titles the session server-side).
+    if (tid && accessToken) {
+      try {
+        await fetch("/api/chat-threads?action=append", {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({ thread_id: tid, content }),
+        });
+      } catch {
+        /* ignore */
+      }
+    }
+
     sendMessage(
-      { text: text.trim() || raw },
+      { text: content },
       {
         headers: { Authorization: `Bearer ${apiKey}` },
-        body: { slug: seat.slug, model: seat.model, lane: "api" },
+        body: { slug: seat.slug, model: seat.model, lane: "api", thread_id: tid ?? undefined },
       },
     );
+
+    void refreshThreads();
   }
 
   const totalTokens = messages.reduce((sum, m) => sum + estimateTokens(messageText(m.parts)), 0);
@@ -233,7 +416,7 @@ export default function AdminChatPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  onSend();
+                  void onSend();
                 }
               }}
               rows={2}
@@ -258,7 +441,7 @@ export default function AdminChatPage() {
             ) : (
               <button
                 type="button"
-                onClick={onSend}
+                onClick={() => void onSend()}
                 disabled={!canSend}
                 className="rounded-md bg-primary/90 px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-40"
               >
@@ -267,6 +450,16 @@ export default function AdminChatPage() {
             )}
           </div>
         </div>
+
+        <ChatSessionList
+          threads={threads}
+          activeThreadId={activeThreadId}
+          onNew={() => void newSession()}
+          onSelect={(id) => void selectThread(id)}
+          onRename={(id, title) => void renameThread(id, title)}
+          onTogglePin={(id, pinned) => void togglePin(id, pinned)}
+          onDelete={(id) => void deleteThread(id)}
+        />
       </div>
     </div>
   );
