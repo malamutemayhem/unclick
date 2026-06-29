@@ -182,7 +182,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Read and decrypt the provider key. Prefer the account-scoped (server-scheme)
   // row, which survives rotation and needs only a session. Fall back to a legacy
   // master-key-encrypted row when the caller sent a uc_/agt_ key.
-  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET;
+  // Fallback to a V2 name so a typo or stray character in the original env var
+  // name can be sidestepped without another code change.
+  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
   let providerKey: string | null = null;
   if (aiSecret) {
     try {
