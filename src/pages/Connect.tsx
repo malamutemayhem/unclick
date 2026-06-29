@@ -64,6 +64,16 @@ function serverProvidesOAuthClientId(slug: string): boolean {
   return SERVER_OAUTH_CLIENT_ID_SLUGS.has(slug);
 }
 
+// Client-side mirror of the server UNCLICK_LOGIN_CONNECT_ENABLED flag (default
+// OFF). When on AND the visitor is logged in, the connect flow authenticates
+// with the Supabase session (Authorization: Bearer access_token) and never asks
+// for a pasted UnClick api key. The server enforces its own flag independently;
+// the manual paste + api_key fallback below stays available either way.
+function loginConnectFlagEnabled(): boolean {
+  const v = String(VITE_ENV.VITE_UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
 function buildOAuthUrl(
   connector: ConnectorConfig,
@@ -229,6 +239,11 @@ export default function ConnectPage() {
 
   const { session } = useSession();
 
+  // Login-connect: with the flag on and a live session, connect calls are
+  // authed by the session JWT and the pasted-key gate is hidden. The api-key
+  // paste path stays as the fallback when there is no session.
+  const loginConnect = Boolean(session) && loginConnectFlagEnabled();
+
   async function handleMintKey() {
     if (!session) return;
     setMintingKey(true);
@@ -318,7 +333,9 @@ export default function ConnectPage() {
     }
 
     const currentApiKey = apiKey || getApiKey();
-    if (!currentApiKey) {
+    // Login-connect: the session JWT authenticates the callback, so no pasted
+    // key is needed. Otherwise fall back to requiring the api key.
+    if (!loginConnect && !currentApiKey) {
       setPageState({
         kind:    "error",
         message: "No private UnClick account key found. Add the key below and try again.",
@@ -332,16 +349,20 @@ export default function ConnectPage() {
       platform: connector.slug,
       code,
       state: stateParam,
-      api_key:  currentApiKey,
     };
+    // api_key only on the fallback path; never sent when authing by session.
+    if (!loginConnect) body.api_key = currentApiKey;
     const storedStore = sessionStorage.getItem("shopify_store");
     if (connector.slug === "shopify" && storedStore) {
       body.store = storedStore;
     }
 
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (loginConnect && session) headers.Authorization = `Bearer ${session.access_token}`;
+
     fetch("/api/oauth-callback", {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body:    JSON.stringify(body),
     })
       .then(async (res) => {
@@ -357,7 +378,7 @@ export default function ConnectPage() {
         const message = err instanceof Error ? err.message : "Network error.";
         setPageState({ kind: "error", message });
       });
-  }, [code, connector, stateParam, apiKey]);
+  }, [code, connector, stateParam, apiKey, loginConnect, session]);
 
   // -- Loading / unknown service --------------------------------------------
   if (!connector) {
@@ -476,25 +497,32 @@ export default function ConnectPage() {
   async function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault();
     const currentApiKey = apiKey.trim();
-    if (!currentApiKey) {
+    // Login-connect: the session JWT authenticates the save, so no pasted key
+    // is required. Otherwise the api key is still mandatory (original path).
+    if (!loginConnect && !currentApiKey) {
       setPageState({ kind: "error", message: "Private UnClick account key is required." });
       return;
     }
 
     setPageState({ kind: "connecting" });
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (loginConnect && session) headers.Authorization = `Bearer ${session.access_token}`;
+      const payload: Record<string, unknown> = {
+        platform:    connector.slug,
+        credentials: fieldValues,
+      };
+      // api_key only on the fallback path; never sent when authing by session.
+      if (!loginConnect) payload.api_key = currentApiKey;
+
       const res = await fetch("/api/credentials", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          platform:    connector.slug,
-          credentials: fieldValues,
-          api_key:     currentApiKey,
-        }),
+        headers,
+        body:    JSON.stringify(payload),
       });
       const data = (await safeJson(res)) as { success?: boolean; error?: string };
       if (res.ok && data.success) {
-        localStorage.setItem("unclick_api_key", currentApiKey);
+        if (!loginConnect && currentApiKey) localStorage.setItem("unclick_api_key", currentApiKey);
         setPageState({ kind: "success" });
       } else {
         setPageState({ kind: "error", message: data.error ?? "Failed to save credentials." });
@@ -514,14 +542,19 @@ export default function ConnectPage() {
     if (connector.slug === "shopify" && !normalizedStore) return;
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (loginConnect && session) headers.Authorization = `Bearer ${session.access_token}`;
+      const initBody: Record<string, unknown> = {
+        platform: connector.slug,
+        ...(normalizedStore ? { store: normalizedStore } : {}),
+      };
+      // api_key only on the fallback path; never sent when authing by session.
+      if (!loginConnect) initBody.api_key = apiKey.trim();
+
       const res = await fetch("/api/oauth-init", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          platform: connector.slug,
-          api_key:  apiKey.trim(),
-          ...(normalizedStore ? { store: normalizedStore } : {}),
-        }),
+        headers,
+        body:    JSON.stringify(initBody),
       });
 
       const data = (await safeJson(res)) as OAuthInitResponse;
@@ -584,8 +617,16 @@ export default function ConnectPage() {
   return (
     <ConnectShell connector={connector}>
       <div className="space-y-6">
-        {/* Account-key onboarding. */}
-        {session && !apiKey ? (
+        {/* Account-key onboarding. Hidden on the login-connect path: a logged-in
+            session is enough, so no key is pasted or minted in the browser. */}
+        {loginConnect ? (
+          <div className="rounded-lg border border-border/60 bg-card/40 p-4">
+            <p className="text-xs text-body leading-relaxed">
+              You are signed in. UnClick will save this app login to your account
+              automatically. No private UnClick account key needed here.
+            </p>
+          </div>
+        ) : session && !apiKey ? (
           <div className="space-y-3">
             <p className="text-xs text-body leading-relaxed">
               This connects {connector.name} to your UnClick account, not directly
@@ -777,7 +818,7 @@ export default function ConnectPage() {
                   setSetupPending(null);
                   void handleOAuthConnect();
                 }}
-                disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
+                disabled={(!loginConnect && !apiKey.trim()) || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
                 {oauthLoginReady ? `Continue to ${connector.name} login` : `Connect with ${connector.name}`}
               </Button>
@@ -822,7 +863,7 @@ export default function ConnectPage() {
               <Button
                 type="submit"
                 className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
-                disabled={!apiKey.trim() || !allFieldsFilled}
+                disabled={(!loginConnect && !apiKey.trim()) || !allFieldsFilled}
               >
                 Save token fallback
               </Button>
@@ -843,7 +884,7 @@ export default function ConnectPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
-              disabled={!apiKey.trim() || !allFieldsFilled}
+              disabled={(!loginConnect && !apiKey.trim()) || !allFieldsFilled}
             >
               Save credentials
             </Button>
