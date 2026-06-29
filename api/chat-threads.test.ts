@@ -67,6 +67,9 @@ interface RouteConfig {
   acceptedLink?: boolean;
   // target lane resolution (null = not provisioned)
   targetLane?: string | null;
+  // remove_member: the target's membership row on THIS thread (any status).
+  // undefined => no row at all (404 not_a_member).
+  targetMembership?: { role: "owner" | "admin" | "member"; status: "invited" | "active" | "left" } | null;
   // capture sink for inserts/patches
   calls: Array<{ url: string; method: string; body: unknown }>;
 }
@@ -101,6 +104,19 @@ function stubFetch(cfg: RouteConfig) {
       // caller active membership lookup
       if (url.includes("/chat_room_members?") && url.includes("member_lane_hash=eq.") && url.includes("status=eq.active") && method === "GET") {
         return jsonRes(cfg.callerMembership ? [{ id: "m-1", thread_id: "thread-1", member_lane_hash: CALLER_LANE, role: cfg.callerMembership.role, status: "active" }] : []);
+      }
+      // target membership lookup (remove_member: fetchMemberByLane, no status filter)
+      if (
+        url.includes("/chat_room_members?") &&
+        url.includes(`member_lane_hash=eq.${TARGET_LANE}`) &&
+        !url.includes("status=eq.active") &&
+        method === "GET"
+      ) {
+        return jsonRes(
+          cfg.targetMembership
+            ? [{ id: "m-target", thread_id: "thread-1", member_lane_hash: TARGET_LANE, role: cfg.targetMembership.role, status: cfg.targetMembership.status }]
+            : [],
+        );
       }
       // accepted Circle link lookup
       if (url.includes("/account_links?") && url.includes("status=eq.accepted")) {
@@ -268,5 +284,90 @@ describe("chat-threads shared rooms", () => {
     );
 
     expect(res.statusCode).toBe(200);
+  });
+
+  it("remove_member returns 403 when the target is the room owner", async () => {
+    // Caller is the owner; the target's membership row is also 'owner'.
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      targetMembership: { role: "owner", status: "active" },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "POST", query: { action: "remove_member" }, headers: auth, body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE } } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toMatchObject({ error: "cannot_remove_owner" });
+    // No PATCH to 'left' should be issued for the owner.
+    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+  });
+
+  it("remove_member returns 404 when the target is not a member of the thread", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      targetMembership: null,
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "POST", query: { action: "remove_member" }, headers: auth, body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE } } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body).toMatchObject({ error: "not_a_member" });
+    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+  });
+
+  it("a non-member is rejected (403) from update", async () => {
+    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: null };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "POST", query: { action: "update" }, headers: auth, body: { thread_id: "thread-1", title: "Hijack" } } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(403);
+    // No PATCH to chat_threads should be issued for a non-member.
+    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_threads"))).toBeUndefined();
+  });
+
+  it("a non-member is rejected (403) from delete", async () => {
+    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: null };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "POST", query: { action: "delete" }, headers: auth, body: { thread_id: "thread-1" } } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(403);
+    // No DELETE should be issued for a non-member.
+    expect(cfg.calls.find((c) => c.method === "DELETE")).toBeUndefined();
+  });
+
+  it("append by a member stamps the message with the owner's lane, not the member's", async () => {
+    // The caller is an active member of a room owned by someone else. The
+    // inserted message must carry the OWNER's lane as api_key_hash so the
+    // shared stream stays unified under one tenant key.
+    const cfg: RouteConfig = { calls: [], threadOwner: "lane_owner", callerMembership: { role: "member" } };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "POST", query: { action: "append" }, headers: auth, body: { thread_id: "thread-1", content: "hello room" } } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const insert = cfg.calls.find((c) => c.url.includes("/chat_thread_messages") && c.method === "POST");
+    expect(insert).toBeTruthy();
+    expect(insert!.body).toMatchObject({ api_key_hash: "lane_owner", thread_id: "thread-1", sender_kind: "human" });
+    expect((insert!.body as { api_key_hash: string }).api_key_hash).not.toBe(CALLER_LANE);
   });
 });

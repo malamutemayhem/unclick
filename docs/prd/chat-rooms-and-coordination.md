@@ -165,6 +165,13 @@ toggles.
   the membership row. The human-to-human RELATIONSHIP is always governed by Circle, and
   any permission affordance in chat deep-links back to the Circle permissions submenu.
 
+**Resolved (security review, group-room foundation):** An accepted Circle link is the
+sufficient gate to add a human to a room (the handshake). `shared_chat` is reserved as a
+future opt-out control (allow/deny room invites from a contact), defaulting to allowed; it
+is not an additional precondition, to honor the no-hidden-toggles rule. Existing
+pre-migration links have no `shared_chat` row and need no backfill because membership does
+not gate on it.
+
 ---
 
 ## 7. Responder management (the "pin in" model)
