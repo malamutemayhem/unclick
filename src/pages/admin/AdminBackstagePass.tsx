@@ -47,12 +47,12 @@ function Benefit({
   body: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
+    <div className="rounded-xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5">
       <div className="flex items-center gap-2 text-sm font-semibold text-white">
         <Icon className="h-4 w-4 shrink-0" style={{ color: YELLOW }} />
         {title}
       </div>
-      <div className="mt-2 text-xs leading-relaxed text-[#9aa]">{body}</div>
+      <div className="mt-2 text-xs leading-relaxed text-[#9fb3b4]">{body}</div>
     </div>
   );
 }
@@ -236,7 +236,7 @@ export default function AdminBackstagePass() {
       {/* Link to Passport for actual credential management */}
       <Link
         to="/admin/keychain"
-        className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 transition-colors hover:border-[#E2B93B]/30 hover:bg-white/[0.05]"
+        className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5 transition-colors hover:border-[#61C1C4]/40 hover:bg-[#61C1C4]/[0.1]"
       >
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: YELLOW }} />
