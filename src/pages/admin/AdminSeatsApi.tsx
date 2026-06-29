@@ -70,6 +70,20 @@ interface AuditEntry {
   created_at: string;
 }
 
+// Account-scoped AI provider key (enc_scheme='server'): saved by login, encrypted
+// with a server secret, and unaffected by master-key rotation. Listed and deleted
+// through /api/ai-provider-key, not the BackstagePass surface.
+interface ServerProviderKey {
+  id: string;
+  platform_slug: string;
+  label: string | null;
+  is_valid: boolean | null;
+  last_tested_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const AI_PROVIDER_CATALOG = [
   { slug: "anthropic", name: "Anthropic", desc: "Claude API keys", placeholder: "sk-ant-..." },
   { slug: "openai", name: "OpenAI", desc: "GPT and embeddings", placeholder: "sk-..." },
@@ -167,15 +181,34 @@ export default function AdminSeatsApi() {
   const [auditTarget, setAuditTarget] = useState<Credential | null>(null);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[] | null>(null);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [serverKeys, setServerKeys] = useState<ServerProviderKey[]>([]);
+  const [serverKeyError, setServerKeyError] = useState<string | null>(null);
+  const [deletingServerKey, setDeletingServerKey] = useState<Record<string, boolean>>({});
 
   const fetchCredentials = useCallback(async () => {
     if (!accessToken) {
       setCredentials([]);
+      setServerKeys([]);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
+    // Account-scoped AI keys (server-scheme) load independently, so a BackstagePass
+    // hiccup never hides them and vice versa.
+    try {
+      const sres = await fetch("/api/ai-provider-key", { headers: authHeader });
+      const sbody = await sres.json().catch(() => ({}));
+      if (sres.ok) {
+        setServerKeys(Array.isArray(sbody.providers) ? sbody.providers : []);
+        setServerKeyError(null);
+      } else {
+        setServerKeys([]);
+        setServerKeyError(sbody.error ?? null);
+      }
+    } catch {
+      setServerKeys([]);
+    }
     try {
       const response = await fetch("/api/backstagepass?action=list", { headers: authHeader });
       const body = await response.json().catch(() => ({}));
@@ -187,6 +220,24 @@ export default function AdminSeatsApi() {
       setLoading(false);
     }
   }, [accessToken, authHeader]);
+
+  async function deleteServerKey(id: string) {
+    setDeletingServerKey((current) => ({ ...current, [id]: true }));
+    setServerKeyError(null);
+    try {
+      const response = await fetch(`/api/ai-provider-key?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: authHeader,
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error ?? `Delete failed with ${response.status}`);
+      await fetchCredentials();
+    } catch (deleteError) {
+      setServerKeyError(deleteError instanceof Error ? deleteError.message : "Delete failed.");
+    } finally {
+      setDeletingServerKey((current) => ({ ...current, [id]: false }));
+    }
+  }
 
   useEffect(() => {
     void fetchCredentials();
@@ -237,7 +288,10 @@ export default function AdminSeatsApi() {
   }), [aiCredentials]);
 
   const attentionCount = aiCredentials.length - healthCounts.healthy;
-  const providerCount = new Set(aiCredentials.map((credential) => credential.platform)).size;
+  const providerCount = new Set([
+    ...aiCredentials.map((credential) => credential.platform),
+    ...serverKeys.map((key) => key.platform_slug),
+  ]).size;
 
   async function handleReveal(credential: Credential) {
     const localApiKey = readLocalApiKey();
@@ -375,19 +429,35 @@ export default function AdminSeatsApi() {
           {error}
         </div>
       )}
+      {serverKeyError && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
+          {serverKeyError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 py-12 text-[#666]">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Loading API providers...</span>
         </div>
-      ) : aiCredentials.length === 0 ? (
+      ) : aiCredentials.length === 0 && serverKeys.length === 0 ? (
         <EmptyState onAdd={() => setAddOpen(true)} />
       ) : (
-        <section className="space-y-3">
+        <div className="space-y-6">
+          {serverKeys.length > 0 && (
+            <ServerKeysSection
+              serverKeys={serverKeys}
+              deleting={deletingServerKey}
+              onDelete={(id) => void deleteServerKey(id)}
+              onRefresh={() => void fetchCredentials()}
+            />
+          )}
+
+          {aiCredentials.length > 0 && (
+          <section className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-white">AI provider keys</h2>
+              <h2 className="text-sm font-semibold text-white">Passport AI credentials</h2>
               <p className="mt-0.5 text-xs text-[#666]">
                 Passport credentials filtered to API-key-based AI providers.
               </p>
@@ -423,7 +493,9 @@ export default function AdminSeatsApi() {
               />
             ))}
           </div>
-        </section>
+          </section>
+          )}
+        </div>
       )}
 
       {addOpen && (
@@ -521,6 +593,121 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 
 function displayName(credential: Credential): string {
   return credential.connector?.name ?? providerFor(credential.platform)?.name ?? credential.platform;
+}
+
+// Account-scoped AI provider keys (server-scheme). These survive key rotation and
+// need only a login, so they get a dedicated section with a simple delete.
+function ServerKeysSection({
+  serverKeys,
+  deleting,
+  onDelete,
+  onRefresh,
+}: {
+  serverKeys: ServerProviderKey[];
+  deleting: Record<string, boolean>;
+  onDelete: (id: string) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-white">AI provider keys</h2>
+          <p className="mt-0.5 text-xs text-[#666]">
+            Saved to your account, encrypted server-side, and unaffected by key rotation. To replace
+            one, add it again with the same provider and label.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="inline-flex w-fit items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-[#aaa] transition-colors hover:border-[#61C1C4]/40 hover:text-white"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        {serverKeys.map((item) => (
+          <ServerKeyRow
+            key={item.id}
+            item={item}
+            deleting={Boolean(deleting[item.id])}
+            onDelete={() => onDelete(item.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ServerKeyRow({
+  item,
+  deleting,
+  onDelete,
+}: {
+  item: ServerProviderKey;
+  deleting: boolean;
+  onDelete: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const name = providerFor(item.platform_slug)?.name ?? item.platform_slug;
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-[#61C1C4]" />
+            <span className="truncate text-sm font-semibold text-white">{name}</span>
+            {item.label && <span className="truncate text-xs text-[#666]">/ {item.label}</span>}
+          </div>
+          <p className="mt-1 text-[11px] text-[#666]">
+            Added {timeAgo(item.created_at)}
+            {item.last_used_at ? ` - last used ${timeAgo(item.last_used_at)}` : ""}
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-green-500/20 bg-green-500/10 px-2 py-1 text-[10px] font-medium text-green-400">
+          <CheckCircle2 className="h-3 w-3" />
+          Connected
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-end gap-2">
+        {confirming ? (
+          <>
+            <span className="mr-auto text-[11px] text-[#888]">Delete this key?</span>
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleting}
+              className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+            >
+              {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+              Yes, delete
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              disabled={deleting}
+              className="rounded-md border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[#aaa] transition-colors hover:text-white disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-medium text-[#aaa] transition-colors hover:border-red-500/40 hover:text-red-400"
+          >
+            <Trash2 className="h-3 w-3" />
+            Delete
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function CredentialCard({
@@ -755,11 +942,6 @@ function AddProviderModal({
   const provider = providerFor(providerSlug) ?? AI_PROVIDER_CATALOG[0];
 
   async function save() {
-    const localApiKey = readLocalApiKey();
-    if (!localApiKey) {
-      setError("No UnClick API key is cached in this browser. Re-issue it from You first.");
-      return;
-    }
     if (!secret.trim()) {
       setError("API key is required.");
       return;
@@ -767,14 +949,15 @@ function AddProviderModal({
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/backstagepass?action=add", {
+      // Account-scoped, login-authed save: no cached UnClick key needed, and the
+      // key survives master-key rotation (see api/ai-provider-key.ts).
+      const response = await fetch("/api/ai-provider-key", {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
           platform: providerSlug,
           label: label.trim() || null,
-          api_key: localApiKey,
-          values: { api_key: secret.trim() },
+          api_key: secret.trim(),
         }),
       });
       const body = await response.json().catch(() => ({}));
