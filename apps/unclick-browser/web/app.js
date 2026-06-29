@@ -434,23 +434,19 @@
   }
 
   // Bot-walls / challenge pages (Cloudflare, captcha) have no readable content.
-  // Showing them in Zen is pointless - flip to the live view so the WebView can
-  // pass the check and reach the real page.
+  // Showing them in Zen is pointless - hand the user to a real browser that can
+  // actually complete the check.
   function looksBlocked(html) {
     if (!html) return false;
     var head = html.slice(0, 4000).toLowerCase();
-    return /attention required! \| cloudflare|just a moment\.\.\.|cf-browser-verification|cf-challenge|checking your browser before|verify you are (a )?human|recaptcha|hcaptcha|you have been blocked|access to this page has been denied|please enable (javascript|js) and cookies/.test(head);
+    return /attention required! \| cloudflare|just a moment\.\.\.|cf-browser-verification|cf-challenge|checking your browser before|verify you are (a )?human|recaptcha|hcaptcha|smartcaptcha|(are|am) not a robot|requests sent from your device are automated|you have been blocked|access to this page has been denied|please enable (javascript|js) and cookies/.test(head);
   }
 
   function renderZen(t) {
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
+    if (looksBlocked(t.html)) { renderUnsupported(t, "wall"); renderTabs(); syncChrome(); return; }
     if (isWebApp(t.host, t.html)) { renderUnsupported(t); return; }
-    if (looksBlocked(t.html)) {
-      t.mode = "native"; renderNative(t); renderTabs(); syncChrome();
-      flash("Opened live - this site needs a browser check");
-      return;
-    }
     if (tryEngineListing(t)) return;
     var built = buildReader(t.html, t.final || t.url);
     if (built.thin) {
@@ -489,19 +485,40 @@
     }
     return false;
   }
-  function renderUnsupported(t) {
+  // Hand a URL off to the user's real default browser (interactive pages that
+  // the fetch-and-iframe view cannot run: web apps, captchas, logins).
+  function openExternal(url) {
+    if (!url) return;
+    if (invoke) { invoke("open_external", { url: url }).catch(function () { try { window.open(url, "_blank"); } catch (e) {} }); }
+    else { try { window.open(url, "_blank"); } catch (e) {} }
+  }
+  // reason: "webapp" = google/mail/social shell, "wall" = captcha/login check.
+  function renderUnsupported(t, reason) {
+    t.mode = "zen";                 // the panel is a calm read, never the native frame
     setMode("zen");
     var host = t.host || hostOf(t.final || t.url) || "This site";
     var url = t.final || t.url || "";
     reader.innerHTML = "";
     var w = document.createElement("div"); w.className = "welcome";
+    w.style.cssText = "max-width:680px;margin:56px auto;padding:0 24px;";  // stay centered in any layout
     var k = document.createElement("p"); k.className = "kicker"; k.textContent = "UnClick / Browser"; w.appendChild(k);
-    var h = document.createElement("h1"); h.textContent = host + " is a web app"; w.appendChild(h);
+    var h = document.createElement("h1");
     var p1 = document.createElement("p"); p1.className = "soft";
-    p1.textContent = "UnClick rebuilds article and listing pages into a calm read. This one runs entirely in the browser and refuses to be embedded, so there is nothing to simplify or show in-app. Open it in your main browser:";
-    w.appendChild(p1);
-    var p2 = document.createElement("p"); p2.className = "soft";
-    var a = document.createElement("a"); a.className = "live"; a.href = url; a.textContent = url; a.target = "_blank"; a.rel = "noreferrer";
+    if (reason === "wall") {
+      h.textContent = host + " needs a real browser";
+      p1.textContent = "This page is a sign-in or anti-bot check (captcha) that has to run in a full browser to complete. UnClick shows pages as a calm read, so it cannot solve it here. Open it in your main browser:";
+    } else {
+      h.textContent = host + " is a web app";
+      p1.textContent = "UnClick rebuilds article and listing pages into a calm read. This one runs entirely in the browser and refuses to be embedded, so there is nothing to simplify or show in-app. Open it in your main browser:";
+    }
+    w.appendChild(h); w.appendChild(p1);
+    var btn = document.createElement("button"); btn.textContent = "Open in your browser";
+    btn.style.cssText = "margin:4px 0 14px;padding:10px 18px;font-size:14px;font-weight:600;border-radius:10px;border:0;background:var(--accent,#3b82f6);color:#fff;cursor:pointer;";
+    btn.addEventListener("click", function () { openExternal(url); });
+    w.appendChild(btn);
+    var p2 = document.createElement("p"); p2.className = "soft"; p2.style.cssText = "font-size:13px;opacity:0.6;word-break:break-all;";
+    var a = document.createElement("a"); a.className = "live"; a.href = url; a.textContent = url;
+    a.addEventListener("click", function (e) { e.preventDefault(); openExternal(url); });
     p2.appendChild(a); w.appendChild(p2);
     reader.appendChild(w);
     setStatus(""); scrollTop();

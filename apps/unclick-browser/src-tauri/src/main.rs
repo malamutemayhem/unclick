@@ -36,6 +36,17 @@ async fn fetch_url(url: String) -> Result<Page, String> {
     Ok(Page { final_url, html })
 }
 
+// Open a URL in the user's real default browser. The fetch-and-iframe view
+// cannot run interactive pages (captchas, logins, web apps); this hands those
+// off to a full browser where they actually work.
+#[tauri::command]
+fn open_external(url: String) -> Result<(), String> {
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err("only http(s) urls are allowed".into());
+    }
+    open::that(url).map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -52,7 +63,7 @@ fn main() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![fetch_url])
+        .invoke_handler(tauri::generate_handler![fetch_url, open_external])
         .run(tauri::generate_context!())
         .expect("error while running UnClick Browser");
 }
