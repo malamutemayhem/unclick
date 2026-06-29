@@ -158,8 +158,8 @@ describe("AdminSeatsApi", () => {
     // The server-scheme key shows up even though BackstagePass returns nothing.
     expect(await screen.findByText("OpenRouter")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
-    fireEvent.click(screen.getByRole("button", { name: "Yes, delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete key" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/ai-provider-key?id=srv-1",
